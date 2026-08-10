@@ -3,7 +3,7 @@ import CryptoKit
 import Security
 
 @MainActor
-final class CompanionConnection: NSObject, URLSessionDelegate, URLSessionWebSocketDelegate {
+final class CompanionConnection: NSObject, @preconcurrency URLSessionDelegate, @preconcurrency URLSessionWebSocketDelegate {
     enum Mode { case authenticate, pair(String) }
 
     private unowned let store: CompanionStore
