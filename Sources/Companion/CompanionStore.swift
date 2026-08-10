@@ -63,11 +63,16 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func selectedApps() -> [LaunchableApp] { availableApps.filter { allowedBundleIdentifiers.contains($0.bundleIdentifier) } }
     func connect() { connection.connect(mode: .authenticate) }
-    func pair(code: String) { connection.connect(mode: .pair(code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased())) }
+    func pair(code: String, verificationCode: String) {
+        connection.connect(mode: .pair(
+            code: code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
+            verificationCode: verificationCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()))
+    }
 
     func forgetPanel() {
         KeychainStore.remove(service: KeychainStore.service, account: panelHost)
-        defaults.removeObject(forKey: Keys.fingerprint)
+        defaults.removeObject(forKey: "companion.certificateFingerprint.\(panelHost)")
+        defaults.removeObject(forKey: "companion.authenticationSequence.\(panelHost)")
         connection.disconnect()
         statusDescription = "Panel forgotten"
     }

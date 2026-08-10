@@ -37,6 +37,7 @@ private struct CompanionMenu: View {
 private struct CompanionSettings: View {
     @ObservedObject var store: CompanionStore
     @State private var pairingCode = ""
+    @State private var verificationCode = ""
 
     var body: some View {
         Form {
@@ -45,9 +46,10 @@ private struct CompanionSettings: View {
                 TextField("Panel name", text: $store.panelName)
                 HStack {
                     TextField("Pairing code", text: $pairingCode)
-                    Button("Pair") { store.pair(code: pairingCode) }
+                    TextField("Verification code", text: $verificationCode)
+                    Button("Pair") { store.pair(code: pairingCode, verificationCode: verificationCode) }
                 }
-                Text("On the display, start Companion pairing first. Enter the eight letters exactly as shown, including the dash.")
+                Text("On the display, start Companion pairing first. Enter both the eight-letter code and the Verify code exactly as shown.")
                     .font(.caption).foregroundStyle(.secondary)
                 if store.hasSavedPairing {
                     Button("Forget this panel", role: .destructive) { store.forgetPanel() }

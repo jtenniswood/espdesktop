@@ -4,14 +4,14 @@ import Security
 
 @MainActor
 final class CompanionConnection: NSObject, @preconcurrency URLSessionDelegate, @preconcurrency URLSessionWebSocketDelegate {
-    enum Mode { case authenticate, pair(String) }
+    enum Mode { case authenticate, pair(code: String, verificationCode: String) }
 
     private unowned let store: CompanionStore
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
     private var mode: Mode = .authenticate
     private var receiveTask: Task<Void, Never>?
-    private var sequence: UInt32 = 0
+    private var pendingCertificateFingerprint: String?
 
     init(store: CompanionStore) { self.store = store }
 
@@ -43,13 +43,13 @@ final class CompanionConnection: NSObject, @preconcurrency URLSessionDelegate, @
 
     func urlSession(_: URLSession, webSocketTask _: URLSessionWebSocketTask, didOpenWithProtocol _: String?) {
         switch mode {
-        case .pair(let code): send("PAIR|\(code)")
+        case .pair(let code, _): send("PAIR|\(code)")
         case .authenticate:
             guard let credential = KeychainStore.load(service: KeychainStore.service, account: store.panelHost) else {
                 store.updateStatus("Start pairing on the panel")
                 return
             }
-            sequence &+= 1
+            let sequence = nextAuthenticationSequence()
             let nonce = UUID().uuidString
             let signed = "AUTH|\(sequence)|\(nonce)"
             let key = SymmetricKey(data: credential)
@@ -70,15 +70,21 @@ final class CompanionConnection: NSObject, @preconcurrency URLSessionDelegate, @
             completionHandler(.performDefaultHandling, nil); return
         }
         let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data).map { String(format: "%02x", $0) }.joined()
-        let saved = UserDefaults.standard.string(forKey: "certificateFingerprint")
+        let saved = UserDefaults.standard.string(forKey: certificateFingerprintKey)
         if let saved, saved != fingerprint {
             store.updateStatus("Blocked: panel certificate changed")
             completionHandler(.cancelAuthenticationChallenge, nil)
-        } else {
-            // The first trust decision is deliberately reachable only from the
-            // physical pairing flow. Thereafter this exact certificate is pinned.
-            if saved == nil { UserDefaults.standard.set(fingerprint, forKey: "certificateFingerprint") }
+        } else if saved != nil {
             completionHandler(.useCredential, URLCredential(trust: trust))
+        } else if case let .pair(_, verificationCode) = mode,
+                  Self.normalizedVerificationCode(verificationCode) == Self.verificationCode(for: fingerprint) {
+            // Do not send the physical pairing code until the certificate has
+            // been independently matched against the value shown on the panel.
+            pendingCertificateFingerprint = fingerprint
+            completionHandler(.useCredential, URLCredential(trust: trust))
+        } else {
+            store.updateStatus("Blocked: panel verification code did not match")
+            completionHandler(.cancelAuthenticationChallenge, nil)
         }
     }
 
@@ -101,7 +107,11 @@ final class CompanionConnection: NSObject, @preconcurrency URLSessionDelegate, @
         switch type {
         case "PAIRED":
             guard parts.count == 2, let credential = Data(hex: parts[1]) else { store.updateStatus("Pairing failed"); return }
+            guard let fingerprint = pendingCertificateFingerprint else { store.updateStatus("Pairing verification failed"); return }
             KeychainStore.save(credential, service: KeychainStore.service, account: store.panelHost)
+            UserDefaults.standard.set(fingerprint, forKey: certificateFingerprintKey)
+            UserDefaults.standard.removeObject(forKey: authenticationSequenceKey)
+            pendingCertificateFingerprint = nil
             store.updateStatus("Paired — reconnecting")
             connect(mode: .authenticate)
         case "AUTHENTICATED":
@@ -128,6 +138,24 @@ final class CompanionConnection: NSObject, @preconcurrency URLSessionDelegate, @
     }
 
     private func send(_ value: String) { task?.send(.string(value)) { _ in } }
+
+    private var certificateFingerprintKey: String { "companion.certificateFingerprint.\(store.panelHost)" }
+    private var authenticationSequenceKey: String { "companion.authenticationSequence.\(store.panelHost)" }
+
+    private func nextAuthenticationSequence() -> UInt32 {
+        let previous = UInt32(clamping: UserDefaults.standard.integer(forKey: authenticationSequenceKey))
+        let next = previous &+ 1
+        UserDefaults.standard.set(Int(next), forKey: authenticationSequenceKey)
+        return next
+    }
+
+    private static func normalizedVerificationCode(_ value: String) -> String {
+        value.uppercased().filter { $0.isHexDigit }
+    }
+
+    private static func verificationCode(for fingerprint: String) -> String {
+        String(fingerprint.prefix(12)).uppercased()
+    }
 }
 
 private extension Data {
