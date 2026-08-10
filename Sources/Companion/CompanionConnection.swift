@@ -1,5 +1,5 @@
 import CryptoKit
-import Foundation
+@preconcurrency import Foundation
 import Security
 
 @MainActor
@@ -65,7 +65,8 @@ final class CompanionConnection: NSObject, URLSessionDelegate, URLSessionWebSock
     func urlSession(_: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
               let trust = challenge.protectionSpace.serverTrust,
-              let certificate = SecTrustGetCertificateAtIndex(trust, 0) else {
+              let certificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate],
+              let certificate = certificates.first else {
             completionHandler(.performDefaultHandling, nil); return
         }
         let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data).map { String(format: "%02x", $0) }.joined()
@@ -86,7 +87,7 @@ final class CompanionConnection: NSObject, URLSessionDelegate, URLSessionWebSock
             guard let self, let task = self.task else { return }
             do {
                 let message = try await task.receive()
-                if case .string(let value) = message { await self.handle(value) }
+                if case .string(let value) = message { self.handle(value) }
                 self.receive()
             } catch {
                 self.store.updateStatus("Connection ended")

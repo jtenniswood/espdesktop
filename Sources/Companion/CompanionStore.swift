@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Foundation
+import SwiftUI
 
 struct LaunchableApp: Identifiable, Hashable {
     let id: String                 // Opaque panel action id, not a file path.

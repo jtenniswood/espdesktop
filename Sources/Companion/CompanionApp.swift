@@ -45,7 +45,6 @@ private struct CompanionSettings: View {
                 TextField("Panel name", text: $store.panelName)
                 HStack {
                     TextField("Pairing code", text: $pairingCode)
-                        .textInputAutocapitalization(.characters)
                     Button("Pair") { store.pair(code: pairingCode) }
                 }
                 Text("On the display, start Companion pairing first. Enter the eight letters exactly as shown, including the dash.")
