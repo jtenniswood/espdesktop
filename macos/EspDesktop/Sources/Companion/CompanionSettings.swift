@@ -122,7 +122,7 @@ private struct CompanionAccessibilityToggle: View {
     let requestAccess: () -> Void
 
     var body: some View {
-        Toggle("Keyboard & Window Controls", isOn: Binding(
+        Toggle("Enable Keyboard Shortcuts", isOn: Binding(
             get: { isEnabled },
             set: { _ in requestAccess() }
         ))
@@ -684,7 +684,7 @@ struct CompanionSettings: View {
                     isEnabled: $store.shareSystemMetricsEnabled
                 )
                 CompanionPermissionRow(
-                    title: "Keyboard & Window Controls",
+                    title: "Enable Keyboard Shortcuts",
                     information: accessibilityGranted
                         ? "Keyboard shortcuts and window controls are enabled for your display."
                         : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.",
