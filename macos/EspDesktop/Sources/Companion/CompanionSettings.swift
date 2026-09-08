@@ -633,9 +633,9 @@ struct CompanionSettings: View {
         Form {
             Section("Support") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Help shape what’s next")
+                    Text("Enjoying EspDisplay?")
                         .font(.headline)
-                    Text("Enjoying EspDesktop? Buy me a coffee to support the time behind new features, improvements, and personal support. Every contribution helps keep the project moving. Thank you!")
+                    Text("Buy me a coffee to support the time behind new features, improvements, and personal support. Every contribution helps keep the project moving. Thank you!")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                     Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
