@@ -547,7 +547,7 @@ struct CompanionSettings: View {
 
     private var applicationsPage: some View {
         Form {
-            Section {
+            Section("Apps") {
                 HStack(spacing: 12) {
                     Toggle("Select All", isOn: selectAllBinding)
                         .toggleStyle(.checkbox)
@@ -588,7 +588,7 @@ struct CompanionSettings: View {
 
     private var foldersPage: some View {
         Form {
-            Section {
+            Section("Folders") {
                 if store.approvedFolders.isEmpty {
                     emptyState("Add Your First Folder", symbol: "folder.badge.plus",
                                detail: "Keep a project, documents, or downloads one tap away on your display.")
