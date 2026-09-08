@@ -1786,8 +1786,8 @@ async function assertVoiceClockBarPreview(page, label, supported) {
     `${label}: voice and network clock bar items are measurable`,
   );
   assert(
-    preview.voice.right <= preview.network.left + 1,
-    `${label}: voice mic is positioned to the left of connectivity`,
+    preview.network.right <= preview.voice.left + 1,
+    `${label}: connectivity is positioned to the left of the voice mic`,
   );
   assert(
     !preview.voice.className.includes("sp-clockbar-hidden"),
@@ -4203,7 +4203,7 @@ async function assertClockBarEditorSmoke(page, posts, label) {
   const fixedItems = [
     { selector: '[data-clockbar-item="temperature"]', section: "left" },
     { selector: '[data-clockbar-item="time"]', section: "middle" },
-    { selector: '[data-clockbar-item="network"]', section: "right" },
+    { selector: '[data-clockbar-item="network"]', section: "left" },
   ];
   for (const item of fixedItems) {
     const selector = `${item.selector}[data-clockbar-section="${item.section}"]`;
@@ -4579,7 +4579,7 @@ async function assertClockBarEditorSmoke(page, posts, label) {
 
   const topbarBox = await page.locator(".sp-topbar").boundingBox();
   const networkBox = await page
-    .locator('[data-clockbar-item="network"][data-clockbar-section="right"]')
+    .locator('[data-clockbar-item="network"][data-clockbar-section="left"]')
     .boundingBox();
   const firstCardBox = await page.locator(".sp-main > *").first().boundingBox();
   assert(

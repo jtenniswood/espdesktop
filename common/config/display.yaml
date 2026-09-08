@@ -130,19 +130,10 @@ script:
             return;
           }
 
-          // Visible status icons pack leftwards from the screen edge. Seed the
-          // network glyph only when it is shown so a hidden network icon does
-          // not leave an empty slot before optional icons.
+          // Optional status icons pack leftwards from the right edge.
+          // Connectivity occupies the left side beside the temperature.
           ClockBarRightIcons clock_bar_right_icons =
               clock_bar_right_icons_begin(clock_bar_right_x, 8);
-          if (show_network) {
-            int clock_bar_network_box = lv_obj_get_width(id(network_status_button));
-            clock_bar_right_icons_seed(
-                clock_bar_right_icons,
-                clock_bar_network_box,
-                clock_bar_glyph_width(id(network_status_icon_label),
-                                      clock_bar_network_box));
-          }
 
           apply_clock_bar_fixed_layout(
               id(temperatures),
@@ -154,7 +145,6 @@ script:
               show_network,
               clock_bar_screen_width >= 700 ? 8 : 6,
               clock_bar_label_y,
-              clock_bar_right_x,
               clock_bar_icon_y,
               ${clock_bar_item_gap});
 

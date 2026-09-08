@@ -591,7 +591,7 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
                                          bool time_visible,
                                          bool network_visible,
                                          int left_x, int label_y,
-                                         int right_x, int network_y,
+                                         int network_y,
                                          int item_gap) {
   int temperature_width = item_gap - 8;
   if (temperature_width < 56) temperature_width = 56;
@@ -610,7 +610,11 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
   clock_bar_set_widget_hidden(network_status_button, !network_visible);
 
   if (temperature_label) {
-    lv_obj_align(temperature_label, LV_ALIGN_TOP_LEFT, left_x, label_y);
+    int temperature_x = left_x;
+    if (network_visible && network_status_button) {
+      temperature_x += lv_obj_get_width(network_status_button) + 8;
+    }
+    lv_obj_align(temperature_label, LV_ALIGN_TOP_LEFT, temperature_x, label_y);
     lv_obj_move_background(temperature_label);
   }
   if (display_time) {
@@ -618,7 +622,7 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
     lv_obj_move_background(display_time);
   }
   if (network_status_button) {
-    lv_obj_align(network_status_button, LV_ALIGN_TOP_RIGHT, -right_x, network_y);
+    lv_obj_align(network_status_button, LV_ALIGN_TOP_LEFT, left_x, network_y);
     lv_obj_move_background(network_status_button);
   }
 }

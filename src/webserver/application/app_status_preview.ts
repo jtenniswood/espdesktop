@@ -165,7 +165,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         if (item === "voice")
             return "right";
         if (item === "network")
-            return "right";
+            return "left";
         return "left";
     }
     function clockBarItemActive(this: any, item?: any) {
@@ -236,9 +236,9 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         if (!els.clockBarSections)
             return;
         var layout: any = {
-            left: ["temperature"],
+            left: ["network", "temperature"],
             middle: ["time"],
-            right: voiceServicesUiState().clockBarItemVisible ? ["voice", "network"] : ["network"],
+            right: voiceServicesUiState().clockBarItemVisible ? ["voice"] : [],
         };
         els.clockBarItems = {};
         els.temps = {};
