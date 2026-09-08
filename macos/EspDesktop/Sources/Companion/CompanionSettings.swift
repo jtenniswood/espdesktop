@@ -264,11 +264,11 @@ struct CompanionSettings: View {
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
     @AppStorage("companion.onboarding.completed") private var onboardingCompleted = false
-    @AppStorage("settings.selectedPage") private var selectedPageID = CompanionSettingsPage.connection.rawValue
+    @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
-        if onboardingCompleted || store.helpRequestID != nil {
+        if onboardingCompleted || store.requestedSettingsPage == "help" {
             settingsContent
         } else {
             CompanionOnboarding(store: store) {
@@ -291,16 +291,12 @@ struct CompanionSettings: View {
                     .padding(.bottom, 24)
             }
         .onAppear {
-            if store.helpRequestID != nil {
-                selectedPageID = CompanionSettingsPage.help.rawValue
-            } else if !store.hasSavedPairing {
-                selectedPageID = CompanionSettingsPage.connection.rawValue
-            }
+            selectedPageID = store.requestedSettingsPage
             if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
             refreshAccessibilityStatus()
         }
-        .onChange(of: store.helpRequestID) { _ in
-            selectedPageID = CompanionSettingsPage.help.rawValue
+        .onChange(of: store.settingsRequestID) { _ in
+            selectedPageID = store.requestedSettingsPage
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()

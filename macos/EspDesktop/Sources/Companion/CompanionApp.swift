@@ -180,8 +180,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
 
     @objc private func openSettings() { openCompanionWindow() }
     @objc private func openHelp() {
-        store.helpRequestID = UUID()
-        openCompanionWindow()
+        openCompanionWindow(showHelp: true)
     }
     @objc private func checkForUpdates() { store.updater.check() }
     @objc private func quit() { NSApp.terminate(nil) }
@@ -206,7 +205,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             .booleanValue == true
     }
 
-    func openCompanionWindow() {
+    func openCompanionWindow(showHelp: Bool = false) {
+        store.requestedSettingsPage = showHelp ? "help" : "connection"
+        store.settingsRequestID = UUID()
         activateCompanionApplication()
 
         if let settingsWindow {
