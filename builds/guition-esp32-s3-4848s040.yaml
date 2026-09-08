@@ -8,7 +8,7 @@
 
 substitutions:
   cover_art_placeholder_file: "../common/assets/cover_art_placeholder.svg"
-  name: "espcontrol-4848s040" # Stable OTA/mDNS identifier retained across the product rename.
+  name: "espdesktop-4848s040"
   friendly_name: "Guition ESP32-S3-4848S040"
   espdesktop_component_url: "file:///config"
   mdi_font_file: "/config/common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
