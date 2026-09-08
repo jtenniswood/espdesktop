@@ -233,7 +233,6 @@ private struct CompanionOnboarding: View {
 struct CompanionSettings: View {
     @ObservedObject var store: CompanionStore
     @State private var pairingCode = ""
-    @State private var applicationSearch = ""
     @State private var confirmingForget = false
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
@@ -549,62 +548,44 @@ struct CompanionSettings: View {
     }
 
     private var applicationsPage: some View {
-        VStack(spacing: 0) {
-            CompanionApplicationSearch(text: $applicationSearch)
-                .frame(maxWidth: .infinity)
-                .frame(height: 40)
-                .accessibilityLabel("Search applications")
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-            Form {
-                Section {
-                    HStack(spacing: 12) {
-                        Toggle("Select All", isOn: selectAllBinding)
-                            .toggleStyle(.checkbox)
-                            .disabled(filteredApplications.isEmpty)
-                        Spacer()
-                    }
-                    if store.availableApps.isEmpty {
-                        emptyState("No Applications Found", symbol: "app.dashed",
-                                   detail: "Install applications in your Applications folder, then refresh this list.")
-                        Button("Refresh Applications") { store.refreshApplications() }
-                    } else if filteredApplications.isEmpty {
-                        emptyState("No Results", symbol: "magnifyingglass",
-                                   detail: "Try another application name or clear your search.")
-                        Button("Clear Search") { applicationSearch = "" }
-                    } else {
-                        ForEach(filteredApplications) { application in
-                            Toggle(isOn: Binding(
-                                get: { store.applicationIsApproved(application) },
-                                set: { store.setApplication(application, approved: $0) }
-                            )) {
-                                HStack(spacing: 10) {
-                                    Text(application.name)
-                                }
+        Form {
+            Section {
+                HStack(spacing: 12) {
+                    Toggle("Select All", isOn: selectAllBinding)
+                        .toggleStyle(.checkbox)
+                        .disabled(store.availableApps.isEmpty)
+                    Spacer()
+                }
+                if store.availableApps.isEmpty {
+                    emptyState("No Applications Found", symbol: "app.dashed",
+                               detail: "Install applications in your Applications folder, then refresh this list.")
+                    Button("Refresh Applications") { store.refreshApplications() }
+                } else {
+                    ForEach(store.availableApps) { application in
+                        Toggle(isOn: Binding(
+                            get: { store.applicationIsApproved(application) },
+                            set: { store.setApplication(application, approved: $0) }
+                        )) {
+                            HStack(spacing: 10) {
+                                Text(application.name)
                             }
-                            .toggleStyle(.checkbox)
-                            .padding(.vertical, 2)
                         }
+                        .toggleStyle(.checkbox)
+                        .padding(.vertical, 2)
                     }
                 }
             }
-            .formStyle(.grouped)
         }
+        .formStyle(.grouped)
     }
 
-    private var isSearching: Bool { !applicationSearch.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var selectAllBinding: Binding<Bool> {
         Binding(
             get: {
-                !filteredApplications.isEmpty && filteredApplications.allSatisfy(store.applicationIsApproved)
+                !store.availableApps.isEmpty && store.availableApps.allSatisfy(store.applicationIsApproved)
             },
-            set: { store.setApplications(filteredApplications, approved: $0) }
+            set: { store.setApplications(store.availableApps, approved: $0) }
         )
-    }
-
-    private var filteredApplications: [LaunchableApp] {
-        let query = applicationSearch.trimmingCharacters(in: .whitespacesAndNewlines)
-        return query.isEmpty ? store.availableApps : store.availableApps.filter { $0.name.localizedCaseInsensitiveContains(query) }
     }
 
     private var foldersPage: some View {
@@ -860,46 +841,6 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
         @objc private func selectPage(_ sender: NSToolbarItem) {
             guard let page = CompanionSettingsPage(rawValue: sender.itemIdentifier.rawValue) else { return }
             selection.wrappedValue = page
-        }
-    }
-}
-
-/// NSSearchField supplies the standard search icon, clear button, and keyboard behavior.
-private struct CompanionApplicationSearch: NSViewRepresentable {
-    @Binding var text: String
-
-    func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
-
-    func makeNSView(context: Context) -> NSSearchField {
-        let field = NSSearchField()
-        field.placeholderString = "Search"
-        field.controlSize = .large
-        field.font = .systemFont(ofSize: 16)
-        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        field.bezelStyle = .roundedBezel
-        field.setAccessibilityLabel("Search applications")
-        field.sendsSearchStringImmediately = true
-        field.delegate = context.coordinator
-        return field
-    }
-
-    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSSearchField, context: Context) -> CGSize? {
-        CGSize(width: proposal.width ?? nsView.intrinsicContentSize.width, height: 40)
-    }
-
-    func updateNSView(_ field: NSSearchField, context: Context) {
-        context.coordinator.text = $text
-        if field.stringValue != text { field.stringValue = text }
-    }
-
-    @MainActor
-    final class Coordinator: NSObject, NSSearchFieldDelegate {
-        var text: Binding<String>
-        init(text: Binding<String>) { self.text = text }
-
-        func controlTextDidChange(_ notification: Notification) {
-            guard let field = notification.object as? NSSearchField else { return }
-            text.wrappedValue = field.stringValue
         }
     }
 }
