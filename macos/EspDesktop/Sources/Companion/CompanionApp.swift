@@ -19,7 +19,7 @@ struct CompanionApp: App {
                 }
             }
             CommandGroup(replacing: .appSettings) {
-                Button("EspDesktop Settings") { appDelegate.openCompanionWindow() }
+                Button("Mac Settings") { appDelegate.openCompanionWindow() }
                     .keyboardShortcut(",", modifiers: .command)
             }
         }
@@ -100,7 +100,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.addItem(.separator())
 
         let panelWebpageItem = NSMenuItem(
-            title: "Customize Panel",
+            title: "Customize Display",
             action: #selector(openDisplaySettings),
             keyEquivalent: "d"
         )
@@ -111,13 +111,13 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         panelWebpageItem.isEnabled = !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         menu.addItem(panelWebpageItem)
 
-        addMenuItem("EspDesktop Settings", action: #selector(openSettings), key: ",", to: menu)
-        addMenuItem(store.updater.isChecking ? "Checking for Updates…" : "Check for Updates",
+        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",", to: menu)
+        addMenuItem("Updates",
                     action: #selector(checkForUpdates),
                     image: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates"), to: menu)
         menu.items.last?.isEnabled = !store.updater.isChecking
         addMenuItem(
-            "Quit App", action: #selector(quit), key: "q",
+            "Quit", action: #selector(quit), key: "q",
             image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
     }
 
