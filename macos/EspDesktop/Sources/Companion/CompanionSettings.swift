@@ -530,6 +530,8 @@ struct CompanionSettings: View {
     private var applicationsPage: some View {
         VStack(spacing: 0) {
             CompanionApplicationSearch(text: $applicationSearch)
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
                 .accessibilityLabel("Search applications")
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -817,11 +819,17 @@ private struct CompanionApplicationSearch: NSViewRepresentable {
         let field = NSSearchField()
         field.placeholderString = "Search"
         field.controlSize = .large
+        field.font = .systemFont(ofSize: 16)
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
         field.bezelStyle = .roundedBezel
         field.setAccessibilityLabel("Search applications")
         field.sendsSearchStringImmediately = true
         field.delegate = context.coordinator
         return field
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSSearchField, context: Context) -> CGSize? {
+        CGSize(width: proposal.width ?? nsView.intrinsicContentSize.width, height: 40)
     }
 
     func updateNSView(_ field: NSSearchField, context: Context) {
