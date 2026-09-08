@@ -38,14 +38,15 @@ substitutions:
   voice_clock_bar_hide_code: |-
     clock_bar_set_widget_hidden(id(companion_status_icon), true);
   voice_clock_bar_apply_code: |-
-    const bool show_companion = visible && companion_connected();
-    if (show_companion) {
-      const int companion_status_icon_x_box = lv_obj_get_width(id(companion_status_icon));
-      const int companion_status_icon_x = clock_bar_right_icons_next_x(
-          clock_bar_right_icons, companion_status_icon_x_box,
-          clock_bar_glyph_width(id(companion_status_icon_label), companion_status_icon_x_box));
-      lv_obj_align(id(companion_status_icon), LV_ALIGN_TOP_RIGHT,
-                   companion_status_icon_x, clock_bar_icon_y);
+    if (visibility.visible) {
+      lv_label_set_display_text(id(companion_status_icon_label),
+          companion_connected() ? "\U000F0379" : "\U000F0D90");
+      const int companion_left_x = clock_bar_screen_width >= 700 ? 8 : 6;
+      lv_obj_align(id(companion_status_icon), LV_ALIGN_TOP_LEFT,
+                   companion_left_x, clock_bar_icon_y);
+      lv_obj_align(id(temperatures), LV_ALIGN_TOP_LEFT,
+                   companion_left_x + lv_obj_get_width(id(companion_status_icon)) + 8,
+                   clock_bar_label_y);
       lv_obj_clear_flag(id(companion_status_icon), LV_OBJ_FLAG_HIDDEN);
     } else {
       lv_obj_add_flag(id(companion_status_icon), LV_OBJ_FLAG_HIDDEN);

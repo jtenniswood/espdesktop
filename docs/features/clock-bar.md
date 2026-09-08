@@ -6,19 +6,21 @@ description:
 
 # Clock Bar
 
-The clock bar is the narrow status area at the top of the panel. It uses a fixed layout: the connectivity icon followed by one temperature reading on the left, the current time in the middle, and optional status icons on the right.
+The clock bar is the narrow status area at the top of the panel. It uses a fixed layout: one temperature reading on the left, the current time in the middle, and the connectivity icon on the right.
 
 You will find these controls in **Settings > Display > Clock Bar** on the panel web page.
 
 ## Settings
 
 - **Show Clock Bar** - turns the whole top bar on or off.
-- **Show Night Mode Icon** - shows a moon on the right while the night schedule is active. Off by default.
+- **Show Night Mode Icon** - shows a moon beside the connectivity icon while the night schedule is active. Off by default.
 - **Temperature** - select the temperature item in the screen preview, choose **Edit**, then choose the Home Assistant sensor and whether to show the degree symbol.
 - **Clock** - select the clock item in the screen preview and choose **Hide** or **Show**.
 - **Connectivity** - select the connectivity item in the screen preview and choose **Hide** or **Show**.
 
 The clock bar layout is not customizable. Hidden items stay greyed in the web preview so you can select and show them again, but they are hidden on the device screen. Extra saved temperature entries, weather settings, and older saved layout strings are ignored by current firmware.
+
+On the 4-inch S3 (Guition 4848S040), a Mac Companion indicator sits at the far left, before the temperature. It shows a monitor while connected and a monitor-off icon while disconnected, including before pairing. It stays visible whenever the clock bar is visible.
 
 Tap the network status icon on the panel to see device details, including the device name, IP address, WiFi strength, uptime, and firmware version.
 

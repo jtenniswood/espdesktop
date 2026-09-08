@@ -299,7 +299,7 @@ int main() {
     &display_time,
     &network_status_button,
     true, true, true,
-    12, 17, 10, 80);
+    12, 17, 20, 10, 80);
   assert(lv_obj_move_background_calls == 3);
   hide_clock_bar_top_layer_widgets(
     temperature_labels, 1, &display_time, &network_status_button);
