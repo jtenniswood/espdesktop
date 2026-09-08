@@ -97,6 +97,7 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 @MainActor
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
+    @Published var helpRequestID: UUID?
     static let privacyPolicyURL = URL(string: "https://jtenniswood.github.io/espdesktop/reference/privacy")!
     static let issuesURL = URL(string: "https://github.com/jtenniswood/espdesktop/issues")!
     static let supportURL = URL(string: "https://jtenniswood.github.io/espdesktop/getting-started/troubleshooting")!

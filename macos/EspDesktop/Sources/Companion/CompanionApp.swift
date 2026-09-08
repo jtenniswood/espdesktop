@@ -116,6 +116,8 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
                     action: #selector(checkForUpdates),
                     image: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates"), to: menu)
         menu.items.last?.isEnabled = !store.updater.isChecking
+        addMenuItem("Help", action: #selector(openHelp),
+                    image: NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help"), to: menu)
         addMenuItem(
             "Quit", action: #selector(quit), key: "q",
             image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
@@ -192,6 +194,10 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     @objc private func openSettings() { openCompanionWindow() }
+    @objc private func openHelp() {
+        store.helpRequestID = UUID()
+        openCompanionWindow()
+    }
     @objc private func checkForUpdates() { store.updater.check() }
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func existingInstanceWasOpened(_ notification: Notification) { openCompanionWindow() }

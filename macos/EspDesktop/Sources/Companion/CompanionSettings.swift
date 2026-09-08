@@ -223,7 +223,7 @@ struct CompanionSettings: View {
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
-        if onboardingCompleted {
+        if onboardingCompleted || store.helpRequestID != nil {
             settingsContent
         } else {
             CompanionOnboarding(store: store) {
@@ -246,9 +246,16 @@ struct CompanionSettings: View {
                     .padding(.bottom, 24)
             }
         .onAppear {
-            if !store.hasSavedPairing { selectedPageID = CompanionSettingsPage.connection.rawValue }
+            if store.helpRequestID != nil {
+                selectedPageID = CompanionSettingsPage.help.rawValue
+            } else if !store.hasSavedPairing {
+                selectedPageID = CompanionSettingsPage.connection.rawValue
+            }
             if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
             refreshAccessibilityStatus()
+        }
+        .onChange(of: store.helpRequestID) { _ in
+            selectedPageID = CompanionSettingsPage.help.rawValue
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
