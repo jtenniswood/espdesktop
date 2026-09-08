@@ -10,11 +10,8 @@ struct CompanionApp: App {
     var body: some Scene {
         Settings {
             CompanionSettings(store: appDelegate.store)
-                .dynamicTypeSize(.large)
                 .frame(minWidth: 760, minHeight: 500)
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About EspDesktop") {
@@ -228,16 +225,12 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             defer: false
         )
         window.identifier = NSUserInterfaceItemIdentifier("io.espdesktop.app.settings")
-        window.title = "EspDesktop"
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
-        window.styleMask.insert(.fullSizeContentView)
+        window.title = "EspDesktop Settings"
         window.delegate = self
-        positionWindowControls(in: window)
         window.minSize = NSSize(width: 760, height: 500)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
-            rootView: CompanionSettings(store: store).dynamicTypeSize(.large)
+            rootView: CompanionSettings(store: store)
         )
         window.center()
         settingsWindow = window
@@ -252,27 +245,6 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         // once the settings window has been closed.
         NSApp.setActivationPolicy(.accessory)
     }
-
-    private func positionWindowControls(in window: NSWindow) {
-        let buttons: [NSButton?] = [
-            window.standardWindowButton(.closeButton),
-            window.standardWindowButton(.miniaturizeButton),
-            window.standardWindowButton(.zoomButton),
-        ]
-        let inset: CGFloat = 32
-        let topPadding: CGFloat = 12
-        let spacing: CGFloat = 8
-        var nextX = inset
-        for button in buttons.compactMap({ $0 }) {
-            var frame = button.frame
-            frame.origin.x = nextX
-            frame.origin.y = max(0, frame.origin.y - topPadding)
-            button.frame = frame
-            button.contentTintColor = .secondaryLabelColor
-            nextX += frame.width + spacing
-        }
-    }
-
 }
 
 @MainActor

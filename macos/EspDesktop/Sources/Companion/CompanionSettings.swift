@@ -67,7 +67,6 @@ private struct CompanionStatsToggle: View {
             Toggle("", isOn: $isEnabled)
                 .labelsHidden()
                 .toggleStyle(.switch)
-                .tint(.green)
                 .accessibilityLabel("Share Mac system statistics")
             Text(isEnabled ? "Stats enabled" : "Stats disabled")
                 .font(.headline)
@@ -85,7 +84,6 @@ private struct CompanionLaunchAtLoginToggle: View {
             Toggle("", isOn: $isEnabled)
                 .labelsHidden()
                 .toggleStyle(.switch)
-                .tint(.green)
                 .disabled(!isAvailable)
                 .accessibilityLabel("Open EspDesktop at Login")
             Text(isEnabled ? "Login enabled" : "Login disabled")
@@ -107,7 +105,6 @@ private struct CompanionAccessibilityToggle: View {
             ))
             .labelsHidden()
             .toggleStyle(.switch)
-            .tint(.green)
             .accessibilityLabel("Enable keyboard shortcuts and window controls")
             Text(isEnabled ? "Shortcuts enabled" : "Shortcuts disabled")
                 .font(.headline)
@@ -238,7 +235,6 @@ struct CompanionSettings: View {
     @ObservedObject var store: CompanionStore
     @State private var pairingCode = ""
     @State private var applicationSearch = ""
-    @FocusState private var applicationSearchFocused: Bool
     @State private var confirmingForget = false
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
@@ -260,65 +256,9 @@ struct CompanionSettings: View {
     }
 
     private var settingsContent: some View {
-        ZStack(alignment: .bottomTrailing) {
-            HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 0) {
-                Text("EspDesktop")
-                    .font(.system(size: 24, weight: .semibold))
-                    .padding(.leading, 20)
-                    .padding(.top, 28)
-                    .padding(.bottom, 20)
-
-                Text("Settings")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color(white: 0.50))
-                    .padding(.leading, 20)
-                    .padding(.bottom, 0)
-
-                List {
-                    ForEach(CompanionSettingsPage.allCases) { page in
-                        Button {
-                            selectedPageID = page.rawValue
-                        } label: {
-                            Label {
-                                Text(page.title)
-                                    .font(.system(size: 14, weight: .medium))
-                            } icon: {
-                                Image(systemName: page.icon)
-                                    .font(.system(size: 16, weight: .regular))
-                                    .frame(width: 22)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 7)
-                        .contentShape(Rectangle())
-                        .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
-                        .listRowBackground(
-                            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                .fill(selectedPage == page ? Color(white: 0.21) : .clear)
-                                .padding(.horizontal, 10)
-                        )
-                        .listRowSeparator(.hidden)
-                    }
-                }
-                .listStyle(.sidebar)
-                .scrollContentBackground(.hidden)
-            }
-            .frame(minWidth: 190, idealWidth: 210, maxWidth: 230)
-            .foregroundStyle(Color(white: 0.98))
-            .background(Color(white: 0.14))
-
-                Divider()
-                    .ignoresSafeArea(.container, edges: .top)
-
-                detailView
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            }
-            floatingSupportButton
-                .padding(.trailing, 24)
-                .padding(.bottom, 24)
-        }
+        detailView
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
         .onAppear {
             if !store.hasSavedPairing { selectedPageID = CompanionSettingsPage.connection.rawValue }
             if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
@@ -400,7 +340,6 @@ struct CompanionSettings: View {
                             Toggle("Connection", isOn: connectionToggleBinding)
                                 .labelsHidden()
                                 .toggleStyle(.switch)
-                                .tint(.green)
                                 .disabled(store.connectionState.isBusy)
                             Text(store.isConnected ? "Connected" : "Disconnected")
                                 .font(.headline)
@@ -577,37 +516,8 @@ struct CompanionSettings: View {
     private var applicationsPage: some View {
         Form {
             Section {
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
-                    TextField("Search", text: $applicationSearch)
-                        .textFieldStyle(.plain)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .focused($applicationSearchFocused)
-                    if !applicationSearch.isEmpty {
-                        Button {
-                            applicationSearch = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Clear Search")
-                    }
-                }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 14)
-                .background(.background, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(Color.primary.opacity(0.22), lineWidth: 1)
-                }
-                .contentShape(Capsule())
-                .simultaneousGesture(
-                    TapGesture().onEnded { applicationSearchFocused = true }
-                )
+                CompanionApplicationSearch(text: $applicationSearch)
+                    .accessibilityLabel("Search applications")
             }
             Section {
                 HStack(spacing: 12) {
@@ -774,43 +684,6 @@ struct CompanionSettings: View {
         .navigationTitle("Help")
     }
 
-    private var companionResourceBundle: Bundle {
-        // Installed apps keep resources inside Contents/Resources; SwiftPM runs
-        // use the generated module bundle beside the build output.
-        Bundle.main.url(forResource: "EspDesktop_Companion", withExtension: "bundle")
-            .flatMap { Bundle(url: $0) } ?? .module
-    }
-
-    private var supportButtonImage: NSImage? {
-        guard let imageURL = companionResourceBundle.url(
-            forResource: "buy-me-a-coffee-button",
-            withExtension: "png"
-        ) else { return nil }
-        return NSImage(contentsOf: imageURL)
-    }
-
-    private var floatingSupportButton: some View {
-        Link(destination: CompanionStore.buyMeACoffeeURL) {
-            if let supportButtonImage {
-                Image(nsImage: supportButtonImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 171.2, height: 48)
-                    .clipShape(Capsule())
-            } else {
-                Label("Buy me a coffee", systemImage: "cup.and.saucer.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.black.opacity(0.78))
-                    .frame(width: 171.2, height: 48)
-                    .background(Color(red: 1.0, green: 0.867, blue: 0.0))
-                    .clipShape(Capsule())
-            }
-        }
-        .buttonStyle(.plain)
-        .help("Support EspDesktop by buying me a coffee")
-        .accessibilityLabel("Buy me a coffee to support EspDesktop")
-    }
-
     private func refreshAccessibilityStatus() {
         accessibilityGranted = CompanionAccessibilityAuthorizer.shared.hasAccess
     }
@@ -819,6 +692,137 @@ struct CompanionSettings: View {
         _ = CompanionAccessibilityAuthorizer.shared.isTrusted()
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
             NSWorkspace.shared.open(url)
+        }
+    }
+}
+
+/// Installs real selectable toolbar items in the hosting window. AppKit owns
+/// their layout, selection appearance, accessibility, and light/dark styling.
+private struct CompanionSettingsToolbar: NSViewRepresentable {
+    @Binding var selection: CompanionSettingsPage
+
+    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection) }
+
+    func makeNSView(context: Context) -> WindowObserver {
+        let view = WindowObserver()
+        view.onWindowChange = { [weak coordinator = context.coordinator] window in
+            coordinator?.attach(to: window)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: WindowObserver, context: Context) {
+        context.coordinator.selection = $selection
+        context.coordinator.toolbar.selectedItemIdentifier = .init(selection.rawValue)
+    }
+
+    static func dismantleNSView(_ nsView: WindowObserver, coordinator: Coordinator) {
+        nsView.onWindowChange = nil
+        coordinator.attach(to: nil)
+    }
+
+    final class WindowObserver: NSView {
+        var onWindowChange: ((NSWindow?) -> Void)?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            onWindowChange?(window)
+        }
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, NSToolbarDelegate {
+        var selection: Binding<CompanionSettingsPage>
+        let toolbar = NSToolbar(identifier: "EspDesktopSettingsNavigation")
+        private weak var window: NSWindow?
+
+        init(selection: Binding<CompanionSettingsPage>) {
+            self.selection = selection
+            super.init()
+            toolbar.delegate = self
+            toolbar.displayMode = .iconAndLabel
+            toolbar.allowsUserCustomization = false
+            toolbar.centeredItemIdentifiers = Set(pageIdentifiers)
+            toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
+        }
+
+        func attach(to window: NSWindow?) {
+            if let previous = self.window, previous !== window, previous.toolbar === toolbar {
+                previous.toolbar = nil
+            }
+            self.window = window
+            guard let window else { return }
+            window.toolbarStyle = .preference
+            window.toolbar = toolbar
+            toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
+        }
+
+        private var pageIdentifiers: [NSToolbarItem.Identifier] {
+            CompanionSettingsPage.allCases.map { .init($0.rawValue) }
+        }
+
+        func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+            pageIdentifiers
+        }
+
+        func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+            pageIdentifiers
+        }
+
+        func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+            pageIdentifiers
+        }
+
+        func toolbar(
+            _ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier,
+            willBeInsertedIntoToolbar flag: Bool
+        ) -> NSToolbarItem? {
+            guard let page = CompanionSettingsPage(rawValue: identifier.rawValue) else { return nil }
+            let item = NSToolbarItem(itemIdentifier: identifier)
+            item.label = page.title
+            item.paletteLabel = page.title
+            item.toolTip = "Show \(page.title) settings"
+            item.image = NSImage(systemSymbolName: page.icon, accessibilityDescription: page.title)
+            item.target = self
+            item.action = #selector(selectPage(_:))
+            return item
+        }
+
+        @objc private func selectPage(_ sender: NSToolbarItem) {
+            guard let page = CompanionSettingsPage(rawValue: sender.itemIdentifier.rawValue) else { return }
+            selection.wrappedValue = page
+        }
+    }
+}
+
+/// NSSearchField supplies the standard search icon, clear button, and keyboard behavior.
+private struct CompanionApplicationSearch: NSViewRepresentable {
+    @Binding var text: String
+
+    func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
+
+    func makeNSView(context: Context) -> NSSearchField {
+        let field = NSSearchField()
+        field.placeholderString = "Search applications"
+        field.setAccessibilityLabel("Search applications")
+        field.sendsSearchStringImmediately = true
+        field.delegate = context.coordinator
+        return field
+    }
+
+    func updateNSView(_ field: NSSearchField, context: Context) {
+        context.coordinator.text = $text
+        if field.stringValue != text { field.stringValue = text }
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, NSSearchFieldDelegate {
+        var text: Binding<String>
+        init(text: Binding<String>) { self.text = text }
+
+        func controlTextDidChange(_ notification: Notification) {
+            guard let field = notification.object as? NSSearchField else { return }
+            text.wrappedValue = field.stringValue
         }
     }
 }
