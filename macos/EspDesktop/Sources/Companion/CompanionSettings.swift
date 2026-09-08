@@ -257,9 +257,7 @@ struct CompanionSettings: View {
 
     private var settingsContent: some View {
         detailView
-            .scrollContentBackground(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(Color(nsColor: .windowBackgroundColor))
             .background(CompanionSettingsToolbar(selection: selectedPageBinding))
             .navigationTitle("Settings")
         .onAppear {
@@ -753,8 +751,6 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             window.title = "Settings"
             window.toolbarStyle = .preference
             window.titlebarSeparatorStyle = .line
-            window.backgroundColor = .windowBackgroundColor
-            window.titlebarAppearsTransparent = true
             window.toolbar = toolbar
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
         }
