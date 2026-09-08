@@ -139,7 +139,14 @@ final class CompanionStore: NSObject, ObservableObject {
         static let shareSystemMetrics = "shareSystemMetrics"
     }
     private static let preferencesSuite = "io.espdesktop.app"
-    private static let legacyPreferencesSuite = "EspDesktop"
+    // Preference suite names are persistent data identifiers. These sources
+    // let existing installs and early EspDesktop test builds migrate once into
+    // the current suite without retaining old user-facing branding.
+    private static let previousPreferencesSuites = [
+        "io.espcontrol.companion",
+        "EspControl Companion",
+        "EspDesktop",
+    ]
     private let defaults: UserDefaults
     private lazy var connection: CompanionConnection = {
         let session = CompanionConnection(preferences: self, resources: self)
@@ -171,7 +178,8 @@ final class CompanionStore: NSObject, ObservableObject {
         self.mediaController = mediaController
         self.systemMetricsProvider = systemMetricsProvider
         let stableDefaults = UserDefaults(suiteName: Self.preferencesSuite) ?? .standard
-        let legacyDefaults = UserDefaults(suiteName: Self.legacyPreferencesSuite)
+        let previousDefaults = Self.previousPreferencesSuites.compactMap { UserDefaults(suiteName: $0) }
+        Self.migrateStoredPreferences(from: previousDefaults, to: stableDefaults)
         defaults = stableDefaults
         approvedApplicationIdentifiers = Set(
             stableDefaults.stringArray(forKey: Keys.approvedApplications) ?? []
@@ -182,7 +190,6 @@ final class CompanionStore: NSObject, ObservableObject {
         shareSystemMetricsEnabled = stableDefaults.bool(forKey: Keys.shareSystemMetrics)
         let savedPairingAccounts = KeychainStore.accounts(service: KeychainStore.service)
         let configuredPanelHost = stableDefaults.string(forKey: Keys.host)
-            ?? legacyDefaults?.string(forKey: Keys.host)
             ?? UserDefaults.standard.string(forKey: Keys.host)
             ?? savedPairingAccounts.first
             ?? ""
@@ -203,7 +210,7 @@ final class CompanionStore: NSObject, ObservableObject {
             name: NSNotification.Name.NSSystemTimeZoneDidChange,
             object: nil
         )
-        migrateConnectionPreferences(from: [legacyDefaults, UserDefaults.standard].compactMap { $0 })
+        migrateConnectionPreferences(from: previousDefaults + [UserDefaults.standard])
         if !pairingAccount.isEmpty { defaults.set(pairingAccount, forKey: Keys.pairingAccount) }
         nowPlayingProvider.onStatus = { [weak self] value in self?.nowPlayingStatus = value }
         nowPlayingProvider.onSnapshot = { [weak self] snapshot in
@@ -223,6 +230,23 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
+    }
+
+    static func migrateStoredPreferences(from previousStores: [UserDefaults], to destination: UserDefaults) {
+        let keys = [
+            Keys.host,
+            Keys.pairingAccount,
+            Keys.approvedApplications,
+            Keys.approvedFolders,
+            Keys.shareSystemMetrics,
+            "companion.onboarding.completed",
+            "settings.selectedPage",
+        ]
+        for key in keys where destination.object(forKey: key) == nil {
+            if let value = previousStores.lazy.compactMap({ $0.object(forKey: key) }).first {
+                destination.set(value, forKey: key)
+            }
+        }
     }
 
     private func migrateConnectionPreferences(from legacyStores: [UserDefaults]) {

@@ -4,6 +4,9 @@ import Security
 
 enum KeychainStore {
     static let service = "io.espdesktop.app"
+    // Keychain service names are persistent data identifiers. This remains as
+    // a compatibility key so existing pairings survive the product rename.
+    private static let previousService = "io.espcontrol.companion"
 
     // A pairing credential may be protected by an ACL that requires the user
     // to approve access. Keep this context alive for each Security operation
@@ -16,6 +19,14 @@ enum KeychainStore {
     }
 
     static func load(service: String, account: String) -> Data? {
+        if let data = loadExact(service: service, account: account) { return data }
+        guard service == self.service,
+              let data = loadExact(service: previousService, account: account) else { return nil }
+        _ = save(data, service: service, account: account)
+        return data
+    }
+
+    private static func loadExact(service: String, account: String) -> Data? {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -50,11 +61,26 @@ enum KeychainStore {
     }
 
     static func remove(service: String, account: String) {
+        removeExact(service: service, account: account)
+        if service == self.service {
+            removeExact(service: previousService, account: account)
+        }
+    }
+
+    private static func removeExact(service: String, account: String) {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: account]
         SecItemDelete(query as CFDictionary)
     }
 
     static func accounts(service: String) -> [String] {
+        var result = Set(accountsExact(service: service))
+        if service == self.service {
+            result.formUnion(accountsExact(service: previousService))
+        }
+        return result.sorted()
+    }
+
+    private static func accountsExact(service: String) -> [String] {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -64,6 +90,6 @@ enum KeychainStore {
         var items: CFTypeRef?
         guard SecItemCopyMatching(query as CFDictionary, &items) == errSecSuccess,
               let attributes = items as? [[String: Any]] else { return [] }
-        return attributes.compactMap { $0[kSecAttrAccount as String] as? String }.sorted()
+        return attributes.compactMap { $0[kSecAttrAccount as String] as? String }
     }
 }
