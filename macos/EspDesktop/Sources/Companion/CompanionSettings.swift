@@ -616,38 +616,20 @@ struct CompanionSettings: View {
 
     private var permissionsPage: some View {
         Form {
-            Section {
+            Section("Permissions") {
                 CompanionLaunchAtLoginToggle(
                     isEnabled: store.launchAtLoginBinding(),
                     isAvailable: store.supportsLaunchAtLogin
                 )
-            } header: {
-                Text("Startup")
-            } footer: {
-                Text(store.supportsLaunchAtLogin
-                     ? store.launchAtLoginMessage
-                     : "Install EspDesktop in Applications to open it automatically at login.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-            Section {
+                .help(store.supportsLaunchAtLogin
+                      ? store.launchAtLoginMessage
+                      : "Install EspDesktop in Applications to open it automatically at login.")
                 CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
-            } header: {
-                Text("Privacy")
-            } footer: {
-                Text("Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            Section {
+                    .help("Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.")
                 CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
-            } header: {
-                Text("Accessibility")
-            } footer: {
-                Text(accessibilityGranted
-                     ? "Keyboard shortcuts and window controls are enabled for your display."
-                     : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .help(accessibilityGranted
+                          ? "Keyboard shortcuts and window controls are enabled for your display."
+                          : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
             }
         }
         .formStyle(.grouped)
