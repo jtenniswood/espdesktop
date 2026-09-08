@@ -224,6 +224,10 @@ def test_s3_low_heap_policy() -> None:
     assert "priority: 190" in companion_handlers[-320:], (
         "S3 Companion handlers must register after the EspDesktop owner starts at priority 200"
     )
+    companion_header = (ROOT / "components" / "companion" / "companion.h").read_text(encoding="utf-8")
+    assert "setup_priority::AFTER_WIFI - 1.0f" in companion_header, (
+        "Companion service must set up after the EspDesktop owner at AFTER_WIFI"
+    )
     conditional = server.split("#if defined(CONFIG_IDF_TARGET_ESP32S3)", 1)[1].split("#endif", 1)[0]
     s3_server, p4_server = conditional.split("#else", 1)
     assert "config.stack_size = 12288;" in s3_server and "config.max_open_sockets = 3;" in s3_server, (
