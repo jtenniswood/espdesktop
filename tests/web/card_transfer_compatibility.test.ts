@@ -13,10 +13,7 @@ export function runCardTransferCompatibilityTests(): void {
     { device: "guition-esp32-s3-4848s040", firmware: "v1.2.3" },
     [{ ...emptyCardConfig("companion"), entity: "com.apple.Safari", size: 1 }],
   );
-  const previousEnvelope = JSON.parse(currentCode) as Record<string, unknown>;
-  previousEnvelope.format = "espcontrol.cards";
-
-  const imported = parseCardTransferCode(JSON.stringify(previousEnvelope));
-  equal(imported.format, "espdesktop.cards", "previous card marker imports into the current format");
-  equal(imported.cards[0]?.entity, "com.apple.Safari", "previous card code keeps its configuration");
+  const imported = parseCardTransferCode(currentCode);
+  equal(imported.format, "espdesktop.cards", "current card marker remains valid");
+  equal(imported.cards[0]?.entity, "com.apple.Safari", "card code keeps its configuration");
 }

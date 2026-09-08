@@ -20,6 +20,8 @@ You will find these controls in **Settings > Display > Clock Bar** on the panel 
 
 The clock bar layout is not customizable. Hidden items stay greyed in the web preview so you can select and show them again, but they are hidden on the device screen. Extra saved temperature entries, weather settings, and older saved layout strings are ignored by current firmware.
 
+On the 4-inch S3 (Guition 4848S040), a Mac Companion indicator sits at the far left, before the temperature. It shows a monitor while connected and a monitor-off icon while disconnected, including before pairing. It stays visible whenever the clock bar is visible.
+
 Tap the network status icon on the panel to see device details, including the device name, IP address, WiFi strength, uptime, and firmware version.
 
 The night mode moon appears whenever the [Night Schedule](/features/screen-schedule) is in its night period, in both **Time** and **Sensor** mode - in Sensor mode it follows the sensor entity and the activation state you chose. It is visible in practice when the schedule keeps the screen awake or dimmed rather than turning it off, and it disappears again when normal mode resumes.

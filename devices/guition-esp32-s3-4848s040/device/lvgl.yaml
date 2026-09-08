@@ -76,7 +76,7 @@ lvgl:
       # holding the network icon; this remains a status-only indicator.
       - obj:
           id: companion_status_icon
-          align: top_right
+          align: top_left
           x: 0
           y: 0
           width: 48
@@ -91,7 +91,7 @@ lvgl:
           widgets:
             - label:
                 id: companion_status_icon_label
-                text: "\U000F0379"
+                text: "\U000F0D90"
                 text_font: font_icon_status
                 align: center
                 text_align: center

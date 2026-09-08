@@ -4,9 +4,6 @@ import Security
 
 enum KeychainStore {
     static let service = "io.espdesktop.app"
-    // Keychain service names are persistent data identifiers. This remains as
-    // a compatibility key so existing pairings survive the product rename.
-    private static let previousService = "io.espcontrol.companion"
 
     // A pairing credential may be protected by an ACL that requires the user
     // to approve access. Keep this context alive for each Security operation
@@ -19,11 +16,7 @@ enum KeychainStore {
     }
 
     static func load(service: String, account: String) -> Data? {
-        if let data = loadExact(service: service, account: account) { return data }
-        guard service == self.service,
-              let data = loadExact(service: previousService, account: account) else { return nil }
-        _ = save(data, service: service, account: account)
-        return data
+        loadExact(service: service, account: account)
     }
 
     private static func loadExact(service: String, account: String) -> Data? {
@@ -62,9 +55,6 @@ enum KeychainStore {
 
     static func remove(service: String, account: String) {
         removeExact(service: service, account: account)
-        if service == self.service {
-            removeExact(service: previousService, account: account)
-        }
     }
 
     private static func removeExact(service: String, account: String) {
@@ -73,11 +63,7 @@ enum KeychainStore {
     }
 
     static func accounts(service: String) -> [String] {
-        var result = Set(accountsExact(service: service))
-        if service == self.service {
-            result.formUnion(accountsExact(service: previousService))
-        }
-        return result.sorted()
+        Array(Set(accountsExact(service: service))).sorted()
     }
 
     private static func accountsExact(service: String) -> [String] {

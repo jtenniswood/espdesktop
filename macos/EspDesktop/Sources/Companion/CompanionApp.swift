@@ -31,11 +31,9 @@ struct CompanionApp: App {
 
 @MainActor
 final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
-    // Keep the previous IPC identity during the rename so the two app names
-    // cannot run concurrently and compete for the same paired display.
-    private static let compatibilityIPCIdentifier = "io.espcontrol.companion"
+    private static let ipcIdentifier = "io.espdesktop.app"
     private static let openSettingsNotification = Notification.Name(
-        "\(compatibilityIPCIdentifier).open-settings"
+        "\(ipcIdentifier).open-settings"
     )
     let store = CompanionStore()
     private var statusItem: NSStatusItem?
@@ -197,7 +195,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
 
     private func acquireInstanceLock() -> Bool {
         let lockURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("\(Self.compatibilityIPCIdentifier).instance.lock")
+            .appendingPathComponent("\(Self.ipcIdentifier).instance.lock")
         let descriptor = Darwin.open(lockURL.path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
         guard descriptor >= 0 else { return false }
         guard Darwin.lockf(descriptor, F_TLOCK, 0) == 0 else {

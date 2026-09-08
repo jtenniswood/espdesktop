@@ -10,7 +10,6 @@ import {
 
 export const CARD_TRANSFER_VERSION = 1;
 export const CARD_TRANSFER_FORMAT = "espdesktop.cards";
-const PREVIOUS_CARD_TRANSFER_FORMAT = "espcontrol.cards";
 export const CARD_TRANSFER_MAX_BYTES = 64 * 1024;
 export const CARD_TRANSFER_MAX_CARDS = 20;
 
@@ -132,7 +131,7 @@ export function normalizeCardTransferEnvelope(value: unknown): CardTransferEnvel
   if (version > CARD_TRANSFER_VERSION) {
     throw transferError("Card code was created by a newer version of EspDesktop");
   }
-  if (value.format !== CARD_TRANSFER_FORMAT && value.format !== PREVIOUS_CARD_TRANSFER_FORMAT) {
+  if (value.format !== CARD_TRANSFER_FORMAT) {
     throw transferError("Invalid card code - unsupported format");
   }
   if (!isRecord(value.source) || typeof value.source.device !== "string" ||

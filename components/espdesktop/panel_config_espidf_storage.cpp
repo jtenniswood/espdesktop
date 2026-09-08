@@ -15,20 +15,6 @@ namespace espdesktop::configuration {
 namespace {
 
 constexpr const char *PANEL_CONFIG_NAMESPACE = "espdesktop_cfg";
-// Persistence identifiers are part of the OTA compatibility contract. Keep
-// reading the previous product namespace so an upgrade cannot discard the
-// panel's authoritative native layout.
-constexpr const char *PREVIOUS_PANEL_CONFIG_NAMESPACE = "espcontrol_cfg";
-
-bool namespace_has_panel_config(nvs_handle_t handle) {
-  for (const char *key : {"slot_a", "slot_b"}) {
-    size_t stored_size = 0;
-    if (nvs_get_blob(handle, key, nullptr, &stored_size) == ESP_OK &&
-        stored_size > 0)
-      return true;
-  }
-  return false;
-}
 
 }  // namespace
 #endif
@@ -42,19 +28,6 @@ bool EspIdfPanelConfigBlobStorage::begin() {
   if (ready_) return true;
   if (nvs_open(PANEL_CONFIG_NAMESPACE, NVS_READWRITE, &handle_) != ESP_OK)
     return false;
-
-  if (!namespace_has_panel_config(handle_)) {
-    nvs_handle_t previous_handle = 0;
-    if (nvs_open(PREVIOUS_PANEL_CONFIG_NAMESPACE, NVS_READWRITE,
-                 &previous_handle) == ESP_OK) {
-      if (namespace_has_panel_config(previous_handle)) {
-        nvs_close(handle_);
-        handle_ = previous_handle;
-      } else {
-        nvs_close(previous_handle);
-      }
-    }
-  }
   ready_ = true;
   return true;
 #else
