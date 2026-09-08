@@ -129,6 +129,25 @@ lvgl:
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "8" } }
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "9" } }
 
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - lambda: |-
+            navigation_subpage_clock_bar_refresh() = []() {
+              navigation_refresh_companion_subpage_label();
+              refresh_clock_bar_temperature_label_values(
+                  id(main_page)->obj,
+                  clock_bar_should_show(
+                      id(clock_bar_enabled).state,
+                      id(main_page)->obj,
+                      id(espdesktop_app).display().current_mode(),
+                      id(espdesktop_app).display().target_schedule_inactive()),
+                  id(indoor_temp_enable).state,
+                  id(outdoor_temp_enable).state,
+                  id(indoor_temp), id(outdoor_temp));
+            };
+
 interval:
   - interval: 500ms
     then:
@@ -139,17 +158,8 @@ interval:
           companion_refresh_cards_if_requested();
           navigation_return_from_companion_shortcuts_if_needed(id(main_page)->obj);
           navigation_open_companion_subpage_if_requested(id(main_page)->obj);
-          navigation_refresh_companion_subpage_label();
-          refresh_clock_bar_temperature_label_values(
-              id(main_page)->obj,
-              clock_bar_should_show(
-                  id(clock_bar_enabled).state,
-                  id(main_page)->obj,
-                  id(espdesktop_app).display().current_mode(),
-                  id(espdesktop_app).display().target_schedule_inactive()),
-              id(indoor_temp_enable).state,
-              id(outdoor_temp_enable).state,
-              id(indoor_temp), id(outdoor_temp));
+          auto &refresh_clock_bar = navigation_subpage_clock_bar_refresh();
+          if (refresh_clock_bar) refresh_clock_bar();
           static bool previous_companion_connection = false;
           const bool connected = companion_connected();
           if (connected != previous_companion_connection) {
