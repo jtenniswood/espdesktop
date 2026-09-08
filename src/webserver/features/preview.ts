@@ -121,6 +121,16 @@ const LOCAL_CARD_TYPES = new Set([
 
 export type CardPickerConnector = "home_assistant" | "mac_companion";
 
+export function cardPickerConnectors(
+  homeAssistantConfigured: boolean,
+  companionSupported: boolean,
+): Array<[CardPickerConnector, string]> {
+  const connectors: Array<[CardPickerConnector, string]> = [];
+  if (homeAssistantConfigured) connectors.push(["home_assistant", "Home Assistant"]);
+  if (companionSupported) connectors.push(["mac_companion", "Mac Companion"]);
+  return connectors;
+}
+
 export function cardTypeConnector(key: string): CardPickerOption["connector"] {
   if (key === "companion" || key.startsWith("companion_")) return "mac_companion";
   if (HOME_ASSISTANT_ONLY_CARD_TYPES.has(key)) return "home_assistant";

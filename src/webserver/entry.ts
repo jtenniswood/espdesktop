@@ -675,6 +675,11 @@ function composeApplicationContext(): ApplicationContext {
     configurationPersistence, cards, imageConfigurationOptions,
     confirmationOptions, configurationCodec, layout, runtime, entityState,
     shell, requestApi, grid, iconPicker, selection, preview, interactions, fields,
+    {
+      homeAssistantEnabled: () => connectorsPage
+        ? connectorsPage.homeAssistantCardPickerEnabled()
+        : true,
+    },
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
   const stateEventHandlers = createAppStateEventHandlersFeature(
@@ -879,6 +884,13 @@ function composeApplicationContext(): ApplicationContext {
   connectorsPage = createConnectorsPageFeature(
     dom, shell, fields, companionSection, !!layout.config.features?.companion,
   );
+  let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
+  connectorsPage.onStatusChange(() => {
+    const enabled = connectorsPage.homeAssistantCardPickerEnabled();
+    if (enabled === pickerHomeAssistantEnabled) return;
+    pickerHomeAssistantEnabled = enabled;
+    buttonSettings.render();
+  });
   settingsPage = createSettingsPageFeature(
     configurationCodec, runtime, core, layout, environment, screenScheduleState,
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,

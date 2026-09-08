@@ -165,6 +165,7 @@ function publicFirmwareVersions(slug) {
 
 async function installRoutes(context, slug, options = {}) {
   const nativeState = options.nativeState || null;
+  const connectorsStatus = options.connectorsStatus || null;
   const offlineFallback = options.offlineFallback === true;
   const legacyTextState = options.legacyTextState || {};
   const truncateLegacyText = options.truncateLegacyText || "";
@@ -182,6 +183,18 @@ async function installRoutes(context, slug, options = {}) {
 
   await context.route("**/*", async (route) => {
     const requestUrl = new URL(route.request().url());
+    if (
+      connectorsStatus &&
+      requestUrl.hostname === "espdesktop.test" &&
+      requestUrl.pathname === "/connectors/status"
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(connectorsStatus),
+      });
+      return;
+    }
     const legacyTextMatch = requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname.match(/^\/text\/([^/]+)(?:\/set)?$/);
     if (legacyTextMatch) {
@@ -5145,6 +5158,63 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   }
 }
 
+async function assertCompanionOnlyCardPicker(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, {
+    connectorsStatus: {
+      onboarding_complete: true,
+      home_assistant: {
+        available: true,
+        configured: false,
+        connected: false,
+        actions_confirmed: false,
+      },
+      mac_companion: {
+        available: true,
+        configured: true,
+        paired: true,
+        connected: true,
+      },
+    },
+  });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
+      waitUntil: "domcontentloaded",
+    });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(
+      () => window.__eventSources && window.__eventSources.length > 0,
+    );
+    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
+    await page.waitForFunction(
+      () => document.querySelector("#sp-connectors")?.textContent?.includes("Waiting for Home Assistant"),
+    );
+    await page.getByRole("tab", { name: "Screen" }).click();
+    const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
+    await emptyCell.click();
+    await page.waitForSelector("#sp-card-type-picker");
+    assert.strictEqual(
+      await page.getByRole("tab", { name: "Home Assistant" }).count(),
+      0,
+      `${testCase.name}: Companion-only picker hides the Home Assistant tab`,
+    );
+    assert.strictEqual(
+      await page.locator('[data-card-type="calendar"]').count(),
+      0,
+      `${testCase.name}: Companion-only picker hides Home Assistant card types`,
+    );
+    assert(
+      await page.locator('[data-card-type="companion_app"]').isVisible(),
+      `${testCase.name}: Companion-only picker opens on Mac Companion card types`,
+    );
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertLegacyProfileFallback(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug);
@@ -5491,6 +5561,7 @@ async function runCase(browser, testCase) {
       if (!acceptanceOnly) await runCase(browser, testCase);
       await assertNativeProfileJourney(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertCompanionOnlyCardPicker(browser, testCase);
       await assertLegacyProfileFallback(browser, testCase);
       if (testCase.exerciseInteractions) await assertLegacyRestoreVerificationFailure(browser, testCase);
       await assertOfflineProfileFallback(browser, testCase);

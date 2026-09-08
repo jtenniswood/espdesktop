@@ -30,6 +30,7 @@ export interface ConnectorsPageFeature {
     buildPage(parent: HTMLElement): void;
     start(): void;
     homeAssistantConfigured(): boolean;
+    homeAssistantCardPickerEnabled(): boolean;
     companionConfigured(): boolean;
     onStatusChange(callback: () => void): void;
 }
@@ -268,6 +269,12 @@ export function createConnectorsPageFeature(
         return !!current?.home_assistant.configured;
     }
 
+    function homeAssistantCardPickerEnabled(): boolean {
+        // Preserve the established picker while connector status is loading
+        // or when older firmware falls back to Home Assistant support.
+        return current === null || homeAssistantConfigured();
+    }
+
     function companionConfigured(): boolean {
         return !!current?.mac_companion.paired;
     }
@@ -280,6 +287,7 @@ export function createConnectorsPageFeature(
         buildPage,
         start,
         homeAssistantConfigured,
+        homeAssistantCardPickerEnabled,
         companionConfigured,
         onStatusChange,
     };

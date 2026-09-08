@@ -1,4 +1,5 @@
 import {
+  cardPickerConnectors,
   cardTypeConnector,
   cardTypePickerOptions,
   cardTypeVisibleForConnector,
@@ -28,6 +29,16 @@ export function runPreviewFeatureTests(): void {
   equal(defaultCardTypeForPicker("climate"), "climate_control", "picker aliases retain their defaults");
   equal(defaultCardTypeForPicker("companion_stats"), "companion", "Companion subtype pickers use the Companion runtime card");
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
+  deepEqual(
+    cardPickerConnectors(true, true),
+    [["home_assistant", "Home Assistant"], ["mac_companion", "Mac Companion"]],
+    "configured Home Assistant and supported Companion expose both picker tabs",
+  );
+  deepEqual(
+    cardPickerConnectors(false, true),
+    [["mac_companion", "Mac Companion"]],
+    "a Companion-only setup omits the Home Assistant picker tab",
+  );
   equal(cardTypeVisibleForConnector("subpage", "home_assistant"), true, "Home Assistant subpages remain in the Home Assistant picker");
   equal(cardTypeVisibleForConnector("subpage", "mac_companion"), false, "Home Assistant subpages are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_subpage", "home_assistant"), false, "Companion subpages are hidden from Home Assistant");
