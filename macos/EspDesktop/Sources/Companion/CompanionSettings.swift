@@ -343,32 +343,31 @@ struct CompanionSettings: View {
     private var connectionPage: some View {
         Group {
             if store.hasSavedPairing && !pairingFlowActive {
-                Form {
-                    Section("Connection") {
-                        Toggle(isOn: connectionToggleBinding) {
-                            connectionStatus
+                VStack(spacing: 0) {
+                    connectionStatus
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 32)
+                        .padding(.bottom, 16)
+                    Form {
+                        Section("Display Settings") {
+                            LabeledContent {
+                                Button("Customize Display") { store.openPanelWebServer() }
+                                    .help("Open the display’s configuration in your browser")
+                            } label: {
+                                Text("Configure cards and layout in your browser.")
+                                    .foregroundStyle(.secondary)
+                            }
+                            LabeledContent {
+                                Button("Forget Display", role: .destructive) { confirmingForget = true }
+                            } label: {
+                                Text("Remove this Mac’s saved pairing with the display.")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                        .disabled(store.connectionState.isBusy)
-                        .accessibilityLabel("Display connection")
                     }
-                    Section("Display Settings") {
-                        LabeledContent {
-                            Button("Customize Display") { store.openPanelWebServer() }
-                                .help("Open the display’s configuration in your browser")
-                        } label: {
-                            Text("Configure cards and layout in your browser.")
-                                .foregroundStyle(.secondary)
-                        }
-                        LabeledContent {
-                            Button("Forget Display", role: .destructive) { confirmingForget = true }
-                        } label: {
-                            Text("Remove this Mac’s saved pairing with the display.")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    .formStyle(.grouped)
                 }
-                .formStyle(.grouped)
             } else {
                 pairingFlowPage
             }
@@ -458,17 +457,20 @@ struct CompanionSettings: View {
     }
 
     private var connectionStatus: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 10) {
+            connectionSwitch
             HStack(spacing: 8) {
                 if store.connectionState.isBusy {
                     ProgressView().controlSize(.small)
-                } else {
-                    Image(systemName: store.connectionState.symbol)
-                        .foregroundStyle(store.connectionState == .failed ? Color.orange : Color.secondary)
                 }
                 Text(store.connectionState.title)
+                    .font(.title3.weight(.semibold))
             }
             .accessibilityElement(children: .combine)
+            Text(store.panelHost)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
             if store.connectionState == .failed || store.connectionState == .reconnecting {
                 Text(store.connectionState == .reconnecting
                      ? "Check that your display is powered on and connected to the same network. EspDesktop will try again automatically."
@@ -477,6 +479,23 @@ struct CompanionSettings: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .multilineTextAlignment(.center)
+    }
+
+    private var connectionSwitch: some View {
+        Toggle("Display connection", isOn: connectionToggleBinding)
+            .labelsHidden()
+            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+            .controlSize(connectionSwitchSize)
+            .disabled(store.connectionState.isBusy)
+            .accessibilityLabel("Display connection")
+    }
+
+    private var connectionSwitchSize: ControlSize {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) { return .extraLarge }
+        #endif
+        return .large
     }
 
     private var connectionToggleBinding: Binding<Bool> {
