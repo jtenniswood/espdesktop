@@ -33,4 +33,16 @@ export function runBackupCompatibilityTests(fixture: LegacyBackupFixture): void 
   equal(normalized.version, 2, "legacy backup is normalized to the current envelope version");
   equal(normalized.source.device, fixture.device, "legacy device identity is preserved");
   equal(normalized.subpages["2"], fixture.subpages["2"], "legacy subpage payload is preserved for parsing");
+
+  const renamedFormat = validateBackupEnvelope({
+    ...fixture,
+    version: 2,
+    format: "espcontrol.backup",
+  });
+  const normalizedRenamedFormat = normalizeBackupEnvelope(renamedFormat, {
+    buttons: plan.buttons,
+    subpages: { ...fixture.subpages },
+    button_order: plan.button_order,
+  });
+  equal(normalizedRenamedFormat.format, "espdesktop.backup", "previous backup marker imports into the current format");
 }

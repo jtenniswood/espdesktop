@@ -6,7 +6,7 @@
 
 substitutions:
   cover_art_placeholder_file: "../../common/assets/cover_art_placeholder.svg"
-  name: "espdesktop-7inch-p4-v2"
+  name: "espcontrol-7inch-p4-v2" # Stable OTA/mDNS identifier retained across the product rename.
   friendly_name: "EspDesktop 7inch P4 V2"
   espdesktop_component_url: "../.."
   mdi_font_file: "../../common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
