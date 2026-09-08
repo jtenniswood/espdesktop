@@ -1,4 +1,4 @@
 interface:
   display_name: "Flash Displays"
-  short_description: "Flash EspDesktop displays by IP by default, or USB on request."
-  default_prompt: "Flash all EspDesktop displays from main over IP by default, or flash a specific display such as 7inch P4, 10inch P4, 4inch P4, or 4inch S3. Say use USB to flash locally over USB instead."
+  short_description: "Flash the current branch to the primary S3 test display."
+  default_prompt: "Flash the current EspDesktop worktree to the primary 4-inch S3 at 192.168.6.100 over OTA. Use USB only when I explicitly request it."
