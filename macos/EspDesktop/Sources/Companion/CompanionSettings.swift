@@ -101,7 +101,7 @@ private struct CompanionStatsToggle: View {
     @Binding var isEnabled: Bool
 
     var body: some View {
-        Toggle("Share Mac Statistics", isOn: $isEnabled)
+        Toggle("Share Mac Stats to Display", isOn: $isEnabled)
             .toggleStyle(SwitchToggleStyle(tint: .accentColor))
     }
 }
@@ -679,7 +679,7 @@ struct CompanionSettings: View {
                     isAvailable: store.supportsLaunchAtLogin
                 )
                 CompanionPermissionRow(
-                    title: "Share Mac Statistics",
+                    title: "Share Mac Stats to Display",
                     information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
                     isEnabled: $store.shareSystemMetricsEnabled
                 )
