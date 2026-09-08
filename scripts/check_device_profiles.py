@@ -220,6 +220,10 @@ def test_s3_low_heap_policy() -> None:
     assert "falling back to internal RAM" in artwork and "config.buffer_size = HTTP_CLIENT_BUFFER_SIZE" in artwork, (
         "S3 artwork transfer must retain an internal-stack fallback and bounded HTTP buffer"
     )
+    companion_handlers = device.split("register_companion_now_playing_handlers", 1)[0]
+    assert "priority: 190" in companion_handlers[-320:], (
+        "S3 Companion handlers must register after the EspDesktop owner starts at priority 200"
+    )
     conditional = server.split("#if defined(CONFIG_IDF_TARGET_ESP32S3)", 1)[1].split("#endif", 1)[0]
     s3_server, p4_server = conditional.split("#else", 1)
     assert "config.stack_size = 12288;" in s3_server and "config.max_open_sockets = 3;" in s3_server, (
