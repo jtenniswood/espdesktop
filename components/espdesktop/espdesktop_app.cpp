@@ -226,15 +226,15 @@ void EspDesktopApp::apply_boot_configuration() {
 
 void EspDesktopApp::setup() {
   home_assistant_endpoint_.setup();
-  connectors::connector_state_service().setup(
-      panel_config_button_order_ != nullptr &&
-          !panel_config_button_order_->state.empty(),
-      web_auth_username_, web_auth_password_);
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
     ESP_LOGE(TAG, "Application core failed to start");
   }
+  connectors::connector_state_service().setup(
+      panel_config_button_order_ != nullptr &&
+          !panel_config_button_order_->state.empty(),
+      web_auth_username_, web_auth_password_);
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.
   // Give the display and restored text entities time to come up before

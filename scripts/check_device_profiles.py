@@ -238,6 +238,18 @@ def test_s3_low_heap_policy() -> None:
     )
 
 
+def test_companion_startup_order() -> None:
+    app = (ROOT / "components" / "espdesktop" / "espdesktop_app.cpp").read_text(encoding="utf-8")
+    setup = app.split("void EspDesktopApp::setup() {", 1)[1].split("\n}", 1)[0]
+    assert setup.index("core_.start()") < setup.index("connector_state_service().setup"), (
+        "EspDesktop must start its runtime owner before connector setup reads Companion state"
+    )
+    connector = (ROOT / "components" / "espdesktop" / "connector_state.h").read_text(encoding="utf-8")
+    assert "if (!current_preference && existing_layout)" in connector, (
+        "legacy connector migration must not require Companion runtime during startup"
+    )
+
+
 def test_native_panel_config_bindings(slug: str, profile: dict, device: str) -> None:
     espdesktop = re.search(r"(?ms)^espdesktop:\n(?P<body>(?:^  .*\n|^\s*$\n)*)", device)
     assert espdesktop, f"{slug}: device.yaml is missing its espdesktop block"
@@ -901,6 +913,7 @@ def main() -> int:
     test_generated_web(profiles)
     test_web_server_request_limits()
     test_s3_low_heap_policy()
+    test_companion_startup_order()
     test_zero_image_capacity_disables_all_image_card_pickers(profiles)
     test_constrained_s3_supports_one_cover_art_card(profiles)
     test_generated_yaml(profiles)
