@@ -5209,6 +5209,19 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       }),
     }));
     await coverArtCard.waitFor({ state: "hidden" });
+    const screensaverCard = page.locator("#sp-settings .card").filter({
+      has: page.locator(".card-header h3", { hasText: /^Screensaver$/ }),
+    }).first();
+    await screensaverCard.locator(".card-header").click();
+    const haMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
+    assert.strictEqual(await haMode.isVisible(), false,
+      "Unconfigured Home Assistant screensaver mode stays hidden after mode synchronization");
+    await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
+    assert.strictEqual(await haMode.isVisible(), false,
+      "Selecting Timer preserves Home Assistant mode visibility");
+    assert(await screensaverCard.getByRole("button", { name: "Companion App", exact: true }).isVisible(),
+      "Configured Companion screensaver mode remains available");
+
     await page.getByRole("tab", { name: "Screen" }).click();
     const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
     await emptyCell.click();

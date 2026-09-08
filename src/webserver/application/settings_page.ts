@@ -481,10 +481,10 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setScreensaverBadge = ssBadge;
         function setSsMode(this: any, mode?: any) {
             ssMode = mode;
-            disabledBtn.className = mode === "disabled" ? "active" : "";
-            timerBtn.className = mode === "timer" ? "active" : "";
-            sensorBtn.className = mode === "sensor" ? "active" : "";
-            companionBtn.className = mode === "companion" ? "active" : "";
+            disabledBtn.classList.toggle("active", mode === "disabled");
+            timerBtn.classList.toggle("active", mode === "timer");
+            sensorBtn.classList.toggle("active", mode === "sensor");
+            companionBtn.classList.toggle("active", mode === "companion");
             timerPanel.style.display = mode === "timer" ? "" : "none";
             sensorPanel.style.display = mode === "sensor" ? "" : "none";
             companionPanel.style.display = mode === "companion" ? "" : "none";
