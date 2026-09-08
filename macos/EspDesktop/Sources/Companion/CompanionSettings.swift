@@ -817,8 +817,8 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             self.window = window
             guard let window else { return }
             window.title = "Settings"
-            // Unified toolbars adopt macOS's modern, larger window corners.
-            window.toolbarStyle = .unified
+            // Keep the native icon-and-label tabs below the centered window title.
+            window.toolbarStyle = .preference
             window.backgroundColor = .windowBackgroundColor
             window.titlebarAppearsTransparent = true
             window.titlebarSeparatorStyle = .line
