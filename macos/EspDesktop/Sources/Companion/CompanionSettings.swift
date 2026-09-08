@@ -398,86 +398,130 @@ struct CompanionSettings: View {
         }
     }
 
-    @ViewBuilder
     private var pairingFlowPage: some View {
-        Form {
-            switch pairingStep {
-            case .address:
-                Section("Step 1 of 3 · Display address") {
-                    Text("Enter the local address of your EspDesktop display.")
+        ScrollView {
+            VStack(spacing: 24) {
+                VStack(spacing: 8) {
+                    Text("Step \(pairingStepNumber) of 3")
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(.secondary)
-                    TextField("IP address or name.local", text: $store.panelHost)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("Display address")
-                        .focused($focusedField, equals: .panelHost)
-                        .onSubmit { openPairingPage() }
-                    if !pairingFlowError.isEmpty {
-                        Text(pairingFlowError)
-                            .font(.callout)
-                            .foregroundStyle(.orange)
-                    }
-                    HStack {
-                        Spacer()
-                        Button("Continue") { openPairingPage() }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(!canOpenPairingPage)
-                    }
+                    ProgressView(value: Double(pairingStepNumber), total: 3)
+                        .frame(width: 120)
                 }
-            case .code:
-                Section("Step 2 of 3 · Pairing code") {
-                    Text("A pairing page has opened for your display. Start pairing there, copy the eight-letter code, then enter it below.")
+                VStack(spacing: 12) {
+                    Image(systemName: pairingStepIcon)
+                        .font(.system(size: 44, weight: .light))
+                        .foregroundStyle(pairingStep == .connected ? Color.green : Color.accentColor)
+                        .accessibilityHidden(true)
+                    Text(pairingStepTitle)
+                        .font(.title2.weight(.semibold))
+                    Text(pairingStepDescription)
+                        .font(.body)
                         .foregroundStyle(.secondary)
-                    TextField("ABCD-EFGH", text: $pairingCode)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(.body, design: .monospaced))
-                        .accessibilityLabel("Pairing code")
-                        .focused($focusedField, equals: .pairingCode)
-                        .onSubmit { pairDisplay() }
-                    if !pairingFlowError.isEmpty {
-                        Text(pairingFlowError)
-                            .font(.callout)
-                            .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .multilineTextAlignment(.center)
+
+                if pairingStep == .address || pairingStep == .code {
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(pairingStep == .address ? "Display address" : "Pairing code")
+                                .font(.headline)
+                            if pairingStep == .address {
+                                TextField("IP address or name.local", text: $store.panelHost)
+                                    .textFieldStyle(.roundedBorder)
+                                    .accessibilityLabel("Display address")
+                                    .focused($focusedField, equals: .panelHost)
+                                    .onSubmit { openPairingPage() }
+                            } else {
+                                TextField("ABCD-EFGH", text: $pairingCode)
+                                    .textFieldStyle(.roundedBorder)
+                                    .font(.system(.body, design: .monospaced))
+                                    .accessibilityLabel("Pairing code")
+                                    .focused($focusedField, equals: .pairingCode)
+                                    .onSubmit { pairDisplay() }
+                            }
+                            if !pairingFlowError.isEmpty {
+                                Label(pairingFlowError, systemImage: "exclamationmark.circle")
+                                    .font(.callout)
+                                    .foregroundStyle(.orange)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     HStack {
-                        Button("Back") {
-                            pairingFlowError = ""
-                            pairingStep = .address
+                        if pairingStep == .code {
+                            Button("Back") {
+                                pairingFlowError = ""
+                                pairingStep = .address
+                                focusedField = .panelHost
+                            }
                         }
                         Spacer()
-                        Button("Continue") { pairDisplay() }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(!canPair)
-                    }
-                }
-            case .connecting:
-                Section("Step 3 of 3 · Confirm connection") {
-                    HStack(spacing: 10) {
-                        ProgressView().controlSize(.small)
-                        Text("Pairing and connecting to your display…")
-                    }
-                    .accessibilityElement(children: .combine)
-                    Text("Keep both devices connected to the same local network.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-            case .connected:
-                Section("Step 3 of 3 · Connection established") {
-                    Label("Connected", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Your Mac is paired with the EspDesktop display and ready to use.")
-                        .foregroundStyle(.secondary)
-                    HStack {
-                        Spacer()
-                        Button("Done") {
-                            pairingFlowActive = false
-                            pairingStep = .address
+                        Button(pairingStep == .address ? "Continue" : "Connect") {
+                            if pairingStep == .address { openPairingPage() } else { pairDisplay() }
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(pairingStep == .address ? !canOpenPairingPage : !canPair)
                     }
+                } else if pairingStep == .connecting {
+                    ProgressView()
+                        .accessibilityLabel("Connecting to display")
+                } else {
+                    Button("Done") {
+                        pairingFlowActive = false
+                        pairingStep = .address
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
             }
+            .controlSize(.large)
+            .frame(maxWidth: 380)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 32)
+            .frame(maxWidth: .infinity)
         }
-        .formStyle(.grouped)
+    }
+
+    private var pairingStepNumber: Int {
+        switch pairingStep {
+        case .address: return 1
+        case .code: return 2
+        case .connecting, .connected: return 3
+        }
+    }
+
+    private var pairingStepIcon: String {
+        switch pairingStep {
+        case .address: return "display"
+        case .code: return "key.horizontal"
+        case .connecting: return "link"
+        case .connected: return "checkmark.circle"
+        }
+    }
+
+    private var pairingStepTitle: String {
+        switch pairingStep {
+        case .address: return "Let’s connect your display"
+        case .code: return "Make it yours"
+        case .connecting: return "Connecting your display"
+        case .connected: return "You’re connected"
+        }
+    }
+
+    private var pairingStepDescription: String {
+        switch pairingStep {
+        case .address:
+            return "Enter your display’s local address to start pairing. Keep your Mac and display on the same network."
+        case .code:
+            return "Start pairing on the display page opened in your browser, then enter its eight-letter code here."
+        case .connecting:
+            return "We’re pairing your Mac with your display. Keep both devices connected to the same network."
+        case .connected:
+            return "Your Mac and display are paired and ready to use."
+        }
     }
 
     private var connectionStatus: some View {
