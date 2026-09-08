@@ -13,7 +13,7 @@ Your EspDesktop panel has a built-in web page where you can set everything up. O
 ![Webserver card grid with examples of lights, climate, media, weather, covers, locks, actions, sensors, and date cards](/images/webserver-card-gallery.png)
 
 ::: tip Finding the address
-The address is shown on the display screen when no cards are configured yet. You can also find it in your router's connected devices list, or in Home Assistant under **Settings > Devices & Services > ESPHome**.
+The address is shown on the display screen when no cards are configured yet. You can also find it in your router's connected devices list or, when connected, in Home Assistant under **Settings > Devices & Services > ESPHome**.
 :::
 
 ### Adding a Card
@@ -30,6 +30,7 @@ The setup page uses these card names and grouped modes on the device. For a quic
 
 | Type | What it does | Needs an entity? |
 |---|---|---|
+| **[Companion](/card-types/companion)** | Launches approved Mac apps, opens folders or websites, runs shortcuts, arranges windows, controls media, or shows Mac statistics. Available on the 4848S040. | Paired Mac target or statistic |
 | **[Switch](/card-types/switches)** | Controls a Home Assistant entity and shows its on/off state. This is the default card type. | Yes |
 | **[Lights](/card-types/lights)** | Controls a light as a full control popup, switch, brightness slider, or colour temperature slider. | Yes, as a light entity |
 | **[Action](/card-types/actions)** | Runs a one-tap Home Assistant scene, script, button, helper action, Option Select picker, or local panel action. | Depends on the selected action |
@@ -40,7 +41,7 @@ The setup page uses these card names and grouped modes on the device. For a quic
 | **[Sensor](/card-types/sensors)** | Shows a live numeric reading, readable duration, text state, or icon state from Home Assistant or a local device sensor. | Yes for Home Assistant, local sensor key for Local Sensor source |
 | **[Doors & Windows](/card-types/doors-windows)** | Shows a door or window contact sensor with open and closed icons. | Yes, as **Sensor Entity** |
 | **[Presence](/card-types/presence)** | Shows whether a person, room, or motion sensor is active. | Yes, as **Sensor Entity** |
-| **[Slider](/card-types/sliders)** | Controls light brightness, fan speed, or a `number` / `input_number` value with a draggable fill bar. | Yes |
+| **[Slider](/card-types/sliders)** | Controls Mac output/input volume, light brightness, fan speed, or a `number` / `input_number` value with a draggable fill bar. | Paired Mac control or Home Assistant entity |
 | **[Fans](/card-types/fans)** | Controls supported fan switch, speed, oscillation, direction, and preset features. | Yes, as a fan entity |
 | **[Vacuum](/card-types/vacuum)** | Shows vacuum status or controls start/stop, dock, pause/resume, spot clean, locate, and clean area. | Yes, as a vacuum entity |
 | **[Lawn Mower](/card-types/lawn-mower)** | Shows mower status or controls start mowing, dock, and pause/resume. | Yes, as a lawn mower entity |
@@ -56,9 +57,11 @@ The setup page uses these card names and grouped modes on the device. For a quic
 | **[Screen Lock](/card-types/screen-lock)** | Locks and unlocks local touchscreen controls on the panel. | No |
 | **[Subpage](/features/subpages)** | Opens a folder-like page of extra cards. | No |
 
+For Mac cards, first [pair the EspDesktop Mac app](/getting-started/mac-app). The setup page then loads the approved applications and folders from the connected Mac. See [Mac Cards and Capabilities](/card-types/companion) for their complete setup and permissions.
+
 For cards that use Home Assistant, enter the entity name from Home Assistant in the **Entity** field, such as `light.living_room`, `switch.garden_lights`, `scene.movie_mode`, or `weather.forecast_home`. Some card types use a more specific label, such as **Sensor Entity**, **Weather Entity**, or **Climate Entity**. You can find entity names under **Settings > Devices & Services** in Home Assistant.
 
-Some card names group several related controls together. **Lights** contains All Controls, Switch, Brightness, and Colour Temperature options. **Fans** contains All Controls, Switch, Speed, Oscillation, Direction, and Preset options. **Action** contains scene, script, helper, Option Select, and Local Action modes. **Sensor** contains Home Assistant and Local Sensor sources. **Vacuum** contains Status, Start / Stop, Dock, Pause / Resume, Spot Clean, Locate, and Clean Area options. **Lawn Mower** contains Status, Start Mowing, Dock, and Pause / Resume options. **Cover** contains All Controls, Position, Tilt, Toggle, Open, Close, Stop, and Set Position options. **Alarm** contains All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, and Disarm options. **Date & Time** contains Clock, Date, Time & Date, and World Clock options.
+Some card names group several related controls together. **Companion** contains Launch app, Keyboard shortcut, Open URL, Open folder, Media control, Stats, and Window control. **Lights** contains All Controls, Switch, Brightness, and Colour Temperature options. **Fans** contains All Controls, Switch, Speed, Oscillation, Direction, and Preset options. **Action** contains scene, script, helper, Option Select, and Local Action modes. **Sensor** contains Home Assistant and Local Sensor sources. **Vacuum** contains Status, Start / Stop, Dock, Pause / Resume, Spot Clean, Locate, and Clean Area options. **Lawn Mower** contains Status, Start Mowing, Dock, and Pause / Resume options. **Cover** contains All Controls, Position, Tilt, Toggle, Open, Close, Stop, and Set Position options. **Alarm** contains All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, and Disarm options. **Date & Time** contains Clock, Date, Time & Date, and World Clock options.
 
 For the generated list of current card domains, subpage support, grouping, and options, see the [Card Capability Reference](/generated/cards/capabilities).
 

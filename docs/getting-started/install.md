@@ -1,7 +1,7 @@
 ---
 title: Install EspDesktop Firmware
 description:
-  How to flash EspDesktop firmware to a supported ESP32 touchscreen, connect it to WiFi, and add it to Home Assistant.
+  How to flash EspDesktop firmware to a supported ESP32 touchscreen, connect it to WiFi, and choose Mac Companion or Home Assistant.
 ---
 
 # Install
@@ -51,7 +51,17 @@ After flashing, the display needs to connect to your WiFi network.
 Power-cycle the display by unplugging and re-plugging the USB-C cable. The hotspot only appears when the display can't connect to a saved WiFi network, and it may take up to **90 seconds** after startup or a WiFi outage.
 :::
 
-## Add to Home Assistant
+## Choose What to Connect
+
+After WiFi setup, connect the service you want to control. Open the display's web page at the address shown on screen, then choose **Connectors**.
+
+### Control a Mac
+
+On the **4-inch 4848S040**, choose **Mac Companion** to pair the EspDesktop Mac app. This is enough to complete setup and use Mac controls; Home Assistant is not required.
+
+Continue with [Install and Pair the EspDesktop Mac App](/getting-started/mac-app).
+
+### Add Home Assistant
 
 Once the display is on your WiFi network, Home Assistant should discover it automatically.
 
@@ -59,18 +69,20 @@ Once the display is on your WiFi network, Home Assistant should discover it auto
 2. **Look for a notification** in the bottom left — it should say a new device was discovered. If you don't see one, go to **Settings > Devices & Services** and look for a new **ESPHome** entry.
 3. **Click "Configure"** and follow the prompts to add the device.
 
-This connection is how the display gets the current time, temperature data, and the ability to control your devices. After adding the device, you need to [allow it to perform Home Assistant actions](/getting-started/home-assistant-actions) so the touchscreen can control your devices.
+This connection supplies smart-home entities and lets the display control your devices. After adding it, [allow Home Assistant actions](/getting-started/home-assistant-actions) so the touchscreen can send commands.
+
+You can connect Home Assistant alongside Mac Companion on the 4848S040. The other supported panel profiles currently use Home Assistant and do not offer Companion cards.
 
 ## Configure Your Panel
 
-With the display connected to WiFi and paired with Home Assistant, you're ready to set it up.
+With the display connected to WiFi and at least one connector configured, you're ready to set it up.
 
-1. **Find the device's address.** It's shown on the display screen. You can also find it in your router's device list or in **Home Assistant > Settings > Devices & Services > ESPHome** (click the device, then look for the IP address).
+1. **Find the device's address.** It's shown on the display screen. You can also find it in your router's device list or, if connected, in **Home Assistant > Settings > Devices & Services > ESPHome**.
 2. **Open that address in a browser** — for example, `http://espdesktop.local`. This opens the device's built-in web page.
-3. **Add your cards.** On the **Screen** tab, tap an empty slot and choose the card type you want. For example, a **Switch** card controls a Home Assistant entity, while a **Sensor** card displays a reading.
+3. **Add your cards.** On the **Screen** tab, tap an empty slot and choose the card type you want. A 4848S040 can use **Companion** cards for Mac controls, while Home Assistant cards control or display smart-home entities.
 4. **Adjust your settings.** On the **Settings** tab, set your active card colour, temperatures, screensaver timeout, brightness, and more.
 5. **Tap "Apply Configuration"** when you're done. The display restarts with your new settings.
 
-That's it — your panel is ready to use. See the [Setup](/features/setup) guide for a full walkthrough of every setting.
+That's it — your panel is ready to use. See [Mac Cards and Capabilities](/card-types/companion) for Mac controls or [Setup](/features/setup) for a full walkthrough of the editor.
 
 Next: [Troubleshooting](/getting-started/troubleshooting)

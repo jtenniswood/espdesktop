@@ -1,56 +1,143 @@
 ---
-title: Companion Cards
-description: Show Mac system statistics, launch macOS applications, open Finder folders, control media with confirmed playback state, open web links, or replay keyboard shortcuts from a 4848S040 EspDesktop panel.
+title: Mac Cards and Capabilities
+description: Launch approved Mac apps, open folders and websites, run shortcuts, arrange windows, control media and volume, and show Mac statistics from EspDesktop.
 ---
 
-# Companion Cards
+# Mac Cards and Capabilities
 
-Companion cards are a proof-of-concept card type for the **4-inch 4848S040** panel. They can show processor, memory, storage, or battery usage; launch an application; open an approved Finder folder; control Mac media playback; open a web address; or replay a saved keyboard shortcut on one paired Mac. They do not run shell commands or expose your Mac to incoming network connections.
+Mac controls use the **Mac Companion** connector between the EspDesktop display and the EspDesktop menu-bar app. They currently work on the **4-inch Guition ESP32-S3 4848S040** with one paired Mac.
 
-## Before adding cards
+Home Assistant is not required for these controls. You can connect Home Assistant as well if you want Mac and smart-home cards on the same display.
 
-1. Flash the Companion Cards test firmware to a 4848S040.
-2. [Install EspDesktop on the Mac](/getting-started/mac-app). For branch testing, run the matching app build from Xcode.
-3. Open the display’s web settings and its Mac Companion setup page to start pairing and show the code.
-4. In the Mac app's **Display** page, enter the panel address and the displayed code, then choose **Continue**. Pair on a trusted local network, then choose which installed apps it may launch.
+::: tip Before adding cards
+First [install and pair the EspDesktop Mac app](/getting-started/mac-app). The monitor icon beside WiFi in the display's clock bar shows that the Mac is connected.
+:::
 
-For the first pairing, the Mac accepts the panel's locally generated certificate after you enter the one-time code shown on the setup page. Browser pairing uses the display’s configured web authentication; without a web password, anyone who can reach that page can start pairing. The code expires after 15 minutes and is hidden after pairing. After pairing succeeds, the Mac stores the credential in Keychain and pins that certificate; later certificate changes are blocked. If you forget the panel from the Mac app, pair it again before Companion cards will work.
-When the authenticated Mac is connected, a monitor icon appears beside Wi-Fi in the panel's clock bar. It disappears within a moment if the connection ends.
+## Choose a Mac Control
 
-## Add a Companion card
+Open the display's web page, select an empty home-screen or subpage slot, choose **Companion**, then choose a **Type**.
 
-Use the normal browser layout editor and select an empty home-screen or subpage slot, then choose **Companion**. Under **Type**, choose one of:
+| Companion type | What it does | Extra setup |
+|---|---|---|
+| **Launch app** | Brings an approved Mac application to the front | Approve the app in the Mac app's **Applications** page |
+| **Keyboard shortcut** | Replays a shortcut such as Command-A in the active app | Allow Accessibility access |
+| **Open URL** | Opens an `http://` or `https://` address in an approved app | Choose an approved browser or other app |
+| **Open folder** | Opens an approved Finder folder | Add the folder in the Mac app's **Folders** page |
+| **Media control** | Plays, pauses, or skips the current macOS Now Playing session | The media app must publish a usable Now Playing session |
+| **Stats** | Shows live Mac processor, memory, storage, network, or battery information | Turn on **Share Mac system statistics** |
+| **Window control** | Controls or arranges the active Mac window | Allow Accessibility access; tiling needs macOS 15+ |
 
-- **Launch app** — select an installed Mac application. Finder is not shown as an application because folders use their own action.
-- **Keyboard shortcut** — click the shortcut field and press a combination such as Command-A. The browser records and displays the combination on the card.
-- **Open URL** — enter an `http://` or `https://` address and choose the approved installed application that should open it, such as Safari or Chrome.
-- **Open folder** — first add one or more folders from the Mac app's **Folders** tab, then choose the folder for this card. The display receives an anonymous identifier and friendly name; the filesystem path remains on the Mac.
-- **Media control** — choose Play / Pause, Previous, or Next for the Mac's current Now Playing application. Play / Pause reads **Playing**, **Paused**, or **Stopped** from the Mac; when no track is active it remains enabled because the Mac can still accept a new Play / Pause command. While playback is confirmed as **Playing**, the card lights in the panel's configured active colour; it returns to its normal colour when paused or stopped.
-- **Processor**, **Memory**, **Storage**, or **Battery** — show a read-only live percentage from the paired Mac. These cards use the same number, unit, label, precision, and large-number presentation as numeric Sensor cards, but have their own Companion transport and runtime. Battery shows as unavailable on Macs without a battery.
+Action cards are disabled when the Mac is offline or the selected application, folder, command, or URL is unavailable. Statistic cards show `--` until a reading is available.
 
-Use a [Slider card](/card-types/sliders) when you want to control the Mac's output or input volume.
+## Launch Apps and Open Websites
 
-### Add app subpages
+For **Launch app**, select an application from the approved list supplied by the Mac app. Finder is not listed as an application because folders have their own control.
 
-For a supported **Launch app** card, open the **App subpage** panel below **Card Settings** and turn on **Add app subpage**. The available keyboard shortcuts then appear as a list: turn individual shortcuts on or off, drag them into order, or use the arrow buttons. This panel also contains **Auto switch to subpage**. The card will bring the app to the front and, after the Companion confirms it is active, open the configured app subpage on the display. If the app cannot become active, the display stays on the home screen so a shortcut cannot reach another application.
+For **Open URL**, enter an `http://` or `https://` address and choose the approved application that should open it, such as Safari or Chrome. Addresses containing an embedded username or password are rejected, and other URL types such as `file://` are not accepted.
 
-The subpage is created with the selected app-specific controls. You can then add any card type supported inside a normal subpage, as well as edit the shortcut labels, icons, shortcuts, and order. Changing the shortcut list later updates the built-in shortcut controls while keeping additional cards. Turning the option off does not discard those edits; turning it back on restores the same subpage. The app must remain approved in EspDesktop.
+When an app card is active on the Mac, the card uses the display's active colour. This also lets an app card safely switch the display to its matching app subpage only after the Mac confirms that the application came to the front.
 
-The first time you use one of these controls, macOS may ask for Accessibility permission. Allow **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. If the app is no longer approved or the Companion is offline, the app card is disabled and the app subpage is not opened.
+## Ready-Made App Subpages
 
-The first time a shortcut or window control is used, macOS asks for Accessibility permission so EspDesktop can replay keyboard input. Allow **EspDesktop** in **System Settings → Privacy & Security → Accessibility**, then press the card again. Shortcuts and window controls are sent to whichever Mac application is active at that time.
+Launch cards for **Safari**, **Slack**, and **Codex** can create a ready-made subpage of useful controls.
 
-Action cards are disabled when the Mac is offline, when an app or URL card references an unavailable application, when a folder has been removed from the Mac app, or when a URL is incomplete. System-statistic cards show `--` while their reading is unavailable. Media cards are disabled only when the Companion cannot provide the required system command. A missing Now Playing session leaves Play / Pause enabled and displayed as **Stopped**. App subpages accept the same card types as normal subpages. Layouts, subpages, backup, and restore work through the same built-in editor as all other cards.
+1. Add a **Companion → Launch app** card and select one of the supported apps.
+2. Open **App subpage** below Card Settings.
+3. Turn on **Add app subpage**.
+4. Choose the shortcuts you want and drag them into order.
+5. Optionally turn on **Auto switch to subpage**.
 
-## Limits in this proof of concept
+| App | Included shortcuts |
+|---|---|
+| **Safari** | Back, Forward, Reload, New Tab, Close Tab |
+| **Slack** | Compose, Search, Direct Messages, Unread, All Unread |
+| **Codex** | Command, Approve, Browser, Sidebar, Side panel, and Terminal controls |
 
-- One Mac can be paired to one panel at a time.
-- Keyboard shortcuts require Command, Control, or Option plus a supported key. Modifier-only and unsupported system keys are rejected.
-- URL cards accept only `http://` and `https://` addresses without embedded usernames or passwords.
-- Media buttons control the application currently registered with macOS Now Playing. Support depends on that application's system media integration; Apple Music, Spotify, and browser playback can work when they publish a usable session to macOS.
-- Reading and controlling other applications' Now Playing session uses macOS's private `MediaRemote` framework because Apple's public API only lets an application publish its own session. The framework is loaded dynamically. If a macOS update removes the required symbols, Companion reports the feed or command as unavailable and its existing non-media cards continue to work.
-- Companion is only offered on the 4848S040 profile. Other panels continue to behave normally.
+The generated page is a normal editable subpage. You can rename or reorder its shortcut cards and add other card types. Turning the app subpage off keeps those edits so they return if you enable it again.
 
-If a pairing needs to be replaced, reset pairing on the display’s Companion setup page, forget the display in the Mac app, and use the new code. A long press on the panel’s Wi-Fi icon can also start a pairing session.
+With **Auto switch to subpage** enabled, tapping the app card asks the Mac to activate the application first. The display opens the subpage only after the Mac confirms success, so its shortcuts are not accidentally sent to a different app.
 
-See [Companion compatibility](../generated/companion-compatibility.md) for supported firmware/Mac combinations.
+## Custom Keyboard Shortcuts
+
+Choose **Keyboard shortcut**, select the shortcut field, then press the combination you want to capture. Shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Modifier-only shortcuts and unsupported system keys are rejected.
+
+Shortcuts are sent to whichever Mac application is active when you tap the card. macOS Accessibility permission is required because EspDesktop needs to replay the keyboard input.
+
+## Window Controls
+
+Window cards act on the active Mac window. Choose **Companion → Window control**, then select an action.
+
+| Group | Actions | macOS version |
+|---|---|---|
+| **Window** | Close, Minimise, Hide App, Full Screen | macOS 13+ |
+| **Move & Resize** | Fill Desktop, Centre, Left, Right, Top, Bottom, Return to Previous Size | macOS 15+ |
+| **Arrange Windows** | Left & Right, Right & Left, Top & Bottom, Bottom & Top, and four side-with-quarters layouts | macOS 15+ |
+
+The Mac app must have Accessibility permission. Some applications or windows do not support every macOS window command; in that case the window stays where it is.
+
+## Media Controls and Cover Art
+
+Choose **Media control** for **Play / Pause**, **Previous**, or **Next**. These buttons control the application currently registered with macOS Now Playing.
+
+Play / Pause shows the state confirmed by the Mac:
+
+- **Playing** — the card lights in the display's active colour.
+- **Paused** — the card returns to its normal colour.
+- **Stopped** — no active track was reported, but Play / Pause remains available because the Mac may still accept the command.
+- **Unavailable** — the Mac cannot provide the required media command.
+
+Apple Music, Spotify, and browser playback can work when the application publishes a usable session to macOS. Support depends on the application's macOS media integration.
+
+To turn the whole display into a Now Playing view, open **Settings → Sleep & Schedule → Media Cover Art**, turn on **Show Cover Art**, and choose **Mac Companion** as the source. EspDesktop can then show the title, artist, album, progress, playback state, source application, and artwork supplied by the Mac. No Home Assistant media-player entity is needed for this source.
+
+See [Media Cover Art](/features/media-cover-art) for its display and timing options.
+
+## Mac Volume Sliders
+
+Mac volume uses the normal [Slider card](/card-types/sliders), not a Companion card.
+
+1. Add a **Slider** card.
+2. Set **Control** to **Mac output volume** for the selected speakers or **Mac input volume** for the selected microphone.
+3. Choose the label and icons you want.
+
+The slider follows volume changes made on the Mac. It is disabled when the Companion is disconnected or the selected audio device does not provide software volume control.
+
+## Mac Statistics
+
+Turn on **Share Mac system statistics** in the Mac app's **Permissions** page, then add **Companion → Stats** cards.
+
+| Statistic | What is shown |
+|---|---|
+| **Processor** | Current total processor use as a percentage |
+| **Memory** | Used or free memory as a percentage |
+| **Storage** | Used or free storage as a percentage |
+| **Network** | Current combined network throughput in MB/s |
+| **Battery** | Battery charge percentage; unavailable on Macs without a battery |
+
+These cards support the same label, unit, precision, and large-number display choices as numeric Sensor cards, but their values come directly from the paired Mac. Statistics are not shared until you turn the option on.
+
+You can also choose **Subpage → Companion Stat** to put one of these readings on a home-screen tile that opens a page of related Mac controls.
+
+## Permissions and Availability
+
+| Feature | Approval or permission |
+|---|---|
+| Launching an app | The app must be selected in EspDesktop's **Applications** page |
+| Opening a folder | The folder must be added in EspDesktop's **Folders** page |
+| Keyboard and window controls | EspDesktop must be enabled in **System Settings → Privacy & Security → Accessibility** |
+| Mac statistics | **Share Mac system statistics** must be on in EspDesktop's **Permissions** page |
+| Media and artwork | The playing application must publish a usable macOS Now Playing session |
+| Output or input volume | The selected audio device must expose software volume control |
+
+## Security and Current Limits
+
+- One Mac can be paired to one display at a time.
+- Pairing uses a temporary code that expires after 15 minutes. The Mac stores the credential in Keychain and pins the display certificate after the first pairing.
+- Applications and folders must be approved on the Mac. Folder paths remain on the Mac; the display receives a friendly name and anonymous identifier.
+- The connector accepts only its defined actions. It does not run shell commands or accept incoming network connections on the Mac.
+- Now Playing information is read through macOS's private `MediaRemote` framework because Apple's public API only lets an app publish its own session. If a macOS update removes the required interface, media and artwork become unavailable while the other Mac controls continue to work.
+- Companion cards are currently offered only on the 4848S040 profile. Other supported panels continue to provide their Home Assistant cards normally.
+
+If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. A long press on the display's WiFi icon can also start a pairing session.
+
+For version details, see [Companion Compatibility](/generated/companion-compatibility).
