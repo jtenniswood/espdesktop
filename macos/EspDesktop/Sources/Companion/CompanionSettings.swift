@@ -61,6 +61,42 @@ private struct CompanionOnboardingPage<Content: View>: View {
     }
 }
 
+private struct CompanionPermissionRow: View {
+    let title: String
+    let information: String
+    @Binding var isEnabled: Bool
+    var isAvailable = true
+    @State private var showingInformation = false
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(title)
+            Button {
+                showingInformation = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("About \(title)")
+            .onHover { showingInformation = $0 }
+            .popover(isPresented: $showingInformation, arrowEdge: .bottom) {
+                Text(information)
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(16)
+                    .frame(width: 280, alignment: .leading)
+            }
+            Spacer()
+            Toggle(title, isOn: $isEnabled)
+                .labelsHidden()
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                .disabled(!isAvailable)
+                .accessibilityHint(information)
+        }
+    }
+}
+
 private struct CompanionStatsToggle: View {
     @Binding var isEnabled: Bool
 
@@ -632,19 +668,28 @@ struct CompanionSettings: View {
     private var permissionsPage: some View {
         Form {
             Section("Permissions") {
-                CompanionLaunchAtLoginToggle(
+                CompanionPermissionRow(
+                    title: "Start at Login",
+                    information: store.supportsLaunchAtLogin
+                        ? (store.launchAtLoginMessage.isEmpty
+                           ? "Open EspDesktop automatically after you sign in."
+                           : store.launchAtLoginMessage)
+                        : "Install EspDesktop in Applications to open it automatically at login.",
                     isEnabled: store.launchAtLoginBinding(),
                     isAvailable: store.supportsLaunchAtLogin
                 )
-                .help(store.supportsLaunchAtLogin
-                      ? store.launchAtLoginMessage
-                      : "Install EspDesktop in Applications to open it automatically at login.")
-                CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
-                    .help("Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.")
-                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
-                    .help(accessibilityGranted
-                          ? "Keyboard shortcuts and window controls are enabled for your display."
-                          : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
+                CompanionPermissionRow(
+                    title: "Share Mac Statistics",
+                    information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
+                    isEnabled: $store.shareSystemMetricsEnabled
+                )
+                CompanionPermissionRow(
+                    title: "Keyboard & Window Controls",
+                    information: accessibilityGranted
+                        ? "Keyboard shortcuts and window controls are enabled for your display."
+                        : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.",
+                    isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
+                )
             }
         }
         .formStyle(.grouped)
