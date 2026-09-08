@@ -265,7 +265,8 @@ struct CompanionSettings: View {
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
                 floatingSupportButton
                     .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
             }
         .onAppear {
             if !store.hasSavedPairing { selectedPageID = CompanionSettingsPage.connection.rawValue }
