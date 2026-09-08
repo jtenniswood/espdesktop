@@ -51,6 +51,17 @@ export function connectorOnboardingComplete(status: ConnectorsStatus): boolean {
     return !!(status.home_assistant.configured || status.mac_companion.paired);
 }
 
+export function homeAssistantPickerAvailable(
+    status: ConnectorsStatus | null,
+    statusEndpointAvailable: boolean,
+): boolean {
+    // Old firmware does not expose /connectors/status, so it must retain the
+    // established Home Assistant picker. New firmware can use live connection
+    // state to hide those cards while Home Assistant is unavailable.
+    return !statusEndpointAvailable || status === null ||
+        !!status.home_assistant.connected;
+}
+
 export function requestedConnectorFromSearch(search: string): "mac_companion" | null {
     const params = new URLSearchParams(search);
     if (params.get("connector") === "mac_companion") return "mac_companion";
@@ -79,6 +90,7 @@ export function createConnectorsPageFeature(
     let homeAssistantConfirmButton: HTMLButtonElement | null = null;
     let homeAssistantBadge: HTMLElement | null = null;
     let current: ConnectorsStatus | null = null;
+    let statusEndpointAvailable = false;
     const statusListeners: Array<() => void> = [];
     let timer: number | null = null;
     let refreshInProgress = false;
@@ -146,7 +158,9 @@ export function createConnectorsPageFeature(
         if (refreshInProgress) return;
         refreshInProgress = true;
         try {
-            applyStatus(await requestStatus());
+            const status = await requestStatus();
+            statusEndpointAvailable = true;
+            applyStatus(status);
         } catch {
             if (!current) applyStatus(fallbackStatus());
         } finally {
@@ -274,7 +288,7 @@ export function createConnectorsPageFeature(
         // or when older firmware falls back to Home Assistant support. The
         // configured flag is intentionally not used here because it remains
         // set after a previous connection or an upgrade from older firmware.
-        return current === null || !!current.home_assistant.connected;
+        return homeAssistantPickerAvailable(current, statusEndpointAvailable);
     }
 
     function companionConfigured(): boolean {
