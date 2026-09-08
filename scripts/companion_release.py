@@ -34,8 +34,8 @@ def compatibility(root=ROOT):
 def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
     if not re.fullmatch(r'[0-9a-f]{40}', source_revision):
         raise ValueError('A full source revision is required')
-    if not re.fullmatch(r'v?\d+\.\d+\.\d+', version):
-        raise ValueError('A stable release version is required')
+    if not re.fullmatch(r'v?\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version):
+        raise ValueError('A semantic release version is required')
     contract = compatibility(root)
     provenance = json.loads((firmware_dir / 'release-manifest.json').read_text())
     if provenance.get('sourceRevision') != source_revision or provenance.get('releaseVersion') != version:

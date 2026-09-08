@@ -28,6 +28,17 @@ class CompanionReleaseTests(unittest.TestCase):
             self.assertEqual(record['supportedCombinations'], [{'firmwareProtocol': 3, 'companionProtocol': 3}])
             path.write_text(json.dumps(record))
             verify(path, firmware, companion, revision, version)
+            prerelease_version = 'v9.8.7-beta.1'
+            (firmware / 'release-manifest.json').write_text(json.dumps({
+                'sourceRevision': revision,
+                'releaseVersion': prerelease_version,
+            }))
+            prerelease_record = manifest(firmware, companion, revision, prerelease_version)
+            self.assertEqual(prerelease_record['releaseVersion'], prerelease_version)
+            (firmware / 'release-manifest.json').write_text(json.dumps({
+                'sourceRevision': revision,
+                'releaseVersion': version,
+            }))
             with self.assertRaises(ValueError): verify(path, firmware, companion, 'b' * 40, version)
             with self.assertRaises(ValueError): verify(path, firmware, companion, revision, 'v9.8.8')
             (companion / 'Companion.zip').write_bytes(b'tampered bytes')
@@ -44,6 +55,7 @@ class CompanionReleaseTests(unittest.TestCase):
             directory = Path(temporary)
             with self.assertRaises(ValueError): manifest(directory, directory, 'main', 'v9.8.7')
             with self.assertRaises(ValueError): manifest(directory, directory, 'a' * 40, 'dev')
+            with self.assertRaises(ValueError): manifest(directory, directory, 'a' * 40, 'v9.8.7-')
             with self.assertRaises(FileNotFoundError): manifest(directory, directory, 'a' * 40, 'v9.8.7')
 
 
