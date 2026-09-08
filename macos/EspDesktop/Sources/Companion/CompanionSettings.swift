@@ -339,7 +339,7 @@ struct CompanionSettings: View {
                             Button("Customize") { store.openPanelWebServer() }
                                 .help("Open the display’s configuration in your browser")
                         } label: {
-                            Text("Configure cards and layout in your browser.")
+                            Text("Manage your display layout")
                                 .foregroundStyle(.secondary)
                         }
                         LabeledContent {
