@@ -401,56 +401,44 @@ struct CompanionSettings: View {
     private var pairingFlowPage: some View {
         ScrollView {
             VStack(spacing: 24) {
-                VStack(spacing: 8) {
-                    Text("Step \(pairingStepNumber) of 3")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                    ProgressView(value: Double(pairingStepNumber), total: 3)
-                        .frame(width: 120)
-                }
+                Text("Step \(pairingStepNumber) of 3")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
                 VStack(spacing: 12) {
-                    Image(systemName: pairingStepIcon)
-                        .font(.system(size: 44, weight: .light))
-                        .foregroundStyle(pairingStep == .connected ? Color.green : Color.accentColor)
-                        .accessibilityHidden(true)
                     Text(pairingStepTitle)
-                        .font(.title2.weight(.semibold))
+                        .font(.title.weight(.semibold))
                     Text(pairingStepDescription)
-                        .font(.body)
+                        .font(.title3)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .multilineTextAlignment(.center)
 
                 if pairingStep == .address || pairingStep == .code {
-                    GroupBox {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(pairingStep == .address ? "Display address" : "Pairing code")
-                                .font(.headline)
-                            if pairingStep == .address {
-                                TextField("IP address or name.local", text: $store.panelHost)
-                                    .textFieldStyle(.roundedBorder)
-                                    .accessibilityLabel("Display address")
-                                    .focused($focusedField, equals: .panelHost)
-                                    .onSubmit { openPairingPage() }
-                            } else {
-                                TextField("ABCD-EFGH", text: $pairingCode)
-                                    .textFieldStyle(.roundedBorder)
-                                    .font(.system(.body, design: .monospaced))
-                                    .accessibilityLabel("Pairing code")
-                                    .focused($focusedField, equals: .pairingCode)
-                                    .onSubmit { pairDisplay() }
-                            }
-                            if !pairingFlowError.isEmpty {
-                                Label(pairingFlowError, systemImage: "exclamationmark.circle")
-                                    .font(.callout)
-                                    .foregroundStyle(.orange)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
+                    VStack(alignment: .leading, spacing: 10) {
+                        if pairingStep == .address {
+                            TextField("IP address or name.local", text: $store.panelHost)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityLabel("Display address")
+                                .focused($focusedField, equals: .panelHost)
+                                .onSubmit { openPairingPage() }
+                        } else {
+                            TextField("ABCD-EFGH", text: $pairingCode)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(.title3, design: .monospaced))
+                                .accessibilityLabel("Pairing code")
+                                .focused($focusedField, equals: .pairingCode)
+                                .onSubmit { pairDisplay() }
                         }
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        if !pairingFlowError.isEmpty {
+                            Label(pairingFlowError, systemImage: "exclamationmark.circle")
+                                .font(.callout)
+                                .foregroundStyle(.orange)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
+                    .font(.title3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     HStack {
                         if pairingStep == .code {
                             Button("Back") {
@@ -493,19 +481,10 @@ struct CompanionSettings: View {
         }
     }
 
-    private var pairingStepIcon: String {
-        switch pairingStep {
-        case .address: return "display"
-        case .code: return "key.horizontal"
-        case .connecting: return "link"
-        case .connected: return "checkmark.circle"
-        }
-    }
-
     private var pairingStepTitle: String {
         switch pairingStep {
-        case .address: return "Let’s connect your display"
-        case .code: return "Make it yours"
+        case .address: return "Connect your display"
+        case .code: return "Enter pairing code"
         case .connecting: return "Connecting your display"
         case .connected: return "You’re connected"
         }
@@ -514,13 +493,13 @@ struct CompanionSettings: View {
     private var pairingStepDescription: String {
         switch pairingStep {
         case .address:
-            return "Enter your display’s local address to start pairing. Keep your Mac and display on the same network."
+            return "Enter its address. Your Mac and display must be on the same network."
         case .code:
-            return "Start pairing on the display page opened in your browser, then enter its eight-letter code here."
+            return "Start pairing in your browser, then enter the eight-letter code."
         case .connecting:
-            return "We’re pairing your Mac with your display. Keep both devices connected to the same network."
+            return "Keep your Mac and display on the same network."
         case .connected:
-            return "Your Mac and display are paired and ready to use."
+            return "Your display is ready to use."
         }
     }
 
