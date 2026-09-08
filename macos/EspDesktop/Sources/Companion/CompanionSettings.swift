@@ -514,43 +514,45 @@ struct CompanionSettings: View {
     }
 
     private var applicationsPage: some View {
-        Form {
-            Section {
-                CompanionApplicationSearch(text: $applicationSearch)
-                    .accessibilityLabel("Search applications")
-            }
-            Section {
-                HStack(spacing: 12) {
-                    Toggle("Select All", isOn: selectAllBinding)
-                        .toggleStyle(.checkbox)
-                        .disabled(filteredApplications.isEmpty)
-                    Spacer()
-                }
-                if store.availableApps.isEmpty {
-                    emptyState("No Applications Found", symbol: "app.dashed",
-                               detail: "Install applications in your Applications folder, then refresh this list.")
-                    Button("Refresh Applications") { store.refreshApplications() }
-                } else if filteredApplications.isEmpty {
-                    emptyState("No Results", symbol: "magnifyingglass",
-                               detail: "Try another application name or clear your search.")
-                    Button("Clear Search") { applicationSearch = "" }
-                } else {
-                    ForEach(filteredApplications) { application in
-                        Toggle(isOn: Binding(
-                            get: { store.applicationIsApproved(application) },
-                            set: { store.setApplication(application, approved: $0) }
-                        )) {
-                            HStack(spacing: 10) {
-                                Text(application.name)
+        VStack(spacing: 0) {
+            CompanionApplicationSearch(text: $applicationSearch)
+                .accessibilityLabel("Search applications")
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+            Form {
+                Section {
+                    HStack(spacing: 12) {
+                        Toggle("Select All", isOn: selectAllBinding)
+                            .toggleStyle(.checkbox)
+                            .disabled(filteredApplications.isEmpty)
+                        Spacer()
+                    }
+                    if store.availableApps.isEmpty {
+                        emptyState("No Applications Found", symbol: "app.dashed",
+                                   detail: "Install applications in your Applications folder, then refresh this list.")
+                        Button("Refresh Applications") { store.refreshApplications() }
+                    } else if filteredApplications.isEmpty {
+                        emptyState("No Results", symbol: "magnifyingglass",
+                                   detail: "Try another application name or clear your search.")
+                        Button("Clear Search") { applicationSearch = "" }
+                    } else {
+                        ForEach(filteredApplications) { application in
+                            Toggle(isOn: Binding(
+                                get: { store.applicationIsApproved(application) },
+                                set: { store.setApplication(application, approved: $0) }
+                            )) {
+                                HStack(spacing: 10) {
+                                    Text(application.name)
+                                }
                             }
+                            .toggleStyle(.checkbox)
+                            .padding(.vertical, 2)
                         }
-                        .toggleStyle(.checkbox)
-                        .padding(.vertical, 2)
                     }
                 }
             }
+            .formStyle(.grouped)
         }
-        .formStyle(.grouped)
     }
 
     private var isSearching: Bool { !applicationSearch.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -799,7 +801,9 @@ private struct CompanionApplicationSearch: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSSearchField {
         let field = NSSearchField()
-        field.placeholderString = "Search applications"
+        field.placeholderString = "Search"
+        field.controlSize = .large
+        field.bezelStyle = .roundedBezel
         field.setAccessibilityLabel("Search applications")
         field.sendsSearchStringImmediately = true
         field.delegate = context.coordinator
