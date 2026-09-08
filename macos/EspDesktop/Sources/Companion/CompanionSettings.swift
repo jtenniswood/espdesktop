@@ -97,13 +97,13 @@ private struct CompanionLaunchAtLoginToggle: View {
 
 private struct CompanionAccessibilityToggle: View {
     @Binding var isEnabled: Bool
-    let openSettings: () -> Void
+    let requestAccess: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
             Toggle("", isOn: Binding(
                 get: { isEnabled },
-                set: { _ in openSettings() }
+                set: { _ in requestAccess() }
             ))
             .labelsHidden()
             .toggleStyle(SwitchToggleStyle(tint: .accentColor))
@@ -184,7 +184,7 @@ private struct CompanionOnboarding: View {
                 title: "Enable shortcut support",
                 summary: "Shortcut and window-control cards need macOS Accessibility permission to send commands to your active Mac app."
             ) {
-                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, openSettings: enableAccessibility)
+                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
                 Text(accessibilityGranted
                      ? "Keyboard shortcuts and window controls are enabled for your display."
                      : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
@@ -226,10 +226,7 @@ private struct CompanionOnboarding: View {
     }
 
     private func enableAccessibility() {
-        _ = CompanionAccessibilityAuthorizer.shared.isTrusted()
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
+        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
     }
 }
 
@@ -686,7 +683,7 @@ struct CompanionSettings: View {
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Keyboard & Window Controls") {
-                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, openSettings: enableAccessibility)
+                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
                 Text(accessibilityGranted
                      ? "Keyboard shortcuts and window controls are enabled for your display."
                      : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
@@ -759,10 +756,7 @@ struct CompanionSettings: View {
     }
 
     private func enableAccessibility() {
-        _ = CompanionAccessibilityAuthorizer.shared.isTrusted()
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
+        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
     }
 }
 

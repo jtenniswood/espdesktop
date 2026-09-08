@@ -46,7 +46,7 @@ After pairing, use the **Applications** page to approve only the installed apps
 that the display may discover, launch, or control. The approved list is stored
 locally on the Mac and can be changed at any time. Search by name; the toolbar actions enable or disable only the applications currently shown.
 
-In **Folders**, use **Choose Again…** if a folder has been moved or removed. Removing a folder asks for confirmation and does not delete any files. **Permissions → Keyboard & Window Controls** shows Accessibility access and opens the relevant System Settings page. Simply viewing EspDesktop settings does not request permission.
+In **Folders**, use **Choose Again…** if a folder has been moved or removed. Removing a folder asks for confirmation and does not delete any files. **Permissions → Keyboard & Window Controls** shows Accessibility access and requests the native macOS permission prompt when needed. It does not automatically open System Settings; follow the displayed instructions to grant permission. Simply viewing EspDesktop settings does not request permission.
 
 Enable **General → Share Mac system statistics** to share overall processor and memory usage, startup-disk storage, combined network throughput on the primary interface, and battery level when the Mac has a battery. Memory and storage cards can show either used or free capacity. No additional macOS permission is required, and it does not collect application, file, browsing, or network-content details. Choose the corresponding type on a Companion card to show a reading.
 
