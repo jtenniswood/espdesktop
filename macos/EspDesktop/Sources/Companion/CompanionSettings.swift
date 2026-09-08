@@ -672,6 +672,7 @@ struct CompanionSettings: View {
             }
             Section("Resources") {
                 Link("Support", destination: CompanionStore.supportURL)
+                Link("Raise an issue", destination: CompanionStore.issuesURL)
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
             }
         }

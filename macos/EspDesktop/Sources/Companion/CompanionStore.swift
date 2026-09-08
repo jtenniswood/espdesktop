@@ -98,6 +98,7 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     static let privacyPolicyURL = URL(string: "https://jtenniswood.github.io/espdesktop/reference/privacy")!
+    static let issuesURL = URL(string: "https://github.com/jtenniswood/espdesktop/issues")!
     static let supportURL = URL(string: "https://jtenniswood.github.io/espdesktop/getting-started/troubleshooting")!
     static let buyMeACoffeeURL = URL(string: "https://www.buymeacoffee.com/jtenniswood")!
 
