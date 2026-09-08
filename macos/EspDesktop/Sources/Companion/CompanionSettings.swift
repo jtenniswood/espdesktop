@@ -753,6 +753,7 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             self.window = window
             guard let window else { return }
             window.toolbarStyle = .preference
+            window.titlebarSeparatorStyle = .line
             window.toolbar = toolbar
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
         }
