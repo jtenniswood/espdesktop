@@ -55,3 +55,13 @@ The versioned protocol is intentionally narrow: a Mac publishes installed bundle
 ### Settings navigation
 
 Use the native macOS toolbar to switch between **Display**, **Applications**, **Folders**, **Permissions**, and **Help**. The app remembers the last page; an unpaired Mac starts on Display. Support links are in Help, and the Buy Me a Coffee button is available at the bottom right of every settings page. Window controls, toolbar selection, and application search use standard macOS components and follow the system appearance.
+
+### Companion updates
+
+Choose **Check for Updates** from the menu-bar menu or **Help → Updates**. Sparkle presents native update dialogs with download and installation controls. **Automatically check for updates** is on by default and checks daily while the app is running. **Automatically install updates** is off by default; enabling it allows verified updates to download in the background and install on quit. macOS may still request authorization. Turn off automatic checks to stop scheduled downloads as well. Open at Login in Permissions keeps Companion available after signing in.
+
+The updater uses an HTTPS feed published alongside each stable GitHub release. Archives and the feed are signed with the public key embedded in the app. Update feeds are separated by Companion protocol version, so an incompatible protocol upgrade requires manually installing a matching app/firmware release. If there is no published feed yet, a manual check reports that it cannot retrieve update information. Local Swift launches without an app bundle show installation guidance.
+
+Release setup: store the private Ed25519 seed in the repository secret `SPARKLE_PRIVATE_KEY`; the matching public key is in `Packaging/sparkle-public-key.txt`. Keep a backup of the private key in Keychain. The release workflow requires this secret in addition to the existing Apple signing/notarization credentials, generates and verifies a signed appcast with Sparkle's tools, and publishes it with the notarized ZIP and DMG. Never commit the private key. Do not replace the public key after shipping without following Sparkle's key-rotation procedure. Use increasing release build numbers; Sparkle compares `CFBundleVersion`.
+
+Ad-hoc local app builds embed Sparkle and disable library validation only for that local signature. Developer ID release builds retain library validation and sign Sparkle's nested helper components with the same signing identity as the app.

@@ -674,6 +674,7 @@ struct CompanionSettings: View {
 
     private var helpPage: some View {
         Form {
+            CompanionUpdateSettings(updater: store.updater)
             Section("Support") {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Support EspDesktop")

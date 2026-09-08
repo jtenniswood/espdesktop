@@ -70,6 +70,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         if store.hasSavedPairing && !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             store.connect()
         }
+        store.updater.startAutomaticChecks()
         if !launchedAsLoginItem() {
             DispatchQueue.main.async { [weak self] in self?.openCompanionWindow() }
         }
@@ -111,6 +112,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.addItem(panelWebpageItem)
 
         addMenuItem("EspDesktop Settings", action: #selector(openSettings), key: ",", to: menu)
+        addMenuItem(store.updater.isChecking ? "Checking for Updates…" : "Check for Updates",
+                    action: #selector(checkForUpdates), to: menu)
+        menu.items.last?.isEnabled = !store.updater.isChecking
         addMenuItem(
             "Quit App", action: #selector(quit), key: "q",
             image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
@@ -187,6 +191,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     @objc private func openSettings() { openCompanionWindow() }
+    @objc private func checkForUpdates() { store.updater.check() }
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func existingInstanceWasOpened(_ notification: Notification) { openCompanionWindow() }
 
