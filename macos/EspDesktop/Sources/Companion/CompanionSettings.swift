@@ -259,7 +259,7 @@ struct CompanionSettings: View {
         detailView
             .scrollContentBackground(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(Color(nsColor: .underPageBackgroundColor))
+            .background(Color(nsColor: .windowBackgroundColor))
             .background(CompanionSettingsToolbar(selection: selectedPageBinding))
             .navigationTitle("Settings")
         .onAppear {
@@ -337,20 +337,24 @@ struct CompanionSettings: View {
     private var connectionPage: some View {
         Group {
             if store.hasSavedPairing && !pairingFlowActive {
-                CompanionSettingsPageContent {
-                    CompanionSettingsPanel {
-                        Toggle(isOn: connectionToggleBinding) {
+                List {
+                    Section {
+                        HStack {
+                            Toggle("Connection", isOn: connectionToggleBinding)
+                                .labelsHidden()
+                                .toggleStyle(.switch)
+                                .disabled(store.connectionState.isBusy)
                             Text(store.isConnected ? "Connected" : "Disconnected")
                                 .font(.headline)
+                                .foregroundStyle(store.isConnected ? .primary : .secondary)
+                            Spacer()
                         }
-                        .toggleStyle(.switch)
-                        .disabled(store.connectionState.isBusy)
-                        Divider()
                         Button("Forget Display…", role: .destructive) { confirmingForget = true }
                         Button("Customize Display") { store.openPanelWebServer() }
                             .help("Open the display’s configuration in your browser")
                     }
                 }
+                .listStyle(.inset)
             } else {
                 pairingFlowPage
             }
@@ -359,10 +363,10 @@ struct CompanionSettings: View {
 
     @ViewBuilder
     private var pairingFlowPage: some View {
-        CompanionSettingsPageContent {
+        Form {
             switch pairingStep {
             case .address:
-                CompanionSettingsPanel("Step 1 of 3 · Display address") {
+                Section("Step 1 of 3 · Display address") {
                     Text("Enter the local address of your EspDesktop display.")
                         .foregroundStyle(.secondary)
                     TextField("IP address or name.local", text: $store.panelHost)
@@ -383,7 +387,7 @@ struct CompanionSettings: View {
                     }
                 }
             case .code:
-                CompanionSettingsPanel("Step 2 of 3 · Pairing code") {
+                Section("Step 2 of 3 · Pairing code") {
                     Text("A pairing page has opened for your display. Start pairing there, copy the eight-letter code, then enter it below.")
                         .foregroundStyle(.secondary)
                     TextField("ABCD-EFGH", text: $pairingCode)
@@ -409,7 +413,7 @@ struct CompanionSettings: View {
                     }
                 }
             case .connecting:
-                CompanionSettingsPanel("Step 3 of 3 · Confirm connection") {
+                Section("Step 3 of 3 · Confirm connection") {
                     HStack(spacing: 10) {
                         ProgressView().controlSize(.small)
                         Text("Pairing and connecting to your display…")
@@ -420,7 +424,7 @@ struct CompanionSettings: View {
                         .foregroundStyle(.secondary)
                 }
             case .connected:
-                CompanionSettingsPanel("Step 3 of 3 · Connection established") {
+                Section("Step 3 of 3 · Connection established") {
                     Label("Connected", systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                     Text("Your Mac is paired with the EspDesktop display and ready to use.")
@@ -436,6 +440,7 @@ struct CompanionSettings: View {
                 }
             }
         }
+        .formStyle(.grouped)
     }
 
     private var connectionStatus: some View {
@@ -511,12 +516,12 @@ struct CompanionSettings: View {
     }
 
     private var applicationsPage: some View {
-        CompanionSettingsPageContent {
-            CompanionSettingsPanel {
+        Form {
+            Section {
                 CompanionApplicationSearch(text: $applicationSearch)
                     .accessibilityLabel("Search applications")
             }
-            CompanionSettingsPanel {
+            Section {
                 HStack(spacing: 12) {
                     Toggle("Select All", isOn: selectAllBinding)
                         .toggleStyle(.checkbox)
@@ -524,7 +529,7 @@ struct CompanionSettings: View {
                     Spacer()
                 }
             }
-            CompanionSettingsPanel {
+            Section {
                 if store.availableApps.isEmpty {
                     emptyState("No Applications Found", symbol: "app.dashed",
                                detail: "Install applications in your Applications folder, then refresh this list.")
@@ -549,6 +554,7 @@ struct CompanionSettings: View {
                 }
             }
         }
+        .formStyle(.grouped)
     }
 
     private var isSearching: Bool { !applicationSearch.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -567,11 +573,11 @@ struct CompanionSettings: View {
     }
 
     private var foldersPage: some View {
-        CompanionSettingsPageContent {
-            CompanionSettingsPanel {
+        Form {
+            Section {
                 Text("Add folders you want to open from your display. Their paths stay on this Mac.")
             }
-            CompanionSettingsPanel {
+            Section {
                 if store.approvedFolders.isEmpty {
                     emptyState("Add Your First Folder", symbol: "folder.badge.plus",
                                detail: "Keep a project, documents, or downloads one tap away on your display.")
@@ -615,6 +621,7 @@ struct CompanionSettings: View {
                 }
             }
         }
+        .formStyle(.grouped)
     }
 
     private func emptyState(_ title: String, symbol: String, detail: String) -> some View {
@@ -626,48 +633,38 @@ struct CompanionSettings: View {
     }
 
     private var permissionsPage: some View {
-        CompanionSettingsPageContent {
-            CompanionSettingsPanel("Permissions") {
-                Toggle(isOn: store.launchAtLoginBinding()) {
-                    permissionLabel("Open at Login", detail: store.supportsLaunchAtLogin
-                        ? store.launchAtLoginMessage
-                        : "Install EspDesktop in Applications to open it automatically at login.")
-                }
-                .disabled(!store.supportsLaunchAtLogin)
-                Divider()
-                Toggle(isOn: $store.shareSystemMetricsEnabled) {
-                    permissionLabel("Share System Statistics", detail:
-                        "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.")
-                }
-                Divider()
-                Toggle(isOn: Binding(
-                    get: { accessibilityGranted },
-                    set: { _ in enableAccessibility() }
-                )) {
-                    permissionLabel("Keyboard & Window Controls", detail: accessibilityGranted
-                        ? "Keyboard shortcuts and window controls are enabled for your display."
-                        : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
-                }
+        Form {
+            Section("Startup") {
+                CompanionLaunchAtLoginToggle(
+                    isEnabled: store.launchAtLoginBinding(),
+                    isAvailable: store.supportsLaunchAtLogin
+                )
+                Text(store.supportsLaunchAtLogin
+                     ? store.launchAtLoginMessage
+                     : "Install EspDesktop in Applications to open it automatically at login.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
-            .toggleStyle(.switch)
+            Section("Privacy") {
+                CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
+                Text("Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Keyboard & Window Controls") {
+                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, openSettings: enableAccessibility)
+                Text(accessibilityGranted
+                     ? "Keyboard shortcuts and window controls are enabled for your display."
+                     : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
-    }
-
-    private func permissionLabel(_ title: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(title)
-            Text(detail)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 4)
+        .formStyle(.grouped)
     }
 
     private var helpPage: some View {
-        CompanionSettingsPageContent {
-            CompanionSettingsPanel("Support") {
+        Form {
+            Section("Support") {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Support EspDesktop")
                         .font(.headline)
@@ -677,11 +674,12 @@ struct CompanionSettings: View {
                     Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
                 }
             }
-            CompanionSettingsPanel("Resources") {
+            Section("Resources") {
                 Link("EspDesktop Support", destination: CompanionStore.supportURL)
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
             }
         }
+        .formStyle(.grouped)
     }
 
     private func refreshAccessibilityStatus() {
@@ -755,7 +753,7 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             window.title = "Settings"
             window.toolbarStyle = .preference
             window.titlebarSeparatorStyle = .line
-            window.backgroundColor = .underPageBackgroundColor
+            window.backgroundColor = .windowBackgroundColor
             window.titlebarAppearsTransparent = true
             window.toolbar = toolbar
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
@@ -827,44 +825,6 @@ private struct CompanionApplicationSearch: NSViewRepresentable {
         func controlTextDidChange(_ notification: Notification) {
             guard let field = notification.object as? NSSearchField else { return }
             text.wrappedValue = field.stringValue
-        }
-    }
-}
-
-/// Native group boxes provide system-drawn panel borders and adaptive fills.
-private struct CompanionSettingsPanel<Content: View>: View {
-    private let title: String?
-    private let content: Content
-
-    init(_ title: String? = nil, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let title { Text(title).font(.headline) }
-            GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    content
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-            }
-        }
-    }
-}
-
-private struct CompanionSettingsPageContent<Content: View>: View {
-    @ViewBuilder let content: () -> Content
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                content()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(24)
         }
     }
 }
