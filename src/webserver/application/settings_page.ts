@@ -546,6 +546,13 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         syncIdleUi(runtime);
         var idleCard: any = makeCollapsibleCard("Idle", idleBody, true, idleBadge);
         var systemSettingsCards: any = buildSystemSettingsCards();
+        function syncHomeAssistantSettingsVisibility() {
+            var hidden = !homeAssistantConfigured();
+            systemSettingsCards.homeAssistantSettingsCard.hidden = hidden;
+            systemSettingsCards.homeAssistantSettingsCard.classList.toggle("sp-hidden", hidden);
+        }
+        onStatusChange(syncHomeAssistantSettingsVisibility);
+        syncHomeAssistantSettingsVisibility();
         appendSettingsSection(config, "Display", [
             appearanceCard,
             backlightCard,

@@ -5197,6 +5197,10 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       has: page.locator(".card-header h3", { hasText: /^Cover Art Screen Saver$/ }),
     }).first();
     assert(await coverArtCard.isVisible(), "Configured but offline HA keeps cover art settings available");
+    const haSettingsCard = page.locator("#sp-settings .card").filter({
+      has: page.locator(".card-header h3", { hasText: /^Home Assistant Settings$/ }),
+    }).first();
+    assert(await haSettingsCard.isVisible(), "Configured but offline HA keeps connection settings available");
     assert.strictEqual(await page.locator("#sp-set-ss-cover-art-source").count(), 0,
       "Home Assistant cover art has no source selector");
     await context.route("**/connectors/status", (route) => route.fulfill({
@@ -5209,6 +5213,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       }),
     }));
     await coverArtCard.waitFor({ state: "hidden" });
+    await haSettingsCard.waitFor({ state: "hidden" });
     const screensaverCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Screensaver$/ }),
     }).first();
