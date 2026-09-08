@@ -19,7 +19,7 @@ import type { GridFeature } from "./grid";
 import type { ButtonSettingsIconPickerFeature } from "./button_settings_icon_picker";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
 import type { PreviewRenderFeature } from "./preview_render";
-import type { CardPickerConnector } from "../features/preview";
+import { cardPickerConnectors, type CardPickerConnector } from "../features/preview";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import { cardOwnsSubpage } from "./companion_shortcut_folder";
@@ -34,6 +34,10 @@ export interface ButtonSettingsFeature {
     openCardSettings(...args: any[]): any;
     renderBackButtonSettings(...args: any[]): any;
     render(...args: any[]): any;
+}
+
+export interface CardPickerConnectorState {
+    homeAssistantEnabled(): boolean;
 }
 
 export function createButtonSettingsFeature(
@@ -56,6 +60,7 @@ export function createButtonSettingsFeature(
     preview: Pick<PreviewRenderFeature, "defaultTypeForPicker" | "pickerOptions" | "registryValue" | "render">,
     interactions: Pick<PreviewInteractionsFeature, "deleteSlot" | "emptyButtonConfig">,
     fields: ControlsFieldsFeature,
+    connectorState: CardPickerConnectorState,
 ): ButtonSettingsFeature {
     const { entityName, entityInput } = entityState;
     const { isConfigLocked, createActionButton, showBanner } = shell;
@@ -643,16 +648,18 @@ export function createButtonSettingsFeature(
         function renderCardTypeGrid(this: any, isSub?: any, selectedTypeKey?: any) {
             var field: any = document.createElement("div");
             field.className = "sp-field sp-card-type-picker-field";
-            var activeConnector: CardPickerConnector = "home_assistant";
             var hasCompanion: any = !!layout.config.features?.companion;
-            if (hasCompanion) {
+            var hasHomeAssistant: any = connectorState.homeAssistantEnabled();
+            var availableConnectors: Array<[CardPickerConnector, string]> =
+                cardPickerConnectors(hasHomeAssistant, hasCompanion);
+            var activeConnector: CardPickerConnector = hasHomeAssistant || !hasCompanion
+                ? "home_assistant"
+                : "mac_companion";
+            if (availableConnectors.length > 1) {
                 var tabs: any = document.createElement("div");
                 tabs.className = "sp-card-type-tabs";
                 tabs.setAttribute("role", "tablist");
-                ([
-                    ["home_assistant", "Home Assistant"],
-                    ["mac_companion", "Mac Companion"],
-                ] as Array<[CardPickerConnector, string]>).forEach(function (this: any, tabDef?: any) {
+                availableConnectors.forEach(function (this: any, tabDef?: any) {
                     var tab: any = document.createElement("button");
                     tab.type = "button";
                     tab.className = "sp-card-type-tab";

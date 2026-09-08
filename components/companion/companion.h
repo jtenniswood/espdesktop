@@ -35,7 +35,9 @@ struct CompanionIdentityPreference {
 class CompanionService final : public Component {
  public:
   void set_port(uint16_t port) { this->port_ = port; }
-  float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
+  // The Companion bridge registers callbacks owned by EspDesktopApp during
+  // setup, so it must run after that app starts at AFTER_WIFI.
+  float get_setup_priority() const override { return setup_priority::AFTER_WIFI - 1.0f; }
   void setup() override;
   void loop() override;
   void dump_config() override;

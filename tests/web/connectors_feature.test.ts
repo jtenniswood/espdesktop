@@ -1,5 +1,6 @@
 import {
   connectorOnboardingComplete,
+  homeAssistantPickerAvailable,
   homeAssistantConnectorStatusText,
   requestedConnectorFromSearch,
   type ConnectorsStatus,
@@ -65,5 +66,31 @@ export function runConnectorsFeatureTests(): void {
   });
   if (permissionStatus !== "Home Assistant connected") {
     throw new Error("Connected Home Assistant setup must not show a confirmation action");
+  }
+  const offlineHomeAssistant = status({
+    onboarding_complete: true,
+    home_assistant: {
+      available: true,
+      configured: true,
+      connected: false,
+      actions_confirmed: true,
+    },
+  });
+  if (!homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
+    throw new Error("Older firmware without connector status must retain Home Assistant cards");
+  }
+  if (homeAssistantPickerAvailable(offlineHomeAssistant, true)) {
+    throw new Error("New firmware must hide Home Assistant cards while its connector is offline");
+  }
+  const connectedHomeAssistant = status({
+    home_assistant: {
+      available: true,
+      configured: true,
+      connected: true,
+      actions_confirmed: true,
+    },
+  });
+  if (!homeAssistantPickerAvailable(connectedHomeAssistant, true)) {
+    throw new Error("New firmware must show Home Assistant cards while its connector is connected");
   }
 }

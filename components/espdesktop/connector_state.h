@@ -38,11 +38,12 @@ class ConnectorStateService {
     preference_ = esphome::global_preferences->make_preference<ConnectorPreference>(
         esphome::fnv1a_hash("espdesktop_connectors"));
     const bool loaded = preference_.load(&state_);
-    if (!loaded || state_.version != 1) state_ = ConnectorPreference{};
+    const bool current_preference = loaded && state_.version == 1;
+    if (!current_preference) state_ = ConnectorPreference{};
     // Before connector-aware onboarding, every configured layout necessarily
     // came through the Home Assistant setup path. Preserve that experience on
     // upgrade instead of sending an established panel back to first-run setup.
-    if (existing_layout && !configured()) {
+    if (!current_preference && existing_layout) {
       state_.home_assistant_configured = 1;
       state_.home_assistant_actions_confirmed = 1;
       save_();

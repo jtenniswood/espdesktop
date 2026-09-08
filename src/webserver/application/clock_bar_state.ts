@@ -268,8 +268,6 @@ export function createClockBarFeature(
             els.setClockBarToggle.checked = uiState.previewVisible;
         if (els.setClockBarTimeToggle)
             els.setClockBarTimeToggle.checked = !!state.clockBarTimeOn;
-        if (els.setClockBarNightModeToggle)
-            els.setClockBarNightModeToggle.checked = !!state.clockBarNightModeOn;
         if (els.setNetworkStatusToggle) {
             els.setNetworkStatusToggle.checked = !!state.networkStatusOn;
         }

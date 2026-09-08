@@ -220,6 +220,14 @@ def test_s3_low_heap_policy() -> None:
     assert "falling back to internal RAM" in artwork and "config.buffer_size = HTTP_CLIENT_BUFFER_SIZE" in artwork, (
         "S3 artwork transfer must retain an internal-stack fallback and bounded HTTP buffer"
     )
+    companion_handlers = device.split("register_companion_now_playing_handlers", 1)[0]
+    assert "priority: 190" in companion_handlers[-320:], (
+        "S3 Companion handlers must register after the EspDesktop owner starts at priority 200"
+    )
+    companion_header = (ROOT / "components" / "companion" / "companion.h").read_text(encoding="utf-8")
+    assert "setup_priority::AFTER_WIFI - 1.0f" in companion_header, (
+        "Companion service must set up after the EspDesktop owner at AFTER_WIFI"
+    )
     conditional = server.split("#if defined(CONFIG_IDF_TARGET_ESP32S3)", 1)[1].split("#endif", 1)[0]
     s3_server, p4_server = conditional.split("#else", 1)
     assert "config.stack_size = 12288;" in s3_server and "config.max_open_sockets = 3;" in s3_server, (
@@ -227,6 +235,18 @@ def test_s3_low_heap_policy() -> None:
     )
     assert "config.stack_size = 16384;" in p4_server and "config.max_open_sockets = 5;" in p4_server, (
         "P4 web server policy must remain unchanged"
+    )
+
+
+def test_companion_startup_order() -> None:
+    app = (ROOT / "components" / "espdesktop" / "espdesktop_app.cpp").read_text(encoding="utf-8")
+    setup = app.split("void EspDesktopApp::setup() {", 1)[1].split("\n}", 1)[0]
+    assert setup.index("core_.start()") < setup.index("connector_state_service().setup"), (
+        "EspDesktop must start its runtime owner before connector setup reads Companion state"
+    )
+    connector = (ROOT / "components" / "espdesktop" / "connector_state.h").read_text(encoding="utf-8")
+    assert "if (!current_preference && existing_layout)" in connector, (
+        "legacy connector migration must not require Companion runtime during startup"
     )
 
 
@@ -893,6 +913,7 @@ def main() -> int:
     test_generated_web(profiles)
     test_web_server_request_limits()
     test_s3_low_heap_policy()
+    test_companion_startup_order()
     test_zero_image_capacity_disables_all_image_card_pickers(profiles)
     test_constrained_s3_supports_one_cover_art_card(profiles)
     test_generated_yaml(profiles)
