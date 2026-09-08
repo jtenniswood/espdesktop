@@ -7,7 +7,7 @@ import SwiftUI
 @MainActor
 final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate {
     @Published private(set) var isChecking = false
-    @Published private(set) var message = "Checks daily while EspDesktop is running."
+    @Published private(set) var message = ""
     @Published var automaticallyChecks = true {
         didSet {
             guard started, controller.updater.automaticallyChecksForUpdates != automaticallyChecks else { return }
@@ -117,7 +117,7 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate {
             let feed = try await pending.task.value
             guard includesPreReleases else { return true }
             previewFeedURL = feed
-            message = "Checks daily while EspDesktop is running."
+            message = ""
             return true
         } catch {
             guard includesPreReleases else { return true }
@@ -136,9 +136,11 @@ struct CompanionUpdateSettings: View {
             Section("Current Version") {
                 LabeledContent("EspDesktop", value: updater.installedVersion)
                 HStack {
-                    Text(updater.isChecking ? "Checking for updates…" : updater.message)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                    if updater.isChecking || !updater.message.isEmpty {
+                        Text(updater.isChecking ? "Checking for updates…" : updater.message)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
                     Spacer()
                     if updater.isChecking { ProgressView().controlSize(.small) }
                     Button("Check Now") { updater.check() }
@@ -148,20 +150,14 @@ struct CompanionUpdateSettings: View {
             Section("Automatic Updates") {
                 Toggle("Automatically Check for Updates", isOn: $updater.automaticallyChecks)
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                Text("Check daily while EspDesktop is running and notify you when an update is available.")
-                    .font(.callout).foregroundStyle(.secondary)
                 Toggle("Automatically Install Updates", isOn: $updater.automaticallyInstalls)
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                     .disabled(!updater.automaticallyChecks)
-                Text("Download verified updates in the background and install them when you quit. macOS may ask for permission.")
-                    .font(.callout).foregroundStyle(.secondary)
             }
             Section("Pre-Release Updates") {
                 Toggle("Check for Pre-Release Updates", isOn: $updater.includesPreReleases)
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                     .disabled(updater.isChecking)
-                Text("Include preview versions, which may be less reliable. Automatic installation also applies to previews when enabled.")
-                    .font(.callout).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
