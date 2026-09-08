@@ -597,9 +597,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncInput(els.setCoverArtMediaPlayer, state.coverArtMediaPlayerEntity);
                     syncInput(els.setCoverArtSecondaryMediaPlayer, state.coverArtSecondaryMediaPlayerEntity);
                     syncInput(els.setCoverArtConditions, state.coverArtAttributeConditions);
-                    if (els.setCoverArtSource) els.setCoverArtSource.value = state.coverArtSource;
-                    if (els.setCoverArtHomeAssistantOptions)
-                        els.setCoverArtHomeAssistantOptions.classList.toggle("sp-visible", state.coverArtSource === "Home Assistant");
                     syncCoverArtScreensaverUi();
                     if (els.setAutoUpdate)
                         els.setAutoUpdate.checked = state.autoUpdate;

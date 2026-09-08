@@ -5192,6 +5192,23 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await page.waitForFunction(
       () => document.querySelector("#sp-connectors")?.textContent?.includes("configured, but currently offline"),
     );
+    await page.getByRole("tab", { name: "Settings" }).click();
+    const coverArtCard = page.locator("#sp-settings .card").filter({
+      has: page.locator(".card-header h3", { hasText: /^Cover Art Screen Saver$/ }),
+    }).first();
+    assert(await coverArtCard.isVisible(), "Configured but offline HA keeps cover art settings available");
+    assert.strictEqual(await page.locator("#sp-set-ss-cover-art-source").count(), 0,
+      "Home Assistant cover art has no source selector");
+    await context.route("**/connectors/status", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        onboarding_complete: true,
+        home_assistant: { available: true, configured: false, connected: false, actions_confirmed: false },
+        mac_companion: { available: true, configured: true, paired: true, connected: true },
+      }),
+    }));
+    await coverArtCard.waitFor({ state: "hidden" });
     await page.getByRole("tab", { name: "Screen" }).click();
     const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
     await emptyCell.click();

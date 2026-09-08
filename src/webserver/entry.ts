@@ -872,7 +872,6 @@ function composeApplicationContext(): ApplicationContext {
   const coverArtSection = createSettingsCoverArtSectionFeature(
     configurationCodec, runtime, entityState, statusPreview, artworkPostApi,
     fields, settingsHelpers, coverArtScreensaver, mediaPlayback,
-    !!layout.config.features?.companion,
   );
   const systemSection = createSettingsSystemSectionFeature({
     exportBackup: backupApplication.exportConfig,
