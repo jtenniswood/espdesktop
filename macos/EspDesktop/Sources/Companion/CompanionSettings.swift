@@ -61,32 +61,41 @@ private struct CompanionOnboardingPage<Content: View>: View {
     }
 }
 
+private struct CompanionInfoButton: View {
+    let title: String
+    let information: String
+    @State private var showingInformation = false
+
+    var body: some View {
+        Button {
+            showingInformation = true
+        } label: {
+            Image(systemName: "info.circle")
+                .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel("About \(title)")
+        .onHover { showingInformation = $0 }
+        .popover(isPresented: $showingInformation, arrowEdge: .bottom) {
+            Text(information)
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(16)
+                .frame(width: 280, alignment: .leading)
+        }
+    }
+}
+
 private struct CompanionPermissionRow: View {
     let title: String
     let information: String
     @Binding var isEnabled: Bool
     var isAvailable = true
-    @State private var showingInformation = false
 
     var body: some View {
         HStack(spacing: 6) {
             Text(title)
-            Button {
-                showingInformation = true
-            } label: {
-                Image(systemName: "info.circle")
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.borderless)
-            .accessibilityLabel("About \(title)")
-            .onHover { showingInformation = $0 }
-            .popover(isPresented: $showingInformation, arrowEdge: .bottom) {
-                Text(information)
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(16)
-                    .frame(width: 280, alignment: .leading)
-            }
+            CompanionInfoButton(title: title, information: information)
             Spacer()
             Toggle(title, isOn: $isEnabled)
                 .labelsHidden()
@@ -569,7 +578,7 @@ struct CompanionSettings: View {
 
     private var applicationsPage: some View {
         Form {
-            Section("Apps") {
+            Section {
                 if store.availableApps.isEmpty {
                     emptyState("No Applications Found", symbol: "app.dashed",
                                detail: "Install applications in your Applications folder, then refresh this list.") {
@@ -589,6 +598,14 @@ struct CompanionSettings: View {
                         .padding(.vertical, 2)
                     }
                 }
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Apps")
+                    CompanionInfoButton(
+                        title: "Apps",
+                        information: "Choose which Mac apps you can launch from your display. Enabled apps are available for app shortcuts; switch an app off to hide it from the display."
+                    )
+                }
             }
         }
         .formStyle(.grouped)
@@ -596,7 +613,7 @@ struct CompanionSettings: View {
 
     private var foldersPage: some View {
         Form {
-            Section("Folders") {
+            Section {
                 if store.approvedFolders.isEmpty {
                     emptyState("Add Your First Folder", symbol: "folder.badge.plus",
                                detail: "Keep a project, documents, or downloads one tap away on your display.") {
@@ -632,6 +649,14 @@ struct CompanionSettings: View {
                 }
                 if let message = store.folderMessage {
                     Text(message).font(.callout).foregroundStyle(.secondary)
+                }
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Folders")
+                    CompanionInfoButton(
+                        title: "Folders",
+                        information: "Add folders you want to open on this Mac from your display. Use them as folder shortcuts for projects, documents, or downloads. Folder paths stay on this Mac."
+                    )
                 }
             }
         }
