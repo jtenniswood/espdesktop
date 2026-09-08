@@ -3,7 +3,7 @@ import Darwin
 import Foundation
 
 guard CommandLine.arguments.count == 3 else {
-    fputs("usage: generate_macos_icon.swift input.svg output.iconset\n", stderr)
+    fputs("usage: generate_macos_icon.swift input.png output.iconset\n", stderr)
     exit(2)
 }
 
@@ -44,7 +44,12 @@ for (name, pixels) in sizes {
         throw NSError(domain: "IconGeneration", code: 2)
     }
     NSGraphicsContext.current = context
-    source.draw(in: NSRect(x: 0, y: 0, width: pixels, height: pixels), from: .zero, operation: .copy, fraction: 1)
+    // Apply the macOS tile silhouette at each output size, keeping corners transparent.
+    let scale = CGFloat(pixels) / 1024
+    let tile = NSRect(x: 64 * scale, y: 64 * scale, width: 896 * scale, height: 896 * scale)
+    NSBezierPath(roundedRect: tile, xRadius: 200 * scale, yRadius: 200 * scale).addClip()
+    context.imageInterpolation = .high
+    source.draw(in: tile, from: .zero, operation: .copy, fraction: 1)
     context.flushGraphics()
     NSGraphicsContext.restoreGraphicsState()
     guard let data = bitmap.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) else {

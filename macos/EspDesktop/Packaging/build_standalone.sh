@@ -60,7 +60,7 @@ CLANG_MODULE_CACHE_PATH="${OUTPUT_DIR}/clang-module-cache" swiftc \
     "${REPOSITORY_DIR}/scripts/generate_macos_icon.swift" \
     -o "${ICON_GENERATOR}"
 CLANG_MODULE_CACHE_PATH="${OUTPUT_DIR}/clang-module-cache" "${ICON_GENERATOR}" \
-    "${SCRIPT_DIR}/AppIcon.svg" "${ICONSET_DIR}"
+    "${SCRIPT_DIR}/AppIcon.png" "${ICONSET_DIR}"
 iconutil --convert icns --output "${APP_DIR}/Contents/Resources/AppIcon.icns" "${ICONSET_DIR}"
 
 plutil -replace CFBundleIdentifier -string "${PRODUCT_BUNDLE_IDENTIFIER}" "${APP_DIR}/Contents/Info.plist"
