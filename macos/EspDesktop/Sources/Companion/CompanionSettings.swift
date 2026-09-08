@@ -111,7 +111,7 @@ private struct CompanionLaunchAtLoginToggle: View {
     let isAvailable: Bool
 
     var body: some View {
-        Toggle("Start at Login", isOn: $isEnabled)
+        Toggle("Launch Companion App at Login", isOn: $isEnabled)
             .toggleStyle(SwitchToggleStyle(tint: .accentColor))
             .disabled(!isAvailable)
     }
@@ -669,7 +669,7 @@ struct CompanionSettings: View {
         Form {
             Section("Permissions") {
                 CompanionPermissionRow(
-                    title: "Start at Login",
+                    title: "Launch Companion App at Login",
                     information: store.supportsLaunchAtLogin
                         ? (store.launchAtLoginMessage.isEmpty
                            ? "Open EspDesktop automatically after you sign in."
