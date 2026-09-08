@@ -10,7 +10,7 @@ struct CompanionApp: App {
     var body: some Scene {
         Settings {
             CompanionSettings(store: appDelegate.store)
-                .frame(minWidth: 760, minHeight: 500)
+                .frame(minWidth: 640, minHeight: 500)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -219,7 +219,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 600),
+            contentRect: NSRect(x: 0, y: 0, width: 680, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
@@ -227,7 +227,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         window.identifier = NSUserInterfaceItemIdentifier("io.espdesktop.app.settings")
         window.title = "EspDesktop Settings"
         window.delegate = self
-        window.minSize = NSSize(width: 760, height: 500)
+        window.minSize = NSSize(width: 640, height: 500)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
             rootView: CompanionSettings(store: store)
