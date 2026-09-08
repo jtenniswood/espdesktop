@@ -13,7 +13,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .connection: return "Display"
-        case .applications: return "Applications"
+        case .applications: return "Apps"
         case .folders: return "Folders"
         case .general: return "Permissions"
         case .help: return "Help"
