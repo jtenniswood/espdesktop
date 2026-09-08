@@ -225,7 +225,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             defer: false
         )
         window.identifier = NSUserInterfaceItemIdentifier("io.espdesktop.app.settings")
-        window.title = "EspDesktop Settings"
+        window.title = "Settings"
         window.delegate = self
         window.minSize = NSSize(width: 640, height: 500)
         window.isReleasedWhenClosed = false

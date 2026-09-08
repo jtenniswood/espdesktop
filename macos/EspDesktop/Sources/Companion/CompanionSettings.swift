@@ -261,6 +261,7 @@ struct CompanionSettings: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Color(nsColor: .windowBackgroundColor))
             .background(CompanionSettingsToolbar(selection: selectedPageBinding))
+            .navigationTitle("Settings")
         .onAppear {
             if !store.hasSavedPairing { selectedPageID = CompanionSettingsPage.connection.rawValue }
             if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
@@ -440,7 +441,6 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Connect Display")
     }
 
     private var connectionStatus: some View {
@@ -555,7 +555,6 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Applications")
     }
 
     private var isSearching: Bool { !applicationSearch.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -623,7 +622,6 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Folders")
     }
 
     private func emptyState(_ title: String, symbol: String, detail: String) -> some View {
@@ -662,7 +660,6 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Permissions")
     }
 
     private var helpPage: some View {
@@ -683,7 +680,6 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Help")
     }
 
     private func refreshAccessibilityStatus() {
@@ -754,6 +750,7 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             }
             self.window = window
             guard let window else { return }
+            window.title = "Settings"
             window.toolbarStyle = .preference
             window.titlebarSeparatorStyle = .line
             window.backgroundColor = .windowBackgroundColor
