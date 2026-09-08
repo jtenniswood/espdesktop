@@ -335,24 +335,38 @@ struct CompanionSettings: View {
     private var connectionPage: some View {
         Group {
             if store.hasSavedPairing && !pairingFlowActive {
-                List {
-                    Section {
-                        HStack {
-                            Toggle("Connection", isOn: connectionToggleBinding)
-                                .labelsHidden()
-                                .toggleStyle(.switch)
-                                .disabled(store.connectionState.isBusy)
-                            Text(store.isConnected ? "Connected" : "Disconnected")
-                                .font(.headline)
-                                .foregroundStyle(store.isConnected ? .primary : .secondary)
-                            Spacer()
+                Form {
+                    Section("Connection") {
+                        Toggle(isOn: connectionToggleBinding) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                connectionStatus
+                                Text(store.panelHost)
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
                         }
-                        Button("Forget Display…", role: .destructive) { confirmingForget = true }
-                        Button("Customize Display") { store.openPanelWebServer() }
-                            .help("Open the display’s configuration in your browser")
+                        .toggleStyle(.switch)
+                        .disabled(store.connectionState.isBusy)
+                        .accessibilityLabel("Display connection")
+                    }
+                    Section("Display Settings") {
+                        LabeledContent {
+                            Button("Customize Display") { store.openPanelWebServer() }
+                                .help("Open the display’s configuration in your browser")
+                        } label: {
+                            Text("Configure cards and layout in your browser.")
+                                .foregroundStyle(.secondary)
+                        }
+                        LabeledContent {
+                            Button("Forget Display…", role: .destructive) { confirmingForget = true }
+                        } label: {
+                            Text("Remove this Mac’s saved pairing with the display.")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
-                .listStyle(.inset)
+                .formStyle(.grouped)
             } else {
                 pairingFlowPage
             }
