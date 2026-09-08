@@ -1,0 +1,240 @@
+# =============================================================================
+# CORE INFRASTRUCTURE - Shared API, logging, web server, and restart button
+# =============================================================================
+# Included by each device's device.yaml via packages. Contains config that is
+# identical across all hardware targets.
+# =============================================================================
+
+esphome:
+  # Enable LVGL's bidirectional text algorithm so right-to-left scripts
+  # (Hebrew, Arabic) render in visual order.
+  build_flags:
+    - "-DLV_USE_BIDI=1"
+    - '-DESPCONTROL_DEVICE_SLUG=\"${device_slug}\"'
+
+# This invisible widget enables LVGL's QR-code component in the configuration
+# ESPHome generates for every display. Build flags cannot enable LVGL features
+# because ESPHome's generated lv_conf.h deliberately overrides them.
+lvgl:
+  top_layer:
+    widgets:
+      - qrcode:
+          id: wifi_qr_feature_probe
+          # LVGL requires a non-empty payload and enough pixels to render its
+          # smallest QR matrix. The hidden widget only enables QR support for
+          # the cards that create their own QR code on demand.
+          text: "EspControl"
+          size: 64
+          hidden: true
+
+api:
+  reboot_timeout: 0s
+  homeassistant_states: true
+  homeassistant_services: true
+  # Keep ESPHome's platform default connection pool.  The panel can have a
+  # browser event stream open while Home Assistant reconnects, and diagnostic
+  # clients may overlap that reconnect.  Restricting the native API itself to
+  # three clients causes Home Assistant to be rejected outright. Individual
+  # constrained devices may still override this in their profile.
+  max_send_queue: 12
+  on_client_connected:
+    # ESPHome invokes this hook while it is completing the protocol handshake,
+    # before the Hello response is written.  Yield once before doing any panel
+    # work so a Home Assistant reconnect (or a diagnostic client) cannot delay
+    # or starve that response.
+    - delay: 1s
+    - if:
+        condition:
+          lambda: |-
+            bool is_home_assistant =
+                client_info.find("Home Assistant") != std::string::npos;
+            return is_home_assistant && ha_api_connected();
+        then:
+          - lambda: |-
+              ESP_LOGI("api", "Home Assistant connected: %s", client_info.c_str());
+              id(ha_restore_after_api).execute();
+              if (!client_address.empty()) {
+                id(cover_art_home_assistant_client_address) = client_address;
+              }
+              id(cover_art_api_wait_logged) = false;
+              id(cover_art_resolve_home_assistant_base_url).execute();
+              if (ha_api_state_connected()) {
+                refresh_weather_forecast_cards();
+                ha_log_subscription_diagnostics("client-connected");
+                ha_flush_deferred_state_requests();
+              }
+          - delay: 2s
+          - lambda: |-
+              if (ha_api_connected()) refresh_image_cards();
+              if (ha_api_state_connected()) {
+                id(homeassistant_time).update();
+                ha_flush_deferred_state_requests();
+              }
+          - script.execute: cover_art_resubscribe
+          - script.execute: timezone_after_homeassistant_time_sync
+          - script.execute: backlight_recalc_sunrise_sunset
+          - script.execute: screen_schedule_check
+          - delay: 8s
+          - lambda: |-
+              if (ha_api_connected()) refresh_image_cards();
+              if (ha_api_state_connected()) {
+                refresh_weather_forecast_cards();
+                ha_flush_deferred_state_requests();
+              }
+          - delay: 20s
+          - lambda: |-
+              if (ha_api_connected()) refresh_image_cards();
+              if (ha_api_state_connected()) {
+                refresh_weather_forecast_cards();
+                ha_flush_deferred_state_requests();
+              }
+          - delay: 25s
+          - lambda: |-
+              if (ha_api_state_connected()) {
+                refresh_weather_forecast_cards();
+                ha_flush_deferred_state_requests();
+              }
+  on_client_disconnected:
+    - lambda: |-
+        ESP_LOGW("api", "API client disconnected: %s", client_info.c_str());
+        bool is_home_assistant = client_info.find("Home Assistant") != std::string::npos;
+        if (!is_home_assistant && ha_api_state_connected()) {
+          return;
+        }
+        ha_invalidate_retained_state();
+        weather_forecast_cancel_pending_requests();
+        cover_stop_cancel_pending_request();
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          weather_forecast_cancel_stale_requests();
+          weather_forecast_send_next_queued();
+          ha_flush_deferred_state_requests();
+
+  - interval: 1h
+    then:
+      - lambda: |-
+          refresh_weather_forecast_cards();
+
+logger:
+  logs:
+    light: WARN
+    script: INFO
+
+http_request:
+  id: http_req
+  timeout: 10s
+
+web_server:
+  port: 80
+  version: 3
+  include_internal: true
+  js_url: https://jtenniswood.github.io/espcontrol/webserver/www.js?device=${device_slug}&v=${firmware_version}&ui=20260714-shared
+  sorting_groups:
+    - id: sg_button
+      name: "Button Configuration"
+      sorting_weight: 10
+    - id: sg_display
+      name: "Display Configuration"
+      sorting_weight: 20
+    - id: sg_brightness
+      name: "Brightness"
+      sorting_weight: 25
+    - id: sg_screensaver
+      name: "Screensaver"
+      sorting_weight: 30
+    - id: sg_connectivity
+      name: "Connectivity"
+      sorting_weight: 35
+    - id: sg_firmware
+      name: "Firmware"
+      sorting_weight: 40
+button:
+  - platform: restart
+    name: "${entity_display_restart}"
+
+  - platform: template
+    name: "Apply Configuration"
+    internal: true
+    disabled_by_default: true
+    icon: mdi:restart
+    entity_category: config
+    on_press:
+      then:
+        # Flush web UI settings before rebooting; ESPHome normally batches
+        # preference writes, so an immediate restart can otherwise lose them.
+        - lambda: |-
+            global_preferences->sync();
+            App.safe_reboot();
+
+select:
+  - platform: template
+    name: "${entity_home_assistant_artwork_endpoint_mode}"
+    internal: true
+    id: home_assistant_artwork_endpoint_mode
+    entity_category: config
+    icon: "mdi:lan-check"
+    optimistic: true
+    restore_value: true
+    initial_option: "Automatic"
+    options:
+      - "Automatic"
+      - "Manual"
+    web_server:
+      sorting_group_id: sg_connectivity
+    set_action:
+      - lambda: |-
+          id(home_assistant_artwork_endpoint_mode).publish_state(x);
+          id(cover_art_resolve_home_assistant_base_url).execute();
+
+  - platform: template
+    name: "${entity_home_assistant_artwork_protocol}"
+    internal: true
+    id: cover_art_home_assistant_artwork_protocol
+    entity_category: config
+    icon: "mdi:protocol"
+    optimistic: true
+    restore_value: true
+    initial_option: "http"
+    options:
+      - "http"
+      - "https"
+    web_server:
+      sorting_group_id: sg_connectivity
+    set_action:
+      - lambda: |-
+          id(cover_art_home_assistant_artwork_protocol).publish_state(x);
+          id(cover_art_resolve_home_assistant_base_url).execute();
+
+number:
+  - platform: template
+    name: "Home Assistant Artwork Port"
+    internal: true
+    id: cover_art_home_assistant_artwork_port
+    entity_category: config
+    icon: "mdi:lan-connect"
+    optimistic: true
+    restore_value: true
+    initial_value: 8123
+    min_value: 1
+    max_value: 65535
+    step: 1
+    mode: box
+    web_server:
+      sorting_group_id: sg_connectivity
+    set_action:
+      - lambda: |-
+          id(cover_art_home_assistant_artwork_port).publish_state(x);
+          id(cover_art_resolve_home_assistant_base_url).execute();
+
+text_sensor:
+  - platform: template
+    name: "${entity_home_assistant_artwork_endpoint_status}"
+    internal: true
+    id: home_assistant_artwork_endpoint_status
+    entity_category: diagnostic
+    icon: "mdi:connection"
+    update_interval: 1s
+    lambda: |-
+      return id(espcontrol_app).home_assistant_endpoint().status();

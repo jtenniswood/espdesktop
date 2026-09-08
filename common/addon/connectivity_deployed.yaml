@@ -1,0 +1,102 @@
+# =============================================================================
+# CONNECTIVITY DEPLOYED - WiFi page navigation without provisioning helpers
+# =============================================================================
+# Used by deployed S3 OTA builds after WiFi has already been provisioned. This
+# omits captive portal and fallback AP support to reduce firmware overhead.
+# =============================================================================
+
+wifi:
+  power_save_mode: none
+  reboot_timeout: 30min
+  on_connect:
+    - script.execute: network_status_refresh
+    - script.execute: ntp_servers_apply_after_network
+    - lambda: 'id(espcontrol_app).home_assistant_endpoint().request_discovery();'
+    - script.stop: wifi_reconnect_flow
+    - script.execute: setup_screen_dim_cancel
+    - lambda: |-
+        ESP_LOGI("connectivity", "WiFi connected (%lu ms)", millis());
+        lv_label_set_text(id(loading_status_label), espcontrol_i18n("Connected"));
+    - delay: 200ms
+    - script.execute: navigate_after_api
+  on_disconnect:
+    - script.execute: network_status_refresh
+    - if:
+        condition:
+          lambda: 'return !id(boot_grace_period);'
+        then:
+          - script.execute: wifi_reconnect_flow
+
+script:
+  - id: ha_restore_after_api
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return id(espcontrol_app).connector_onboarding_complete();'
+          then:
+            - script.execute: navigate_after_api
+
+  - id: wifi_show_reconnecting
+    mode: restart
+    then:
+      - script.execute: clock_bar_hide
+      - lambda: |-
+          lv_label_set_text(id(wifi_setup_title), espcontrol_i18n("WiFi Disconnected"));
+          lv_label_set_text(
+              id(wifi_setup_instructions),
+              espcontrol_i18n("Trying to reconnect\nto your saved network"));
+      - lvgl.page.show: wifi_setup_page
+      - script.execute: setup_screen_dim
+
+  - id: wifi_show_hotspot_setup
+    mode: restart
+    then:
+      - script.execute: clock_bar_hide
+      - lambda: |-
+          lv_label_set_text(id(wifi_setup_title), espcontrol_i18n("WiFi Disconnected"));
+          lv_label_set_text(
+              id(wifi_setup_instructions),
+              espcontrol_i18n("No saved WiFi connection\nReinstall by USB to reconfigure"));
+      - lvgl.page.show: wifi_setup_page
+      - script.execute: setup_screen_dim
+
+  - id: wifi_reconnect_flow
+    mode: restart
+    then:
+      - delay: 60s
+      - if:
+          condition:
+            not:
+              wifi.connected:
+          then:
+            - script.execute: wifi_show_reconnecting
+
+  - id: navigate_after_api
+    mode: restart
+    then:
+      - script.execute: setup_screen_dim_cancel
+      - if:
+          condition:
+            lambda: 'return !id(button_order).state.empty();'
+          then:
+            - wait_until:
+                condition:
+                  lambda: |-
+                    return id(espcontrol_app).display().target_mode_is(
+                        espcontrol::DisplayMode::ACTIVE);
+            - lvgl.page.show: main_page
+            - script.execute: clock_bar_apply
+            - script.execute: screensaver_idle_check
+          else:
+            - lambda: |-
+                auto ips = wifi::global_wifi_component->get_ip_addresses();
+                if (!ips.empty()) {
+                  char ip_buf[esphome::network::IP_ADDRESS_BUFFER_SIZE];
+                  ips[0].str_to(ip_buf);
+                  std::string url = "http://" + std::string(ip_buf);
+                  lv_label_set_text(id(setup_ip_label), url.c_str());
+                }
+            - script.execute: clock_bar_hide
+            - lvgl.page.show: button_setup_page
+            - script.execute: setup_screen_dim

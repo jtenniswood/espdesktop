@@ -1,0 +1,220 @@
+name: Nightly Firmware Test Build
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ESPCONTROL_DOCKER_BUILD_CACHE_KEEP: 2GB
+
+concurrency:
+  group: nightly-firmware
+  cancel-in-progress: true
+
+jobs:
+  device-matrix:
+    name: Prepare Device Matrix
+    runs-on: self-hosted
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          sparse-checkout: |
+            builds/*.yaml
+            common/assets/*.yaml
+            common/assets/fonts/*
+            common/assets/icons.json
+            product/v2/card_contract.json
+            common/config/entity_names.json
+            common/config/strings.*.txt
+            compatibility/fixtures/product_compatibility.json
+            product/v2/device_catalog.json
+            devices/manifest.json
+            devices/*/device/fonts.yaml
+            product/model_v2.json
+            product/v2/icons.json
+            product/v2/entity_names.json
+            product/v2/translations/strings.*.txt
+            product/v2/product_compatibility.json
+            product/v2/**
+            scripts/device_matrix.py
+            scripts/device_profiles.py
+            scripts/product_model_v2.py
+          sparse-checkout-cone-mode: false
+
+      - name: Generate device matrix
+        id: matrix
+        run: |
+          MATRIX=$(python3 scripts/device_matrix.py nightly)
+          echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+
+  compile:
+    name: Compile Firmware
+    needs: device-matrix
+    runs-on: self-hosted
+    steps:
+      - name: Prepare self-hosted workspace
+        run: |
+          rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?* 2>/dev/null ||
+            sudo rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?*
+
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: espcontrol-nightly
+
+      - name: Normalize checkout
+        working-directory: espcontrol-nightly
+        run: |
+          git sparse-checkout disable || true
+          git reset --hard HEAD
+
+      - name: Prepare compile plan
+        working-directory: espcontrol-nightly
+        env:
+          MATRIX_JSON: ${{ needs.device-matrix.outputs.matrix }}
+        run: |
+          python3 - <<'PY' > nightly-slugs.txt
+          import json
+          import os
+          import sys
+
+          matrix = json.loads(os.environ["MATRIX_JSON"])
+          slugs = [entry.get("slug") for entry in matrix.get("include", [])]
+          if not slugs or any(not slug for slug in slugs):
+              print("Invalid nightly device matrix", file=sys.stderr)
+              sys.exit(1)
+
+          for entry in matrix["include"]:
+              slug = entry["slug"]
+              print(f"{slug}.factory.yaml")
+              if entry.get("recovery"):
+                  print(f"{slug}.recovery.yaml")
+          PY
+          echo "Nightly compile order:"
+          sed 's/^/- /' nightly-slugs.txt
+
+      - name: Load ESPHome version
+        working-directory: espcontrol-nightly
+        run: cat .github/esphome.env >> "$GITHUB_ENV"
+
+      - name: Select Docker command
+        run: |
+          if docker info >/dev/null 2>&1; then
+            echo "DOCKER=docker" >> "$GITHUB_ENV"
+          elif sudo -n docker info >/dev/null 2>&1; then
+            echo "DOCKER=sudo docker" >> "$GITHUB_ENV"
+          else
+            echo "::error::Docker is not available to the self-hosted runner user"
+            exit 1
+          fi
+
+      - name: Reclaim runner disk
+        working-directory: espcontrol-nightly
+        run: bash scripts/reclaim_actions_disk.sh
+
+      - name: Pull ESPHome image
+        working-directory: espcontrol-nightly
+        run: |
+          ESPHOME_IMAGE="ghcr.io/esphome/esphome:${ESPHOME_VERSION}"
+          LOCK_FILE="/tmp/espcontrol-esphome-image.lock"
+          if command -v flock >/dev/null 2>&1; then
+            flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}"
+          else
+            ${DOCKER} pull "${ESPHOME_IMAGE}"
+          fi
+          echo "ESPHOME_IMAGE=${ESPHOME_IMAGE}" >> "$GITHUB_ENV"
+
+      - name: Compile firmware targets
+        working-directory: espcontrol-nightly
+        run: |
+          SOURCE_DIR="${PWD}"
+          python3 scripts/prepare_c6_firmware.py
+          shared_cache_root="${RUNNER_TEMP}/espcontrol-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/nightly"
+          shared_platformio_cache="${shared_cache_root}/platformio-${ESPHOME_VERSION}"
+          rm -rf "${shared_cache_root}"
+          mkdir -p "${shared_platformio_cache}"
+          set +e
+
+          compile_one() {
+            target="$1"
+            build_file="builds/${target}"
+            if [ ! -f "${build_file}" ]; then
+              echo "::error::Expected firmware build file is missing: ${build_file}"
+              echo "Available build files:"
+              find builds -maxdepth 1 -type f -print | sort || true
+              return 1
+            fi
+
+            cache_name=$(printf '%s' "${target}" | tr '.' '-')
+            target_cache_root="${shared_cache_root}/targets/${cache_name}"
+            build_cache="${target_cache_root}/build"
+            build_input_dir=".firmware-builds"
+            rm -rf "${target_cache_root}" .esphome "${build_input_dir}" || return 1
+            mkdir -p "${build_cache}" "${build_input_dir}" || return 1
+            cp builds/*.yaml "${build_input_dir}/" || return 1
+
+            container=$(${DOCKER} create \
+              --user "$(id -u):$(id -g)" \
+              -e HOME=/config \
+              -e PLATFORMIO_CORE_DIR=/config/.esphome/platformio \
+              -e PLATFORMIO_SETTING_ENABLE_TELEMETRY=false \
+              -v "${shared_platformio_cache}:/config/.esphome" \
+              -v "${build_cache}:/config/${build_input_dir}/.esphome" \
+              "${ESPHOME_IMAGE}" \
+              compile "/config/${build_input_dir}/${target}")
+            create_status=$?
+            if [ "${create_status}" -ne 0 ]; then
+              rm -rf "${target_cache_root}"
+              return "${create_status}"
+            fi
+            cleanup_container() {
+              ${DOCKER} rm -f "${container}" >/dev/null 2>&1 || true
+              rm -rf "${target_cache_root}" .esphome "${build_input_dir}" || true
+            }
+            trap cleanup_container EXIT
+
+            ${DOCKER} cp "${SOURCE_DIR}/." "${container}:/config"
+            copy_status=$?
+            if [ "${copy_status}" -ne 0 ]; then
+              cleanup_container
+              trap - EXIT
+              return "${copy_status}"
+            fi
+
+            ${DOCKER} start -a "${container}"
+            compile_status=$?
+            cleanup_container
+            trap - EXIT
+            bash scripts/reclaim_actions_disk.sh
+            return "${compile_status}"
+          }
+
+          failures=""
+          while IFS= read -r target; do
+            [ -n "${target}" ] || continue
+            echo "::group::Compile firmware (${target})"
+            if compile_one "${target}"; then
+              echo "Firmware compile passed for ${target}"
+            else
+              echo "::error::Firmware compile failed for ${target}"
+              failures="${failures} ${target}"
+            fi
+            echo "::endgroup::"
+          done < nightly-slugs.txt
+
+          if [ -n "${failures}" ]; then
+            echo "::error::Firmware compile failures:${failures}"
+            exit 1
+          fi
+          rm -rf "${shared_cache_root}"
+
+      - name: Clean firmware caches
+        if: always()
+        working-directory: espcontrol-nightly
+        run: |
+          rm -rf "${RUNNER_TEMP}/espcontrol-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf .esphome .firmware-builds
+          bash scripts/reclaim_actions_disk.sh

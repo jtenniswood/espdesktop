@@ -1,0 +1,2900 @@
+{
+  "baselineVersion": 1,
+  "cases": [
+    {
+      "name": "switch: toggle",
+      "sourceKind": "contract",
+      "sourceType": "",
+      "mode": "toggle",
+      "canonicalType": "",
+      "web": {
+        "registration": "",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "2663d392a105c5d5"
+        }
+      },
+      "firmware": {
+        "family": "TOGGLE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "action: service",
+      "sourceKind": "contract",
+      "sourceType": "action",
+      "mode": "service",
+      "canonicalType": "action",
+      "web": {
+        "registration": "action",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "02281c90e5334063"
+        }
+      },
+      "firmware": {
+        "family": "ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "action: local",
+      "sourceKind": "contract",
+      "sourceType": "action",
+      "mode": "local",
+      "canonicalType": "action",
+      "web": {
+        "registration": "action",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "16c2c1992bc175a3"
+        }
+      },
+      "firmware": {
+        "family": "ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "vacuum: status",
+      "sourceKind": "contract",
+      "sourceType": "vacuum",
+      "mode": "status",
+      "canonicalType": "vacuum",
+      "web": {
+        "registration": "vacuum",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a3f214ede0a10347"
+        }
+      },
+      "firmware": {
+        "family": "VACUUM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "vacuum: start_stop",
+      "sourceKind": "contract",
+      "sourceType": "vacuum",
+      "mode": "start_stop",
+      "canonicalType": "vacuum",
+      "web": {
+        "registration": "vacuum",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dca56a790e21ec10"
+        }
+      },
+      "firmware": {
+        "family": "VACUUM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "vacuum: dock",
+      "sourceKind": "contract",
+      "sourceType": "vacuum",
+      "mode": "dock",
+      "canonicalType": "vacuum",
+      "web": {
+        "registration": "vacuum",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dca56a790e21ec10"
+        }
+      },
+      "firmware": {
+        "family": "VACUUM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "vacuum: pause_resume",
+      "sourceKind": "contract",
+      "sourceType": "vacuum",
+      "mode": "pause_resume",
+      "canonicalType": "vacuum",
+      "web": {
+        "registration": "vacuum",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dca56a790e21ec10"
+        }
+      },
+      "firmware": {
+        "family": "VACUUM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "vacuum: clean_spot",
+      "sourceKind": "contract",
+      "sourceType": "vacuum",
+      "mode": "clean_spot",
+      "canonicalType": "vacuum",
+      "web": {
+        "registration": "vacuum",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dca56a790e21ec10"
+        }
+      },
+      "firmware": {
+        "family": "VACUUM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "vacuum: locate",
+      "sourceKind": "contract",
+      "sourceType": "vacuum",
+      "mode": "locate",
+      "canonicalType": "vacuum",
+      "web": {
+        "registration": "vacuum",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dca56a790e21ec10"
+        }
+      },
+      "firmware": {
+        "family": "VACUUM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "vacuum: clean_area",
+      "sourceKind": "contract",
+      "sourceType": "vacuum",
+      "mode": "clean_area",
+      "canonicalType": "vacuum",
+      "web": {
+        "registration": "vacuum",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dca56a790e21ec10"
+        }
+      },
+      "firmware": {
+        "family": "VACUUM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "lawn_mower: status",
+      "sourceKind": "contract",
+      "sourceType": "lawn_mower",
+      "mode": "status",
+      "canonicalType": "lawn_mower",
+      "web": {
+        "registration": "lawn_mower",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "c2f9682d906b89f7"
+        }
+      },
+      "firmware": {
+        "family": "MOWER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "lawn_mower: start_mowing",
+      "sourceKind": "contract",
+      "sourceType": "lawn_mower",
+      "mode": "start_mowing",
+      "canonicalType": "lawn_mower",
+      "web": {
+        "registration": "lawn_mower",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "056cd58f025185f1"
+        }
+      },
+      "firmware": {
+        "family": "MOWER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "lawn_mower: dock",
+      "sourceKind": "contract",
+      "sourceType": "lawn_mower",
+      "mode": "dock",
+      "canonicalType": "lawn_mower",
+      "web": {
+        "registration": "lawn_mower",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "056cd58f025185f1"
+        }
+      },
+      "firmware": {
+        "family": "MOWER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "lawn_mower: pause_resume",
+      "sourceKind": "contract",
+      "sourceType": "lawn_mower",
+      "mode": "pause_resume",
+      "canonicalType": "lawn_mower",
+      "web": {
+        "registration": "lawn_mower",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "056cd58f025185f1"
+        }
+      },
+      "firmware": {
+        "family": "MOWER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "alarm: control_panel",
+      "sourceKind": "contract",
+      "sourceType": "alarm",
+      "mode": "control_panel",
+      "canonicalType": "alarm",
+      "web": {
+        "registration": "alarm",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "ca846ff6a7ac4382"
+        }
+      },
+      "firmware": {
+        "family": "ALARM"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service",
+          "modal"
+        ],
+        "modalOwner": "alarm"
+      }
+    },
+    {
+      "name": "alarm_action: away",
+      "sourceKind": "contract",
+      "sourceType": "alarm_action",
+      "mode": "away",
+      "canonicalType": "alarm_action",
+      "web": {
+        "registration": "alarm_action",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "040fbc9b6ab00193"
+        }
+      },
+      "firmware": {
+        "family": "ALARM_ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "alarm_action: home",
+      "sourceKind": "contract",
+      "sourceType": "alarm_action",
+      "mode": "home",
+      "canonicalType": "alarm_action",
+      "web": {
+        "registration": "alarm_action",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "040fbc9b6ab00193"
+        }
+      },
+      "firmware": {
+        "family": "ALARM_ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "alarm_action: night",
+      "sourceKind": "contract",
+      "sourceType": "alarm_action",
+      "mode": "night",
+      "canonicalType": "alarm_action",
+      "web": {
+        "registration": "alarm_action",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "040fbc9b6ab00193"
+        }
+      },
+      "firmware": {
+        "family": "ALARM_ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "alarm_action: vacation",
+      "sourceKind": "contract",
+      "sourceType": "alarm_action",
+      "mode": "vacation",
+      "canonicalType": "alarm_action",
+      "web": {
+        "registration": "alarm_action",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "040fbc9b6ab00193"
+        }
+      },
+      "firmware": {
+        "family": "ALARM_ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "alarm_action: disarm",
+      "sourceKind": "contract",
+      "sourceType": "alarm_action",
+      "mode": "disarm",
+      "canonicalType": "alarm_action",
+      "web": {
+        "registration": "alarm_action",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "040fbc9b6ab00193"
+        }
+      },
+      "firmware": {
+        "family": "ALARM_ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "calendar: date",
+      "sourceKind": "contract",
+      "sourceType": "calendar",
+      "mode": "date",
+      "canonicalType": "calendar",
+      "web": {
+        "registration": "calendar",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9b48d48a5064589a"
+        }
+      },
+      "firmware": {
+        "family": "DATE_TIME"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "time"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "clock: local_time",
+      "sourceKind": "contract",
+      "sourceType": "clock",
+      "mode": "local_time",
+      "canonicalType": "clock",
+      "web": {
+        "registration": "clock",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dd7881f7dc8a14d8"
+        }
+      },
+      "firmware": {
+        "family": "DATE_TIME"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "time"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "climate: status",
+      "sourceKind": "contract",
+      "sourceType": "climate",
+      "mode": "status",
+      "canonicalType": "climate_control",
+      "web": {
+        "registration": "climate",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "4e8123d11add7b6d"
+        }
+      },
+      "firmware": {
+        "family": "CLIMATE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "modal"
+        ],
+        "modalOwner": "climate"
+      }
+    },
+    {
+      "name": "climate_control: all_controls",
+      "sourceKind": "contract",
+      "sourceType": "climate_control",
+      "mode": "all_controls",
+      "canonicalType": "climate_control",
+      "web": {
+        "registration": "climate_control",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "4e8123d11add7b6d"
+        }
+      },
+      "firmware": {
+        "family": "CLIMATE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service",
+          "modal"
+        ],
+        "modalOwner": "climate"
+      }
+    },
+    {
+      "name": "cover: modal",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "modal",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a0f83658963e6e3d"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service",
+          "modal"
+        ],
+        "modalOwner": "cover"
+      }
+    },
+    {
+      "name": "cover: position",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "position",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a0f83658963e6e3d"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "cover: tilt",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "tilt",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a0f83658963e6e3d"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "cover: toggle",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "toggle",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "6937116724e6f410"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "cover: open",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "open",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "6937116724e6f410"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "cover: close",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "close",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "6937116724e6f410"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "cover: stop",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "stop",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "6937116724e6f410"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "cover: set_position",
+      "sourceKind": "contract",
+      "sourceType": "cover",
+      "mode": "set_position",
+      "canonicalType": "cover",
+      "web": {
+        "registration": "cover",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "6937116724e6f410"
+        }
+      },
+      "firmware": {
+        "family": "COVER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "door_window: door",
+      "sourceKind": "contract",
+      "sourceType": "door_window",
+      "mode": "door",
+      "canonicalType": "door_window",
+      "web": {
+        "registration": "door_window",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9bff29ed5a42f957"
+        }
+      },
+      "firmware": {
+        "family": "OCCUPANCY"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "door_window: window",
+      "sourceKind": "contract",
+      "sourceType": "door_window",
+      "mode": "window",
+      "canonicalType": "door_window",
+      "web": {
+        "registration": "door_window",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9bff29ed5a42f957"
+        }
+      },
+      "firmware": {
+        "family": "OCCUPANCY"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "presence: presence",
+      "sourceKind": "contract",
+      "sourceType": "presence",
+      "mode": "presence",
+      "canonicalType": "presence",
+      "web": {
+        "registration": "presence",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "f7e81c1f543c50e2"
+        }
+      },
+      "firmware": {
+        "family": "OCCUPANCY"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "fan_direction: direction",
+      "sourceKind": "contract",
+      "sourceType": "fan_direction",
+      "mode": "direction",
+      "canonicalType": "fan_direction",
+      "web": {
+        "registration": "fan_direction",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a4e8fa40d5d6856f"
+        }
+      },
+      "firmware": {
+        "family": "FAN"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "fan_oscillate: oscillate",
+      "sourceKind": "contract",
+      "sourceType": "fan_oscillate",
+      "mode": "oscillate",
+      "canonicalType": "fan_oscillate",
+      "web": {
+        "registration": "fan_oscillate",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "facc965aae550223"
+        }
+      },
+      "firmware": {
+        "family": "FAN"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "fan_preset: preset",
+      "sourceKind": "contract",
+      "sourceType": "fan_preset",
+      "mode": "preset",
+      "canonicalType": "fan_preset",
+      "web": {
+        "registration": "fan_preset",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "73edaa5f30685a24"
+        }
+      },
+      "firmware": {
+        "family": "FAN"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "fan_speed: speed",
+      "sourceKind": "contract",
+      "sourceType": "fan_speed",
+      "mode": "speed",
+      "canonicalType": "fan_speed",
+      "web": {
+        "registration": "fan_speed",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "7b05bd833ba3d805"
+        }
+      },
+      "firmware": {
+        "family": "FAN"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "fan_control: all_controls",
+      "sourceKind": "contract",
+      "sourceType": "fan_control",
+      "mode": "all_controls",
+      "canonicalType": "fan_control",
+      "web": {
+        "registration": "fan_control",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "facc965aae550223"
+        }
+      },
+      "firmware": {
+        "family": "FAN"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "fan_switch: power",
+      "sourceKind": "contract",
+      "sourceType": "fan_switch",
+      "mode": "power",
+      "canonicalType": "fan_switch",
+      "web": {
+        "registration": "fan_switch",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "078423860989ce2f"
+        }
+      },
+      "firmware": {
+        "family": "FAN"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "garage: toggle",
+      "sourceKind": "contract",
+      "sourceType": "garage",
+      "mode": "toggle",
+      "canonicalType": "garage",
+      "web": {
+        "registration": "garage",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "ec95cde438f62d7d"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "garage: open",
+      "sourceKind": "contract",
+      "sourceType": "garage",
+      "mode": "open",
+      "canonicalType": "garage",
+      "web": {
+        "registration": "garage",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "30c4fdbf4ed7e609"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "garage: close",
+      "sourceKind": "contract",
+      "sourceType": "garage",
+      "mode": "close",
+      "canonicalType": "garage",
+      "web": {
+        "registration": "garage",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "c0b4e221e5d1d957"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "gate: toggle",
+      "sourceKind": "contract",
+      "sourceType": "gate",
+      "mode": "toggle",
+      "canonicalType": "gate",
+      "web": {
+        "registration": "gate",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "ed3d47306fa9f069"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "gate: open",
+      "sourceKind": "contract",
+      "sourceType": "gate",
+      "mode": "open",
+      "canonicalType": "gate",
+      "web": {
+        "registration": "gate",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "b08031ca39ece8a5"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "gate: close",
+      "sourceKind": "contract",
+      "sourceType": "gate",
+      "mode": "close",
+      "canonicalType": "gate",
+      "web": {
+        "registration": "gate",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "e98ce045da428991"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "gate: stop",
+      "sourceKind": "contract",
+      "sourceType": "gate",
+      "mode": "stop",
+      "canonicalType": "gate",
+      "web": {
+        "registration": "gate",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "ee511447e498c94a"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "internal: switch",
+      "sourceKind": "contract",
+      "sourceType": "internal",
+      "mode": "switch",
+      "canonicalType": "internal",
+      "web": {
+        "registration": "internal",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "4e4b00401fdaa1ea"
+        }
+      },
+      "firmware": {
+        "family": "INTERNAL"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "internal: push",
+      "sourceKind": "contract",
+      "sourceType": "internal",
+      "mode": "push",
+      "canonicalType": "internal",
+      "web": {
+        "registration": "internal",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "4e4b00401fdaa1ea"
+        }
+      },
+      "firmware": {
+        "family": "INTERNAL"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "light_brightness: brightness",
+      "sourceKind": "contract",
+      "sourceType": "light_brightness",
+      "mode": "brightness",
+      "canonicalType": "light_brightness",
+      "web": {
+        "registration": "light_brightness",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "e3d8afb67003a94a"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "light_switch: power",
+      "sourceKind": "contract",
+      "sourceType": "light_switch",
+      "mode": "power",
+      "canonicalType": "light_switch",
+      "web": {
+        "registration": "light_switch",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "adb9b4733dc6380a"
+        }
+      },
+      "firmware": {
+        "family": "TOGGLE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "light_temperature: temperature",
+      "sourceKind": "contract",
+      "sourceType": "light_temperature",
+      "mode": "temperature",
+      "canonicalType": "light_temperature",
+      "web": {
+        "registration": "light_temperature",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a3a032fabe4d05d0"
+        }
+      },
+      "firmware": {
+        "family": "LIGHT_TEMPERATURE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "light_control: all_controls",
+      "sourceKind": "contract",
+      "sourceType": "light_control",
+      "mode": "all_controls",
+      "canonicalType": "light_control",
+      "web": {
+        "registration": "light_control",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9464f5efa8cb3dbf"
+        }
+      },
+      "firmware": {
+        "family": "LIGHT_CONTROL"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "lock: toggle",
+      "sourceKind": "contract",
+      "sourceType": "lock",
+      "mode": "toggle",
+      "canonicalType": "lock",
+      "web": {
+        "registration": "lock",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "326d7172132843c6"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "lock: lock",
+      "sourceKind": "contract",
+      "sourceType": "lock",
+      "mode": "lock",
+      "canonicalType": "lock",
+      "web": {
+        "registration": "lock",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "0dcb48c3c75a0827"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "lock: unlock",
+      "sourceKind": "contract",
+      "sourceType": "lock",
+      "mode": "unlock",
+      "canonicalType": "lock",
+      "web": {
+        "registration": "lock",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "c2e068cb8520c648"
+        }
+      },
+      "firmware": {
+        "family": "ACCESS"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: control_modal",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "control_modal",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "f581d9052dcd5fb5"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service",
+          "modal"
+        ],
+        "modalOwner": "media"
+      }
+    },
+    {
+      "name": "media: play_pause",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "play_pause",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9f3c7129ffc1b7ca"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: previous",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "previous",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "24fd6844e4b7e66f"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: next",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "next",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "4805b64ace371d7d"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: volume",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "volume",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "b6bdeddde89e8225"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: position",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "position",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a470bedcdcd16a1b"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: now_playing",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "now_playing",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a3899c4f13632d08"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: cover_art",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "cover_art",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "90d830512709efaf"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media: playlist",
+      "sourceKind": "contract",
+      "sourceType": "media",
+      "mode": "playlist",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9e6ff76b33d75d3d"
+        }
+      },
+      "firmware": {
+        "family": "MEDIA"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "option_select: legacy_option_select",
+      "sourceKind": "contract",
+      "sourceType": "option_select",
+      "mode": "legacy_option_select",
+      "canonicalType": "action",
+      "web": {
+        "registration": "action",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "bc1a8d0fd70da6f2"
+        }
+      },
+      "firmware": {
+        "family": "OPTION_SELECT"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "push: event",
+      "sourceKind": "contract",
+      "sourceType": "push",
+      "mode": "event",
+      "canonicalType": "push",
+      "web": {
+        "registration": "push",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "b753e39250229878"
+        }
+      },
+      "firmware": {
+        "family": "PUSH"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "companion: approved_app",
+      "sourceKind": "contract",
+      "sourceType": "companion",
+      "mode": "approved_app",
+      "canonicalType": "companion",
+      "web": {
+        "registration": "companion",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "c9da18ede694afd8"
+        }
+      },
+      "firmware": {
+        "family": "COMPANION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "screen_lock: toggle",
+      "sourceKind": "contract",
+      "sourceType": "screen_lock",
+      "mode": "toggle",
+      "canonicalType": "screen_lock",
+      "web": {
+        "registration": "screen_lock",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a4da18c06a4da330"
+        }
+      },
+      "firmware": {
+        "family": "SCREEN_LOCK"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "webhook: get",
+      "sourceKind": "contract",
+      "sourceType": "webhook",
+      "mode": "get",
+      "canonicalType": "webhook",
+      "web": {
+        "registration": "webhook",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "3b5e81ade2b597ca"
+        }
+      },
+      "firmware": {
+        "family": "WEBHOOK"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "http"
+        ],
+        "actions": [
+          "http"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "webhook: post",
+      "sourceKind": "contract",
+      "sourceType": "webhook",
+      "mode": "post",
+      "canonicalType": "webhook",
+      "web": {
+        "registration": "webhook",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "3b5e81ade2b597ca"
+        }
+      },
+      "firmware": {
+        "family": "WEBHOOK"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "http"
+        ],
+        "actions": [
+          "http"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "sensor: numeric",
+      "sourceKind": "contract",
+      "sourceType": "sensor",
+      "mode": "numeric",
+      "canonicalType": "sensor",
+      "web": {
+        "registration": "sensor",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "c219054c68d1325f"
+        }
+      },
+      "firmware": {
+        "family": "SENSOR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "sensor: time",
+      "sourceKind": "contract",
+      "sourceType": "sensor",
+      "mode": "time",
+      "canonicalType": "sensor",
+      "web": {
+        "registration": "sensor",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "d798818a02bc1f2a"
+        }
+      },
+      "firmware": {
+        "family": "SENSOR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "sensor: text",
+      "sourceKind": "contract",
+      "sourceType": "sensor",
+      "mode": "text",
+      "canonicalType": "sensor",
+      "web": {
+        "registration": "sensor",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "52c97cd288c88fc3"
+        }
+      },
+      "firmware": {
+        "family": "SENSOR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "sensor: icon",
+      "sourceKind": "contract",
+      "sourceType": "sensor",
+      "mode": "icon",
+      "canonicalType": "sensor",
+      "web": {
+        "registration": "sensor",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "b455a6ad41b10b72"
+        }
+      },
+      "firmware": {
+        "family": "SENSOR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "sensor: local",
+      "sourceKind": "contract",
+      "sourceType": "sensor",
+      "mode": "local",
+      "canonicalType": "sensor",
+      "web": {
+        "registration": "sensor",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "fff8b8e4c462376f"
+        }
+      },
+      "firmware": {
+        "family": "SENSOR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "local_sensor: legacy_local_sensor",
+      "sourceKind": "contract",
+      "sourceType": "local_sensor",
+      "mode": "legacy_local_sensor",
+      "canonicalType": "sensor",
+      "web": {
+        "registration": "sensor",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "fff8b8e4c462376f"
+        }
+      },
+      "firmware": {
+        "family": "LOCAL_SENSOR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "slider: numeric",
+      "sourceKind": "contract",
+      "sourceType": "slider",
+      "mode": "numeric",
+      "canonicalType": "slider",
+      "web": {
+        "registration": "slider",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "33ac1c3a830d8bd1"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "subpage: navigation",
+      "sourceKind": "contract",
+      "sourceType": "subpage",
+      "mode": "navigation",
+      "canonicalType": "subpage",
+      "web": {
+        "registration": "subpage",
+        "picker": {
+          "main": true,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "60c8920ccd95ded0"
+        }
+      },
+      "firmware": {
+        "family": "SUBPAGE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "navigation"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "timezone: timezone",
+      "sourceKind": "contract",
+      "sourceType": "timezone",
+      "mode": "timezone",
+      "canonicalType": "timezone",
+      "web": {
+        "registration": "timezone",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "118506d650ffa83f"
+        }
+      },
+      "firmware": {
+        "family": "DATE_TIME"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "time"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "weather: current",
+      "sourceKind": "contract",
+      "sourceType": "weather",
+      "mode": "current",
+      "canonicalType": "weather",
+      "web": {
+        "registration": "weather",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "2791aa035b876002"
+        }
+      },
+      "firmware": {
+        "family": "WEATHER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "weather: today",
+      "sourceKind": "contract",
+      "sourceType": "weather",
+      "mode": "today",
+      "canonicalType": "weather",
+      "web": {
+        "registration": "weather",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "2fd6d3bf08d3c1d8"
+        }
+      },
+      "firmware": {
+        "family": "WEATHER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes",
+          "action_response"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "weather: tomorrow",
+      "sourceKind": "contract",
+      "sourceType": "weather",
+      "mode": "tomorrow",
+      "canonicalType": "weather",
+      "web": {
+        "registration": "weather",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "39e3dc19b6902dae"
+        }
+      },
+      "firmware": {
+        "family": "WEATHER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes",
+          "action_response"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "image: image",
+      "sourceKind": "contract",
+      "sourceType": "image",
+      "mode": "image",
+      "canonicalType": "image",
+      "web": {
+        "registration": "image",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9241c351ec456b18"
+        }
+      },
+      "firmware": {
+        "family": "IMAGE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "modal"
+        ],
+        "modalOwner": "image"
+      }
+    },
+    {
+      "name": "wifi_qr: share",
+      "sourceKind": "contract",
+      "sourceType": "wifi_qr",
+      "mode": "share",
+      "canonicalType": "wifi_qr",
+      "web": {
+        "registration": "wifi_qr",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "550375456a8a890e"
+        }
+      },
+      "firmware": {
+        "family": "WIFI_QR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "modal"
+        ],
+        "modalOwner": "wifi_qr"
+      }
+    },
+    {
+      "name": "wifi_qr_card: tile_qr",
+      "sourceKind": "contract",
+      "sourceType": "wifi_qr_card",
+      "mode": "tile_qr",
+      "canonicalType": "wifi_qr_card",
+      "web": {
+        "registration": "wifi_qr_card",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "02684f0d55ec47ef"
+        }
+      },
+      "firmware": {
+        "family": "WIFI_QR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "modal"
+        ],
+        "modalOwner": "wifi_qr"
+      }
+    },
+    {
+      "name": "weather_forecast: legacy_forecast",
+      "sourceKind": "contract",
+      "sourceType": "weather_forecast",
+      "mode": "legacy_forecast",
+      "canonicalType": "weather",
+      "web": {
+        "registration": "weather_forecast",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "6e4ee22ad2555524"
+        }
+      },
+      "firmware": {
+        "family": "WEATHER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes",
+          "action_response"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "local: accepted_legacy_input",
+      "sourceKind": "runtime_only",
+      "sourceType": "local",
+      "mode": "accepted_legacy_input",
+      "canonicalType": "action",
+      "web": {
+        "registration": null,
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": false,
+          "fingerprint": ""
+        }
+      },
+      "firmware": {
+        "family": "ACTION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "text_sensor: accepted_legacy_input",
+      "sourceKind": "runtime_only",
+      "sourceType": "text_sensor",
+      "mode": "accepted_legacy_input",
+      "canonicalType": "sensor",
+      "web": {
+        "registration": null,
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": false,
+          "fingerprint": ""
+        }
+      },
+      "firmware": {
+        "family": "SENSOR"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "companion_subpage: picker_alias",
+      "sourceKind": "runtime_only",
+      "sourceType": "companion_subpage",
+      "mode": "picker_alias",
+      "canonicalType": "subpage",
+      "web": {
+        "registration": "companion_subpage",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a617d3b70d305a2d"
+        }
+      },
+      "firmware": {
+        "family": null
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "navigation"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "media_cover_art: obsolete_implementation_residue",
+      "sourceKind": "runtime_only",
+      "sourceType": "media_cover_art",
+      "mode": "obsolete_implementation_residue",
+      "canonicalType": "media",
+      "web": {
+        "registration": "media_cover_art",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": false,
+          "fingerprint": ""
+        }
+      },
+      "firmware": {
+        "family": null
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "attributes"
+        ],
+        "actions": [
+          "home_assistant_service"
+        ],
+        "modalOwner": "none"
+      }
+    }
+  ]
+}
