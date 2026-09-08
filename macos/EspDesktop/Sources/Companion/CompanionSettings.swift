@@ -536,8 +536,9 @@ struct CompanionSettings: View {
             Section("Apps") {
                 if store.availableApps.isEmpty {
                     emptyState("No Applications Found", symbol: "app.dashed",
-                               detail: "Install applications in your Applications folder, then refresh this list.")
-                    Button("Refresh Applications") { store.refreshApplications() }
+                               detail: "Install applications in your Applications folder, then refresh this list.") {
+                        Button("Refresh Applications") { store.refreshApplications() }
+                    }
                 } else {
                     ForEach(store.availableApps) { application in
                         Toggle(isOn: Binding(
@@ -562,9 +563,10 @@ struct CompanionSettings: View {
             Section("Folders") {
                 if store.approvedFolders.isEmpty {
                     emptyState("Add Your First Folder", symbol: "folder.badge.plus",
-                               detail: "Keep a project, documents, or downloads one tap away on your display.")
-                    Button("Add Folder…") { store.chooseFolder() }
-                        .buttonStyle(.borderedProminent)
+                               detail: "Keep a project, documents, or downloads one tap away on your display.") {
+                        Button("Add Folder…") { store.chooseFolder() }
+                            .buttonStyle(.borderedProminent)
+                    }
                 } else {
                     ForEach(store.approvedFolders) { folder in
                         HStack(spacing: 10) {
@@ -600,12 +602,31 @@ struct CompanionSettings: View {
         .formStyle(.grouped)
     }
 
-    private func emptyState(_ title: String, symbol: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(title, systemImage: symbol).font(.headline)
-            Text(detail).foregroundStyle(.secondary)
+    private func emptyState<Action: View>(
+        _ title: String, symbol: String, detail: String,
+        @ViewBuilder action: () -> Action
+    ) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 32, weight: .regular))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.title3.weight(.semibold))
+                Text(detail)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: 300)
+            action()
+                .padding(.top, 4)
         }
-        .padding(.vertical, 8)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 24)
     }
 
     private var permissionsPage: some View {
