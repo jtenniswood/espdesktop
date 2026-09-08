@@ -450,10 +450,11 @@ jobs:
           done
 
           COMPANION_VERSION="${RELEASE_TAG#v}"
-          if [[ ! "${COMPANION_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must be a stable semantic version for the EspDesktop bundle: ${RELEASE_TAG}" >&2
+          if [[ ! "${COMPANION_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "Release tag must be a semantic version for the EspDesktop bundle: ${RELEASE_TAG}" >&2
             exit 2
           fi
+          BUNDLE_VERSION="${COMPANION_VERSION%%-*}"
 
           KEYCHAIN_PATH="${RUNNER_TEMP}/espdesktop-signing.keychain-db"
           KEYCHAIN_PASSWORD="$(uuidgen)"
@@ -480,7 +481,7 @@ jobs:
             -S apple-tool:,apple:,codesign: \
             -s -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 
-          MARKETING_VERSION="${COMPANION_VERSION}" \
+          MARKETING_VERSION="${BUNDLE_VERSION}" \
           CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
           CODE_SIGN_IDENTITY="${DEVELOPER_ID_APPLICATION}" \
           OUTPUT_DIR="${OUTPUT_DIR}" \
@@ -491,6 +492,7 @@ jobs:
           NOTARY_KEY_PATH="${NOTARY_KEY_PATH}" \
           NOTARY_KEY_ID="${NOTARY_KEY_ID}" \
           NOTARY_ISSUER_ID="${NOTARY_ISSUER_ID}" \
+          RELEASE_ASSET_VERSION="${COMPANION_VERSION}" \
           ./macos/EspDesktop/Packaging/notarize_standalone.sh \
             "${OUTPUT_DIR}/EspDesktop.app"
 

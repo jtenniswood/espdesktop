@@ -16,9 +16,14 @@ fi
 APP_DIR="$(cd "$(dirname "${APP_PATH}")" && pwd)"
 APP_NAME="$(basename "${APP_PATH}")"
 APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${APP_PATH}/Contents/Info.plist")"
+ASSET_VERSION="${RELEASE_ASSET_VERSION:-${APP_VERSION}}"
+if [[ ! "${ASSET_VERSION}" =~ ^[0-9A-Za-z][0-9A-Za-z.-]*$ ]]; then
+    echo "Invalid EspDesktop release asset version: ${ASSET_VERSION}" >&2
+    exit 2
+fi
 SUBMISSION_ZIP="${APP_DIR}/${APP_NAME%.app}-submission.zip"
-FINAL_ZIP="${APP_DIR}/${APP_NAME%.app}-${APP_VERSION}.zip"
-FINAL_DMG="${APP_DIR}/${APP_NAME%.app}-${APP_VERSION}.dmg"
+FINAL_ZIP="${APP_DIR}/${APP_NAME%.app}-${ASSET_VERSION}.zip"
+FINAL_DMG="${APP_DIR}/${APP_NAME%.app}-${ASSET_VERSION}.dmg"
 
 rm -f "${SUBMISSION_ZIP}" "${FINAL_ZIP}" "${FINAL_DMG}"
 ditto -c -k --keepParent "${APP_PATH}" "${SUBMISSION_ZIP}"
@@ -36,7 +41,7 @@ xcrun stapler validate "${APP_PATH}"
 codesign --verify --deep --strict --verbose=2 "${APP_PATH}"
 spctl --assess --type execute --verbose=4 "${APP_PATH}"
 
-"${SCRIPT_DIR}/build_dmg.sh" "${APP_PATH}"
+DMG_PATH="${FINAL_DMG}" "${SCRIPT_DIR}/build_dmg.sh" "${APP_PATH}"
 
 echo "Submitting EspDesktop disk image to Apple notarization…"
 xcrun notarytool submit "${FINAL_DMG}" \

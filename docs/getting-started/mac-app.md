@@ -19,6 +19,8 @@ Companion cards are currently a proof of concept for the **4-inch 4848S040** dis
 
 Install the Mac app and display firmware from the same release so their Companion protocol versions match.
 
+If **EspControl Companion** is already installed, quit it and turn off its **Open at Login** setting before opening EspDesktop. EspDesktop carries your existing pairing, approved apps and folders, and preferences forward automatically. Keeping the old app closed prevents both versions from competing for the same display while you test the renamed app.
+
 ## Pair a display
 
 1. Open the display's web settings and choose **Connectors → Mac Companion**. This opens a temporary pairing window and shows a code.
