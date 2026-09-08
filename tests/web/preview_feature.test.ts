@@ -32,7 +32,7 @@ export function runPreviewFeatureTests(): void {
   deepEqual(
     cardPickerConnectors(true, true),
     [["home_assistant", "Home Assistant"], ["mac_companion", "Mac Companion"]],
-    "configured Home Assistant and supported Companion expose both picker tabs",
+    "enabled Home Assistant and supported Companion expose both picker tabs",
   );
   deepEqual(
     cardPickerConnectors(false, true),

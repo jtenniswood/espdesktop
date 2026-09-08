@@ -271,8 +271,10 @@ export function createConnectorsPageFeature(
 
     function homeAssistantCardPickerEnabled(): boolean {
         // Preserve the established picker while connector status is loading
-        // or when older firmware falls back to Home Assistant support.
-        return current === null || homeAssistantConfigured();
+        // or when older firmware falls back to Home Assistant support. The
+        // configured flag is intentionally not used here because it remains
+        // set after a previous connection or an upgrade from older firmware.
+        return current === null || !!current.home_assistant.connected;
     }
 
     function companionConfigured(): boolean {

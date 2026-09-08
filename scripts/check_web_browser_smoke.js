@@ -5166,15 +5166,15 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       onboarding_complete: true,
       home_assistant: {
         available: true,
-        configured: false,
+        configured: true,
         connected: false,
-        actions_confirmed: false,
+        actions_confirmed: true,
       },
       mac_companion: {
         available: true,
         configured: true,
         paired: true,
-        connected: true,
+        connected: false,
       },
     },
   });
@@ -5190,7 +5190,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.waitForFunction(
-      () => document.querySelector("#sp-connectors")?.textContent?.includes("Waiting for Home Assistant"),
+      () => document.querySelector("#sp-connectors")?.textContent?.includes("configured, but currently offline"),
     );
     await page.getByRole("tab", { name: "Screen" }).click();
     const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
