@@ -85,8 +85,8 @@ private struct CompanionLaunchAtLoginToggle: View {
                 .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .disabled(!isAvailable)
-                .accessibilityLabel("Open EspDesktop at Login")
-            Text(isEnabled ? "Login enabled" : "Login disabled")
+                .accessibilityLabel("Start at Login")
+            Text("Start at Login")
                 .font(.headline)
                 .foregroundStyle(isEnabled ? .primary : .secondary)
         }
