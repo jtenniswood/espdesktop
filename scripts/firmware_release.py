@@ -1,0 +1,984 @@
+#!/usr/bin/env python3
+"""Firmware release helpers used by CI.
+
+The release tag is the source of truth for public firmware versions. This
+script keeps YAML patching, manifest generation, and release asset verification
+in one tested place instead of duplicating shell snippets across workflows.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from urllib.parse import urljoin
+
+ROOT = Path(__file__).resolve().parent.parent
+FIRMWARE_VERSION_PLACEHOLDER = '  firmware_version: "0.0.0"'
+PLACEHOLDER_STRINGS = {"dev", "0.0.0"}
+RELEASE_URL_BASE = "https://github.com/jtenniswood/espdesktop/releases/tag/"
+PROJECT_NAME = "jtenniswood.espdesktop"
+DEVICE_CHIP_PATTERNS = (
+    (re.compile(r"^\s+variant:\s*esp32p4\s*$", re.M), "ESP32-P4"),
+    (re.compile(r"^\s+variant:\s*esp32s3\s*$", re.M), "ESP32-S3"),
+    (re.compile(r"^\s+board:\s*esp32-s3(?:-|\b)", re.M), "ESP32-S3"),
+)
+RELEASE_ASSET_SUFFIXES = (".factory.bin", ".manifest.json", ".ota.bin")
+RECOVERY_ASSET_SUFFIXES = (".recovery.bin", ".recovery.manifest.json")
+RELEASE_MANIFEST_FILENAME = "release-manifest.json"
+SOURCE_REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
+
+
+class FirmwareReleaseError(RuntimeError):
+    pass
+
+
+def md5sum(path: Path) -> str:
+    digest = hashlib.md5()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def sha256sum(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def printable_string_list(path: Path, min_length: int = 3) -> list[str]:
+    data = path.read_bytes()
+    strings: list[str] = []
+    current = bytearray()
+
+    def flush() -> None:
+        nonlocal current
+        if len(current) >= min_length:
+            strings.append(current.decode("ascii", errors="ignore"))
+        current = bytearray()
+
+    for byte in data:
+        if 32 <= byte <= 126:
+            current.append(byte)
+        else:
+            flush()
+    flush()
+    return strings
+
+
+def printable_strings(path: Path, min_length: int = 3) -> set[str]:
+    return set(printable_string_list(path, min_length))
+
+
+def contains_sequence(strings: list[str], sequence: list[str]) -> bool:
+    if len(strings) < len(sequence):
+        return False
+    last_start = len(strings) - len(sequence) + 1
+    return any(strings[idx:idx + len(sequence)] == sequence for idx in range(last_start))
+
+
+def require_file(path: Path, label: str) -> None:
+    if not path.is_file():
+        raise FirmwareReleaseError(f"{label} not found: {path}")
+
+
+def assert_binary_version(path: Path, version: str) -> None:
+    require_file(path, "firmware image")
+    strings = printable_string_list(path)
+    string_set = set(strings)
+    if version not in string_set:
+        raise FirmwareReleaseError(f"{path} does not contain firmware version {version}")
+    expected_log_version = f"Project {PROJECT_NAME} version {version}"
+    if expected_log_version not in string_set:
+        raise FirmwareReleaseError(f"{path} does not contain ESPHome project version {version}")
+    expected_project_metadata = ["package_import_url", version, PROJECT_NAME, "project_version"]
+    if not contains_sequence(strings, expected_project_metadata):
+        raise FirmwareReleaseError(f"{path} does not contain API project metadata version {version}")
+
+    for placeholder in PLACEHOLDER_STRINGS:
+        placeholder_log_version = f"Project {PROJECT_NAME} version {placeholder}"
+        placeholder_project_metadata = ["package_import_url", placeholder, PROJECT_NAME, "project_version"]
+        if placeholder_log_version in string_set or contains_sequence(strings, placeholder_project_metadata):
+            raise FirmwareReleaseError(f"{path} still contains firmware version placeholder {placeholder}")
+
+
+def load_manifest(path: Path) -> dict:
+    require_file(path, "firmware manifest")
+    try:
+        return json.loads(path.read_text())
+    except json.JSONDecodeError as exc:
+        raise FirmwareReleaseError(f"{path} is not valid JSON: {exc}") from exc
+
+
+def first_build(manifest: dict, manifest_path: Path) -> dict:
+    builds = manifest.get("builds")
+    if not isinstance(builds, list) or not builds:
+        raise FirmwareReleaseError(f"{manifest_path} has no firmware builds")
+    if not isinstance(builds[0], dict):
+        raise FirmwareReleaseError(f"{manifest_path} first build is not an object")
+    return builds[0]
+
+
+def expected_chip_family_for_slug(slug: str) -> str:
+    device_yaml = ROOT / "devices" / slug / "device" / "device.yaml"
+    require_file(device_yaml, "device hardware YAML")
+    text = device_yaml.read_text(encoding="utf-8")
+    for pattern, chip_family in DEVICE_CHIP_PATTERNS:
+        if pattern.search(text):
+            return chip_family
+    raise FirmwareReleaseError(f"{device_yaml} does not declare a known ESP32 chip family")
+
+
+def verify_manifest(
+    manifest_path: Path,
+    slug: str,
+    version: str,
+    ota_md5: str,
+    require_factory: bool = True,
+) -> dict:
+    manifest = load_manifest(manifest_path)
+    actual_version = str(manifest.get("version", "")).strip()
+    if actual_version != version:
+        raise FirmwareReleaseError(f"{manifest_path} version {actual_version!r} does not match {version!r}")
+    if actual_version in PLACEHOLDER_STRINGS:
+        raise FirmwareReleaseError(f"{manifest_path} contains placeholder version {actual_version}")
+    if manifest.get("home_assistant_domain") != "esphome":
+        raise FirmwareReleaseError(f"{manifest_path} home_assistant_domain must be esphome")
+
+    build = first_build(manifest, manifest_path)
+    chip_family = build.get("chipFamily")
+    if not isinstance(chip_family, str) or not chip_family.strip():
+        raise FirmwareReleaseError(f"{manifest_path} build chipFamily must be a non-empty string")
+    expected_chip = expected_chip_family_for_slug(slug)
+    if expected_chip and chip_family != expected_chip:
+        raise FirmwareReleaseError(f"{manifest_path} build chipFamily {chip_family!r} does not match {expected_chip!r}")
+
+    ota = build.get("ota")
+    if not isinstance(ota, dict):
+        raise FirmwareReleaseError(f"{manifest_path} build has no ota object")
+
+    expected_ota_path = f"{slug}.ota.bin"
+    if ota.get("path") != expected_ota_path:
+        raise FirmwareReleaseError(f"{manifest_path} ota.path must be {expected_ota_path}")
+    if ota.get("md5") != ota_md5:
+        raise FirmwareReleaseError(f"{manifest_path} ota.md5 does not match {expected_ota_path}")
+    expected_release_url = RELEASE_URL_BASE + version
+    if ota.get("release_url") != expected_release_url:
+        raise FirmwareReleaseError(f"{manifest_path} release_url must be {expected_release_url}")
+
+    if require_factory:
+        expected_factory_path = f"{slug}.factory.bin"
+        parts = build.get("parts")
+        if not isinstance(parts, list) or not parts:
+            raise FirmwareReleaseError(f"{manifest_path} build has no factory parts")
+        first_part = parts[0]
+        if not isinstance(first_part, dict):
+            raise FirmwareReleaseError(f"{manifest_path} first factory part is not an object")
+        if first_part.get("path") != expected_factory_path:
+            raise FirmwareReleaseError(f"{manifest_path} factory path must be {expected_factory_path}")
+        if first_part.get("offset") != 0:
+            raise FirmwareReleaseError(f"{manifest_path} factory offset must be 0")
+
+    return build
+
+
+def verify_files(
+    slug: str,
+    version: str,
+    manifest: Path,
+    factory: Path | None,
+    ota: Path,
+) -> None:
+    require_file(manifest, "firmware manifest")
+    require_file(ota, "OTA firmware")
+    require_factory = factory is not None
+    if require_factory:
+        require_file(factory, "factory firmware")
+
+    verify_manifest(manifest, slug, version, md5sum(ota), require_factory=require_factory)
+    assert_binary_version(ota, version)
+    if factory is not None:
+        assert_binary_version(factory, version)
+
+
+def verify_recovery_manifest(
+    manifest_path: Path,
+    slug: str,
+    version: str,
+) -> None:
+    manifest = load_manifest(manifest_path)
+    if manifest.get("name") != "EspDesktop":
+        raise FirmwareReleaseError(
+            f"{manifest_path} must retain the normal EspDesktop firmware identity"
+        )
+    if str(manifest.get("version", "")).strip() != version:
+        raise FirmwareReleaseError(f"{manifest_path} recovery version must be {version}")
+    if manifest.get("home_assistant_domain") != "esphome":
+        raise FirmwareReleaseError(f"{manifest_path} home_assistant_domain must be esphome")
+    if manifest.get("new_install_prompt_erase") is not True:
+        raise FirmwareReleaseError(
+            f"{manifest_path} must offer the erase choice for unrecognised firmware"
+        )
+    build = first_build(manifest, manifest_path)
+    if build.get("chipFamily") != "ESP32-P4":
+        raise FirmwareReleaseError(f"{manifest_path} recovery chipFamily must be ESP32-P4")
+    if expected_chip_family_for_slug(slug) != "ESP32-P4":
+        raise FirmwareReleaseError(f"{slug} does not support C6 recovery")
+    if "ota" in build:
+        raise FirmwareReleaseError(f"{manifest_path} recovery manifest must not expose OTA")
+    expected_path = f"{slug}.recovery.bin"
+    parts = build.get("parts")
+    if (
+        not isinstance(parts, list)
+        or len(parts) != 1
+        or not isinstance(parts[0], dict)
+        or parts[0].get("path") != expected_path
+        or parts[0].get("offset") != 0
+    ):
+        raise FirmwareReleaseError(
+            f"{manifest_path} must reference {expected_path} at offset 0"
+        )
+
+
+def verify_recovery_files(
+    slug: str,
+    version: str,
+    manifest: Path,
+    recovery: Path,
+    c6_firmware: Path | None = None,
+    normal_factory: Path | None = None,
+    normal_ota: Path | None = None,
+) -> None:
+    require_file(recovery, "C6 recovery firmware")
+    verify_recovery_manifest(manifest, slug, version)
+    assert_binary_version(recovery, version)
+    if c6_firmware is None:
+        return
+    require_file(c6_firmware, "ESP32-C6 firmware dependency")
+    payload = c6_firmware.read_bytes()
+    if payload not in recovery.read_bytes():
+        raise FirmwareReleaseError(
+            f"{recovery} does not contain the verified ESP32-C6 firmware payload"
+        )
+    for path in (normal_factory, normal_ota):
+        if path is not None:
+            require_file(path, "normal firmware")
+            if payload in path.read_bytes():
+                raise FirmwareReleaseError(
+                    f"{path} unexpectedly contains the recovery-only ESP32-C6 payload"
+                )
+
+
+def find_first(paths: list[Path]) -> Path | None:
+    for path in paths:
+        if path.is_file():
+            return path
+    return None
+
+
+def locate_release_files(base_dir: Path, slug: str) -> tuple[Path, Path, Path]:
+    dirs = [base_dir / slug, base_dir]
+    manifests = []
+    factories = []
+    otas = []
+    for directory in dirs:
+        manifests.extend([directory / "manifest.json", directory / f"{slug}.manifest.json"])
+        factories.append(directory / f"{slug}.factory.bin")
+        otas.append(directory / f"{slug}.ota.bin")
+
+    manifest = find_first(manifests)
+    factory = find_first(factories)
+    ota = find_first(otas)
+    if manifest is None:
+        raise FirmwareReleaseError(f"No manifest found for {slug} in {base_dir}")
+    if factory is None:
+        raise FirmwareReleaseError(f"No factory image found for {slug} in {base_dir}")
+    if ota is None:
+        raise FirmwareReleaseError(f"No OTA image found for {slug} in {base_dir}")
+    return manifest, factory, ota
+
+
+def locate_beta_files(base_dir: Path, slug: str) -> tuple[Path, Path | None, Path] | None:
+    dirs = [base_dir / slug / "beta", base_dir / "beta" / slug, base_dir / "beta"]
+    manifests = []
+    factories = []
+    otas = []
+    for directory in dirs:
+        manifests.extend([directory / "manifest.json", directory / f"{slug}.manifest.json"])
+        factories.append(directory / f"{slug}.factory.bin")
+        otas.append(directory / f"{slug}.ota.bin")
+
+    manifest = find_first(manifests)
+    if manifest is None:
+        return None
+    ota = find_first(otas)
+    if ota is None:
+        raise FirmwareReleaseError(f"Beta manifest exists but no OTA image was found for {slug} in {base_dir}")
+    factory = find_first(factories)
+    build = first_build(load_manifest(manifest), manifest)
+    parts = build.get("parts")
+    if isinstance(parts, list) and parts and factory is None:
+        raise FirmwareReleaseError(f"Beta manifest exists but no factory image was found for {slug} in {base_dir}")
+    return manifest, factory, ota
+
+
+def manifest_version(path: Path) -> str:
+    version = str(load_manifest(path).get("version", "")).strip()
+    if not version or version in PLACEHOLDER_STRINGS:
+        raise FirmwareReleaseError(f"{path} has invalid version {version!r}")
+    return version
+
+
+def verify_directory(
+    base_dir: Path,
+    slugs: list[str],
+    version: str,
+    recovery_slugs: list[str] | None = None,
+) -> None:
+    for slug in slugs:
+        manifest, factory, ota = locate_release_files(base_dir, slug)
+        verify_files(slug, version, manifest, factory, ota)
+
+        beta = locate_beta_files(base_dir, slug)
+        if beta is not None:
+            beta_manifest, beta_factory, beta_ota = beta
+            verify_files(slug, manifest_version(beta_manifest), beta_manifest, beta_factory, beta_ota)
+    for slug in recovery_slugs or []:
+        verify_recovery_files(
+            slug,
+            version,
+            base_dir / f"{slug}.recovery.manifest.json",
+            base_dir / f"{slug}.recovery.bin",
+        )
+
+
+def expected_release_asset_names(
+    slugs: list[str], recovery_slugs: list[str] | None = None
+) -> set[str]:
+    names = {f"{slug}{suffix}" for slug in slugs for suffix in RELEASE_ASSET_SUFFIXES}
+    names.update(
+        f"{slug}{suffix}"
+        for slug in recovery_slugs or []
+        for suffix in RECOVERY_ASSET_SUFFIXES
+    )
+    return names
+
+
+def require_source_revision(source_revision: str) -> str:
+    source_revision = source_revision.strip()
+    if not SOURCE_REVISION_RE.fullmatch(source_revision):
+        raise FirmwareReleaseError(
+            "source revision must be a full, lowercase 40-character Git commit SHA"
+        )
+    return source_revision
+
+
+def release_manifest_path(base_dir: Path) -> Path:
+    return base_dir / RELEASE_MANIFEST_FILENAME
+
+
+def release_asset_hashes(
+    base_dir: Path, slugs: list[str], recovery_slugs: list[str] | None = None
+) -> dict[str, str]:
+    names = expected_release_asset_names(slugs, recovery_slugs)
+    files = (
+        {path.name: path for path in base_dir.iterdir() if path.is_file()}
+        if base_dir.is_dir()
+        else {}
+    )
+    missing = sorted(names - files.keys())
+    if missing:
+        raise FirmwareReleaseError(
+            "Cannot create release manifest; firmware assets are missing: " + ", ".join(missing)
+        )
+    return {name: sha256sum(files[name]) for name in sorted(names)}
+
+
+def load_release_contract(path: Path) -> dict:
+    contract = load_manifest(path)
+    if contract.get("schemaVersion") != 1:
+        raise FirmwareReleaseError(f"{path} has an unsupported release contract schema")
+    return contract
+
+
+def current_web_bundle(web_manifest_path: Path, web_root: Path) -> dict:
+    manifest = load_manifest(web_manifest_path)
+    bundles = manifest.get("bundles")
+    if not isinstance(bundles, list) or len(bundles) != 1 or not isinstance(bundles[0], dict):
+        raise FirmwareReleaseError(f"{web_manifest_path} must contain one current web bundle")
+    bundle = bundles[0]
+    bundle_path = bundle.get("path")
+    bundle_sha256 = bundle.get("sha256")
+    if not isinstance(bundle_path, str) or not isinstance(bundle_sha256, str):
+        raise FirmwareReleaseError(f"{web_manifest_path} current web bundle is incomplete")
+    relative_path = Path(bundle_path)
+    if relative_path.is_absolute() or ".." in relative_path.parts:
+        raise FirmwareReleaseError(f"{web_manifest_path} current web bundle path is unsafe")
+    path = web_root / relative_path
+    require_file(path, "web bundle")
+    if sha256sum(path) != bundle_sha256:
+        raise FirmwareReleaseError(f"{path} does not match the declared web bundle SHA-256")
+    return {
+        "id": bundle.get("id"),
+        "path": bundle_path,
+        "sha256": bundle_sha256,
+        "webAssetVersion": bundle.get("webAssetVersion"),
+        "deviceProfiles": bundle.get("deviceProfiles"),
+        "firmwareVersions": bundle.get("firmwareVersions"),
+    }
+
+
+def release_manifest_data(
+    base_dir: Path,
+    slugs: list[str],
+    version: str,
+    source_revision: str,
+    release_contract: Path,
+    web_manifest: Path,
+    web_root: Path,
+    recovery_slugs: list[str] | None = None,
+) -> dict:
+    verify_directory(base_dir, slugs, version, recovery_slugs)
+    contract = load_release_contract(release_contract)
+    web_bundle = current_web_bundle(web_manifest, web_root)
+    if web_bundle["webAssetVersion"] != contract.get("webAssetVersion"):
+        raise FirmwareReleaseError("web bundle version does not match the release contract")
+    if sorted(web_bundle["deviceProfiles"] or []) != sorted(slugs):
+        raise FirmwareReleaseError("web bundle device profiles do not match the release firmware set")
+    if not isinstance(web_bundle["firmwareVersions"], list) or version not in web_bundle[
+        "firmwareVersions"
+    ]:
+        raise FirmwareReleaseError("web bundle does not declare compatibility with this firmware version")
+    return {
+        "schemaVersion": 1,
+        "releaseVersion": version,
+        "sourceRevision": require_source_revision(source_revision),
+        "releaseContract": contract,
+        "webBundle": web_bundle,
+        "firmwareAssets": release_asset_hashes(base_dir, slugs, recovery_slugs),
+    }
+
+
+def generate_release_manifest(
+    base_dir: Path,
+    slugs: list[str],
+    version: str,
+    source_revision: str,
+    release_contract: Path,
+    web_manifest: Path,
+    web_root: Path,
+    recovery_slugs: list[str] | None = None,
+) -> Path:
+    data = release_manifest_data(
+        base_dir, slugs, version, source_revision, release_contract, web_manifest, web_root,
+        recovery_slugs,
+    )
+    path = release_manifest_path(base_dir)
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def verify_release_manifest(
+    base_dir: Path,
+    slugs: list[str],
+    version: str,
+    source_revision: str,
+    release_contract: Path,
+    web_manifest: Path,
+    web_root: Path,
+    recovery_slugs: list[str] | None = None,
+) -> None:
+    path = release_manifest_path(base_dir)
+    actual = load_manifest(path)
+    expected = release_manifest_data(
+        base_dir, slugs, version, source_revision, release_contract, web_manifest, web_root,
+        recovery_slugs,
+    )
+    if actual != expected:
+        raise FirmwareReleaseError(
+            f"{path} does not match the pinned release source, contract, web bundle, or firmware assets"
+        )
+
+
+def verify_release_inventory(
+    base_dir: Path,
+    slugs: list[str],
+    recovery_slugs: list[str] | None = None,
+    include_release_manifest: bool = False,
+) -> list[Path]:
+    expected = expected_release_asset_names(slugs, recovery_slugs)
+    if include_release_manifest:
+        expected.add(RELEASE_MANIFEST_FILENAME)
+    files = sorted(path for path in base_dir.iterdir() if path.is_file()) if base_dir.is_dir() else []
+    actual = {path.name for path in files}
+    missing = sorted(expected - actual)
+    unexpected = sorted(actual - expected)
+    if missing or unexpected:
+        details = []
+        if missing:
+            details.append("missing: " + ", ".join(missing))
+        if unexpected:
+            details.append("unexpected: " + ", ".join(unexpected))
+        raise FirmwareReleaseError(f"Release asset inventory is incomplete ({'; '.join(details)})")
+    return files
+
+
+def run_gh(arguments: list[str]) -> str:
+    try:
+        result = subprocess.run(
+            ["gh", *arguments],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        raise FirmwareReleaseError(f"Could not run GitHub CLI: {exc}") from exc
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or str(exc)).strip()
+        raise FirmwareReleaseError(f"GitHub release command failed: {detail}") from exc
+    return result.stdout
+
+
+def load_release_from_github(repo: str, tag: str, gh_runner=run_gh) -> dict:
+    try:
+        release = json.loads(
+            gh_runner([
+                "release", "view", tag,
+                "--repo", repo,
+                "--json", "tagName,isDraft,assets",
+            ])
+        )
+    except json.JSONDecodeError as exc:
+        raise FirmwareReleaseError(f"Could not load draft release {tag}: {exc}") from exc
+    return {
+        "tag_name": release.get("tagName"),
+        "draft": release.get("isDraft"),
+        "assets": release.get("assets", []),
+    }
+
+
+def assert_draft_release(release: dict, tag: str) -> None:
+    if release.get("tag_name") != tag:
+        raise FirmwareReleaseError(f"Release tag {release.get('tag_name')!r} does not match {tag!r}")
+    if release.get("draft") is not True:
+        raise FirmwareReleaseError(f"Release {tag} must remain a draft until all firmware assets are verified")
+
+
+def assert_remote_assets(release: dict, local_files: list[Path]) -> None:
+    expected = {path.name: path.stat().st_size for path in local_files}
+    remote = {
+        str(asset.get("name")): asset.get("size")
+        for asset in release.get("assets", [])
+        if isinstance(asset, dict)
+    }
+    if remote != expected:
+        raise FirmwareReleaseError(
+            f"Uploaded release assets do not match verified local files: expected {expected}, received {remote}"
+        )
+
+
+def publish_draft_release(
+    base_dir: Path,
+    slugs: list[str],
+    version: str,
+    repo: str,
+    notes_file: Path,
+    recovery_slugs: list[str] | None = None,
+    source_revision: str | None = None,
+    release_contract: Path | None = None,
+    web_manifest: Path | None = None,
+    web_root: Path | None = None,
+    additional_files: list[Path] | None = None,
+    gh_runner=run_gh,
+) -> None:
+    require_file(notes_file, "release notes")
+    verify_directory(base_dir, slugs, version, recovery_slugs)
+    if source_revision is None or release_contract is None or web_manifest is None or web_root is None:
+        raise FirmwareReleaseError("release source provenance inputs are required before publishing")
+    verify_release_manifest(
+        base_dir, slugs, version, source_revision, release_contract, web_manifest, web_root,
+        recovery_slugs,
+    )
+    firmware_files = verify_release_inventory(
+        base_dir, slugs, recovery_slugs, include_release_manifest=True
+    )
+    extra_files = additional_files or []
+    for path in extra_files:
+        require_file(path, "additional release asset")
+    files = firmware_files + extra_files
+
+    release = load_release_from_github(repo, version, gh_runner)
+    assert_draft_release(release, version)
+
+    gh_runner([
+        "release", "upload", version,
+        *(str(path) for path in files),
+        "--clobber", "--repo", repo,
+    ])
+
+    uploaded = load_release_from_github(repo, version, gh_runner)
+    assert_draft_release(uploaded, version)
+    assert_remote_assets(uploaded, files)
+
+    gh_runner([
+        "release", "edit", version,
+        "--notes-file", str(notes_file),
+        "--draft=false", "--repo", repo,
+    ])
+    published = load_release_from_github(repo, version, gh_runner)
+    if published.get("draft") is not False:
+        raise FirmwareReleaseError(f"Release {version} was not published after asset verification")
+    assert_remote_assets(published, files)
+
+
+def fetch_url(url: str, timeout: int = 30) -> bytes:
+    request = urllib.request.Request(url, headers={"User-Agent": "espdesktop-firmware-release-check"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return response.read()
+
+
+def download(url: str, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(fetch_url(url))
+
+
+def public_manifest_url(base_url: str, slug: str, beta: bool = False) -> str:
+    path = f"firmware/{slug}/{'beta/' if beta else ''}manifest.json"
+    return base_url.rstrip("/") + "/" + path
+
+
+def download_and_verify_public_slug(base_url: str, slug: str, version: str, out_dir: Path, beta: bool = False) -> None:
+    manifest_url = public_manifest_url(base_url, slug, beta=beta)
+    slug_dir = out_dir / slug / ("beta" if beta else "")
+    manifest_path = slug_dir / "manifest.json"
+    download(manifest_url, manifest_path)
+
+    expected_version = manifest_version(manifest_path) if beta else version
+    build = first_build(load_manifest(manifest_path), manifest_path)
+    ota = build.get("ota")
+    if not isinstance(ota, dict) or not ota.get("path"):
+        raise FirmwareReleaseError(f"{manifest_url} has no OTA path")
+    ota_path = slug_dir / f"{slug}.ota.bin"
+    download(urljoin(manifest_url, ota["path"]), ota_path)
+
+    factory_path: Path | None = None
+    parts = build.get("parts")
+    if isinstance(parts, list) and parts and isinstance(parts[0], dict) and parts[0].get("path"):
+        factory_path = slug_dir / f"{slug}.factory.bin"
+        download(urljoin(manifest_url, parts[0]["path"]), factory_path)
+    elif not beta:
+        raise FirmwareReleaseError(f"{manifest_url} has no factory path")
+
+    verify_files(slug, expected_version, manifest_path, factory_path, ota_path)
+
+
+def verify_pages(base_url: str, slugs: list[str], version: str, retries: int, delay: float) -> None:
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            with TemporaryDirectory() as tmp:
+                out_dir = Path(tmp)
+                for slug in slugs:
+                    download_and_verify_public_slug(base_url, slug, version, out_dir, beta=False)
+                    try:
+                        download_and_verify_public_slug(base_url, slug, version, out_dir, beta=True)
+                    except urllib.error.HTTPError as exc:
+                        if exc.code != 404:
+                            raise
+            return
+        except Exception as exc:  # noqa: BLE001 - converted to CI-friendly error after retries
+            last_error = exc
+            if attempt >= retries:
+                break
+            print(f"Public firmware verification attempt {attempt} failed: {exc}", file=sys.stderr)
+            time.sleep(delay)
+    raise FirmwareReleaseError(f"Public firmware verification failed after {retries} attempts: {last_error}")
+
+
+def cmd_inject(args: argparse.Namespace) -> None:
+    path = ROOT / "builds" / f"{args.slug}.factory.yaml"
+    require_file(path, "factory build YAML")
+    text = path.read_text()
+    replacement = f'  firmware_version: "{args.version}"'
+    if FIRMWARE_VERSION_PLACEHOLDER not in text:
+        raise FirmwareReleaseError(f"Expected placeholder not found in {path}")
+    path.write_text(text.replace(FIRMWARE_VERSION_PLACEHOLDER, replacement, 1))
+
+
+def cmd_manifest(args: argparse.Namespace) -> None:
+    factory = Path(args.factory)
+    ota = Path(args.ota)
+    require_file(factory, "factory firmware")
+    require_file(ota, "OTA firmware")
+    data = {
+        "name": "EspDesktop",
+        "version": args.version,
+        "home_assistant_domain": "esphome",
+        "builds": [
+            {
+                "chipFamily": args.chip,
+                "parts": [
+                    {"path": f"{args.slug}.factory.bin", "offset": 0},
+                ],
+                "ota": {
+                    "path": f"{args.slug}.ota.bin",
+                    "md5": md5sum(ota),
+                    "release_url": RELEASE_URL_BASE + args.version,
+                },
+            },
+        ],
+    }
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def cmd_recovery_manifest(args: argparse.Namespace) -> None:
+    recovery = Path(args.recovery)
+    require_file(recovery, "C6 recovery firmware")
+    data = {
+        # Keep the normal product identity so ESP Web Tools treats an existing
+        # EspDesktop installation as an update rather than a different product.
+        "name": "EspDesktop",
+        "version": args.version,
+        "home_assistant_domain": "esphome",
+        "new_install_prompt_erase": True,
+        "builds": [
+            {
+                "chipFamily": "ESP32-P4",
+                "parts": [
+                    {"path": f"{args.slug}.recovery.bin", "offset": 0},
+                ],
+            },
+        ],
+    }
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def cmd_verify_files(args: argparse.Namespace) -> None:
+    verify_files(args.slug, args.version, Path(args.manifest), Path(args.factory), Path(args.ota))
+
+
+def cmd_verify_recovery(args: argparse.Namespace) -> None:
+    verify_recovery_files(
+        args.slug,
+        args.version,
+        Path(args.manifest),
+        Path(args.recovery),
+        Path(args.c6_firmware),
+        Path(args.normal_factory),
+        Path(args.normal_ota),
+    )
+
+
+def cmd_verify_directory(args: argparse.Namespace) -> None:
+    verify_directory(Path(args.dir), args.slugs, args.version, args.recovery_slugs)
+
+
+def cmd_verify_bundle(args: argparse.Namespace) -> None:
+    base_dir = Path(args.dir)
+    verify_directory(base_dir, args.slugs, args.version, args.recovery_slugs)
+    verify_release_inventory(
+        base_dir, args.slugs, args.recovery_slugs, include_release_manifest=True
+    )
+
+
+def cmd_generate_release_manifest(args: argparse.Namespace) -> None:
+    generate_release_manifest(
+        Path(args.dir),
+        args.slugs,
+        args.version,
+        args.source_revision,
+        Path(args.release_contract),
+        Path(args.web_manifest),
+        Path(args.web_root),
+        args.recovery_slugs,
+    )
+
+
+def cmd_verify_release_manifest(args: argparse.Namespace) -> None:
+    verify_release_manifest(
+        Path(args.dir),
+        args.slugs,
+        args.version,
+        args.source_revision,
+        Path(args.release_contract),
+        Path(args.web_manifest),
+        Path(args.web_root),
+        args.recovery_slugs,
+    )
+
+
+def cmd_verify_draft(args: argparse.Namespace) -> None:
+    release = load_release_from_github(args.repo, args.version)
+    assert_draft_release(release, args.version)
+
+
+def cmd_publish_draft(args: argparse.Namespace) -> None:
+    publish_draft_release(
+        Path(args.dir),
+        args.slugs,
+        args.version,
+        args.repo,
+        Path(args.notes),
+        args.recovery_slugs,
+        args.source_revision,
+        Path(args.release_contract),
+        Path(args.web_manifest),
+        Path(args.web_root),
+        additional_files=[Path(path) for path in args.additional_files],
+    )
+
+
+def cmd_verify_pages(args: argparse.Namespace) -> None:
+    verify_pages(args.base_url, args.slugs, args.version, args.retries, args.delay)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    inject = sub.add_parser("inject", help="Inject a firmware version into a factory YAML")
+    inject.add_argument("--slug", required=True)
+    inject.add_argument("--version", required=True)
+    inject.set_defaults(func=cmd_inject)
+
+    manifest = sub.add_parser("manifest", help="Generate a firmware manifest")
+    manifest.add_argument("--slug", required=True)
+    manifest.add_argument("--chip", required=True)
+    manifest.add_argument("--version", required=True)
+    manifest.add_argument("--factory", required=True)
+    manifest.add_argument("--ota", required=True)
+    manifest.add_argument("--out", required=True)
+    manifest.set_defaults(func=cmd_manifest)
+
+    recovery_manifest = sub.add_parser(
+        "recovery-manifest", help="Generate a USB-only C6 recovery manifest"
+    )
+    recovery_manifest.add_argument("--slug", required=True)
+    recovery_manifest.add_argument("--version", required=True)
+    recovery_manifest.add_argument("--recovery", required=True)
+    recovery_manifest.add_argument("--out", required=True)
+    recovery_manifest.set_defaults(func=cmd_recovery_manifest)
+
+    verify_files_cmd = sub.add_parser("verify-files", help="Verify one slug's firmware files")
+    verify_files_cmd.add_argument("--slug", required=True)
+    verify_files_cmd.add_argument("--version", required=True)
+    verify_files_cmd.add_argument("--manifest", required=True)
+    verify_files_cmd.add_argument("--factory", required=True)
+    verify_files_cmd.add_argument("--ota", required=True)
+    verify_files_cmd.set_defaults(func=cmd_verify_files)
+
+    verify_recovery_cmd = sub.add_parser(
+        "verify-recovery", help="Verify one P4 C6 recovery image and manifest"
+    )
+    verify_recovery_cmd.add_argument("--slug", required=True)
+    verify_recovery_cmd.add_argument("--version", required=True)
+    verify_recovery_cmd.add_argument("--manifest", required=True)
+    verify_recovery_cmd.add_argument("--recovery", required=True)
+    verify_recovery_cmd.add_argument("--c6-firmware", required=True)
+    verify_recovery_cmd.add_argument("--normal-factory", required=True)
+    verify_recovery_cmd.add_argument("--normal-ota", required=True)
+    verify_recovery_cmd.set_defaults(func=cmd_verify_recovery)
+
+    verify_directory_cmd = sub.add_parser("verify-directory", help="Verify firmware files for multiple slugs")
+    verify_directory_cmd.add_argument("--version", required=True)
+    verify_directory_cmd.add_argument("--dir", required=True)
+    verify_directory_cmd.add_argument("--slugs", nargs="+", required=True)
+    verify_directory_cmd.add_argument("--recovery-slugs", nargs="*", default=[])
+    verify_directory_cmd.set_defaults(func=cmd_verify_directory)
+
+    verify_bundle_cmd = sub.add_parser(
+        "verify-bundle", help="Verify firmware contents and the exact publishable asset inventory"
+    )
+    verify_bundle_cmd.add_argument("--version", required=True)
+    verify_bundle_cmd.add_argument("--dir", required=True)
+    verify_bundle_cmd.add_argument("--slugs", nargs="+", required=True)
+    verify_bundle_cmd.add_argument("--recovery-slugs", nargs="*", default=[])
+    verify_bundle_cmd.set_defaults(func=cmd_verify_bundle)
+
+    for name, handler, help_text in (
+        (
+            "generate-release-manifest",
+            cmd_generate_release_manifest,
+            "Generate a source-pinned release provenance manifest",
+        ),
+        (
+            "verify-release-manifest",
+            cmd_verify_release_manifest,
+            "Verify source-pinned release provenance manifest",
+        ),
+    ):
+        release_manifest = sub.add_parser(name, help=help_text)
+        release_manifest.add_argument("--version", required=True)
+        release_manifest.add_argument("--dir", required=True)
+        release_manifest.add_argument("--slugs", nargs="+", required=True)
+        release_manifest.add_argument("--recovery-slugs", nargs="*", default=[])
+        release_manifest.add_argument("--source-revision", required=True)
+        release_manifest.add_argument("--release-contract", required=True)
+        release_manifest.add_argument("--web-manifest", required=True)
+        release_manifest.add_argument("--web-root", required=True)
+        release_manifest.set_defaults(func=handler)
+
+    verify_draft_cmd = sub.add_parser(
+        "verify-draft", help="Require an existing private GitHub release for the version"
+    )
+    verify_draft_cmd.add_argument("--version", required=True)
+    verify_draft_cmd.add_argument("--repo", required=True)
+    verify_draft_cmd.set_defaults(func=cmd_verify_draft)
+
+    publish_draft_cmd = sub.add_parser(
+        "publish-draft", help="Verify a complete distribution and atomically publish its draft release"
+    )
+    publish_draft_cmd.add_argument("--version", required=True)
+    publish_draft_cmd.add_argument("--dir", required=True)
+    publish_draft_cmd.add_argument("--slugs", nargs="+", required=True)
+    publish_draft_cmd.add_argument("--repo", required=True)
+    publish_draft_cmd.add_argument("--notes", required=True)
+    publish_draft_cmd.add_argument("--recovery-slugs", nargs="*", default=[])
+    publish_draft_cmd.add_argument("--source-revision", required=True)
+    publish_draft_cmd.add_argument("--release-contract", required=True)
+    publish_draft_cmd.add_argument("--web-manifest", required=True)
+    publish_draft_cmd.add_argument("--web-root", required=True)
+    publish_draft_cmd.add_argument(
+        "--additional-files", nargs="*", default=[], help="Additional release assets to upload"
+    )
+    publish_draft_cmd.set_defaults(func=cmd_publish_draft)
+
+    verify_pages_cmd = sub.add_parser("verify-pages", help="Verify public GitHub Pages firmware")
+    verify_pages_cmd.add_argument("--version", required=True)
+    verify_pages_cmd.add_argument("--base-url", required=True)
+    verify_pages_cmd.add_argument("--slugs", nargs="+", required=True)
+    verify_pages_cmd.add_argument("--retries", type=int, default=1)
+    verify_pages_cmd.add_argument("--delay", type=float, default=15)
+    verify_pages_cmd.set_defaults(func=cmd_verify_pages)
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        args.func(args)
+    except FirmwareReleaseError as exc:
+        print(f"::error::{exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

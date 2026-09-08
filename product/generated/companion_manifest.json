@@ -1,0 +1,13 @@
+{
+  "source": "product/v2/companion_capabilities.json",
+  "generator": "python3 scripts/build.py companion",
+  "outputs": [
+    "src/webserver/generated/companion_capabilities.ts",
+    "components/espdesktop/companion_capabilities_generated.h",
+    "macos/EspDesktop/Sources/Companion/CompanionCapabilities.generated.swift",
+    "components/espdesktop/companion_protocol_generated.h",
+    "macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift",
+    "product/generated/companion_compatibility.json",
+    "docs/generated/companion-compatibility.md"
+  ]
+}

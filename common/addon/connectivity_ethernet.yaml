@@ -1,0 +1,73 @@
+# =============================================================================
+# CONNECTIVITY - Ethernet page navigation
+# =============================================================================
+# Handles wired network connectivity and navigates between screens based on
+# connection state using lvgl.page.show. This is an Ethernet-only package and
+# must not be included with the WiFi package.
+# =============================================================================
+
+ethernet:
+  type: IP101
+  mdc_pin: GPIO31
+  mdio_pin: GPIO52
+  power_pin: GPIO51
+  clk:
+    mode: CLK_EXT_IN
+    pin: GPIO50
+  phy_addr: 1
+  on_connect:
+    - script.execute: ntp_servers_apply_after_network
+    - lambda: 'id(espdesktop_app).home_assistant_endpoint().request_discovery();'
+    - script.execute: setup_screen_dim_cancel
+    - lambda: |-
+        ESP_LOGI("connectivity", "Ethernet connected (%lu ms)", millis());
+        lv_label_set_text(id(loading_status_label), espdesktop_i18n("Connected"));
+    - delay: 200ms
+    - script.execute: navigate_after_api
+  on_disconnect:
+    - if:
+        condition:
+          lambda: 'return !id(boot_grace_period);'
+        then:
+          - script.execute: clock_bar_hide
+          - lvgl.page.show: ethernet_setup_page
+          - script.execute: setup_screen_dim
+
+script:
+  - id: ha_restore_after_api
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'
+          then:
+            - script.execute: navigate_after_api
+
+  - id: navigate_after_api
+    mode: restart
+    then:
+      - script.execute: setup_screen_dim_cancel
+      - if:
+          condition:
+            lambda: 'return !id(button_order).state.empty();'
+          then:
+            - wait_until:
+                condition:
+                  lambda: |-
+                    return id(espdesktop_app).display().target_mode_is(
+                        espdesktop::DisplayMode::ACTIVE);
+            - lvgl.page.show: main_page
+            - script.execute: clock_bar_apply
+            - script.execute: screensaver_idle_check
+          else:
+            - lambda: |-
+                auto ips = ethernet::global_eth_component->get_ip_addresses();
+                if (!ips.empty()) {
+                  char ip_buf[esphome::network::IP_ADDRESS_BUFFER_SIZE];
+                  ips[0].str_to(ip_buf);
+                  std::string url = "http://" + std::string(ip_buf);
+                  lv_label_set_text(id(setup_ip_label), url.c_str());
+                }
+            - script.execute: clock_bar_hide
+            - lvgl.page.show: button_setup_page
+            - script.execute: setup_screen_dim

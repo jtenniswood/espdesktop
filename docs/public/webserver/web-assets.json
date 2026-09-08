@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "bundles": [
+    {
+      "id": "5f79122bc7c4f0619bd88b42d5eba1be22c4be55de4a9cad750385178b590615",
+      "sha256": "5f79122bc7c4f0619bd88b42d5eba1be22c4be55de4a9cad750385178b590615",
+      "path": "bundles/5f79122bc7c4f0619bd88b42d5eba1be22c4be55de4a9cad750385178b590615/www.js",
+      "deviceProfiles": [
+        "guition-esp32-p4-jc1060p470",
+        "guition-esp32-p4-jc1060p470-v2",
+        "guition-esp32-p4-jc4880p443",
+        "guition-esp32-p4-jc8012p4a1",
+        "guition-esp32-p4-jc8012p4a1-v2",
+        "esp32-p4-86",
+        "guition-esp32-s3-4848s040"
+      ],
+      "firmwareVersions": [
+        "dev",
+        "v2.8.5",
+        "v2.8.4",
+        "v2.8.3",
+        "v2.8.2",
+        "v2.8.1"
+      ],
+      "webAssetVersion": 1
+    }
+  ]
+}

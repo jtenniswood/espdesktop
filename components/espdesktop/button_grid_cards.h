@@ -1,0 +1,295 @@
+#pragma once
+
+// Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
+
+#include "button_grid_datetime_cards.h"
+#include "companion_controls.h"
+
+inline void apply_push_button_transition(lv_obj_t *btn);
+inline void clear_push_button_transition(lv_obj_t *btn);
+
+inline void setup_garage_card(BtnSlot &s, const ParsedCfg &p) {
+  if (garage_command_mode(p.sensor)) {
+    lv_label_set_display_text(s.icon_lbl, garage_command_icon(p));
+    lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
+    apply_push_button_transition(s.btn);
+    return;
+  }
+  lv_label_set_display_text(s.icon_lbl, garage_closed_icon(p.icon));
+  lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
+}
+
+inline void setup_gate_card(BtnSlot &s, const ParsedCfg &p) {
+  if (gate_command_mode(p.sensor)) {
+    lv_label_set_display_text(s.icon_lbl, gate_command_icon(p));
+    lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
+    apply_push_button_transition(s.btn);
+    return;
+  }
+  lv_label_set_display_text(s.icon_lbl, gate_closed_icon(p.icon));
+  lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
+}
+
+inline void setup_lock_card(BtnSlot &s, const ParsedCfg &p) {
+  if (lock_command_mode(p.sensor)) {
+    lv_label_set_display_text(s.icon_lbl, lock_command_icon(p));
+    lv_label_set_display_text(s.text_lbl, lock_card_label(p));
+    apply_push_button_transition(s.btn);
+    return;
+  }
+  lv_label_set_display_text(s.icon_lbl, lock_locked_icon(p.icon));
+  lv_label_set_display_text(s.text_lbl, lock_card_label(p));
+}
+
+inline const char *screen_lock_locked_icon(const ParsedCfg &p) {
+  (void) p;
+  return find_icon("Lock");
+}
+
+inline const char *screen_lock_unlocked_icon(const ParsedCfg &p) {
+  (void) p;
+  return find_icon("Lock Open");
+}
+
+inline std::string screen_lock_card_label() {
+  return screen_lock_enabled()
+    ? espdesktop_i18n(std::string("Screen Locked"))
+    : espdesktop_i18n(std::string("Screen Unlocked"));
+}
+
+inline void screen_lock_register_card(const BtnSlot &s, const ParsedCfg &p) {
+  ScreenLockCardRef ref;
+  ref.btn = s.btn;
+  ref.icon_lbl = s.icon_lbl;
+  ref.text_lbl = s.text_lbl;
+  ref.locked_icon = screen_lock_locked_icon(p);
+  ref.unlocked_icon = screen_lock_unlocked_icon(p);
+  screen_lock_card_refs().push_back(ref);
+  screen_lock_register_controlled_button(s.btn);
+}
+
+inline void setup_screen_lock_card(BtnSlot &s, const ParsedCfg &p) {
+  lv_label_set_display_text(s.icon_lbl,
+    screen_lock_enabled() ? screen_lock_locked_icon(p) : screen_lock_unlocked_icon(p));
+  std::string label = screen_lock_card_label();
+  lv_label_set_display_text(s.text_lbl, label.c_str());
+  screen_lock_register_card(s, p);
+  apply_push_button_transition(s.btn);
+}
+
+inline void apply_push_button_transition(lv_obj_t *btn) {
+  if (!btn) return;
+  static const lv_style_prop_t push_props[] = {LV_STYLE_BG_COLOR, LV_STYLE_PROP_INV};
+  static lv_style_transition_dsc_t push_trans;
+  static bool push_trans_inited = false;
+  if (!push_trans_inited) {
+    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 400, 0, NULL);
+    push_trans_inited = true;
+  }
+  lv_obj_set_style_transition(btn, &push_trans,
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
+}
+
+inline void clear_push_button_transition(lv_obj_t *btn) {
+  if (!btn) return;
+  lv_obj_remove_local_style_prop(btn, LV_STYLE_TRANSITION,
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
+}
+
+inline void setup_internal_relay_card(BtnSlot &s, const ParsedCfg &p) {
+  bool push_mode = internal_relay_push_mode(p);
+  std::string label = internal_relay_label(p);
+  lv_label_set_display_text(s.text_lbl, label.c_str());
+  const char *icon_off = internal_relay_icon(p, push_mode);
+  lv_label_set_display_text(s.icon_lbl, icon_off);
+  if (push_mode) {
+    apply_push_button_transition(s.btn);
+    return;
+  }
+  bool has_icon_on = !p.icon_on.empty() && p.icon_on != "Auto";
+  const char *icon_on = has_icon_on ? find_icon(p.icon_on.c_str()) : nullptr;
+  apply_internal_relay_state(s.btn, s.icon_lbl, internal_relay_state(p.entity),
+    has_icon_on, icon_off, icon_on);
+}
+
+// Set icon and label on a toggle/push button based on its config
+inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
+  if (!p.entity.empty()) {
+    if (!p.label.empty()) {
+      lv_label_set_display_text(s.text_lbl, p.label.c_str());
+    }
+    const char* icon_cp = "\U000F0493";
+    if (p.icon.empty() || p.icon == "Auto") {
+      std::string domain = p.entity.substr(0, p.entity.find('.'));
+      icon_cp = domain_default_icon(domain);
+    } else {
+      icon_cp = find_icon(p.icon.c_str());
+    }
+    lv_label_set_display_text(s.icon_lbl, icon_cp);
+
+    if (!p.sensor.empty()) {
+      if (!p.unit.empty()) {
+        std::string unit = trim_display_unit(p.unit);
+        lv_label_set_display_text(s.unit_lbl, unit.c_str());
+      }
+    }
+  } else {
+    if (!p.label.empty()) {
+      lv_label_set_display_text(s.text_lbl, p.label.c_str());
+    }
+    if (!p.icon.empty() && p.icon != "Auto") {
+      lv_label_set_display_text(s.icon_lbl, find_icon(p.icon.c_str()));
+    } else if (p.type == "push") {
+      lv_label_set_display_text(s.icon_lbl, "\U000F0741");
+      apply_push_button_transition(s.btn);
+    }
+    if (p.type == "push" && p.label.empty()) {
+      lv_label_set_display_text(s.text_lbl, espdesktop_i18n("Push"));
+    }
+  }
+}
+
+inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p);
+
+inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
+                                 uint32_t sensor_color = TERTIARY_GREY) {
+  if (companion_metric_key_valid(p.entity)) {
+    const std::string label = p.label.empty()
+      ? espdesktop_i18n_key(companion_metric_label_key(p.entity)) : p.label;
+    lv_label_set_display_text(s.text_lbl, label.c_str());
+    lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_color(
+      s.btn, lv_color_hex(sensor_color),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+    lv_label_set_display_text(s.sensor_lbl, "--");
+    const std::string unit = trim_display_unit(
+      p.unit.empty() ? companion_metric_default_unit(p.entity) : p.unit);
+    lv_label_set_display_text(s.unit_lbl, "");
+    companion_track_metric_card(s.btn, s.sensor_lbl, s.unit_lbl, p.entity, unit,
+                                parse_precision(p.precision));
+    return;
+  }
+  const bool url_card = !companion_encoded_url(p.sensor).empty();
+  const bool media_play_pause = p.entity == COMPANION_MEDIA_PLAY_PAUSE_ACTION;
+  const bool available = url_card
+    ? companion_url_available(p.entity, p.sensor)
+    : companion_action_available(p.entity);
+  const auto companion_snapshot = companion_runtime_snapshot();
+  std::string label = media_play_pause
+    ? espdesktop_i18n(std::string(companion_play_pause_status(
+        companion_snapshot.now_playing.playback_state, available)))
+    : p.label.empty()
+    ? companion_default_action_label(p.entity, p.sensor)
+    : p.label;
+  lv_label_set_display_text(s.text_lbl, label.c_str());
+  const char *icon = (p.icon.empty() || p.icon == "Auto" ||
+                      (media_play_pause && p.icon == "Monitor"))
+    ? find_icon(media_play_pause ? "Play Pause" : "Monitor") : find_icon(p.icon.c_str());
+  lv_label_set_display_text(s.icon_lbl, icon);
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl);
+  if (available) {
+    lv_obj_clear_state(s.btn, LV_STATE_DISABLED);
+    apply_push_button_transition(s.btn);
+  } else {
+    lv_obj_add_state(s.btn, LV_STATE_DISABLED);
+    clear_push_button_transition(s.btn);
+  }
+  companion_apply_card_focus(s.btn, p.entity, p.sensor);
+}
+
+inline void setup_action_card(BtnSlot &s, const ParsedCfg &p) {
+  if (action_card_local_action(p)) {
+    setup_local_action_card(s, p);
+    return;
+  }
+  std::string action_label = p.label.empty()
+    ? (p.entity.empty() ? espdesktop_i18n(std::string("Action")) : p.entity)
+    : p.label;
+  lv_label_set_display_text(s.text_lbl, action_label.c_str());
+  const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Flash") : find_icon(p.icon.c_str());
+  lv_label_set_display_text(s.icon_lbl, icon_cp);
+  if (action_card_state_icon_mode(p) || action_card_state_text_mode(p)) {
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+  } else if (action_card_state_numeric_mode(p)) {
+    lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_display_text(s.sensor_lbl, "--");
+    std::string unit = trim_display_unit(action_card_state_unit(p));
+    lv_label_set_display_text(s.unit_lbl, unit.c_str());
+  }
+  apply_push_button_transition(s.btn);
+}
+
+inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p) {
+  std::string label = p.label.empty() ? (p.entity.empty() ? "Local Action" : sentence_cap_text(p.entity)) : p.label;
+  lv_label_set_display_text(s.text_lbl, label.c_str());
+  const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Gesture Tap") : find_icon(p.icon.c_str());
+  lv_label_set_display_text(s.icon_lbl, icon_cp);
+  apply_push_button_transition(s.btn);
+}
+
+inline void send_local_sensor_update(const std::string &key, float value) {
+  if (!local_sensor_apply_value(key, value)) {
+    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
+  }
+}
+
+inline void send_local_sensor_update(const std::string &key, const char *value) {
+  if (!local_sensor_apply_text(key, value ? value : "--")) {
+    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
+  }
+}
+
+inline const char *door_window_closed_icon(const ParsedCfg &p) {
+  if (!p.icon.empty() && p.icon != "Auto") return find_icon(p.icon.c_str());
+  return find_icon(door_window_closed_icon_name(p.precision));
+}
+
+inline const char *door_window_open_icon(const ParsedCfg &p) {
+  if (!p.icon_on.empty() && p.icon_on != "Auto") return find_icon(p.icon_on.c_str());
+  return find_icon(door_window_open_icon_name(p.precision));
+}
+
+inline const char *presence_clear_icon(const ParsedCfg &p) {
+  if (!p.icon.empty() && p.icon != "Auto") return find_icon(p.icon.c_str());
+  return find_icon("Motion Sensor Off");
+}
+
+inline const char *presence_detected_icon(const ParsedCfg &p) {
+  if (!p.icon_on.empty() && p.icon_on != "Auto") return find_icon(p.icon_on.c_str());
+  return find_icon("Motion Sensor");
+}
+
+inline void setup_subpage_parent_state_card(BtnSlot &s, const ParsedCfg &p,
+                                            const lv_font_t *value_font,
+                                            bool subpage_chevron_enabled = true,
+                                            int subpage_chevron_x = 0,
+                                            int subpage_chevron_y = 2,
+                                            int subpage_chevron_text_width_percent = 94) {
+  setup_toggle_visual(s, p);
+  if (p.precision == "text") {
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    set_wrapped_button_label_text(s.text_lbl, "--");
+    set_subpage_chevron_visible(
+      s, subpage_chevron_enabled, subpage_chevron_x, subpage_chevron_y,
+      subpage_chevron_text_width_percent);
+    return;
+  }
+
+  lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+  if (value_font) lv_obj_set_style_text_font(s.sensor_lbl, value_font, LV_PART_MAIN);
+  lv_label_set_display_text(s.sensor_lbl, "--");
+  std::string unit = trim_display_unit(p.unit);
+  lv_label_set_display_text(s.unit_lbl, unit.c_str());
+  std::string subpage_label = p.label.empty() ? espdesktop_i18n(std::string("Subpage")) : p.label;
+  lv_label_set_display_text(s.text_lbl, subpage_label.c_str());
+  set_subpage_chevron_visible(
+    s, subpage_chevron_enabled, subpage_chevron_x, subpage_chevron_y,
+    subpage_chevron_text_width_percent);
+}

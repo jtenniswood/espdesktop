@@ -1,0 +1,278 @@
+#include <cstdlib>
+#include <string>
+
+#include "button_grid_limits.h"
+#include "button_grid_card_runtime.h"
+#include "button_grid_string.h"
+
+int main() {
+  static_assert(MAX_GRID_SLOTS == ESPDESKTOP_MAX_GRID_SLOTS);
+  static_assert(MAX_SUBPAGE_ITEMS == MAX_GRID_SLOTS * MAX_GRID_SLOTS);
+
+  const auto &registry_service = espdesktop::cards::card_runtime_registry_service();
+  const auto service_media = registry_service.context_for("media", "");
+  if (!service_media.known || service_media.family != espdesktop::cards::Family::MEDIA) {
+    return EXIT_FAILURE;
+  }
+
+  espdesktop::cards::CardRuntimeRegistryService explicit_registry;
+  espdesktop::cards::set_card_runtime_registry_service(&explicit_registry);
+  if (&espdesktop::cards::card_runtime_registry_service() != &explicit_registry) {
+    return EXIT_FAILURE;
+  }
+  espdesktop::cards::set_card_runtime_registry_service(nullptr);
+  if (&espdesktop::cards::card_runtime_registry_service() == &explicit_registry) {
+    return EXIT_FAILURE;
+  }
+
+  if (string_ref_limited(esphome::StringRef("calendar"), 4) != "cale") return EXIT_FAILURE;
+  if (string_ref_limited(esphome::StringRef("clock"), 32) != "clock") return EXIT_FAILURE;
+  if (normalize_display_text("") != "") return EXIT_FAILURE;
+  if (normalize_display_text("Plain ASCII") != "Plain ASCII") return EXIT_FAILURE;
+  if (normalize_display_text("\xE1\xB9\xA2\xC3\xA0ng\xC3\xB3") != "S\xC3\xA0ng\xC3\xB3") {
+    return EXIT_FAILURE;
+  }
+  if (normalize_display_text("\xE1\xB9\xA3\xE1\xB9\xA2 \xE1\xB9\xA3") != "sS s") {
+    return EXIT_FAILURE;
+  }
+  if (normalize_display_text("Beyonc\xC3\xA9 \xE2\x80\x94 \xD7\xA9\xD7\x9C\xD7\x95\xD7\x9D") !=
+      "Beyonc\xC3\xA9 \xE2\x80\x94 \xD7\xA9\xD7\x9C\xD7\x95\xD7\x9D") {
+    return EXIT_FAILURE;
+  }
+  if (decode_html_entities("Earth, Wind &amp; Fire") != "Earth, Wind & Fire") {
+    return EXIT_FAILURE;
+  }
+  if (decode_html_entities("Rock &quot;N&quot; Roll &apos;Live&apos;") !=
+      "Rock \"N\" Roll 'Live'") {
+    return EXIT_FAILURE;
+  }
+  if (decode_html_entities("A &lt; B &gt; C &#38; D &#x266B;") !=
+      "A < B > C & D \xE2\x99\xAB") {
+    return EXIT_FAILURE;
+  }
+  if (decode_html_entities("Price &#128;10 &#x97; remastered") !=
+      "Price \xE2\x82\xAC\x31\x30 \xE2\x80\x94 remastered") {
+    return EXIT_FAILURE;
+  }
+  if (decode_html_entities("Beyonc&eacute;&nbsp;&ndash;&nbsp;Live&hellip;") !=
+      "Beyonc\xC3\xA9\xC2\xA0\xE2\x80\x93\xC2\xA0Live\xE2\x80\xA6") {
+    return EXIT_FAILURE;
+  }
+  if (decode_html_entities("Leave &not_an_entity; unchanged") !=
+      "Leave &not_an_entity; unchanged") {
+    return EXIT_FAILURE;
+  }
+  if (normalize_display_text(decode_html_entities("&#7778;ade &amp; &#7779;ade")) !=
+      "Sade & sade") {
+    return EXIT_FAILURE;
+  }
+
+  using espdesktop::cards::Family;
+  const auto media = card_runtime_registration("media");
+  if (media.version != 1 || !media.known || !media.allow_in_subpage ||
+      media.family != Family::MEDIA) return EXIT_FAILURE;
+  if (card_runtime_context("climate_control").family != Family::CLIMATE ||
+      card_runtime_context("light_brightness").family != Family::SLIDER ||
+      card_runtime_context("fan_speed").family != Family::FAN ||
+      card_runtime_context("not_a_card").family != Family::UNKNOWN) {
+    return EXIT_FAILURE;
+  }
+  const auto door = card_runtime_context("door_window");
+  const auto presence = card_runtime_context("presence");
+  const auto image = card_runtime_context("image");
+  const auto light_control = card_runtime_context("light_control");
+  const auto fan_control = card_runtime_context("fan_control");
+  const auto climate = card_runtime_context("climate");
+  const auto climate_control = card_runtime_context("climate_control");
+  const auto alarm = card_runtime_context("alarm");
+  const auto clock = card_runtime_context("clock");
+  const auto timezone = card_runtime_context("timezone");
+  const auto calendar = card_runtime_context("calendar");
+  const auto sensor = card_runtime_context("sensor");
+  const auto local_sensor = card_runtime_context("local_sensor");
+  const auto raw_text_sensor_alias = card_runtime_context("text_sensor");
+  const auto weather = card_runtime_context("weather");
+  const auto weather_forecast = card_runtime_context("weather_forecast");
+  const auto toggle = card_runtime_context("");
+  const auto action = card_runtime_context("action");
+  const auto alarm_action = card_runtime_context("alarm_action");
+  const auto fan_switch = card_runtime_context("fan_switch");
+  const auto internal = card_runtime_context("internal");
+  const auto light_switch = card_runtime_context("light_switch");
+  const auto raw_local_action_alias = card_runtime_context("local");
+  const auto push = card_runtime_context("push");
+  const auto screen_lock = card_runtime_context("screen_lock");
+  const auto webhook = card_runtime_context("webhook");
+  const auto slider = card_runtime_context("slider");
+  const auto light_brightness = card_runtime_context("light_brightness");
+  const auto light_temperature = card_runtime_context("light_temperature");
+  const auto fan_speed = card_runtime_context("fan_speed");
+  const auto fan_oscillate = card_runtime_context("fan_oscillate");
+  const auto fan_direction = card_runtime_context("fan_direction");
+  const auto fan_preset = card_runtime_context("fan_preset");
+  const auto option_select = card_runtime_context("option_select");
+  const auto vacuum = card_runtime_context("vacuum");
+  const auto mower = card_runtime_context("lawn_mower");
+  const auto garage = card_runtime_context("garage");
+  const auto gate = card_runtime_context("gate");
+  const auto lock = card_runtime_context("lock");
+  const auto subpage = card_runtime_context("subpage");
+  const auto unsupported = card_runtime_context("not_a_card");
+  if (!card_runtime_information_only(door) || !card_runtime_passive(door) ||
+      !presence.known ||
+      clock.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
+      timezone.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
+      calendar.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
+      sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
+      local_sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
+      raw_text_sensor_alias.known ||
+      weather.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
+      weather_forecast.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
+      !toggle.known || !action.known || !alarm_action.known ||
+      !fan_switch.known || !internal.known || !light_switch.known ||
+      raw_local_action_alias.known ||
+      !push.known || !screen_lock.known || !webhook.known ||
+      slider.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
+      light_brightness.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
+      light_temperature.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::LIGHT_TEMPERATURE ||
+      fan_speed.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
+      fan_oscillate.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
+      fan_direction.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
+      fan_preset.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
+      option_select.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::OPTION_SELECT ||
+      vacuum.runtime.driver != espdesktop::card_runtime::CardDriverId::VACUUM ||
+      mower.runtime.driver != espdesktop::card_runtime::CardDriverId::LAWN_MOWER ||
+      garage.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
+      gate.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
+      lock.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
+      subpage.runtime.driver != espdesktop::card_runtime::CardDriverId::SUBPAGE ||
+      subpage.allow_in_subpage ||
+      !card_runtime_has_capability(
+        subpage, espdesktop::card_runtime::CAPABILITY_ACTIONS) ||
+      !card_runtime_information_only(image) || card_runtime_passive(image) ||
+      light_control.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::LIGHT_CONTROL ||
+      fan_control.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::FAN_CONTROL ||
+      climate.runtime.driver != espdesktop::card_runtime::CardDriverId::CLIMATE ||
+      climate_control.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::CLIMATE ||
+      alarm.runtime.driver != espdesktop::card_runtime::CardDriverId::ALARM ||
+      unsupported.known) {
+    return EXIT_FAILURE;
+  }
+  struct TestConfig {
+    std::string type;
+    std::string sensor;
+  };
+  const auto cover = card_runtime_context(
+      TestConfig{"cover", "tilt"}, espdesktop::cards::Surface::SUBPAGE);
+  const auto cover_position = card_runtime_context(
+      TestConfig{"cover", ""});
+  const auto cover_toggle = card_runtime_context(
+      TestConfig{"cover", "toggle"});
+  const auto cover_command = card_runtime_context(
+      TestConfig{"cover", "open"});
+  const auto cover_modal = card_runtime_context(
+      TestConfig{"cover", "modal"});
+  const auto media_control = card_runtime_context(
+      TestConfig{"media", "control_modal"});
+  const auto media_play_pause = card_runtime_context(
+      TestConfig{"media", "play_pause"});
+  const auto media_transport = card_runtime_context(
+      TestConfig{"media", "next"}, espdesktop::cards::Surface::SUBPAGE);
+  const auto media_volume = card_runtime_context(
+      TestConfig{"media", "volume"});
+  const auto media_position = card_runtime_context(
+      TestConfig{"media", "position"});
+  const auto media_now_playing = card_runtime_context(
+      TestConfig{"media", "now_playing"});
+  const auto media_cover_art = card_runtime_context(
+      TestConfig{"media", "cover_art"});
+  const auto media_playlist = card_runtime_context(
+      TestConfig{"media", "playlist"});
+  const auto option_select_compatibility = card_runtime_context(
+      TestConfig{"action", card_runtime_option_select_canonical_action()});
+  if (cover.runtime.type != espdesktop::card_runtime::CardTypeId::COVER ||
+      cover.runtime.driver != espdesktop::card_runtime::CardDriverId::COVER_TILT ||
+      cover.surface != espdesktop::cards::Surface::SUBPAGE ||
+      !cover.allow_in_subpage ||
+      cover_position.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::COVER_POSITION ||
+      cover_toggle.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::COVER_TOGGLE ||
+      cover_command.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::COVER_COMMAND ||
+      cover_modal.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::COVER_MODAL) {
+    return EXIT_FAILURE;
+  }
+  if (media_control.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_CONTROL ||
+      media_play_pause.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_PLAY_PAUSE ||
+      media_transport.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_TRANSPORT ||
+      media_transport.surface != espdesktop::cards::Surface::SUBPAGE ||
+      media_volume.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_VOLUME ||
+      media_position.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_POSITION ||
+      media_now_playing.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_NOW_PLAYING ||
+      media_cover_art.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_COVER_ART ||
+      media_playlist.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::MEDIA_PLAYLIST) {
+    return EXIT_FAILURE;
+  }
+  if (option_select_compatibility.runtime.driver !=
+        espdesktop::card_runtime::CardDriverId::ACTION) {
+    return EXIT_FAILURE;
+  }
+  // Modal-opening cards skip the temporary pressed-card repaint. Direct
+  // actions retain it so their interaction feedback remains unchanged.
+  if (!card_runtime_main_click_opens_modal(alarm) ||
+      !card_runtime_main_click_opens_modal(climate) ||
+      !card_runtime_main_click_opens_modal(cover_modal) ||
+      !card_runtime_main_click_opens_modal(fan_control) ||
+      !card_runtime_main_click_opens_modal(fan_preset) ||
+      !card_runtime_main_click_opens_modal(image) ||
+      !card_runtime_main_click_opens_modal(light_control) ||
+      !card_runtime_main_click_opens_modal(media_control) ||
+      !card_runtime_main_click_opens_modal(media_volume) ||
+      !card_runtime_main_click_opens_modal(media_cover_art) ||
+      !card_runtime_main_click_opens_modal(option_select) ||
+      card_runtime_main_click_opens_modal(media_play_pause) ||
+      card_runtime_main_click_opens_modal(media_transport) ||
+      card_runtime_main_click_opens_modal(media_position) ||
+      card_runtime_main_click_opens_modal(slider)) {
+    return EXIT_FAILURE;
+  }
+  const char *contract_card_types[] = {
+    "", "action", "alarm", "alarm_action", "calendar", "climate",
+    "climate_control", "clock", "cover", "door_window", "fan_control",
+    "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_switch",
+    "garage", "gate", "image", "internal", "lawn_mower", "light_brightness",
+    "light_control", "light_switch", "light_temperature", "local_sensor", "lock",
+    "media", "option_select", "presence", "push", "screen_lock", "sensor",
+    "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
+    "webhook",
+  };
+  for (const char *type : contract_card_types) {
+    const auto registration = card_runtime_registration(type);
+    if (!registration.known ||
+        registration.allow_in_subpage != card_contract_allow_in_subpage(type)) {
+      return EXIT_FAILURE;
+    }
+  }
+
+  const char embedded_null[] = {'a', '\0', 'b'};
+  const std::string copied = string_ref_limited(esphome::StringRef(embedded_null, 3), 3);
+  if (copied.size() != 3 || copied[0] != 'a' || copied[1] != '\0' || copied[2] != 'b') {
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}

@@ -1,0 +1,116 @@
+import { state } from "../state/app_instance";
+import type { UiRuntimeState } from "./state";
+import type { FirmwareUpdateFeature } from "./firmware_update_state";
+
+export interface C6FirmwareFeature {
+    updateKnownAvailable(): boolean;
+    syncUi(): void;
+    setCurrentVersion(version?: any): void;
+    setLatestVersion(version?: any): void;
+    setUpdateAvailable(value?: any): void;
+}
+
+export function createC6FirmwareFeature(runtime: UiRuntimeState, firmwareUpdate: FirmwareUpdateFeature): C6FirmwareFeature {
+    const els = runtime.els;
+    const { syncCardBadge: syncFirmwareCardBadge } = firmwareUpdate;
+    // WiFi co-processor firmware update UI helpers.
+    function displayC6FirmwareVersion(this: any, version?: any) {
+        version = String(version == null ? "" : version).trim();
+        return version || "Unknown";
+    }
+    function c6FirmwareVersionLooksKnown(this: any, version?: any) {
+        version = String(version == null ? "" : version).trim();
+        return /\d/.test(version);
+    }
+    function c6FirmwareUpdateKnownAvailable(this: any) {
+        var current: any = String(state.c6FirmwareCurrentVersion || "").trim();
+        var latest: any = String(state.c6FirmwareLatestVersion || "").trim();
+        return c6FirmwareVersionLooksKnown(current) &&
+            c6FirmwareVersionLooksKnown(latest) &&
+            current !== latest;
+    }
+    function syncC6FirmwareUi(this: any) {
+        var show: any = state.c6FirmwareUpdateControlsSupported === true;
+        if (els.c6FirmwareCard)
+            els.c6FirmwareCard.style.display = show ? "" : "none";
+        if (els.c6FirmwareBadge) {
+            els.c6FirmwareBadge.classList.toggle("sp-hidden", !c6FirmwareUpdateKnownAvailable());
+        }
+        syncFirmwareCardBadge();
+        if (els.c6FirmwareCurrent) {
+            els.c6FirmwareCurrent.textContent = displayC6FirmwareVersion(state.c6FirmwareCurrentVersion);
+        }
+        if (els.c6FirmwareLatest) {
+            els.c6FirmwareLatest.textContent = displayC6FirmwareVersion(state.c6FirmwareLatestVersion);
+        }
+        if (els.c6FirmwareAutoUpdateRow) {
+            els.c6FirmwareAutoUpdateRow.style.display = show && state.c6FirmwareAutoUpdateSupported ? "" : "none";
+        }
+        if (els.c6FirmwareAutoUpdate) {
+            els.c6FirmwareAutoUpdate.checked = state.c6FirmwareAutoUpdate;
+        }
+        if (els.c6FirmwareStatus) {
+            var cls: any = "sp-fw-status";
+            var status: any = "";
+            if (!state.c6FirmwareInstalling && !state.c6FirmwareChecking &&
+                !c6FirmwareUpdateKnownAvailable() && state.c6FirmwareUpdateAvailable) {
+                status = state.c6FirmwareUpdateAvailable;
+            }
+            els.c6FirmwareStatus.className = cls;
+            els.c6FirmwareStatus.textContent = status;
+        }
+        if (els.c6FirmwareUpdateBtn) {
+            var busy: any = state.c6FirmwareChecking || state.c6FirmwareInstalling;
+            els.c6FirmwareUpdateBtn.className = "sp-fw-btn" + (busy ? " sp-fw-btn-busy" : "");
+            els.c6FirmwareUpdateBtn.disabled = busy || !show ||
+                (c6FirmwareUpdateKnownAvailable() && !state.c6FirmwareInstallControlsSupported);
+            if (state.c6FirmwareInstalling) {
+                els.c6FirmwareUpdateBtn.textContent = "Installing\u2026";
+            }
+            else if (state.c6FirmwareChecking) {
+                els.c6FirmwareUpdateBtn.textContent = "Checking\u2026";
+            }
+            else if (c6FirmwareUpdateKnownAvailable()) {
+                els.c6FirmwareUpdateBtn.textContent = "Update WiFi Firmware";
+            }
+            else {
+                els.c6FirmwareUpdateBtn.textContent = "Check for Update";
+            }
+        }
+    }
+    function setC6FirmwareCurrentVersion(this: any, version?: any) {
+        version = String(version == null ? "" : version).trim();
+        if (!version)
+            return;
+        state.c6FirmwareCurrentVersion = version;
+        state.c6FirmwareUpdateControlsSupported = true;
+        state.c6FirmwareChecking = false;
+        state.c6FirmwareInstalling = false;
+        syncC6FirmwareUi();
+    }
+    function setC6FirmwareLatestVersion(this: any, version?: any) {
+        version = String(version == null ? "" : version).trim();
+        if (!version)
+            return;
+        state.c6FirmwareLatestVersion = version;
+        state.c6FirmwareUpdateControlsSupported = true;
+        state.c6FirmwareChecking = false;
+        syncC6FirmwareUi();
+    }
+    function setC6FirmwareUpdateAvailable(this: any, value?: any) {
+        value = String(value == null ? "" : value).trim();
+        if (!value)
+            return;
+        state.c6FirmwareUpdateAvailable = value;
+        state.c6FirmwareUpdateControlsSupported = true;
+        state.c6FirmwareChecking = false;
+        syncC6FirmwareUi();
+    }
+    return {
+        updateKnownAvailable: c6FirmwareUpdateKnownAvailable,
+        syncUi: syncC6FirmwareUi,
+        setCurrentVersion: setC6FirmwareCurrentVersion,
+        setLatestVersion: setC6FirmwareLatestVersion,
+        setUpdateAvailable: setC6FirmwareUpdateAvailable,
+    };
+}

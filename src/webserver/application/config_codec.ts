@@ -1,0 +1,1118 @@
+import { state } from "../state/app_instance";
+import * as EspDesktopModel from "../model";
+import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "../model/config_primitives";
+import {
+    CARD_SIZE_EXTRA_LARGE,
+    CARD_SIZE_LANDSCAPE_LARGE,
+    CARD_SIZE_LARGE,
+    CARD_SIZE_MAX_TALL,
+    CARD_SIZE_MAX_WIDE,
+    CARD_SIZE_PORTRAIT_LARGE,
+    CARD_SIZE_SINGLE,
+} from "../model/grid";
+import {
+    cardContractDefaultConfig,
+    cardContractFanDefaultIcon,
+    cardContractIsBrightnessSliderType,
+    cardContractIsFanCardType,
+    cardContractIsOptionSelectType,
+    cardContractSubpageTypeCode,
+    cardContractSubpageTypeFromCode,
+} from "../generated/card_contract";
+import {
+    migrateSavedConfigVacuumLegacy,
+    normalizeSavedConfigVacuumIconOn,
+    normalizeSavedConfigVacuumOptions,
+    normalizeSavedConfigVacuumPrecision,
+    normalizeSavedConfigVacuumSensor,
+} from "../generated/saved_config_vacuum";
+import { migrateSavedConfigSensorLegacy, normalizeSavedConfigSensor } from "../generated/saved_config_sensor";
+import { migrateSavedConfigActionLegacy, normalizeSavedConfigAction } from "../generated/saved_config_action";
+import { normalizeSavedConfigMedia } from "../generated/saved_config_media";
+import { normalizeSavedConfigStatic } from "../generated/saved_config_static";
+import { normalizeSavedConfigFan } from "../generated/saved_config_fan";
+import { normalizeSavedConfigDateTime } from "../generated/saved_config_date_time";
+import { normalizeSavedConfigMower } from "../generated/saved_config_mower";
+import { normalizeSavedConfigOccupancy } from "../generated/saved_config_occupancy";
+import { normalizeSavedConfigAccess } from "../generated/saved_config_access";
+import { normalizeSavedConfigSecurity } from "../generated/saved_config_security";
+import { migrateSavedConfigWeatherLegacy, normalizeSavedConfigWeather } from "../generated/saved_config_weather";
+import { normalizeSavedConfigImage } from "../generated/saved_config_image";
+import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
+import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
+import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
+import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
+import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
+import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
+import type { CardRegistry } from "./card_registry";
+import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
+import type { ConfigMediaOptionsFeature } from "./config_media_options";
+import type { ConfigImageOptionsFeature } from "./config_image_options";
+import type { ConfigModalTabOptionsFeature } from "./config_modal_tab_options";
+import type { ConfigAccessClimateAlarmOptionsFeature } from "./config_access_climate_alarm_options";
+import type { ConfigConfirmationOptionsFeature } from "./config_confirmation_options";
+import {
+    IMAGE_ICON_OPTION,
+    MEDIA_COVER_ART_OPTION,
+    copyLargeNumbersOption,
+} from "./config_option_core";
+import {
+    applySubpagePresetConfig,
+    normalizeSubpageOptions,
+    subpageKind,
+} from "./config_subpage_options";
+import {
+    ACTION_CARD_LOCAL_ACTION,
+    ACTION_CARD_OPTION_SELECT_ACTION,
+} from "./config_action_contract";
+import { normalizeCoverMode } from "./config_cover_contract";
+import type { ConfigWeatherOptionsFeature } from "./config_weather_options";
+import type { ConfigWebhookOptionsFeature } from "./config_webhook_options";
+import type { ConfigRobotCardOptionsFeature } from "./config_robot_card_options";
+import type { ConfigLockOptionsFeature } from "./config_lock_options";
+import type { ConfigDateTimeOptionsFeature } from "./config_date_time_options";
+import type { ApplicationLayoutState } from "./application_context";
+import type { ApplicationApiFeature } from "./api";
+import type { ConfigPersistenceFeature } from "./config_post_api";
+import type { ButtonSettingsRenderQueueFeature } from "./button_settings_render_queue";
+export function createConfigCodecFeature(
+    cardRegistry: CardRegistry,
+    sensorOptions: ConfigSensorOptionsFeature,
+    mediaOptions: ConfigMediaOptionsFeature,
+    imageOptions: ConfigImageOptionsFeature,
+    weatherOptions: ConfigWeatherOptionsFeature,
+    webhookOptions: ConfigWebhookOptionsFeature,
+    robotOptions: ConfigRobotCardOptionsFeature,
+    lockOptions: ConfigLockOptionsFeature,
+    dateTimeOptions: ConfigDateTimeOptionsFeature,
+    modalTabs: ConfigModalTabOptionsFeature,
+    accessOptions: ConfigAccessClimateAlarmOptionsFeature,
+    confirmationOptions: ConfigConfirmationOptionsFeature,
+    layout: ApplicationLayoutState,
+    configPersistence: Pick<ConfigPersistenceFeature, "saveSubpageEntity" | "scheduleSliderSubpageMigration">,
+    renderQueue: ButtonSettingsRenderQueueFeature,
+    rendering: { renderPreview(): void; renderButtonSettings(force?: boolean): void },
+) {
+    const { renderPreview, renderButtonSettings } = rendering;
+    const { saveSubpageEntity, scheduleSliderSubpageMigration } = configPersistence;
+    let requestApi: Pick<ApplicationApiFeature, "postText"> | undefined;
+    function connectRequestApi(value: Pick<ApplicationApiFeature, "postText">) {
+        requestApi = value;
+    }
+    function requests(): Pick<ApplicationApiFeature, "postText"> {
+        if (!requestApi)
+            throw new Error("Configuration codec used before the application API was connected");
+        return requestApi;
+    }
+    const {
+        sensorCardLocalSource: SENSOR_CARD_LOCAL_SENSOR,
+        sensorCardIsLocal,
+        cardLargeNumbersSupported,
+        normalizeDateTimeOptions,
+        normalizeDoorWindowSubtype,
+        doorWindowClosedIcon,
+        doorWindowOpenIcon,
+        normalizeDoorWindowOptions,
+        normalizePresenceOptions,
+        normalizeSensorOptions,
+    } = sensorOptions;
+    const {
+        mediaEditorMode,
+        mediaNowPlayingControls,
+        mediaStateDisplayModeSupported,
+        normalizeMediaOptions,
+    } = mediaOptions;
+    const {
+        imageLabelEnabled,
+        imageIconEnabled,
+        normalizeImageOptions,
+    } = imageOptions;
+    const { normalizeWeatherCardMode } = weatherOptions;
+    const { normalizeWebhookConfig, webhookMethod } = webhookOptions;
+    const {
+        lawnMowerModeDefaultIcon,
+        normalizeLawnMowerMode,
+        vacuumModeDefaultIcon,
+        vacuumModeNeedsArea,
+    } = robotOptions;
+    const { normalizeLockMode } = lockOptions;
+    const { normalizeDateTimeCardMode } = dateTimeOptions;
+    imageOptions.connectSubpageParser((value) => parseSubpageConfig(value));
+    const {
+        normalizeLightControlOptions,
+        normalizeCoverOptionsForMode,
+        normalizeFanControlOptions,
+    } = modalTabs;
+    const {
+        alarmActionSpecs,
+        alarmActionLegacyIcon,
+        normalizeGarageMode,
+        normalizeGarageOptions,
+        normalizeGateMode,
+        normalizeGateOptions,
+        normalizeClimateOptions,
+        alarmActionInfo,
+        normalizeAlarmOptions,
+        normalizeClimatePrecisionConfig,
+    } = accessOptions;
+    const {
+        actionCardIsOptionSelect,
+        normalizeSavedConfigActionFields,
+        normalizeActionOptions,
+        normalizeSwitchConfirmationOptions,
+    } = confirmationOptions;
+    // ── Subpage helpers ────────────────────────────────────────────────────
+    function normalizeWithRegisteredCardType(this: any, b?: any) {
+        if (!b)
+            return false;
+        if (b.type === "action" || b.type === "lawn_mower")
+            return false;
+        var typeDef: any = cardRegistry.definitions[b.type || ""];
+        if (!typeDef || typeof typeDef.normalizeConfig !== "function")
+            return false;
+        typeDef.normalizeConfig(b);
+        return true;
+    }
+    function cardRequiresSquareSize(this: any, b?: any) {
+        return !!(b && b.type === "media" && mediaEditorMode(b.sensor) === "cover_art");
+    }
+    function cardIsWifiSharing(this: any, b?: any) {
+        return !!(b && (b.type === "wifi_qr" || b.type === "wifi_qr_card"));
+    }
+    function cardSupportsWifiPortraitSizes(this: any, b?: any) {
+        return cardIsWifiSharing(b) && (
+            layout.deviceId === "guition-esp32-p4-jc8012p4a1" ||
+            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v2"
+        );
+    }
+    function cardSupportsExtraLargeSize(this: any, b?: any) {
+        return cardRequiresSquareSize(b) || cardIsWifiSharing(b);
+    }
+    function cardSupportsMaxSize(this: any, b?: any) {
+        return !!(b && b.type === "image");
+    }
+    function cardSupportsPortraitLargeSize(this: any, b?: any) {
+        return (cardRequiresSquareSize(b) || cardSupportsMaxSize(b)) && layout.gridRows >= 4 && layout.gridCols >= 3;
+    }
+    function cardSupportsLandscapeLargeSize(this: any, b?: any) {
+        return cardSupportsMaxSize(b) && layout.gridRows >= 3 && layout.gridCols >= 4;
+    }
+    function normalizeCardSizeForConfig(this: any, b?: any, size?: any) {
+        size = size || CARD_SIZE_SINGLE;
+        if (cardIsWifiSharing(b)) {
+            if (size === CARD_SIZE_SINGLE || size === CARD_SIZE_LARGE)
+                return size;
+            if (size === CARD_SIZE_EXTRA_LARGE)
+                return layout.gridCols >= 3 && layout.gridRows >= 3 ? size : CARD_SIZE_SINGLE;
+            if (cardSupportsWifiPortraitSizes(b) &&
+                (size === CARD_SIZE_MAX_TALL || size === CARD_SIZE_PORTRAIT_LARGE))
+                return size;
+            return CARD_SIZE_SINGLE;
+        }
+        if (size === CARD_SIZE_LANDSCAPE_LARGE)
+            return cardSupportsLandscapeLargeSize(b) ? size : CARD_SIZE_SINGLE;
+        if (size === CARD_SIZE_PORTRAIT_LARGE)
+            return cardSupportsPortraitLargeSize(b) ? size : CARD_SIZE_SINGLE;
+        if (size === CARD_SIZE_MAX_WIDE || size === CARD_SIZE_MAX_TALL)
+            return cardSupportsMaxSize(b) ? size : CARD_SIZE_SINGLE;
+        if (!cardRequiresSquareSize(b))
+            return size;
+        return size === CARD_SIZE_LARGE || size === CARD_SIZE_EXTRA_LARGE
+            ? size
+            : CARD_SIZE_SINGLE;
+    }
+    function normalizeSavedConfigSensorFields(this: any, b?: any, wasLegacyTextSensor?: any) {
+        if (!b)
+            return;
+        if (wasLegacyTextSensor && !b.icon)
+            b.icon = "Auto";
+        if (!sensorCardIsLocal(b) && b.precision === "time") {
+            b.unit = "";
+            b.icon = "Auto";
+            b.icon_on = "Auto";
+        }
+        if (sensorCardIsLocal(b)) {
+            b.type = "sensor";
+            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
+            b.icon_on = "Auto";
+            b.options = "";
+            if (b.precision !== "text" && b.precision !== "1" && b.precision !== "2")
+                b.precision = "";
+            if (b.precision !== "text" && (!b.icon || b.icon === "Auto"))
+                b.icon = "Auto";
+        }
+    }
+    function normalizeSavedConfigMediaFields(this: any, b?: any) {
+        if (!b)
+            return;
+        var rawMediaMode: any = b.sensor;
+        if (rawMediaMode === "controls" && (!b.icon || b.icon === "Speaker"))
+            b.icon = "Auto";
+        var mediaConfig: any = EspDesktopModel.decodeMediaCardConfigV1(b);
+        b.sensor = mediaConfig ? mediaConfig.mode : mediaEditorMode(b.sensor);
+        if (b.sensor === "previous" && b.label === "Skip Previous")
+            b.label = "Previous";
+        if (b.sensor === "next" && b.label === "Skip Next")
+            b.label = "Next";
+        if (b.sensor === "volume") {
+            if (!b.label || b.label === "Media")
+                b.label = "Volume";
+            b.icon = "Auto";
+        }
+        if (b.sensor === "playlist") {
+            if (!b.label || b.label === "Media")
+                b.label = "Playlist";
+            if (!b.icon || b.icon === "Auto")
+                b.icon = "Music";
+        }
+        if (b.sensor === "position" && (!b.label || b.label === "Track"))
+            b.label = "Position";
+        if (b.sensor === "now_playing")
+            b.precision = mediaConfig && mediaConfig.nowPlayingControl !== "none"
+                ? mediaConfig.nowPlayingControl
+                : "";
+        else if (b.sensor === "cover_art")
+            b.precision = "";
+        else if (mediaStateDisplayModeSupported(b.sensor) && mediaConfig && mediaConfig.stateDisplay === "state")
+            b.precision = "state";
+        else
+            b.precision = "";
+    }
+    function normalizeSavedConfigFanFields(this: any, b?: any) {
+        if (!b)
+            return;
+        if (!b.icon || b.icon === "Auto")
+            b.icon = fanCardDefaultIcon(b.type);
+        if (b.type === "fan_switch") {
+            if (!b.icon_on || b.icon_on === "Auto")
+                b.icon_on = "Fan";
+        }
+        else {
+            b.icon_on = "Auto";
+        }
+    }
+    function normalizeSavedConfigDateTimeFields(this: any, b?: any) {
+        if (!b || b.entity)
+            return;
+        if (b.type === "calendar")
+            b.entity = cardContractDefaultConfig("calendar").entity;
+        else if (b.type === "timezone")
+            b.entity = cardContractDefaultConfig("timezone").entity;
+    }
+    function normalizeSavedConfigDateTimeOptions(this: any, options?: any, b?: any) {
+        return normalizeDateTimeOptions(b && b.type || "", options || "", b && b.precision || "");
+    }
+    function normalizeSavedConfigMowerFields(this: any, b?: any) {
+        if (!b)
+            return;
+        b.sensor = normalizeLawnMowerMode(b.sensor);
+        if (!b.icon || b.icon === "Auto")
+            b.icon = lawnMowerModeDefaultIcon(b.sensor);
+    }
+    function normalizeSavedConfigOccupancyFields(this: any, b?: any) {
+        if (!b)
+            return;
+        if (b.type === "door_window") {
+            b.precision = normalizeDoorWindowSubtype(b.precision);
+            if (!b.icon || b.icon === "Auto")
+                b.icon = doorWindowClosedIcon(b.precision);
+            if (!b.icon_on || b.icon_on === "Auto")
+                b.icon_on = doorWindowOpenIcon(b.precision);
+        }
+        else if (b.type === "presence") {
+            if (!b.icon || b.icon === "Auto")
+                b.icon = "Motion Sensor Off";
+            if (!b.icon_on || b.icon_on === "Auto")
+                b.icon_on = "Motion Sensor";
+        }
+    }
+    function normalizeSavedConfigOccupancyOptions(this: any, options?: any, b?: any) {
+        return b && b.type === "door_window"
+            ? normalizeDoorWindowOptions(options || "")
+            : normalizePresenceOptions(options || "");
+    }
+    function normalizeSavedConfigAccessFields(this: any, b?: any) {
+        if (!b)
+            return;
+        if (b.type === "garage") {
+            b.sensor = normalizeGarageMode(b.sensor);
+            if (b.sensor)
+                b.icon_on = "Auto";
+        }
+        else if (b.type === "gate") {
+            b.sensor = normalizeGateMode(b.sensor);
+            if (b.sensor)
+                b.icon_on = "Auto";
+        }
+        else if (b.type === "cover") {
+            b.sensor = normalizeCoverMode(b.sensor, true);
+            if (b.sensor !== "set_position")
+                b.unit = "";
+        }
+        else if (b.type === "lock") {
+            b.sensor = normalizeLockMode(b.sensor);
+            b.icon_on = b.sensor ? "Auto" : ((!b.icon_on || b.icon_on === "Auto") ? "Lock Open" : b.icon_on);
+        }
+    }
+    function normalizeSavedConfigAccessOptions(this: any, options?: any, b?: any) {
+        if (!b)
+            return "";
+        if (b.type === "garage")
+            return normalizeGarageOptions(options || "", b.sensor);
+        if (b.type === "gate")
+            return normalizeGateOptions(options || "", b.sensor);
+        return normalizeCoverOptionsForMode(options || "", b.sensor);
+    }
+    function normalizeSavedConfigSecurityFields(this: any, b?: any) {
+        if (!b)
+            return;
+        if (b.type === "alarm") {
+            if (!b.icon || b.icon === "Auto")
+                b.icon = "Security";
+            return;
+        }
+        b.sensor = alarmActionInfo(b.sensor) ? b.sensor : "away";
+        if (!b.label)
+            b.label = alarmActionInfo(b.sensor).label;
+        if (!b.icon || b.icon === "Auto" || b.icon === alarmActionLegacyIcon(b.sensor))
+            b.icon = alarmActionInfo(b.sensor).icon;
+    }
+    function normalizeSavedConfigSecurityOptions(this: any, options?: any, _b?: any) {
+        return normalizeAlarmOptions(options || "");
+    }
+    function normalizeSavedConfigWeatherFields(this: any, b?: any, wasLegacyForecast?: any) {
+        if (!b)
+            return;
+        if (wasLegacyForecast && b.label === "Weather")
+            b.label = "";
+        b.precision = normalizeWeatherCardMode(b.precision);
+    }
+    function normalizeSavedConfigWeatherOptions(this: any, options?: any, b?: any) {
+        return b && cardLargeNumbersSupported(b) ? copyLargeNumbersOption("", options || "") : "";
+    }
+    function normalizeSavedConfigImageFields(this: any, b?: any) {
+        if (!b)
+            return;
+        b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
+        if (!imageLabelEnabled(b))
+            b.label = "";
+    }
+    function normalizeSavedConfigImageOptions(this: any, options?: any, _b?: any) {
+        return normalizeImageOptions(options || "");
+    }
+    function normalizeSavedConfigClimateFields(this: any, b?: any) {
+        if (!b)
+            return;
+        if (!b.icon)
+            b.icon = "Thermostat";
+        if (!b.icon_on)
+            b.icon_on = "Auto";
+        b.precision = normalizeClimatePrecisionConfig(b.precision);
+    }
+    function normalizeSavedConfigClimateOptions(this: any, options?: any, _b?: any) {
+        return normalizeClimateOptions(options || "", true);
+    }
+    function normalizeSavedConfigLightControlOptions(this: any, options?: any, _b?: any) {
+        return normalizeLightControlOptions(options || "");
+    }
+    function normalizeSavedConfigWebhookFields(this: any, b?: any) {
+        if (!b)
+            return;
+        b.sensor = webhookMethod(b.sensor);
+        if (b.sensor === "GET" || b.sensor === "DELETE")
+            b.unit = "";
+        if (!b.icon)
+            b.icon = "Auto";
+    }
+    function normalizeSavedConfigWebhookOptions(this: any, options?: any, _b?: any) {
+        var headers: any = configOptionValue(options || "", "webhook_headers");
+        return headers ? setConfigOptionValue("", "webhook_headers", headers) : "";
+    }
+    function normalizeSavedConfigSubpageFields(this: any, b?: any) {
+        if (subpageKind(b) === "companion_stat") {
+            var metric: any = COMPANION_SYSTEM_METRICS.find(function (candidate) {
+                return candidate.id === b.entity || candidate.freeId === b.entity;
+            }) || COMPANION_SYSTEM_METRICS[0];
+            if (!metric)
+                return;
+            if (!metric.id && !metric.freeId)
+                b.entity = "";
+            else if (b.entity !== metric.id && b.entity !== metric.freeId)
+                b.entity = metric.id;
+            if (!b.label)
+                b.label = metric.label;
+            if (!b.icon || b.icon === "Auto")
+                b.icon = "Gauge";
+            b.icon_on = "Auto";
+            b.sensor = "indicator";
+            b.unit = metric.unit;
+            b.precision = "";
+            return;
+        }
+        applySubpagePresetConfig(b);
+    }
+    function normalizeSavedConfigSubpageOptions(this: any, options?: any, b?: any) {
+        return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
+    }
+    function normalizeButtonConfig(this: any, b?: any) {
+        if (b)
+            b.options = b.options || "";
+        if (b)
+            migrateSavedConfigActionLegacy(b);
+        var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
+        if (b)
+            migrateSavedConfigSensorLegacy(b);
+        if (b && migrateSavedConfigVacuumLegacy(b)) {
+            if (!b.icon || b.icon === "Auto")
+                b.icon = vacuumModeDefaultIcon(b.sensor);
+        }
+        var normalizedSavedFan: any = !!(b && normalizeSavedConfigFan(b, normalizeSavedConfigFanFields, normalizeFanControlOptions));
+        var normalizedSavedMower: any = !!(b && normalizeSavedConfigMower(b, normalizeSavedConfigMowerFields));
+        var wasLegacyWeatherForecast: any = !!(b && migrateSavedConfigWeatherLegacy(b));
+        if (b)
+            normalizeSavedConfigWeather(b, wasLegacyWeatherForecast, normalizeSavedConfigWeatherFields, normalizeSavedConfigWeatherOptions);
+        if (b)
+            normalizeSavedConfigMedia(b, normalizeSavedConfigMediaFields, normalizeMediaOptions);
+        if (b)
+            normalizeSavedConfigClimate(b, normalizeSavedConfigClimateFields, normalizeSavedConfigClimateOptions);
+        var normalizedSavedAccess: any = !!(b && normalizeSavedConfigAccess(b, normalizeSavedConfigAccessFields, normalizeSavedConfigAccessOptions));
+        if (b)
+            normalizeSavedConfigSecurity(b, normalizeSavedConfigSecurityFields, normalizeSavedConfigSecurityOptions);
+        if (b)
+            normalizeSavedConfigWebhook(b, normalizeSavedConfigWebhookFields, normalizeSavedConfigWebhookOptions);
+        normalizeWithRegisteredCardType(b);
+        var normalizedSavedStatic: any = !!(b && normalizeSavedConfigStatic(b));
+        if (b)
+            normalizeSavedConfigDateTime(b, normalizeSavedConfigDateTimeFields, normalizeSavedConfigDateTimeOptions);
+        if (b)
+            normalizeSavedConfigImage(b, normalizeSavedConfigImageFields, normalizeSavedConfigImageOptions);
+        if (b)
+            normalizeSavedConfigLightControl(b, normalizeSavedConfigLightControlOptions);
+        if (b)
+            normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
+        if (b)
+            normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
+        var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
+        var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
+        var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
+        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
+            b.options = "";
+        }
+        return b;
+    }
+    function isBrightnessSliderType(this: any, type?: any) {
+        return cardContractIsBrightnessSliderType(type);
+    }
+    function isFanCardType(this: any, type?: any) {
+        return cardContractIsFanCardType(type);
+    }
+    function isClimateCardType(this: any, type?: any) {
+        return type === "climate" || type === "climate_control";
+    }
+    function isOptionSelectType(this: any, type?: any) {
+        return cardContractIsOptionSelectType(type);
+    }
+    function fanCardDefaultIcon(this: any, type?: any) {
+        return cardContractFanDefaultIcon(type);
+    }
+    function buttonConfigChangedByNormalize(this: any, raw?: any) {
+        var before: any = EspDesktopModel.cloneCardConfig(raw || {});
+        var after: any = normalizeButtonConfig(EspDesktopModel.cloneCardConfig(before));
+        return EspDesktopModel.cardConfigChanged(before, after);
+    }
+    function trimConfigFields(this: any, fields?: any) {
+        return EspDesktopModel.trimConfigFields(fields);
+    }
+    function buttonConfigFields(this: any, b?: any) {
+        var type: any = b && b.type || "";
+        if (b && type === "subpage" && subpageKind(b)) {
+            b = EspDesktopModel.cloneCardConfig(b);
+            applySubpagePresetConfig(b);
+        }
+        var isActionOptionSelect: any = !!(b && (actionCardIsOptionSelect(b) || isOptionSelectType(type)));
+        if (isActionOptionSelect)
+            type = "action";
+        if (type === "local")
+            type = "action";
+        if (type === "local_sensor")
+            type = "sensor";
+        var label: any = b && b.label || "";
+        if (type === "calendar" || type === "clock" || type === "timezone")
+            label = "";
+        if (type === "screen_lock")
+            label = "";
+        var sensor: any = isActionOptionSelect ? ACTION_CARD_OPTION_SELECT_ACTION :
+            (isBrightnessSliderType(type) || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.sensor || "");
+        if (type === "lock" && sensor !== "lock" && sensor !== "unlock")
+            sensor = "";
+        if (b && b.type === "local")
+            sensor = ACTION_CARD_LOCAL_ACTION;
+        if (b && (b.type === "local_sensor" || sensorCardIsLocal(b)))
+            sensor = SENSOR_CARD_LOCAL_SENSOR;
+        var isLocalAction: any = type === "action" && sensor === ACTION_CARD_LOCAL_ACTION;
+        var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
+        if (isLocalAction)
+            unit = "";
+        var icon: any = b && b.icon || "Auto";
+        if (isActionOptionSelect && (!icon || icon === "Auto" || icon === "Chevron Down"))
+            icon = "Flash";
+        if (isLocalAction && (!icon || icon === "Auto" || icon === "Flash"))
+            icon = "Gesture Tap";
+        if (type === "alarm" && (!icon || icon === "Auto"))
+            icon = "Security";
+        if (type === "calendar" || type === "clock" || type === "timezone")
+            icon = "Auto";
+        if (type === "screen_lock")
+            icon = "Lock";
+        if (type === "alarm_action" && (!icon || icon === "Auto"))
+            icon = (alarmActionInfo(sensor) || alarmActionSpecs()[0]).icon;
+        if (isFanCardType(type) && (!icon || icon === "Auto"))
+            icon = fanCardDefaultIcon(type);
+        var iconOn: any = (isActionOptionSelect || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b && b.icon_on || "Auto");
+        if (type === "calendar" || type === "clock" || type === "timezone")
+            iconOn = "Auto";
+        if (isLocalAction)
+            iconOn = "Auto";
+        if (type === "fan_switch" && (!iconOn || iconOn === "Auto"))
+            iconOn = "Fan";
+        if (type === "lock")
+            iconOn = sensor ? "Auto" : ((!iconOn || iconOn === "Auto") ? "Lock Open" : iconOn);
+        if (type === "screen_lock")
+            iconOn = "Lock Open";
+        var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
+        if (isLocalAction)
+            precision = "";
+        if (sensor === SENSOR_CARD_LOCAL_SENSOR && precision !== "text" && precision !== "1" && precision !== "2")
+            precision = "";
+        if (type === "media") {
+            sensor = mediaEditorMode(sensor);
+            if (sensor === "now_playing" && configOptionEnabled(b && b.options, MEDIA_COVER_ART_OPTION))
+                sensor = "cover_art";
+            precision = sensor === "now_playing"
+                ? mediaNowPlayingControls({ sensor: sensor, precision: precision })
+                : (mediaStateDisplayModeSupported(sensor) && precision === "state" ? "state" : "");
+        }
+        if (type === "vacuum") {
+            sensor = normalizeSavedConfigVacuumSensor(sensor);
+            unit = vacuumModeNeedsArea(sensor) ? unit : "";
+            precision = normalizeSavedConfigVacuumPrecision(precision);
+            iconOn = normalizeSavedConfigVacuumIconOn(iconOn);
+            if (!icon || icon === "Auto")
+                icon = vacuumModeDefaultIcon(sensor);
+        }
+        if (type === "lawn_mower") {
+            sensor = normalizeLawnMowerMode(sensor);
+            unit = "";
+            precision = "";
+            iconOn = "Auto";
+            if (!icon || icon === "Auto")
+                icon = lawnMowerModeDefaultIcon(sensor);
+        }
+        if (isClimateCardType(type))
+            precision = normalizeClimatePrecisionConfig(precision);
+        if (type === "calendar" && precision !== "datetime")
+            precision = "";
+        if (type === "weather") {
+            sensor = "";
+            precision = normalizeWeatherCardMode(precision);
+        }
+        if (type === "image") {
+            iconOn = "Auto";
+            sensor = "";
+            unit = "";
+            precision = "";
+            if (!imageLabelEnabled(b))
+                label = "";
+        }
+        if (type === "door_window")
+            precision = normalizeDoorWindowSubtype(precision);
+        var options: any = b && b.options || "";
+        if (type === "") {
+            options = normalizeSwitchConfirmationOptions(options);
+        }
+        else if (type === "alarm" || type === "alarm_action") {
+            options = normalizeAlarmOptions(options);
+        }
+        else if (type === "garage") {
+            options = normalizeGarageOptions(options, sensor);
+        }
+        else if (type === "gate") {
+            options = normalizeGateOptions(options, sensor);
+        }
+        else if (type === "cover") {
+            sensor = normalizeCoverMode(sensor, true);
+            options = normalizeCoverOptionsForMode(options, sensor);
+        }
+        else if (isClimateCardType(type)) {
+            type = "climate_control";
+            options = normalizeClimateOptions(options, true);
+        }
+        else if (type === "media") {
+            options = normalizeMediaOptions(options, sensor);
+        }
+        else if (type === "weather") {
+            options = cardLargeNumbersSupported({ type: type, precision: precision }) ? copyLargeNumbersOption("", options) : "";
+        }
+        else if (type === "subpage") {
+            options = normalizeSubpageOptions(options, sensor, precision);
+        }
+        else if (type === "companion") {
+            const isCompanionMetric = COMPANION_SYSTEM_METRICS.some((metric) =>
+                metric.id === (b && b.entity) || metric.freeId === (b && b.entity));
+            options = isCompanionMetric ? copyLargeNumbersOption("", options) :
+                normalizeCompanionAppShortcutOptions({
+                    ...(b || {}),
+                    type,
+                    entity: b && b.entity,
+                    sensor,
+                    options,
+                });
+        }
+        else if (type === "webhook") {
+            var webhookButton: any = EspDesktopModel.cloneCardConfig(b || {});
+            normalizeWebhookConfig(webhookButton);
+            sensor = webhookButton.sensor;
+            unit = webhookButton.unit;
+            iconOn = webhookButton.icon_on || "Auto";
+            precision = webhookButton.precision || "";
+            options = webhookButton.options || "";
+        }
+        else if (type === "lock" || type === "screen_lock") {
+            options = "";
+        }
+        else if (type === "calendar" || type === "clock" || type === "timezone") {
+            options = normalizeDateTimeOptions(type, options, precision);
+        }
+        else if (type === "vacuum") {
+            options = normalizeSavedConfigVacuumOptions(options);
+        }
+        else if (type === "lawn_mower") {
+            options = "";
+        }
+        else if (type === "sensor") {
+            options = sensor === SENSOR_CARD_LOCAL_SENSOR ? "" : normalizeSensorOptions(options, precision);
+        }
+        else if (type === "door_window") {
+            options = normalizeDoorWindowOptions(options);
+        }
+        else if (type === "presence") {
+            options = normalizePresenceOptions(options);
+        }
+        else if (type === "image") {
+            options = normalizeImageOptions(options);
+        }
+        else if (type === "wifi_qr" || type === "wifi_qr_card") {
+            var wifiButton: any = EspDesktopModel.cloneCardConfig(b || {});
+            wifiButton.options = options;
+            wifiButton.label = label;
+            wifiButton.icon = icon;
+            normalizeWithRegisteredCardType(wifiButton);
+            label = wifiButton.label;
+            icon = wifiButton.icon;
+            options = wifiButton.options;
+        }
+        else if (type === "light_control") {
+            options = normalizeLightControlOptions(options);
+        }
+        else if (type === "fan_control") {
+            options = normalizeFanControlOptions(options);
+        }
+        else if (type === "action") {
+            options = sensor === ACTION_CARD_LOCAL_ACTION ? "" : normalizeActionOptions(options, sensor);
+        }
+        else if (isActionOptionSelect || isFanCardType(type)) {
+            options = "";
+        }
+        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "webhook" && type !== "screen_lock" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
+            options = "";
+        }
+        if (type === "image") {
+            icon = configOptionEnabled(options, IMAGE_ICON_OPTION)
+                ? (icon && icon !== "Auto" ? icon : "Camera")
+                : "Auto";
+        }
+        if (type === "door_window") {
+            b = b || {};
+            b.entity = "";
+            unit = "";
+            if (!icon || icon === "Auto")
+                icon = doorWindowClosedIcon(precision);
+            if (!iconOn || iconOn === "Auto")
+                iconOn = doorWindowOpenIcon(precision);
+        }
+        if (type === "presence") {
+            b = b || {};
+            b.entity = "";
+            unit = "";
+            precision = "";
+            if (!icon || icon === "Auto")
+                icon = "Motion Sensor Off";
+            if (!iconOn || iconOn === "Auto")
+                iconOn = "Motion Sensor";
+        }
+        if (type === "calendar") {
+            b = b || {};
+            if (!b.entity)
+                b.entity = cardContractDefaultConfig("calendar").entity;
+        }
+        if (type === "clock") {
+            b = b || {};
+            b.entity = "";
+        }
+        if (type === "timezone") {
+            b = b || {};
+            if (!b.entity)
+                b.entity = cardContractDefaultConfig("timezone").entity;
+        }
+        if (!type && !sensor) {
+            unit = "";
+            precision = "";
+        }
+        return trimConfigFields([
+            (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
+            label,
+            icon,
+            iconOn,
+            sensor,
+            unit,
+            type,
+            precision,
+            options,
+        ]);
+    }
+    function encodeConfigField(this: any, value?: any) {
+        return EspDesktopModel.encodeConfigField(value);
+    }
+    function decodeConfigField(this: any, value?: any) {
+        return EspDesktopModel.decodeConfigField(value);
+    }
+    function legacyButtonConfigSafe(this: any, fields?: any) {
+        return EspDesktopModel.legacyButtonConfigSafe(fields);
+    }
+    function serializeButtonConfig(this: any, b?: any) {
+        var fields: any = buttonConfigFields(b || {});
+        if (legacyButtonConfigSafe(fields))
+            return fields.join(";");
+        return "~" + fields.map(encodeConfigField).join(",");
+    }
+    function parseRawButtonConfig(this: any, str?: any) {
+        return EspDesktopModel.parseRawButtonConfig(str);
+    }
+    function parseButtonConfig(this: any, str?: any) {
+        return normalizeButtonConfig(parseRawButtonConfig(str));
+    }
+    function hasLegacySliderDirection(this: any, b?: any) {
+        return !!(b && isBrightnessSliderType(b.type) && b.sensor);
+    }
+    function buttonConfigHasLegacySliderDirection(this: any, str?: any) {
+        return hasLegacySliderDirection(parseRawButtonConfig(str || ""));
+    }
+    function buttonConfigNeedsMigration(this: any, str?: any) {
+        return buttonConfigChangedByNormalize(parseRawButtonConfig(str || ""));
+    }
+    function parseBackOrderToken(this: any, value?: any) {
+        return EspDesktopModel.parseBackOrderToken(value);
+    }
+    function backOrderToken(this: any, baseToken?: any, label?: any) {
+        return EspDesktopModel.backOrderToken(baseToken, label);
+    }
+    function backLabelFromOrder(this: any, order?: any) {
+        return EspDesktopModel.backLabelFromOrder(order);
+    }
+    function parseSubpageOrder(this: any, orderStr?: any) {
+        return EspDesktopModel.parseSubpageOrder(orderStr);
+    }
+    function subpageOrderForSerialize(this: any, sp?: any) {
+        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel);
+    }
+    function subpageSerializedOrder(this: any, sp?: any) {
+        if (!sp)
+            return [];
+        if (sp.order && sp.order.length)
+            return subpageOrderForSerialize(sp);
+        if (sp.grid && sp.grid.length)
+            return serializeSubpageGrid(sp);
+        return [];
+    }
+    function parseSubpageConfig(this: any, str?: any, raw?: any) {
+        var parsed: any = EspDesktopModel.parseRawSubpageConfig(str, subpageTypeFromCode);
+        if (raw)
+            return parsed;
+        var compactButtonTokens: any = String(str || "").charAt(0) === "~"
+            ? String(str || "").split("|").slice(1)
+            : [];
+        parsed.buttons = parsed.buttons.map(function (this: any, button?: any, index?: any) {
+            var normalized: any = normalizeButtonConfig(button);
+            if (button && button.type === "calendar" && (!button.entity || compactButtonTokens[index] === "D"))
+                normalized.entity = "";
+            return normalized;
+        });
+        return parsed;
+    }
+    function subpageTypeCode(this: any, type?: any) {
+        return cardContractSubpageTypeCode(type);
+    }
+    function subpageTypeFromCode(this: any, code?: any) {
+        return cardContractSubpageTypeFromCode(code);
+    }
+    function encodeSubpageField(this: any, value?: any) {
+        return encodeConfigField(value);
+    }
+    function decodeSubpageField(this: any, value?: any) {
+        return decodeConfigField(value);
+    }
+    function parseCompactSubpageConfig(this: any, str?: any, raw?: any) {
+        var parsed: any = EspDesktopModel.parseCompactSubpageConfig(str, subpageTypeFromCode);
+        if (raw)
+            return parsed;
+        var compactButtonTokens: any = String(str || "").split("|").slice(1);
+        parsed.buttons = parsed.buttons.map(function (this: any, button?: any, index?: any) {
+            var normalized: any = normalizeButtonConfig(button);
+            if (button && button.type === "calendar" && compactButtonTokens[index] === "D")
+                normalized.entity = "";
+            return normalized;
+        });
+        return parsed;
+    }
+    function subpageConfigHasLegacySliderDirection(this: any, str?: any) {
+        var sp: any = parseSubpageConfig(str, true);
+        for (var i: any = 0; i < sp.buttons.length; i++) {
+            if (hasLegacySliderDirection(sp.buttons[i]))
+                return true;
+        }
+        return false;
+    }
+    function subpageConfigNeedsMigration(this: any, str?: any) {
+        var sp: any = parseSubpageConfig(str, true);
+        for (var i: any = 0; i < sp.buttons.length; i++) {
+            if (buttonConfigChangedByNormalize(sp.buttons[i]))
+                return true;
+        }
+        return false;
+    }
+    function serializeSubpageConfig(this: any, sp?: any) {
+        var order: any = subpageSerializedOrder(sp);
+        var legacy: any = legacySubpageConfigSafe(sp) ? serializeLegacySubpageConfig(sp) : "";
+        var compact: any = serializeCompactSubpageConfig(sp);
+        return EspDesktopModel.chooseSerializedSubpageConfig(order, sp && sp.buttons ? sp.buttons.length : 0, legacy, compact);
+    }
+    function subpageLegacyButtonFields(this: any, b?: any) {
+        var fields: any = buttonConfigFields(b || {});
+        if (fields.length > 1 && fields[fields.length - 1] === "Auto") {
+            while (fields.length > 1 && (fields[fields.length - 1] === "Auto" || !fields[fields.length - 1]))
+                fields.pop();
+        }
+        return fields;
+    }
+    function subpageCompactButtonFields(this: any, b?: any) {
+        var fields: any = buttonConfigFields(b || {});
+        var compact: any = [
+            subpageTypeCode(fields[6] || ""),
+            encodeSubpageField(fields[0]),
+            encodeSubpageField(fields[1]),
+            fields[2] && fields[2] !== "Auto" ? encodeSubpageField(fields[2]) : "",
+            fields[3] && fields[3] !== "Auto" ? encodeSubpageField(fields[3]) : "",
+            encodeSubpageField(fields[4]),
+            encodeSubpageField(fields[5]),
+            encodeSubpageField(fields[7]),
+            encodeSubpageField(fields[8]),
+        ];
+        while (compact.length > 1 && !compact[compact.length - 1])
+            compact.pop();
+        return compact;
+    }
+    function legacySubpageConfigSafe(this: any, sp?: any) {
+        var fields: any = ((sp && sp.buttons) || []).map(subpageLegacyButtonFields);
+        return EspDesktopModel.legacySubpageFieldsSafe(fields);
+    }
+    function serializeLegacySubpageConfig(this: any, sp?: any) {
+        if (!sp)
+            return "";
+        return EspDesktopModel.serializeLegacySubpageConfig(subpageSerializedOrder(sp), ((sp && sp.buttons) || []).map(subpageLegacyButtonFields));
+    }
+    function serializeCompactSubpageConfig(this: any, sp?: any) {
+        if (!sp || !sp.buttons || sp.buttons.length === 0)
+            return "";
+        return EspDesktopModel.serializeCompactSubpageConfig(subpageSerializedOrder(sp), sp.buttons.map(subpageCompactButtonFields));
+    }
+    function applySubpageRaw(this: any, slot?: any) {
+        var raw: any = state.subpageRaw[slot];
+        var combined: any = (raw && raw.main || "") + (raw && raw.ext || "") +
+            (raw && raw.ext2 || "") + (raw && raw.ext3 || "") +
+            (raw && raw.ext4 || "") + (raw && raw.ext5 || "") +
+            (raw && raw.ext6 || "") + (raw && raw.ext7 || "");
+        var pending: any = state.subpageSavePending[slot];
+        if (pending) {
+            if (combined !== pending) {
+                if (state.editingSubpage === slot)
+                    renderQueue.schedule();
+                return;
+            }
+            delete state.subpageSavePending[slot];
+        }
+        var local: any = state.subpages[slot];
+        var localHasData: any = local && ((local.buttons && local.buttons.length > 0) ||
+            (local.order && local.order.length > 0));
+        if (state.editingSubpage === slot && localHasData) {
+            var localSerialized: any = serializeSubpageConfig(local);
+            if (combined !== localSerialized) {
+                renderQueue.schedule();
+                return;
+            }
+        }
+        if (combined) {
+            var migrateConfig: any = subpageConfigNeedsMigration(combined);
+            var sp: any = parseSubpageConfig(combined);
+            sp.sizes = sp.sizes || {};
+            var layoutNormalized: any = buildSubpageGridAndNormalizeOrder(sp);
+            state.subpages[slot] = sp;
+            if (migrateConfig || layoutNormalized)
+                scheduleSliderSubpageMigration(slot);
+        }
+        else {
+            delete state.subpages[slot];
+        }
+        if (state.editingSubpage === slot) {
+            renderQueue.schedule();
+        }
+    }
+    function getSubpage(this: any, homeSlot?: any) {
+        var subpage = state.subpages[homeSlot];
+        if (!subpage) {
+            subpage = { order: [], buttons: [], grid: [], sizes: {}, backLabel: "Back" };
+            state.subpages[homeSlot] = subpage;
+        }
+        else if (!subpage.backLabel) {
+            subpage.backLabel = backLabelFromOrder(subpage.order);
+        }
+        return subpage;
+    }
+    function buildSubpageGrid(this: any, sp?: any) {
+        var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.numSlots, layout.gridCols);
+        sp.grid = result.grid;
+        sp.sizes = result.sizes;
+        return sp.grid;
+    }
+    function buildSubpageGridAndNormalizeOrder(this: any, sp?: any) {
+        var previousOrder: any = JSON.stringify((sp && sp.order) || []);
+        buildSubpageGrid(sp);
+        sp.order = serializeSubpageGrid(sp);
+        return JSON.stringify(sp.order) !== previousOrder;
+    }
+    function serializeSubpageGrid(this: any, sp?: any) {
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back");
+    }
+    function enterSubpage(this: any, homeSlot?: any) {
+        state.editingSubpage = homeSlot;
+        state.subpageSelectedSlots = [];
+        state.subpageLastClicked = -1;
+        var sp: any = getSubpage(homeSlot);
+        buildSubpageGrid(sp);
+        renderPreview();
+        renderButtonSettings();
+    }
+    function exitSubpage(this: any) {
+        state.editingSubpage = null;
+        state.subpageSelectedSlots = [];
+        state.subpageLastClicked = -1;
+        renderPreview();
+        renderButtonSettings();
+    }
+    function saveSubpageConfig(this: any, homeSlot?: any) {
+        var sp: any = getSubpage(homeSlot);
+        sp.order = serializeSubpageGrid(sp);
+        return saveSubpageEntity(homeSlot);
+    }
+    function subpageFirstFreeSlot(this: any, sp?: any) {
+        var used: any = {};
+        sp.grid.forEach(function (this: any, s?: any) {
+            if (s > 0)
+                used[s] = true;
+        });
+        for (var i: any = 1; i <= sp.buttons.length + 1; i++) {
+            if (!used[i])
+                return i;
+        }
+        return sp.buttons.length + 1;
+    }
+    function bindTextPost(this: any, input?: any, postName?: any, opts?: any) {
+        input.addEventListener("blur", function (this: any) {
+            if (opts && opts.onBlur)
+                opts.onBlur(this.value);
+            if (opts && opts.post)
+                opts.post(this.value);
+            else
+                requests().postText(postName, this.value);
+            if (opts && opts.rerender)
+                renderPreview();
+        });
+        input.addEventListener("keydown", function (this: any, e?: any) {
+            if (e.key === "Enter")
+                this.blur();
+        });
+    }
+    const feature = {
+        normalizeWithRegisteredCardType,
+        normalizeButtonConfig,
+        cardRequiresSquareSize,
+        cardIsWifiSharing,
+        cardSupportsWifiPortraitSizes,
+        cardSupportsExtraLargeSize,
+        cardSupportsMaxSize,
+        cardSupportsPortraitLargeSize,
+        cardSupportsLandscapeLargeSize,
+        normalizeCardSizeForConfig,
+        isBrightnessSliderType,
+        isFanCardType,
+        isClimateCardType,
+        isOptionSelectType,
+        fanCardDefaultIcon,
+        buttonConfigChangedByNormalize,
+        trimConfigFields,
+        buttonConfigFields,
+        encodeConfigField,
+        decodeConfigField,
+        legacyButtonConfigSafe,
+        serializeButtonConfig,
+        parseRawButtonConfig,
+        parseButtonConfig,
+        hasLegacySliderDirection,
+        buttonConfigHasLegacySliderDirection,
+        buttonConfigNeedsMigration,
+        parseBackOrderToken,
+        backOrderToken,
+        backLabelFromOrder,
+        parseSubpageOrder,
+        subpageOrderForSerialize,
+        subpageSerializedOrder,
+        parseSubpageConfig,
+        subpageTypeCode,
+        subpageTypeFromCode,
+        encodeSubpageField,
+        decodeSubpageField,
+        parseCompactSubpageConfig,
+        subpageConfigHasLegacySliderDirection,
+        subpageConfigNeedsMigration,
+        serializeSubpageConfig,
+        subpageLegacyButtonFields,
+        subpageCompactButtonFields,
+        legacySubpageConfigSafe,
+        serializeLegacySubpageConfig,
+        serializeCompactSubpageConfig,
+        applySubpageRaw,
+        getSubpage,
+        buildSubpageGrid,
+        buildSubpageGridAndNormalizeOrder,
+        serializeSubpageGrid,
+        enterSubpage,
+        exitSubpage,
+        saveSubpageConfig,
+        subpageFirstFreeSlot,
+        bindTextPost,
+        connectRequestApi,
+    };
+    return feature;
+}
+
+export type ConfigCodecFeature = ReturnType<typeof createConfigCodecFeature>;

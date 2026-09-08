@@ -1,0 +1,20 @@
+# =============================================================================
+# WEB SERVER AUTHENTICATION - Optional manual ESPHome install package
+# =============================================================================
+# Include this package from a manual ESPHome YAML to protect EspDesktop's
+# built-in web page with credentials supplied by the user's substitutions.
+# =============================================================================
+
+substitutions:
+  espdesktop_web_username: ""
+  espdesktop_web_password: ""
+
+web_server:
+  auth:
+    type: digest
+    username: ${espdesktop_web_username}
+    password: ${espdesktop_web_password}
+
+espdesktop:
+  web_auth_username: ${espdesktop_web_username}
+  web_auth_password: ${espdesktop_web_password}
