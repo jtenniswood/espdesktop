@@ -526,8 +526,6 @@ struct CompanionSettings: View {
                         .disabled(filteredApplications.isEmpty)
                     Spacer()
                 }
-            }
-            Section {
                 if store.availableApps.isEmpty {
                     emptyState("No Applications Found", symbol: "app.dashed",
                                detail: "Install applications in your Applications folder, then refresh this list.")
