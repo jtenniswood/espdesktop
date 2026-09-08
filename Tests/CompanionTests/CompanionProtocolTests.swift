@@ -6,7 +6,6 @@ final class CompanionProtocolTests: XCTestCase {
     func testSharedWireFixtures() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent().deletingLastPathComponent()
         let data = try Data(contentsOf: root.appendingPathComponent("compatibility/fixtures/companion_protocol_v3.json"))
         let fixtures = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [[String: Any]])
         for fixture in fixtures {

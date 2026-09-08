@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and verify EspDesktop
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Verify generated protocol sources
+        run: python3 scripts/generate_companion.py --check
+
+      - name: Run tests
+        run: swift test -Xswiftc -warnings-as-errors
+
+      - name: Build standalone application
+        run: ALLOW_ADHOC=1 Packaging/build_standalone.sh
+
+      - name: Verify application metadata and entitlements
+        run: |
+          APP=".build/standalone/EspControl Companion.app"
+          test -f "${APP}/Contents/Info.plist"
+          test -f "${APP}/Contents/Resources/AppIcon.icns"
+          cmp Sources/Companion/Resources/buy-me-a-coffee-button.png \
+            "${APP}/Contents/Resources/EspControlCompanion_Companion.bundle/buy-me-a-coffee-button.png"
+          test -f "${APP}/Contents/Resources/PrivacyInfo.xcprivacy"
+          plutil -lint "${APP}/Contents/Info.plist"
+          plutil -lint "${APP}/Contents/Resources/PrivacyInfo.xcprivacy"
+          ! codesign --display --entitlements - "${APP}" 2>&1 | grep -q 'com.apple.security.app-sandbox'
+          codesign --display --entitlements - "${APP}" 2>&1 | grep -q 'com.apple.security.automation.apple-events'
+
+      - name: Build disk image
+        run: ALLOW_ADHOC=1 SKIP_FINDER_LAYOUT=1 Packaging/build_dmg.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: espdesktop-application
+          path: .build/standalone/EspControl Companion.app
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: espdesktop-disk-image
+          path: .build/standalone/*.dmg
+          if-no-files-found: error

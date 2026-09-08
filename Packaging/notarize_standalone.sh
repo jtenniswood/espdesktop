@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_PATH="${1:-}"
 if [[ -z "${APP_PATH}" || ! -d "${APP_PATH}" ]]; then
     echo "Usage: $0 /path/to/EspControl\\ Companion.app" >&2

@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-REPOSITORY_DIR="$(cd "${PROJECT_DIR}/../.." && pwd)"
+REPOSITORY_DIR="${PROJECT_DIR}"
 OUTPUT_DIR="${OUTPUT_DIR:-${PROJECT_DIR}/.build/standalone}"
 APP_NAME="EspControl Companion.app"
 APP_DIR="${OUTPUT_DIR}/${APP_NAME}"
