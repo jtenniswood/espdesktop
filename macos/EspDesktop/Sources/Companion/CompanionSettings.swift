@@ -342,31 +342,29 @@ struct CompanionSettings: View {
     private var connectionPage: some View {
         Group {
             if store.hasSavedPairing && !pairingFlowActive {
-                VStack(spacing: 0) {
-                    connectionStatus
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 32)
-                        .padding(.bottom, 16)
-                    Form {
-                        Section("Display Settings") {
-                            LabeledContent {
-                                Button("Customize Display") { store.openPanelWebServer() }
-                                    .help("Open the display’s configuration in your browser")
-                            } label: {
-                                Text("Configure cards and layout in your browser.")
-                                    .foregroundStyle(.secondary)
-                            }
-                            LabeledContent {
-                                Button("Forget Display", role: .destructive) { confirmingForget = true }
-                            } label: {
-                                Text("Remove this Mac’s saved pairing with the display.")
-                                    .foregroundStyle(.secondary)
-                            }
+                Form {
+                    Section {
+                        connectionStatus
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
+                    }
+                    Section("Display Settings") {
+                        LabeledContent {
+                            Button("Customize Display") { store.openPanelWebServer() }
+                                .help("Open the display’s configuration in your browser")
+                        } label: {
+                            Text("Configure cards and layout in your browser.")
+                                .foregroundStyle(.secondary)
+                        }
+                        LabeledContent {
+                            Button("Forget Display", role: .destructive) { confirmingForget = true }
+                        } label: {
+                            Text("Remove this Mac’s saved pairing with the display.")
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .formStyle(.grouped)
                 }
+                .formStyle(.grouped)
             } else {
                 pairingFlowPage
             }
