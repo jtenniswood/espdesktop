@@ -800,7 +800,13 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             window.title = "Settings"
             // Keep the native icon-and-label tabs below the centered window title.
             window.toolbarStyle = .preference
-            window.backgroundColor = .windowBackgroundColor
+            // Match the reference toolbar's neutral grey while retaining native light appearance.
+            window.backgroundColor = NSColor(name: nil) { appearance in
+                if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
+                    return NSColor(srgbRed: 35.0 / 255, green: 35.0 / 255, blue: 35.0 / 255, alpha: 1)
+                }
+                return .windowBackgroundColor
+            }
             window.titlebarAppearsTransparent = true
             window.titlebarSeparatorStyle = .line
             window.toolbar = toolbar
