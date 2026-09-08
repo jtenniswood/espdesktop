@@ -138,6 +138,7 @@ final class CompanionStore: NSObject, ObservableObject {
         static let host = "panelHost"
         static let pairingAccount = "pairingAccount"
         static let approvedApplications = "approvedApplications"
+        static let knownApplications = "knownApplications"
         static let approvedFolders = "approvedFolders"
         static let shareSystemMetrics = "shareSystemMetrics"
     }
@@ -289,6 +290,20 @@ final class CompanionStore: NSObject, ObservableObject {
         applicationScan = Task { [weak self, applicationCatalogue] in
             let applications = await applicationCatalogue.scan()
             guard let self else { return }
+            let identifiers = Set(applications.map(\.bundleIdentifier))
+            let previousIdentifiers = defaults.stringArray(forKey: Keys.knownApplications)
+            // Preserve existing selections when upgrading. Fresh installs and newly
+            // discovered apps default on; previously disabled apps stay disabled.
+            let known = Set(previousIdentifiers ?? [])
+            if previousIdentifiers != nil {
+                approvedApplicationIdentifiers.formUnion(identifiers.subtracting(known))
+            } else if defaults.object(forKey: Keys.approvedApplications) == nil {
+                approvedApplicationIdentifiers.formUnion(identifiers)
+            }
+            if !identifiers.isEmpty {
+                defaults.set(known.union(identifiers).sorted(), forKey: Keys.knownApplications)
+                defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
+            }
             availableApps = applications
             applicationScan = nil
             if isConnected { connection.publishCatalogue() }
@@ -308,17 +323,6 @@ final class CompanionStore: NSObject, ObservableObject {
             approvedApplicationIdentifiers.insert(application.bundleIdentifier)
         } else {
             approvedApplicationIdentifiers.remove(application.bundleIdentifier)
-        }
-        defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
-        if isConnected { connection.publishCatalogue() }
-    }
-
-    func setApplications(_ applications: [LaunchableApp], approved: Bool) {
-        let identifiers = Set(applications.map(\.bundleIdentifier))
-        if approved {
-            approvedApplicationIdentifiers.formUnion(identifiers)
-        } else {
-            approvedApplicationIdentifiers.subtract(identifiers)
         }
         defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
         if isConnected { connection.publishCatalogue() }

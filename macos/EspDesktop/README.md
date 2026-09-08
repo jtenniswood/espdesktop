@@ -44,7 +44,7 @@ To pair, open the display’s web settings and its Mac Companion setup page. Ope
 
 After pairing, use the **Applications** page to approve only the installed apps
 that the display may discover, launch, or control. The approved list is stored
-locally on the Mac and can be changed at any time. Use Select All to enable or disable the full list of applications.
+locally on the Mac and can be changed at any time. Apps are enabled by default on fresh installs, and newly discovered apps are enabled automatically. Switch individual apps off to exclude them; existing selections are preserved when upgrading.
 
 In **Folders**, use **Choose Again…** if a folder has been moved or removed. Removing a folder asks for confirmation and does not delete any files. **Permissions → Keyboard & Window Controls** shows Accessibility access and requests the native macOS permission prompt when needed. It does not automatically open System Settings; follow the displayed instructions to grant permission. Simply viewing EspDesktop settings does not request permission.
 

@@ -534,9 +534,6 @@ struct CompanionSettings: View {
     private var applicationsPage: some View {
         Form {
             Section("Apps") {
-                Toggle("Select All", isOn: selectAllBinding)
-                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                    .disabled(store.availableApps.isEmpty)
                 if store.availableApps.isEmpty {
                     emptyState("No Applications Found", symbol: "app.dashed",
                                detail: "Install applications in your Applications folder, then refresh this list.")
@@ -558,15 +555,6 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-    }
-
-    private var selectAllBinding: Binding<Bool> {
-        Binding(
-            get: {
-                !store.availableApps.isEmpty && store.availableApps.allSatisfy(store.applicationIsApproved)
-            },
-            set: { store.setApplications(store.availableApps, approved: $0) }
-        )
     }
 
     private var foldersPage: some View {
