@@ -54,4 +54,4 @@ The versioned protocol is intentionally narrow: a Mac publishes installed bundle
 
 ### Settings navigation
 
-Use the native macOS toolbar to switch between **Display**, **Applications**, **Folders**, **Permissions**, and **Help**. The app remembers the last page; an unpaired Mac starts on Display. Support links are in Help. Window controls, toolbar selection, and application search use standard macOS components and follow the system appearance.
+Use the native macOS toolbar to switch between **Display**, **Applications**, **Folders**, **Permissions**, and **Help**. The app remembers the last page; an unpaired Mac starts on Display. Support links are in Help, and the Buy Me a Coffee button is available at the bottom right of every settings page. Window controls, toolbar selection, and application search use standard macOS components and follow the system appearance.

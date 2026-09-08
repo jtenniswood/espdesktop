@@ -260,6 +260,11 @@ struct CompanionSettings: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(CompanionSettingsToolbar(selection: selectedPageBinding))
             .navigationTitle("Settings")
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                floatingSupportButton
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+            }
         .onAppear {
             if !store.hasSavedPairing { selectedPageID = CompanionSettingsPage.connection.rawValue }
             if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
@@ -691,6 +696,43 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var companionResourceBundle: Bundle {
+        // Installed apps keep resources inside Contents/Resources; SwiftPM runs
+        // use the generated module bundle beside the build output.
+        Bundle.main.url(forResource: "EspDesktop_Companion", withExtension: "bundle")
+            .flatMap { Bundle(url: $0) } ?? .module
+    }
+
+    private var supportButtonImage: NSImage? {
+        guard let imageURL = companionResourceBundle.url(
+            forResource: "buy-me-a-coffee-button",
+            withExtension: "png"
+        ) else { return nil }
+        return NSImage(contentsOf: imageURL)
+    }
+
+    private var floatingSupportButton: some View {
+        Link(destination: CompanionStore.buyMeACoffeeURL) {
+            if let supportButtonImage {
+                Image(nsImage: supportButtonImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 171.2, height: 48)
+                    .clipShape(Capsule())
+            } else {
+                Label("Buy me a coffee", systemImage: "cup.and.saucer.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.black.opacity(0.78))
+                    .frame(width: 171.2, height: 48)
+                    .background(Color(red: 1.0, green: 0.867, blue: 0.0))
+                    .clipShape(Capsule())
+            }
+        }
+        .buttonStyle(.plain)
+        .help("Support EspDesktop by buying me a coffee")
+        .accessibilityLabel("Buy me a coffee to support EspDesktop")
     }
 
     private func refreshAccessibilityStatus() {
