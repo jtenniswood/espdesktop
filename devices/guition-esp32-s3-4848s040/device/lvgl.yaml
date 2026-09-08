@@ -72,31 +72,6 @@ lvgl:
                     id(${media_title_font})->get_lv_font(),
                     id(${icon_font})->get_lv_font());
 
-      # Mac Companion connection status. Pairing is physically authorized by
-      # holding the network icon; this remains a status-only indicator.
-      - obj:
-          id: companion_status_icon
-          align: top_left
-          x: 0
-          y: 0
-          width: 48
-          height: 44
-          bg_opa: 0%
-          border_width: 0
-          pad_all: 0
-          scrollable: false
-          scrollbar_mode: "off"
-          clickable: false
-          hidden: true
-          widgets:
-            - label:
-                id: companion_status_icon_label
-                text: "\U000F0D90"
-                text_font: font_icon_status
-                align: center
-                text_align: center
-                text_color: 0xFFFFFF
-
       # Night mode indicator (schedule night period only). Starts hidden;
       # clock_bar_apply positions and reveals it beside the network icon, so the
       # x/y here are unused placeholders.
