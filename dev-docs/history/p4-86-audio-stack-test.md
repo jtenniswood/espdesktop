@@ -22,7 +22,7 @@ Follow-up test on 2026-07-11:
 
 - Re-enabled normal update behaviour.
 - Re-enabled cover art downloads.
-- Removed the temporary `ESPCONTROL_DISABLE_IMAGE_CARD_DOWNLOADS` build flag.
+- Removed the temporary `ESPDESKTOP_DISABLE_IMAGE_CARD_DOWNLOADS` build flag.
 - Build completed successfully.
 - First USB upload to `COM3` was blocked by Windows with `Access is denied`; `COM3` was present as `USB-Enhanced-SERIAL CH343 (COM3)`, so another process likely had the port open.
 - Retried after the port was released and flashed successfully on `COM3`.

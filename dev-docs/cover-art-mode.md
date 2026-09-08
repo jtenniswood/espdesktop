@@ -6,7 +6,7 @@ layout, downloading, and presentation responsibilities distinct.
 
 ## Ownership
 
-- `components/espcontrol/cover_art.h` owns testable policy, runtime-state,
+- `components/espdesktop/cover_art.h` owns testable policy, runtime-state,
   progress, constants, and device layout decisions.
 - `common/device/screen_cover_art.yaml` wires Home Assistant attributes and
   LVGL widgets to those helpers.

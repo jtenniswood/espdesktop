@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify every icon codepoint used in components/espcontrol/*_status.h is
+"""Verify every icon codepoint used in components/espdesktop/*_status.h is
 present in the compiled font_icon_status glyph subset.
 
 ESPHome subsets the compiled LVGL font to only the codepoints listed in
@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-COMPONENTS_DIR = ROOT / "components" / "espcontrol"
+COMPONENTS_DIR = ROOT / "components" / "espdesktop"
 GLYPHS_YAML = ROOT / "common" / "assets" / "network_status_glyphs.yaml"
 
 CODEPOINT_RE = re.compile(r"\\U([0-9A-Fa-f]{8})")

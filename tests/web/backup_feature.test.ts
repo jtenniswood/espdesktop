@@ -232,7 +232,7 @@ export function runBackupFeatureTests(migrationFixture?: MigrationFixture): void
 
   const newerNativeDocument = feature.normalizeBackupConfig({
     version: 2,
-    format: "espcontrol.backup",
+    format: "espdesktop.backup",
     buttons: [],
     native_config: { document_version: 2, device_profile: "future-panel", payload: "future" },
   });
@@ -244,7 +244,7 @@ export function runBackupFeatureTests(migrationFixture?: MigrationFixture): void
   );
   const newerNativeMismatchPlan = feature.planBackupImport({
     version: 2,
-    format: "espcontrol.backup",
+    format: "espdesktop.backup",
     device: "future-panel",
     buttons: [{}],
     native_config: { document_version: 2, device_profile: "future-panel", payload: "future" },
@@ -302,11 +302,11 @@ export function runBackupFeatureTests(migrationFixture?: MigrationFixture): void
 
   let failure = "";
   try {
-    feature.normalizeBackupConfig({ version: 3, format: "espcontrol.backup", buttons: [] });
+    feature.normalizeBackupConfig({ version: 3, format: "espdesktop.backup", buttons: [] });
   } catch (error) {
     failure = String((error as Error & { backupMessage?: string }).backupMessage || "");
   }
-  equal(failure, "Backup was created by a newer version of EspControl", "future backup error remains exact");
+  equal(failure, "Backup was created by a newer version of EspDesktop", "future backup error remains exact");
 
   if (!migrationFixture) return;
   const scenario = migrationFixture.scenarios.backup_restore;

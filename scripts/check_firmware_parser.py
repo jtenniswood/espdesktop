@@ -14,41 +14,41 @@ from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT / "common" / "config"
-PARSER_HEADER = ROOT / "components" / "espcontrol" / "button_grid_config_parser.h"
-MEDIA_CONFIG_HEADER = ROOT / "components" / "espcontrol" / "button_grid_media_config.h"
-DISPLAY_COLOR_HEADER = ROOT / "components" / "espcontrol" / "display_color.h"
-SCREEN_LOCK_STATE_HEADER = ROOT / "components" / "espcontrol" / "screen_lock_state.h"
-COMPANION_TIMEZONE_HEADER = ROOT / "components" / "espcontrol" / "companion_timezone.h"
-COMPANION_CAPABILITIES_HEADER = ROOT / "components" / "espcontrol" / "companion_capabilities_generated.h"
-CONTRACT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_contract_generated.h"
-CARD_RUNTIME_HEADER = ROOT / "components" / "espcontrol" / "button_grid_card_runtime.h"
-CARD_REGISTRY_HEADER = ROOT / "components" / "espcontrol" / "button_grid_card_registry.h"
-SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_vacuum_generated.h"
-SAVED_CONFIG_SENSOR_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_sensor_generated.h"
-SAVED_CONFIG_ACTION_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_action_generated.h"
-SAVED_CONFIG_MEDIA_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_media_generated.h"
-SAVED_CONFIG_STATIC_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_static_generated.h"
-SAVED_CONFIG_FAN_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_fan_generated.h"
-SAVED_CONFIG_DATE_TIME_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_date_time_generated.h"
-SAVED_CONFIG_MOWER_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_mower_generated.h"
-SAVED_CONFIG_OCCUPANCY_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_occupancy_generated.h"
-SAVED_CONFIG_ACCESS_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_access_generated.h"
-SAVED_CONFIG_SECURITY_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_security_generated.h"
-SAVED_CONFIG_WEATHER_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_weather_generated.h"
-SAVED_CONFIG_IMAGE_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_image_generated.h"
-SAVED_CONFIG_CLIMATE_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_climate_generated.h"
-SAVED_CONFIG_LIGHT_CONTROL_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_light_control_generated.h"
-SAVED_CONFIG_WEBHOOK_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_webhook_generated.h"
-SAVED_CONFIG_SUBPAGE_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_subpage_generated.h"
-SAVED_CONFIG_SWITCH_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_switch_generated.h"
-BACKLIGHT_HEADER = ROOT / "components" / "espcontrol" / "backlight.h"
-DISPLAY_MODE_CONTROLLER_HEADER = ROOT / "components" / "espcontrol" / "display_mode_controller.h"
-CLOCK_BAR_HEADER = ROOT / "components" / "espcontrol" / "clock_bar.h"
-LAYOUT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_layout.h"
-LIMITS_HEADER = ROOT / "components" / "espcontrol" / "button_grid_limits.h"
-STRING_HEADER = ROOT / "components" / "espcontrol" / "button_grid_string.h"
-DISPLAY_TEXT_HEADER = ROOT / "components" / "espcontrol" / "display_text.h"
-BUTTON_GRID_FACADE = ROOT / "components" / "espcontrol" / "button_grid.h"
+PARSER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_config_parser.h"
+MEDIA_CONFIG_HEADER = ROOT / "components" / "espdesktop" / "button_grid_media_config.h"
+DISPLAY_COLOR_HEADER = ROOT / "components" / "espdesktop" / "display_color.h"
+SCREEN_LOCK_STATE_HEADER = ROOT / "components" / "espdesktop" / "screen_lock_state.h"
+COMPANION_TIMEZONE_HEADER = ROOT / "components" / "espdesktop" / "companion_timezone.h"
+COMPANION_CAPABILITIES_HEADER = ROOT / "components" / "espdesktop" / "companion_capabilities_generated.h"
+CONTRACT_HEADER = ROOT / "components" / "espdesktop" / "button_grid_contract_generated.h"
+CARD_RUNTIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_runtime.h"
+CARD_REGISTRY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_registry.h"
+SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_vacuum_generated.h"
+SAVED_CONFIG_SENSOR_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_sensor_generated.h"
+SAVED_CONFIG_ACTION_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_action_generated.h"
+SAVED_CONFIG_MEDIA_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
+SAVED_CONFIG_STATIC_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
+SAVED_CONFIG_FAN_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
+SAVED_CONFIG_DATE_TIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_date_time_generated.h"
+SAVED_CONFIG_MOWER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_mower_generated.h"
+SAVED_CONFIG_OCCUPANCY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_occupancy_generated.h"
+SAVED_CONFIG_ACCESS_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_access_generated.h"
+SAVED_CONFIG_SECURITY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_security_generated.h"
+SAVED_CONFIG_WEATHER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_weather_generated.h"
+SAVED_CONFIG_IMAGE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_image_generated.h"
+SAVED_CONFIG_CLIMATE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_climate_generated.h"
+SAVED_CONFIG_LIGHT_CONTROL_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_light_control_generated.h"
+SAVED_CONFIG_WEBHOOK_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_webhook_generated.h"
+SAVED_CONFIG_SUBPAGE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_subpage_generated.h"
+SAVED_CONFIG_SWITCH_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_switch_generated.h"
+BACKLIGHT_HEADER = ROOT / "components" / "espdesktop" / "backlight.h"
+DISPLAY_MODE_CONTROLLER_HEADER = ROOT / "components" / "espdesktop" / "display_mode_controller.h"
+CLOCK_BAR_HEADER = ROOT / "components" / "espdesktop" / "clock_bar.h"
+LAYOUT_HEADER = ROOT / "components" / "espdesktop" / "button_grid_layout.h"
+LIMITS_HEADER = ROOT / "components" / "espdesktop" / "button_grid_limits.h"
+STRING_HEADER = ROOT / "components" / "espdesktop" / "button_grid_string.h"
+DISPLAY_TEXT_HEADER = ROOT / "components" / "espdesktop" / "display_text.h"
+BUTTON_GRID_FACADE = ROOT / "components" / "espdesktop" / "button_grid.h"
 CARD_NORMALIZATION_FIXTURES = ROOT / "common" / "config" / "card_normalization_fixtures.json"
 DEVICES_DIR = ROOT / "devices"
 IMAGE_CARD_NORMALIZATION_FIXTURES = ROOT / "common" / "config" / "image_card_normalization_fixtures.json"
@@ -118,8 +118,8 @@ static int lv_test_hor_res = 480;
 static int lv_test_ver_res = 480;
 static int lv_obj_move_background_calls = 0;
 static lv_obj_t *lv_active_screen = nullptr;
-inline const char *espcontrol_i18n(const char *text) { return text ? text : ""; }
-inline std::string espcontrol_i18n(const std::string &text) { return text; }
+inline const char *espdesktop_i18n(const char *text) { return text ? text : ""; }
+inline std::string espdesktop_i18n(const std::string &text) { return text; }
 constexpr int LV_PART_MAIN = 0;
 constexpr int LV_STATE_CHECKED = 1;
 constexpr int LV_STATE_PRESSED = 2;
@@ -257,27 +257,27 @@ int main() {
   lv_obj_t main_page;
   lv_active_screen = &main_page;
   auto awake_clock_bar = clock_bar_resolve_visibility(
-    true, &main_page, espcontrol::DisplayMode::ACTIVE, false);
+    true, &main_page, espdesktop::DisplayMode::ACTIVE, false);
   assert(awake_clock_bar.reserve_space);
   assert(awake_clock_bar.visible);
 
   auto dimmed_clock_bar = clock_bar_resolve_visibility(
-    true, &main_page, espcontrol::DisplayMode::DIMMED, false);
+    true, &main_page, espdesktop::DisplayMode::DIMMED, false);
   assert(dimmed_clock_bar.reserve_space);
   assert(dimmed_clock_bar.visible);
 
   auto clock_screensaver_clock_bar = clock_bar_resolve_visibility(
-    true, &main_page, espcontrol::DisplayMode::CLOCK, false);
+    true, &main_page, espdesktop::DisplayMode::CLOCK, false);
   assert(clock_screensaver_clock_bar.reserve_space);
   assert(!clock_screensaver_clock_bar.visible);
 
   auto dismissing_screensaver_clock_bar = clock_bar_resolve_visibility(
-    true, &main_page, espcontrol::DisplayMode::DISPLAY_OFF, false);
+    true, &main_page, espdesktop::DisplayMode::DISPLAY_OFF, false);
   assert(dismissing_screensaver_clock_bar.reserve_space);
   assert(!dismissing_screensaver_clock_bar.visible);
 
   auto screen_schedule_clock_bar = clock_bar_resolve_visibility(
-    true, &main_page, espcontrol::DisplayMode::CLOCK, true);
+    true, &main_page, espdesktop::DisplayMode::CLOCK, true);
   assert(!screen_schedule_clock_bar.reserve_space);
   assert(!screen_schedule_clock_bar.visible);
 
@@ -900,35 +900,35 @@ def generated_card_runtime_assertions() -> str:
         else:
             expected_driver = spec["driver"]
         lines.append(
-            f"  auto {variable} = espcontrol::card_runtime::resolve_card_runtime({variable}_config);"
+            f"  auto {variable} = espdesktop::card_runtime::resolve_card_runtime({variable}_config);"
         )
         lines.append(
-            f"  assert({variable}.type == espcontrol::card_runtime::CardTypeId::{runtime_enum_name(card_type)});"
+            f"  assert({variable}.type == espdesktop::card_runtime::CardTypeId::{runtime_enum_name(card_type)});"
         )
         lines.append(
-            f"  assert({variable}.driver == espcontrol::card_runtime::CardDriverId::{runtime_enum_name(expected_driver)});"
+            f"  assert({variable}.driver == espdesktop::card_runtime::CardDriverId::{runtime_enum_name(expected_driver)});"
         )
         for capability, enabled in spec["capabilities"].items():
             prefix = "" if enabled else "!"
             lines.append(
-                f"  assert({prefix}espcontrol::card_runtime::has_capability({variable}, "
-                f"espcontrol::card_runtime::{runtime_capability_enum_name(capability)}));"
+                f"  assert({prefix}espdesktop::card_runtime::has_capability({variable}, "
+                f"espdesktop::card_runtime::{runtime_capability_enum_name(capability)}));"
             )
         for mode_index, (mode, driver) in enumerate(spec.get("modes", {}).items()):
             mode_var = f"{variable}_mode_{mode_index}"
             lines.append(f"  {variable}_config.{spec['modeField']} = {cpp_string(mode)};")
             lines.append(
-                f"  auto {mode_var} = espcontrol::card_runtime::resolve_card_runtime({variable}_config);"
+                f"  auto {mode_var} = espdesktop::card_runtime::resolve_card_runtime({variable}_config);"
             )
             lines.append(
-                f"  assert({mode_var}.driver == espcontrol::card_runtime::CardDriverId::{runtime_enum_name(driver)});"
+                f"  assert({mode_var}.driver == espdesktop::card_runtime::CardDriverId::{runtime_enum_name(driver)});"
             )
     lines.extend([
         "  RuntimeConfig unknown_runtime_config{};",
         '  unknown_runtime_config.type = "not_a_card";',
-        "  auto unknown_runtime = espcontrol::card_runtime::resolve_card_runtime(unknown_runtime_config);",
-        "  assert(unknown_runtime.type == espcontrol::card_runtime::CardTypeId::UNKNOWN);",
-        "  assert(unknown_runtime.driver == espcontrol::card_runtime::CardDriverId::UNKNOWN);",
+        "  auto unknown_runtime = espdesktop::card_runtime::resolve_card_runtime(unknown_runtime_config);",
+        "  assert(unknown_runtime.type == espdesktop::card_runtime::CardTypeId::UNKNOWN);",
+        "  assert(unknown_runtime.driver == espdesktop::card_runtime::CardDriverId::UNKNOWN);",
     ])
     return "\n".join(lines) + "\n"
 
@@ -955,8 +955,8 @@ def main() -> int:
         tmp_path = Path(tmp)
         shutil.copy2(PARSER_HEADER, tmp_path / "button_grid_config_parser.h")
         shutil.copy2(MEDIA_CONFIG_HEADER, tmp_path / "button_grid_media_config.h")
-        shutil.copy2(ROOT / "components" / "espcontrol" / "temperature_unit.h", tmp_path / "temperature_unit.h")
-        shutil.copy2(ROOT / "components" / "espcontrol" / "sun_calc.h", tmp_path / "sun_calc.h")
+        shutil.copy2(ROOT / "components" / "espdesktop" / "temperature_unit.h", tmp_path / "temperature_unit.h")
+        shutil.copy2(ROOT / "components" / "espdesktop" / "sun_calc.h", tmp_path / "sun_calc.h")
         shutil.copy2(COMPANION_TIMEZONE_HEADER, tmp_path / "companion_timezone.h")
         shutil.copy2(COMPANION_CAPABILITIES_HEADER, tmp_path / "companion_capabilities_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")

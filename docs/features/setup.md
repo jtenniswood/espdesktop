@@ -1,12 +1,12 @@
 ---
-title: EspControl Screen Setup
+title: EspDesktop Screen Setup
 description:
-  How to use the built-in web page to configure cards, icons, display settings, screensaver, and brightness on your EspControl panel.
+  How to use the built-in web page to configure cards, icons, display settings, screensaver, and brightness on your EspDesktop panel.
 ---
 
 # Setting Up Your Device's Screen
 
-Your EspControl panel has a built-in web page where you can set everything up. Open it by typing the panel's address into any browser on your phone or computer.
+Your EspDesktop panel has a built-in web page where you can set everything up. Open it by typing the panel's address into any browser on your phone or computer.
 
 ![Screen setup page](/images/screen-setup.png)
 
@@ -107,7 +107,7 @@ The **Settings** tab also includes display, brightness, screensaver, backup, and
 
 Open **Settings > System > Home Assistant Settings** to manage the address used for camera/image cards and media artwork downloads. **Automatic** connection mode discovers the HTTP endpoint advertised by the connected Home Assistant instance, including port `80` used by new Home Assistant OS installations and port `8123` commonly used by existing installations and Home Assistant Container.
 
-If automatic discovery is unavailable because multicast traffic is blocked between network segments, select **Manual** and enter the protocol and port shown under **Home Assistant > Settings > System > Network**. Automatic mode keeps these values as its fallback. EspControl never rewrites complete artwork URLs supplied by media services or external CDNs.
+If automatic discovery is unavailable because multicast traffic is blocked between network segments, select **Manual** and enter the protocol and port shown under **Home Assistant > Settings > System > Network**. Automatic mode keeps these values as its fallback. EspDesktop never rewrites complete artwork URLs supplied by media services or external CDNs.
 
 ## Apply Configuration
 
@@ -115,7 +115,7 @@ After making changes, tap **Apply Configuration** at the bottom of the page. The
 
 ## Restart From Home Assistant
 
-Each EspControl device has an enabled **Restart** button in Home Assistant. Open **Settings > Devices & services > ESPHome**, choose your EspControl device, and look under its configuration controls. Pressing **Restart** safely restarts the display without changing its cards, brightness, schedules, or other saved settings.
+Each EspDesktop device has an enabled **Restart** button in Home Assistant. Open **Settings > Devices & services > ESPHome**, choose your EspDesktop device, and look under its configuration controls. Pressing **Restart** safely restarts the display without changing its cards, brightness, schedules, or other saved settings.
 
 You can also press the button from a Home Assistant automation. Replace `button.your_panel_restart` with the Restart entity shown for your display:
 

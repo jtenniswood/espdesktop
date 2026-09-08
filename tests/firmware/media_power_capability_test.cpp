@@ -3,12 +3,12 @@
 #include "media_power_capability.h"
 
 int main() {
-  using espcontrol::media::PowerCommand;
-  using espcontrol::media::SUPPORT_TURN_OFF;
-  using espcontrol::media::SUPPORT_TURN_ON;
-  using espcontrol::media::power_command;
-  using espcontrol::media::power_toggle_supported;
-  using espcontrol::media::media_control_tab_count;
+  using espdesktop::media::PowerCommand;
+  using espdesktop::media::SUPPORT_TURN_OFF;
+  using espdesktop::media::SUPPORT_TURN_ON;
+  using espdesktop::media::power_command;
+  using espdesktop::media::power_toggle_supported;
+  using espdesktop::media::media_control_tab_count;
 
   assert(!power_toggle_supported(false, 0));
   assert(!power_toggle_supported(true, 0));

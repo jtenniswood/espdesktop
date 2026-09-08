@@ -121,7 +121,7 @@ Do not use a number font for normal text. Do not use an icon font for plain text
 Missing glyphs appear as boxes or incorrect symbols on the device.
 
 In firmware, resolve an icon name to its glyph string with `find_icon("Some Name")`
-from `components/espcontrol/icons.h`, or embed a known codepoint directly as a
+from `components/espdesktop/icons.h`, or embed a known codepoint directly as a
 UTF-8 escape. Only glyphs present in the compiled icon set will render.
 
 To make a new icon available, add it to `product/v2/icons.json` when it should

@@ -11,12 +11,12 @@ wifi:
   on_connect:
     - script.execute: network_status_refresh
     - script.execute: ntp_servers_apply_after_network
-    - lambda: 'id(espcontrol_app).home_assistant_endpoint().request_discovery();'
+    - lambda: 'id(espdesktop_app).home_assistant_endpoint().request_discovery();'
     - script.stop: wifi_reconnect_flow
     - script.execute: setup_screen_dim_cancel
     - lambda: |-
         ESP_LOGI("connectivity", "WiFi connected (%lu ms)", millis());
-        lv_label_set_text(id(loading_status_label), espcontrol_i18n("Connected"));
+        lv_label_set_text(id(loading_status_label), espdesktop_i18n("Connected"));
     - delay: 200ms
     - script.execute: navigate_after_api
   on_disconnect:
@@ -33,7 +33,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(espcontrol_app).connector_onboarding_complete();'
+            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'
           then:
             - script.execute: navigate_after_api
 
@@ -42,10 +42,10 @@ script:
     then:
       - script.execute: clock_bar_hide
       - lambda: |-
-          lv_label_set_text(id(wifi_setup_title), espcontrol_i18n("WiFi Disconnected"));
+          lv_label_set_text(id(wifi_setup_title), espdesktop_i18n("WiFi Disconnected"));
           lv_label_set_text(
               id(wifi_setup_instructions),
-              espcontrol_i18n("Trying to reconnect\nto your saved network"));
+              espdesktop_i18n("Trying to reconnect\nto your saved network"));
       - lvgl.page.show: wifi_setup_page
       - script.execute: setup_screen_dim
 
@@ -54,10 +54,10 @@ script:
     then:
       - script.execute: clock_bar_hide
       - lambda: |-
-          lv_label_set_text(id(wifi_setup_title), espcontrol_i18n("WiFi Disconnected"));
+          lv_label_set_text(id(wifi_setup_title), espdesktop_i18n("WiFi Disconnected"));
           lv_label_set_text(
               id(wifi_setup_instructions),
-              espcontrol_i18n("No saved WiFi connection\nReinstall by USB to reconfigure"));
+              espdesktop_i18n("No saved WiFi connection\nReinstall by USB to reconfigure"));
       - lvgl.page.show: wifi_setup_page
       - script.execute: setup_screen_dim
 
@@ -83,8 +83,8 @@ script:
             - wait_until:
                 condition:
                   lambda: |-
-                    return id(espcontrol_app).display().target_mode_is(
-                        espcontrol::DisplayMode::ACTIVE);
+                    return id(espdesktop_app).display().target_mode_is(
+                        espdesktop::DisplayMode::ACTIVE);
             - lvgl.page.show: main_page
             - script.execute: clock_bar_apply
             - script.execute: screensaver_idle_check

@@ -17,14 +17,14 @@ const REQUIRED_HOOK_GROUPS = ["config", "preview", "backup", "settings"];
 function createWebSandbox() {
   const domEvents = [];
   const sandbox = {
-    __ESPCONTROL_TEST_HOOKS__: {},
+    __ESPDESKTOP_TEST_HOOKS__: {},
     console: { log() {}, warn() {}, error() {} },
     setTimeout,
     clearTimeout,
     requestAnimationFrame(fn) { return setTimeout(fn, 0); },
     URL,
     URLSearchParams,
-    location: { href: "http://espcontrol.test/" },
+    location: { href: "http://espdesktop.test/" },
     document: {
       readyState: "loading",
       activeElement: null,
@@ -47,8 +47,8 @@ function loadHooks() {
     !Object.prototype.hasOwnProperty.call(sandbox, "state"),
     "application state must remain inside the typed module boundary",
   );
-  assertRequiredHookGroups(sandbox.__ESPCONTROL_TEST_HOOKS__.groups);
-  return sandbox.__ESPCONTROL_TEST_HOOKS__.config;
+  assertRequiredHookGroups(sandbox.__ESPDESKTOP_TEST_HOOKS__.groups);
+  return sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
 }
 
 function assertRequiredHookGroups(groups, prefix = "web test hooks") {
@@ -89,7 +89,7 @@ assert(screensaverSettingsSource.includes('entityName("presence_sensor_entity")'
 assert(!scheduleSettingsSource.includes("state.presenceEntity"), "Night Schedule input does not mirror the Screensaver sensor value");
 assert.strictEqual(
   hooks.backupExportFileName(new Date(2026, 5, 9)),
-  "espcontrol-7-inch-2026-06-09.json",
+  "espdesktop-7-inch-2026-06-09.json",
   "backup export filename includes screen size and date"
 );
 assert.deepStrictEqual(Array.from(hooks.buttonTypesMissingCardMetadata()), [], "all registered card types define card metadata");
@@ -142,7 +142,7 @@ assert.strictEqual(importedPortraitGrid.order, "1", "a portrait backup import po
 assert.strictEqual(importedPortraitGrid.sizes["1"], undefined, "a portrait backup import removes the invalid main-grid 4x3 size");
 const importedPortraitSubpage = plain(hooks.planBackupImportForGridCols({
   version: 2,
-  format: "espcontrol.backup",
+  format: "espdesktop.backup",
   device: "guition-esp32-p4-jc1060p470",
   slots: 15,
   button_order: "1",
@@ -157,7 +157,7 @@ const restoredLandscapeGrid = plain(hooks.importedButtonOrderFor("1l", {}, resto
 assert.strictEqual(restoredLandscapeGrid.order, "1l", "restoring landscape preserves a valid main-grid 4x3 card");
 const restoredLandscapeSubpage = plain(hooks.planBackupImportForGridCols({
   version: 2,
-  format: "espcontrol.backup",
+  format: "espdesktop.backup",
   device: "guition-esp32-p4-jc1060p470",
   slots: 15,
   button_order: "1l",
@@ -236,24 +236,24 @@ hostedSandbox.document.currentScript = {
 };
 vm.createContext(hostedSandbox);
 vm.runInContext(generated, hostedSandbox, { filename: webOutput });
-hostedSandbox.__ESPCONTROL_START_EMBEDDED__();
+hostedSandbox.__ESPDESKTOP_START_EMBEDDED__();
 assert.strictEqual(
-  hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.imageSlotCapacity(),
+  hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.imageSlotCapacity(),
   1,
   "shared hosted bundle selects the device profile from its script URL",
 );
 assert.strictEqual(
-  hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.imageSlotCapacityMessage(),
+  hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.imageSlotCapacityMessage(),
   "This display supports up to 1 Media Cover Art card.",
   "S3 explains its constrained cover-art capacity",
 );
 assert.strictEqual(
-  hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("image", false),
+  hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("image", false),
   false,
   "S3 keeps general Image cards hidden",
 );
 assert.strictEqual(
-  hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("media_cover_art", false),
+  hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("media_cover_art", false),
   false,
   "S3 exposes Cover Art only through the Media subtype list",
 );
@@ -270,16 +270,16 @@ for (const [slug, device] of Object.entries(manifest.devices || {})) {
   assertGeneratedConfigValue(slug, generated, "rows", device.layout.rows);
   assertGeneratedConfigValue(slug, generated, "screenSize", device.public.screenSize);
   const sandbox = createWebSandbox();
-  sandbox.__ESPCONTROL_DEVICE_PROFILE__ = slug;
+  sandbox.__ESPDESKTOP_DEVICE_PROFILE__ = slug;
   vm.createContext(sandbox);
   vm.runInContext(generated, sandbox, { filename: webOutput });
-  sandbox.__ESPCONTROL_START_EMBEDDED__();
+  sandbox.__ESPDESKTOP_START_EMBEDDED__();
   assert(
-    sandbox.__ESPCONTROL_TEST_HOOKS__.config,
+    sandbox.__ESPDESKTOP_TEST_HOOKS__.config,
     `${slug}: generated web UI must export the same test hooks used by local checks`
   );
-  assertRequiredHookGroups(sandbox.__ESPCONTROL_TEST_HOOKS__.groups, `${slug}: generated web UI`);
-  const generatedHooks = sandbox.__ESPCONTROL_TEST_HOOKS__.config;
+  assertRequiredHookGroups(sandbox.__ESPDESKTOP_TEST_HOOKS__.groups, `${slug}: generated web UI`);
+  const generatedHooks = sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
   const expectedScreenSize = String(device.public.screenSize)
     .toLowerCase()
     .replace(/\binches\b/g, "inch")
@@ -288,7 +288,7 @@ for (const [slug, device] of Object.entries(manifest.devices || {})) {
     .replace(/^-+|-+$/g, "");
   assert.strictEqual(
     generatedHooks.backupExportFileName(new Date(2026, 5, 9)),
-    `espcontrol-${expectedScreenSize}-2026-06-09.json`,
+    `espdesktop-${expectedScreenSize}-2026-06-09.json`,
     `${slug}: backup export filename includes screen size and date`
   );
   const generatedTimezones = Array.from(generatedHooks.defaultTimezoneOptions());
@@ -1615,14 +1615,14 @@ const publicManifest = {
     ota: {
       path: "guition-esp32-p4-jc1060p470.ota.bin",
       md5: "0123456789abcdef0123456789abcdef",
-      release_url: "https://github.com/jtenniswood/espcontrol/releases/tag/v1.12.0",
+      release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
     },
   }],
 };
 assert.deepStrictEqual(plain(hooks.firmwareInfoFromPublicManifest(publicManifest)), {
   latest_version: "v1.12.0",
-  release_url: "https://github.com/jtenniswood/espcontrol/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espcontrol/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
+  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 });
@@ -1637,14 +1637,14 @@ const publicVersionIndex = {
   device: "guition-esp32-p4-jc1060p470",
   versions: [{
     version: "v1.12.0",
-    release_url: "https://github.com/jtenniswood/espcontrol/releases/tag/v1.12.0",
+    release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
     ota: {
       path: "guition-esp32-p4-jc1060p470.ota.bin",
       md5: "0123456789abcdef0123456789abcdef",
     },
   }, {
     version: "v1.11.0",
-    release_url: "https://github.com/jtenniswood/espcontrol/releases/tag/v1.11.0",
+    release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.11.0",
     ota: {
       path: "versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
       md5: "abcdef0123456789abcdef0123456789",
@@ -1653,14 +1653,14 @@ const publicVersionIndex = {
 };
 assert.deepStrictEqual(plain(hooks.firmwareInfosFromPublicVersions(publicVersionIndex)), [{
   latest_version: "v1.12.0",
-  release_url: "https://github.com/jtenniswood/espcontrol/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espcontrol/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
+  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 }, {
   latest_version: "v1.11.0",
-  release_url: "https://github.com/jtenniswood/espcontrol/releases/tag/v1.11.0",
-  ota_url: "https://jtenniswood.github.io/espcontrol/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
+  release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.11.0",
+  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "abcdef0123456789abcdef0123456789",
 }]);
@@ -1682,7 +1682,7 @@ assert.deepStrictEqual(plain(hooks.firmwareStateAfterVersionIndex("v1.12.0", pub
 });
 assert.strictEqual(
   hooks.firmwareOtaUrlAfterVersionIndex("v1.12.0", publicVersionIndex, "v1.11.0"),
-  "https://jtenniswood.github.io/espcontrol/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   "latest firmware OTA resolution must not follow the selected previous version"
 );
 assert.strictEqual(hooks.firmwareVersionLabelFor("", true), "Checking version...");
@@ -1732,7 +1732,7 @@ assert.deepStrictEqual(plain(hooks.firmwareStateAfterPublicManifest("Dev", publi
   version: "Dev build",
   latest: "v1.12.0",
   updateState: "",
-  releaseUrl: "https://github.com/jtenniswood/espcontrol/releases/tag/v1.12.0",
+  releaseUrl: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
   updateAvailable: false,
   installAvailable: true,
 });
@@ -1757,9 +1757,9 @@ async function verifyLocalFirmwareProfileSelection() {
   };
   vm.createContext(sandbox);
   vm.runInContext(productionBundle, sandbox, { filename: "shared-local-www.js" });
-  sandbox.__ESPCONTROL_START_EMBEDDED__();
+  sandbox.__ESPDESKTOP_START_EMBEDDED__();
   await new Promise((resolve) => setImmediate(resolve));
-  assert.deepStrictEqual(requested, ["/espcontrol/version.json", "/api/v1/capabilities"]);
+  assert.deepStrictEqual(requested, ["/espdesktop/version.json", "/api/v1/capabilities"]);
   assert(
     sandbox.__domEvents.some((event) => event.type === "DOMContentLoaded"),
     "shared local bundle starts after resolving the firmware device profile",

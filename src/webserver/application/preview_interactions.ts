@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { coveredCells } from "../model/grid";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -434,7 +434,7 @@ export function createPreviewInteractionsFeature(
         return -1;
     }
     function emptyButtonConfig(this: any, type?: any) {
-        return EspControlModel.emptyCardConfig(type);
+        return EspDesktopModel.emptyCardConfig(type);
     }
     function newCardDraftKey(this: any, isSub?: any, homeSlot?: any, pos?: any, slot?: any) {
         return cardEditorDraftController.newDraft({ slot: slot, homeSlot: homeSlot, isSub: isSub, pos: pos }).key;

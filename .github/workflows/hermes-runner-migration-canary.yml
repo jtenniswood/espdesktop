@@ -9,7 +9,7 @@ permissions:
 jobs:
   isolated-docker:
     name: Verify isolated Docker runtime
-    runs-on: [self-hosted, Linux, X64, hermes, espcontrol]
+    runs-on: [self-hosted, Linux, X64, hermes, espdesktop]
     timeout-minutes: 10
     env:
       EXPECTED_RUNNER_SUFFIX: -hermes
@@ -29,7 +29,7 @@ jobs:
           test "$ACTUAL_RUNNER_OS" = Linux
           test "$ACTUAL_RUNNER_ARCH" = X64
           test "$(uname -m)" = x86_64
-          test "${RUNNER_LABELS:-}" = "espcontrol,hermes"
+          test "${RUNNER_LABELS:-}" = "espdesktop,hermes"
 
       - name: Verify bounded tmpfs workspace and cleanup hook
         shell: bash

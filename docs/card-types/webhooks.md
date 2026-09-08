@@ -1,7 +1,7 @@
 ---
 title: Webhook Cards
 description:
-  How to use webhook cards on your EspControl panel to call HTTP URLs directly from the device.
+  How to use webhook cards on your EspDesktop panel to call HTTP URLs directly from the device.
 ---
 
 # Webhook
@@ -60,7 +60,7 @@ Example:
 Content-Type: application/json; Authorization: Bearer YOUR_TOKEN
 ```
 
-If you enter a JSON-looking body and do not provide a `Content-Type` header, EspControl sends `Content-Type: application/json` automatically.
+If you enter a JSON-looking body and do not provide a `Content-Type` header, EspDesktop sends `Content-Type: application/json` automatically.
 
 ## Limits and Security
 

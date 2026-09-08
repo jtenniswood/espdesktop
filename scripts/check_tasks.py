@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plan and run the EspControl validation task graph."""
+"""Plan and run the EspDesktop validation task graph."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ class ConfigurationError(ValueError):
 SUMMARY_SCHEMA_VERSION = 1
 TASK_STATUSES = ("passed", "failed", "blocked", "not_run", "cached")
 CACHE_SCHEMA_VERSION = 1
-CACHE_DIRECTORY = "espcontrol-check-cache-v1"
+CACHE_DIRECTORY = "espdesktop-check-cache-v1"
 CACHE_SUCCESS_STATUSES = {"passed", "cached"}
 LOCKFILES = (
     "package-lock.json",
@@ -1290,7 +1290,7 @@ def self_test() -> None:
         raise AssertionError("firmware parser cache keys omit normalization fixtures")
     if "common/config/card_normalization_fixtures.json" not in registry["saved-config-parity"].inputs:
         raise AssertionError("saved config parity cache keys omit base normalization fixtures")
-    if "components/espcontrol/sun_calc.h" not in registry["timezones"].inputs:
+    if "components/espdesktop/sun_calc.h" not in registry["timezones"].inputs:
         raise AssertionError("timezone cache keys omit the firmware timezone table")
     if registry["timezones"].cache != "never":
         raise AssertionError("timezone validation is cached without a stable host tzdata fingerprint")
@@ -1949,18 +1949,18 @@ def self_test() -> None:
     if web_fallback is not None or "web-smoke" not in task_ids(web_selected):
         raise AssertionError("web changes do not select web checks")
 
-    firmware_selected, _, firmware_fallback = changed_plan(["components/espcontrol/example.h"])
+    firmware_selected, _, firmware_fallback = changed_plan(["components/espdesktop/example.h"])
     if firmware_fallback is not None or "firmware-parser" not in task_ids(firmware_selected):
         raise AssertionError("firmware changes do not select firmware checks")
 
     subpage_selected, _, subpage_fallback = changed_plan([
-        "components/espcontrol/button_grid_subpages.h"
+        "components/espdesktop/button_grid_subpages.h"
     ])
     if subpage_fallback is not None or "firmware-tests" not in task_ids(subpage_selected):
         raise AssertionError("subpage parser changes do not select compiled firmware tests")
 
     for saved_config_input in (
-        "components/espcontrol/button_grid_config_parser.h",
+        "components/espdesktop/button_grid_config_parser.h",
         "common/config/card_normalization_fixtures.json",
         "scripts/generate_saved_config_parser_test.py",
         "src/webserver/application/config_codec.ts",
@@ -1971,11 +1971,11 @@ def self_test() -> None:
                 f"saved configuration input {saved_config_input} does not select compiled firmware tests"
             )
 
-    config_store_selected, _, _ = changed_plan(["components/espcontrol/configuration_store.cpp"])
+    config_store_selected, _, _ = changed_plan(["components/espdesktop/configuration_store.cpp"])
     if "mutations" not in task_ids(config_store_selected):
         raise AssertionError("configuration store changes do not select mutation checks")
 
-    generated_selected, _, generated_fallback = changed_plan(["components/espcontrol/i18n_generated.h"])
+    generated_selected, _, generated_fallback = changed_plan(["components/espdesktop/i18n_generated.h"])
     if generated_fallback is not None or "generated" not in task_ids(generated_selected):
         raise AssertionError("generated inputs do not select their validation task")
 
@@ -2044,7 +2044,7 @@ def self_test() -> None:
             "docs/guide.md": "initial\n",
             "docs/staged-then-reverted.md": "initial\n",
             "src/webserver/old.js": "initial\n",
-            "components/espcontrol/example.h": "initial\n",
+            "components/espdesktop/example.h": "initial\n",
             "product/v2/device_catalog.json": "{}\n",
         }
         for relative, content in initial.items():
@@ -2070,7 +2070,7 @@ def self_test() -> None:
         run_git("commit", "-m", "docs change")
         run_git("restore", "--source=main", "--staged", "--worktree", "docs/guide.md")
         run_git("mv", "src/webserver/old.js", "src/webserver/new.js")
-        (repo / "components/espcontrol/example.h").unlink()
+        (repo / "components/espdesktop/example.h").unlink()
         (repo / "product/v2/device_catalog.json").write_text('{"changed": true}\n')
         run_git("add", "product/v2/device_catalog.json")
         staged_then_reverted = repo / "docs/staged-then-reverted.md"
@@ -2086,7 +2086,7 @@ def self_test() -> None:
             "docs/staged-then-reverted.md",
             "src/webserver/old.js",
             "src/webserver/new.js",
-            "components/espcontrol/example.h",
+            "components/espdesktop/example.h",
             "product/v2/device_catalog.json",
             "untracked.txt",
         }

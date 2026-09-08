@@ -1,4 +1,4 @@
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import type { ApplicationLayoutState } from "./application_context";
 import type { AppState } from "../state/types";
 import type { UiRuntimeState } from "./state";
@@ -133,10 +133,10 @@ export function createCoreFeature(
         r.setProperty("--subpage-fs", scaledCqw(subpageBadge.fontSize, scale));
     }
     function normalizeGridSpansForLayout(this: any, grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any) {
-        var previousOrder: any = EspControlModel.serializeGridOrder(grid, sizes || {});
-        EspControlModel.clearSpans(grid, maxSlots);
-        EspControlModel.applySpans(grid, sizes || {}, maxSlots, gridCols);
-        var normalizedOrder: any = EspControlModel.serializeGridOrder(grid, sizes || {});
+        var previousOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
+        EspDesktopModel.clearSpans(grid, maxSlots);
+        EspDesktopModel.applySpans(grid, sizes || {}, maxSlots, gridCols);
+        var normalizedOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
         if (normalizedOrder !== previousOrder && typeof onChanged === "function")
             onChanged(normalizedOrder);
         return normalizedOrder;

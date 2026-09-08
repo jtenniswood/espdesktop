@@ -6,22 +6,22 @@
 #include "button_grid_string.h"
 
 int main() {
-  static_assert(MAX_GRID_SLOTS == ESPCONTROL_MAX_GRID_SLOTS);
+  static_assert(MAX_GRID_SLOTS == ESPDESKTOP_MAX_GRID_SLOTS);
   static_assert(MAX_SUBPAGE_ITEMS == MAX_GRID_SLOTS * MAX_GRID_SLOTS);
 
-  const auto &registry_service = espcontrol::cards::card_runtime_registry_service();
+  const auto &registry_service = espdesktop::cards::card_runtime_registry_service();
   const auto service_media = registry_service.context_for("media", "");
-  if (!service_media.known || service_media.family != espcontrol::cards::Family::MEDIA) {
+  if (!service_media.known || service_media.family != espdesktop::cards::Family::MEDIA) {
     return EXIT_FAILURE;
   }
 
-  espcontrol::cards::CardRuntimeRegistryService explicit_registry;
-  espcontrol::cards::set_card_runtime_registry_service(&explicit_registry);
-  if (&espcontrol::cards::card_runtime_registry_service() != &explicit_registry) {
+  espdesktop::cards::CardRuntimeRegistryService explicit_registry;
+  espdesktop::cards::set_card_runtime_registry_service(&explicit_registry);
+  if (&espdesktop::cards::card_runtime_registry_service() != &explicit_registry) {
     return EXIT_FAILURE;
   }
-  espcontrol::cards::set_card_runtime_registry_service(nullptr);
-  if (&espcontrol::cards::card_runtime_registry_service() == &explicit_registry) {
+  espdesktop::cards::set_card_runtime_registry_service(nullptr);
+  if (&espdesktop::cards::card_runtime_registry_service() == &explicit_registry) {
     return EXIT_FAILURE;
   }
 
@@ -67,7 +67,7 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  using espcontrol::cards::Family;
+  using espdesktop::cards::Family;
   const auto media = card_runtime_registration("media");
   if (media.version != 1 || !media.known || !media.allow_in_subpage ||
       media.family != Family::MEDIA) return EXIT_FAILURE;
@@ -120,46 +120,46 @@ int main() {
   const auto unsupported = card_runtime_context("not_a_card");
   if (!card_runtime_information_only(door) || !card_runtime_passive(door) ||
       !presence.known ||
-      clock.runtime.driver != espcontrol::card_runtime::CardDriverId::DATE_TIME ||
-      timezone.runtime.driver != espcontrol::card_runtime::CardDriverId::DATE_TIME ||
-      calendar.runtime.driver != espcontrol::card_runtime::CardDriverId::DATE_TIME ||
-      sensor.runtime.driver != espcontrol::card_runtime::CardDriverId::SENSOR ||
-      local_sensor.runtime.driver != espcontrol::card_runtime::CardDriverId::SENSOR ||
+      clock.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
+      timezone.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
+      calendar.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
+      sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
+      local_sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
       raw_text_sensor_alias.known ||
-      weather.runtime.driver != espcontrol::card_runtime::CardDriverId::WEATHER ||
-      weather_forecast.runtime.driver != espcontrol::card_runtime::CardDriverId::WEATHER ||
+      weather.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
+      weather_forecast.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       !toggle.known || !action.known || !alarm_action.known ||
       !fan_switch.known || !internal.known || !light_switch.known ||
       raw_local_action_alias.known ||
       !push.known || !screen_lock.known || !webhook.known ||
-      slider.runtime.driver != espcontrol::card_runtime::CardDriverId::NUMERIC ||
-      light_brightness.runtime.driver != espcontrol::card_runtime::CardDriverId::NUMERIC ||
+      slider.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
+      light_brightness.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
       light_temperature.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::LIGHT_TEMPERATURE ||
-      fan_speed.runtime.driver != espcontrol::card_runtime::CardDriverId::FAN ||
-      fan_oscillate.runtime.driver != espcontrol::card_runtime::CardDriverId::FAN ||
-      fan_direction.runtime.driver != espcontrol::card_runtime::CardDriverId::FAN ||
-      fan_preset.runtime.driver != espcontrol::card_runtime::CardDriverId::FAN ||
+        espdesktop::card_runtime::CardDriverId::LIGHT_TEMPERATURE ||
+      fan_speed.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
+      fan_oscillate.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
+      fan_direction.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
+      fan_preset.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
       option_select.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::OPTION_SELECT ||
-      vacuum.runtime.driver != espcontrol::card_runtime::CardDriverId::VACUUM ||
-      mower.runtime.driver != espcontrol::card_runtime::CardDriverId::LAWN_MOWER ||
-      garage.runtime.driver != espcontrol::card_runtime::CardDriverId::ACCESS ||
-      gate.runtime.driver != espcontrol::card_runtime::CardDriverId::ACCESS ||
-      lock.runtime.driver != espcontrol::card_runtime::CardDriverId::ACCESS ||
-      subpage.runtime.driver != espcontrol::card_runtime::CardDriverId::SUBPAGE ||
+        espdesktop::card_runtime::CardDriverId::OPTION_SELECT ||
+      vacuum.runtime.driver != espdesktop::card_runtime::CardDriverId::VACUUM ||
+      mower.runtime.driver != espdesktop::card_runtime::CardDriverId::LAWN_MOWER ||
+      garage.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
+      gate.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
+      lock.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
+      subpage.runtime.driver != espdesktop::card_runtime::CardDriverId::SUBPAGE ||
       subpage.allow_in_subpage ||
       !card_runtime_has_capability(
-        subpage, espcontrol::card_runtime::CAPABILITY_ACTIONS) ||
+        subpage, espdesktop::card_runtime::CAPABILITY_ACTIONS) ||
       !card_runtime_information_only(image) || card_runtime_passive(image) ||
       light_control.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::LIGHT_CONTROL ||
+        espdesktop::card_runtime::CardDriverId::LIGHT_CONTROL ||
       fan_control.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::FAN_CONTROL ||
-      climate.runtime.driver != espcontrol::card_runtime::CardDriverId::CLIMATE ||
+        espdesktop::card_runtime::CardDriverId::FAN_CONTROL ||
+      climate.runtime.driver != espdesktop::card_runtime::CardDriverId::CLIMATE ||
       climate_control.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::CLIMATE ||
-      alarm.runtime.driver != espcontrol::card_runtime::CardDriverId::ALARM ||
+        espdesktop::card_runtime::CardDriverId::CLIMATE ||
+      alarm.runtime.driver != espdesktop::card_runtime::CardDriverId::ALARM ||
       unsupported.known) {
     return EXIT_FAILURE;
   }
@@ -168,7 +168,7 @@ int main() {
     std::string sensor;
   };
   const auto cover = card_runtime_context(
-      TestConfig{"cover", "tilt"}, espcontrol::cards::Surface::SUBPAGE);
+      TestConfig{"cover", "tilt"}, espdesktop::cards::Surface::SUBPAGE);
   const auto cover_position = card_runtime_context(
       TestConfig{"cover", ""});
   const auto cover_toggle = card_runtime_context(
@@ -182,7 +182,7 @@ int main() {
   const auto media_play_pause = card_runtime_context(
       TestConfig{"media", "play_pause"});
   const auto media_transport = card_runtime_context(
-      TestConfig{"media", "next"}, espcontrol::cards::Surface::SUBPAGE);
+      TestConfig{"media", "next"}, espdesktop::cards::Surface::SUBPAGE);
   const auto media_volume = card_runtime_context(
       TestConfig{"media", "volume"});
   const auto media_position = card_runtime_context(
@@ -195,41 +195,41 @@ int main() {
       TestConfig{"media", "playlist"});
   const auto option_select_compatibility = card_runtime_context(
       TestConfig{"action", card_runtime_option_select_canonical_action()});
-  if (cover.runtime.type != espcontrol::card_runtime::CardTypeId::COVER ||
-      cover.runtime.driver != espcontrol::card_runtime::CardDriverId::COVER_TILT ||
-      cover.surface != espcontrol::cards::Surface::SUBPAGE ||
+  if (cover.runtime.type != espdesktop::card_runtime::CardTypeId::COVER ||
+      cover.runtime.driver != espdesktop::card_runtime::CardDriverId::COVER_TILT ||
+      cover.surface != espdesktop::cards::Surface::SUBPAGE ||
       !cover.allow_in_subpage ||
       cover_position.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::COVER_POSITION ||
+        espdesktop::card_runtime::CardDriverId::COVER_POSITION ||
       cover_toggle.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::COVER_TOGGLE ||
+        espdesktop::card_runtime::CardDriverId::COVER_TOGGLE ||
       cover_command.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::COVER_COMMAND ||
+        espdesktop::card_runtime::CardDriverId::COVER_COMMAND ||
       cover_modal.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::COVER_MODAL) {
+        espdesktop::card_runtime::CardDriverId::COVER_MODAL) {
     return EXIT_FAILURE;
   }
   if (media_control.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_CONTROL ||
+        espdesktop::card_runtime::CardDriverId::MEDIA_CONTROL ||
       media_play_pause.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_PLAY_PAUSE ||
+        espdesktop::card_runtime::CardDriverId::MEDIA_PLAY_PAUSE ||
       media_transport.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_TRANSPORT ||
-      media_transport.surface != espcontrol::cards::Surface::SUBPAGE ||
+        espdesktop::card_runtime::CardDriverId::MEDIA_TRANSPORT ||
+      media_transport.surface != espdesktop::cards::Surface::SUBPAGE ||
       media_volume.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_VOLUME ||
+        espdesktop::card_runtime::CardDriverId::MEDIA_VOLUME ||
       media_position.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_POSITION ||
+        espdesktop::card_runtime::CardDriverId::MEDIA_POSITION ||
       media_now_playing.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_NOW_PLAYING ||
+        espdesktop::card_runtime::CardDriverId::MEDIA_NOW_PLAYING ||
       media_cover_art.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_COVER_ART ||
+        espdesktop::card_runtime::CardDriverId::MEDIA_COVER_ART ||
       media_playlist.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::MEDIA_PLAYLIST) {
+        espdesktop::card_runtime::CardDriverId::MEDIA_PLAYLIST) {
     return EXIT_FAILURE;
   }
   if (option_select_compatibility.runtime.driver !=
-        espcontrol::card_runtime::CardDriverId::ACTION) {
+        espdesktop::card_runtime::CardDriverId::ACTION) {
     return EXIT_FAILURE;
   }
   // Modal-opening cards skip the temporary pressed-card repaint. Direct

@@ -13,7 +13,7 @@ bool close_to(double actual, double expected) {
 }  // namespace
 
 int main() {
-  using namespace espcontrol::number_slider;
+  using namespace espdesktop::number_slider;
 
   if (!is_number_entity("number.boiler_target")) return EXIT_FAILURE;
   if (!is_input_number_entity("input_number.test_level")) return EXIT_FAILURE;

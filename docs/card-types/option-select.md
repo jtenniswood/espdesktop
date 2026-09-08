@@ -1,12 +1,12 @@
 ---
 title: Option Select Action
 description:
-  How to use the Option Select action on your EspControl panel to choose Home Assistant select and input_select options.
+  How to use the Option Select action on your EspDesktop panel to choose Home Assistant select and input_select options.
 ---
 
 # Option Select
 
-Option Select is an **Action** card action that shows the current value of a Home Assistant `select` or `input_select` entity. When you tap the card, EspControl opens a simple list of available options and sends the selected option back to Home Assistant.
+Option Select is an **Action** card action that shows the current value of a Home Assistant `select` or `input_select` entity. When you tap the card, EspDesktop opens a simple list of available options and sends the selected option back to Home Assistant.
 
 Use this for things like WLED presets, lighting scenes exposed as a select entity, room modes, house modes, and other helpers where the choice needs to be made from the panel.
 
@@ -28,7 +28,7 @@ The panel automatically reads the entity's current value and its available optio
 
 ## How It Works on the Panel
 
-When Home Assistant reports the entity state, the card shows that value on the card. When you tap the card, EspControl opens the option list from the entity's `options` attribute.
+When Home Assistant reports the entity state, the card shows that value on the card. When you tap the card, EspDesktop opens the option list from the entity's `options` attribute.
 
 Choosing an option sends:
 

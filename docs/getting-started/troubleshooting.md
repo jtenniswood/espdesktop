@@ -1,7 +1,7 @@
 ---
-title: EspControl Troubleshooting
+title: EspDesktop Troubleshooting
 description:
-  Solutions for common issues when installing EspControl, connecting to WiFi, or adding the device to Home Assistant.
+  Solutions for common issues when installing EspDesktop, connecting to WiFi, or adding the device to Home Assistant.
 ---
 
 # Troubleshooting
@@ -9,7 +9,7 @@ description:
 ## The Screen Doesn't Respond to Commands
 
 - If the display shows your Home Assistant devices but nothing happens when you tap controls, such as turning lights on, Home Assistant actions probably need to be enabled for the display.
-- Follow the [Enable Actions](https://jtenniswood.github.io/espcontrol/getting-started/home-assistant-actions) guide and make sure **Allow the device to perform Home Assistant actions** is turned on.
+- Follow the [Enable Actions](https://jtenniswood.github.io/espdesktop/getting-started/home-assistant-actions) guide and make sure **Allow the device to perform Home Assistant actions** is turned on.
 
 ## The Install Button Doesn't Detect My Device
 
@@ -42,7 +42,7 @@ description:
   firmware can cause repeated disconnects, failed initial setup, or a panel that
   disappears from Home Assistant after restarting.
 - Use the [C6 WiFi recovery installer](/getting-started/c6-recovery) to reinstall
-  EspControl and repair the C6 over USB without depending on WiFi.
+  EspDesktop and repair the C6 over USB without depending on WiFi.
 - This recovery is for P4 panels only, not the ESP32-S3 4848S040.
 
 ## The Web Page Looks Broken or Unstyled
@@ -57,7 +57,7 @@ description:
 
 ## I Need Help With a Bug
 
-- Open a [GitHub issue](https://github.com/jtenniswood/espcontrol/issues/new) and describe the display model, firmware version, and what happened.
+- Open a [GitHub issue](https://github.com/jtenniswood/espdesktop/issues/new) and describe the display model, firmware version, and what happened.
 - For startup, WiFi, loading screen, or Home Assistant connection problems, include a USB log from the [Collect USB Logs](/reference/collect-usb-logs) guide.
 
 Next: [Setup](/features/setup)

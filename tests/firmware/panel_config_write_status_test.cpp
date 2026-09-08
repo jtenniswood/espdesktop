@@ -1,9 +1,9 @@
 #include "panel_config_write_status.h"
 
 int main() {
-  using espcontrol::configuration::PanelConfigWriteResponse;
-  using espcontrol::configuration::ServiceStatus;
-  using espcontrol::configuration::panel_config_write_response;
+  using espdesktop::configuration::PanelConfigWriteResponse;
+  using espdesktop::configuration::ServiceStatus;
+  using espdesktop::configuration::panel_config_write_response;
 
   return panel_config_write_response(ServiceStatus::OK) ==
                  PanelConfigWriteResponse::NO_CONTENT &&

@@ -8,11 +8,11 @@
 
 substitutions:
   cover_art_placeholder_file: "../common/assets/cover_art_placeholder.svg"
-  name: "espcontrol-p4-86"
-  friendly_name: "EspControl P4 86 Panel"
-  espcontrol_component_url: "file:///config"
+  name: "espdesktop-p4-86"
+  friendly_name: "EspDesktop P4 86 Panel"
+  espdesktop_component_url: "file:///config"
   mdi_font_file: "/config/common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
-  espcontrol_component_ref: "HEAD"
+  espdesktop_component_ref: "HEAD"
   voice_stt_failure_chime_file: "../devices/esp32-p4-86/device/voice_stt_failure_chime.flac"
   alarm_delay_entry_beep_file: "../devices/esp32-p4-86/device/alarm_delay_entry_beep.flac"
   alarm_delay_exit_beep_file: "../devices/esp32-p4-86/device/alarm_delay_exit_beep.flac"
@@ -43,7 +43,7 @@ globals:
     initial_value: 'false'
 
 packages:
-  espcontrol: !include ../devices/esp32-p4-86/packages.yaml
+  espdesktop: !include ../devices/esp32-p4-86/packages.yaml
 
 wifi:
   ap:

@@ -79,7 +79,7 @@ export function createSettingsCompanionSectionFeature(
         steps.className = "sp-connector-steps";
         [
             "Copy the pairing code shown below.",
-            "Open EspControl Companion on your Mac and enter the display address and code.",
+            "Open EspDesktop on your Mac and enter the display address and code.",
             "Select Continue in the Companion app to complete pairing.",
         ].forEach(function (text) {
             const item = document.createElement("li");

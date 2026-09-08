@@ -43,7 +43,7 @@
       </div>
       <div v-else-if="!manifestAvailable" class="installer-status warning">
         The recovery image for this panel is not published yet. Check again after the next
-        EspControl release.
+        EspDesktop release.
       </div>
       <esp-web-install-button
         v-else
@@ -52,7 +52,7 @@
         class="install-button"
       >
         <button slot="activate" class="brand-button" :disabled="!confirmed">
-          Repair C6 and reinstall EspControl
+          Repair C6 and reinstall EspDesktop
         </button>
       </esp-web-install-button>
     </div>

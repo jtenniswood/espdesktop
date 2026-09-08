@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate EspControl product source files together."""
+"""Validate EspDesktop product source files together."""
 
 from __future__ import annotations
 

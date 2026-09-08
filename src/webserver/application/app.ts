@@ -12,7 +12,7 @@ import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import type { ConnectorsPageFeature } from "./connectors_page";
 
-declare const __ESPCONTROL_EMBEDDED_MDI_STYLES__: string;
+declare const __ESPDESKTOP_EMBEDDED_MDI_STYLES__: string;
 
 export interface AppFeature {
     init(): void;
@@ -58,11 +58,11 @@ export function createAppFeature(pageTitle: AppTitleFeature, webStyles: string, 
         syncTabChrome();
     }
     function installLocalWebAssets(this: any) {
-        if (document.getElementById("espcontrol-local-web-assets"))
+        if (document.getElementById("espdesktop-local-web-assets"))
             return;
         var style: any = document.createElement("style");
-        style.id = "espcontrol-local-web-assets";
-        style.textContent = __ESPCONTROL_EMBEDDED_MDI_STYLES__;
+        style.id = "espdesktop-local-web-assets";
+        style.textContent = __ESPDESKTOP_EMBEDDED_MDI_STYLES__;
         document.head.appendChild(style);
     }
     function init(this: any) {

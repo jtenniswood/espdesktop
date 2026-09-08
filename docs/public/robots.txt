@@ -14,4 +14,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://jtenniswood.github.io/espcontrol/sitemap.xml
+Sitemap: https://jtenniswood.github.io/espdesktop/sitemap.xml

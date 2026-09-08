@@ -84,8 +84,8 @@ describe("browserless application contracts", () => {
   });
 
   test("publishes and executes only approved Mac applications", () => {
-    const store = fs.readFileSync(path.join(ROOT, "macos/Companion/Sources/Companion/CompanionStore.swift"), "utf8");
-    const app = fs.readFileSync(path.join(ROOT, "macos/Companion/Sources/Companion/CompanionSettings.swift"), "utf8");
+    const store = fs.readFileSync(path.join(ROOT, "macos/EspDesktop/Sources/Companion/CompanionStore.swift"), "utf8");
+    const app = fs.readFileSync(path.join(ROOT, "macos/EspDesktop/Sources/Companion/CompanionSettings.swift"), "utf8");
     assert.match(store, /approvedApplicationIdentifiers\.contains\(\$0\.bundleIdentifier\)/);
     assert.match(store, /func setApplication\(_ application: LaunchableApp, approved: Bool\)/);
     assert.doesNotMatch(store, /NSWorkspace\.shared\.icon\(forFile: url\.path\)/);
@@ -514,10 +514,10 @@ describe("browserless application contracts", () => {
   });
 
   test("keeps Wifi Sharing available without web authentication", () => {
-    const nativeRead = fs.readFileSync(path.join(ROOT, "components/espcontrol/panel_config_read_endpoint.h"), "utf8");
-    const nativeWrite = fs.readFileSync(path.join(ROOT, "components/espcontrol/panel_config_write_endpoint.h"), "utf8");
+    const nativeRead = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_read_endpoint.h"), "utf8");
+    const nativeWrite = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_write_endpoint.h"), "utf8");
     const webServer = fs.readFileSync(path.join(ROOT, "components/web_server_idf/web_server_idf.cpp"), "utf8");
-    const app = fs.readFileSync(path.join(ROOT, "components/espcontrol/espcontrol_app.cpp"), "utf8");
+    const app = fs.readFileSync(path.join(ROOT, "components/espdesktop/espdesktop_app.cpp"), "utf8");
     const nativeController = fs.readFileSync(path.join(ROOT, "src/webserver/controllers/native_panel_config_controller.ts"), "utf8");
     const docs = fs.readFileSync(path.join(ROOT, "docs/card-types/wifi-share.md"), "utf8");
 
@@ -1630,12 +1630,12 @@ describe("browserless application contracts", () => {
       const root = path.join(ROOT, "src/webserver", directory);
       for (const name of fs.readdirSync(root).filter((file) => file.endsWith(".ts"))) {
         const source = fs.readFileSync(path.join(root, name), "utf8");
-        if (!/\bEspControlModel\b/.test(source)) continue;
-        assert.match(source, /import \* as EspControlModel from "\.\.\/model"/, `${directory}/${name} should import the shared model`);
+        if (!/\bEspDesktopModel\b/.test(source)) continue;
+        assert.match(source, /import \* as EspDesktopModel from "\.\.\/model"/, `${directory}/${name} should import the shared model`);
       }
     }
-    assert.doesNotMatch(entry, /EspControlModel\s*:/);
-    assert.doesNotMatch(globals, /\bvar EspControlModel:/);
+    assert.doesNotMatch(entry, /EspDesktopModel\s*:/);
+    assert.doesNotMatch(globals, /\bvar EspDesktopModel:/);
   });
 
   test("imports static catalogues and injects timezone defaults", () => {
@@ -1683,8 +1683,8 @@ describe("browserless application contracts", () => {
     assert.match(start, /startApp\(app:/);
     assert.match(entry, /startApp\(context\.controllers\.app\)/);
     const ambientNames = [...globals.matchAll(/\bvar\s+([A-Za-z_$][\w$]*):/g)].map((match) => match[1]);
-    assert.deepEqual(ambientNames, ["__ESPCONTROL_TEST_HOOKS__"]);
-    assert.match(entry, /if \(__ESPCONTROL_TEST_HOOKS_ENABLED__\) \{[\s\S]*installTestHooks\(context, lightCards\)/);
+    assert.deepEqual(ambientNames, ["__ESPDESKTOP_TEST_HOOKS__"]);
+    assert.match(entry, /if \(__ESPDESKTOP_TEST_HOOKS_ENABLED__\) \{[\s\S]*installTestHooks\(context, lightCards\)/);
 
     const browserSources = [
       ...sourceFiles(path.join(ROOT, "src/webserver")).filter((file) => file.endsWith(".ts")),
@@ -1694,7 +1694,7 @@ describe("browserless application contracts", () => {
     const globalAliasFiles = [];
     for (const file of browserSources) {
       const source = fs.readFileSync(file, "utf8");
-      for (const match of source.matchAll(/__ESPCONTROL_[A-Z0-9_]+__/g)) {
+      for (const match of source.matchAll(/__ESPDESKTOP_[A-Z0-9_]+__/g)) {
         integrationNames.add(match[0]);
       }
       if (/globalThis\s+as\s+/.test(source)) {
@@ -1702,18 +1702,18 @@ describe("browserless application contracts", () => {
       }
     }
     assert.deepEqual([...integrationNames].sort(), [
-      "__ESPCONTROL_DEFAULT_DEVICE_ID__",
-      "__ESPCONTROL_DEVICE_PROFILES__",
-      "__ESPCONTROL_DEVICE_PROFILE__",
-      "__ESPCONTROL_EMBEDDED_MDI_STYLES__",
-      "__ESPCONTROL_RELOAD_EMBEDDED__",
-      "__ESPCONTROL_START_EMBEDDED__",
-      "__ESPCONTROL_TEST_HOOKS_ENABLED__",
-      "__ESPCONTROL_TEST_HOOKS__",
-      "__ESPCONTROL_TIMEZONE_OPTIONS__",
-      "__ESPCONTROL_UI_STARTED__",
-      "__ESPCONTROL_UI_STARTING__",
-      "__ESPCONTROL_USING_EMBEDDED__",
+      "__ESPDESKTOP_DEFAULT_DEVICE_ID__",
+      "__ESPDESKTOP_DEVICE_PROFILES__",
+      "__ESPDESKTOP_DEVICE_PROFILE__",
+      "__ESPDESKTOP_EMBEDDED_MDI_STYLES__",
+      "__ESPDESKTOP_RELOAD_EMBEDDED__",
+      "__ESPDESKTOP_START_EMBEDDED__",
+      "__ESPDESKTOP_TEST_HOOKS_ENABLED__",
+      "__ESPDESKTOP_TEST_HOOKS__",
+      "__ESPDESKTOP_TIMEZONE_OPTIONS__",
+      "__ESPDESKTOP_UI_STARTED__",
+      "__ESPDESKTOP_UI_STARTING__",
+      "__ESPDESKTOP_USING_EMBEDDED__",
     ]);
     assert.deepEqual(globalAliasFiles.sort(), [
       "src/webserver/application/app_start.ts",

@@ -5,10 +5,10 @@ Assistant bindings, fonts, image handling, or device-specific UI behavior.
 
 ## Edit First
 
-- The smallest relevant `components/espcontrol/button_grid_*.h` or compiled
+- The smallest relevant `components/espdesktop/button_grid_*.h` or compiled
   module.
-- `components/espcontrol/button_grid_grid.h` only for shared grid/runtime wiring.
-- `components/espcontrol/button_grid_config.h` only when parsing changes.
+- `components/espdesktop/button_grid_grid.h` only for shared grid/runtime wiring.
+- `components/espdesktop/button_grid_config.h` only when parsing changes.
 
 Use `product/v2/device_catalog.json` for device profile or font-role data. Do
 not put a reusable device difference into generated YAML or a one-off C++

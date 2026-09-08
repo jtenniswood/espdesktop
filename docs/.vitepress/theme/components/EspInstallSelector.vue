@@ -54,7 +54,7 @@
       </div>
       <div v-else-if="!manifestAvailable" class="installer-status warning">
         WebInstall firmware for this panel has not been published yet. Use its manual ESPHome
-        setup or check again after the next EspControl release.
+        setup or check again after the next EspDesktop release.
       </div>
       <div v-else-if="!ready" class="installer-status">
         Loading installer...
@@ -66,7 +66,7 @@
         class="install-button"
       >
         <button slot="activate" class="brand-button">
-          Install Espcontrol
+          Install EspDesktop
         </button>
       </esp-web-install-button>
     </div>

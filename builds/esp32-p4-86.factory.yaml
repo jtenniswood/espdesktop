@@ -7,9 +7,9 @@
 substitutions:
   cover_art_placeholder_file: "../common/assets/cover_art_placeholder.svg"
   firmware_version: "0.0.0"
-  espcontrol_component_url: "file:///config"
+  espdesktop_component_url: "file:///config"
   mdi_font_file: "/config/common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
-  espcontrol_component_ref: "HEAD"
+  espdesktop_component_ref: "HEAD"
 
 packages:
   core: !include esp32-p4-86.yaml
@@ -17,14 +17,14 @@ packages:
 
 esphome:
   project:
-    name: jtenniswood.espcontrol
+    name: jtenniswood.espdesktop
     version: "${firmware_version}"
 
 dashboard_import:
-  package_import_url: github://jtenniswood/espcontrol/devices/esp32-p4-86/esphome.yaml@main
+  package_import_url: github://jtenniswood/espdesktop/devices/esp32-p4-86/esphome.yaml@main
 
 web_server:
   port: 80
   version: 3
-  js_url: https://jtenniswood.github.io/espcontrol/webserver/www.js?device=${device_slug}&v=${firmware_version}&ui=20260714-shared
+  js_url: https://jtenniswood.github.io/espdesktop/webserver/www.js?device=${device_slug}&v=${firmware_version}&ui=20260714-shared
   js_include: "../docs/public/webserver/embedded/www.js"

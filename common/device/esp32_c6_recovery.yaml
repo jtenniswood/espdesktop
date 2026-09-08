@@ -3,8 +3,8 @@
 external_components:
   - source:
       type: git
-      url: ${espcontrol_component_url}
-      ref: ${espcontrol_component_ref}
+      url: ${espdesktop_component_url}
+      ref: ${espdesktop_component_ref}
       path: components
     components: [c6_recovery]
     refresh: 1s

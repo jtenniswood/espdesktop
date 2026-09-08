@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="646" height="786" viewBox="0 0 646 786" role="img" aria-labelledby="title desc">
-  <title id="title">Home Assistant controls card with EspControl relay switches</title>
+  <title id="title">Home Assistant controls card with EspDesktop relay switches</title>
   <desc id="desc">A dark Home Assistant controls card showing Display Backlight, Relay 1, Relay 2, and Relay 3 switches.</desc>
   <rect width="646" height="786" fill="#0f0f0f"/>
   <rect x="21" y="28" width="610" height="730" rx="24" fill="#1b1b1b" stroke="#343434" stroke-width="2"/>

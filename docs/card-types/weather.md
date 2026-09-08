@@ -1,7 +1,7 @@
 ---
 title: Weather Cards
 description:
-  How to show current Home Assistant weather conditions or daily high / low temperatures on your EspControl panel.
+  How to show current Home Assistant weather conditions or daily high / low temperatures on your EspDesktop panel.
 ---
 
 # Weather
@@ -37,7 +37,7 @@ Older cards that were created as **Weather Forecast** cards still work. They now
 - The card uses the fixed **tertiary** background colour, like Sensor, Date, Clock, and World Clock cards.
 
 ::: tip Home Assistant actions permission
-The temperature displays need the same **Allow the device to perform Home Assistant actions** setting as control cards. EspControl uses that permission to request forecast data from Home Assistant.
+The temperature displays need the same **Allow the device to perform Home Assistant actions** setting as control cards. EspDesktop uses that permission to request forecast data from Home Assistant.
 :::
 
 ## Supported Conditions

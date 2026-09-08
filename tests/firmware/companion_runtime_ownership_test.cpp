@@ -14,7 +14,7 @@ void operator delete(void *p) noexcept { std::free(p); }
 void operator delete(void *p, std::size_t) noexcept { std::free(p); }
 
 int main() {
-  espcontrol::EspControlAppCore first, second;
+  espdesktop::EspDesktopAppCore first, second;
   first.companion_runtime().set_actions({{"com.example.First", "First"}});
   first.companion_runtime().set_connected(true);
   second.companion_runtime().set_actions({{"com.example.Second", "Second"}});

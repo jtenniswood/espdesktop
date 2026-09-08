@@ -93,13 +93,13 @@ Use an existing worktree for the PR branch if one exists. Otherwise fetch and ad
 
 ```bash
 git fetch origin <head-branch>
-git worktree add ../espcontrol-<short-topic> <head-branch>
+git worktree add ../espdesktop-<short-topic> <head-branch>
 ```
 
 If the local branch does not exist, create it tracking origin:
 
 ```bash
-git worktree add ../espcontrol-<short-topic> -b <head-branch> origin/<head-branch>
+git worktree add ../espdesktop-<short-topic> -b <head-branch> origin/<head-branch>
 ```
 
 Before edits in every PR worktree:

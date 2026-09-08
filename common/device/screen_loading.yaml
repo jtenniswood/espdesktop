@@ -73,8 +73,8 @@ esphome:
         - lvgl.resume:
         - script.execute: clock_bar_hide
         - lambda: |-
-            lv_label_set_text(id(loading_status_title), espcontrol_i18n("Starting up"));
-            lv_label_set_text(id(loading_status_label), espcontrol_i18n("Booting"));
+            lv_label_set_text(id(loading_status_title), espdesktop_i18n("Starting up"));
+            lv_label_set_text(id(loading_status_label), espdesktop_i18n("Booting"));
         - lvgl.page.show: loading_page
         - delay: 100ms
         - if:
@@ -91,18 +91,18 @@ esphome:
               - script.wait: display_mode_apply_transition
               - lambda: |-
                   lv_label_set_text(id(loading_status_icon), "${icon_wifi_startup}");
-                  lv_label_set_text(id(loading_status_title), espcontrol_i18n("Configure your WiFi"));
+                  lv_label_set_text(id(loading_status_title), espdesktop_i18n("Configure your WiFi"));
                   std::string hotspot_ssid = wifi::global_wifi_component->get_ap().get_ssid().str();
                   if (hotspot_ssid.empty()) hotspot_ssid = "${friendly_name}";
-                  std::string msg = std::string(espcontrol_i18n_key("connect_to")) +
+                  std::string msg = std::string(espdesktop_i18n_key("connect_to")) +
                                     " '" + hotspot_ssid + "' " +
-                                    espcontrol_i18n_key("to_configure_your_network_settings");
+                                    espdesktop_i18n_key("to_configure_your_network_settings");
                   lv_label_set_display_text(id(loading_status_label), msg.c_str());
         - if:
             condition:
               lambda: |-
                 return wifi::global_wifi_component->has_sta() &&
-                       (id(espcontrol_app).display().target_schedule_inactive() ||
+                       (id(espdesktop_app).display().target_schedule_inactive() ||
                         screen_schedule_waiting_for_time(
                           id(screen_schedule_trigger).state,
                           id(schedule_enabled).state,
@@ -126,7 +126,7 @@ esphome:
               lambda: 'return wifi::global_wifi_component->has_sta();'
             then:
               - lambda: |-
-                  lv_label_set_text(id(loading_status_label), espcontrol_i18n("Connecting to WiFi"));
+                  lv_label_set_text(id(loading_status_label), espdesktop_i18n("Connecting to WiFi"));
               - delay: 5s
               - lambda: 'id(boot_grace_period) = false;'
               - if:

@@ -34,7 +34,7 @@ def package_data(device: dict) -> dict:
 def package_substitution_lines(device: dict) -> list[str]:
     package = package_data(device)
     lines = [
-        '  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espcontrol/main/common/assets/cover_art_placeholder.svg"',
+        '  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/common/assets/cover_art_placeholder.svg"',
         f'  device_slug: "{device["slug"]}"',
         f'  firmware_manifest_slug: "{device["slug"]}"',
     ]
@@ -479,10 +479,10 @@ def cfg_lines(device: dict) -> list[str]:
         )
     lines.append("            cfg.temperature_unit = id(temperature_unit_select).current_option();")
     lines.append("            cfg.timezone = id(timezone_select).current_option();")
-    lines.append("            cfg.begin_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {")
+    lines.append("            cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {")
     lines.append("              id(display_takeover_begin).execute(static_cast<int>(kind));")
     lines.append("            };")
-    lines.append("            cfg.end_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {")
+    lines.append("            cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {")
     lines.append("              id(display_takeover_end).execute(static_cast<int>(kind));")
     lines.append("            };")
     if package_data(device).get("alarmDelayAudio"):

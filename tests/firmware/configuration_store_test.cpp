@@ -12,13 +12,13 @@
 
 namespace {
 
-using espcontrol::configuration::CONFIGURATION_ENVELOPE_HEADER_SIZE;
-using espcontrol::configuration::CONFIGURATION_SLOT_COUNT;
-using espcontrol::configuration::CommitResult;
-using espcontrol::configuration::ConfigurationStore;
-using espcontrol::configuration::LoadResult;
-using espcontrol::configuration::StorageBackend;
-using espcontrol::configuration::StoreStatus;
+using espdesktop::configuration::CONFIGURATION_ENVELOPE_HEADER_SIZE;
+using espdesktop::configuration::CONFIGURATION_SLOT_COUNT;
+using espdesktop::configuration::CommitResult;
+using espdesktop::configuration::ConfigurationStore;
+using espdesktop::configuration::LoadResult;
+using espdesktop::configuration::StorageBackend;
+using espdesktop::configuration::StoreStatus;
 
 constexpr size_t STORED_GENERATION_OFFSET = 8;
 

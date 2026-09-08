@@ -5,11 +5,11 @@
 
 #include "panel_config_document.h"
 
-using espcontrol::configuration::PanelConfigReader;
-using espcontrol::configuration::PanelConfigRecord;
-using espcontrol::configuration::PanelConfigRecordType;
-using espcontrol::configuration::PanelConfigStatus;
-using espcontrol::configuration::PanelConfigWriter;
+using espdesktop::configuration::PanelConfigReader;
+using espdesktop::configuration::PanelConfigRecord;
+using espdesktop::configuration::PanelConfigRecordType;
+using espdesktop::configuration::PanelConfigStatus;
+using espdesktop::configuration::PanelConfigWriter;
 
 namespace {
 

@@ -1,7 +1,7 @@
 ---
 title: Gate Cards
 description:
-  How to use gate cards on your EspControl panel to open, close, and stop Home Assistant cover entities.
+  How to use gate cards on your EspDesktop panel to open, close, and stop Home Assistant cover entities.
 ---
 
 # Gate

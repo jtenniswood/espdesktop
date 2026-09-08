@@ -1,7 +1,7 @@
 ---
-title: EspControl Appearance Settings
+title: EspDesktop Appearance Settings
 description:
-  How to customise the primary colour on your EspControl panel.
+  How to customise the primary colour on your EspDesktop panel.
 ---
 
 # Appearance

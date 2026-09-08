@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run local ESPHome commands with the EspControl dev firmware version."""
+"""Run local ESPHome commands with the EspDesktop dev firmware version."""
 
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ def build_esphome_command(
         "firmware_version",
         firmware_version,
         "-s",
-        "espcontrol_component_url",
+        "espdesktop_component_url",
         ROOT.resolve().as_uri(),
         command,
         str(yaml_path),
@@ -200,7 +200,7 @@ class LocalEsphomeTests(unittest.TestCase):
                 "firmware_version",
                 "dev",
                 "-s",
-                "espcontrol_component_url",
+                "espdesktop_component_url",
                 ROOT.resolve().as_uri(),
                 "run",
                 "/tmp/dev.yaml",
@@ -241,7 +241,7 @@ class LocalEsphomeTests(unittest.TestCase):
             self.assertEqual(run(["--dry-run", str(path), "run", "--device", "192.0.2.10"]), 0)
             run_mock.assert_not_called()
         self.assertIn("-s firmware_version local-version", output.getvalue())
-        self.assertIn(f"-s espcontrol_component_url {ROOT.resolve().as_uri()}", output.getvalue())
+        self.assertIn(f"-s espdesktop_component_url {ROOT.resolve().as_uri()}", output.getvalue())
         self.assertIn("--device 192.0.2.10", output.getvalue())
 
 

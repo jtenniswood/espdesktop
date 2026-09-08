@@ -1,6 +1,6 @@
-diff --git a/components/espcontrol/ha_read_coordinator.h b/components/espcontrol/ha_read_coordinator.h
---- a/components/espcontrol/ha_read_coordinator.h
-+++ b/components/espcontrol/ha_read_coordinator.h
+diff --git a/components/espdesktop/ha_read_coordinator.h b/components/espdesktop/ha_read_coordinator.h
+--- a/components/espdesktop/ha_read_coordinator.h
++++ b/components/espdesktop/ha_read_coordinator.h
 @@ -237,6 +237,6 @@ class HaReadCoordinator {
      for (auto &request : deferred_) {
        if (request.generation == generation_ &&

@@ -4,7 +4,7 @@
 #include "panel_config_http_etag.h"
 
 int main() {
-  using espcontrol::configuration::parse_panel_config_etag;
+  using espdesktop::configuration::parse_panel_config_etag;
   uint32_t generation = 0;
   const bool passed =
       parse_panel_config_etag("\"0\"", &generation) && generation == 0 &&

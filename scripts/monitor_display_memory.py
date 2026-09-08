@@ -119,7 +119,7 @@ def parse_metric_payload(payload: str) -> float:
 
 def fetch_metric(host: str, metric: str, timeout: float) -> float:
     url = metric_url(host, METRICS[metric])
-    request = urllib.request.Request(url, headers={"User-Agent": "espcontrol-memory-monitor"})
+    request = urllib.request.Request(url, headers={"User-Agent": "espdesktop-memory-monitor"})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             payload = response.read().decode("utf-8", errors="replace")

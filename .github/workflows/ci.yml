@@ -31,7 +31,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ESPCONTROL_NPM_CACHE_MAX_MB: 512
+  ESPDESKTOP_NPM_CACHE_MAX_MB: 512
 
 permissions:
   contents: read
@@ -75,7 +75,7 @@ jobs:
         run: |
           if git diff --quiet -- \
             common/assets/icon_glyphs.yaml \
-            components/espcontrol/icons.h \
+            components/espdesktop/icons.h \
             src/webserver/entry.ts; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
@@ -90,10 +90,10 @@ jobs:
       - name: Install dependencies
         if: steps.icon_changes.outputs.changed == 'true'
         run: |
-          NPM_CACHE="${HOME}/.cache/espcontrol-actions/npm"
+          NPM_CACHE="${HOME}/.cache/espdesktop-actions/npm"
           mkdir -p "${NPM_CACHE}"
           npm ci --prefer-offline --cache "${NPM_CACHE}"
-          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPCONTROL_NPM_CACHE_MAX_MB}" --strategy reset
+          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPDESKTOP_NPM_CACHE_MAX_MB}" --strategy reset
 
       - name: Build generated web bundles
         if: steps.icon_changes.outputs.changed == 'true'
@@ -104,7 +104,7 @@ jobs:
         run: |
           if git diff --quiet -- \
             common/assets/icon_glyphs.yaml \
-            components/espcontrol/icons.h \
+            components/espdesktop/icons.h \
             src/webserver/entry.ts \
             docs/public/webserver/www.js \
             docs/public/webserver/*/www.js \
@@ -120,7 +120,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
             common/assets/icon_glyphs.yaml \
-            components/espcontrol/icons.h \
+            components/espdesktop/icons.h \
             src/webserver/entry.ts \
             docs/public/webserver/www.js \
             docs/public/webserver/*/www.js \
@@ -154,7 +154,7 @@ jobs:
       - name: Install pinned timezone data
         shell: bash
         run: |
-          TZDATA_VENV="${RUNNER_TEMP}/espcontrol-tzdata"
+          TZDATA_VENV="${RUNNER_TEMP}/espdesktop-tzdata"
           python3 -m venv "${TZDATA_VENV}"
           "${TZDATA_VENV}/bin/python" -m pip install --disable-pip-version-check "tzdata==2026.3"
           TZDATA_SITE="$("${TZDATA_VENV}/bin/python" -c 'import site; print(site.getsitepackages()[0])')"
@@ -175,7 +175,7 @@ jobs:
             echo "CMake ${CMAKE_VERSION} is older than the required version 3.20; installing the pinned fallback."
           fi
 
-          CMAKE_VENV="${RUNNER_TEMP}/espcontrol-cmake"
+          CMAKE_VENV="${RUNNER_TEMP}/espdesktop-cmake"
           python3 -m venv "${CMAKE_VENV}"
           "${CMAKE_VENV}/bin/python" -m pip install --disable-pip-version-check --no-cache-dir "cmake==3.31.10"
           echo "${CMAKE_VENV}/bin" >> "${GITHUB_PATH}"
@@ -185,7 +185,7 @@ jobs:
         shell: bash
         run: |
           source .github/esphome.env
-          MODEL_CHECK_VENV="${RUNNER_TEMP}/espcontrol-esphome-model-check"
+          MODEL_CHECK_VENV="${RUNNER_TEMP}/espdesktop-esphome-model-check"
           python3 -m venv "${MODEL_CHECK_VENV}"
           "${MODEL_CHECK_VENV}/bin/python" -m pip install \
             --disable-pip-version-check \
@@ -194,10 +194,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          NPM_CACHE="${HOME}/.cache/espcontrol-actions/npm"
+          NPM_CACHE="${HOME}/.cache/espdesktop-actions/npm"
           mkdir -p "${NPM_CACHE}"
           npm ci --prefer-offline --cache "${NPM_CACHE}"
-          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPCONTROL_NPM_CACHE_MAX_MB}" --strategy reset
+          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPDESKTOP_NPM_CACHE_MAX_MB}" --strategy reset
 
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
@@ -236,10 +236,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          NPM_CACHE="${HOME}/.cache/espcontrol-actions/npm"
+          NPM_CACHE="${HOME}/.cache/espdesktop-actions/npm"
           mkdir -p "${NPM_CACHE}"
           npm ci --prefer-offline --cache "${NPM_CACHE}"
-          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPCONTROL_NPM_CACHE_MAX_MB}" --strategy reset
+          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPDESKTOP_NPM_CACHE_MAX_MB}" --strategy reset
 
       - run: npm run docs:build
 

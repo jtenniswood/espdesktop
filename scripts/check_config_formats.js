@@ -18,7 +18,7 @@ const CARD_CONTRACT = JSON.parse(fs.readFileSync(path.join(ROOT, "product", "v2"
 function loadHooks(search, grid) {
   const params = new URLSearchParams(search || "");
   const sandbox = {
-    __ESPCONTROL_TEST_HOOKS__: {},
+    __ESPDESKTOP_TEST_HOOKS__: {},
     console: { log() {}, warn() {}, error() {} },
     location: { search: search || "" },
     URLSearchParams,
@@ -36,14 +36,14 @@ function loadHooks(search, grid) {
     },
   };
   const device = params.get("device");
-  if (device) sandbox.__ESPCONTROL_DEVICE_PROFILE__ = device;
+  if (device) sandbox.__ESPDESKTOP_DEVICE_PROFILE__ = device;
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(loadBuiltWebSource(), sandbox, { filename: SOURCE });
   if (grid) {
-    sandbox.__ESPCONTROL_TEST_HOOKS__.config.setGridDimensions(grid.cols, grid.rows);
+    sandbox.__ESPDESKTOP_TEST_HOOKS__.config.setGridDimensions(grid.cols, grid.rows);
   }
-  return sandbox.__ESPCONTROL_TEST_HOOKS__.config;
+  return sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
 }
 
 function buttonShape(b) {

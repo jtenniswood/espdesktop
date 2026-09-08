@@ -74,14 +74,14 @@ text_sensor:
     id: c6_update_available
     lambda: |-
       auto upd = id(esp32_c6_update);
-      if (!upd) return std::string(espcontrol_i18n("Unknown"));
+      if (!upd) return std::string(espdesktop_i18n("Unknown"));
       if (upd->state == esphome::update::UpdateState::UPDATE_STATE_UNKNOWN)
-        return std::string(espcontrol_i18n("Unknown"));
+        return std::string(espdesktop_i18n("Unknown"));
       if (upd->state == esphome::update::UpdateState::UPDATE_STATE_AVAILABLE)
-        return std::string(espcontrol_i18n("Update available"));
+        return std::string(espdesktop_i18n("Update available"));
       if (upd->state == esphome::update::UpdateState::UPDATE_STATE_NO_UPDATE)
-        return std::string(espcontrol_i18n("Up-to-date"));
-      return std::string(espcontrol_i18n("Unknown"));
+        return std::string(espdesktop_i18n("Up-to-date"));
+      return std::string(espdesktop_i18n("Unknown"));
     update_interval: 60s
 
   - platform: template
@@ -91,9 +91,9 @@ text_sensor:
     icon: mdi:chip
     lambda: |-
       auto upd = id(esp32_c6_update);
-      if (!upd) return std::string(espcontrol_i18n("Unknown"));
+      if (!upd) return std::string(espdesktop_i18n("Unknown"));
       auto &cur = upd->update_info.current_version;
-      if (cur.empty()) return std::string(espcontrol_i18n("Unknown"));
+      if (cur.empty()) return std::string(espdesktop_i18n("Unknown"));
       return cur;
     update_interval: 60s
 
@@ -104,14 +104,14 @@ text_sensor:
     icon: mdi:chip
     lambda: |-
       auto upd = id(esp32_c6_update);
-      if (!upd) return std::string(espcontrol_i18n("Unknown"));
+      if (!upd) return std::string(espdesktop_i18n("Unknown"));
       auto &lat = upd->update_info.latest_version;
       if (!lat.empty()) return lat;
       if (upd->state == esphome::update::UpdateState::UPDATE_STATE_NO_UPDATE) {
         auto &cur = upd->update_info.current_version;
         if (!cur.empty()) return cur;
       }
-      return std::string(espcontrol_i18n("Unknown"));
+      return std::string(espdesktop_i18n("Unknown"));
     update_interval: 60s
 
 button:

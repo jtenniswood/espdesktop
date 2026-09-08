@@ -13,8 +13,8 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ESPCONTROL_NPM_CACHE_MAX_MB: 512
-  ESPCONTROL_DOCKER_BUILD_CACHE_KEEP: 2GB
+  ESPDESKTOP_NPM_CACHE_MAX_MB: 512
+  ESPDESKTOP_DOCKER_BUILD_CACHE_KEEP: 2GB
 
 concurrency:
   group: release-${{ inputs.release_tag }}
@@ -68,7 +68,7 @@ jobs:
             echo "CMake ${CMAKE_VERSION} is older than the required version 3.20; installing the pinned fallback."
           fi
 
-          CMAKE_VENV="${RUNNER_TEMP}/espcontrol-cmake"
+          CMAKE_VENV="${RUNNER_TEMP}/espdesktop-cmake"
           python3 -m venv "${CMAKE_VENV}"
           "${CMAKE_VENV}/bin/python" -m pip install --disable-pip-version-check --no-cache-dir "cmake==3.31.10"
           echo "${CMAKE_VENV}/bin" >> "${GITHUB_PATH}"
@@ -76,10 +76,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          NPM_CACHE="${HOME}/.cache/espcontrol-actions/npm"
+          NPM_CACHE="${HOME}/.cache/espdesktop-actions/npm"
           mkdir -p "${NPM_CACHE}"
           npm ci --prefer-offline --cache "${NPM_CACHE}"
-          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPCONTROL_NPM_CACHE_MAX_MB}" --strategy reset
+          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPDESKTOP_NPM_CACHE_MAX_MB}" --strategy reset
 
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
@@ -129,10 +129,10 @@ jobs:
 
       - uses: actions/checkout@v7.0.1
         with:
-          path: espcontrol-${{ matrix.slug }}
+          path: espdesktop-${{ matrix.slug }}
           ref: ${{ needs.preflight.outputs.source_sha }}
       - name: Normalize checkout
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         run: |
           git sparse-checkout disable || true
           git reset --hard HEAD
@@ -150,7 +150,7 @@ jobs:
           fi
 
       - name: Load ESPHome version
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         run: cat .github/esphome.env >> "$GITHUB_ENV"
 
       - name: Select Docker command
@@ -165,13 +165,13 @@ jobs:
           fi
 
       - name: Reclaim runner disk
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         run: bash scripts/reclaim_actions_disk.sh
 
       - name: Prepare isolated ESPHome cache
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         run: |
-          RUN_CACHE_ROOT="${RUNNER_TEMP}/espcontrol-esphome/${{ github.run_id }}-${{ github.run_attempt }}/${{ matrix.slug }}"
+          RUN_CACHE_ROOT="${RUNNER_TEMP}/espdesktop-esphome/${{ github.run_id }}-${{ github.run_attempt }}/${{ matrix.slug }}"
           PLATFORMIO_CACHE="${RUN_CACHE_ROOT}/platformio-${ESPHOME_VERSION}"
           NORMAL_BUILD_CACHE="${RUN_CACHE_ROOT}/build-normal"
           RECOVERY_BUILD_CACHE="${RUN_CACHE_ROOT}/build-recovery"
@@ -211,14 +211,14 @@ jobs:
 
       - name: Prepare verified ESP32-C6 recovery firmware
         if: matrix.recovery
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         run: python3 scripts/prepare_c6_firmware.py
 
       - name: Pull ESPHome image
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         run: |
           ESPHOME_IMAGE="ghcr.io/esphome/esphome:${ESPHOME_VERSION}"
-          LOCK_FILE="/tmp/espcontrol-esphome-image.lock"
+          LOCK_FILE="/tmp/espdesktop-esphome-image.lock"
           if command -v flock >/dev/null 2>&1; then
             flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}"
           else
@@ -227,7 +227,7 @@ jobs:
           echo "ESPHOME_IMAGE=${ESPHOME_IMAGE}" >> "$GITHUB_ENV"
 
       - name: Compile firmware
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         env:
           VERSION: ${{ inputs.release_tag }}
         run: |
@@ -286,14 +286,14 @@ jobs:
           cp "${BUILD_DIR}/firmware.ota.bin" dist/firmware/${{ matrix.slug }}.ota.bin
 
           VERSION="${{ inputs.release_tag }}"
-          python3 espcontrol-${{ matrix.slug }}/scripts/firmware_release.py manifest \
+          python3 espdesktop-${{ matrix.slug }}/scripts/firmware_release.py manifest \
             --slug "${{ matrix.slug }}" \
             --chip "${{ matrix.chip }}" \
             --version "${VERSION}" \
             --factory "dist/firmware/${{ matrix.slug }}.factory.bin" \
             --ota "dist/firmware/${{ matrix.slug }}.ota.bin" \
             --out "dist/firmware/${{ matrix.slug }}.manifest.json"
-          python3 espcontrol-${{ matrix.slug }}/scripts/firmware_release.py verify-files \
+          python3 espdesktop-${{ matrix.slug }}/scripts/firmware_release.py verify-files \
             --slug "${{ matrix.slug }}" \
             --version "${VERSION}" \
             --manifest "dist/firmware/${{ matrix.slug }}.manifest.json" \
@@ -307,17 +307,17 @@ jobs:
               exit 1
             fi
             cp "${RECOVERY_FACTORY}" "dist/firmware/${{ matrix.slug }}.recovery.bin"
-            python3 espcontrol-${{ matrix.slug }}/scripts/firmware_release.py recovery-manifest \
+            python3 espdesktop-${{ matrix.slug }}/scripts/firmware_release.py recovery-manifest \
               --slug "${{ matrix.slug }}" \
               --version "${VERSION}" \
               --recovery "dist/firmware/${{ matrix.slug }}.recovery.bin" \
               --out "dist/firmware/${{ matrix.slug }}.recovery.manifest.json"
-            python3 espcontrol-${{ matrix.slug }}/scripts/firmware_release.py verify-recovery \
+            python3 espdesktop-${{ matrix.slug }}/scripts/firmware_release.py verify-recovery \
               --slug "${{ matrix.slug }}" \
               --version "${VERSION}" \
               --manifest "dist/firmware/${{ matrix.slug }}.recovery.manifest.json" \
               --recovery "dist/firmware/${{ matrix.slug }}.recovery.bin" \
-              --c6-firmware "espcontrol-${{ matrix.slug }}/.firmware-deps/esp32-c6/2.12.12/network_adapter_esp32c6.bin" \
+              --c6-firmware "espdesktop-${{ matrix.slug }}/.firmware-deps/esp32-c6/2.12.12/network_adapter_esp32c6.bin" \
               --normal-factory "dist/firmware/${{ matrix.slug }}.factory.bin" \
               --normal-ota "dist/firmware/${{ matrix.slug }}.ota.bin"
           fi
@@ -330,7 +330,7 @@ jobs:
 
       - name: Clean firmware caches
         if: always()
-        working-directory: espcontrol-${{ matrix.slug }}
+        working-directory: espdesktop-${{ matrix.slug }}
         run: |
           if [ -z "${RUN_CACHE_ROOT:-}" ] || [ -z "${NORMAL_BUILD_CACHE:-}" ] || [ -z "${PLATFORMIO_CACHE:-}" ]; then
             echo "No firmware cache paths were prepared."
@@ -411,8 +411,8 @@ jobs:
           name: release-dist
           path: dist/
 
-  companion-release:
-    name: Sign and notarize Companion
+  espdesktop-release:
+    name: Sign and notarize EspDesktop
     needs: preflight
     runs-on: macos-15
     steps:
@@ -423,9 +423,9 @@ jobs:
       - name: Verify Companion contract and shared protocol fixtures
         run: |
           python3 scripts/build.py companion --check
-          swift test --package-path macos/Companion -Xswiftc -warnings-as-errors
+          swift test --package-path macos/EspDesktop -Xswiftc -warnings-as-errors
 
-      - name: Sign, notarize, staple, and verify Companion
+      - name: Sign, notarize, staple, and verify EspDesktop
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
           DEVELOPER_ID_P12_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_P12_BASE64 }}
@@ -444,22 +444,22 @@ jobs:
             NOTARY_KEY_ID \
             NOTARY_ISSUER_ID; do
             if [[ -z "${!required}" ]]; then
-              echo "Missing required repository secret for Companion notarization: ${required}" >&2
+              echo "Missing required repository secret for EspDesktop notarization: ${required}" >&2
               exit 2
             fi
           done
 
           COMPANION_VERSION="${RELEASE_TAG#v}"
           if [[ ! "${COMPANION_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must be a stable semantic version for the Companion bundle: ${RELEASE_TAG}" >&2
+            echo "Release tag must be a stable semantic version for the EspDesktop bundle: ${RELEASE_TAG}" >&2
             exit 2
           fi
 
-          KEYCHAIN_PATH="${RUNNER_TEMP}/espcontrol-companion-signing.keychain-db"
+          KEYCHAIN_PATH="${RUNNER_TEMP}/espdesktop-signing.keychain-db"
           KEYCHAIN_PASSWORD="$(uuidgen)"
-          CERT_PATH="${RUNNER_TEMP}/espcontrol-developer-id.p12"
+          CERT_PATH="${RUNNER_TEMP}/espdesktop-developer-id.p12"
           NOTARY_KEY_PATH="${RUNNER_TEMP}/AuthKey_${NOTARY_KEY_ID}.p8"
-          OUTPUT_DIR="${RUNNER_TEMP}/espcontrol-companion"
+          OUTPUT_DIR="${RUNNER_TEMP}/espdesktop-app"
           cleanup() {
             security delete-keychain "${KEYCHAIN_PATH}" >/dev/null 2>&1 || true
             rm -f "${CERT_PATH}" "${NOTARY_KEY_PATH}"
@@ -484,26 +484,26 @@ jobs:
           CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
           CODE_SIGN_IDENTITY="${DEVELOPER_ID_APPLICATION}" \
           OUTPUT_DIR="${OUTPUT_DIR}" \
-          ./macos/Companion/Packaging/build_standalone.sh
+          ./macos/EspDesktop/Packaging/build_standalone.sh
 
           printf '%s' "${NOTARY_KEY_BASE64}" | base64 -D > "${NOTARY_KEY_PATH}"
           chmod 600 "${NOTARY_KEY_PATH}"
           NOTARY_KEY_PATH="${NOTARY_KEY_PATH}" \
           NOTARY_KEY_ID="${NOTARY_KEY_ID}" \
           NOTARY_ISSUER_ID="${NOTARY_ISSUER_ID}" \
-          ./macos/Companion/Packaging/notarize_standalone.sh \
-            "${OUTPUT_DIR}/EspControl Companion.app"
+          ./macos/EspDesktop/Packaging/notarize_standalone.sh \
+            "${OUTPUT_DIR}/EspDesktop.app"
 
-      - name: Upload notarized Companion release asset
+      - name: Upload notarized EspDesktop release asset
         uses: actions/upload-artifact@v7
         with:
-          name: espcontrol-companion-release
-          path: ${{ runner.temp }}/espcontrol-companion/EspControl Companion-*
+          name: espdesktop-app-release
+          path: ${{ runner.temp }}/espdesktop-app/EspDesktop-*
           if-no-files-found: error
 
   publish:
     name: Publish Verified Draft
-    needs: [preflight, assemble-release, companion-release]
+    needs: [preflight, assemble-release, espdesktop-release]
     runs-on: self-hosted
     steps:
       - name: Prepare self-hosted workspace
@@ -521,10 +521,10 @@ jobs:
           name: release-dist
           path: dist
 
-      - name: Download notarized Companion release
+      - name: Download notarized EspDesktop release
         uses: actions/download-artifact@v8
         with:
-          name: espcontrol-companion-release
+          name: espdesktop-app-release
           path: dist/companion
 
       - name: Upload, verify, and publish draft release

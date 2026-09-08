@@ -1,12 +1,12 @@
 ---
-title: Install EspControl Firmware
+title: Install EspDesktop Firmware
 description:
-  How to flash EspControl firmware to a supported ESP32 touchscreen, connect it to WiFi, and add it to Home Assistant.
+  How to flash EspDesktop firmware to a supported ESP32 touchscreen, connect it to WiFi, and add it to Home Assistant.
 ---
 
 # Install
 
-Flash the EspControl firmware to your supported ESP32 display directly from your browser — no special software or technical knowledge required.
+Flash the EspDesktop firmware to your supported ESP32 display directly from your browser — no special software or technical knowledge required.
 
 ::: tip Prefer ESPHome?
 If you want to compile and install the firmware yourself, use the [Manual Setup guide](/getting-started/manual-esphome-setup).
@@ -34,7 +34,7 @@ If the install button doesn't detect your device, try a different USB-C cable. C
 ### Step by Step
 
 1. **Plug in the display** using the USB-C cable. If your computer asks to install drivers, allow it.
-2. **Choose your panel** above, then click **Install EspControl**. A dialog will ask you to choose a serial port — select the one that appeared when you plugged in the display.
+2. **Choose your panel** above, then click **Install EspDesktop**. A dialog will ask you to choose a serial port — select the one that appeared when you plugged in the display.
 3. **Wait for the flash to complete.** This takes a few minutes. You'll see a progress bar. Don't disconnect the cable until it finishes.
 4. **The display restarts** and shows a loading screen.
 
@@ -66,7 +66,7 @@ This connection is how the display gets the current time, temperature data, and 
 With the display connected to WiFi and paired with Home Assistant, you're ready to set it up.
 
 1. **Find the device's address.** It's shown on the display screen. You can also find it in your router's device list or in **Home Assistant > Settings > Devices & Services > ESPHome** (click the device, then look for the IP address).
-2. **Open that address in a browser** — for example, `http://espcontrol.local`. This opens the device's built-in web page.
+2. **Open that address in a browser** — for example, `http://espdesktop.local`. This opens the device's built-in web page.
 3. **Add your cards.** On the **Screen** tab, tap an empty slot and choose the card type you want. For example, a **Switch** card controls a Home Assistant entity, while a **Sensor** card displays a reading.
 4. **Adjust your settings.** On the **Settings** tab, set your active card colour, temperatures, screensaver timeout, brightness, and more.
 5. **Tap "Apply Configuration"** when you're done. The display restarts with your new settings.

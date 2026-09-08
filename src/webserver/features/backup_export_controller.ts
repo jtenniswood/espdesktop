@@ -50,7 +50,7 @@ export function createBackupExportController(
     `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
 
   const fileName = (screenSize?: unknown, value: Date = new Date()): string =>
-    `espcontrol-${screenSizeSlug(screenSize)}-${fileDate(value)}.json`;
+    `espdesktop-${screenSizeSlug(screenSize)}-${fileDate(value)}.json`;
 
   const addNativeConfig = <Backup extends BackupWithNativeConfig>(
     backup: Backup,

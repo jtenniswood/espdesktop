@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "../espcontrol/companion_capabilities_generated.h"
+#include "../espdesktop/companion_capabilities_generated.h"
 
 namespace esphome::companion::protocol {
 

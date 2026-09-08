@@ -86,7 +86,7 @@ Do not hand-edit generated sections or files. Rebuild them with
 - `devices/manifest.json`
 - `src/webserver/generated/entity_catalog.ts`
 - `src/webserver/generated/card_contract.ts`
-- `components/espcontrol/button_grid_contract_generated.h`
+- `components/espdesktop/button_grid_contract_generated.h`
 - `docs/generated/cards/capabilities.md`
 - `docs/generated/screens/*.md`
 - `docs/public/device-profiles.json`
@@ -95,8 +95,8 @@ Do not hand-edit generated sections or files. Rebuild them with
 - generated blocks inside `devices/*/device/sensors.yaml`
 - `product/product_snapshot.json`
 - `src/webserver/generated/companion_capabilities.ts`
-- `components/espcontrol/companion_capabilities_generated.h`
-- `macos/Companion/Sources/Companion/CompanionCapabilities.generated.swift`
+- `components/espdesktop/companion_capabilities_generated.h`
+- `macos/EspDesktop/Sources/Companion/CompanionCapabilities.generated.swift`
 - `product/generated/companion_manifest.json`
 
 ## Checks

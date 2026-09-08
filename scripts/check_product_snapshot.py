@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the generated combined EspControl product snapshot."""
+"""Validate the generated combined EspDesktop product snapshot."""
 
 from __future__ import annotations
 

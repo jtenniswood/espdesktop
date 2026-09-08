@@ -1,7 +1,7 @@
 ---
 title: Doors & Windows Cards
 description:
-  How to show Home Assistant door and window sensors with open and closed icons on your EspControl panel.
+  How to show Home Assistant door and window sensors with open and closed icons on your EspDesktop panel.
 ---
 
 # Doors & Windows

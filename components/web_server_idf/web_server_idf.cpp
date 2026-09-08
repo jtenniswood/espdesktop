@@ -47,7 +47,7 @@ namespace esphome::web_server_idf {
 
 static const char *const TAG = "web_server_idf";
 
-extern "C" void espcontrol_register_web_server_handlers(
+extern "C" void espdesktop_register_web_server_handlers(
     AsyncWebServer *server) __attribute__((weak));
 
 // Global instance to avoid guard variable (saves 8 bytes)
@@ -63,21 +63,21 @@ namespace {
 static constexpr size_t MAX_FORM_URLENCODED_BODY_LENGTH = 1024;
 
 #ifdef ESPHOME_PROJECT_NAME
-static constexpr const char *ESPCONTROL_PROJECT_NAME = ESPHOME_PROJECT_NAME;
+static constexpr const char *ESPDESKTOP_PROJECT_NAME = ESPHOME_PROJECT_NAME;
 #else
-static constexpr const char *ESPCONTROL_PROJECT_NAME = "";
+static constexpr const char *ESPDESKTOP_PROJECT_NAME = "";
 #endif
 
 #ifdef ESPHOME_PROJECT_VERSION
-static constexpr const char *ESPCONTROL_PROJECT_VERSION = ESPHOME_PROJECT_VERSION;
+static constexpr const char *ESPDESKTOP_PROJECT_VERSION = ESPHOME_PROJECT_VERSION;
 #else
-static constexpr const char *ESPCONTROL_PROJECT_VERSION = "";
+static constexpr const char *ESPDESKTOP_PROJECT_VERSION = "";
 #endif
 
-#ifdef ESPCONTROL_DEVICE_SLUG
-static constexpr const char *ESPCONTROL_DEVICE_PROFILE = ESPCONTROL_DEVICE_SLUG;
+#ifdef ESPDESKTOP_DEVICE_SLUG
+static constexpr const char *ESPDESKTOP_DEVICE_PROFILE = ESPDESKTOP_DEVICE_SLUG;
 #else
-static constexpr const char *ESPCONTROL_DEVICE_PROFILE = "";
+static constexpr const char *ESPDESKTOP_DEVICE_PROFILE = "";
 #endif
 
 void append_json_string(std::string &out, const char *value) {
@@ -110,15 +110,15 @@ std::string firmware_version_json() {
   std::string out;
   out.reserve(128);
   out.append("{\"project_name\":");
-  append_json_string(out, ESPCONTROL_PROJECT_NAME);
+  append_json_string(out, ESPDESKTOP_PROJECT_NAME);
   out.append(",\"project_version\":");
-  append_json_string(out, ESPCONTROL_PROJECT_VERSION);
+  append_json_string(out, ESPDESKTOP_PROJECT_VERSION);
   out.append(",\"firmware_version\":");
-  append_json_string(out, ESPCONTROL_PROJECT_VERSION);
+  append_json_string(out, ESPDESKTOP_PROJECT_VERSION);
   out.append(",\"device_slug\":");
-  append_json_string(out, ESPCONTROL_DEVICE_PROFILE);
+  append_json_string(out, ESPDESKTOP_DEVICE_PROFILE);
   out.append(",\"version\":");
-  append_json_string(out, ESPCONTROL_PROJECT_VERSION);
+  append_json_string(out, ESPDESKTOP_PROJECT_VERSION);
   out.push_back('}');
   return out;
 }
@@ -129,7 +129,7 @@ bool handle_firmware_version_request(AsyncWebServerRequest *request) {
   }
   char url_buf[AsyncWebServerRequest::URL_BUF_SIZE];
   StringRef url = request->url_to(url_buf);
-  if (url != "/espcontrol/version" && url != "/espcontrol/version.json") {
+  if (url != "/espdesktop/version" && url != "/espdesktop/version.json") {
     return false;
   }
   std::string body = firmware_version_json();
@@ -213,7 +213,7 @@ void AsyncWebServer::begin() {
   if (this->server_) {
     this->end();
   }
-  // The ESPControl web UI exposes many internal configuration entities. Larger
+  // The ESPDesktop web UI exposes many internal configuration entities. Larger
   // P4 panels can overflow the ESP-IDF default while serving entity details.
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
@@ -246,8 +246,8 @@ void AsyncWebServer::begin() {
     // Let an external component add its static handlers before the generic
     // dispatcher is exposed to browsers or API clients. Handlers added later
     // can disrupt concurrent network activity on ESP32-P4 panels.
-    if (espcontrol_register_web_server_handlers != nullptr) {
-      espcontrol_register_web_server_handlers(this);
+    if (espdesktop_register_web_server_handlers != nullptr) {
+      espdesktop_register_web_server_handlers(this);
     }
     const httpd_uri_t handler_get = {
         .uri = "",

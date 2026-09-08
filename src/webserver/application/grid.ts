@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { domainIcons as DOMAIN_ICONS, iconSlug } from "./ui_primitives";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
@@ -60,11 +60,11 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
     }
     // ── Grid helpers ───────────────────────────────────────────────────────
     function sizeClass(this: any, size?: any) {
-        var className: any = EspControlModel.cardSizeClass(size);
+        var className: any = EspDesktopModel.cardSizeClass(size);
         return className ? " " + className : "";
     }
     function parseOrder(this: any, str?: any) {
-        var parsed: any = EspControlModel.parseGridOrder(str, layout.numSlots, layout.gridCols, state.sizes);
+        var parsed: any = EspDesktopModel.parseGridOrder(str, layout.numSlots, layout.gridCols, state.sizes);
         state.sizes = parsed.sizes;
         return parsed.grid;
     }
@@ -79,7 +79,7 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
             renderQueue.schedule();
     }
     function serializeGrid(this: any, grid?: any) {
-        return EspControlModel.serializeGridOrder(grid, state.sizes);
+        return EspDesktopModel.serializeGridOrder(grid, state.sizes);
     }
     function applyImportedButtonOrder(this: any, orderStr?: any, importedSizes?: any) {
         state.sizes = importedSizes || {};

@@ -18,7 +18,7 @@ api:
               navigation_hide_modals();
               ${navigate_voice_target_code}
             } else {
-              espcontrol_navigate(target, id(main_page)->obj);
+              espdesktop_navigate(target, id(main_page)->obj);
             }
         - script.execute: screensaver_idle_check
         - script.execute: home_screen_idle_check

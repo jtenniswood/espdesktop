@@ -15,9 +15,9 @@ CONTRACT = ROOT / "product" / "release_contract.json"
 PRODUCT_MODEL = ROOT / "product" / "model_v2.json"
 DEVICE_MANIFEST = ROOT / "devices" / "manifest.json"
 WEB_MANIFEST = ROOT / "docs" / "public" / "webserver" / "web-assets.json"
-DOCUMENT_HEADER = ROOT / "components" / "espcontrol" / "panel_config_document.h"
-CAPABILITIES_HEADER = ROOT / "components" / "espcontrol" / "panel_config_capabilities.h"
-COMPATIBILITY_POLICY = ROOT / "components" / "espcontrol" / "configuration_release_policy.h"
+DOCUMENT_HEADER = ROOT / "components" / "espdesktop" / "panel_config_document.h"
+CAPABILITIES_HEADER = ROOT / "components" / "espdesktop" / "panel_config_capabilities.h"
+COMPATIBILITY_POLICY = ROOT / "components" / "espdesktop" / "configuration_release_policy.h"
 
 
 def read_json(path: Path) -> dict:

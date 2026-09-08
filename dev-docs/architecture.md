@@ -1,6 +1,6 @@
 # Architecture
 
-EspControl has three main surfaces:
+EspDesktop has three main surfaces:
 
 1. Firmware that runs on the ESP32 display.
 2. A browser setup page served by the device.
@@ -19,10 +19,10 @@ outputs. For the hard edit/rebuild/check contract, use
 | Card metadata | `product/v2/card_contract.json` | Card type names, defaults, allowed domains, options, aliases, and subpage codes. |
 | Entity names | `product/v2/entity_names.json` | Shared Home Assistant entity names used by firmware and the setup page. |
 | Icons | `product/v2/icons.json` and `common/assets/*glyphs.yaml` | Icon names, glyphs, and font glyph sets. |
-| Firmware UI | `components/espcontrol/*.h` | LVGL card grid, card renderers, modals, config parsing, Home Assistant bindings. |
-| Configuration service | `components/espcontrol/configuration_service.*` and `configuration_store.*` | One-time legacy import, compatibility dual-write, atomic two-slot storage, and generation-matched saves for browser conflict protection. It is the live production persistence path. |
-| Native panel document | `components/espcontrol/panel_config_document.h`, `panel_config_service_validator.h`, and `src/webserver/model/panel_config.ts` | Bounded, versioned `PanelConfig` binary codec shared by firmware and the browser. Its validator protects atomic service saves and loads; V1 carries current compact card strings unchanged while live storage and API migration run through the core-owned configuration service. |
-| Native configuration discovery | `components/espcontrol/panel_config_capabilities*.h` | `GET /api/v1/capabilities` advertises the native document, read/write API, and web-asset versions so the browser can select the compatible configuration path. |
+| Firmware UI | `components/espdesktop/*.h` | LVGL card grid, card renderers, modals, config parsing, Home Assistant bindings. |
+| Configuration service | `components/espdesktop/configuration_service.*` and `configuration_store.*` | One-time legacy import, compatibility dual-write, atomic two-slot storage, and generation-matched saves for browser conflict protection. It is the live production persistence path. |
+| Native panel document | `components/espdesktop/panel_config_document.h`, `panel_config_service_validator.h`, and `src/webserver/model/panel_config.ts` | Bounded, versioned `PanelConfig` binary codec shared by firmware and the browser. Its validator protects atomic service saves and loads; V1 carries current compact card strings unchanged while live storage and API migration run through the core-owned configuration service. |
+| Native configuration discovery | `components/espdesktop/panel_config_capabilities*.h` | `GET /api/v1/capabilities` advertises the native document, read/write API, and web-asset versions so the browser can select the compatible configuration path. |
 | Web setup page | `src/webserver/` | Browser UI for configuring cards, settings, backup/restore, and previews. |
 | Typed web state | `src/webserver/state/` | Device configuration and application state types, isolated state creation, direct module-owned state access, event aliases, and event parsing. Application state must not be published as a browser global. |
 | Typed device API | `src/webserver/api/` | Injectable HTTP transport and ordered request queue; UI modules retain user-facing reactions. |
@@ -38,8 +38,8 @@ full source-to-output ownership table lives in
 - `common/config/entity_names.yaml`
 - `src/webserver/generated/entity_catalog.ts`
 - `src/webserver/generated/card_contract.ts`
-- `components/espcontrol/button_grid_contract_generated.h`
-- `components/espcontrol/i18n_generated.h`
+- `components/espdesktop/button_grid_contract_generated.h`
+- `components/espdesktop/i18n_generated.h`
 - `docs/generated/cards/capabilities.md`
 - `docs/generated/screens/*.md`
 - `docs/public/device-profiles.json`
@@ -70,7 +70,7 @@ source or a committed generated input.
    `devices/<slug>/esphome.yaml`.
 2. Firmware builds the LVGL display from shared YAML in `common/device/`,
    theme/config YAML in `common/config/`, and C++ components in
-   `components/espcontrol/`.
+   `components/espdesktop/`.
 3. The device exposes a web server.
 4. The browser setup page loads a per-device `www.js` bundle. New build
    entrypoints bundle it into firmware; older installed firmware can still fetch
@@ -80,13 +80,13 @@ source or a committed generated input.
 6. Firmware parses the saved compact config string and updates the on-device
    cards.
 
-`EspControlAppCore` owns the long-lived configuration, card runtime, Home
+`EspDesktopAppCore` owns the long-lived configuration, card runtime, Home
 Assistant binding and callback, display lifecycle, grid navigation, and
 modal-state services. The navigation and modal-state slots have fixed capacity so their
 LVGL-specific types remain in the UI layer with a bounded, reviewable memory
 budget. Firmware UI accesses those services only after the core starts; the
 standalone host-test fallbacks are excluded from firmware images.
-`EspControlApp` starts the core before WiFi so the 250-priority boot automations
+`EspDesktopApp` starts the core before WiFi so the 250-priority boot automations
 also use the core-owned Home Assistant binding.
 
 ## Build-Time Flow
@@ -94,7 +94,7 @@ also use the core-owned Home Assistant binding.
 ```text
 product/v2/card_contract.json
   -> src/webserver/generated/card_contract.ts
-  -> components/espcontrol/button_grid_contract_generated.h
+  -> components/espdesktop/button_grid_contract_generated.h
   -> docs/generated/cards/capabilities.md
 
 product/v2/entity_names.json

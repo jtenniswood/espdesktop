@@ -1,21 +1,21 @@
 # Firmware
 
-Most EspControl firmware behavior is implemented as ESPHome components and
-header-only C++ under `components/espcontrol/`.
+Most EspDesktop firmware behavior is implemented as ESPHome components and
+header-only C++ under `components/espdesktop/`.
 
 ## Important Files
 
 | Path | Purpose |
 |---|---|
-| `components/espcontrol/button_grid.h` | Umbrella include for grid/card code. |
-| `components/espcontrol/button_grid_grid.h` | Main grid creation, card setup, runtime wiring, and subpage wiring. |
-| `components/espcontrol/button_grid_config.h` | Compact saved config parser and normalized `ParsedCfg`. |
-| `components/espcontrol/button_grid_<type>.h` | Card-specific rendering and runtime behavior. |
-| `components/espcontrol/button_grid_modal.h` | Shared modal registry, lifecycle, LVGL shell, and layout adapters. |
-| `components/espcontrol/button_grid_modal_layout.h` | Pure device-aware frame, tab, and content layout recipes. |
-| `components/espcontrol/button_grid_subpages.h` | Subpage support. |
-| `components/espcontrol/icons.h` | Icon lookup. |
-| `components/espcontrol/i18n_generated.h` | Generated translation strings. |
+| `components/espdesktop/button_grid.h` | Umbrella include for grid/card code. |
+| `components/espdesktop/button_grid_grid.h` | Main grid creation, card setup, runtime wiring, and subpage wiring. |
+| `components/espdesktop/button_grid_config.h` | Compact saved config parser and normalized `ParsedCfg`. |
+| `components/espdesktop/button_grid_<type>.h` | Card-specific rendering and runtime behavior. |
+| `components/espdesktop/button_grid_modal.h` | Shared modal registry, lifecycle, LVGL shell, and layout adapters. |
+| `components/espdesktop/button_grid_modal_layout.h` | Pure device-aware frame, tab, and content layout recipes. |
+| `components/espdesktop/button_grid_subpages.h` | Subpage support. |
+| `components/espdesktop/icons.h` | Icon lookup. |
+| `components/espdesktop/i18n_generated.h` | Generated translation strings. |
 
 ## Runtime Model
 
@@ -69,7 +69,7 @@ as boxes.
 - Device font definitions: `devices/<slug>/device/fonts.yaml`
 - Shared glyph sets: `common/assets/*glyphs.yaml`
 - Icon registry: `product/v2/icons.json`
-- Icon lookup in firmware: `components/espcontrol/icons.h`
+- Icon lookup in firmware: `components/espdesktop/icons.h`
 
 Use font role substitutions from device profiles instead of hardcoding one
 device's physical font id in card logic.

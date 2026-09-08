@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unified build script for espcontrol.
+"""Unified build script for espdesktop.
 
 Combines icon synchronization and www.js generation into a single tool.
 
@@ -91,53 +91,53 @@ ENTITY_NAMES_YAML = ROOT / "common" / "config" / "entity_names.yaml"
 ENTITY_NAMES_TS = ROOT / "src" / "webserver" / "generated" / "entity_catalog.ts"
 WEB_ICONS_TS = ROOT / "src" / "webserver" / "generated" / "icons.ts"
 STRINGS_DIR = source_directory("translations")
-I18N_GENERATED_H = ROOT / "components" / "espcontrol" / "i18n_generated.h"
+I18N_GENERATED_H = ROOT / "components" / "espdesktop" / "i18n_generated.h"
 CARD_CONTRACT_JSON = source_path("cardContract")
 CARD_CONTRACT_TS = ROOT / "src" / "webserver" / "generated" / "card_contract.ts"
-CARD_CONTRACT_H = ROOT / "components" / "espcontrol" / "button_grid_contract_generated.h"
+CARD_CONTRACT_H = ROOT / "components" / "espdesktop" / "button_grid_contract_generated.h"
 COMPANION_CAPABILITIES_JSON = ROOT / "product" / "v2" / "companion_capabilities.json"
 COMPANION_CAPABILITIES_TS = ROOT / "src" / "webserver" / "generated" / "companion_capabilities.ts"
-COMPANION_CAPABILITIES_H = ROOT / "components" / "espcontrol" / "companion_capabilities_generated.h"
-COMPANION_CAPABILITIES_SWIFT = ROOT / "macos" / "Companion" / "Sources" / "Companion" / "CompanionCapabilities.generated.swift"
+COMPANION_CAPABILITIES_H = ROOT / "components" / "espdesktop" / "companion_capabilities_generated.h"
+COMPANION_CAPABILITIES_SWIFT = ROOT / "macos" / "EspDesktop" / "Sources" / "Companion" / "CompanionCapabilities.generated.swift"
 COMPANION_GENERATED_MANIFEST = ROOT / "product" / "generated" / "companion_manifest.json"
 SAVED_CONFIG_SHADOW_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_shadow.ts"
-SAVED_CONFIG_SHADOW_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_shadow_generated.h"
+SAVED_CONFIG_SHADOW_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_shadow_generated.h"
 SAVED_CONFIG_VACUUM_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_vacuum.ts"
-SAVED_CONFIG_VACUUM_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_vacuum_generated.h"
+SAVED_CONFIG_VACUUM_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_vacuum_generated.h"
 SAVED_CONFIG_SENSOR_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_sensor.ts"
-SAVED_CONFIG_SENSOR_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_sensor_generated.h"
+SAVED_CONFIG_SENSOR_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_sensor_generated.h"
 SAVED_CONFIG_ACTION_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_action.ts"
-SAVED_CONFIG_ACTION_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_action_generated.h"
+SAVED_CONFIG_ACTION_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_action_generated.h"
 SAVED_CONFIG_MEDIA_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_media.ts"
-SAVED_CONFIG_MEDIA_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_media_generated.h"
+SAVED_CONFIG_MEDIA_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
 SAVED_CONFIG_STATIC_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_static.ts"
-SAVED_CONFIG_STATIC_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_static_generated.h"
+SAVED_CONFIG_STATIC_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
 SAVED_CONFIG_FAN_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_fan.ts"
-SAVED_CONFIG_FAN_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_fan_generated.h"
+SAVED_CONFIG_FAN_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
 SAVED_CONFIG_DATE_TIME_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_date_time.ts"
-SAVED_CONFIG_DATE_TIME_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_date_time_generated.h"
+SAVED_CONFIG_DATE_TIME_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_date_time_generated.h"
 SAVED_CONFIG_MOWER_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_mower.ts"
-SAVED_CONFIG_MOWER_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_mower_generated.h"
+SAVED_CONFIG_MOWER_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_mower_generated.h"
 SAVED_CONFIG_OCCUPANCY_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_occupancy.ts"
-SAVED_CONFIG_OCCUPANCY_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_occupancy_generated.h"
+SAVED_CONFIG_OCCUPANCY_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_occupancy_generated.h"
 SAVED_CONFIG_ACCESS_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_access.ts"
-SAVED_CONFIG_ACCESS_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_access_generated.h"
+SAVED_CONFIG_ACCESS_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_access_generated.h"
 SAVED_CONFIG_SECURITY_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_security.ts"
-SAVED_CONFIG_SECURITY_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_security_generated.h"
+SAVED_CONFIG_SECURITY_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_security_generated.h"
 SAVED_CONFIG_WEATHER_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_weather.ts"
-SAVED_CONFIG_WEATHER_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_weather_generated.h"
+SAVED_CONFIG_WEATHER_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_weather_generated.h"
 SAVED_CONFIG_IMAGE_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_image.ts"
-SAVED_CONFIG_IMAGE_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_image_generated.h"
+SAVED_CONFIG_IMAGE_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_image_generated.h"
 SAVED_CONFIG_CLIMATE_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_climate.ts"
-SAVED_CONFIG_CLIMATE_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_climate_generated.h"
+SAVED_CONFIG_CLIMATE_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_climate_generated.h"
 SAVED_CONFIG_LIGHT_CONTROL_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_light_control.ts"
-SAVED_CONFIG_LIGHT_CONTROL_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_light_control_generated.h"
+SAVED_CONFIG_LIGHT_CONTROL_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_light_control_generated.h"
 SAVED_CONFIG_WEBHOOK_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_webhook.ts"
-SAVED_CONFIG_WEBHOOK_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_webhook_generated.h"
+SAVED_CONFIG_WEBHOOK_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_webhook_generated.h"
 SAVED_CONFIG_SUBPAGE_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_subpage.ts"
-SAVED_CONFIG_SUBPAGE_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_subpage_generated.h"
+SAVED_CONFIG_SUBPAGE_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_subpage_generated.h"
 SAVED_CONFIG_SWITCH_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_switch.ts"
-SAVED_CONFIG_SWITCH_H = ROOT / "components" / "espcontrol" / "button_grid_saved_config_switch_generated.h"
+SAVED_CONFIG_SWITCH_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_switch_generated.h"
 CARD_DOCS_DIR = ROOT / "docs" / "generated" / "cards"
 DEVICE_CAPABILITIES_JSON = ROOT / "docs" / "public" / "device-profiles.json"
 DEVICE_DOCS_DIR = ROOT / "docs" / "generated" / "screens"
@@ -230,7 +230,7 @@ def write_generated_text(path, content):
 
 
 def run_generated_transaction_self_test():
-    with tempfile.TemporaryDirectory(prefix="espcontrol-generated-transaction-") as directory:
+    with tempfile.TemporaryDirectory(prefix="espdesktop-generated-transaction-") as directory:
         root = Path(directory)
         first = root / "first.txt"
         second = root / "second.txt"
@@ -274,7 +274,7 @@ def run_generated_transaction_self_test():
         if first.stat().st_mode & 0o777 != 0o640:
             raise BuildError("Generated transaction rollback did not restore file permissions")
 
-        marker = "espcontrol-generated-overlay-self-test"
+        marker = "espdesktop-generated-overlay-self-test"
         entry_path = ROOT / "src" / "webserver" / "entry.ts"
         entry_overlay = entry_path.read_text(encoding="utf-8") + (
             f'\n(globalThis as Record<string, unknown>)["{marker}"] = true;\n'
@@ -639,13 +639,13 @@ def gen_i18n_header():
         "#include <cstring>",
         "#include <string>",
         "",
-        "inline std::string &espcontrol_language_code() {",
+        "inline std::string &espdesktop_language_code() {",
         "  static std::string language = \"en\";",
         "  return language;",
         "}",
         "",
-        "inline void set_espcontrol_language(const std::string &language) {",
-        "  espcontrol_language_code() = language;",
+        "inline void set_espdesktop_language(const std::string &language) {",
+        "  espdesktop_language_code() = language;",
         "}",
         "",
     ]
@@ -653,7 +653,7 @@ def gen_i18n_header():
     for code, translated in languages:
         fn = re.sub(r"[^A-Za-z0-9_]", "_", code)
         lines.extend([
-            f"inline const char *espcontrol_i18n_{fn}(const char *text) {{",
+            f"inline const char *espdesktop_i18n_{fn}(const char *text) {{",
             "  if (!text) return \"\";",
         ])
         seen_sources = set()
@@ -672,7 +672,7 @@ def gen_i18n_header():
         ])
 
     lines.extend([
-        "inline const char *espcontrol_i18n_key_en(const char *key) {",
+        "inline const char *espdesktop_i18n_key_en(const char *key) {",
         "  if (!key) return \"\";",
     ])
     for key, source in english.items():
@@ -686,7 +686,7 @@ def gen_i18n_header():
     for code, translated in languages:
         fn = re.sub(r"[^A-Za-z0-9_]", "_", code)
         lines.extend([
-            f"inline const char *espcontrol_i18n_key_{fn}(const char *key) {{",
+            f"inline const char *espdesktop_i18n_key_{fn}(const char *key) {{",
             "  if (!key) return \"\";",
         ])
         for key, target in translated.items():
@@ -695,38 +695,38 @@ def gen_i18n_header():
                 continue
             lines.append(f"  if (std::strcmp(key, {cpp_string(key)}) == 0) return {cpp_string(target)};")
         lines.extend([
-            "  return espcontrol_i18n_key_en(key);",
+            "  return espdesktop_i18n_key_en(key);",
             "}",
             "",
         ])
 
     lines.extend([
-        "inline const char *espcontrol_i18n(const char *text) {",
+        "inline const char *espdesktop_i18n(const char *text) {",
         "  if (!text) return \"\";",
     ])
     for code, _translated in languages:
         fn = re.sub(r"[^A-Za-z0-9_]", "_", code)
-        lines.append(f"  if (espcontrol_language_code() == {cpp_string(code)}) return espcontrol_i18n_{fn}(text);")
+        lines.append(f"  if (espdesktop_language_code() == {cpp_string(code)}) return espdesktop_i18n_{fn}(text);")
     lines.extend([
         "  return text;",
         "}",
         "",
-        "inline std::string espcontrol_i18n(const std::string &text) {",
-        "  return std::string(espcontrol_i18n(text.c_str()));",
+        "inline std::string espdesktop_i18n(const std::string &text) {",
+        "  return std::string(espdesktop_i18n(text.c_str()));",
         "}",
         "",
-        "inline const char *espcontrol_i18n_key(const char *key) {",
+        "inline const char *espdesktop_i18n_key(const char *key) {",
         "  if (!key) return \"\";",
     ])
     for code, _translated in languages:
         fn = re.sub(r"[^A-Za-z0-9_]", "_", code)
-        lines.append(f"  if (espcontrol_language_code() == {cpp_string(code)}) return espcontrol_i18n_key_{fn}(key);")
+        lines.append(f"  if (espdesktop_language_code() == {cpp_string(code)}) return espdesktop_i18n_key_{fn}(key);")
     lines.extend([
-        "  return espcontrol_i18n_key_en(key);",
+        "  return espdesktop_i18n_key_en(key);",
         "}",
         "",
-        "inline std::string espcontrol_i18n_key(const std::string &key) {",
-        "  return std::string(espcontrol_i18n_key(key.c_str()));",
+        "inline std::string espdesktop_i18n_key(const std::string &key) {",
+        "  return std::string(espdesktop_i18n_key(key.c_str()));",
         "}",
         "",
     ])
@@ -3193,7 +3193,7 @@ def gen_card_runtime_h(data):
     specs = runtime["specs"]
     capabilities = runtime["capabilities"]
     lines = [
-        "namespace espcontrol::card_runtime {\n",
+        "namespace espdesktop::card_runtime {\n",
         "\n",
         "enum class CardTypeId : uint8_t {\n",
     ]
@@ -3292,7 +3292,7 @@ def gen_card_runtime_h(data):
         "  return spec;\n",
         "}\n",
         "\n",
-        "}  // namespace espcontrol::card_runtime\n",
+        "}  // namespace espdesktop::card_runtime\n",
         "\n",
     ])
     return "".join(lines)
@@ -4006,7 +4006,7 @@ def check_firmware_icon_literals(data):
         for item in icon_items(data)
     }
     errors = []
-    for path in sorted((ROOT / "components" / "espcontrol").glob("*.h")):
+    for path in sorted((ROOT / "components" / "espdesktop").glob("*.h")):
         if path.name == "icons.h":
             continue
         text = path.read_text()
@@ -4191,7 +4191,7 @@ def sync_icons(check_only=False):
     assert_icon_data_valid(data)
     dirty = []
 
-    icons_h = ROOT / "components" / "espcontrol" / "icons.h"
+    icons_h = ROOT / "components" / "espdesktop" / "icons.h"
     icon_glyphs = ROOT / "common" / "assets" / "icon_glyphs.yaml"
     web_icons = WEB_ICONS_TS
 
@@ -4263,7 +4263,7 @@ def build_www(check_only=False, output_dir=None, test_hooks=False):
     embedded_mdi_styles = embedded_web_mdi_styles()
     temporary_root = None
     if output_dir is None:
-        temporary_root = tempfile.TemporaryDirectory(prefix="espcontrol-www-")
+        temporary_root = tempfile.TemporaryDirectory(prefix="espdesktop-www-")
         build_root = Path(temporary_root.name)
     else:
         build_root = Path(output_dir).resolve()

@@ -2,14 +2,14 @@
 
 #include "home_assistant_endpoint_policy.h"
 
-using espcontrol::home_assistant_endpoint::Mode;
-using espcontrol::home_assistant_endpoint::ServiceRecord;
-using espcontrol::home_assistant_endpoint::build_origin;
-using espcontrol::home_assistant_endpoint::infer_legacy_mode;
-using espcontrol::home_assistant_endpoint::normalize_address;
-using espcontrol::home_assistant_endpoint::protocol_from_internal_url;
-using espcontrol::home_assistant_endpoint::record_matches_client;
-using espcontrol::home_assistant_endpoint::select_discovered_origin;
+using espdesktop::home_assistant_endpoint::Mode;
+using espdesktop::home_assistant_endpoint::ServiceRecord;
+using espdesktop::home_assistant_endpoint::build_origin;
+using espdesktop::home_assistant_endpoint::infer_legacy_mode;
+using espdesktop::home_assistant_endpoint::normalize_address;
+using espdesktop::home_assistant_endpoint::protocol_from_internal_url;
+using espdesktop::home_assistant_endpoint::record_matches_client;
+using espdesktop::home_assistant_endpoint::select_discovered_origin;
 
 int main() {
   assert(normalize_address(" 192.168.1.10:60532 ") == "192.168.1.10");

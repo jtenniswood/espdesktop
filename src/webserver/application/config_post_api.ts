@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { ENTITY_CATALOG } from "../generated/entity_catalog";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { ConfigCodecFeature } from "./config_codec";
@@ -125,10 +125,10 @@ export function createConfigPersistenceFeature(
     }
     function saveSubpageEntityLegacy(this: any, slot?: any, full?: any, direct?: any) {
         var keys: any = subpageEntityKeys();
-        var chunks: any = EspControlModel.splitSubpageConfigChunks(full, keys.length, 255);
+        var chunks: any = EspDesktopModel.splitSubpageConfigChunks(full, keys.length, 255);
         if (!chunks)
             return "failed";
-        var previousPendingChunks: any = EspControlModel.splitSubpageConfigChunks(state.subpageSavePending[slot] || "", keys.length, 255) || [];
+        var previousPendingChunks: any = EspDesktopModel.splitSubpageConfigChunks(state.subpageSavePending[slot] || "", keys.length, 255) || [];
         state.subpageSavePending[slot] = full;
         var directPosts: any = [];
         for (var ki: any = 0; ki < keys.length; ki++) {
@@ -153,7 +153,7 @@ export function createConfigPersistenceFeature(
         var sp: any = state.subpages[slot];
         var full: any = sp ? serializeSubpageConfig(sp) : "";
         var keys: any = subpageEntityKeys();
-        var chunks: any = EspControlModel.splitSubpageConfigChunks(full, keys.length, 255);
+        var chunks: any = EspDesktopModel.splitSubpageConfigChunks(full, keys.length, 255);
         if (!chunks) {
             showBanner("Subpage is too large to save. Shorten labels or entity IDs.", "error");
             return "failed";

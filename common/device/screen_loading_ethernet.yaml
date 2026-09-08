@@ -73,15 +73,15 @@ esphome:
         - lvgl.resume:
         - script.execute: clock_bar_hide
         - lambda: |-
-            lv_label_set_text(id(loading_status_title), espcontrol_i18n("Starting up"));
-            lv_label_set_text(id(loading_status_label), espcontrol_i18n("Booting"));
+            lv_label_set_text(id(loading_status_title), espdesktop_i18n("Starting up"));
+            lv_label_set_text(id(loading_status_label), espdesktop_i18n("Booting"));
         - lvgl.page.show: loading_page
         - delay: 100ms
         - if:
             condition:
               lambda: |-
                 auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-                return id(espcontrol_app).display().target_schedule_inactive() ||
+                return id(espdesktop_app).display().target_schedule_inactive() ||
                        screen_schedule_waiting_for_time(
                          id(screen_schedule_trigger).state,
                          id(schedule_enabled).state,
@@ -101,7 +101,7 @@ esphome:
     - priority: -100
       then:
         - lambda: |-
-            lv_label_set_text(id(loading_status_label), espcontrol_i18n("Connecting to Ethernet"));
+            lv_label_set_text(id(loading_status_label), espdesktop_i18n("Connecting to Ethernet"));
         - delay: 15s
         - lambda: 'id(boot_grace_period) = false;'
         - if:

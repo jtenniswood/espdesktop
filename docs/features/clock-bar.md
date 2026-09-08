@@ -1,7 +1,7 @@
 ---
-title: EspControl Clock Bar
+title: EspDesktop Clock Bar
 description:
-  How to configure the clock bar shown at the top of your EspControl panel.
+  How to configure the clock bar shown at the top of your EspDesktop panel.
 ---
 
 # Clock Bar

@@ -7,12 +7,12 @@ api:
     - action: refresh_camera_cards
       then:
         - lambda: |-
-            const auto &display = id(espcontrol_app).display();
+            const auto &display = id(espdesktop_app).display();
             const bool page_visible =
-                (display.current_mode_is(espcontrol::DisplayMode::ACTIVE) ||
-                 display.current_mode_is(espcontrol::DisplayMode::DIMMED)) &&
-                (display.target_mode_is(espcontrol::DisplayMode::ACTIVE) ||
-                 display.target_mode_is(espcontrol::DisplayMode::DIMMED));
+                (display.current_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                 display.current_mode_is(espdesktop::DisplayMode::DIMMED)) &&
+                (display.target_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                 display.target_mode_is(espdesktop::DisplayMode::DIMMED));
             if (!page_visible) return;
             refresh_visible_camera_cards();
 

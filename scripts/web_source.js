@@ -13,7 +13,7 @@ function freshWebOutputDir(options = {}) {
   const testHooks = options.testHooks !== false;
   const key = testHooks ? "test" : "production";
   if (outputDirectories.has(key)) return outputDirectories.get(key);
-  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), `espcontrol-web-${key}-`));
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), `espdesktop-web-${key}-`));
   const args = [path.join(ROOT, "scripts", "build.py"), "www", "--temporary-output", outputDir];
   if (testHooks) args.push("--test-hooks");
   const result = childProcess.spawnSync("python3", args, { cwd: ROOT, encoding: "utf8" });

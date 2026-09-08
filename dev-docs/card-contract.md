@@ -67,21 +67,21 @@ Generated consumers include:
 - `src/webserver/generated/saved_config_mower.ts`
 - `src/webserver/generated/saved_config_occupancy.ts`
 - `src/webserver/generated/saved_config_access.ts`
-- `components/espcontrol/button_grid_contract_generated.h`
-- `components/espcontrol/button_grid_saved_config_vacuum_generated.h`
-- `components/espcontrol/button_grid_saved_config_sensor_generated.h`
-- `components/espcontrol/button_grid_saved_config_action_generated.h`
-- `components/espcontrol/button_grid_saved_config_media_generated.h`
-- `components/espcontrol/button_grid_saved_config_static_generated.h`
-- `components/espcontrol/button_grid_saved_config_fan_generated.h`
-- `components/espcontrol/button_grid_saved_config_date_time_generated.h`
-- `components/espcontrol/button_grid_saved_config_mower_generated.h`
-- `components/espcontrol/button_grid_saved_config_occupancy_generated.h`
-- `components/espcontrol/button_grid_saved_config_access_generated.h`
+- `components/espdesktop/button_grid_contract_generated.h`
+- `components/espdesktop/button_grid_saved_config_vacuum_generated.h`
+- `components/espdesktop/button_grid_saved_config_sensor_generated.h`
+- `components/espdesktop/button_grid_saved_config_action_generated.h`
+- `components/espdesktop/button_grid_saved_config_media_generated.h`
+- `components/espdesktop/button_grid_saved_config_static_generated.h`
+- `components/espdesktop/button_grid_saved_config_fan_generated.h`
+- `components/espdesktop/button_grid_saved_config_date_time_generated.h`
+- `components/espdesktop/button_grid_saved_config_mower_generated.h`
+- `components/espdesktop/button_grid_saved_config_occupancy_generated.h`
+- `components/espdesktop/button_grid_saved_config_access_generated.h`
 - `docs/generated/cards/capabilities.md`
 
 Firmware card types then cross the shared runtime registry in
-`components/espcontrol/button_grid_card_registry.h`. The main grid and
+`components/espdesktop/button_grid_card_registry.h`. The main grid and
 subpages both resolve the same `Family` before choosing their surface-specific
 widget and lifecycle adapter. The registry test covers every authored contract
 type and checks that subpage capability still matches the contract.
@@ -215,7 +215,7 @@ fallback; Vacuum uses it for the old service-style Start and Dock modes.
 
 The setup page stores button configuration in ESPHome text entities, usually
 named `Button N Config`. Firmware reads those strings and parses them into
-`ParsedCfg` in `components/espcontrol/button_grid_config.h`.
+`ParsedCfg` in `components/espdesktop/button_grid_config.h`.
 
 The web-side equivalent lives in `src/webserver/application/config_codec.ts`.
 
@@ -231,14 +231,14 @@ preserved in all relevant places:
 - `src/webserver/application/config_codec.ts`
   - normalization while editing
   - serialization before writing back to the device
-- `components/espcontrol/button_grid_config.h`
+- `components/espdesktop/button_grid_config.h`
   - firmware parsing after the compact string is read
 
 This means there are three wipe points:
 
 1. `normalizeButtonConfig` in `src/webserver/application/config_codec.ts`.
 2. `buttonConfigFields` in `src/webserver/application/config_codec.ts`.
-3. `parse_cfg` in `components/espcontrol/button_grid_config.h`.
+3. `parse_cfg` in `components/espdesktop/button_grid_config.h`.
 
 If an option appears to save in the setup page but disappears after reload, or
 applies in the editor but shows defaults on the device, one of these exclusions
@@ -277,10 +277,10 @@ Action state, script-field, and confirmation text values also ignore leading and
 | Type metadata and defaults | `product/v2/card_contract.json` |
 | Web settings and preview | `src/webserver/cards/<type>.ts` |
 | Web parsing/serialization | `src/webserver/application/config_codec.ts` |
-| Firmware parsing | `components/espcontrol/button_grid_config.h` |
-| Firmware rendering/runtime | `components/espcontrol/button_grid_<type>.h` |
-| Shared firmware family registry | `components/espcontrol/button_grid_card_registry.h` |
-| Grid setup/runtime wiring | `components/espcontrol/button_grid_grid.h` |
+| Firmware parsing | `components/espdesktop/button_grid_config.h` |
+| Firmware rendering/runtime | `components/espdesktop/button_grid_<type>.h` |
+| Shared firmware family registry | `components/espdesktop/button_grid_card_registry.h` |
+| Grid setup/runtime wiring | `components/espdesktop/button_grid_grid.h` |
 | Shared generated constants | `button_grid_contract_generated.h` and `src/webserver/generated/card_contract.ts` |
 
 ## Adding or Fixing a Card Type

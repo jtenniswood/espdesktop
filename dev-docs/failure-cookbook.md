@@ -8,7 +8,7 @@ starts with the fastest place to look and the narrowest useful check.
 First files:
 
 - `src/webserver/application/config_codec.ts`
-- `components/espcontrol/button_grid_config.h`
+- `components/espdesktop/button_grid_config.h`
 - `product/v2/card_contract.json`
 
 Likely cause: the editor writes an option, but web normalization or firmware
@@ -28,8 +28,8 @@ Stop if the web codec and firmware parser do not preserve the same fields.
 First files:
 
 - `src/webserver/cards/<type>.ts`
-- `components/espcontrol/button_grid_<type>.h`
-- `components/espcontrol/button_grid_grid.h`
+- `components/espdesktop/button_grid_<type>.h`
+- `components/espdesktop/button_grid_grid.h`
 
 Likely cause: the setup page preview was updated without matching firmware
 rendering, runtime wiring, or Home Assistant subscription handling.
@@ -91,7 +91,7 @@ First files:
 - `product/v2/device_catalog.json`
 - `devices/manifest.json`
 - `devices/guition-esp32-s3-4848s040/`
-- `components/espcontrol/button_grid_grid.h`
+- `components/espdesktop/button_grid_grid.h`
 - image, camera, media, and font-related headers for the feature
 
 Likely cause: memory, image downloader count, font role, screen size, or feature
@@ -112,8 +112,8 @@ First files:
 
 - `product/v2/card_contract.json`
 - `src/webserver/cards/<type>.ts`
-- `components/espcontrol/button_grid.h`
-- `components/espcontrol/button_grid_grid.h`
+- `components/espdesktop/button_grid.h`
+- `components/espdesktop/button_grid_grid.h`
 
 Likely cause: the card was registered in the web setup page but not included or
 wired in firmware setup/runtime.
@@ -131,9 +131,9 @@ Stop if a card can be saved by the web UI but has no firmware rendering path.
 
 First files:
 
-- `components/espcontrol/button_grid_actions.h`
-- `components/espcontrol/button_grid_ha.h`
-- `components/espcontrol/button_grid_contract_generated.h`
+- `components/espdesktop/button_grid_actions.h`
+- `components/espdesktop/button_grid_ha.h`
+- `components/espdesktop/button_grid_contract_generated.h`
 - The card-specific firmware header
 
 Likely cause: service mapping, target entity, action permission, or runtime

@@ -1,17 +1,17 @@
 ---
 name: translations
-description: Find static user-visible words shown on the physical EspControl device and integrate them into the firmware translation process. Use when the user asks to add, audit, fix, or review firmware/device UI translations, hard-coded display text, i18n keys, or physical screen/card/modal/status text in the espcontrol repository.
+description: Find static user-visible words shown on the physical EspDesktop device and integrate them into the firmware translation process. Use when the user asks to add, audit, fix, or review firmware/device UI translations, hard-coded display text, i18n keys, or physical screen/card/modal/status text in the espdesktop repository.
 ---
 
 # Translations
 
 ## Purpose
 
-Use this skill to move static physical-device UI text into the EspControl firmware translation workflow. Keep the work narrow: firmware display text only, no webserver/setup-configurator-only strings, no Home Assistant dynamic content, and no unrelated refactors.
+Use this skill to move static physical-device UI text into the EspDesktop firmware translation workflow. Keep the work narrow: firmware display text only, no webserver/setup-configurator-only strings, no Home Assistant dynamic content, and no unrelated refactors.
 
 ## Scope
 
-Count only text that can appear on the physical EspControl display, including:
+Count only text that can appear on the physical EspDesktop display, including:
 
 - Screen, card, modal, setup, and status labels.
 - Button labels and confirmation text.
@@ -28,15 +28,15 @@ Do not translate or change:
 
 1. Start from a clean feature branch/worktree based on latest `origin/main` unless the user explicitly says otherwise.
 2. Search for hard-coded user-visible strings mainly in:
-   - `components/espcontrol/`
+   - `components/espdesktop/`
    - `common/device/`
    - `common/addon/` when text can appear on the display
    - `product/v2/translations/strings.en.txt`
 3. Avoid treating `src/webserver/` strings as in scope unless the same string is shared with firmware output and appears on the physical display.
 4. For each candidate string, classify it before editing:
-   - Already present in `product/v2/translations/strings.en.txt` and rendered through `espcontrol_i18n(...)` or `espcontrol_i18n_key(...)`: leave it alone.
+   - Already present in `product/v2/translations/strings.en.txt` and rendered through `espdesktop_i18n(...)` or `espdesktop_i18n_key(...)`: leave it alone.
    - Present in `product/v2/translations/strings.en.txt` but displayed as raw English: update the firmware code to use the translation helper.
-   - Passed into a local helper that later renders text through `espcontrol_i18n(...)`: make sure the English value exists in every `product/v2/translations/strings.*.txt` file.
+   - Passed into a local helper that later renders text through `espdesktop_i18n(...)`: make sure the English value exists in every `product/v2/translations/strings.*.txt` file.
    - Returned from a local helper and later displayed without another translation call: translate the known static return values before returning or before display.
    - Missing from `product/v2/translations/strings.en.txt`: add a stable `snake_case` key to `strings.en.txt` and add the matching key to every `product/v2/translations/strings.*.txt` file.
 5. For non-English translation files, add a reasonable translation. If uncertain, use the English source text instead of guessing badly.
@@ -62,10 +62,10 @@ If `npm run check:product` fails because `esbuild` is missing in a fresh worktre
 Use targeted searches and then inspect context manually. Useful starting points:
 
 ```bash
-rg --line-number --glob '!src/webserver/**' '"[^"]*[A-Za-z][^"]*"' components/espcontrol common/device common/addon product/v2/translations
-rg --line-number "espcontrol_i18n|espcontrol_i18n_key|strings\\.en\\.txt" components/espcontrol common/device common/addon product/v2/translations
-rg --line-number "lv_label_set_text\([^\n]*(\"|std::string|sentence_cap_text)|text:\s*\"|text:\s*!lambda" components/espcontrol common/device common/addon --glob '!components/espcontrol/i18n_generated.h'
-rg --line-number "static const char \*|const char \*.*\[\]|std::array<.*char|std::vector<.*string" components/espcontrol --glob '!components/espcontrol/i18n_generated.h'
+rg --line-number --glob '!src/webserver/**' '"[^"]*[A-Za-z][^"]*"' components/espdesktop common/device common/addon product/v2/translations
+rg --line-number "espdesktop_i18n|espdesktop_i18n_key|strings\\.en\\.txt" components/espdesktop common/device common/addon product/v2/translations
+rg --line-number "lv_label_set_text\([^\n]*(\"|std::string|sentence_cap_text)|text:\s*\"|text:\s*!lambda" components/espdesktop common/device common/addon --glob '!components/espdesktop/i18n_generated.h'
+rg --line-number "static const char \*|const char \*.*\[\]|std::array<.*char|std::vector<.*string" components/espdesktop --glob '!components/espdesktop/i18n_generated.h'
 ```
 
 Treat search results as candidates, not proof. Many strings in firmware code are not translatable UI text.
@@ -86,11 +86,11 @@ import re
 
 root = Path.cwd()
 files = (
-    list((root / "components/espcontrol").glob("*.h")) +
+    list((root / "components/espdesktop").glob("*.h")) +
     list((root / "common/device").glob("*.yaml")) +
     list((root / "common/addon").glob("*.yaml"))
 )
-pattern = re.compile(r'espcontrol_i18n\(\s*(?:std::string\()?"((?:[^"\\]|\\.)*)"')
+pattern = re.compile(r'espdesktop_i18n\(\s*(?:std::string\()?"((?:[^"\\]|\\.)*)"')
 used = {}
 for path in files:
     if path.name == "i18n_generated.h":
@@ -118,7 +118,7 @@ for value, locations in sorted(missing.items()):
 PY
 ```
 
-Use this narrower raw-literal audit to find English-looking text that is not directly wrapped in `espcontrol_i18n(...)`. Inspect each hit manually; many are logs, templates, icons, option values, or Home Assistant data and must not be translated.
+Use this narrower raw-literal audit to find English-looking text that is not directly wrapped in `espdesktop_i18n(...)`. Inspect each hit manually; many are logs, templates, icons, option values, or Home Assistant data and must not be translated.
 
 ```bash
 python3 - <<'PY'
@@ -127,7 +127,7 @@ import re
 
 root = Path.cwd()
 paths = (
-    list((root / "components/espcontrol").glob("*.h")) +
+    list((root / "components/espdesktop").glob("*.h")) +
     list((root / "common/device").glob("*.yaml")) +
     list((root / "common/addon").glob("*.yaml"))
 )
@@ -142,7 +142,7 @@ for path in paths:
     if path.name in {"i18n_generated.h", "button_grid_contract_generated.h"}:
         continue
     for line_no, line in enumerate(path.read_text(errors="ignore").splitlines(), 1):
-        if "espcontrol_i18n" in line or "espcontrol_i18n_key" in line:
+        if "espdesktop_i18n" in line or "espdesktop_i18n_key" in line:
             continue
         if any(value in line for value in skip_context):
             continue

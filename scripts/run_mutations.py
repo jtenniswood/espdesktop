@@ -45,7 +45,7 @@ def main() -> int:
         if not patch.is_file() or not entry.get("command"):
             raise SystemExit(f"Invalid mutation entry: {mutation_id}")
 
-        with tempfile.TemporaryDirectory(prefix=f"espcontrol-{mutation_id}-") as directory:
+        with tempfile.TemporaryDirectory(prefix=f"espdesktop-{mutation_id}-") as directory:
             commands = [("replacement", entry["command"])]
             if entry.get("legacy_command"):
                 commands.append(("legacy", entry["legacy_command"]))

@@ -8,11 +8,11 @@
 
 namespace {
 
-using espcontrol::configuration::BlobLoadStatus;
-using espcontrol::configuration::BlobLoadResult;
-using espcontrol::configuration::BlobStorage;
-using espcontrol::configuration::BufferedBlobStorageBackend;
-using espcontrol::configuration::ConfigurationStore;
+using espdesktop::configuration::BlobLoadStatus;
+using espdesktop::configuration::BlobLoadResult;
+using espdesktop::configuration::BlobStorage;
+using espdesktop::configuration::BufferedBlobStorageBackend;
+using espdesktop::configuration::ConfigurationStore;
 
 constexpr size_t kSlotCapacity = 96;
 
@@ -69,7 +69,7 @@ bool missing_slots_behave_like_an_empty_store() {
   ConfigurationStore store(backend);
   std::array<uint8_t, 32> output{};
   return store.load(output.data(), output.size()).status ==
-             espcontrol::configuration::StoreStatus::EMPTY &&
+             espdesktop::configuration::StoreStatus::EMPTY &&
          !blobs.present(0) && !blobs.present(1);
 }
 
@@ -97,7 +97,7 @@ bool persisted_blobs_are_compact_but_remain_readable() {
   const std::array<uint8_t, 3> value{{'o', 'k', '!'}};
   if (!store.commit(value.data(), value.size()).ok() ||
       blobs.stored_size(0) !=
-          espcontrol::configuration::CONFIGURATION_ENVELOPE_HEADER_SIZE +
+          espdesktop::configuration::CONFIGURATION_ENVELOPE_HEADER_SIZE +
               value.size()) {
     return false;
   }
@@ -153,7 +153,7 @@ bool runtime_capacity_bounds_atomic_slots() {
   ConfigurationStore store(backend);
   return store.maximum_payload_size() ==
          kRuntimeCapacity -
-             espcontrol::configuration::CONFIGURATION_ENVELOPE_HEADER_SIZE;
+             espdesktop::configuration::CONFIGURATION_ENVELOPE_HEADER_SIZE;
 }
 
 }  // namespace

@@ -1,6 +1,6 @@
 # Modal Layout System
 
-EspControl modals share one architecture while keeping deliberate differences
+EspDesktop modals share one architecture while keeping deliberate differences
 for each display family. Device identity is not inspected inside modal code.
 
 ## Ownership

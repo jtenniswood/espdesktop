@@ -16,8 +16,8 @@ export function runBackupFileControllerTests(): void {
     showBanner: (message, kind) => events.push(`${kind}:${message}`),
   });
 
-  controller.download({ version: 2 }, "espcontrol.json");
-  equal(events[0], 'download:espcontrol.json:{\n  "version": 2\n}', "downloads readable JSON");
+  controller.download({ version: 2 }, "espdesktop.json");
+  equal(events[0], 'download:espdesktop.json:{\n  "version": 2\n}', "downloads readable JSON");
 
   let restored: unknown;
   controller.import((data) => { restored = data; });

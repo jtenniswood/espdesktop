@@ -6,7 +6,7 @@ Accepted. Amends ADR 0006.
 
 ## Context
 
-EspControl's long-lived runtime state was created through separate YAML globals
+EspDesktop's long-lived runtime state was created through separate YAML globals
 and reached directly from many lambdas. That makes ownership and lifecycle
 implicit, and it prevents compiled services from sharing one stable application
 boundary. ADR 0006 intentionally deferred a central component while behaviour
@@ -14,15 +14,15 @@ families were separated; the required foundations now exist.
 
 ## Decision
 
-Introduce one compiled `EspControlApp` ESPHome component. It owns the
-framework-independent `EspControlAppCore`, which in turn owns long-lived
+Introduce one compiled `EspDesktopApp` ESPHome component. It owns the
+framework-independent `EspDesktopAppCore`, which in turn owns long-lived
 firmware services. ESPHome calls the application boundary for setup, loop, and
-shutdown. Device YAML keeps the stable `espcontrol_app` ID and acts as a wiring
+shutdown. Device YAML keeps the stable `espdesktop_app` ID and acts as a wiring
 and compatibility layer rather than owning service state.
 
 `DisplayModeController` and the card-runtime registry are migrated services.
 Existing display behaviour and method names are unchanged; YAML reaches the
-controller through `id(espcontrol_app).display()`. Existing card helpers use a
+controller through `id(espdesktop_app).display()`. Existing card helpers use a
 compatibility binding to the core-owned registry while they migrate to explicit
 service access. The configuration service is also core-owned; the ESPHome
 component injects its device-specific storage and legacy-text adapters before
@@ -39,7 +39,7 @@ are covered by executable host tests.
 
 ## Consequences
 
-- There is one explicit lifetime for EspControl-owned services.
+- There is one explicit lifetime for EspDesktop-owned services.
 - Device-specific objects and callbacks still enter through narrow wiring
   adapters.
 - YAML remains compatible during migration but no longer creates the display

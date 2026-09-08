@@ -120,7 +120,7 @@ export function createControlsShellFeature(
         header.className = "sp-header";
         var brand: any = document.createElement("div");
         brand.className = "sp-brand";
-        brand.textContent = "EspControl";
+        brand.textContent = "EspDesktop";
         header.appendChild(brand);
         var nav: any = document.createElement("nav");
         nav.className = "sp-nav";
@@ -142,7 +142,7 @@ export function createControlsShellFeature(
         });
         var docsLink: any = document.createElement("a");
         docsLink.className = "sp-tab sp-tab-docs";
-        docsLink.href = "https://jtenniswood.github.io/espcontrol/";
+        docsLink.href = "https://jtenniswood.github.io/espdesktop/";
         docsLink.target = "_blank";
         docsLink.rel = "noopener";
         docsLink.appendChild(document.createTextNode("Docs "));

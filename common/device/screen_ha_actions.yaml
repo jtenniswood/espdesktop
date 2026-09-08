@@ -95,9 +95,9 @@ script:
     mode: restart
     then:
       - lambda: |-
-          lv_label_set_text(id(ha_actions_title), espcontrol_i18n("Home Assistant"));
+          lv_label_set_text(id(ha_actions_title), espdesktop_i18n("Home Assistant"));
           lv_label_set_text(
               id(ha_actions_instructions),
-              espcontrol_i18n("Allow this device to perform\nHome Assistant actions"));
-          lv_label_set_text(id(ha_actions_help), espcontrol_i18n("See the install guide for help"));
-          lv_label_set_text(id(ha_actions_done_label), espcontrol_i18n("Done"));
+              espdesktop_i18n("Allow this device to perform\nHome Assistant actions"));
+          lv_label_set_text(id(ha_actions_help), espdesktop_i18n("See the install guide for help"));
+          lv_label_set_text(id(ha_actions_done_label), espdesktop_i18n("Done"));

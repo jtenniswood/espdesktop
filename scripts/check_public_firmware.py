@@ -43,7 +43,7 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 
 def fetch_json(url: str) -> dict:
-    request = urllib.request.Request(url, headers={"User-Agent": "espcontrol-public-firmware-check"})
+    request = urllib.request.Request(url, headers={"User-Agent": "espdesktop-public-firmware-check"})
     with urllib.request.urlopen(request, timeout=30) as response:
         data = response.read()
     try:
@@ -59,7 +59,7 @@ def assert_url_non_empty(url: str) -> None:
     request = urllib.request.Request(
         url,
         method="HEAD",
-        headers={"User-Agent": "espcontrol-public-firmware-check"},
+        headers={"User-Agent": "espdesktop-public-firmware-check"},
     )
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
@@ -75,7 +75,7 @@ def assert_url_non_empty(url: str) -> None:
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "espcontrol-public-firmware-check",
+            "User-Agent": "espdesktop-public-firmware-check",
             "Range": "bytes=0-0",
         },
     )
@@ -178,7 +178,7 @@ def stable_version_tuple(version: str) -> tuple[int, int, int]:
 def verify_recovery_slug(base_url: str, slug: str, expected_version: str) -> None:
     url = base_url.rstrip("/") + f"/firmware/{slug}/recovery/manifest.json"
     manifest = fetch_json(url)
-    if manifest.get("name") != "Espcontrol":
+    if manifest.get("name") != "EspDesktop":
         raise PublicFirmwareError(f"{url} must retain the normal firmware identity")
     if str(manifest.get("version", "")).strip() != expected_version:
         raise PublicFirmwareError(f"{url} must match stable version {expected_version}")
@@ -269,7 +269,7 @@ def write_manifest(directory: Path, slug: str, include_factory: bool = True) -> 
         (directory / f"{slug}.factory.bin").write_bytes(b"factory")
         parts.append({"path": f"{slug}.factory.bin", "offset": 0})
     (directory / "manifest.json").write_text(json.dumps({
-        "name": "Espcontrol",
+        "name": "EspDesktop",
         "version": "v1.2.3",
         "home_assistant_domain": "esphome",
         "builds": [{
@@ -316,7 +316,7 @@ def write_recovery_manifest(directory: Path, slug: str) -> None:
     directory.mkdir(parents=True, exist_ok=True)
     (directory / f"{slug}.recovery.bin").write_bytes(b"recovery")
     (directory / "manifest.json").write_text(json.dumps({
-        "name": "Espcontrol",
+        "name": "EspDesktop",
         "version": "v1.2.3",
         "home_assistant_domain": "esphome",
         "new_install_prompt_erase": True,

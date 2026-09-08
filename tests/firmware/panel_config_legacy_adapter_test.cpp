@@ -11,22 +11,22 @@
 
 namespace {
 
-using espcontrol::configuration::LegacyStatus;
-using espcontrol::configuration::PanelConfigLegacyAdapter;
-using espcontrol::configuration::PanelConfigRuntimeAdapter;
-using espcontrol::configuration::PanelConfigTextBindings;
-using espcontrol::configuration::PanelConfigTextValue;
-using espcontrol::configuration::PanelConfigReader;
-using espcontrol::configuration::PanelConfigRecord;
-using espcontrol::configuration::PanelConfigRecordType;
-using espcontrol::configuration::PanelConfigStatus;
-using espcontrol::configuration::PanelConfigWriter;
+using espdesktop::configuration::LegacyStatus;
+using espdesktop::configuration::PanelConfigLegacyAdapter;
+using espdesktop::configuration::PanelConfigRuntimeAdapter;
+using espdesktop::configuration::PanelConfigTextBindings;
+using espdesktop::configuration::PanelConfigTextValue;
+using espdesktop::configuration::PanelConfigReader;
+using espdesktop::configuration::PanelConfigRecord;
+using espdesktop::configuration::PanelConfigRecordType;
+using espdesktop::configuration::PanelConfigStatus;
+using espdesktop::configuration::PanelConfigWriter;
 
 static_assert(!std::is_base_of_v<
-              espcontrol::configuration::ConfigurationRuntimeAdapter,
+              espdesktop::configuration::ConfigurationRuntimeAdapter,
               PanelConfigLegacyAdapter>);
 static_assert(std::is_base_of_v<
-              espcontrol::configuration::ConfigurationRuntimeAdapter,
+              espdesktop::configuration::ConfigurationRuntimeAdapter,
               PanelConfigRuntimeAdapter>);
 
 class FakeText final : public PanelConfigTextValue {

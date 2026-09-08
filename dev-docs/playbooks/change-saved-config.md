@@ -6,7 +6,7 @@ fixtures are parsed or serialized.
 ## Edit First
 
 - `src/webserver/application/config_codec.ts`
-- `components/espcontrol/button_grid_config.h`
+- `components/espdesktop/button_grid_config.h`
 - `product/v2/product_compatibility.json`
 
 Only edit card UI or runtime files after the saved shape and compatibility rule
@@ -45,7 +45,7 @@ source-to-generated mapping is in
 Expected generated files depend on the source touched. Common examples include:
 
 - `src/webserver/generated/card_contract.ts`
-- `components/espcontrol/button_grid_contract_generated.h`
+- `components/espdesktop/button_grid_contract_generated.h`
 - generated files under `docs/public/webserver/`
 - `docs/generated/cards/capabilities.md`
 

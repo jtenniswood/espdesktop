@@ -50,7 +50,7 @@ a flashed branch uses that branch's setup UI. The generated files are still
 published for older firmware that loads the hosted GitHub Pages copy:
 
 ```text
-https://jtenniswood.github.io/espcontrol/webserver/<slug>/www.js
+https://jtenniswood.github.io/espdesktop/webserver/<slug>/www.js
 ```
 
 The fallback hosted bundle URL is set as `js_url` in
@@ -70,7 +70,7 @@ Button 2 Config
 
 The setup page serializes card settings to a compact string. Firmware parses the
 same string on-device. Keep `src/webserver/application/config_codec.ts` and
-`components/espcontrol/button_grid_config.h` in sync.
+`components/espdesktop/button_grid_config.h` in sync.
 
 To inspect what the device actually stored, read the matching ESPHome web server
 entity:

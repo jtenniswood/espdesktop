@@ -1,5 +1,5 @@
 export {};
 
 declare global {
-  var __ESPCONTROL_TEST_HOOKS__: any;
+  var __ESPDESKTOP_TEST_HOOKS__: any;
 }

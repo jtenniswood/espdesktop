@@ -7,8 +7,8 @@
 # =============================================================================
 
 substitutions:
-  espcontrol_component_url: "https://github.com/jtenniswood/espcontrol"
-  espcontrol_component_ref: "main"
+  espdesktop_component_url: "https://github.com/jtenniswood/espdesktop"
+  espdesktop_component_ref: "main"
   mdi_font_file: "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.ttf"
 
 # ---------------------------------------------------------------------------
@@ -57,10 +57,10 @@ esp32:
 external_components:
   - source:
       type: git
-      url: ${espcontrol_component_url}
-      ref: ${espcontrol_component_ref}
+      url: ${espdesktop_component_url}
+      ref: ${espdesktop_component_ref}
       path: components
-    components: [espcontrol, web_server_idf, artwork_image, mipi_rgb, companion]
+    components: [espdesktop, web_server_idf, artwork_image, mipi_rgb, companion]
     refresh: 1s
 
 # A local, panel-hosted TLS WebSocket endpoint for the optional macOS Companion
@@ -70,8 +70,8 @@ companion:
   id: mac_companion
   port: 8443
 
-espcontrol:
-  id: espcontrol_app
+espdesktop:
+  id: espdesktop_app
   panel_config:
     device_profile: ${device_slug}
     storage: card_images
@@ -110,10 +110,10 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   build_flags:
-    - "-DESPCONTROL_MAX_GRID_SLOTS=9"
-    - "-DESPCONTROL_LOW_HEAP_MEDIA_CONTROL=1"
-    - "-DESPCONTROL_LOW_HEAP_COVER_ART=1"
-    - "-DESPCONTROL_DISABLE_WEATHER_FORECAST=1"
+    - "-DESPDESKTOP_MAX_GRID_SLOTS=9"
+    - "-DESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1"
+    - "-DESPDESKTOP_LOW_HEAP_COVER_ART=1"
+    - "-DESPDESKTOP_DISABLE_WEATHER_FORECAST=1"
     # Keep C++ literals close to their functions on the S3 firmware image;
     # the modal code is large enough to otherwise trip Xtensa l32r range limits.
     - "-mtext-section-literals"
@@ -218,7 +218,7 @@ esphome:
                   lv_obj_add_flag(id(cover_art_image_widget), LV_OBJ_FLAG_HIDDEN);
                 }
                 if (id(cover_art_runtime).image_available && id(cover_art_media_playing) &&
-                    id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART)) {
+                    id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART)) {
                   #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
                   lv_image_set_src(id(cover_art_image_widget), id(cover_art_downloaded_image)->get_lv_image_dsc());
                   #else
@@ -342,10 +342,10 @@ light:
             condition:
               lambda: |-
                 auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-                return (id(espcontrol_app).display().target_source_is(
-                            espcontrol::DisplayRequestSource::SCREEN_SCHEDULE) &&
-                        id(espcontrol_app).display().target_mode_is(
-                            espcontrol::DisplayMode::DISPLAY_OFF)) ||
+                return (id(espdesktop_app).display().target_source_is(
+                            espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
+                        id(espdesktop_app).display().target_mode_is(
+                            espdesktop::DisplayMode::DISPLAY_OFF)) ||
                        screen_schedule_waiting_for_time(
                          id(screen_schedule_trigger).state,
                          id(schedule_enabled).state,
@@ -356,8 +356,8 @@ light:
               - if:
                   condition:
                     lambda: |-
-                      return id(espcontrol_app).display().current_mode_is(
-                          espcontrol::DisplayMode::DISPLAY_OFF);
+                      return id(espdesktop_app).display().current_mode_is(
+                          espdesktop::DisplayMode::DISPLAY_OFF);
                   then:
                     - script.execute: screensaver_wake
     on_turn_off:

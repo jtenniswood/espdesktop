@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import {
     cardContractAllowInSubpage,
     cardContractCardKeys,
@@ -69,7 +69,7 @@ export function installAppTestHooksConfig(
     clipboard: Pick<PreviewClipboardFeature, "entriesFromTransfer">,
     contextMenu: Pick<PreviewContextMenuFeature, "cardSizeOptions">,
     fields: Pick<ControlsFieldsFeature, "cardMetadataValue">,
-    registerEspControlTestHookGroup: AppTestHookRegistrar,
+    registerEspDesktopTestHookGroup: AppTestHookRegistrar,
 ): void {
     const { subpageEntityKeys, subpageChunkShouldPost } = configPersistence;
     const { defaultTypeForPicker: defaultButtonTypeForPicker, pickerKeys: buttonTypePickerKeys, pickerOptions: buttonTypePickerOptionList, registryValue: buttonTypeRegistryValue, typeVisibleInPicker: buttonTypeVisibleInPicker } = preview;
@@ -270,8 +270,8 @@ export function installAppTestHooksConfig(
         buildSubpageGrid,
         serializeSubpageGrid,
     } = codec;
-    if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
-        registerEspControlTestHookGroup("config", {
+    if (typeof globalThis !== "undefined" && globalThis.__ESPDESKTOP_TEST_HOOKS__) {
+        registerEspDesktopTestHookGroup("config", {
             setGridDimensions: function (cols?: number, rows?: number) {
                 if (cols) layout.gridCols = cols;
                 if (rows) layout.gridRows = rows;
@@ -544,7 +544,7 @@ export function installAppTestHooksConfig(
                 var config: any = typeDef && typeDef.defaultConfig;
                 if (typeof config === "function")
                     config = config();
-                return config ? EspControlModel.cloneCardConfig(config) : null;
+                return config ? EspDesktopModel.cloneCardConfig(config) : null;
             },
             buttonTypeRuntimeSpec: function (this: any, type?: any) {
                 var typeDef: any = cardRegistry.definitions[type || ""];
@@ -564,15 +564,15 @@ export function installAppTestHooksConfig(
             serializeSubpageConfig: serializeSubpageConfig,
             buildSubpageGrid: buildSubpageGrid,
             serializeSubpageGrid: serializeSubpageGrid,
-            splitSubpageConfigChunks: EspControlModel.splitSubpageConfigChunks,
+            splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
             subpageChunkPostKeysFor: function (this: any, full?: any, raw?: any, previousPending?: any) {
                 var oldRaw: any = state.subpageRaw[1];
                 var oldPending: any = state.subpageSavePending[1];
                 state.subpageRaw[1] = raw || {};
                 state.subpageSavePending[1] = previousPending || "";
                 var keys: any = subpageEntityKeys();
-                var chunks: any = EspControlModel.splitSubpageConfigChunks(full || "", keys.length, 255) || [];
-                var previousPendingChunks: any = EspControlModel.splitSubpageConfigChunks(state.subpageSavePending[1] || "", keys.length, 255) || [];
+                var chunks: any = EspDesktopModel.splitSubpageConfigChunks(full || "", keys.length, 255) || [];
+                var previousPendingChunks: any = EspDesktopModel.splitSubpageConfigChunks(state.subpageSavePending[1] || "", keys.length, 255) || [];
                 var out: any = keys.filter(function (this: any, _key?: any, index?: any) {
                     return subpageChunkShouldPost(1, keys, chunks, index, previousPendingChunks);
                 });

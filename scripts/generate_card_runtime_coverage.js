@@ -13,8 +13,8 @@ const CONTRACT_PATH = path.join(ROOT, "product", "v2", "card_contract.json");
 const NORMALIZATION_PATH = path.join(ROOT, "common", "config", "card_runtime_baseline_card_normalization_fixtures.json");
 const SURFACE_PATH = path.join(ROOT, "compatibility", "fixtures", "card_runtime_surface_baseline.json");
 const REPORT_PATH = path.join(ROOT, "docs", "generated", "cards", "runtime-coverage.md");
-const RUNTIME_PATH = path.join(ROOT, "components", "espcontrol", "button_grid_card_runtime.h");
-const GENERATED_RUNTIME_PATH = path.join(ROOT, "components", "espcontrol", "button_grid_contract_generated.h");
+const RUNTIME_PATH = path.join(ROOT, "components", "espdesktop", "button_grid_card_runtime.h");
+const GENERATED_RUNTIME_PATH = path.join(ROOT, "components", "espdesktop", "button_grid_contract_generated.h");
 const CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"];
 const CLASSIFICATIONS = new Set(["canonical", "accepted_legacy_input", "picker_alias", "obsolete_implementation_residue"]);
 
@@ -28,7 +28,7 @@ function plain(value) {
 
 function createWebSandbox() {
   const sandbox = {
-    __ESPCONTROL_TEST_HOOKS__: {},
+    __ESPDESKTOP_TEST_HOOKS__: {},
     console: { log() {}, warn() {}, error() {} },
     setTimeout,
     clearTimeout,
@@ -39,7 +39,7 @@ function createWebSandbox() {
     TextDecoder,
     atob,
     btoa,
-    location: { href: "http://espcontrol.test/", search: "" },
+    location: { href: "http://espdesktop.test/", search: "" },
     document: {
       readyState: "loading",
       activeElement: null,
@@ -55,7 +55,7 @@ function loadHooks() {
   const sandbox = createWebSandbox();
   vm.createContext(sandbox);
   vm.runInContext(loadBuiltWebSource(), sandbox, { filename: "src/webserver/entry.ts" });
-  const hooks = sandbox.__ESPCONTROL_TEST_HOOKS__.config;
+  const hooks = sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
   if (!hooks) throw new Error("web test hooks were not exported");
   return hooks;
 }

@@ -80,8 +80,8 @@ script:
     mode: restart
     then:
       - lambda: |-
-          lv_label_set_text(id(ha_setup_title), espcontrol_i18n("Home Assistant"));
+          lv_label_set_text(id(ha_setup_title), espdesktop_i18n("Home Assistant"));
           lv_label_set_text(
               id(ha_setup_instructions),
-              espcontrol_i18n("Add this device in Home Assistant\nto enable control"));
-          lv_label_set_text(id(ha_setup_path), espcontrol_i18n("Settings > Devices & Services"));
+              espdesktop_i18n("Add this device in Home Assistant\nto enable control"));
+          lv_label_set_text(id(ha_setup_path), espdesktop_i18n("Settings > Devices & Services"));

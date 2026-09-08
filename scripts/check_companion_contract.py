@@ -58,7 +58,7 @@ def main() -> int:
 
     transport_sources = [
         ROOT / "components/companion/companion.cpp",
-        ROOT / "macos/Companion/Sources/Companion/CompanionConnection.swift",
+        ROOT / "macos/EspDesktop/Sources/Companion/CompanionConnection.swift",
     ]
     legacy_tokens = ("PAIR|", "AUTH|", "CAPS|", "ACTIONS|", "INVOKE|", "RESULT|",
                      "VALUE|", "FOCUS|", "TZ|", "METRICS|", "NOWPLAYING|")

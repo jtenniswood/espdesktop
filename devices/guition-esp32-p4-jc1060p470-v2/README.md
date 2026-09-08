@@ -1,6 +1,6 @@
 # Guition ESP32-P4 JC1060P470 V2 / new panel (7")
 
-7-inch 1024x600 touchscreen panel that runs EspControl firmware for Home Assistant. A fixed 3x5 grid of 15 configurable buttons lets you control lights, switches, fans, and other smart home devices with a single tap. The display also shows a live clock, indoor/outdoor temperature, and includes a screensaver with adjustable brightness.
+7-inch 1024x600 touchscreen panel that runs EspDesktop firmware for Home Assistant. A fixed 3x5 grid of 15 configurable buttons lets you control lights, switches, fans, and other smart home devices with a single tap. The display also shows a live clock, indoor/outdoor temperature, and includes a screensaver with adjustable brightness.
 
 After the initial install, everything is configured through the built-in web page — no coding or file editing required.
 
@@ -16,9 +16,9 @@ to recover.
 
 ## Quick links
 
-- **Full documentation:** [jtenniswood.github.io/espcontrol](https://jtenniswood.github.io/espcontrol/)
-- **Install guide:** [jtenniswood.github.io/espcontrol/install](https://jtenniswood.github.io/espcontrol/install)
-- **Web UI guide:** [jtenniswood.github.io/espcontrol/web-ui](https://jtenniswood.github.io/espcontrol/web-ui)
+- **Full documentation:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
+- **Install guide:** [jtenniswood.github.io/espdesktop/install](https://jtenniswood.github.io/espdesktop/install)
+- **Web UI guide:** [jtenniswood.github.io/espdesktop/web-ui](https://jtenniswood.github.io/espdesktop/web-ui)
 
 ## Features
 

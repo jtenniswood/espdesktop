@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
 import { iconSlug, mdiIcon, textSpan } from "./ui_primitives";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
@@ -198,10 +198,10 @@ export function createButtonSettingsFeature(
         var liveButton: any = pendingNewDraft ? null : c.buttons[bIdx];
         var draftKey: any = pendingNewDraft ? state.settingsDraft!.key : cardEditorDraftController.keyFor(location);
         function cloneButtonConfig(this: any, src?: any) {
-            return EspControlModel.cloneCardConfig(src);
+            return EspDesktopModel.cloneCardConfig(src);
         }
         function copyButtonConfig(this: any, target?: any, src?: any) {
-            EspControlModel.copyCardConfig(target, src);
+            EspDesktopModel.copyCardConfig(target, src);
             normalizeButtonConfig(target);
         }
         if (!pendingNewDraft)

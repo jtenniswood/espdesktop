@@ -1,12 +1,12 @@
 ---
 title: Manual Setup
 description:
-  How to add EspControl to ESPHome manually, compile the firmware, and install it by USB or OTA.
+  How to add EspDesktop to ESPHome manually, compile the firmware, and install it by USB or OTA.
 ---
 
 # Manual Setup
 
-The normal [browser install](/getting-started/install) is the easiest route. Use this page if you prefer to manage EspControl from ESPHome, want to compile the firmware yourself, or need to install from the ESPHome Device Builder dashboard.
+The normal [browser install](/getting-started/install) is the easiest route. Use this page if you prefer to manage EspDesktop from ESPHome, want to compile the firmware yourself, or need to install from the ESPHome Device Builder dashboard.
 
 ## What You Need
 
@@ -16,7 +16,7 @@ The normal [browser install](/getting-started/install) is the easiest route. Use
 - Your WiFi name and password, unless you are using an advanced wired Ethernet option.
 
 ::: tip First install or update?
-Use USB for a blank screen or a screen that is not already running EspControl. Once EspControl is installed and connected to WiFi, later ESPHome installs can usually be done wirelessly with OTA.
+Use USB for a blank screen or a screen that is not already running EspDesktop. Once EspDesktop is installed and connected to WiFi, later ESPHome installs can usually be done wirelessly with OTA.
 :::
 
 ## Choose the Correct Package File
@@ -37,15 +37,15 @@ Each screen uses a different ESPHome package file. Pick the one that matches you
 
 1. Open **Home Assistant > ESPHome Device Builder**.
 2. Select **New Device**.
-3. Enter a name, such as `espcontrol-kitchen`.
+3. Enter a name, such as `espdesktop-kitchen`.
 4. When ESPHome creates the starter YAML, replace it with the template below.
 5. Change `name`, `friendly_name`, WiFi details, and the `file` line for your screen.
 6. Click **Save**, then open the device menu and choose **Validate**.
 
 ```yaml
 substitutions:
-  name: "espcontrol-kitchen"
-  friendly_name: "EspControl Kitchen"
+  name: "espdesktop-kitchen"
+  friendly_name: "EspDesktop Kitchen"
 
 wifi:
   ssid: !secret wifi_ssid
@@ -53,11 +53,11 @@ wifi:
 
 packages:
   api_encryption:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: common/addon/api_encryption_dynamic.yaml
     refresh: 1sec
   setup:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: devices/guition-esp32-p4-jc1060p470/packages.yaml
     refresh: 1sec
 ```
@@ -76,38 +76,38 @@ wifi:
 
 ## Advanced: Password-Protect the Web Page
 
-EspControl's built-in web page can be protected with a username and password when you compile and install the firmware yourself. This is useful if other people can reach your local network and you do not want them opening the display setup page.
+EspDesktop's built-in web page can be protected with a username and password when you compile and install the firmware yourself. This is useful if other people can reach your local network and you do not want them opening the display setup page.
 
 First, add these entries to your ESPHome `secrets.yaml` file:
 
 ```yaml
-espcontrol_web_username: "admin"
-espcontrol_web_password: "choose-a-strong-password"
+espdesktop_web_username: "admin"
+espdesktop_web_password: "choose-a-strong-password"
 ```
 
-Then point the EspControl web auth substitutions at those secrets and add the `web_server_auth` package to your EspControl device YAML:
+Then point the EspDesktop web auth substitutions at those secrets and add the `web_server_auth` package to your EspDesktop device YAML:
 
 ```yaml
 substitutions:
-  espcontrol_web_username: !secret espcontrol_web_username
-  espcontrol_web_password: !secret espcontrol_web_password
+  espdesktop_web_username: !secret espdesktop_web_username
+  espdesktop_web_password: !secret espdesktop_web_password
 
 packages:
   api_encryption:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: common/addon/api_encryption_dynamic.yaml
     refresh: 1sec
   setup:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: devices/guition-esp32-p4-jc1060p470/packages.yaml
     refresh: 1sec
   web_server_auth:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: common/addon/web_server_auth.yaml
     refresh: 1sec
 ```
 
-After saving, validate the device and install the firmware again. The next time you open the display address in a browser, it will ask for the username and password. EspControl uses Digest authentication so the password is not sent directly across your network.
+After saving, validate the device and install the firmware again. The next time you open the display address in a browser, it will ask for the username and password. EspDesktop uses Digest authentication so the password is not sent directly across your network.
 
 If the username or password substitution is missing, ESPHome validation will fail instead of building firmware with placeholder credentials.
 
@@ -115,8 +115,8 @@ Use a different password for each display. For example, one display can point th
 
 ```yaml
 substitutions:
-  espcontrol_web_username: !secret espcontrol_hallway__web_username
-  espcontrol_web_password: !secret espcontrol_hallway__web_password
+  espdesktop_web_username: !secret espdesktop_hallway__web_username
+  espdesktop_web_password: !secret espdesktop_hallway__web_password
 ```
 
 This protects the local web page, but it is not a replacement for normal network security, so do not expose the display directly to the internet.
@@ -135,18 +135,18 @@ Use this template for Ethernet-capable models. Do not add a `wifi:` block. Chang
 
 ```yaml
 substitutions:
-  name: "espcontrol-office"
-  friendly_name: "EspControl Office"
+  name: "espdesktop-office"
+  friendly_name: "EspDesktop Office"
   network_transport: ethernet
   disable_updates: "true"
 
 packages:
   api_encryption:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: common/addon/api_encryption_dynamic.yaml
     refresh: 1sec
   setup:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: devices/guition-esp32-p4-jc1060p470/packages.yaml
     refresh: 1sec
 ```
@@ -155,7 +155,7 @@ If Ethernet is unplugged or your network does not give the display an IP address
 
 If you start from a copied device `esphome.yaml` starter file instead of the template above, set `network_transport: "ethernet"` in `substitutions`. Older copied starters may still contain a top-level `wifi:` block; remove that block before validating the Ethernet build.
 
-The `disable_updates: "true"` substitution removes EspControl's built-in GitHub firmware update checker and update controls. ESPHome OTA stays enabled, so you can still install firmware manually once the display is online.
+The `disable_updates: "true"` substitution removes EspDesktop's built-in GitHub firmware update checker and update controls. ESPHome OTA stays enabled, so you can still install firmware manually once the display is online.
 
 The Ethernet firmware is intentionally different from the normal WiFi firmware:
 
@@ -170,7 +170,7 @@ When switching a display between WiFi firmware and Ethernet firmware, install th
 To switch back to WiFi later, remove `network_transport: ethernet` from the manual Ethernet template, add your `wifi:` block again, then recompile and install the firmware over USB. If you are using the current JC1060P470 `esphome.yaml` starter file, set `network_transport: "wifi"` instead.
 
 ::: warning Keep the device name simple
-Use lowercase letters, numbers, and hyphens for `name`. For example, `espcontrol-kitchen` is better than `Kitchen Touchscreen`.
+Use lowercase letters, numbers, and hyphens for `name`. For example, `espdesktop-kitchen` is better than `Kitchen Touchscreen`.
 :::
 
 ## Install by USB
@@ -188,12 +188,12 @@ If ESPHome cannot access the USB port directly, choose **Manual download** inste
 
 1. Wait for the display to join WiFi.
 2. Add it to Home Assistant when the ESPHome integration discovers it.
-3. Open the display address in a browser, for example `http://espcontrol.local`.
+3. Open the display address in a browser, for example `http://espdesktop.local`.
 4. Configure cards, active colour, brightness, and other settings from the built-in web page.
 5. Follow [Enable Actions](/getting-started/home-assistant-actions) so the display is allowed to control your Home Assistant devices.
 
 ## Updating Later
 
-Because the package uses `refresh: 1sec`, ESPHome checks GitHub for EspControl updates each time it compiles. To update manually, open ESPHome Device Builder and run **Install** again. If the display is online, use OTA so you do not need to reconnect USB.
+Because the package uses `refresh: 1sec`, ESPHome checks GitHub for EspDesktop updates each time it compiles. To update manually, open ESPHome Device Builder and run **Install** again. If the display is online, use OTA so you do not need to reconnect USB.
 
 Next: [Enable Actions](/getting-started/home-assistant-actions)

@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "espcontrol_app_core.h"
+#include "espdesktop_app_core.h"
 #include "grid_navigation_service.h"
 
 namespace {
@@ -37,7 +37,7 @@ int main() {
   navigation.clear_subpages();
   assert(navigation.subpage_count() == 0);
 
-  espcontrol::EspControlAppCore app;
+  espdesktop::EspDesktopAppCore app;
   assert(app.start());
   auto &core_navigation = app.grid_navigation_service<
       GridNavigationService<HomeTarget, Subpage>>();

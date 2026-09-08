@@ -6,11 +6,11 @@
 
 substitutions:
   cover_art_placeholder_file: "../../common/assets/cover_art_placeholder.svg"
-  name: "espcontrol-10inch-p4"
-  friendly_name: "EspControl 10inch P4"
-  espcontrol_component_url: "../.."
+  name: "espdesktop-10inch-p4"
+  friendly_name: "EspDesktop 10inch P4"
+  espdesktop_component_url: "../.."
   mdi_font_file: "../../common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
-  espcontrol_component_ref: "HEAD"
+  espdesktop_component_ref: "HEAD"
 
 esp32:
   partitions: "../../common/device/partitions_16mb_card_images.csv"
@@ -24,4 +24,4 @@ web_server:
   js_include: "../../docs/public/webserver/embedded/www.js"
 
 packages:
-  espcontrol: !include packages.yaml
+  espdesktop: !include packages.yaml

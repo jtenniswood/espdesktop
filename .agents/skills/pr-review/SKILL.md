@@ -45,7 +45,7 @@ branch is not local yet:
 
 ```bash
 git fetch origin <head-branch>
-git worktree add ../espcontrol-<short-topic> -b <head-branch> origin/<head-branch>
+git worktree add ../espdesktop-<short-topic> -b <head-branch> origin/<head-branch>
 ```
 
 Before editing, check for local changes:

@@ -1,20 +1,20 @@
 ---
-title: EspControl — No-Code Smart Home Touch Controller
+title: EspDesktop — No-Code Smart Home Touch Controller
 titleTemplate: :title
 description: "No-code Home Assistant touchscreen controller for supported ESP32 panels. Install from a browser, configure cards from the panel web page, and control your home locally."
 ---
 
-![EspControl on a 7-inch touchscreen: home screen with temperature, clock, and control tiles](/images/home_screen_hero.jpg)
+![EspDesktop on a 7-inch touchscreen: home screen with temperature, clock, and control tiles](/images/home_screen_hero.jpg)
 
-# EspControl
+# EspDesktop
 
-**A no-code touchscreen controller for Home Assistant.** EspControl turns affordable ESP32 touchscreens into dedicated panels for the lights, scenes, sensors, heating, garage doors, media players, cameras, alarms, and routines you use every day.
+**A no-code touchscreen controller for Home Assistant.** EspDesktop turns affordable ESP32 touchscreens into dedicated panels for the lights, scenes, sensors, heating, garage doors, media players, cameras, alarms, and routines you use every day.
 
 You do not need to write YAML, build your own ESPHome configuration, or keep a tablet permanently logged into Home Assistant. Install the firmware from a browser, connect the screen to WiFi, add it to Home Assistant, then configure the panel from its built-in setup page.
 
-Start here: **[Install EspControl](/getting-started/install)**.
+Start here: **[Install EspDesktop](/getting-started/install)**.
 
-**Source code and issues:** [github.com/jtenniswood/espcontrol](https://github.com/jtenniswood/espcontrol).
+**Source code and issues:** [github.com/jtenniswood/espdesktop](https://github.com/jtenniswood/espdesktop).
 
 ## What You Can Build
 
@@ -39,7 +39,7 @@ Start here: **[Install EspControl](/getting-started/install)**.
 
 ## Card Types
 
-EspControl includes card types for common Home Assistant controls and display-only information:
+EspDesktop includes card types for common Home Assistant controls and display-only information:
 
 Switch, Lights, Action, Local Action, Option Select, Webhook, Trigger, Sensor, Local Sensor, Doors & Windows, Presence, Slider, Fans, Vacuum, Lawn Mower, Cover, Garage Door, Lock, Alarm, Date & Time, World Clock, Weather, Camera, Media, Climate, Internal Switches, Screen Lock, and Subpage.
 
@@ -48,7 +48,7 @@ See [Card Types](/card-types/) for examples and setup notes.
 ## How It Works
 
 1. Buy a supported ESP32 touchscreen.
-2. Install EspControl from your browser.
+2. Install EspDesktop from your browser.
 3. Connect the panel to your 2.4 GHz WiFi network.
 4. Add the discovered ESPHome device in Home Assistant.
 5. Allow Home Assistant actions so the panel can control your devices.

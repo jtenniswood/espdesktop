@@ -1,14 +1,14 @@
 ---
 title: Collect USB Logs
 description:
-  How to collect EspControl logs over USB with the web installer and share them in a GitHub issue.
+  How to collect EspDesktop logs over USB with the web installer and share them in a GitHub issue.
 ---
 
 # Collect USB Logs
 
 If something is not working and you need help, USB logs are often the most useful information you can share. They show what the display is doing while it starts, connects to WiFi, talks to Home Assistant, or loads the web interface.
 
-You do not need to install developer tools. You can collect the logs from the same browser-based installer used to flash EspControl.
+You do not need to install developer tools. You can collect the logs from the same browser-based installer used to flash EspDesktop.
 
 ## What You Need
 
@@ -20,9 +20,9 @@ You do not need to install developer tools. You can collect the logs from the sa
 ## Open the USB Log Viewer
 
 1. Connect the display to your computer with the USB-C cable.
-2. Open the [EspControl install page](/getting-started/install).
+2. Open the [EspDesktop install page](/getting-started/install).
 3. Choose your panel model.
-4. Click **Install EspControl**.
+4. Click **Install EspDesktop**.
 5. When the browser asks for a serial port, choose the port that appeared when you connected the display.
 6. If the installer gives you a choice, open **Logs & Console** instead of reinstalling the firmware.
 
@@ -55,7 +55,7 @@ Please keep the surrounding log lines if possible. Replacing a value with someth
 
 ## Share the Logs in GitHub
 
-1. Open the [EspControl issues page](https://github.com/jtenniswood/espcontrol/issues).
+1. Open the [EspDesktop issues page](https://github.com/jtenniswood/espdesktop/issues).
 2. Search for an existing issue that matches your problem.
 3. If one exists, add a comment. If not, open a new issue.
 4. Include the display model, what you expected to happen, what actually happened, and the USB log.

@@ -55,7 +55,7 @@ def download(url: str, destination: Path) -> None:
     try:
         with os.fdopen(fd, "wb") as output:
             request = urllib.request.Request(
-                url, headers={"User-Agent": "espcontrol-c6-recovery-build"}
+                url, headers={"User-Agent": "espdesktop-c6-recovery-build"}
             )
             with urllib.request.urlopen(request, timeout=60) as response:
                 while chunk := response.read(1024 * 1024):

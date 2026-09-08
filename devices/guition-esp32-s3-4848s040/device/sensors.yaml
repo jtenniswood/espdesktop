@@ -70,10 +70,10 @@ script:
           cfg.climate_option_value_font = id(font_text_body)->get_lv_font();
           cfg.temperature_unit = id(temperature_unit_select).current_option();
           cfg.timezone = id(timezone_select).current_option();
-          cfg.begin_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+          cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
             id(display_takeover_begin).execute(static_cast<int>(kind));
           };
-          cfg.end_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+          cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
             id(display_takeover_end).execute(static_cast<int>(kind));
           };
           static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
@@ -197,10 +197,10 @@ script:
           cfg.climate_option_value_font = id(font_text_body)->get_lv_font();
           cfg.temperature_unit = id(temperature_unit_select).current_option();
           cfg.timezone = id(timezone_select).current_option();
-          cfg.begin_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+          cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
             id(display_takeover_begin).execute(static_cast<int>(kind));
           };
-          cfg.end_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+          cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
             id(display_takeover_end).execute(static_cast<int>(kind));
           };
           static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
@@ -319,10 +319,10 @@ esphome:
             cfg.climate_option_value_font = id(font_text_body)->get_lv_font();
             cfg.temperature_unit = id(temperature_unit_select).current_option();
             cfg.timezone = id(timezone_select).current_option();
-            cfg.begin_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+            cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
               id(display_takeover_begin).execute(static_cast<int>(kind));
             };
-            cfg.end_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+            cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
               id(display_takeover_end).execute(static_cast<int>(kind));
             };
             static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
@@ -437,10 +437,10 @@ esphome:
             cfg.climate_option_value_font = id(font_text_body)->get_lv_font();
             cfg.temperature_unit = id(temperature_unit_select).current_option();
             cfg.timezone = id(timezone_select).current_option();
-            cfg.begin_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+            cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
               id(display_takeover_begin).execute(static_cast<int>(kind));
             };
-            cfg.end_display_takeover = [](espcontrol::DisplayTakeoverKind kind) {
+            cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
               id(display_takeover_end).execute(static_cast<int>(kind));
             };
             static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
@@ -508,8 +508,8 @@ esphome:
                 return clock_bar_should_show(
                     id(clock_bar_enabled).state,
                     id(main_page)->obj,
-                    id(espcontrol_app).display().current_mode(),
-                    id(espcontrol_app).display().target_schedule_inactive());
+                    id(espdesktop_app).display().current_mode(),
+                    id(espdesktop_app).display().target_schedule_inactive());
               },
               []() {
                 id(screensaver_presence_wake).execute();

@@ -78,7 +78,7 @@ script:
     mode: restart
     then:
       - lambda: |-
-          lv_label_set_text(id(button_setup_title), espcontrol_i18n("Setup"));
+          lv_label_set_text(id(button_setup_title), espdesktop_i18n("Setup"));
           lv_label_set_text(
               id(button_setup_instructions),
-              espcontrol_i18n("Open your browser and\nconfigure your display"));
+              espdesktop_i18n("Open your browser and\nconfigure your display"));

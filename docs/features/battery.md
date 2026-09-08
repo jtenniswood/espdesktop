@@ -1,12 +1,12 @@
 ---
-title: EspControl Battery Status
+title: EspDesktop Battery Status
 description:
   How to enable battery support on compatible panels.
 ---
 
 # Battery Status
 
-Some Guition JC8012P4A1 (10.1") units ship with an IP5306-based battery add-on board. EspControl can show a battery icon in the top bar for these units, but the wiring (GPIO52, post-divider voltage range) is based on community and third-party BSP reports and has **not** been confirmed by the firmware maintainer. It may not work, or may read incorrectly, on every unit.
+Some Guition JC8012P4A1 (10.1") units ship with an IP5306-based battery add-on board. EspDesktop can show a battery icon in the top bar for these units, but the wiring (GPIO52, post-divider voltage range) is based on community and third-party BSP reports and has **not** been confirmed by the firmware maintainer. It may not work, or may read incorrectly, on every unit.
 
 Because of this, the feature is off by default and only appears in **Settings > System > Battery** on JC8012P4A1 panels.
 

@@ -1,4 +1,4 @@
-# Portuguese source strings for hard-coded text rendered on screen by EspControl firmware.
+# Portuguese source strings for hard-coded text rendered on screen by EspDesktop firmware.
 # Webserver-only text, entity names, service identifiers, icon names, and raw Home Assistant API values are excluded.
 # Format: key=value. Escape literal backslash, newline, and equals as \\, \n, and \=.
 untitled=(sem título)

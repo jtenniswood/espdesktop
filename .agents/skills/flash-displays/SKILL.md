@@ -1,13 +1,13 @@
 ---
 name: flash-displays
-description: Flash EspControl display firmware from this repository using ESPHome. Use when the user invokes /flash-displays with no extra display name, or asks to flash, reflash, update, or upload firmware to all known displays in sequence, or to a specific display such as 7inch, 7-inch P4, 10inch, 10-inch V1, 10-inch V2, P4-86, 4.3-inch P4, 4-inch P4, 4-inch S3, or S3 second, over an explicitly supplied OTA target or USB.
+description: Flash EspDesktop display firmware from this repository using ESPHome. Use when the user invokes /flash-displays with no extra display name, or asks to flash, reflash, update, or upload firmware to all known displays in sequence, or to a specific display such as 7inch, 7-inch P4, 10inch, 10-inch V1, 10-inch V2, P4-86, 4.3-inch P4, 4-inch P4, 4-inch S3, or S3 second, over an explicitly supplied OTA target or USB.
 ---
 
 # Flash Displays
 
 ## Overview
 
-Use the local development ESPHome configs to flash the known EspControl displays. If the user invokes `/flash-displays` with no additional display name or target, assume they mean all displays. Flash one requested display, or flash all displays in the fixed order below. Use OTA with the default hard-coded target unless the user provides a different target; use USB only when the user explicitly asks for USB.
+Use the local development ESPHome configs to flash the known EspDesktop displays. If the user invokes `/flash-displays` with no additional display name or target, assume they mean all displays. Flash one requested display, or flash all displays in the fixed order below. Use OTA with the default hard-coded target unless the user provides a different target; use USB only when the user explicitly asks for USB.
 
 ## Device Map
 
@@ -56,16 +56,16 @@ Use `dev.yaml` by default. If the user names another YAML file, use that file in
 All development YAML files require a local `secrets.yaml` containing `wifi_ssid` and `wifi_password`. Always use this existing local file as the only secrets source:
 
 ```text
-/home/jtenniswood/git/espcontrol/secrets.yaml
+/home/jtenniswood/git/espdesktop/secrets.yaml
 ```
 
 Before flashing each selected display:
 
-1. Confirm the source exists with `test -f /home/jtenniswood/git/espcontrol/secrets.yaml`. If it is missing, stop and tell the user; do not create or guess secret values.
+1. Confirm the source exists with `test -f /home/jtenniswood/git/espdesktop/secrets.yaml`. If it is missing, stop and tell the user; do not create or guess secret values.
 2. Run the following from the selected display's config directory. This creates the ignored local symlink only when `secrets.yaml` is absent, and verifies that any existing file or symlink resolves to the required source:
 
    ```bash
-   SECRETS_SOURCE=/home/jtenniswood/git/espcontrol/secrets.yaml
+   SECRETS_SOURCE=/home/jtenniswood/git/espdesktop/secrets.yaml
    if [ ! -e secrets.yaml ] && [ ! -L secrets.yaml ]; then
      ln -s "$SECRETS_SOURCE" secrets.yaml
    fi
@@ -115,51 +115,51 @@ Run from the appropriate config directory:
 
 ```bash
 # 7-inch P4 over OTA
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-p4-jc1060p470
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc1060p470
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.102 --no-logs
 
 # 7-inch P4 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-p4-jc1060p470
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc1060p470
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # 10-inch P4 V1 over OTA
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-p4-jc8012p4a1
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc8012p4a1
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.103 --no-logs
 
 # 10-inch P4 V1 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-p4-jc8012p4a1
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc8012p4a1
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # 4-inch P4 / P4-86 over OTA
-cd /Users/jtenniswood/Git/espcontrol/devices/esp32-p4-86
+cd /Users/jtenniswood/Git/espdesktop/devices/esp32-p4-86
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.104 --no-logs
 
 # 4-inch P4 / P4-86 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espcontrol/devices/esp32-p4-86
+cd /Users/jtenniswood/Git/espdesktop/devices/esp32-p4-86
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # 4.3-inch P4 over OTA
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-p4-jc4880p443
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc4880p443
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.101 --no-logs
 
 # 4.3-inch P4 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-p4-jc4880p443
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc4880p443
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # 4-inch S3 over OTA
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-s3-4848s040
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-s3-4848s040
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.105 --no-logs
 
 # 4-inch S3 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-s3-4848s040
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-s3-4848s040
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # S3 second over OTA
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-s3-4848s040
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-s3-4848s040
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.100 --no-logs
 
 # S3 second over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espcontrol/devices/guition-esp32-s3-4848s040
+cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-s3-4848s040
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 ```
 

@@ -38,7 +38,7 @@ int main() {
 
   {
     FakeStorage storage{false, true};
-    const auto selected = espcontrol::configuration::begin_panel_config_storage(
+    const auto selected = espdesktop::configuration::begin_panel_config_storage(
         storage, false, kCardImagesSlotCapacity, kNvsSlotCapacity);
     if (!expect(selected.ready,
                 "NVS-only storage should start") ||
@@ -55,7 +55,7 @@ int main() {
 
   {
     FakeStorage storage{true, true};
-    const auto selected = espcontrol::configuration::begin_panel_config_storage(
+    const auto selected = espdesktop::configuration::begin_panel_config_storage(
         storage, true, kCardImagesSlotCapacity, kNvsSlotCapacity);
     if (!expect(selected.ready,
                 "Available card partition should start") ||
@@ -74,7 +74,7 @@ int main() {
 
   {
     FakeStorage storage{false, true};
-    const auto selected = espcontrol::configuration::begin_panel_config_storage(
+    const auto selected = espdesktop::configuration::begin_panel_config_storage(
         storage, true, kCardImagesSlotCapacity, kNvsSlotCapacity);
     if (!expect(selected.ready,
                 "Missing card partition should fall back to NVS") ||
@@ -91,7 +91,7 @@ int main() {
 
   {
     FakeStorage storage{false, false};
-    const auto selected = espcontrol::configuration::begin_panel_config_storage(
+    const auto selected = espdesktop::configuration::begin_panel_config_storage(
         storage, true, kCardImagesSlotCapacity, kNvsSlotCapacity);
     if (!expect(!selected.ready,
                 "Storage should fail when both backends are unavailable") ||

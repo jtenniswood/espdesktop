@@ -69,12 +69,12 @@ function casesFromManifest() {
 }
 
 const CASES = casesFromManifest();
-const ACTIVE_CASES = process.env.ESPCONTROL_BROWSER_PROFILE
-  ? CASES.filter((testCase) => testCase.slug === process.env.ESPCONTROL_BROWSER_PROFILE)
+const ACTIVE_CASES = process.env.ESPDESKTOP_BROWSER_PROFILE
+  ? CASES.filter((testCase) => testCase.slug === process.env.ESPDESKTOP_BROWSER_PROFILE)
   : CASES;
 assert(
   ACTIVE_CASES.length > 0,
-  `Unknown browser profile: ${process.env.ESPCONTROL_BROWSER_PROFILE || "(none)"}`,
+  `Unknown browser profile: ${process.env.ESPDESKTOP_BROWSER_PROFILE || "(none)"}`,
 );
 
 const BUTTON_FIXTURES = [
@@ -182,7 +182,7 @@ async function installRoutes(context, slug, options = {}) {
 
   await context.route("**/*", async (route) => {
     const requestUrl = new URL(route.request().url());
-    const legacyTextMatch = requestUrl.hostname === "espcontrol.test" &&
+    const legacyTextMatch = requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname.match(/^\/text\/([^/]+)(?:\/set)?$/);
     if (legacyTextMatch) {
       const name = decodeURIComponent(legacyTextMatch[1]);
@@ -216,7 +216,7 @@ async function installRoutes(context, slug, options = {}) {
     }
     if (
       nativeState &&
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === "/api/v1/capabilities"
     ) {
       await route.fulfill({
@@ -231,7 +231,7 @@ async function installRoutes(context, slug, options = {}) {
     }
     if (
       !nativeState &&
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === "/api/v1/capabilities"
     ) {
       await route.fulfill({
@@ -245,7 +245,7 @@ async function installRoutes(context, slug, options = {}) {
     }
     if (
       nativeState &&
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === "/api/v1/config"
     ) {
       if (route.request().method() === "PUT") {
@@ -271,14 +271,14 @@ async function installRoutes(context, slug, options = {}) {
       }
       await route.fulfill({
         status: 200,
-        contentType: "application/vnd.espcontrol.panel-config",
+        contentType: "application/vnd.espdesktop.panel-config",
         headers: { ETag: `"${nativeState.generation}"` },
         body: Buffer.from(encodePanelConfig(nativeState.document)),
       });
       return;
     }
     if (
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === `/${slug}`
     ) {
       await route.fulfill({
@@ -289,7 +289,7 @@ async function installRoutes(context, slug, options = {}) {
       return;
     }
     if (
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === "/webserver/www.js"
     ) {
       await route.fulfill({
@@ -300,7 +300,7 @@ async function installRoutes(context, slug, options = {}) {
       return;
     }
     if (
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === "/webserver/embedded/www.js"
     ) {
       await route.fulfill({
@@ -311,7 +311,7 @@ async function installRoutes(context, slug, options = {}) {
       return;
     }
     if (
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === "/webserver/web-assets.json"
     ) {
       await route.fulfill({
@@ -322,7 +322,7 @@ async function installRoutes(context, slug, options = {}) {
       return;
     }
     if (
-      requestUrl.hostname === "espcontrol.test" &&
+      requestUrl.hostname === "espdesktop.test" &&
       requestUrl.pathname === `/webserver/${webAssetManifest.bundles[0].path}`
     ) {
       if (offlineFallback) {
@@ -336,7 +336,7 @@ async function installRoutes(context, slug, options = {}) {
       });
       return;
     }
-    if (requestUrl.hostname === "espcontrol.test") {
+    if (requestUrl.hostname === "espdesktop.test") {
       await route.fulfill({ status: 204, contentType: "text/plain", body: "" });
       return;
     }
@@ -730,7 +730,7 @@ async function assertPageTitleEvents(browser) {
   const page = await context.newPage();
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app");
@@ -740,47 +740,47 @@ async function assertPageTitleEvents(browser) {
 
     assert.strictEqual(
       await page.title(),
-      "EspControl",
-      "page should start with EspControl fallback title",
+      "EspDesktop",
+      "page should start with EspDesktop fallback title",
     );
 
     await page.evaluate(() =>
-      window.__seedEspPing({ title: "EspControl 7inch P4" }),
+      window.__seedEspPing({ title: "EspDesktop 7inch P4" }),
     );
     assert.strictEqual(
       await page.title(),
-      "EspControl 7inch P4",
+      "EspDesktop 7inch P4",
       "ping title should set browser title",
     );
 
     await page.evaluate(() => window.__seedEspPing({ uptime: 12 }));
     assert.strictEqual(
       await page.title(),
-      "EspControl 7inch P4",
+      "EspDesktop 7inch P4",
       "keepalive ping should preserve browser title",
     );
 
     await page.evaluate(() => window.__seedEspPing({ title: "   " }));
     assert.strictEqual(
       await page.title(),
-      "EspControl",
+      "EspDesktop",
       "blank ping title should restore fallback title",
     );
 
     await page.evaluate(() =>
-      window.__seedEspPing({ title: "EspControl 7inch P4" }),
+      window.__seedEspPing({ title: "EspDesktop 7inch P4" }),
     );
     await page.evaluate(() => window.__seedEspPing({}));
     assert.strictEqual(
       await page.title(),
-      "EspControl 7inch P4",
+      "EspDesktop 7inch P4",
       "missing ping title should preserve current title",
     );
 
     await page.evaluate(() => window.__seedEspPing("not-json"));
     assert.strictEqual(
       await page.title(),
-      "EspControl",
+      "EspDesktop",
       "malformed ping payload should not break title fallback",
     );
   } finally {
@@ -794,7 +794,7 @@ async function assertPageTitleEvents(browser) {
   const normalPage = await normalContext.newPage();
   await installFakeEventSource(normalPage);
   try {
-    await normalPage.goto(`http://espcontrol.test/${slug}`, {
+    await normalPage.goto(`http://espdesktop.test/${slug}`, {
       waitUntil: "domcontentloaded",
     });
     await normalPage.waitForSelector("#sp-app");
@@ -802,11 +802,11 @@ async function assertPageTitleEvents(browser) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await normalPage.evaluate(() =>
-      window.__seedEspPing({ title: "EspControl 4inch S3" }),
+      window.__seedEspPing({ title: "EspDesktop 4inch S3" }),
     );
     assert.strictEqual(
       await normalPage.title(),
-      "EspControl 4inch S3",
+      "EspDesktop 4inch S3",
       "normal page should read title from one-shot event stream",
     );
     assert.strictEqual(
@@ -828,7 +828,7 @@ async function assertRotationStartupOrdering(browser) {
   const page = await context.newPage();
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app");
@@ -888,7 +888,7 @@ async function assertRotationStartupOrdering(browser) {
   const reversePage = await reverseContext.newPage();
   await installFakeEventSource(reversePage);
   try {
-    await reversePage.goto(`http://espcontrol.test/${slug}?events=1`, {
+    await reversePage.goto(`http://espdesktop.test/${slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await reversePage.waitForSelector("#sp-app");
@@ -922,7 +922,7 @@ async function assertRotationStartupOrdering(browser) {
   });
   await installFakeEventSource(fallbackPage);
   try {
-    await fallbackPage.goto(`http://espcontrol.test/${slug}?events=1`, {
+    await fallbackPage.goto(`http://espdesktop.test/${slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await fallbackPage.waitForSelector("#sp-app");
@@ -2015,7 +2015,7 @@ async function assertMobileDeviceViewport(browser, testCase) {
   const page = await context.newPage();
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app");
@@ -3261,7 +3261,7 @@ function backupButtons(count) {
 function backupFixture(device, slots, nativeProfile = null) {
   const backup = {
     version: 2,
-    format: "espcontrol.backup",
+    format: "espdesktop.backup",
     device,
     source: { device, slots },
     exported_at: "2026-05-24T12:00:00.000Z",
@@ -4004,7 +4004,7 @@ async function assertCardTransferSmoke(page, posts, label) {
   );
   const code = await copyDialog.locator("textarea").inputValue();
   const envelope = JSON.parse(code);
-  assert.strictEqual(envelope.format, "espcontrol.cards", `${label}: copied card code has the format marker`);
+  assert.strictEqual(envelope.format, "espdesktop.cards", `${label}: copied card code has the format marker`);
   assert.strictEqual(envelope.version, 1, `${label}: copied card code uses version 1`);
   assert.strictEqual(envelope.cards.length, 1, `${label}: single-card code contains one card`);
   assert(
@@ -4942,7 +4942,7 @@ async function assertNativeProfileJourney(browser, testCase) {
   page.on("pageerror", (error) => errors.push(error.message));
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app");
@@ -5080,7 +5080,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   const page = await context.newPage();
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app");
@@ -5152,13 +5152,13 @@ async function assertLegacyProfileFallback(browser, testCase) {
   const posts = [];
   page.on("request", (request) => {
     const requestUrl = new URL(request.url());
-    if (request.method() === "POST" && requestUrl.hostname === "espcontrol.test") {
+    if (request.method() === "POST" && requestUrl.hostname === "espdesktop.test") {
       posts.push(postRecord(request.url()));
     }
   });
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app");
@@ -5199,7 +5199,7 @@ async function assertLegacyRestoreVerificationFailure(browser, testCase) {
   const page = await context.newPage();
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("#sp-app");
     await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
@@ -5221,7 +5221,7 @@ async function assertOfflineProfileFallback(browser, testCase) {
   page.on("pageerror", (error) => errors.push(error.message));
   await installFakeEventSource(page);
   try {
-    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app", { timeout: 5000 });
@@ -5231,7 +5231,7 @@ async function assertOfflineProfileFallback(browser, testCase) {
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.waitForSelector(".sp-main > .sp-btn");
     assert.strictEqual(
-      await page.evaluate(() => globalThis.__ESPCONTROL_USING_EMBEDDED__),
+      await page.evaluate(() => globalThis.__ESPDESKTOP_USING_EMBEDDED__),
       true,
       `${testCase.name}: failed remote bundle starts the embedded editor`,
     );
@@ -5372,7 +5372,7 @@ async function runCase(browser, testCase) {
     }
     if (
       request.method() === "POST" &&
-      requestUrl.hostname === "espcontrol.test"
+      requestUrl.hostname === "espdesktop.test"
     ) {
       posts.push(postRecord(request.url()));
     }
@@ -5380,7 +5380,7 @@ async function runCase(browser, testCase) {
   await installFakeEventSource(page);
 
   try {
-    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("#sp-app");
@@ -5405,7 +5405,7 @@ async function runCase(browser, testCase) {
       `${testCase.name}: the editor should not need third-party CDN assets`,
     );
     const iconStyle = await page.evaluate(() => {
-      const style = document.getElementById("espcontrol-local-web-assets");
+      const style = document.getElementById("espdesktop-local-web-assets");
       return style ? style.textContent || "" : "";
     });
     assert(
@@ -5481,7 +5481,7 @@ async function runCase(browser, testCase) {
 
 (async function main() {
   const browser = await chromium.launch();
-  const acceptanceOnly = process.env.ESPCONTROL_BROWSER_ACCEPTANCE_ONLY === "1";
+  const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
     if (!acceptanceOnly) {
       await assertPageTitleEvents(browser);

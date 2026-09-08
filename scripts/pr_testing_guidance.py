@@ -165,7 +165,7 @@ def public_device_name(slug: str) -> str:
 
 def render_markdown(guidance: Guidance) -> str:
     lines = [
-        "<!-- espcontrol-pr-testing-guidance -->",
+        "<!-- espdesktop-pr-testing-guidance -->",
         "## Automated testing guidance",
         "",
     ]

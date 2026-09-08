@@ -23,7 +23,7 @@ esphome:
           std::string timezone_option = id(timezone_select).current_option();
           std::string active_timezone = effective_timezone_option(timezone_option);
           const char *posix = apply_timezone(active_timezone);
-          set_espcontrol_language(id(language_select).current_option());
+          set_espdesktop_language(id(language_select).current_option());
           id(panel_time).set_timezone(posix);
           id(homeassistant_time).set_timezone(posix);
           set_display_temperature_unit(id(temperature_unit_select).current_option(),
@@ -205,8 +205,8 @@ select:
               clock_bar_should_show(
                 id(clock_bar_enabled).state,
                 id(main_page)->obj,
-                id(espcontrol_app).display().current_mode(),
-              id(espcontrol_app).display().target_schedule_inactive()),
+                id(espdesktop_app).display().current_mode(),
+              id(espdesktop_app).display().target_schedule_inactive()),
               id(indoor_temp_enable).state,
               id(outdoor_temp_enable).state,
               id(indoor_temp), id(outdoor_temp));
@@ -271,7 +271,7 @@ select:
     on_value:
       then:
         - lambda: |-
-            set_espcontrol_language(id(language_select).current_option());
+            set_espdesktop_language(id(language_select).current_option());
             refresh_calendar_cards();
         - script.execute: network_setup_text_refresh
         - script.execute: ha_setup_text_refresh
@@ -446,8 +446,8 @@ script:
             clock_bar_should_show(
               id(clock_bar_enabled).state,
               id(main_page)->obj,
-              id(espcontrol_app).display().current_mode(),
-              id(espcontrol_app).display().target_schedule_inactive()),
+              id(espdesktop_app).display().current_mode(),
+              id(espdesktop_app).display().target_schedule_inactive()),
             id(indoor_temp_enable).state,
             id(outdoor_temp_enable).state,
             id(indoor_temp), id(outdoor_temp));

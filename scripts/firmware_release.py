@@ -24,8 +24,8 @@ from urllib.parse import urljoin
 ROOT = Path(__file__).resolve().parent.parent
 FIRMWARE_VERSION_PLACEHOLDER = '  firmware_version: "0.0.0"'
 PLACEHOLDER_STRINGS = {"dev", "0.0.0"}
-RELEASE_URL_BASE = "https://github.com/jtenniswood/espcontrol/releases/tag/"
-PROJECT_NAME = "jtenniswood.espcontrol"
+RELEASE_URL_BASE = "https://github.com/jtenniswood/espdesktop/releases/tag/"
+PROJECT_NAME = "jtenniswood.espdesktop"
 DEVICE_CHIP_PATTERNS = (
     (re.compile(r"^\s+variant:\s*esp32p4\s*$", re.M), "ESP32-P4"),
     (re.compile(r"^\s+variant:\s*esp32s3\s*$", re.M), "ESP32-S3"),
@@ -218,9 +218,9 @@ def verify_recovery_manifest(
     version: str,
 ) -> None:
     manifest = load_manifest(manifest_path)
-    if manifest.get("name") != "Espcontrol":
+    if manifest.get("name") != "EspDesktop":
         raise FirmwareReleaseError(
-            f"{manifest_path} must retain the normal Espcontrol firmware identity"
+            f"{manifest_path} must retain the normal EspDesktop firmware identity"
         )
     if str(manifest.get("version", "")).strip() != version:
         raise FirmwareReleaseError(f"{manifest_path} recovery version must be {version}")
@@ -643,7 +643,7 @@ def publish_draft_release(
 
 
 def fetch_url(url: str, timeout: int = 30) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": "espcontrol-firmware-release-check"})
+    request = urllib.request.Request(url, headers={"User-Agent": "espdesktop-firmware-release-check"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return response.read()
 
@@ -722,7 +722,7 @@ def cmd_manifest(args: argparse.Namespace) -> None:
     require_file(factory, "factory firmware")
     require_file(ota, "OTA firmware")
     data = {
-        "name": "Espcontrol",
+        "name": "EspDesktop",
         "version": args.version,
         "home_assistant_domain": "esphome",
         "builds": [
@@ -749,8 +749,8 @@ def cmd_recovery_manifest(args: argparse.Namespace) -> None:
     require_file(recovery, "C6 recovery firmware")
     data = {
         # Keep the normal product identity so ESP Web Tools treats an existing
-        # EspControl installation as an update rather than a different product.
-        "name": "Espcontrol",
+        # EspDesktop installation as an update rather than a different product.
+        "name": "EspDesktop",
         "version": args.version,
         "home_assistant_domain": "esphome",
         "new_install_prompt_erase": True,

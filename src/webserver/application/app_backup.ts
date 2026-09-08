@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import {
     normalizeBrightnessMode,
     normalizeHexColor,
@@ -342,17 +342,17 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 var backedUpNativeConfig: any = backupPlan.config.native_config;
                 if (backedUpNativeConfig &&
                     backedUpNativeConfig.device_profile === controllers.layout.deviceId) {
-                    nativeDocument = EspControlModel.decodePanelConfig(
-                        EspControlModel.decodePanelConfigBackupPayload(backedUpNativeConfig));
+                    nativeDocument = EspDesktopModel.decodePanelConfig(
+                        EspDesktopModel.decodePanelConfigBackupPayload(backedUpNativeConfig));
                 }
                 nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
                 nativeDocument.settings.button_on_color = String(nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || "");
-                var parsedButtonOrder: any = EspControlModel.parseGridOrder(
+                var parsedButtonOrder: any = EspDesktopModel.parseGridOrder(
                     nativeDocument.settings.button_order,
                     controllers.layout.numSlots,
                     importedGridCols,
                     {});
-                nativeDocument.settings.button_order = EspControlModel.serializeGridOrder(
+                nativeDocument.settings.button_order = EspDesktopModel.serializeGridOrder(
                     parsedButtonOrder.grid,
                     parsedButtonOrder.sizes);
 
@@ -373,7 +373,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         subpageEntityKeys: subpageEntityKeys(),
                         entityName: entityName,
                         entityNameForSlot: entityNameForSlot,
-                        splitSubpageConfigChunks: EspControlModel.splitSubpageConfigChunks,
+                        splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
                         postText: requestApi.postTextLegacy,
                         readText: readLegacyText,
                     }).then(function (result: any) {
@@ -624,7 +624,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 }
                 var screenSettings: any = backupPlan.screen;
                 if (screenSettings) {
-                    var importedScreenSettings: any = EspControlModel.normalizeBackupScreenSettings(screenSettings, {
+                    var importedScreenSettings: any = EspDesktopModel.normalizeBackupScreenSettings(screenSettings, {
                         scheduleWakeBrightness: state.scheduleWakeBrightness,
                         scheduleDimmedBrightness: state.scheduleDimmedBrightness,
                         scheduleClockBrightness: state.scheduleClockBrightness,

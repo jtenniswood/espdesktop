@@ -8,7 +8,7 @@ description:
 
 Voice Control turns the ESP32-P4 86 Panel into a Home Assistant Assist satellite. You can speak to Home Assistant from the panel, hear responses through the built-in speaker, set timers, control smart home devices, and interrupt voice or media playback with barge-in.
 
-Voice Control is available on the **4-inch ESP32-P4 86 Panel** firmware. It uses the panel's built-in microphones and speaker, and is designed to behave closely to the official Home Assistant Voice Preview Edition while staying integrated with EspControl's screen, clock bar, media controls, and cover-art display.
+Voice Control is available on the **4-inch ESP32-P4 86 Panel** firmware. It uses the panel's built-in microphones and speaker, and is designed to behave closely to the official Home Assistant Voice Preview Edition while staying integrated with EspDesktop's screen, clock bar, media controls, and cover-art display.
 
 ## What You Can Do
 
@@ -43,7 +43,7 @@ After flashing and connecting the panel to WiFi, Home Assistant should discover 
 
 1. Open **Home Assistant**.
 2. Go to **Settings > Devices & services**.
-3. Add the discovered ESPControl device from the **ESPHome** integration.
+3. Add the discovered ESPDesktop device from the **ESPHome** integration.
 4. Follow the Home Assistant prompts to set up the voice satellite.
 5. Choose the Assistant pipeline and voice options Home Assistant offers.
 6. Finish the setup and wait for the device to settle for a short time.
@@ -81,7 +81,7 @@ To enable it:
 2. Turn on **Voice Services**.
 3. Wait a few seconds for the wake-word engine to start.
 
-When **Voice Services** is off, wake-word listening is stopped and the clock-bar microphone shortcut is hidden. Other normal EspControl screen features continue to work.
+When **Voice Services** is off, wake-word listening is stopped and the clock-bar microphone shortcut is hidden. Other normal EspDesktop screen features continue to work.
 
 ## Wake Words
 

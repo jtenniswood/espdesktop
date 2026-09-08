@@ -85,7 +85,7 @@ inline bool ha_cancel_action_response_callback(uint32_t, const char * = "cancell
   return true;
 }
 
-#include "components/espcontrol/button_grid_media_group.h"
+#include "components/espdesktop/button_grid_media_group.h"
 
 static std::string value_for(const esphome::api::RepeatedKeyValue &values,
                              const std::string &key) {
@@ -244,7 +244,7 @@ def main() -> int:
              str(source), "-o", str(binary)], check=True
         )
         subprocess.run([str(binary)], check=True)
-    media_header = (ROOT / "components/espcontrol/button_grid_media.h").read_text(
+    media_header = (ROOT / "components/espdesktop/button_grid_media.h").read_text(
         encoding="utf-8"
     )
     if "ha_subscribe_state_reusable" in media_header or "ha_subscribe_attribute_reusable" in media_header:
@@ -288,7 +288,7 @@ def main() -> int:
     ):
         if reset not in media_header:
             raise SystemExit("Media route changes must clear stale speaker discovery data")
-    if 'media_control_set_speaker_status(espcontrol_i18n("Updating speakers"), false, true);' in media_header:
+    if 'media_control_set_speaker_status(espdesktop_i18n("Updating speakers"), false, true);' in media_header:
         raise SystemExit("Pending speaker group changes must not show temporary status text")
     if "media_control_refresh_speaker_state(ctx, row);" in media_header:
         raise SystemExit("Speaker rows must not depend on late one-shot Home Assistant reads")

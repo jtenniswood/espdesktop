@@ -170,8 +170,8 @@ interval:
               clock_bar_should_show(
                   id(clock_bar_enabled).state,
                   id(main_page)->obj,
-                  id(espcontrol_app).display().current_mode(),
-                  id(espcontrol_app).display().target_schedule_inactive()),
+                  id(espdesktop_app).display().current_mode(),
+                  id(espdesktop_app).display().target_schedule_inactive()),
               id(indoor_temp_enable).state,
               id(outdoor_temp_enable).state,
               id(indoor_temp), id(outdoor_temp));

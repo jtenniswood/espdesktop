@@ -1,18 +1,18 @@
 import type { DeviceConfig } from "./state/types";
 
-declare const __ESPCONTROL_DEFAULT_DEVICE_ID__: string;
-declare const __ESPCONTROL_DEVICE_PROFILES__: Readonly<
+declare const __ESPDESKTOP_DEFAULT_DEVICE_ID__: string;
+declare const __ESPDESKTOP_DEVICE_PROFILES__: Readonly<
   Record<string, DeviceConfig>
 >;
-declare const __ESPCONTROL_TIMEZONE_OPTIONS__: readonly string[];
+declare const __ESPDESKTOP_TIMEZONE_OPTIONS__: readonly string[];
 
 export let deviceId = "";
 export let deviceConfig: DeviceConfig;
 
 function configuredDeviceId(): string {
   const runtimeDeviceId = (
-    globalThis as typeof globalThis & { __ESPCONTROL_DEVICE_PROFILE__?: string }
-  ).__ESPCONTROL_DEVICE_PROFILE__;
+    globalThis as typeof globalThis & { __ESPDESKTOP_DEVICE_PROFILE__?: string }
+  ).__ESPDESKTOP_DEVICE_PROFILE__;
   if (runtimeDeviceId) return runtimeDeviceId;
   if (typeof document !== "undefined") {
     const script =
@@ -33,19 +33,19 @@ function configuredDeviceId(): string {
       }
     }
   }
-  return __ESPCONTROL_DEFAULT_DEVICE_ID__;
+  return __ESPDESKTOP_DEFAULT_DEVICE_ID__;
 }
 
 function selectDeviceProfile(slug: string): void {
-  const profile = __ESPCONTROL_DEVICE_PROFILES__[slug];
+  const profile = __ESPDESKTOP_DEVICE_PROFILES__[slug];
   if (!profile)
     throw new Error(
-      `Unsupported EspControl device profile: ${slug || "missing"}`,
+      `Unsupported EspDesktop device profile: ${slug || "missing"}`,
     );
   deviceId = slug;
   deviceConfig = {
     ...profile,
-    timezoneOptions: __ESPCONTROL_TIMEZONE_OPTIONS__,
+    timezoneOptions: __ESPDESKTOP_TIMEZONE_OPTIONS__,
   };
 }
 
@@ -55,7 +55,7 @@ export function initializeDeviceConfig(): void | Promise<void> {
     selectDeviceProfile(configured);
     return;
   }
-  return fetch("/espcontrol/version.json", { cache: "no-store" })
+  return fetch("/espdesktop/version.json", { cache: "no-store" })
     .then((response) => {
       if (!response.ok)
         throw new Error(`Unable to identify this display (${response.status})`);

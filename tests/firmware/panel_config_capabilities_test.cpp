@@ -6,7 +6,7 @@
 #include "panel_config_http_context.h"
 
 int main() {
-  using namespace espcontrol::configuration;
+  using namespace espdesktop::configuration;
   std::array<char, PANEL_CONFIG_CAPABILITIES_MAX_JSON_BYTES> capabilities{};
   size_t capabilities_size = 0;
   const bool passed = PANEL_CONFIG_API_VERSION == 1 &&

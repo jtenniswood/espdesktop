@@ -3,7 +3,7 @@
 
 struct lv_obj_t {};
 inline void lv_label_set_text(lv_obj_t *, const char *) {}
-inline std::string espcontrol_i18n(const std::string &value) { return value; }
+inline std::string espdesktop_i18n(const std::string &value) { return value; }
 
 #include "companion_controls.h"
 #include "companion_timezone.h"

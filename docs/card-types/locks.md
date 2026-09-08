@@ -1,7 +1,7 @@
 ---
 title: Lock Cards
 description:
-  How to use lock cards on your EspControl panel to lock, unlock, and view Home Assistant lock entities.
+  How to use lock cards on your EspDesktop panel to lock, unlock, and view Home Assistant lock entities.
 ---
 
 # Lock
@@ -34,7 +34,7 @@ Lock cards handle locking and unlocking. If your lock hardware has a separate op
 
 ## Locks That Need a Code
 
-EspControl does not store lock PINs or codes on the panel. If your lock requires a code, create a Home Assistant script that handles the code securely, then use an [Action](/card-types/actions) card to run that script.
+EspDesktop does not store lock PINs or codes on the panel. If your lock requires a code, create a Home Assistant script that handles the code securely, then use an [Action](/card-types/actions) card to run that script.
 
 ::: info Requires Home Assistant actions
 Lock cards send Home Assistant actions from the panel. If tapping a card does nothing, check [Enable Actions](/getting-started/home-assistant-actions).

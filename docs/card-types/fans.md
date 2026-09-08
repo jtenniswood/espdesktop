@@ -1,7 +1,7 @@
 ---
 title: Fan Cards
 description:
-  How to use fan cards on your EspControl panel to control Home Assistant fan entities.
+  How to use fan cards on your EspDesktop panel to control Home Assistant fan entities.
 ---
 
 # Fans

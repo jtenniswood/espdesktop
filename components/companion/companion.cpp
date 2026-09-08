@@ -1,13 +1,13 @@
 #include "companion.h"
 #include "now_playing_protocol.h"
-#include "../espcontrol/companion_protocol_generated.h"
+#include "../espdesktop/companion_protocol_generated.h"
 
 #include "esphome/core/application.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 #include "esphome/components/json/json_util.h"
 
-#include "../espcontrol/companion_controls.h"
+#include "../espdesktop/companion_controls.h"
 
 #include <esp_random.h>
 #include <mbedtls/ctr_drbg.h>
@@ -175,7 +175,7 @@ bool CompanionService::ensure_identity_() {
   mbedtls_ctr_drbg_init(&drbg);
   mbedtls_pk_init(&key);
   mbedtls_x509write_crt_init(&certificate);
-  unsigned char personalization[] = "espcontrol-companion";
+  unsigned char personalization[] = "espdesktop-companion";
   bool success = false;
   do {
     if (mbedtls_ctr_drbg_seed(&drbg, mbedtls_entropy_func, &entropy,
@@ -186,8 +186,8 @@ bool CompanionService::ensure_identity_() {
     mbedtls_x509write_crt_set_md_alg(&certificate, MBEDTLS_MD_SHA256);
     mbedtls_x509write_crt_set_subject_key(&certificate, &key);
     mbedtls_x509write_crt_set_issuer_key(&certificate, &key);
-    if (mbedtls_x509write_crt_set_subject_name(&certificate, "CN=EspControl Companion") != 0) break;
-    if (mbedtls_x509write_crt_set_issuer_name(&certificate, "CN=EspControl Companion") != 0) break;
+    if (mbedtls_x509write_crt_set_subject_name(&certificate, "CN=EspDesktop") != 0) break;
+    if (mbedtls_x509write_crt_set_issuer_name(&certificate, "CN=EspDesktop") != 0) break;
     unsigned char serial[] = {static_cast<unsigned char>(esp_random()), static_cast<unsigned char>(esp_random()),
                               static_cast<unsigned char>(esp_random()), static_cast<unsigned char>(esp_random())};
     if (mbedtls_x509write_crt_set_serial_raw(&certificate, serial, sizeof(serial)) != 0) break;

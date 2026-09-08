@@ -6,7 +6,7 @@ Superseded by [ADR 0006](0006-hybrid-compiled-firmware-modules.md).
 
 ## Context
 
-Firmware UI behavior lives mostly in `components/espcontrol/*.h`. The project
+Firmware UI behavior lives mostly in `components/espdesktop/*.h`. The project
 uses ESPHome and LVGL, with many card types sharing grid setup, runtime state,
 modal handling, and Home Assistant subscriptions.
 

@@ -7,7 +7,7 @@ configured, rendered, previewed, or saved.
 
 - `product/v2/card_contract.json`
 - `src/webserver/cards/<type>.ts`
-- `components/espcontrol/button_grid_<type>.h`
+- `components/espdesktop/button_grid_<type>.h`
 
 Only edit these first. Add parser or wiring files after the contract, web type,
 and firmware behavior show the real shape of the change.
@@ -30,12 +30,12 @@ and firmware behavior show the real shape of the change.
 - [ ] If options are saved, preserve them in
       `src/webserver/application/config_codec.ts`.
 - [ ] Add or update firmware rendering/runtime behavior in
-      `components/espcontrol/button_grid_<type>.h`.
-- [ ] Include the card header from `components/espcontrol/button_grid.h`.
+      `components/espdesktop/button_grid_<type>.h`.
+- [ ] Include the card header from `components/espdesktop/button_grid.h`.
 - [ ] Wire setup and runtime behavior in
-      `components/espcontrol/button_grid_grid.h`.
+      `components/espdesktop/button_grid_grid.h`.
 - [ ] If firmware parsing needs new fields or options, update
-      `components/espcontrol/button_grid_config.h`.
+      `components/espdesktop/button_grid_config.h`.
 - [ ] Add or update compatibility fixtures when the saved shape changes:
       `product/v2/product_compatibility.json`.
 - [ ] Add every meaningful mode to `common/config/card_runtime_inventory.json`,
@@ -56,7 +56,7 @@ Do not edit generated files directly. The source-to-generated mapping is in
 Expected generated files commonly include:
 
 - `src/webserver/generated/card_contract.ts`
-- `components/espcontrol/button_grid_contract_generated.h`
+- `components/espdesktop/button_grid_contract_generated.h`
 - `docs/generated/cards/capabilities.md`
 - generated files under `docs/public/webserver/`
 
@@ -201,7 +201,7 @@ registry.register("hello", {
 }
 ```
 
-Add the firmware tile in `components/espcontrol/button_grid_hello.h`:
+Add the firmware tile in `components/espdesktop/button_grid_hello.h`:
 
 ```cpp
 #pragma once
@@ -222,8 +222,8 @@ inline void setup_hello_card(BtnSlot &s, const ParsedCfg &p) {
 }
 ```
 
-Include that header from `components/espcontrol/button_grid.h`, then wire the
-visual setup pass in `components/espcontrol/button_grid_grid.h`:
+Include that header from `components/espdesktop/button_grid.h`, then wire the
+visual setup pass in `components/espdesktop/button_grid_grid.h`:
 
 ```cpp
 if (p.type == "hello") {

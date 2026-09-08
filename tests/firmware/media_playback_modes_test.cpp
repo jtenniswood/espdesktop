@@ -3,16 +3,16 @@
 #include "media_playback_modes.h"
 
 int main() {
-  using espcontrol::media::RepeatMode;
-  using espcontrol::media::SUPPORT_REPEAT_SET;
-  using espcontrol::media::SUPPORT_SHUFFLE_SET;
-  using espcontrol::media::media_transport_layout;
-  using espcontrol::media::next_repeat_mode;
-  using espcontrol::media::parse_repeat_mode;
-  using espcontrol::media::parse_shuffle_state;
-  using espcontrol::media::repeat_mode_value;
-  using espcontrol::media::repeat_supported;
-  using espcontrol::media::shuffle_supported;
+  using espdesktop::media::RepeatMode;
+  using espdesktop::media::SUPPORT_REPEAT_SET;
+  using espdesktop::media::SUPPORT_SHUFFLE_SET;
+  using espdesktop::media::media_transport_layout;
+  using espdesktop::media::next_repeat_mode;
+  using espdesktop::media::parse_repeat_mode;
+  using espdesktop::media::parse_shuffle_state;
+  using espdesktop::media::repeat_mode_value;
+  using espdesktop::media::repeat_supported;
+  using espdesktop::media::shuffle_supported;
 
   assert(!shuffle_supported(false, SUPPORT_SHUFFLE_SET));
   assert(!shuffle_supported(true, 0));

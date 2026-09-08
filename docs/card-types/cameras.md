@@ -1,7 +1,7 @@
 ---
 title: Camera Cards
 description:
-  How to show Home Assistant camera and image entities on your EspControl panel.
+  How to show Home Assistant camera and image entities on your EspDesktop panel.
 ---
 
 # Camera
@@ -18,7 +18,7 @@ Camera cards are not supported on the ESP32-S3 screen because it has an older, s
 
 1. Select a card and change its type to **Camera Card**.
 2. Enter a **Camera Entity**, for example `camera.front_door`.
-3. Optionally turn on **Show Label** and enter a label. If the label is blank, EspControl uses the entity name from Home Assistant.
+3. Optionally turn on **Show Label** and enter a label. If the label is blank, EspDesktop uses the entity name from Home Assistant.
 4. Optionally turn on **Show Icon** and choose an icon. The default icon is **Camera**.
 5. Choose **Expanded Image**:
    - **Crop to fit** fills the expanded view and may crop the edges.
@@ -66,7 +66,7 @@ Replace the camera, file path, and generated ESPHome action with the values from
 
 ## Practical Limits
 
-Camera images use more memory than normal control cards, so EspControl limits how many can be active at once.
+Camera images use more memory than normal control cards, so EspDesktop limits how many can be active at once.
 
 ESP32-P4 screens provide **6 shared image slots**. Each Camera card or Media card set to **Cover Art** uses one slot, across the main page and all subpages combined. For example, 4 Camera cards and 2 Media Cover Art cards use all 6 slots.
 

@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIRMWARE_DIR = ROOT / "components" / "espcontrol"
+FIRMWARE_DIR = ROOT / "components" / "espdesktop"
 
 DISPLAY_BOUNDARY_FILES = {
     "button_grid_display.h",
@@ -53,7 +53,7 @@ RULES: tuple[tuple[re.Pattern[str], str, set[str]], ...] = (
 
 
 def firmware_headers(root: Path) -> list[Path]:
-    firmware_dir = root / "components" / "espcontrol"
+    firmware_dir = root / "components" / "espdesktop"
     return sorted(firmware_dir.glob("button_grid*.h"))
 
 
@@ -95,7 +95,7 @@ def check_root(root: Path) -> list[str]:
         modal_text = resolved_tab_paths["button_grid_modal.h"].read_text(encoding="utf-8")
         if "apply_width_compensation(tab_row, width_compensation_percent);" not in modal_text:
             failures.append(
-                "components/espcontrol/button_grid_modal.h: compensate the shared tab controller container"
+                "components/espdesktop/button_grid_modal.h: compensate the shared tab controller container"
             )
         tab_button_body = re.search(
             r"inline void control_modal_layout_tab_button\([^)]*\)\s*\{(?P<body>.*?)\n\}",
@@ -104,7 +104,7 @@ def check_root(root: Path) -> list[str]:
         )
         if tab_button_body is None or "apply_width_compensation(tab_btn" in tab_button_body.group("body"):
             failures.append(
-                "components/espcontrol/button_grid_modal.h: apply tab compensation once at the shared container"
+                "components/espdesktop/button_grid_modal.h: apply tab compensation once at the shared container"
             )
         compensated_call = re.compile(
             r"control_modal_apply_tab_row\(\s*ui\.tab_row,\s*layout,\s*tabs_layout,\s*"
@@ -116,7 +116,7 @@ def check_root(root: Path) -> list[str]:
             text = resolved_tab_paths[name].read_text(encoding="utf-8")
             if len(compensated_call.findall(text)) != expected_count:
                 failures.append(
-                    f"components/espcontrol/{name}: pass display compensation to every modal tab controller"
+                    f"components/espdesktop/{name}: pass display compensation to every modal tab controller"
                 )
         tab_creators = {
             "button_grid_sliders.h": (
@@ -137,7 +137,7 @@ def check_root(root: Path) -> list[str]:
                 )
                 if body is None or "width_compensation_percent" in body.group(0):
                     failures.append(
-                        f"components/espcontrol/{name}: compensate tab icons once through the shared row"
+                        f"components/espdesktop/{name}: compensate tab icons once through the shared row"
                     )
 
     alarm_path = root / FIRMWARE_DIR.relative_to(ROOT) / "button_grid_alarm.h"
@@ -155,7 +155,7 @@ def check_root(root: Path) -> list[str]:
             or "apply_width_compensation" in mode_button.group(0)
         ):
             failures.append(
-                "components/espcontrol/button_grid_alarm.h: compensate alarm action icons once through the shared rail"
+                "components/espdesktop/button_grid_alarm.h: compensate alarm action icons once through the shared rail"
             )
     return failures
 
@@ -229,7 +229,7 @@ def run_self_test() -> None:
     for files, expected in cases:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            firmware_dir = root / "components" / "espcontrol"
+            firmware_dir = root / "components" / "espdesktop"
             firmware_dir.mkdir(parents=True)
             for name, content in files.items():
                 (firmware_dir / name).write_text(content, encoding="utf-8")

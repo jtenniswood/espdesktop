@@ -1,7 +1,7 @@
 ---
-title: EspControl Screen Schedule
+title: EspDesktop Screen Schedule
 description:
-  How to control what the EspControl panel does overnight.
+  How to control what the EspDesktop panel does overnight.
 ---
 
 # Screen Schedule

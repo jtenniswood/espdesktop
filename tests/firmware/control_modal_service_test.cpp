@@ -1,7 +1,7 @@
 #include <cassert>
 
 #include "control_modal_service.h"
-#include "espcontrol_app_core.h"
+#include "espdesktop_app_core.h"
 
 namespace {
 
@@ -48,7 +48,7 @@ int main() {
   modal.clear_nested_menu(&nested_overlay);
   assert(modal.nested_active().overlay == nullptr);
 
-  espcontrol::EspControlAppCore app;
+  espdesktop::EspDesktopAppCore app;
   assert(app.start());
   auto &core_modal = app.modal_state_service<ControlModalStateService<Overlay>>();
   core_modal.set_active(ControlModalKind::IMAGE_CARD, &overlay, nullptr,

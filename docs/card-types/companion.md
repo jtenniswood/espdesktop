@@ -1,6 +1,6 @@
 ---
 title: Companion Cards
-description: Show Mac system statistics, launch macOS applications, open Finder folders, control media with confirmed playback state, open web links, or replay keyboard shortcuts from a 4848S040 EspControl panel.
+description: Show Mac system statistics, launch macOS applications, open Finder folders, control media with confirmed playback state, open web links, or replay keyboard shortcuts from a 4848S040 EspDesktop panel.
 ---
 
 # Companion Cards
@@ -10,7 +10,7 @@ Companion cards are a proof-of-concept card type for the **4-inch 4848S040** pan
 ## Before adding cards
 
 1. Flash the Companion Cards test firmware to a 4848S040.
-2. On the Mac, open the `EspControl Companion` project in Xcode, choose your Personal Team for signing, and run the menu-bar app.
+2. [Install EspDesktop on the Mac](/getting-started/mac-app). For branch testing, run the matching app build from Xcode.
 3. Open the display’s web settings and its Mac Companion setup page to start pairing and show the code.
 4. In the Mac app's **Display** page, enter the panel address and the displayed code, then choose **Continue**. Pair on a trusted local network, then choose which installed apps it may launch.
 
@@ -34,11 +34,11 @@ Use a [Slider card](/card-types/sliders) when you want to control the Mac's outp
 
 For a supported **Launch app** card, open the **App subpage** panel below **Card Settings** and turn on **Add app subpage**. The available keyboard shortcuts then appear as a list: turn individual shortcuts on or off, drag them into order, or use the arrow buttons. This panel also contains **Auto switch to subpage**. The card will bring the app to the front and, after the Companion confirms it is active, open the configured app subpage on the display. If the app cannot become active, the display stays on the home screen so a shortcut cannot reach another application.
 
-The subpage is created with the selected app-specific controls. You can then add any card type supported inside a normal subpage, as well as edit the shortcut labels, icons, shortcuts, and order. Changing the shortcut list later updates the built-in shortcut controls while keeping additional cards. Turning the option off does not discard those edits; turning it back on restores the same subpage. The app must remain approved in the Companion app.
+The subpage is created with the selected app-specific controls. You can then add any card type supported inside a normal subpage, as well as edit the shortcut labels, icons, shortcuts, and order. Changing the shortcut list later updates the built-in shortcut controls while keeping additional cards. Turning the option off does not discard those edits; turning it back on restores the same subpage. The app must remain approved in EspDesktop.
 
-The first time you use one of these controls, macOS may ask for Accessibility permission. Allow **EspControl Companion** in **System Settings → Privacy & Security → Accessibility**. If the app is no longer approved or the Companion is offline, the app card is disabled and the app subpage is not opened.
+The first time you use one of these controls, macOS may ask for Accessibility permission. Allow **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. If the app is no longer approved or the Companion is offline, the app card is disabled and the app subpage is not opened.
 
-The first time a shortcut or window control is used, macOS asks for Accessibility permission so the Companion app can replay keyboard input. Allow **EspControl Companion** in **System Settings → Privacy & Security → Accessibility**, then press the card again. Shortcuts and window controls are sent to whichever Mac application is active at that time.
+The first time a shortcut or window control is used, macOS asks for Accessibility permission so EspDesktop can replay keyboard input. Allow **EspDesktop** in **System Settings → Privacy & Security → Accessibility**, then press the card again. Shortcuts and window controls are sent to whichever Mac application is active at that time.
 
 Action cards are disabled when the Mac is offline, when an app or URL card references an unavailable application, when a folder has been removed from the Mac app, or when a URL is incomplete. System-statistic cards show `--` while their reading is unavailable. Media cards are disabled only when the Companion cannot provide the required system command. A missing Now Playing session leaves Play / Pause enabled and displayed as **Stopped**. App subpages accept the same card types as normal subpages. Layouts, subpages, backup, and restore work through the same built-in editor as all other cards.
 

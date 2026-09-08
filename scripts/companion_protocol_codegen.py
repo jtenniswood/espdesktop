@@ -266,6 +266,6 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
 def outputs(root, data):
     validate_contract(data)
     return [
-        (root/'components/espcontrol/companion_protocol_generated.h',cpp(data)),
-        (root/'macos/Companion/Sources/Companion/CompanionProtocol.generated.swift',swift(data)),
+        (root/'components/espdesktop/companion_protocol_generated.h',cpp(data)),
+        (root/'macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift',swift(data)),
     ]

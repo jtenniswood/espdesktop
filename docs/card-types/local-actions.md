@@ -1,7 +1,7 @@
 ---
 title: Local Action Cards
 description:
-  How to trigger custom on-device callbacks directly from EspControl cards without Home Assistant.
+  How to trigger custom on-device callbacks directly from EspDesktop cards without Home Assistant.
 ---
 
 # Local Action

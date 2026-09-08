@@ -1,7 +1,7 @@
 ---
 name: merge
 description: >-
-  Prepare and merge a specific EspControl pull request by addressing remaining
+  Prepare and merge a specific EspDesktop pull request by addressing remaining
   review feedback, resolving conflicts with main, and merging only when required
   reviews and checks are clear. Use when the user says "/merge" or asks to get a
   pull request ready and merge it.

@@ -133,13 +133,13 @@ import { installAppTestHooksPreview } from "./testing/app_test_hooks_preview";
 import { installAppTestHooksBackup } from "./testing/app_test_hooks_backup";
 import { installAppTestHooksSettings } from "./testing/app_test_hooks_settings";
 
-declare const __ESPCONTROL_TEST_HOOKS_ENABLED__: boolean;
+declare const __ESPDESKTOP_TEST_HOOKS_ENABLED__: boolean;
 
 const startupState = globalThis as typeof globalThis & {
-  __ESPCONTROL_START_EMBEDDED__?: () => void;
-  __ESPCONTROL_RELOAD_EMBEDDED__?: () => void;
-  __ESPCONTROL_UI_STARTED__?: boolean;
-  __ESPCONTROL_UI_STARTING__?: boolean;
+  __ESPDESKTOP_START_EMBEDDED__?: () => void;
+  __ESPDESKTOP_RELOAD_EMBEDDED__?: () => void;
+  __ESPDESKTOP_UI_STARTED__?: boolean;
+  __ESPDESKTOP_UI_STARTING__?: boolean;
 };
 
 function registerCards(context: ApplicationContext) {
@@ -979,14 +979,14 @@ function composeApplicationContext(): ApplicationContext {
   });
 }
 
-function startEspControl(): void {
-  if (startupState.__ESPCONTROL_UI_STARTED__ || startupState.__ESPCONTROL_UI_STARTING__) return;
+function startEspDesktop(): void {
+  if (startupState.__ESPDESKTOP_UI_STARTED__ || startupState.__ESPDESKTOP_UI_STARTING__) return;
   AppInstance.initializeAppState();
 
   const context = composeApplicationContext();
 
   const lightCards = registerCards(context);
-  if (__ESPCONTROL_TEST_HOOKS_ENABLED__) {
+  if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {
     installTestHooks(context, lightCards);
   }
   startApp(context.controllers.app);
@@ -1009,24 +1009,24 @@ function startEspControl(): void {
 }
 
 function startEmbeddedFallback(error: unknown): void {
-  console.error("Unable to start EspControl", error);
-  startupState.__ESPCONTROL_UI_STARTED__ = false;
-  startupState.__ESPCONTROL_UI_STARTING__ = false;
-  const reload = startupState.__ESPCONTROL_RELOAD_EMBEDDED__;
+  console.error("Unable to start EspDesktop", error);
+  startupState.__ESPDESKTOP_UI_STARTED__ = false;
+  startupState.__ESPDESKTOP_UI_STARTING__ = false;
+  const reload = startupState.__ESPDESKTOP_RELOAD_EMBEDDED__;
   if (typeof reload === "function") {
     reload();
     return;
   }
-  const start = startupState.__ESPCONTROL_START_EMBEDDED__;
+  const start = startupState.__ESPDESKTOP_START_EMBEDDED__;
   if (typeof start === "function") start();
 }
 
 const deviceConfigReady = DeviceConfig.initializeDeviceConfig();
 if (deviceConfigReady) {
-  void deviceConfigReady.then(startEspControl).catch(startEmbeddedFallback);
+  void deviceConfigReady.then(startEspDesktop).catch(startEmbeddedFallback);
 } else {
   try {
-    startEspControl();
+    startEspDesktop();
   } catch (error) {
     startEmbeddedFallback(error);
   }

@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { uniqueOptions } from "./ui_primitives";
 import type { UiRuntimeState } from "./state";
 import type { ApplicationLayoutState } from "./application_context";
@@ -108,7 +108,7 @@ export function createScreenRotationFeature(
     function applyDeferredButtonOrder(rawOrder?: any, onNormalized?: any) {
         var receivedOrder: any = String(rawOrder || "").trim();
         dependencies.applyButtonOrder(receivedOrder, true);
-        var normalizedOrder: any = EspControlModel.serializeGridOrder(state.grid, state.sizes);
+        var normalizedOrder: any = EspDesktopModel.serializeGridOrder(state.grid, state.sizes);
         if (normalizedOrder !== receivedOrder && typeof onNormalized === "function")
             onNormalized(normalizedOrder);
         return normalizedOrder;

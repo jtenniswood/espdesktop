@@ -15,7 +15,7 @@ const FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", 
 
 function loadBrowserCodec() {
   const sandbox = {
-    __ESPCONTROL_TEST_HOOKS__: {}, console: { log() {}, warn() {}, error() {} },
+    __ESPDESKTOP_TEST_HOOKS__: {}, console: { log() {}, warn() {}, error() {} },
     location: { search: "" }, URLSearchParams, setTimeout, clearTimeout,
     requestAnimationFrame(fn) { return setTimeout(fn, 0); },
     document: { readyState: "loading", activeElement: null, addEventListener() {} },
@@ -23,7 +23,7 @@ function loadBrowserCodec() {
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(loadBuiltWebSource(), sandbox, { filename: "src/webserver/entry.ts" });
-  return sandbox.__ESPCONTROL_TEST_HOOKS__.config;
+  return sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
 }
 
 function shape(value) {
@@ -149,8 +149,8 @@ function cppSource(cases) {
 #include "esphome/core/string_ref.h"
 struct lv_obj_t {};
 inline void lv_label_set_text(lv_obj_t *, const char *) {}
-inline const char *espcontrol_i18n(const char *text) { return text ? text : ""; }
-inline std::string espcontrol_i18n(const std::string &text) { return text; }
+inline const char *espdesktop_i18n(const char *text) { return text ? text : ""; }
+inline std::string espdesktop_i18n(const std::string &text) { return text; }
 #include "button_grid_config_parser.h"
 #include "button_grid_saved_config_shadow_generated.h"
 
@@ -175,14 +175,14 @@ int main() { const std::vector<std::string> inputs = { ${inputs} }; std::cout <<
 }
 
 function compiledShadow(cases) {
-  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "espcontrol-saved-config-shadow-"));
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "espdesktop-saved-config-shadow-"));
   try {
     const source = path.join(temporary, "shadow.cpp");
     const binary = path.join(temporary, "shadow");
     fs.writeFileSync(source, cppSource(cases));
     childProcess.execFileSync(compiler(), [
       "-std=c++17", "-Wall", "-Wextra", "-Werror",
-      `-I${path.join(ROOT, "components/espcontrol")}`,
+      `-I${path.join(ROOT, "components/espdesktop")}`,
       `-I${path.join(ROOT, "tests/firmware/stubs")}`,
       source, "-o", binary,
     ]);
@@ -208,9 +208,9 @@ function main() {
     assert.deepStrictEqual(compiled, expected, `${fixture.name}: compiled shadow`);
     assert.deepStrictEqual(shape(shadow.normalizeSavedConfigShadow(browserShadow)), browserShadow, `${fixture.name}: shadow idempotence`);
   });
-  const firmwareUsers = fs.readdirSync(path.join(ROOT, "components/espcontrol"))
+  const firmwareUsers = fs.readdirSync(path.join(ROOT, "components/espdesktop"))
     .filter((name) => name.endsWith(".h") && name !== "button_grid_saved_config_shadow_generated.h")
-    .filter((name) => fs.readFileSync(path.join(ROOT, "components/espcontrol", name), "utf8").includes("button_grid_saved_config_shadow_generated"));
+    .filter((name) => fs.readFileSync(path.join(ROOT, "components/espdesktop", name), "utf8").includes("button_grid_saved_config_shadow_generated"));
   assert.deepStrictEqual(firmwareUsers, [], "shadow header must remain outside production firmware");
   console.log(`Saved-config shadow agreement passed for ${cases.length} Vacuum, Sensor, Action, and Media inputs across browser and compiled C++ helpers.`);
   console.log("Production firmware footprint delta: 0 bytes flash / 0 bytes RAM (test-only shadow; 8 KiB guard passed).");

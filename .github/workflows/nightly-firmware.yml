@@ -7,7 +7,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ESPCONTROL_DOCKER_BUILD_CACHE_KEEP: 2GB
+  ESPDESKTOP_DOCKER_BUILD_CACHE_KEEP: 2GB
 
 concurrency:
   group: nightly-firmware
@@ -63,16 +63,16 @@ jobs:
 
       - uses: actions/checkout@v7.0.1
         with:
-          path: espcontrol-nightly
+          path: espdesktop-nightly
 
       - name: Normalize checkout
-        working-directory: espcontrol-nightly
+        working-directory: espdesktop-nightly
         run: |
           git sparse-checkout disable || true
           git reset --hard HEAD
 
       - name: Prepare compile plan
-        working-directory: espcontrol-nightly
+        working-directory: espdesktop-nightly
         env:
           MATRIX_JSON: ${{ needs.device-matrix.outputs.matrix }}
         run: |
@@ -97,7 +97,7 @@ jobs:
           sed 's/^/- /' nightly-slugs.txt
 
       - name: Load ESPHome version
-        working-directory: espcontrol-nightly
+        working-directory: espdesktop-nightly
         run: cat .github/esphome.env >> "$GITHUB_ENV"
 
       - name: Select Docker command
@@ -112,14 +112,14 @@ jobs:
           fi
 
       - name: Reclaim runner disk
-        working-directory: espcontrol-nightly
+        working-directory: espdesktop-nightly
         run: bash scripts/reclaim_actions_disk.sh
 
       - name: Pull ESPHome image
-        working-directory: espcontrol-nightly
+        working-directory: espdesktop-nightly
         run: |
           ESPHOME_IMAGE="ghcr.io/esphome/esphome:${ESPHOME_VERSION}"
-          LOCK_FILE="/tmp/espcontrol-esphome-image.lock"
+          LOCK_FILE="/tmp/espdesktop-esphome-image.lock"
           if command -v flock >/dev/null 2>&1; then
             flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}"
           else
@@ -128,11 +128,11 @@ jobs:
           echo "ESPHOME_IMAGE=${ESPHOME_IMAGE}" >> "$GITHUB_ENV"
 
       - name: Compile firmware targets
-        working-directory: espcontrol-nightly
+        working-directory: espdesktop-nightly
         run: |
           SOURCE_DIR="${PWD}"
           python3 scripts/prepare_c6_firmware.py
-          shared_cache_root="${RUNNER_TEMP}/espcontrol-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/nightly"
+          shared_cache_root="${RUNNER_TEMP}/espdesktop-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/nightly"
           shared_platformio_cache="${shared_cache_root}/platformio-${ESPHOME_VERSION}"
           rm -rf "${shared_cache_root}"
           mkdir -p "${shared_platformio_cache}"
@@ -213,8 +213,8 @@ jobs:
 
       - name: Clean firmware caches
         if: always()
-        working-directory: espcontrol-nightly
+        working-directory: espdesktop-nightly
         run: |
-          rm -rf "${RUNNER_TEMP}/espcontrol-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "${RUNNER_TEMP}/espdesktop-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -rf .esphome .firmware-builds
           bash scripts/reclaim_actions_disk.sh

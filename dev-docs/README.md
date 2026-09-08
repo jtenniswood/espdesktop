@@ -1,4 +1,4 @@
-# EspControl Developer Reference
+# EspDesktop Developer Reference
 
 Internal reference for contributors and maintainers. End-user installation and
 usage documentation lives in the root `README.md` and under `docs/`.

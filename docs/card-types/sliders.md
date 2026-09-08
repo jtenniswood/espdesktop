@@ -32,7 +32,7 @@ For light-only controls, you may prefer the newer [Lights](/card-types/lights) c
 - When the entity changes externally (from Home Assistant or another control), the fill bar updates automatically. Number sliders also adapt if Home Assistant changes their range or step.
 - Mac volume sliders update when macOS volume changes and are disabled whenever the Companion app is disconnected or the selected audio device does not expose a software volume control.
 
-`number.*` entities normally belong to a device or integration, while `input_number.*` entities are helpers created in Home Assistant. EspControl supports both and sends the matching Home Assistant action automatically.
+`number.*` entities normally belong to a device or integration, while `input_number.*` entities are helpers created in Home Assistant. EspDesktop supports both and sends the matching Home Assistant action automatically.
 
 ## On and Off Icons
 

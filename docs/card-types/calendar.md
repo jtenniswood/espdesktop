@@ -1,7 +1,7 @@
 ---
 title: Date & Time Cards
 description:
-  How to show the local clock, date, or date and time on your EspControl panel.
+  How to show the local clock, date, or date and time on your EspDesktop panel.
 ---
 
 # Date & Time

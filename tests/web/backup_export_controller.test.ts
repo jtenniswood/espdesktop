@@ -29,7 +29,7 @@ export function runBackupExportControllerTests(): void {
   equal(controller.screenSizeSlug(""), "screen", "blank screen sizes keep the portable fallback");
   equal(
     controller.fileName("7 in", new Date(2026, 6, 13)),
-    "espcontrol-7-inch-2026-07-13.json",
+    "espdesktop-7-inch-2026-07-13.json",
     "backup file names remain stable",
   );
 

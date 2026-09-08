@@ -46,9 +46,9 @@ class CheckMatrixRow:
 SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     SourceTruthRow(
         "product/v2/companion_capabilities.json, product/v2/devices/*.json, product/release_contract.json, compatibility/fixtures/companion_protocol_v3.json",
-        ("src/webserver/generated/companion_capabilities.ts", "components/espcontrol/companion_capabilities_generated.h",
-         "components/espcontrol/companion_protocol_generated.h", "macos/Companion/Sources/Companion/CompanionCapabilities.generated.swift",
-         "macos/Companion/Sources/Companion/CompanionProtocol.generated.swift", "product/generated/companion_manifest.json",
+        ("src/webserver/generated/companion_capabilities.ts", "components/espdesktop/companion_capabilities_generated.h",
+         "components/espdesktop/companion_protocol_generated.h", "macos/EspDesktop/Sources/Companion/CompanionCapabilities.generated.swift",
+         "macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift", "product/generated/companion_manifest.json",
          "product/generated/companion_compatibility.json", "docs/generated/companion-compatibility.md"),
         "python3 scripts/build.py companion",
         "`npm run check:companion-contract`, host firmware tests, and native Swift tests",
@@ -57,7 +57,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
         "product/v2/card_contract.json",
         (
             "src/webserver/generated/card_contract.ts",
-            "components/espcontrol/button_grid_contract_generated.h",
+            "components/espdesktop/button_grid_contract_generated.h",
             "docs/generated/cards/capabilities.md",
         ),
         "python3 scripts/build.py contract",
@@ -107,7 +107,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
         "product/v2/icons.json",
         (
             "generated sections inside `common/assets/icon_glyphs.yaml`",
-            "generated sections inside `components/espcontrol/icons.h`",
+            "generated sections inside `components/espdesktop/icons.h`",
             "`src/webserver/generated/icons.ts`",
         ),
         "python3 scripts/build.py icons",
@@ -121,7 +121,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     ),
     SourceTruthRow(
         "product/v2/translations/strings.*.txt",
-        ("components/espcontrol/i18n_generated.h",),
+        ("components/espdesktop/i18n_generated.h",),
         "python3 scripts/build.py i18n",
         "`python3 scripts/build.py i18n --check` and `npm run check:product`",
     ),
@@ -225,13 +225,13 @@ CHECK_MATRIX_ROWS: tuple[CheckMatrixRow, ...] = (
         "`npm run check:web-browser-smoke` for browser behavior; `npm run check:product` before release-facing commits",
     ),
     CheckMatrixRow(
-        "`components/espcontrol/*.h`",
+        "`components/espdesktop/*.h`",
         "Firmware card rendering, LVGL layout, modals, Home Assistant actions/subscriptions, parser behavior",
         "`npm run check:firmware-parser` plus the relevant firmware check",
         "`npm run check:fast` or compile affected firmware when display layout or device behavior changes",
     ),
     CheckMatrixRow(
-        "`src/webserver/application/config_codec.ts`, `components/espcontrol/button_grid_config.h`, `product/v2/product_compatibility.json`",
+        "`src/webserver/application/config_codec.ts`, `components/espdesktop/button_grid_config.h`, `product/v2/product_compatibility.json`",
         "Saved card strings, backup/import/export shape, migration compatibility",
         "`npm run check:backup-contract` and `npm run check:firmware-parser`",
         "`npm run check:product` when compact config, backup, or migration behavior changes",
@@ -499,12 +499,12 @@ def web_registration_map() -> dict[str, str]:
 
 def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
     out = {card_type: [] for card_type in card_types}
-    runtime_boundary = "components/espcontrol/button_grid_card_runtime.h"
+    runtime_boundary = "components/espdesktop/button_grid_card_runtime.h"
     extra_by_type = {
-        "weather": ["components/espcontrol/button_grid_weather_forecast.h"],
+        "weather": ["components/espdesktop/button_grid_weather_forecast.h"],
     }
     headers = [
-        path for path in sorted((ROOT / "components/espcontrol").glob("button_grid*.h"))
+        path for path in sorted((ROOT / "components/espdesktop").glob("button_grid*.h"))
         if not path.name.endswith("_generated.h")
     ]
     for card_type in card_types:
@@ -599,7 +599,7 @@ def generated_card_map() -> str:
         "## Generated Matrix\n\n"
         "This table is generated from the card contract and typed `registry.register(...)` calls in "
         "`src/webserver/cards/`, and matching firmware header references under "
-        "`components/espcontrol/`.\n\n"
+        "`components/espdesktop/`.\n\n"
         + markdown_table((
             "Type",
             "Label",

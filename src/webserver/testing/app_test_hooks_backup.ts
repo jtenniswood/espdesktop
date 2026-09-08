@@ -4,9 +4,9 @@ import type { AppTestHookRegistrar } from "./app_test_hooks";
 import type { ApplicationLayoutState } from "../application/application_context";
 import type { BackupContractFeature } from "../application/backup_contract";
 import type { AppBackupFeature } from "../application/app_backup";
-export function installAppTestHooksBackup(layout: ApplicationLayoutState, backup: BackupContractFeature, application: AppBackupFeature, registerEspControlTestHookGroup: AppTestHookRegistrar): void {
-    if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
-        registerEspControlTestHookGroup("backup", {
+export function installAppTestHooksBackup(layout: ApplicationLayoutState, backup: BackupContractFeature, application: AppBackupFeature, registerEspDesktopTestHookGroup: AppTestHookRegistrar): void {
+    if (typeof globalThis !== "undefined" && globalThis.__ESPDESKTOP_TEST_HOOKS__) {
+        registerEspDesktopTestHookGroup("backup", {
             BACKUP_CONFIG_VERSION: BACKUP_CONFIG_VERSION,
             BACKUP_FORMAT: BACKUP_FORMAT,
             createBackupConfig: backup.createBackupConfig,

@@ -135,7 +135,7 @@ export function createConnectorsPageFeature(
             value.home_assistant.actions_confirmed);
         setHidden(homeAssistantBadge, !value.home_assistant.connected);
         if (heading) {
-            heading.textContent = value.onboarding_complete ? "Connectors" : "Connect EspControl";
+            heading.textContent = value.onboarding_complete ? "Connectors" : "Connect EspDesktop";
         }
         shell.setOnboardingComplete(value.onboarding_complete, announceCompletion);
         statusListeners.forEach((listener) => listener());
@@ -175,7 +175,7 @@ export function createConnectorsPageFeature(
         steps.className = "sp-connector-steps";
         [
             "In Home Assistant, open Settings → Devices & services.",
-            "Add the discovered EspControl device. If it is not shown, add ESPHome and enter " + window.location.hostname + ".",
+            "Add the discovered EspDesktop device. If it is not shown, add ESPHome and enter " + window.location.hostname + ".",
         ].forEach(function (text) {
             const item = document.createElement("li");
             item.textContent = text;
@@ -244,7 +244,7 @@ export function createConnectorsPageFeature(
         config.className = "sp-config sp-connectors-config fade-in";
         heading = document.createElement("h1");
         heading.className = "sp-connectors-heading sp-settings-status-title";
-        heading.textContent = "Connect EspControl";
+        heading.textContent = "Connect EspDesktop";
         config.appendChild(heading);
         config.appendChild(buildHomeAssistantCard());
         if (companionSupported) {

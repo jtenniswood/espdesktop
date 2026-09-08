@@ -27,8 +27,8 @@ same parity test as part of `firmware-parser`.
 
 | Rule | Class | Browser | Firmware |
 |---|---|---|---|
-| Read nine legacy semicolon fields and compact `~` comma fields | Platform | `EspControlModel.parseRawButtonConfig` | `parse_cfg` |
-| Percent-decode compact delimiters and UTF-8; leave malformed escapes literal | Platform | `EspControlModel.decodeConfigField` | `decode_compact_field` |
+| Read nine legacy semicolon fields and compact `~` comma fields | Platform | `EspDesktopModel.parseRawButtonConfig` | `parse_cfg` |
+| Percent-decode compact delimiters and UTF-8; leave malformed escapes literal | Platform | `EspDesktopModel.decodeConfigField` | `decode_compact_field` |
 | Write the existing safe legacy form when possible, otherwise the existing compact form | Platform | `serializeButtonConfig` | Firmware reads but does not rewrite stored card data |
 | Treat missing icons as `Auto` at the model boundary | Declarative | `buttonShape`/model defaults and generated card normalization | Generated card normalization before firmware runtime use |
 | Parse comma-separated options, preserve canonical order, percent-encode option values, and omit defaults | Declarative | `config_option_core.ts` and family option modules | `cfg_option_*`, `*_card_options_normalized` |

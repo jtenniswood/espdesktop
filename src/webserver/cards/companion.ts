@@ -547,7 +547,7 @@ export function registerCompanionCardTypes(
             folderField.appendChild(folderSelect);
             const folderNote = document.createElement("div");
             folderNote.className = "sp-field-info-text";
-            folderNote.textContent = "Add folders from the Folders tab in the EspControl Companion app.";
+            folderNote.textContent = "Add folders from the Folders tab in the EspDesktop app.";
             folderField.appendChild(folderNote);
             panel?.appendChild(folderField);
             helpers.markCardPrimaryField(folderField, "folder");

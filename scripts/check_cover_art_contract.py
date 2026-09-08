@@ -9,7 +9,7 @@ SOURCE = r'''
 #include <cassert>
 #include <limits>
 #include "cover_art.h"
-using namespace espcontrol::cover_art;
+using namespace espdesktop::cover_art;
 int main() {
   assert(external_media_source("TV"));
   assert(external_media_source(" line-in "));
@@ -131,7 +131,7 @@ with tempfile.TemporaryDirectory(prefix="cover-art-contract-") as temp_dir:
     temp = Path(temp_dir); source, binary = temp / "test.cpp", temp / "test"
     source.write_text(SOURCE, encoding="utf-8")
     subprocess.run(["c++", "-std=c++17", "-Wall", "-Wextra", "-Werror",
-                    f"-I{ROOT / 'components' / 'espcontrol'}", str(source), "-o", str(binary)], check=True)
+                    f"-I{ROOT / 'components' / 'espdesktop'}", str(source), "-o", str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
 
 downloader = (ROOT / "components" / "artwork_image" / "artwork_image.cpp").read_text(encoding="utf-8")
@@ -194,7 +194,7 @@ if 'ESP_LOGD(TAG, "ESP32-P4 JPEG format is not hardware-supported; using softwar
 if 'ESP_LOGW(TAG, "ESP32-P4 JPEG hardware rejected image (error %d); using software decoder", err);' not in jpeg_decoder:
     raise SystemExit("P4 JPEG unexpected hardware failures must remain warnings")
 
-image_cards = (ROOT / "components" / "espcontrol" / "button_grid_image.h").read_text(encoding="utf-8")
+image_cards = (ROOT / "components" / "espdesktop" / "button_grid_image.h").read_text(encoding="utf-8")
 for required in (
     "RefreshBatch media_artwork_refresh",
     "RefreshTrigger media_artwork_trigger",
@@ -207,7 +207,7 @@ for required in (
 ):
     if required not in image_cards:
         raise SystemExit(f"Media artwork refresh-batch contract missing: {required}")
-image_grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
+image_grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
 if "image_card_schedule_media_artwork_refresh(art)" not in image_grid:
     raise SystemExit("Media artwork subscriptions must use the trigger scheduler")
 screen_cover_art = (ROOT / "common" / "device" / "screen_cover_art.yaml").read_text(encoding="utf-8")
@@ -367,7 +367,7 @@ for required in (
     if required not in proxy_404_recovery:
         raise SystemExit(f"Cover art proxy 404 recovery contract missing: {required}")
 
-media = (ROOT / "components" / "espcontrol" / "button_grid_media.h").read_text(encoding="utf-8")
+media = (ROOT / "components" / "espdesktop" / "button_grid_media.h").read_text(encoding="utf-8")
 metadata_start = media.find("inline void media_playback_subscribe_metadata(MediaPlaybackState *state) {")
 metadata_end = media.find("inline void media_playback_subscribe_progress", metadata_start)
 if metadata_start < 0 or metadata_end < 0:
@@ -419,7 +419,7 @@ for subscription_helper in (
         )
 
 media_driver = (
-    ROOT / "components" / "espcontrol" / "button_grid_media_driver.h"
+    ROOT / "components" / "espdesktop" / "button_grid_media_driver.h"
 ).read_text(encoding="utf-8")
 route_start = media_driver.find("inline void media_driver_bind_cover_art_route(")
 route_end = media_driver.find("\ninline ", route_start + 1)
@@ -481,7 +481,7 @@ for required in (
     if required not in media:
         raise SystemExit(f"Media control playing-highlight contract missing: {required}")
 
-media_driver = (ROOT / "components" / "espcontrol" / "button_grid_media_driver.h").read_text(encoding="utf-8")
+media_driver = (ROOT / "components" / "espdesktop" / "button_grid_media_driver.h").read_text(encoding="utf-8")
 if "if (control) control->highlight_playing = false;" not in media_driver:
     raise SystemExit("Cover art control modals must not highlight their parent card while playing")
 for required in (
@@ -492,12 +492,12 @@ for required in (
     if required not in media_driver:
         raise SystemExit(f"2x2 cover art must reuse All Controls fonts: {required}")
 
-grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
-layout = (ROOT / "components" / "espcontrol" / "button_grid_layout.h").read_text(encoding="utf-8")
-subpages = (ROOT / "components" / "espcontrol" / "button_grid_subpages.h").read_text(encoding="utf-8")
-subscriptions = (ROOT / "components" / "espcontrol" / "button_grid_subscriptions.h").read_text(encoding="utf-8")
-sliders = (ROOT / "components" / "espcontrol" / "button_grid_sliders.h").read_text(encoding="utf-8")
-climate = (ROOT / "components" / "espcontrol" / "button_grid_climate.h").read_text(encoding="utf-8")
+grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
+layout = (ROOT / "components" / "espdesktop" / "button_grid_layout.h").read_text(encoding="utf-8")
+subpages = (ROOT / "components" / "espdesktop" / "button_grid_subpages.h").read_text(encoding="utf-8")
+subscriptions = (ROOT / "components" / "espdesktop" / "button_grid_subscriptions.h").read_text(encoding="utf-8")
+sliders = (ROOT / "components" / "espdesktop" / "button_grid_sliders.h").read_text(encoding="utf-8")
+climate = (ROOT / "components" / "espdesktop" / "button_grid_climate.h").read_text(encoding="utf-8")
 if "lv_obj_set_width(label, lv_pct(100));" not in layout:
     raise SystemExit("Firmware card labels must retain their full width below top-left icons")
 if "lv_obj_align(s.icon_lbl, LV_ALIGN_TOP_LEFT, 0, 0);" not in grid:
@@ -634,7 +634,7 @@ for required in (
             f"Stopped playback must invalidate retained metadata: {required}"
         )
 for required in (
-    "espcontrol::cover_art::media_entity_state_usable(next)",
+    "espdesktop::cover_art::media_entity_state_usable(next)",
     'subscribe_secondary_content_probe(std::string("media_artist"), 16u)',
 ):
     if required not in resubscribe:

@@ -1,6 +1,6 @@
 ---
 name: tech-debt-scan
-description: Research-only technical debt scan for this EspControl repository. Use when the user asks for a tech debt scan, cleanup backlog, maintainability review, messy or rushed implementation review, duplicated logic audit, fragile assumption scan, dead code review, architecture cleanup plan, or asks to identify code that works now but will be painful to maintain later.
+description: Research-only technical debt scan for this EspDesktop repository. Use when the user asks for a tech debt scan, cleanup backlog, maintainability review, messy or rushed implementation review, duplicated logic audit, fragile assumption scan, dead code review, architecture cleanup plan, or asks to identify code that works now but will be painful to maintain later.
 ---
 
 # Tech Debt Scan

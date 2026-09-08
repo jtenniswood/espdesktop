@@ -138,7 +138,7 @@ export class NativePanelConfigClient {
           method: "PUT",
           cache: "no-store",
           headers: {
-            "Content-Type": "application/vnd.espcontrol.panel-config",
+            "Content-Type": "application/vnd.espdesktop.panel-config",
             "If-Match": generation,
           },
           body: encodePanelConfig(update(currentDocument)),

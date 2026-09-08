@@ -24,7 +24,7 @@ SLUG = "guition-esp32-s3-4848s040"
 RECOVERY_SLUG = "guition-esp32-p4-jc4880p443"
 VERSION = "v9.8.7"
 CHIP = "ESP32-S3"
-PROJECT_NAME = "jtenniswood.espcontrol"
+PROJECT_NAME = "jtenniswood.espdesktop"
 ESPHOME_ENV = Path(__file__).resolve().parents[1] / ".github" / "esphome.env"
 RELEASE_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "release.yml"
 PAGES_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "pages.yml"
@@ -437,7 +437,7 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
     assert "/recovery/manifest.json" in selector
     assert "Chrome or Edge" in selector
     assert "exact panel model and revision" in selector
-    assert "Repair C6 and reinstall EspControl" in selector
+    assert "Repair C6 and reinstall EspDesktop" in selector
 
     p4_slugs = [
         entry["slug"]
@@ -706,7 +706,7 @@ def test_draft_release_can_publish_a_verified_companion_asset() -> None:
         base = root / "firmware"
         base.mkdir()
         make_release_files(base)
-        companion = root / "EspControl Companion-v9.8.7.zip"
+        companion = root / "EspDesktop-v9.8.7.zip"
         companion.write_bytes(b"notarized companion placeholder")
         notes = root / "release-notes.md"
         notes.write_text("Verified release notes\n", encoding="utf-8")

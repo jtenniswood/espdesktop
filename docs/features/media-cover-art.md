@@ -1,7 +1,7 @@
 ---
-title: EspControl Media Cover Art
+title: EspDesktop Media Cover Art
 description:
-  How to show media cover art while music or video is playing on your EspControl panel.
+  How to show media cover art while music or video is playing on your EspDesktop panel.
 ---
 
 # Media Cover Art

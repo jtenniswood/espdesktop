@@ -50,7 +50,7 @@ button:
     - label:
         align: bottom_left
         id: button_${num}_text_label
-        text: !lambda 'return std::string(espcontrol_i18n("Configure"));'
+        text: !lambda 'return std::string(espdesktop_i18n("Configure"));'
         long_mode: wrap
         width: 100%
     # Subpage marker (shown only for subpage cards by the shared grid code)
@@ -71,8 +71,8 @@ button:
           - if:
               condition:
                 lambda: |-
-                  return id(espcontrol_app).display().target_mode_is(
-                      espcontrol::DisplayMode::ACTIVE);
+                  return id(espdesktop_app).display().target_mode_is(
+                      espdesktop::DisplayMode::ACTIVE);
               then:
                 - lambda: 'handle_button_press(id(button_${num}_config).state, ${num}, id(button_${num}));'
   on_short_click:
@@ -89,8 +89,8 @@ button:
           - if:
               condition:
                 lambda: |-
-                  return !id(espcontrol_app).display().target_mode_is(
-                      espcontrol::DisplayMode::ACTIVE);
+                  return !id(espdesktop_app).display().target_mode_is(
+                      espdesktop::DisplayMode::ACTIVE);
               then:
                 - script.execute: screensaver_wake
               else:
@@ -109,8 +109,8 @@ button:
           - if:
               condition:
                 lambda: |-
-                  return !id(espcontrol_app).display().target_mode_is(
-                      espcontrol::DisplayMode::ACTIVE);
+                  return !id(espdesktop_app).display().target_mode_is(
+                      espdesktop::DisplayMode::ACTIVE);
               then:
                 - script.execute: screensaver_wake
               else:

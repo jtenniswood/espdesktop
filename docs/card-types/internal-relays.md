@@ -1,7 +1,7 @@
 ---
 title: Internal Switches Cards
 description:
-  How to control built-in panel relays locally from EspControl cards without relying on Home Assistant.
+  How to control built-in panel relays locally from EspDesktop cards without relying on Home Assistant.
 ---
 
 # Internal Switches

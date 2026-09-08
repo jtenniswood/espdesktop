@@ -9,11 +9,11 @@ generates the matching C++, TypeScript, Swift, and output manifest.
 
 - `components/companion/` owns TLS, pairing, authentication, protocol parsing,
   catalogue transfer, and artwork transport.
-- `components/espcontrol/companion_*` owns the device-facing Companion state and
+- `components/espdesktop/companion_*` owns the device-facing Companion state and
   card integration. It must not add behaviour to Home Assistant card drivers.
 - `src/webserver/cards/companion.ts` and the Companion settings modules own the
   browser experience. Saved cards must remain editable while the Mac is offline.
-- `macos/Companion/` owns macOS permissions, approved resources, providers, and
+- `macos/EspDesktop/` owns macOS permissions, approved resources, providers, and
   action execution. Folder paths and arbitrary commands never cross the protocol.
 
 Protocol v3 uses typed JSON control messages on `/companion/v3`; only bounded
@@ -41,7 +41,7 @@ validate messages before dispatch. Both test suites consume
 `compatibility/fixtures/companion_protocol_v3.json`, including malformed and
 wrong-session cases. Protocol v3 remains the wire format.
 
-`EspControlAppCore` owns Companion runtime state, wiring callbacks, pending
+`EspDesktopAppCore` owns Companion runtime state, wiring callbacks, pending
 requests, and the LVGL view registry. Simple status reads do not copy catalogues.
 Transport events queued for the UI carry a session generation; replacing or
 closing a session invalidates its deferred work and releases stale artwork.
@@ -70,6 +70,6 @@ Mac artifacts and mismatched firmware provenance. This does not claim physical
 device testing.
 
 Run `npm run check:companion-contract`, `npm run test:firmware`, browser unit
-checks, and `swift test --package-path macos/Companion` after boundary changes.
+checks, and `swift test --package-path macos/EspDesktop` after boundary changes.
 Host protocol tests fetch checksum-pinned ArduinoJson 7.4.3. Offline CMake runs
 can use `-DFETCHCONTENT_SOURCE_DIR_ARDUINOJSON=/path/to/ArduinoJson-7.4.3`.

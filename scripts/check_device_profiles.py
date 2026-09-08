@@ -17,9 +17,9 @@ WEB_OUTPUT_DIR = ROOT / "docs" / "public" / "webserver"
 DEVICE_CAPABILITIES_JSON = ROOT / "docs" / "public" / "device-profiles.json"
 DEVICE_DOCS_DIR = ROOT / "docs" / "generated" / "screens"
 COMPAT_FIXTURES = ROOT / "product" / "v2" / "product_compatibility.json"
-BUTTON_GRID_CARDS = ROOT / "components" / "espcontrol" / "button_grid_cards.h"
-BUTTON_GRID_WEATHER_DRIVER = ROOT / "components" / "espcontrol" / "button_grid_weather_driver.h"
-BUTTON_GRID_WEATHER_FORECAST = ROOT / "components" / "espcontrol" / "button_grid_weather_forecast.h"
+BUTTON_GRID_CARDS = ROOT / "components" / "espdesktop" / "button_grid_cards.h"
+BUTTON_GRID_WEATHER_DRIVER = ROOT / "components" / "espdesktop" / "button_grid_weather_driver.h"
+BUTTON_GRID_WEATHER_FORECAST = ROOT / "components" / "espdesktop" / "button_grid_weather_forecast.h"
 WEB_SERVER_IDF_INIT = ROOT / "components" / "web_server_idf" / "__init__.py"
 WEB_SERVER_IDF_CPP = ROOT / "components" / "web_server_idf" / "web_server_idf.cpp"
 S3_DEVICE_YAML = ROOT / "devices" / "guition-esp32-s3-4848s040" / "device" / "device.yaml"
@@ -158,9 +158,9 @@ def test_generated_web(profiles: dict[str, dict]) -> None:
 
     core = (ROOT / "common" / "device" / "core_infra.yaml").read_text(encoding="utf-8")
     assert "webserver/www.js?device=${device_slug}" in core, "hosted web URL does not select a shared profile"
-    assert 'ESPCONTROL_DEVICE_SLUG=\\"${device_slug}\\"' in core, "firmware build does not expose its profile slug"
+    assert 'ESPDESKTOP_DEVICE_SLUG=\\"${device_slug}\\"' in core, "firmware build does not expose its profile slug"
     server = (ROOT / "components" / "web_server_idf" / "web_server_idf.cpp").read_text(encoding="utf-8")
-    assert '\\"device_slug\\"' in server and "ESPCONTROL_DEVICE_PROFILE" in server, (
+    assert '\\"device_slug\\"' in server and "ESPDESKTOP_DEVICE_PROFILE" in server, (
         "firmware metadata endpoint does not expose the shared web profile"
     )
     for slug in profiles:
@@ -231,9 +231,9 @@ def test_s3_low_heap_policy() -> None:
 
 
 def test_native_panel_config_bindings(slug: str, profile: dict, device: str) -> None:
-    espcontrol = re.search(r"(?ms)^espcontrol:\n(?P<body>(?:^  .*\n|^\s*$\n)*)", device)
-    assert espcontrol, f"{slug}: device.yaml is missing its espcontrol block"
-    body = espcontrol.group("body")
+    espdesktop = re.search(r"(?ms)^espdesktop:\n(?P<body>(?:^  .*\n|^\s*$\n)*)", device)
+    assert espdesktop, f"{slug}: device.yaml is missing its espdesktop block"
+    body = espdesktop.group("body")
     assert "  panel_config:\n" in body, (
         f"{slug}: device.yaml must enable native panel configuration so "
         "cards that contain device-owned settings remain available"
@@ -505,7 +505,7 @@ def test_subpage_config_changes_schedule_live_refresh() -> None:
             f"{sensors_path}: secondary-page refresh must rebuild card subscriptions"
         )
 
-    grid_runtime = (ROOT / "components/espcontrol/button_grid_grid.h").read_text(encoding="utf-8")
+    grid_runtime = (ROOT / "components/espdesktop/button_grid_grid.h").read_text(encoding="utf-8")
     assert "inline bool grid_rebuild_all(" in grid_runtime, (
         "secondary-page refresh must use the full runtime cleanup path"
     )
@@ -619,7 +619,7 @@ def test_weather_card_visual_matches_preview() -> None:
     weather_driver = BUTTON_GRID_WEATHER_DRIVER.read_text(encoding="utf-8")
     weather_visuals = cards + weather_driver
     styles = (ROOT / "src" / "webserver" / "application" / "styles.ts").read_text(encoding="utf-8")
-    subpages = (ROOT / "components" / "espcontrol" / "button_grid_subpages.h").read_text(encoding="utf-8")
+    subpages = (ROOT / "components" / "espdesktop" / "button_grid_subpages.h").read_text(encoding="utf-8")
     weather_forecast = BUTTON_GRID_WEATHER_FORECAST.read_text(encoding="utf-8")
     controls = (ROOT / "src" / "webserver" / "application" / "controls_fields.ts").read_text(encoding="utf-8")
     assert "sp-type-badge" not in styles + controls, "web previews should omit card-type badges"
@@ -629,7 +629,7 @@ def test_weather_card_visual_matches_preview() -> None:
     assert 'set_weather_card_badge(s, "Weather Cloudy")' not in weather_visuals, (
         "current weather device card should not render a visible weather badge"
     )
-    assert 'lv_label_set_display_text(slot.text_lbl, espcontrol_i18n("Cloudy"))' in weather_driver, (
+    assert 'lv_label_set_display_text(slot.text_lbl, espdesktop_i18n("Cloudy"))' in weather_driver, (
         "current weather device card should render the same label as the web preview"
     )
     assert 'set_weather_card_badge(s, "Weather Partly Cloudy")' not in weather_visuals, (
@@ -644,7 +644,7 @@ def test_weather_card_visual_matches_preview() -> None:
     assert 'lv_label_set_display_text(ref.unit_lbl, normalized_unit.c_str())' in weather_forecast, (
         "forecast weather unavailable state should keep showing the configured unit"
     )
-    grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
+    grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
     setup_start = grid.find("inline void setup_card_visual")
     setup_end = grid.find("inline bool bind_basic_sensor_card", setup_start)
     setup_visual = grid[setup_start:setup_end] if setup_start >= 0 and setup_end >= 0 else ""
@@ -755,7 +755,7 @@ def test_weather_card_visual_matches_preview() -> None:
         assert f'if (normalized == "{state}") return find_icon("{icon_name}");' in weather_forecast, (
             f"current weather device card should map {state} to the matching web weather icon"
         )
-        assert f'if (normalized == "{state}") return espcontrol_i18n(std::string("{label}"));' in weather_forecast, (
+        assert f'if (normalized == "{state}") return espdesktop_i18n(std::string("{label}"));' in weather_forecast, (
             f"current weather device card should label {state} like the web preview"
         )
 
@@ -777,7 +777,7 @@ def test_weather_card_mode_visibility_reset() -> None:
 
 
 def test_grid_phase2_uses_cleaned_spanned_layout() -> None:
-    grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
+    grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
     match = re.search(
         r"inline void grid_phase2\([\s\S]*?ESP_LOGI\(\"sensors\", \"Phase 2: done",
         grid,
@@ -793,7 +793,7 @@ def test_grid_phase2_uses_cleaned_spanned_layout() -> None:
 
 
 def test_card_label_line_clamp_matches_preview_on_subpages() -> None:
-    grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
+    grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
     assert "lv_obj_set_height(label, LV_SIZE_CONTENT);" in grid, (
         "short card labels must retain their natural height and bottom alignment"
     )
@@ -809,9 +809,9 @@ def test_card_label_line_clamp_matches_preview_on_subpages() -> None:
 
 
 def test_spanned_cards_refresh_after_clock_bar_padding_changes() -> None:
-    clock_bar = (ROOT / "components" / "espcontrol" / "clock_bar.h").read_text(encoding="utf-8")
-    layout = (ROOT / "components" / "espcontrol" / "button_grid_layout.h").read_text(encoding="utf-8")
-    grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
+    clock_bar = (ROOT / "components" / "espdesktop" / "clock_bar.h").read_text(encoding="utf-8")
+    layout = (ROOT / "components" / "espdesktop" / "button_grid_layout.h").read_text(encoding="utf-8")
+    grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
     assert "struct ClockBarResponsiveGridCard" in clock_bar, (
         "spanned card dimensions must be tracked outside the one-time grid placement pass"
     )
@@ -827,7 +827,7 @@ def test_spanned_cards_refresh_after_clock_bar_padding_changes() -> None:
 
 
 def test_temperature_unit_changes_refresh_weather_cards() -> None:
-    config = (ROOT / "components" / "espcontrol" / "button_grid_config.h").read_text(encoding="utf-8")
+    config = (ROOT / "components" / "espdesktop" / "button_grid_config.h").read_text(encoding="utf-8")
     match = re.search(
         r"inline void refresh_temperature_unit_labels\(\)[\s\S]*?\n\}",
         config,
@@ -840,8 +840,8 @@ def test_temperature_unit_changes_refresh_weather_cards() -> None:
 
 
 def test_current_weather_state_keeps_normal_card_visuals() -> None:
-    subscriptions = (ROOT / "components" / "espcontrol" / "button_grid_subscriptions.h").read_text(encoding="utf-8")
-    grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
+    subscriptions = (ROOT / "components" / "espdesktop" / "button_grid_subscriptions.h").read_text(encoding="utf-8")
+    grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
     weather_driver = BUTTON_GRID_WEATHER_DRIVER.read_text(encoding="utf-8")
     match = re.search(
         r"inline void subscribe_weather_state\([\s\S]*?\n\}",

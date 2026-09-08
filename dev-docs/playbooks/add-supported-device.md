@@ -73,7 +73,7 @@ python3 scripts/local_esphome.py devices/<slug>/dev.yaml run --device <usb-path>
 python3 scripts/local_esphome.py devices/<slug>/dev.yaml run --device <ip> --no-logs
 ```
 
-Use USB for first flash. OTA requires an existing EspControl installation that
+Use USB for first flash. OTA requires an existing EspDesktop installation that
 is already connected to the network.
 
 ## Stop If

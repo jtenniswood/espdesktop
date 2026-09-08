@@ -15,7 +15,7 @@ const FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", 
 
 function loadBrowserCodec() {
   const sandbox = {
-    __ESPCONTROL_TEST_HOOKS__: {},
+    __ESPDESKTOP_TEST_HOOKS__: {},
     console: { log() {}, warn() {}, error() {} },
     location: { search: "" },
     URLSearchParams,
@@ -31,7 +31,7 @@ function loadBrowserCodec() {
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(loadBuiltWebSource(), sandbox, { filename: "src/webserver/entry.ts" });
-  return sandbox.__ESPCONTROL_TEST_HOOKS__.config;
+  return sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
 }
 
 function shape(value) {
@@ -78,8 +78,8 @@ function cppSource(cases) {
 #include "esphome/core/string_ref.h"
 struct lv_obj_t {};
 inline void lv_label_set_text(lv_obj_t *, const char *) {}
-inline const char *espcontrol_i18n(const char *text) { return text ? text : ""; }
-inline std::string espcontrol_i18n(const std::string &text) { return text; }
+inline const char *espdesktop_i18n(const char *text) { return text ? text : ""; }
+inline std::string espdesktop_i18n(const std::string &text) { return text; }
 #include "button_grid_config_parser.h"
 
 void json_string(const std::string &value) {
@@ -140,14 +140,14 @@ int main() {
 }
 
 function compiledFirmwareResults(cases) {
-  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "espcontrol-config-parity-"));
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "espdesktop-config-parity-"));
   try {
     const source = path.join(temporary, "saved_config_parity.cpp");
     const binary = path.join(temporary, "saved_config_parity");
     fs.writeFileSync(source, cppSource(cases));
     childProcess.execFileSync(compiler(), [
       "-std=c++17", "-Wall", "-Wextra", "-Werror",
-      `-I${path.join(ROOT, "components", "espcontrol")}`,
+      `-I${path.join(ROOT, "components", "espdesktop")}`,
       `-I${path.join(ROOT, "tests", "firmware", "stubs")}`,
       source, "-o", binary,
     ], { stdio: "pipe" });

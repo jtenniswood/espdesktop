@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "product" / "v2" / "translations" / "strings.en.txt"
-SOURCE_GLOBS = ("components/espcontrol/**/*.h",)
+SOURCE_GLOBS = ("components/espdesktop/**/*.h",)
 SKIP_FILES = {"sun_calc.h"}
 
 STRING_RE = re.compile(r"(?P<q>[\"'])(?P<body>(?:\\.|(?!\1).)*?)(?P=q)")
@@ -242,7 +242,7 @@ def escape_compact_value(value: str) -> str:
 
 def build_lines(strings: dict[str, set[str]]) -> list[str]:
     lines = [
-        "# English source strings for hard-coded text rendered on screen by EspControl firmware.",
+        "# English source strings for hard-coded text rendered on screen by EspDesktop firmware.",
         "# Webserver-only text, entity names, service identifiers, icon names, and raw Home Assistant API values are excluded.",
         "# Format: key=value. Escape literal backslash, newline, and equals as \\\\, \\n, and \\=.",
     ]

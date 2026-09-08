@@ -9,7 +9,7 @@ import {
 } from "./subpage";
 
 export const CARD_TRANSFER_VERSION = 1;
-export const CARD_TRANSFER_FORMAT = "espcontrol.cards";
+export const CARD_TRANSFER_FORMAT = "espdesktop.cards";
 export const CARD_TRANSFER_MAX_BYTES = 64 * 1024;
 export const CARD_TRANSFER_MAX_CARDS = 20;
 
@@ -129,7 +129,7 @@ export function normalizeCardTransferEnvelope(value: unknown): CardTransferEnvel
     throw transferError("Invalid card code - missing a supported version");
   }
   if (version > CARD_TRANSFER_VERSION) {
-    throw transferError("Card code was created by a newer version of EspControl");
+    throw transferError("Card code was created by a newer version of EspDesktop");
   }
   if (value.format !== CARD_TRANSFER_FORMAT) {
     throw transferError("Invalid card code - unsupported format");

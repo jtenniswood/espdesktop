@@ -1,12 +1,12 @@
 ---
 title: Printable Stands and Mounts
 description:
-  3D printable stands and mounts for EspControl supported ESP32 touchscreens, with links to the matching MakerWorld print files.
+  3D printable stands and mounts for EspDesktop supported ESP32 touchscreens, with links to the matching MakerWorld print files.
 ---
 
 # Printable Stands and Mounts
 
-These printable files are optional stands and mounts for supported EspControl panels. They are useful when you want a display on a desk, shelf, bedside table, test bench, or wall.
+These printable files are optional stands and mounts for supported EspDesktop panels. They are useful when you want a display on a desk, shelf, bedside table, test bench, or wall.
 
 Choose the print file that matches your exact screen model. The cases are shaped around the panel body, ports, and cable position, so a stand or mount for one display usually will not fit another display cleanly.
 
@@ -23,5 +23,5 @@ Choose the print file that matches your exact screen model. The cases are shaped
 
 ## Related Links
 
-- [Install EspControl](/getting-started/install)
+- [Install EspDesktop](/getting-started/install)
 - [Supported Screens](/screens/jc1060p470)

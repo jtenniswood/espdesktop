@@ -45,7 +45,7 @@ entry point CI uses, so the test matches what a release build would do.
 
 ```bash
 docker run --rm \
-  -v "/Users/jtenniswood/Library/CloudStorage/Dropbox/Git/espcontrol:/config" \
+  -v "/Users/jtenniswood/Library/CloudStorage/Dropbox/Git/espdesktop:/config" \
   "$ESPHOME_IMAGE" \
   compile /config/builds/<slug>.factory.yaml
 ```

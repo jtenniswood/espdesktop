@@ -13,8 +13,8 @@ bool expect(bool condition, const char *message) {
 }  // namespace
 
 int main() {
-  using espcontrol::configuration::ServiceStatus;
-  using espcontrol::configuration::panel_config_load_allows_native_endpoints;
+  using espdesktop::configuration::ServiceStatus;
+  using espdesktop::configuration::panel_config_load_allows_native_endpoints;
 
   if (!expect(!panel_config_load_allows_native_endpoints(
                   ServiceStatus::BUFFER_TOO_SMALL),

@@ -12,7 +12,7 @@
 
 namespace {
 
-using namespace espcontrol::configuration;
+using namespace espdesktop::configuration;
 
 class MemoryBackend final : public StorageBackend {
  public:

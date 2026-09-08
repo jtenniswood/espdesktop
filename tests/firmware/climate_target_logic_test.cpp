@@ -2,18 +2,18 @@
 
 #include "climate_target_logic.h"
 
-using espcontrol::climate::CommandKind;
-using espcontrol::climate::TargetKind;
-using espcontrol::climate::TargetSelection;
+using espdesktop::climate::CommandKind;
+using espdesktop::climate::TargetKind;
+using espdesktop::climate::TargetSelection;
 
 int main() {
-  using espcontrol::climate::command_kind;
-  using espcontrol::climate::capability_change_invalidates_pending;
-  using espcontrol::climate::constrain_range_target;
-  using espcontrol::climate::target_from_arc_angle;
-  using espcontrol::climate::target_kind;
-  using espcontrol::climate::target_selection_for_mode;
-  using espcontrol::climate::target_values_complete;
+  using espdesktop::climate::command_kind;
+  using espdesktop::climate::capability_change_invalidates_pending;
+  using espdesktop::climate::constrain_range_target;
+  using espdesktop::climate::target_from_arc_angle;
+  using espdesktop::climate::target_kind;
+  using espdesktop::climate::target_selection_for_mode;
+  using espdesktop::climate::target_values_complete;
 
   // Reported Mitsubishi state: Cool, 65-75 F, supported_features 426.
   const TargetKind reported = target_kind(true, 426, false, true, true);

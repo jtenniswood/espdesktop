@@ -1,7 +1,7 @@
 ---
-title: EspControl Rotation
+title: EspDesktop Rotation
 description:
-  How to change the screen rotation on supported EspControl panels.
+  How to change the screen rotation on supported EspDesktop panels.
 ---
 
 # Rotation

@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIRMWARE_DIR = ROOT / "components" / "espcontrol"
+FIRMWARE_DIR = ROOT / "components" / "espdesktop"
 
 CARD_RUNTIME_BOUNDARY_FILES = {
     "button_grid_card_runtime.h",
@@ -76,7 +76,7 @@ def service_mapping_line_allowed(line: str) -> bool:
 
 
 def firmware_headers(root: Path) -> list[Path]:
-    return sorted((root / "components" / "espcontrol").glob("button_grid*.h"))
+    return sorted((root / "components" / "espdesktop").glob("button_grid*.h"))
 
 
 def function_body(text: str, name: str) -> str | None:
@@ -114,15 +114,15 @@ def check_root(root: Path) -> list[str]:
                 and not service_mapping_line_allowed(line)
             ):
                 failures.append(f"{rel}:{line_no}: keep shared card service mappings in the card runtime/contract boundary")
-    runtime_header = root / "components" / "espcontrol" / "button_grid_card_runtime.h"
+    runtime_header = root / "components" / "espdesktop" / "button_grid_card_runtime.h"
     if runtime_header.exists():
         text = runtime_header.read_text(encoding="utf-8")
         for raw_alias in ('type == "local"', 'type == "text_sensor"'):
             if raw_alias in text:
                 failures.append(
-                    "components/espcontrol/button_grid_card_runtime.h: resolve saved-config aliases before runtime dispatch"
+                    "components/espdesktop/button_grid_card_runtime.h: resolve saved-config aliases before runtime dispatch"
                 )
-    mower_header = root / "components" / "espcontrol" / LAWN_MOWER_HEADER
+    mower_header = root / "components" / "espdesktop" / LAWN_MOWER_HEADER
     if mower_header.exists():
         text = mower_header.read_text(encoding="utf-8")
         required = (
@@ -134,7 +134,7 @@ def check_root(root: Path) -> list[str]:
         )
         for needle in required:
             if needle not in text:
-                failures.append(f"components/espcontrol/{LAWN_MOWER_HEADER}: missing mower runtime guard {needle}")
+                failures.append(f"components/espdesktop/{LAWN_MOWER_HEADER}: missing mower runtime guard {needle}")
         forbidden = (
             "vacuum.",
             "lawn_mower.stop",
@@ -144,8 +144,8 @@ def check_root(root: Path) -> list[str]:
         )
         for needle in forbidden:
             if needle in text:
-                failures.append(f"components/espcontrol/{LAWN_MOWER_HEADER}: unexpected mower service/reference {needle}")
-    grid_header = root / "components" / "espcontrol" / GRID_HEADER
+                failures.append(f"components/espdesktop/{LAWN_MOWER_HEADER}: unexpected mower service/reference {needle}")
+    grid_header = root / "components" / "espdesktop" / GRID_HEADER
     if grid_header.exists():
         text = grid_header.read_text(encoding="utf-8")
         compact_grid = re.sub(r"\s+", " ", text)
@@ -153,10 +153,10 @@ def check_root(root: Path) -> list[str]:
         if visual_setup is not None:
             clickable_reset = "lv_obj_add_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);"
             reset_index = visual_setup.find(clickable_reset)
-            driver_index = visual_setup.find("if (espcontrol::cards::")
+            driver_index = visual_setup.find("if (espdesktop::cards::")
             if reset_index < 0 or driver_index < 0 or reset_index > driver_index:
                 failures.append(
-                    f"components/espcontrol/{GRID_HEADER}: restore persistent button clickability before visual driver dispatch"
+                    f"components/espdesktop/{GRID_HEADER}: restore persistent button clickability before visual driver dispatch"
                 )
             unsupported_clear = "clear_unsupported_card_slot_visuals(s);"
             unsupported_clear_index = visual_setup.find(unsupported_clear)
@@ -169,7 +169,7 @@ def check_root(root: Path) -> list[str]:
                 or unsupported_clear_index > unsupported_warning_index
             ):
                 failures.append(
-                    f"components/espcontrol/{GRID_HEADER}: clear stale slot visuals before leaving unsupported cards inert"
+                    f"components/espdesktop/{GRID_HEADER}: clear stale slot visuals before leaving unsupported cards inert"
                 )
         unsupported_clear_body = function_body(text, "clear_unsupported_card_slot_visuals")
         if unsupported_clear_body is None or any(
@@ -177,20 +177,20 @@ def check_root(root: Path) -> list[str]:
             for label in ("icon_lbl", "text_lbl", "sensor_lbl", "unit_lbl")
         ):
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: clear every persistent label for unsupported cards"
+                f"components/espdesktop/{GRID_HEADER}: clear every persistent label for unsupported cards"
             )
         if (
             "card_runtime_context(p)" not in text
             or "card_runtime_information_only(context)" not in text
-            or "espcontrol::cards::Surface::SUBPAGE" not in text
+            or "espdesktop::cards::Surface::SUBPAGE" not in text
         ):
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: route main and subpage setup through the shared card context"
+                f"components/espdesktop/{GRID_HEADER}: route main and subpage setup through the shared card context"
             )
         phase2_body = function_body(text, "grid_phase2") or ""
         if "companion_forget_card(" in phase2_body:
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: preserve Phase 1 Companion card bindings during Phase 2"
+                f"components/espdesktop/{GRID_HEADER}: preserve Phase 1 Companion card bindings during Phase 2"
             )
         setup_subpage = phase2_body.find("setup_card_visual(sub_slot")
         refresh_subpage = phase2_body.find("refresh_card_layout(sub_slot")
@@ -201,7 +201,7 @@ def check_root(root: Path) -> list[str]:
             and bind_subpage > refresh_subpage
         ):
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: refresh subpage card geometry after applying label clamps"
+                f"components/espdesktop/{GRID_HEADER}: refresh subpage card geometry after applying label clamps"
             )
         if (
             "status_entity_driver_setup_visual( s, p, context, palette)" not in compact_grid
@@ -252,7 +252,7 @@ def check_root(root: Path) -> list[str]:
             or "bind_basic_sensor_card(sub_slot, sb_cfg, context, palette, cs)" not in compact_grid
         ):
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: route main and subpage migrated cards through shared drivers"
+                f"components/espdesktop/{GRID_HEADER}: route main and subpage migrated cards through shared drivers"
             )
         for direct_branch in (
             'p.type == "door_window"', 'p.type == "presence"',
@@ -277,8 +277,8 @@ def check_root(root: Path) -> list[str]:
             'sb_cfg.type == "light_temperature"', 'sb_cfg.type == "fan_speed"',
             'sb_cfg.type == "fan_oscillate"', 'sb_cfg.type == "fan_direction"',
             'sb_cfg.type == "fan_preset"', 'sb_cfg.type == "option_select"',
-            'family == espcontrol::cards::Family::VACUUM',
-            'family == espcontrol::cards::Family::MOWER',
+            'family == espdesktop::cards::Family::VACUUM',
+            'family == espdesktop::cards::Family::MOWER',
             'p.type == "garage"', 'p.type == "gate"', 'p.type == "lock"',
             'sb_cfg.type == "garage"', 'sb_cfg.type == "gate"',
             'sb_cfg.type == "lock"',
@@ -292,17 +292,17 @@ def check_root(root: Path) -> list[str]:
             'sb_cfg.type == "cover" && cover_modal_mode',
             'p.type == "subpage"', 'p.type != "subpage"',
             'p.type == "image"', 'sb_cfg.type == "image"',
-            'family == espcontrol::cards::Family::LIGHT_CONTROL',
+            'family == espdesktop::cards::Family::LIGHT_CONTROL',
             'p.type == "light_control"', 'sb_cfg.type == "light_control"',
             'p.type == "fan_control"', 'sb_cfg.type == "fan_control"',
-            'family == espcontrol::cards::Family::CLIMATE',
-            'family == espcontrol::cards::Family::ALARM',
-            'family == espcontrol::cards::Family::MEDIA',
+            'family == espdesktop::cards::Family::CLIMATE',
+            'family == espdesktop::cards::Family::ALARM',
+            'family == espdesktop::cards::Family::MEDIA',
             'p.type == "media"', 'sb_cfg.type == "media"',
         ):
             if direct_branch in text:
                 failures.append(
-                    f"components/espcontrol/{GRID_HEADER}: keep migrated type overrides inside shared drivers"
+                    f"components/espdesktop/{GRID_HEADER}: keep migrated type overrides inside shared drivers"
                 )
         for retired_fallback in (
             "Legacy setup fallback",
@@ -311,36 +311,36 @@ def check_root(root: Path) -> list[str]:
         ):
             if retired_fallback in text:
                 failures.append(
-                    f"components/espcontrol/{GRID_HEADER}: broad legacy card fallback must remain retired ({retired_fallback})"
+                    f"components/espdesktop/{GRID_HEADER}: broad legacy card fallback must remain retired ({retired_fallback})"
                 )
         if (
             "cleaning_environment.add_mower_parent_indicator" not in text
             or "lawn_mower_state_active_ref" not in text
         ):
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: route mower subpage parent indicators through mower active-state handling"
+                f"components/espdesktop/{GRID_HEADER}: route mower subpage parent indicators through mower active-state handling"
             )
         if (
             "light_control_environment.add_parent_indicator" not in text
             or "light_control_driver_bind_subpage(" not in text
         ):
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: include full light controls in generic subpage parent indicators"
+                f"components/espdesktop/{GRID_HEADER}: include full light controls in generic subpage parent indicators"
             )
         if (
             "fan_control_environment.add_parent_indicator" not in text
             or "fan_control_driver_bind_subpage(" not in text
         ):
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: include full fan controls in generic subpage parent indicators"
+                f"components/espdesktop/{GRID_HEADER}: include full fan controls in generic subpage parent indicators"
             )
         image_reset_pos = text.find("image_driver_reset_pool(cfg);")
         subpage_clear_pos = text.find("navigation_clear_subpages();")
         if image_reset_pos < 0 or subpage_clear_pos < 0 or image_reset_pos > subpage_clear_pos:
             failures.append(
-                f"components/espcontrol/{GRID_HEADER}: reset image-card contexts before deleting subpage screens"
+                f"components/espdesktop/{GRID_HEADER}: reset image-card contexts before deleting subpage screens"
             )
-    action_header = root / "components" / "espcontrol" / ACTION_HEADER
+    action_header = root / "components" / "espdesktop" / ACTION_HEADER
     if action_header.exists():
         text = action_header.read_text(encoding="utf-8")
         click_body = function_body(text, "handle_button_click")
@@ -361,7 +361,7 @@ def check_root(root: Path) -> list[str]:
             or "media_driver_handle_main_click(" not in click_body
         ):
             failures.append(
-                f"components/espcontrol/{ACTION_HEADER}: route passive checks through the shared card context"
+                f"components/espdesktop/{ACTION_HEADER}: route passive checks through the shared card context"
             )
         if click_body is not None:
             for direct_branch in (
@@ -382,7 +382,7 @@ def check_root(root: Path) -> list[str]:
             ):
                 if direct_branch in click_body:
                     failures.append(
-                        f"components/espcontrol/{ACTION_HEADER}: keep migrated clicks inside shared drivers"
+                        f"components/espdesktop/{ACTION_HEADER}: keep migrated clicks inside shared drivers"
                     )
             for retired_fallback in (
                 "Legacy action fallback",
@@ -390,9 +390,9 @@ def check_root(root: Path) -> list[str]:
             ):
                 if retired_fallback in click_body:
                     failures.append(
-                        f"components/espcontrol/{ACTION_HEADER}: broad legacy action fallback must remain retired ({retired_fallback})"
+                        f"components/espdesktop/{ACTION_HEADER}: broad legacy action fallback must remain retired ({retired_fallback})"
                     )
-    sliders_header = root / "components" / "espcontrol" / SLIDERS_HEADER
+    sliders_header = root / "components" / "espdesktop" / SLIDERS_HEADER
     if sliders_header.exists():
         text = sliders_header.read_text(encoding="utf-8")
         pointer_body = function_body(text, "slider_apply_vertical_pointer_value") or ""
@@ -406,7 +406,7 @@ def check_root(root: Path) -> list[str]:
         )
         if any(needle not in pointer_body for needle in pointer_required):
             failures.append(
-                f"components/espcontrol/{SLIDERS_HEADER}: map direct vertical slider pointer input through the full safe endpoint track"
+                f"components/espdesktop/{SLIDERS_HEADER}: map direct vertical slider pointer input through the full safe endpoint track"
             )
 
         setup_body = function_body(text, "setup_slider_visual") or ""
@@ -416,13 +416,13 @@ def check_root(root: Path) -> list[str]:
             or setup_body.count("slider_apply_vertical_pointer_value") < 3
         ):
             failures.append(
-                f"components/espcontrol/{SLIDERS_HEADER}: apply direct vertical slider endpoint mapping on press, drag, and release"
+                f"components/espdesktop/{SLIDERS_HEADER}: apply direct vertical slider endpoint mapping on press, drag, and release"
             )
         final_map = setup_body.rfind("slider_apply_vertical_pointer_value")
         send_action = setup_body.rfind("send_slider_action")
         if final_map < 0 or send_action < 0 or final_map > send_action:
             failures.append(
-                f"components/espcontrol/{SLIDERS_HEADER}: map the final direct slider value before sending its Home Assistant action"
+                f"components/espdesktop/{SLIDERS_HEADER}: map the final direct slider value before sending its Home Assistant action"
             )
 
         light_temp_body = function_body(text, "setup_light_temp_visual") or ""
@@ -433,7 +433,7 @@ def check_root(root: Path) -> list[str]:
             or light_temp_body.count("slider_apply_vertical_pointer_value") < 3
         ):
             failures.append(
-                f"components/espcontrol/{SLIDERS_HEADER}: apply light-temperature endpoint mapping on press, drag, and release"
+                f"components/espdesktop/{SLIDERS_HEADER}: apply light-temperature endpoint mapping on press, drag, and release"
             )
         light_temp_release_event = light_temp_body.rfind("LV_EVENT_RELEASED")
         light_temp_release_callback = light_temp_body.rfind(
@@ -452,7 +452,7 @@ def check_root(root: Path) -> list[str]:
             or light_temp_final_map > light_temp_send_action
         ):
             failures.append(
-                f"components/espcontrol/{SLIDERS_HEADER}: map the final light-temperature value before sending its Home Assistant action"
+                f"components/espdesktop/{SLIDERS_HEADER}: map the final light-temperature value before sending its Home Assistant action"
             )
 
         if (
@@ -462,15 +462,15 @@ def check_root(root: Path) -> list[str]:
             or "lv_obj_set_style_pad_bottom(slider, edge_inset" in text
         ):
             failures.append(
-                f"components/espcontrol/{SLIDERS_HEADER}: keep LVGL's direct slider range unpadded"
+                f"components/espdesktop/{SLIDERS_HEADER}: keep LVGL's direct slider range unpadded"
             )
-    image_header = root / "components" / "espcontrol" / IMAGE_HEADER
+    image_header = root / "components" / "espdesktop" / IMAGE_HEADER
     if image_header.exists():
         text = image_header.read_text(encoding="utf-8")
         reset_body = function_body(text, "reset_image_card_pool")
         if reset_body is None or "for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++)" not in reset_body:
             failures.append(
-                f"components/espcontrol/{IMAGE_HEADER}: reset every image-card context, including disabled slots"
+                f"components/espdesktop/{IMAGE_HEADER}: reset every image-card context, including disabled slots"
             )
         callback_body = function_body(text, "image_card_bind_callbacks")
         callback_guards = (
@@ -481,9 +481,9 @@ def check_root(root: Path) -> list[str]:
         )
         if callback_body is None or any(guard not in callback_body for guard in callback_guards):
             failures.append(
-                f"components/espcontrol/{IMAGE_HEADER}: rebind image completion callbacks after image-card lifecycle changes"
+                f"components/espdesktop/{IMAGE_HEADER}: rebind image completion callbacks after image-card lifecycle changes"
             )
-    status_entity_header = root / "components" / "espcontrol" / STATUS_ENTITY_HEADER
+    status_entity_header = root / "components" / "espdesktop" / STATUS_ENTITY_HEADER
     if status_entity_header.exists():
         text = status_entity_header.read_text(encoding="utf-8")
         required = (
@@ -498,13 +498,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{STATUS_ENTITY_HEADER}: missing shared status-entity lifecycle guard {needle}"
+                    f"components/espdesktop/{STATUS_ENTITY_HEADER}: missing shared status-entity lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{STATUS_ENTITY_HEADER}: missing shared status-entity driver"
+            f"components/espdesktop/{STATUS_ENTITY_HEADER}: missing shared status-entity driver"
         )
-    date_time_header = root / "components" / "espcontrol" / DATE_TIME_HEADER
+    date_time_header = root / "components" / "espdesktop" / DATE_TIME_HEADER
     if date_time_header.exists():
         text = date_time_header.read_text(encoding="utf-8")
         required = (
@@ -523,19 +523,19 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{DATE_TIME_HEADER}: missing shared date-time lifecycle guard {needle}"
+                    f"components/espdesktop/{DATE_TIME_HEADER}: missing shared date-time lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{DATE_TIME_HEADER}: missing shared date-time driver"
+            f"components/espdesktop/{DATE_TIME_HEADER}: missing shared date-time driver"
         )
-    date_time_cards_header = root / "components" / "espcontrol" / DATE_TIME_CARDS_HEADER
+    date_time_cards_header = root / "components" / "espdesktop" / DATE_TIME_CARDS_HEADER
     if date_time_cards_header.exists():
         text = date_time_cards_header.read_text(encoding="utf-8")
         for legacy_setup in ("setup_calendar_card", "setup_clock_card", "setup_timezone_card"):
             if legacy_setup in text:
                 failures.append(
-                    f"components/espcontrol/{DATE_TIME_CARDS_HEADER}: keep {legacy_setup} inside the shared date-time driver"
+                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: keep {legacy_setup} inside the shared date-time driver"
                 )
         for guard, compact, refresh, register in (
             (
@@ -557,21 +557,21 @@ def check_root(root: Path) -> list[str]:
             register_body = function_body(text, register)
             if guard_body is None or "lv_obj_is_valid" not in guard_body:
                 failures.append(
-                    f"components/espcontrol/{DATE_TIME_CARDS_HEADER}: {guard} must reject deleted LVGL labels"
+                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {guard} must reject deleted LVGL labels"
                 )
             if compact_body is None or guard not in compact_body or "count = write_index;" not in compact_body:
                 failures.append(
-                    f"components/espcontrol/{DATE_TIME_CARDS_HEADER}: {compact} must remove deleted LVGL label references"
+                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {compact} must remove deleted LVGL label references"
                 )
             if refresh_body is None or compact not in refresh_body:
                 failures.append(
-                    f"components/espcontrol/{DATE_TIME_CARDS_HEADER}: {refresh} must compact deleted LVGL label references"
+                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {refresh} must compact deleted LVGL label references"
                 )
             if register_body is None or compact not in register_body:
                 failures.append(
-                    f"components/espcontrol/{DATE_TIME_CARDS_HEADER}: {register} must reclaim deleted LVGL label references before registration"
+                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {register} must reclaim deleted LVGL label references before registration"
                 )
-    sensor_header = root / "components" / "espcontrol" / SENSOR_HEADER
+    sensor_header = root / "components" / "espdesktop" / SENSOR_HEADER
     if sensor_header.exists():
         text = sensor_header.read_text(encoding="utf-8")
         required = (
@@ -589,13 +589,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{SENSOR_HEADER}: missing shared sensor lifecycle guard {needle}"
+                    f"components/espdesktop/{SENSOR_HEADER}: missing shared sensor lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{SENSOR_HEADER}: missing shared sensor driver"
+            f"components/espdesktop/{SENSOR_HEADER}: missing shared sensor driver"
         )
-    weather_header = root / "components" / "espcontrol" / WEATHER_HEADER
+    weather_header = root / "components" / "espdesktop" / WEATHER_HEADER
     if weather_header.exists():
         text = weather_header.read_text(encoding="utf-8")
         required = (
@@ -610,13 +610,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{WEATHER_HEADER}: missing shared weather lifecycle guard {needle}"
+                    f"components/espdesktop/{WEATHER_HEADER}: missing shared weather lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{WEATHER_HEADER}: missing shared weather driver"
+            f"components/espdesktop/{WEATHER_HEADER}: missing shared weather driver"
         )
-    basic_action_header = root / "components" / "espcontrol" / BASIC_ACTION_HEADER
+    basic_action_header = root / "components" / "espdesktop" / BASIC_ACTION_HEADER
     if basic_action_header.exists():
         text = basic_action_header.read_text(encoding="utf-8")
         required = (
@@ -639,13 +639,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{BASIC_ACTION_HEADER}: missing shared basic-action lifecycle guard {needle}"
+                    f"components/espdesktop/{BASIC_ACTION_HEADER}: missing shared basic-action lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{BASIC_ACTION_HEADER}: missing shared basic-action driver"
+            f"components/espdesktop/{BASIC_ACTION_HEADER}: missing shared basic-action driver"
         )
-    numeric_selectable_header = root / "components" / "espcontrol" / NUMERIC_SELECTABLE_HEADER
+    numeric_selectable_header = root / "components" / "espdesktop" / NUMERIC_SELECTABLE_HEADER
     if numeric_selectable_header.exists():
         text = numeric_selectable_header.read_text(encoding="utf-8")
         required = (
@@ -674,13 +674,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{NUMERIC_SELECTABLE_HEADER}: missing shared numeric/selectable lifecycle guard {needle}"
+                    f"components/espdesktop/{NUMERIC_SELECTABLE_HEADER}: missing shared numeric/selectable lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{NUMERIC_SELECTABLE_HEADER}: missing shared numeric/selectable driver"
+            f"components/espdesktop/{NUMERIC_SELECTABLE_HEADER}: missing shared numeric/selectable driver"
         )
-    cleaning_header = root / "components" / "espcontrol" / CLEANING_HEADER
+    cleaning_header = root / "components" / "espdesktop" / CLEANING_HEADER
     if cleaning_header.exists():
         text = cleaning_header.read_text(encoding="utf-8")
         required = (
@@ -705,13 +705,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{CLEANING_HEADER}: missing shared cleaning lifecycle guard {needle}"
+                    f"components/espdesktop/{CLEANING_HEADER}: missing shared cleaning lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{CLEANING_HEADER}: missing shared cleaning driver"
+            f"components/espdesktop/{CLEANING_HEADER}: missing shared cleaning driver"
         )
-    access_cover_header = root / "components" / "espcontrol" / ACCESS_COVER_HEADER
+    access_cover_header = root / "components" / "espdesktop" / ACCESS_COVER_HEADER
     if access_cover_header.exists():
         text = access_cover_header.read_text(encoding="utf-8")
         required = (
@@ -739,19 +739,19 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{ACCESS_COVER_HEADER}: missing shared access/cover lifecycle guard {needle}"
+                    f"components/espdesktop/{ACCESS_COVER_HEADER}: missing shared access/cover lifecycle guard {needle}"
                 )
         bind_slider_body = function_body(text, "access_cover_driver_bind_slider") or ""
         if "subscribe_friendly_name_preserving_layout" not in bind_slider_body:
             failures.append(
-                f"components/espcontrol/{ACCESS_COVER_HEADER}: preserve slider label padding when the cover friendly name arrives"
+                f"components/espdesktop/{ACCESS_COVER_HEADER}: preserve slider label padding when the cover friendly name arrives"
             )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{ACCESS_COVER_HEADER}: missing shared access/cover driver"
+            f"components/espdesktop/{ACCESS_COVER_HEADER}: missing shared access/cover driver"
         )
     cover_modal_driver_header = (
-        root / "components" / "espcontrol" / COVER_MODAL_DRIVER_HEADER
+        root / "components" / "espdesktop" / COVER_MODAL_DRIVER_HEADER
     )
     if cover_modal_driver_header.exists():
         text = cover_modal_driver_header.read_text(encoding="utf-8")
@@ -773,13 +773,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal lifecycle guard {needle}"
+                    f"components/espdesktop/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal driver"
+            f"components/espdesktop/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal driver"
         )
-    media_driver_header = root / "components" / "espcontrol" / MEDIA_DRIVER_HEADER
+    media_driver_header = root / "components" / "espdesktop" / MEDIA_DRIVER_HEADER
     if media_driver_header.exists():
         text = media_driver_header.read_text(encoding="utf-8")
         required = (
@@ -806,17 +806,17 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: missing shared media lifecycle guard {needle}"
+                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: missing shared media lifecycle guard {needle}"
                 )
         route_body = function_body(text, "media_driver_bind_cover_art_route") or ""
         if route_body:
             if "now_playing->secondary_entity != now_playing->primary_entity" not in route_body:
                 failures.append(
-                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: treat a matching secondary cover-art entity as unconfigured"
+                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: treat a matching secondary cover-art entity as unconfigured"
                 )
             if "subscribe_image_card_access_token" in route_body:
                 failures.append(
-                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: avoid duplicate access-token subscriptions on cover-art route switches"
+                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: avoid duplicate access-token subscriptions on cover-art route switches"
                 )
             unchanged_route_return = route_body.find(
                 "if (!entity_changed && !presentation_changed) return;"
@@ -830,13 +830,13 @@ def check_root(root: Path) -> list[str]:
                 or control_subscription > unchanged_route_return
             ):
                 failures.append(
-                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: subscribe reused cover-art control modals before the unchanged-route return"
+                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: subscribe reused cover-art control modals before the unchanged-route return"
                 )
             clear_route = route_body.find("now_playing->refresh_entity_route = nullptr")
             attach_primary = route_body.find("media_playback_attach_now_playing(primary, now_playing)")
             if clear_route < 0 or attach_primary < 0 or clear_route > attach_primary:
                 failures.append(
-                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching cached playback state"
+                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching cached playback state"
                 )
         bind_body = function_body(text, "media_driver_bind_data") or ""
         if bind_body:
@@ -844,22 +844,22 @@ def check_root(root: Path) -> list[str]:
             attach_source = bind_body.find("subscribe_media_cover_art_source_state")
             if clear_route < 0 or attach_source < 0 or clear_route > attach_source:
                 failures.append(
-                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching source state"
+                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching source state"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{MEDIA_DRIVER_HEADER}: missing shared media driver"
+            f"components/espdesktop/{MEDIA_DRIVER_HEADER}: missing shared media driver"
         )
-    subpages_header = root / "components" / "espcontrol" / SUBPAGES_HEADER
+    subpages_header = root / "components" / "espdesktop" / SUBPAGES_HEADER
     if subpages_header.exists():
         normalize_subpage = function_body(
             subpages_header.read_text(encoding="utf-8"), "normalize_subpage_btn"
         ) or ""
         if 'b.sensor != "speaker_group"' not in normalize_subpage:
             failures.append(
-                f"components/espcontrol/{SUBPAGES_HEADER}: preserve speaker-group media cards on subpages"
+                f"components/espdesktop/{SUBPAGES_HEADER}: preserve speaker-group media cards on subpages"
             )
-    navigation_driver_header = root / "components" / "espcontrol" / NAVIGATION_DRIVER_HEADER
+    navigation_driver_header = root / "components" / "espdesktop" / NAVIGATION_DRIVER_HEADER
     if navigation_driver_header.exists():
         text = navigation_driver_header.read_text(encoding="utf-8")
         required = (
@@ -880,13 +880,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{NAVIGATION_DRIVER_HEADER}: missing shared navigation lifecycle guard {needle}"
+                    f"components/espdesktop/{NAVIGATION_DRIVER_HEADER}: missing shared navigation lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{NAVIGATION_DRIVER_HEADER}: missing shared navigation driver"
+            f"components/espdesktop/{NAVIGATION_DRIVER_HEADER}: missing shared navigation driver"
         )
-    image_driver_header = root / "components" / "espcontrol" / IMAGE_DRIVER_HEADER
+    image_driver_header = root / "components" / "espdesktop" / IMAGE_DRIVER_HEADER
     if image_driver_header.exists():
         text = image_driver_header.read_text(encoding="utf-8")
         required = (
@@ -905,14 +905,14 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{IMAGE_DRIVER_HEADER}: missing shared image lifecycle guard {needle}"
+                    f"components/espdesktop/{IMAGE_DRIVER_HEADER}: missing shared image lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{IMAGE_DRIVER_HEADER}: missing shared image driver"
+            f"components/espdesktop/{IMAGE_DRIVER_HEADER}: missing shared image driver"
         )
     light_control_driver_header = (
-        root / "components" / "espcontrol" / LIGHT_CONTROL_DRIVER_HEADER
+        root / "components" / "espdesktop" / LIGHT_CONTROL_DRIVER_HEADER
     )
     if light_control_driver_header.exists():
         text = light_control_driver_header.read_text(encoding="utf-8")
@@ -932,14 +932,14 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control lifecycle guard {needle}"
+                    f"components/espdesktop/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control driver"
+            f"components/espdesktop/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control driver"
         )
     fan_control_driver_header = (
-        root / "components" / "espcontrol" / FAN_CONTROL_DRIVER_HEADER
+        root / "components" / "espdesktop" / FAN_CONTROL_DRIVER_HEADER
     )
     if fan_control_driver_header.exists():
         text = fan_control_driver_header.read_text(encoding="utf-8")
@@ -961,14 +961,14 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{FAN_CONTROL_DRIVER_HEADER}: missing shared fan-control lifecycle guard {needle}"
+                    f"components/espdesktop/{FAN_CONTROL_DRIVER_HEADER}: missing shared fan-control lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{FAN_CONTROL_DRIVER_HEADER}: missing shared fan-control driver"
+            f"components/espdesktop/{FAN_CONTROL_DRIVER_HEADER}: missing shared fan-control driver"
         )
     climate_control_driver_header = (
-        root / "components" / "espcontrol" / CLIMATE_CONTROL_DRIVER_HEADER
+        root / "components" / "espdesktop" / CLIMATE_CONTROL_DRIVER_HEADER
     )
     if climate_control_driver_header.exists():
         text = climate_control_driver_header.read_text(encoding="utf-8")
@@ -990,14 +990,14 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control lifecycle guard {needle}"
+                    f"components/espdesktop/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control driver"
+            f"components/espdesktop/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control driver"
         )
     alarm_driver_header = (
-        root / "components" / "espcontrol" / ALARM_DRIVER_HEADER
+        root / "components" / "espdesktop" / ALARM_DRIVER_HEADER
     )
     if alarm_driver_header.exists():
         text = alarm_driver_header.read_text(encoding="utf-8")
@@ -1020,13 +1020,13 @@ def check_root(root: Path) -> list[str]:
         for needle in required:
             if needle not in text:
                 failures.append(
-                    f"components/espcontrol/{ALARM_DRIVER_HEADER}: missing shared alarm lifecycle guard {needle}"
+                    f"components/espdesktop/{ALARM_DRIVER_HEADER}: missing shared alarm lifecycle guard {needle}"
                 )
     elif grid_header.exists():
         failures.append(
-            f"components/espcontrol/{ALARM_DRIVER_HEADER}: missing shared alarm driver"
+            f"components/espdesktop/{ALARM_DRIVER_HEADER}: missing shared alarm driver"
         )
-    cards_header = root / "components" / "espcontrol" / CARDS_HEADER
+    cards_header = root / "components" / "espdesktop" / CARDS_HEADER
     if cards_header.exists():
         text = cards_header.read_text(encoding="utf-8")
         for legacy_setup in (
@@ -1038,7 +1038,7 @@ def check_root(root: Path) -> list[str]:
         ):
             if legacy_setup in text:
                 failures.append(
-                    f"components/espcontrol/{CARDS_HEADER}: keep {legacy_setup} inside its shared information driver"
+                    f"components/espdesktop/{CARDS_HEADER}: keep {legacy_setup} inside its shared information driver"
                 )
     return failures
 
@@ -1193,7 +1193,7 @@ inline void setup_light_temp_visual() {
             {
                 "button_grid_grid.h": (
                     "inline void setup_card_visual() {\n"
-                    "  if (espcontrol::cards::image_driver_setup_visual()) return;\n"
+                    "  if (espdesktop::cards::image_driver_setup_visual()) return;\n"
                     "}\n"
                 )
             },
@@ -1205,7 +1205,7 @@ inline void setup_light_temp_visual() {
                     "inline void clear_unsupported_card_slot_visuals() {}\n"
                     "inline void setup_card_visual() {\n"
                     "  lv_obj_add_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);\n"
-                    "  if (espcontrol::cards::image_driver_setup_visual()) return;\n"
+                    "  if (espdesktop::cards::image_driver_setup_visual()) return;\n"
                     "  ESP_LOGW(\"card_runtime\", \"Unsupported card type has no visual driver: type=%s\", type);\n"
                     "}\n"
                 )
@@ -1437,7 +1437,7 @@ inline void setup_light_temp_visual() {
     for files, expected in cases:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            firmware_dir = root / "components" / "espcontrol"
+            firmware_dir = root / "components" / "espdesktop"
             firmware_dir.mkdir(parents=True)
             for name, content in files.items():
                 (firmware_dir / name).write_text(content, encoding="utf-8")

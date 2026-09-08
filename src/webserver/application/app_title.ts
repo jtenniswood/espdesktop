@@ -14,7 +14,7 @@ export interface AppTitleDependencies {
 export function createAppTitleFeature(dependencies: AppTitleDependencies): AppTitleFeature {
     function applyPageTitle(title?: unknown) {
         const text = typeof title === "string" ? title.trim() : "";
-        dependencies.document.title = text || "EspControl";
+        dependencies.document.title = text || "EspDesktop";
     }
     function handleWebServerPingEvent(event?: { data?: string }) {
         let data: any = null;

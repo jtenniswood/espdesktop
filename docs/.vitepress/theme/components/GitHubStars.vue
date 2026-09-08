@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
-const repoUrl = 'https://github.com/jtenniswood/espcontrol'
-const apiUrl = 'https://api.github.com/repos/jtenniswood/espcontrol'
+const repoUrl = 'https://github.com/jtenniswood/espdesktop'
+const apiUrl = 'https://api.github.com/repos/jtenniswood/espdesktop'
 const stars = ref<number | null>(null)
 
 const starLabel = computed(() => {
@@ -32,8 +32,8 @@ onMounted(async () => {
     :href="repoUrl"
     target="_blank"
     rel="noopener"
-    aria-label="Star EspControl on GitHub"
-    title="Star EspControl on GitHub"
+    aria-label="Star EspDesktop on GitHub"
+    title="Star EspDesktop on GitHub"
   >
     <svg class="github-stars__icon" aria-hidden="true" viewBox="0 0 24 24">
       <path

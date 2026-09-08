@@ -11,7 +11,7 @@ from product_schema import CARD_CONTRACT_JSON, ROOT, load_card_contract, validat
 
 
 CARD_CONTRACT_TS = ROOT / "src" / "webserver" / "generated" / "card_contract.ts"
-CARD_CONTRACT_H = ROOT / "components" / "espcontrol" / "button_grid_contract_generated.h"
+CARD_CONTRACT_H = ROOT / "components" / "espdesktop" / "button_grid_contract_generated.h"
 CARD_CAPABILITY_DOCS = ROOT / "docs" / "generated" / "cards" / "capabilities.md"
 OPTION_CONSTANT_RE = re.compile(r'^constexpr const char \*(CARD_CONTRACT_OPTION_NAME_[A-Z0-9_]+) = ("(?:[^"\\]|\\.)*");$', re.M)
 

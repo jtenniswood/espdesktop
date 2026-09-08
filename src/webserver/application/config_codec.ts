@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "../model/config_primitives";
 import {
     CARD_SIZE_EXTRA_LARGE,
@@ -249,7 +249,7 @@ export function createConfigCodecFeature(
         var rawMediaMode: any = b.sensor;
         if (rawMediaMode === "controls" && (!b.icon || b.icon === "Speaker"))
             b.icon = "Auto";
-        var mediaConfig: any = EspControlModel.decodeMediaCardConfigV1(b);
+        var mediaConfig: any = EspDesktopModel.decodeMediaCardConfigV1(b);
         b.sensor = mediaConfig ? mediaConfig.mode : mediaEditorMode(b.sensor);
         if (b.sensor === "previous" && b.label === "Skip Previous")
             b.label = "Previous";
@@ -517,17 +517,17 @@ export function createConfigCodecFeature(
         return cardContractFanDefaultIcon(type);
     }
     function buttonConfigChangedByNormalize(this: any, raw?: any) {
-        var before: any = EspControlModel.cloneCardConfig(raw || {});
-        var after: any = normalizeButtonConfig(EspControlModel.cloneCardConfig(before));
-        return EspControlModel.cardConfigChanged(before, after);
+        var before: any = EspDesktopModel.cloneCardConfig(raw || {});
+        var after: any = normalizeButtonConfig(EspDesktopModel.cloneCardConfig(before));
+        return EspDesktopModel.cardConfigChanged(before, after);
     }
     function trimConfigFields(this: any, fields?: any) {
-        return EspControlModel.trimConfigFields(fields);
+        return EspDesktopModel.trimConfigFields(fields);
     }
     function buttonConfigFields(this: any, b?: any) {
         var type: any = b && b.type || "";
         if (b && type === "subpage" && subpageKind(b)) {
-            b = EspControlModel.cloneCardConfig(b);
+            b = EspDesktopModel.cloneCardConfig(b);
             applySubpagePresetConfig(b);
         }
         var isActionOptionSelect: any = !!(b && (actionCardIsOptionSelect(b) || isOptionSelectType(type)));
@@ -670,7 +670,7 @@ export function createConfigCodecFeature(
                 });
         }
         else if (type === "webhook") {
-            var webhookButton: any = EspControlModel.cloneCardConfig(b || {});
+            var webhookButton: any = EspDesktopModel.cloneCardConfig(b || {});
             normalizeWebhookConfig(webhookButton);
             sensor = webhookButton.sensor;
             unit = webhookButton.unit;
@@ -703,7 +703,7 @@ export function createConfigCodecFeature(
             options = normalizeImageOptions(options);
         }
         else if (type === "wifi_qr" || type === "wifi_qr_card") {
-            var wifiButton: any = EspControlModel.cloneCardConfig(b || {});
+            var wifiButton: any = EspDesktopModel.cloneCardConfig(b || {});
             wifiButton.options = options;
             wifiButton.label = label;
             wifiButton.icon = icon;
@@ -782,13 +782,13 @@ export function createConfigCodecFeature(
         ]);
     }
     function encodeConfigField(this: any, value?: any) {
-        return EspControlModel.encodeConfigField(value);
+        return EspDesktopModel.encodeConfigField(value);
     }
     function decodeConfigField(this: any, value?: any) {
-        return EspControlModel.decodeConfigField(value);
+        return EspDesktopModel.decodeConfigField(value);
     }
     function legacyButtonConfigSafe(this: any, fields?: any) {
-        return EspControlModel.legacyButtonConfigSafe(fields);
+        return EspDesktopModel.legacyButtonConfigSafe(fields);
     }
     function serializeButtonConfig(this: any, b?: any) {
         var fields: any = buttonConfigFields(b || {});
@@ -797,7 +797,7 @@ export function createConfigCodecFeature(
         return "~" + fields.map(encodeConfigField).join(",");
     }
     function parseRawButtonConfig(this: any, str?: any) {
-        return EspControlModel.parseRawButtonConfig(str);
+        return EspDesktopModel.parseRawButtonConfig(str);
     }
     function parseButtonConfig(this: any, str?: any) {
         return normalizeButtonConfig(parseRawButtonConfig(str));
@@ -812,19 +812,19 @@ export function createConfigCodecFeature(
         return buttonConfigChangedByNormalize(parseRawButtonConfig(str || ""));
     }
     function parseBackOrderToken(this: any, value?: any) {
-        return EspControlModel.parseBackOrderToken(value);
+        return EspDesktopModel.parseBackOrderToken(value);
     }
     function backOrderToken(this: any, baseToken?: any, label?: any) {
-        return EspControlModel.backOrderToken(baseToken, label);
+        return EspDesktopModel.backOrderToken(baseToken, label);
     }
     function backLabelFromOrder(this: any, order?: any) {
-        return EspControlModel.backLabelFromOrder(order);
+        return EspDesktopModel.backLabelFromOrder(order);
     }
     function parseSubpageOrder(this: any, orderStr?: any) {
-        return EspControlModel.parseSubpageOrder(orderStr);
+        return EspDesktopModel.parseSubpageOrder(orderStr);
     }
     function subpageOrderForSerialize(this: any, sp?: any) {
-        return EspControlModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel);
+        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel);
     }
     function subpageSerializedOrder(this: any, sp?: any) {
         if (!sp)
@@ -836,7 +836,7 @@ export function createConfigCodecFeature(
         return [];
     }
     function parseSubpageConfig(this: any, str?: any, raw?: any) {
-        var parsed: any = EspControlModel.parseRawSubpageConfig(str, subpageTypeFromCode);
+        var parsed: any = EspDesktopModel.parseRawSubpageConfig(str, subpageTypeFromCode);
         if (raw)
             return parsed;
         var compactButtonTokens: any = String(str || "").charAt(0) === "~"
@@ -863,7 +863,7 @@ export function createConfigCodecFeature(
         return decodeConfigField(value);
     }
     function parseCompactSubpageConfig(this: any, str?: any, raw?: any) {
-        var parsed: any = EspControlModel.parseCompactSubpageConfig(str, subpageTypeFromCode);
+        var parsed: any = EspDesktopModel.parseCompactSubpageConfig(str, subpageTypeFromCode);
         if (raw)
             return parsed;
         var compactButtonTokens: any = String(str || "").split("|").slice(1);
@@ -895,7 +895,7 @@ export function createConfigCodecFeature(
         var order: any = subpageSerializedOrder(sp);
         var legacy: any = legacySubpageConfigSafe(sp) ? serializeLegacySubpageConfig(sp) : "";
         var compact: any = serializeCompactSubpageConfig(sp);
-        return EspControlModel.chooseSerializedSubpageConfig(order, sp && sp.buttons ? sp.buttons.length : 0, legacy, compact);
+        return EspDesktopModel.chooseSerializedSubpageConfig(order, sp && sp.buttons ? sp.buttons.length : 0, legacy, compact);
     }
     function subpageLegacyButtonFields(this: any, b?: any) {
         var fields: any = buttonConfigFields(b || {});
@@ -924,17 +924,17 @@ export function createConfigCodecFeature(
     }
     function legacySubpageConfigSafe(this: any, sp?: any) {
         var fields: any = ((sp && sp.buttons) || []).map(subpageLegacyButtonFields);
-        return EspControlModel.legacySubpageFieldsSafe(fields);
+        return EspDesktopModel.legacySubpageFieldsSafe(fields);
     }
     function serializeLegacySubpageConfig(this: any, sp?: any) {
         if (!sp)
             return "";
-        return EspControlModel.serializeLegacySubpageConfig(subpageSerializedOrder(sp), ((sp && sp.buttons) || []).map(subpageLegacyButtonFields));
+        return EspDesktopModel.serializeLegacySubpageConfig(subpageSerializedOrder(sp), ((sp && sp.buttons) || []).map(subpageLegacyButtonFields));
     }
     function serializeCompactSubpageConfig(this: any, sp?: any) {
         if (!sp || !sp.buttons || sp.buttons.length === 0)
             return "";
-        return EspControlModel.serializeCompactSubpageConfig(subpageSerializedOrder(sp), sp.buttons.map(subpageCompactButtonFields));
+        return EspDesktopModel.serializeCompactSubpageConfig(subpageSerializedOrder(sp), sp.buttons.map(subpageCompactButtonFields));
     }
     function applySubpageRaw(this: any, slot?: any) {
         var raw: any = state.subpageRaw[slot];
@@ -989,7 +989,7 @@ export function createConfigCodecFeature(
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
-        var result: any = EspControlModel.buildSubpageGrid(sp, layout.numSlots, layout.gridCols);
+        var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.numSlots, layout.gridCols);
         sp.grid = result.grid;
         sp.sizes = result.sizes;
         return sp.grid;
@@ -1001,7 +1001,7 @@ export function createConfigCodecFeature(
         return JSON.stringify(sp.order) !== previousOrder;
     }
     function serializeSubpageGrid(this: any, sp?: any) {
-        return EspControlModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back");
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back");
     }
     function enterSubpage(this: any, homeSlot?: any) {
         state.editingSubpage = homeSlot;

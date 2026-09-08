@@ -62,18 +62,18 @@ function verifyManifest(webRoot) {
   const contents = fs.readFileSync(bundlePath);
   assert(sha256(contents) === bundle.sha256, "web bundle content does not match manifest digest");
   const embedded = fs.readFileSync(path.join(webRoot, "embedded", "www.js"), "utf8");
-  assert(embedded.includes("__ESPCONTROL_START_EMBEDDED__"),
+  assert(embedded.includes("__ESPDESKTOP_START_EMBEDDED__"),
     "embedded editor must expose its offline fallback entry point");
-  assert(embedded.includes("__ESPCONTROL_RELOAD_EMBEDDED__"),
+  assert(embedded.includes("__ESPDESKTOP_RELOAD_EMBEDDED__"),
     "embedded editor must expose a clean fallback reload entry point");
-  assert(embedded.includes("__ESPCONTROL_UI_STARTING__"),
+  assert(embedded.includes("__ESPDESKTOP_UI_STARTING__"),
     "embedded editor must wait for deferred startup before using its fallback");
   assert(embedded.includes(contents.toString("utf8")),
     "embedded fallback must contain the immutable editor bundle");
   const bridge = fs.readFileSync(path.join(webRoot, "www.js"), "utf8");
   assert(bridge.includes("web-assets.json") && bridge.includes("firmwareVersions"),
     "hosted www.js must select an immutable bundle from the manifest");
-  assert(bridge.includes("espcontrol_fallback"),
+  assert(bridge.includes("espdesktop_fallback"),
     "hosted www.js must honor a clean embedded fallback reload");
 }
 
@@ -103,7 +103,7 @@ async function verifyBridge() {
       if (String(url).endsWith("web-assets.json")) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve(manifest) });
       }
-      if (String(url) === "/espcontrol/version.json") {
+      if (String(url) === "/espdesktop/version.json") {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ version: "dev" }) });
       }
       return Promise.resolve({ ok: false, json: () => Promise.resolve(null) });
@@ -127,7 +127,7 @@ async function verifyBridge() {
     "web bridge must select a bundle for an explicitly requested stable firmware version");
 
   let fallbackStarts = 0;
-  sandbox.__ESPCONTROL_START_EMBEDDED__ = () => { fallbackStarts += 1; };
+  sandbox.__ESPDESKTOP_START_EMBEDDED__ = () => { fallbackStarts += 1; };
   sandbox.document.currentScript.getAttribute = () =>
     `https://assets.example/webserver/www.js?device=esp32-p4-86&v=${stableVersion}`;
   sandbox.document.head.appendChild = (script) => script.onerror();
@@ -137,7 +137,7 @@ async function verifyBridge() {
     "web bridge must start the embedded editor when the immutable bundle fails to load");
 
   const cleanFallbackStarts = [];
-  sandbox.window.location.href = "http://panel.example/?espcontrol_fallback=1";
+  sandbox.window.location.href = "http://panel.example/?espdesktop_fallback=1";
   sandbox.document.head.appendChild = (script) => cleanFallbackStarts.push(script.src);
   vm.runInContext(fs.readFileSync(path.join(WEB_ROOT, "www.js"), "utf8"), sandbox);
   await new Promise((resolve) => setImmediate(resolve));

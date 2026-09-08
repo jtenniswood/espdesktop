@@ -37,7 +37,7 @@ wifi:
   on_connect:
     - script.execute: network_status_refresh
     - script.execute: ntp_servers_apply_after_network
-    - lambda: 'id(espcontrol_app).home_assistant_endpoint().request_discovery();'
+    - lambda: 'id(espdesktop_app).home_assistant_endpoint().request_discovery();'
     - script.stop: wifi_reconnect_flow
     - globals.set:
         id: connectivity_setup_display_active
@@ -46,7 +46,7 @@ wifi:
     - script.execute: setup_screen_dim_cancel
     - lambda: |-
         ESP_LOGI("connectivity", "WiFi connected (%lu ms)", millis());
-        lv_label_set_text(id(loading_status_label), espcontrol_i18n("Connected"));
+        lv_label_set_text(id(loading_status_label), espdesktop_i18n("Connected"));
     - delay: 200ms
     - script.execute: navigate_after_api
   on_disconnect:
@@ -68,7 +68,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(espcontrol_app).connector_onboarding_complete();'
+            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'
           then:
             - script.execute: navigate_after_api
 
@@ -77,10 +77,10 @@ script:
     then:
       - script.execute: clock_bar_hide
       - lambda: |-
-          lv_label_set_text(id(wifi_setup_title), espcontrol_i18n("WiFi Disconnected"));
+          lv_label_set_text(id(wifi_setup_title), espdesktop_i18n("WiFi Disconnected"));
           lv_label_set_text(
               id(wifi_setup_instructions),
-              espcontrol_i18n("Trying to reconnect\nto your saved network"));
+              espdesktop_i18n("Trying to reconnect\nto your saved network"));
       - lvgl.page.show: wifi_setup_page
       - script.execute: setup_screen_dim
 
@@ -92,18 +92,18 @@ script:
           id: connectivity_setup_display_active
           value: 'true'
       - lambda: |-
-          id(espcontrol_app).display().clear(
-              espcontrol::DisplayRequestSource::MANUAL_SLEEP);
+          id(espdesktop_app).display().clear(
+              espdesktop::DisplayRequestSource::MANUAL_SLEEP);
       - script.execute: display_mode_reconcile
       - script.wait: display_mode_apply_transition
       - script.execute: clock_bar_hide
       - lambda: |-
           std::string hotspot_ssid = wifi::global_wifi_component->get_ap().get_ssid().str();
           if (hotspot_ssid.empty()) hotspot_ssid = "${friendly_name}";
-          std::string msg = std::string(espcontrol_i18n_key("connect_to")) +
+          std::string msg = std::string(espdesktop_i18n_key("connect_to")) +
                             " '" + hotspot_ssid + "' " +
-                            espcontrol_i18n_key("to_configure_your_network_settings");
-          lv_label_set_text(id(wifi_setup_title), espcontrol_i18n("Configure your WiFi"));
+                            espdesktop_i18n_key("to_configure_your_network_settings");
+          lv_label_set_text(id(wifi_setup_title), espdesktop_i18n("Configure your WiFi"));
           lv_label_set_display_text(id(wifi_setup_instructions), msg.c_str());
       - lvgl.page.show: wifi_setup_page
       - script.execute:
@@ -148,8 +148,8 @@ script:
             - wait_until:
                 condition:
                   lambda: |-
-                    return id(espcontrol_app).display().target_mode_is(
-                        espcontrol::DisplayMode::ACTIVE);
+                    return id(espdesktop_app).display().target_mode_is(
+                        espdesktop::DisplayMode::ACTIVE);
             - lvgl.page.show: main_page
             - script.execute: clock_bar_apply
             - script.execute: screensaver_idle_check

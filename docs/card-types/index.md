@@ -1,12 +1,12 @@
 ---
 title: Card Types
 description:
-  Quick reference for choosing the right EspControl card type for Home Assistant controls, sensors, local panel actions, and subpages.
+  Quick reference for choosing the right EspDesktop card type for Home Assistant controls, sensors, local panel actions, and subpages.
 ---
 
 # Card Types
 
-Cards are the controls and information tiles shown on the EspControl screen. Each card type is built for a specific job: some send Home Assistant actions, some display live state, some control local panel hardware, and some open extra pages.
+Cards are the controls and information tiles shown on the EspDesktop screen. Each card type is built for a specific job: some send Home Assistant actions, some display live state, some control local panel hardware, and some open extra pages.
 
 Use this page when you know what you want the panel to do but are not sure which card type to choose.
 

@@ -1,5 +1,5 @@
 #include "ha_read_coordinator.h"
-#include "espcontrol_app_core.h"
+#include "espdesktop_app_core.h"
 #include "home_assistant_binding_service.h"
 
 #include <cstdlib>
@@ -725,7 +725,7 @@ void app_owned_callback_owner_is_used_when_bound() {
 }
 
 void core_owns_binding_service_lifetime() {
-  espcontrol::EspControlAppCore app;
+  espdesktop::EspDesktopAppCore app;
   require(app.start(), "application core did not start");
   BindingService &service = app.home_assistant_binding_service<BindingService>();
   int owner = 0;

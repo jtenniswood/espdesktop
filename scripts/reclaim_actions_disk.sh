@@ -30,14 +30,14 @@ run_self_test() {
   local home="$tmp/home"
   local workspace="$tmp/workspace"
   local update_dir="$home/actions-runner-1/_work/_update"
-  local legacy_cache="$home/.cache/espcontrol-actions/esphome"
+  local legacy_cache="$home/.cache/espdesktop-actions/esphome"
   mkdir -p "$workspace" "$update_dir" "$legacy_cache"
   touch "$update_dir/stale.update" "$legacy_cache/legacy.cache"
 
   HOME="$home" \
     GITHUB_WORKSPACE="$workspace" \
     DOCKER=/bin/false \
-    ESPCONTROL_DOCKER_LOCK_HELD=true \
+    ESPDESKTOP_DOCKER_LOCK_HELD=true \
     bash "$SCRIPT_PATH" >/dev/null
 
   assert_missing "$update_dir" "runner update cleanup"
@@ -45,16 +45,16 @@ run_self_test() {
 
   local disabled_home="$tmp/disabled-home"
   local disabled_update="$disabled_home/actions-runner-1/_work/_update"
-  local disabled_legacy="$disabled_home/.cache/espcontrol-actions/esphome"
+  local disabled_legacy="$disabled_home/.cache/espdesktop-actions/esphome"
   mkdir -p "$disabled_update" "$disabled_legacy"
   touch "$disabled_update/stale.update" "$disabled_legacy/legacy.cache"
 
   HOME="$disabled_home" \
     GITHUB_WORKSPACE="$workspace" \
     DOCKER=/bin/false \
-    ESPCONTROL_DOCKER_LOCK_HELD=true \
-    ESPCONTROL_CLEAN_RUNNER_UPDATES=false \
-    ESPCONTROL_CLEAN_LEGACY_ESPHOME_CACHE=false \
+    ESPDESKTOP_DOCKER_LOCK_HELD=true \
+    ESPDESKTOP_CLEAN_RUNNER_UPDATES=false \
+    ESPDESKTOP_CLEAN_LEGACY_ESPHOME_CACHE=false \
     bash "$SCRIPT_PATH" >/dev/null
 
   assert_exists "$disabled_update/stale.update" "disabled runner update cleanup"
@@ -69,15 +69,15 @@ if [ "${1:-}" = "--self-test" ]; then
 fi
 
 DOCKER_COMMAND=${DOCKER:-docker}
-KEEP_STORAGE=${ESPCONTROL_DOCKER_BUILD_CACHE_KEEP:-2GB}
-LOCK_FILE=${ESPCONTROL_DOCKER_LOCK_FILE:-/tmp/espcontrol-esphome-image.lock}
-PRUNE_ALL_IMAGES=${ESPCONTROL_DOCKER_PRUNE_ALL_IMAGES:-false}
-PRUNE_VOLUMES=${ESPCONTROL_DOCKER_PRUNE_VOLUMES:-false}
-CLEAN_RUNNER_UPDATES=${ESPCONTROL_CLEAN_RUNNER_UPDATES:-true}
-CLEAN_LEGACY_ESPHOME_CACHE=${ESPCONTROL_CLEAN_LEGACY_ESPHOME_CACHE:-true}
+KEEP_STORAGE=${ESPDESKTOP_DOCKER_BUILD_CACHE_KEEP:-2GB}
+LOCK_FILE=${ESPDESKTOP_DOCKER_LOCK_FILE:-/tmp/espdesktop-esphome-image.lock}
+PRUNE_ALL_IMAGES=${ESPDESKTOP_DOCKER_PRUNE_ALL_IMAGES:-false}
+PRUNE_VOLUMES=${ESPDESKTOP_DOCKER_PRUNE_VOLUMES:-false}
+CLEAN_RUNNER_UPDATES=${ESPDESKTOP_CLEAN_RUNNER_UPDATES:-true}
+CLEAN_LEGACY_ESPHOME_CACHE=${ESPDESKTOP_CLEAN_LEGACY_ESPHOME_CACHE:-true}
 
-if [ "${ESPCONTROL_DOCKER_LOCK_HELD:-false}" != "true" ] && command -v flock >/dev/null 2>&1; then
-  export ESPCONTROL_DOCKER_LOCK_HELD=true
+if [ "${ESPDESKTOP_DOCKER_LOCK_HELD:-false}" != "true" ] && command -v flock >/dev/null 2>&1; then
+  export ESPDESKTOP_DOCKER_LOCK_HELD=true
   exec flock "${LOCK_FILE}" bash "$0" "$@"
 fi
 
@@ -114,7 +114,7 @@ if [ "${CLEAN_RUNNER_UPDATES}" = "true" ]; then
 fi
 
 if [ "${CLEAN_LEGACY_ESPHOME_CACHE}" = "true" ]; then
-  legacy_cache="${HOME}/.cache/espcontrol-actions/esphome"
+  legacy_cache="${HOME}/.cache/espdesktop-actions/esphome"
   if [ -d "${legacy_cache}" ]; then
     echo "Removing legacy persistent ESPHome cache: ${legacy_cache}"
     rm -rf "${legacy_cache}" || sudo rm -rf "${legacy_cache}" || true

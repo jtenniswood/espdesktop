@@ -71,7 +71,7 @@ script:
     mode: restart
     then:
       - lambda: |-
-          lv_label_set_text(id(ethernet_setup_title), espcontrol_i18n("Ethernet Setup"));
+          lv_label_set_text(id(ethernet_setup_title), espdesktop_i18n("Ethernet Setup"));
           lv_label_set_text(
               id(ethernet_setup_instructions),
-              espcontrol_i18n("Connect an Ethernet cable\nand wait for a network address"));
+              espdesktop_i18n("Connect an Ethernet cable\nand wait for a network address"));

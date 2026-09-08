@@ -10,7 +10,7 @@ esphome:
   # (Hebrew, Arabic) render in visual order.
   build_flags:
     - "-DLV_USE_BIDI=1"
-    - '-DESPCONTROL_DEVICE_SLUG=\"${device_slug}\"'
+    - '-DESPDESKTOP_DEVICE_SLUG=\"${device_slug}\"'
 
 # This invisible widget enables LVGL's QR-code component in the configuration
 # ESPHome generates for every display. Build flags cannot enable LVGL features
@@ -23,7 +23,7 @@ lvgl:
           # LVGL requires a non-empty payload and enough pixels to render its
           # smallest QR matrix. The hidden widget only enables QR support for
           # the cards that create their own QR code on demand.
-          text: "EspControl"
+          text: "EspDesktop"
           size: 64
           hidden: true
 
@@ -130,7 +130,7 @@ web_server:
   port: 80
   version: 3
   include_internal: true
-  js_url: https://jtenniswood.github.io/espcontrol/webserver/www.js?device=${device_slug}&v=${firmware_version}&ui=20260714-shared
+  js_url: https://jtenniswood.github.io/espdesktop/webserver/www.js?device=${device_slug}&v=${firmware_version}&ui=20260714-shared
   sorting_groups:
     - id: sg_button
       name: "Button Configuration"
@@ -237,4 +237,4 @@ text_sensor:
     icon: "mdi:connection"
     update_interval: 1s
     lambda: |-
-      return id(espcontrol_app).home_assistant_endpoint().status();
+      return id(espdesktop_app).home_assistant_endpoint().status();

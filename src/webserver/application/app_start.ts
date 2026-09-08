@@ -1,22 +1,22 @@
 import type { AppFeature } from "./app";
 
 const startupState = globalThis as typeof globalThis & {
-    __ESPCONTROL_RELOAD_EMBEDDED__?: () => void;
-    __ESPCONTROL_UI_STARTED__?: boolean;
-    __ESPCONTROL_UI_STARTING__?: boolean;
+    __ESPDESKTOP_RELOAD_EMBEDDED__?: () => void;
+    __ESPDESKTOP_UI_STARTED__?: boolean;
+    __ESPDESKTOP_UI_STARTING__?: boolean;
 };
 
 export function startApp(app: Pick<AppFeature, "init">): void {
     // ── Start ──────────────────────────────────────────────────────────────
     function start(this: any) {
-        startupState.__ESPCONTROL_UI_STARTING__ = true;
+        startupState.__ESPDESKTOP_UI_STARTING__ = true;
         try {
             app.init();
-            startupState.__ESPCONTROL_UI_STARTED__ = true;
+            startupState.__ESPDESKTOP_UI_STARTED__ = true;
         }
         catch (error) {
-            startupState.__ESPCONTROL_UI_STARTED__ = false;
-            const reload = startupState.__ESPCONTROL_RELOAD_EMBEDDED__;
+            startupState.__ESPDESKTOP_UI_STARTED__ = false;
+            const reload = startupState.__ESPDESKTOP_RELOAD_EMBEDDED__;
             if (typeof reload === "function") {
                 reload();
                 return;
@@ -24,11 +24,11 @@ export function startApp(app: Pick<AppFeature, "init">): void {
             throw error;
         }
         finally {
-            startupState.__ESPCONTROL_UI_STARTING__ = false;
+            startupState.__ESPDESKTOP_UI_STARTING__ = false;
         }
     }
     if (document.readyState === "loading") {
-        startupState.__ESPCONTROL_UI_STARTING__ = true;
+        startupState.__ESPDESKTOP_UI_STARTING__ = true;
         document.addEventListener("DOMContentLoaded", start);
     }
     else {

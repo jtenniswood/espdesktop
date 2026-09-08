@@ -25,8 +25,8 @@ The current behaviour is spread across:
   temporary off-hours wake, and brightness selection;
 - `common/device/screen_cover_art.yaml` for media eligibility, delayed cover-art
   activation, dismissal, downloads, and S3 image release;
-- `components/espcontrol/button_grid_image.h` for interactive image takeovers;
-- `components/espcontrol/button_grid_alarm.h` for alarm arming and triggered
+- `components/espdesktop/button_grid_image.h` for interactive image takeovers;
+- `components/espdesktop/button_grid_alarm.h` for alarm arming and triggered
   takeovers; and
 - generated device slot wiring under `devices/*/device/sensors.yaml`.
 

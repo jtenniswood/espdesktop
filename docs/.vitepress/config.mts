@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 
-const hostname = 'https://jtenniswood.github.io/espcontrol/'
+const hostname = 'https://jtenniswood.github.io/espdesktop/'
 const defaultImage = {
   url: `${hostname}images/home_screen_hero.jpg`,
   width: '1024',
@@ -141,7 +141,7 @@ const faqItems = [
   {
     question: "My Device Won't Connect to WiFi",
     answer:
-      'Use a 2.4 GHz WiFi network, double-check the password, move closer to the router during setup, or reconnect through the espcontrol setup hotspot.',
+      'Use a 2.4 GHz WiFi network, double-check the password, move closer to the router during setup, or reconnect through the espdesktop setup hotspot.',
   },
   {
     question: 'How Do I Reset the Device?',
@@ -151,7 +151,7 @@ const faqItems = [
   {
     question: 'Can I Use This Without Home Assistant?',
     answer:
-      'No. EspControl is designed for Home Assistant and needs it for device control, clock sync, temperature data, and screensaver sensor data.',
+      'No. EspDesktop is designed for Home Assistant and needs it for device control, clock sync, temperature data, and screensaver sensor data.',
   },
   {
     question: 'How Do I Update the Firmware?',
@@ -186,12 +186,12 @@ const faqItems = [
   {
     question: 'Which Panels Are Supported?',
     answer:
-      'EspControl supports both Guition JC8012P4A1 rear-case revisions, both JC1060P470 panel revisions, JC4880P443, 4848S040, and ESP32-P4 86 Panel touchscreens.',
+      'EspDesktop supports both Guition JC8012P4A1 rear-case revisions, both JC1060P470 panel revisions, JC4880P443, 4848S040, and ESP32-P4 86 Panel touchscreens.',
   },
   {
     question: 'Does the Panel Work with Other Smart Home Platforms?',
     answer:
-      'EspControl is built for Home Assistant. Other platforms only work indirectly if they are integrated into Home Assistant.',
+      'EspDesktop is built for Home Assistant. Other platforms only work indirectly if they are integrated into Home Assistant.',
   },
   {
     question: 'The Display Is Stuck on the Loading Screen',
@@ -206,10 +206,10 @@ const faqItems = [
 ]
 
 export default defineConfig({
-  title: 'Espcontrol',
+  title: 'EspDesktop',
   description:
     'Touchscreen control panel for Home Assistant on supported ESP32 panels — card-based controls, web configuration, automatic updates.',
-  base: '/espcontrol/',
+  base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
   lastUpdated: true,
@@ -220,18 +220,18 @@ export default defineConfig({
   },
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/espcontrol/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/espdesktop/favicon.svg' }],
     [
       'meta',
       {
         name: 'keywords',
         content:
-          'Espcontrol, ESPHome, Home Assistant, ESP32-P4, ESP32-S3, Guition, LVGL, touchscreen, control panel',
+          'EspDesktop, ESPHome, Home Assistant, ESP32-P4, ESP32-S3, Guition, LVGL, touchscreen, control panel',
       },
     ],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
-    ['meta', { property: 'og:site_name', content: 'Espcontrol' }],
+    ['meta', { property: 'og:site_name', content: 'EspDesktop' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     [
       'style',
@@ -253,7 +253,7 @@ export default defineConfig({
             '@type': 'WebSite',
             '@id': `${hostname}#website`,
             url: hostname,
-            name: 'Espcontrol',
+            name: 'EspDesktop',
             description:
               'ESPHome firmware for supported ESP32 touchscreens: Home Assistant card controls, web UI, OTA updates.',
             inLanguage: 'en-US',
@@ -261,7 +261,7 @@ export default defineConfig({
           {
             '@type': 'SoftwareApplication',
             '@id': `${hostname}#software`,
-            name: 'Espcontrol',
+            name: 'EspDesktop',
             applicationCategory: 'UtilitiesApplication',
             operatingSystem: 'ESP32',
             description:
@@ -340,7 +340,7 @@ export default defineConfig({
           pageData.relativePath === 'getting-started/migrate-esphome-media-player.md'
         ) {
           articleSchema.step = [
-            { '@type': 'HowToStep', name: 'Install and connect EspControl' },
+            { '@type': 'HowToStep', name: 'Install and connect EspDesktop' },
             { '@type': 'HowToStep', name: 'Choose an automatic or card-based cover-art layout' },
             { '@type': 'HowToStep', name: 'Configure media playback controls' },
             { '@type': 'HowToStep', name: 'Configure the idle clock or display-off behaviour' },
@@ -392,8 +392,8 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Install', link: '/getting-started/install' },
-      { text: 'Issues', link: 'https://github.com/jtenniswood/espcontrol/issues' },
-      { text: 'GitHub', link: 'https://github.com/jtenniswood/espcontrol' },
+      { text: 'Issues', link: 'https://github.com/jtenniswood/espdesktop/issues' },
+      { text: 'GitHub', link: 'https://github.com/jtenniswood/espdesktop' },
     ],
 
     sidebar: [
@@ -402,6 +402,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/' },
           { text: 'Install', link: '/getting-started/install' },
+          { text: 'Mac App', link: '/getting-started/mac-app' },
           { text: 'Enable Actions', link: '/getting-started/home-assistant-actions' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
         ],
@@ -502,11 +503,11 @@ export default defineConfig({
     ],
 
     editLink: {
-      pattern: 'https://github.com/jtenniswood/espcontrol/edit/main/docs/:path',
+      pattern: 'https://github.com/jtenniswood/espdesktop/edit/main/docs/:path',
       text: 'Edit this page on GitHub',
     },
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/jtenniswood/espcontrol' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/jtenniswood/espdesktop' }],
 
     search: {
       provider: 'local',

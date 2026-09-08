@@ -1,7 +1,7 @@
 ---
 title: Trigger Cards
 description:
-  How to use trigger cards on your EspControl panel to start Home Assistant automations.
+  How to use trigger cards on your EspDesktop panel to start Home Assistant automations.
 ---
 
 # Trigger

@@ -7,8 +7,8 @@
 # =============================================================================
 
 substitutions:
-  espcontrol_component_url: "https://github.com/jtenniswood/espcontrol"
-  espcontrol_component_ref: "main"
+  espdesktop_component_url: "https://github.com/jtenniswood/espdesktop"
+  espdesktop_component_ref: "main"
   mdi_font_file: "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.ttf"
 
 # ---------------------------------------------------------------------------
@@ -51,14 +51,14 @@ esp32:
 external_components:
   - source:
       type: git
-      url: ${espcontrol_component_url}
-      ref: ${espcontrol_component_ref}
+      url: ${espdesktop_component_url}
+      ref: ${espdesktop_component_ref}
       path: components
-    components: [espcontrol, web_server_idf, artwork_image]
+    components: [espdesktop, web_server_idf, artwork_image]
     refresh: 1s
 
-espcontrol:
-  id: espcontrol_app
+espdesktop:
+  id: espdesktop_app
   panel_config:
     device_profile: ${device_slug}
     storage: card_images
@@ -85,15 +85,15 @@ esphome:
   friendly_name: ${friendly_name}
   build_flags:
     - "-Wno-deprecated-declarations"
-    - "-DESPCONTROL_MAX_GRID_SLOTS=6"
+    - "-DESPDESKTOP_MAX_GRID_SLOTS=6"
     # Force cached ESPHome objects to rebuild after the 2026.5
     # core/scheduler/watchdog changes; stale 2026.4 objects can boot-loop.
-    - "-DESPCONTROL_ESPHOME_2026_5_REBUILD=1"
+    - "-DESPDESKTOP_ESPHOME_2026_5_REBUILD=1"
     # Separate marker for the JC4880P443 boot-loop fix so ESPHome cannot
     # silently reuse the earlier 09:02 build that still crashes.
-    - "-DESPCONTROL_JC4880P443_BOOTFIX_20260522=1"
+    - "-DESPDESKTOP_JC4880P443_BOOTFIX_20260522=1"
     # Rebuild marker for the JC4880P443 OTA flash erase watchdog increase.
-    - "-DESPCONTROL_JC4880P443_OTA_WDT_20260522=1"
+    - "-DESPDESKTOP_JC4880P443_OTA_WDT_20260522=1"
     # Keep the ESP-IDF header warning suppressed without warning on C sources.
     - "-Wno-literal-suffix"
     - "-Wno-complain-wrong-lang"
@@ -227,10 +227,10 @@ light:
             condition:
               lambda: |-
                 auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-                return (id(espcontrol_app).display().target_source_is(
-                            espcontrol::DisplayRequestSource::SCREEN_SCHEDULE) &&
-                        id(espcontrol_app).display().target_mode_is(
-                            espcontrol::DisplayMode::DISPLAY_OFF)) ||
+                return (id(espdesktop_app).display().target_source_is(
+                            espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
+                        id(espdesktop_app).display().target_mode_is(
+                            espdesktop::DisplayMode::DISPLAY_OFF)) ||
                        screen_schedule_waiting_for_time(
                          id(screen_schedule_trigger).state,
                          id(schedule_enabled).state,
@@ -241,8 +241,8 @@ light:
               - if:
                   condition:
                     lambda: |-
-                      return id(espcontrol_app).display().current_mode_is(
-                          espcontrol::DisplayMode::DISPLAY_OFF);
+                      return id(espdesktop_app).display().current_mode_is(
+                          espdesktop::DisplayMode::DISPLAY_OFF);
                   then:
                     - script.execute: screensaver_wake
     on_turn_off:

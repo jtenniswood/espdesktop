@@ -1,7 +1,7 @@
 ---
-title: EspControl FAQ
+title: EspDesktop FAQ
 description:
-  Frequently asked questions about the EspControl touchscreen panel — WiFi, setup, updates, troubleshooting, and more.
+  Frequently asked questions about the EspDesktop touchscreen panel — WiFi, setup, updates, troubleshooting, and more.
 ---
 
 # FAQ
@@ -64,7 +64,7 @@ See [Firmware Updates](/features/firmware-updates) for more details.
 
 ## What If the Icon I Need Isn't Listed?
 
-The panel includes hundreds of icons from the Material Design Icons set. If the one you need isn't there, [open an issue on GitHub](https://github.com/jtenniswood/espcontrol/issues) with the icon name (from [pictogrammers.com/library/mdi](https://pictogrammers.com/library/mdi/)) and what you'd use it for. We'll look into adding it.
+The panel includes hundreds of icons from the Material Design Icons set. If the one you need isn't there, [open an issue on GitHub](https://github.com/jtenniswood/espdesktop/issues) with the icon name (from [pictogrammers.com/library/mdi](https://pictogrammers.com/library/mdi/)) and what you'd use it for. We'll look into adding it.
 
 ## How Many Cards Can I Have?
 
@@ -90,7 +90,7 @@ Yes. In the [Setup](/features/setup) **Settings** tab, under **Backup**, you can
 
 ## Which Panels Are Supported?
 
-EspControl currently supports these touchscreen panels:
+EspDesktop currently supports these touchscreen panels:
 
 - **JC8012P4A1 original panel** — 10.1-inch, 1280x800 landscape orientation (ESP32-P4), for rear case marking `2622` or lower
 - **JC8012P4A1 new panel** — 10.1-inch, 1280x800 landscape orientation (ESP32-P4), for rear case marking `2624` or higher
@@ -104,7 +104,7 @@ All use the same card configuration and web UI. The grid layout automatically ma
 
 ## Does the Panel Work with Other Smart Home Platforms?
 
-EspControl is built specifically for Home Assistant. It does not support other platforms like Google Home, Apple HomeKit, or SmartThings directly. However, if those platforms are integrated into your Home Assistant setup, the panel can control devices that are exposed through Home Assistant.
+EspDesktop is built specifically for Home Assistant. It does not support other platforms like Google Home, Apple HomeKit, or SmartThings directly. However, if those platforms are integrated into your Home Assistant setup, the panel can control devices that are exposed through Home Assistant.
 
 ## The Display Is Stuck on the Loading Screen
 

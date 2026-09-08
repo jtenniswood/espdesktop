@@ -1,7 +1,7 @@
 # Compatibility Fixtures
 
 These fixtures protect user upgrades. They describe saved panel configuration
-shapes that must keep importing and round-tripping as EspControl changes.
+shapes that must keep importing and round-tripping as EspDesktop changes.
 
 - `current` covers the current button, subpage, layout, generated contract, and
   device-profile expectations.

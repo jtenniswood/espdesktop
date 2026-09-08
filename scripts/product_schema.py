@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared validation for EspControl product source files.
+"""Shared validation for EspDesktop product source files.
 
 This module intentionally uses only Python's standard library and local project
 modules so checks can run in CI, release workflows, and local environments

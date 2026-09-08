@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { normalizeLanguage, normalizeScreensaverAction, normalizeTemperatureUnit } from "../model/settings";
 import { escHtml } from "../application/ui_primitives";
 import type { AppTestHookRegistrar } from "./app_test_hooks";
@@ -22,7 +22,7 @@ export function installAppTestHooksPreview(
     firmwareVersion: FirmwareVersionFeature,
     statusPreview: Pick<AppStatusPreviewFeature, "networkPreviewIconSlug">,
     grid: Pick<GridFeature, "applyImportedButtonOrder">,
-    registerEspControlTestHookGroup: AppTestHookRegistrar,
+    registerEspDesktopTestHookGroup: AppTestHookRegistrar,
 ): void {
     const {
         mockNow: webserverMockNow,
@@ -38,8 +38,8 @@ export function installAppTestHooksPreview(
         buildSubpageGridAndNormalizeOrder,
         serializeSubpageGrid,
     } = codec;
-    if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
-        registerEspControlTestHookGroup("preview", {
+    if (typeof globalThis !== "undefined" && globalThis.__ESPDESKTOP_TEST_HOOKS__) {
+        registerEspDesktopTestHookGroup("preview", {
             clockBarVisibleInPreviewFor: function (this: any, clockBarOn?: any, screensaverAction?: any) {
                 var oldClockBarOn: any = state.clockBarOn;
                 var oldScreensaverAction: any = state.screensaverAction;
@@ -83,7 +83,7 @@ export function installAppTestHooksPreview(
             },
             buttonTypePreviewForMockNow: function (this: any, type?: any, button?: any, options?: any) {
                 return withWebserverMockNow(function (this: any) {
-                    return globalThis.__ESPCONTROL_TEST_HOOKS__.config.buttonTypePreviewFor(type, button, options);
+                    return globalThis.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypePreviewFor(type, button, options);
                 });
             },
             networkPreviewIconSlug: statusPreview.networkPreviewIconSlug,
@@ -122,7 +122,7 @@ export function installAppTestHooksPreview(
                 }
             },
             normalizeGridOrderForLayoutChange: function (this: any, orderStr?: any, maxSlots?: any, fromCols?: any, toCols?: any) {
-                var parsed: any = EspControlModel.parseGridOrder(orderStr, maxSlots, fromCols);
+                var parsed: any = EspDesktopModel.parseGridOrder(orderStr, maxSlots, fromCols);
                 var persistedOrder: any = null;
                 var normalizedOrder: any = normalizeGridSpansForLayout(parsed.grid, parsed.sizes, maxSlots, toCols, function (this: any, value?: any) {
                     persistedOrder = value;
@@ -154,10 +154,10 @@ export function installAppTestHooksPreview(
             },
             normalizeSubpageOrderForLayoutChange: function (this: any, order?: any, maxSlots?: any, fromCols?: any, toCols?: any) {
                 var source: any = { order: order, buttons: [{}], sizes: {}, backLabel: "Back" };
-                var parsed: any = EspControlModel.buildSubpageGrid(source, maxSlots, fromCols);
-                var previousOrder: any = EspControlModel.serializeSubpageGrid(parsed.grid, parsed.sizes, source.backLabel);
+                var parsed: any = EspDesktopModel.buildSubpageGrid(source, maxSlots, fromCols);
+                var previousOrder: any = EspDesktopModel.serializeSubpageGrid(parsed.grid, parsed.sizes, source.backLabel);
                 normalizeGridSpansForLayout(parsed.grid, parsed.sizes, maxSlots, toCols);
-                var normalizedOrder: any = EspControlModel.serializeSubpageGrid(parsed.grid, parsed.sizes, source.backLabel);
+                var normalizedOrder: any = EspDesktopModel.serializeSubpageGrid(parsed.grid, parsed.sizes, source.backLabel);
                 return { changed: JSON.stringify(normalizedOrder) !== JSON.stringify(previousOrder), order: normalizedOrder };
             },
             normalizeLoadedSubpageOrderForLayout: function (this: any, order?: any, toCols?: any) {

@@ -14,7 +14,7 @@ from device_profiles import ROOT, load_device_profiles
 
 
 FIXTURES = ROOT / "common" / "config" / "modal_layout_geometry_fixtures.json"
-HEADER = ROOT / "components" / "espcontrol" / "button_grid_modal_layout.h"
+HEADER = ROOT / "components" / "espdesktop" / "button_grid_modal_layout.h"
 
 FAMILY_ENUMS = {
     "compact-square": "COMPACT_SQUARE",
@@ -188,7 +188,7 @@ def compile_layout_contract(fixtures: dict) -> None:
     source = [
         "#include <cassert>",
         f'#include "{HEADER}"',
-        "using namespace espcontrol::modal;",
+        "using namespace espdesktop::modal;",
         "int main() {",
     ]
     for index, entry in enumerate(fixtures["layouts"]):
@@ -208,7 +208,7 @@ def compile_layout_contract(fixtures: dict) -> None:
         "}",
     ])
 
-    with tempfile.TemporaryDirectory(prefix="espcontrol-modal-layout-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="espdesktop-modal-layout-") as tmp:
         tmp_path = Path(tmp)
         source_path = tmp_path / "modal_layout_test.cpp"
         binary_path = tmp_path / "modal_layout_test"

@@ -1,14 +1,14 @@
-![EspControl on a 7-inch touchscreen: home screen with temperature, clock, and control tiles](docs/public/images/home_screen_hero.jpg)
+![EspDesktop on a 7-inch touchscreen: home screen with temperature, clock, and control tiles](docs/public/images/home_screen_hero.jpg)
 
-# EspControl
+# EspDesktop
 
 **Turn an affordable touchscreen into a simple smart home control panel.**
 
-EspControl lets you put the Home Assistant controls you use every day onto a dedicated screen: lights by the door, heating in the hallway, garage controls in the utility room, room temperatures on a desk, or a tidy bedside panel for scenes and alarms.
+EspDesktop lets you put the Home Assistant controls you use every day onto a dedicated screen: lights by the door, heating in the hallway, garage controls in the utility room, room temperatures on a desk, or a tidy bedside panel for scenes and alarms.
 
 You do not need to write code, edit YAML, or build your own ESPHome setup. Install the firmware from a web browser, connect the screen to WiFi, add it to Home Assistant, then choose what appears on the display from the screen's built-in setup page.
 
-**Documentation and install guide:** [jtenniswood.github.io/espcontrol](https://jtenniswood.github.io/espcontrol/)
+**Documentation and install guide:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
 
 ## What It Unlocks
 
@@ -22,7 +22,7 @@ You do not need to write code, edit YAML, or build your own ESPHome setup. Insta
 
 ## What You Can Control
 
-EspControl works with devices and helpers that are already in Home Assistant, including:
+EspDesktop works with devices and helpers that are already in Home Assistant, including:
 
 - Lights, switches, fans, and plugs
 - Scenes, scripts, buttons, and automations
@@ -33,14 +33,14 @@ EspControl works with devices and helpers that are already in Home Assistant, in
 - Weather, clocks, dates, and time zones
 - Built-in relays on supported panels
 
-If Home Assistant can see it, EspControl is designed to make it easier to put that control or information on a touchscreen.
+If Home Assistant can see it, EspDesktop is designed to make it easier to put that control or information on a touchscreen.
 
 ![Web-based card configuration on the 4-inch 4848S040](docs/public/images/4848s040-buttons.png)
 
 ## How It Works
 
 1. **Buy a supported ESP32 touchscreen.**
-2. **Install EspControl from your browser** using the web installer.
+2. **Install EspDesktop from your browser** using the web installer.
 3. **Connect the screen to WiFi** using the setup screen it creates.
 4. **Add it to Home Assistant** when Home Assistant discovers it.
 5. **Allow Home Assistant actions** so the panel is permitted to control your devices.
@@ -48,11 +48,11 @@ If Home Assistant can see it, EspControl is designed to make it easier to put th
 
 After that, the panel runs on its own. You can still change the layout at any time from a phone, tablet, or computer browser.
 
-Start here: [Install EspControl](https://jtenniswood.github.io/espcontrol/getting-started/install)
+Start here: [Install EspDesktop](https://jtenniswood.github.io/espdesktop/getting-started/install)
 
 ## Supported Screens
 
-EspControl supports several low-cost ESP32 touchscreens. Larger screens give you more room for controls; smaller screens are useful beside doors, on desks, or in individual rooms.
+EspDesktop supports several low-cost ESP32 touchscreens. Larger screens give you more room for controls; smaller screens are useful beside doors, on desks, or in individual rooms.
 
 | | 10.1" JC8012P4A1 | 7" JC1060P470 | 4.3" JC4880P443 | 4" ESP32-P4 86 Panel | 4" 4848S040 |
 |---|:-:|:-:|:-:|:-:|:-:|
@@ -62,7 +62,7 @@ EspControl supports several low-cost ESP32 touchscreens. Larger screens give you
 | Panel | [AliExpress ~£40](https://s.click.aliexpress.com/e/_c4W6TYvp) | [AliExpress ~£40](https://s.click.aliexpress.com/e/_c335W0r5) | [AliExpress ~£24](https://s.click.aliexpress.com/e/_c32jr3eN) | [AliExpress ~£45](https://s.click.aliexpress.com/e/_c3O6ndAX) | [AliExpress ~£16](https://s.click.aliexpress.com/e/_c3sIhvBv) |
 | 3D mount | [MakerWorld](https://makerworld.com/en/models/2490049-guition-p4-10inch-screen-stand#profileId-2736046) | [MakerWorld](https://makerworld.com/en/models/2387421-guition-esp32p4-jc1060p470-7inch-screen-desk-mount#profileId-2614995) | [MakerWorld](https://makerworld.com/en/models/2982320-desk-stand-for-4-3-inch-jc4880p443-esp32-screen#profileId-3346161) | [MakerWorld](https://makerworld.com/en/models/2720366-waveshare-esp32-p4-smart-86-box-screen-desk-stand#profileId-3013481) | [MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301) |
 
-See the [screen guides](https://jtenniswood.github.io/espcontrol/getting-started/install) for full details on each model.
+See the [screen guides](https://jtenniswood.github.io/espdesktop/getting-started/install) for full details on each model.
 
 ## Built for Everyday Use
 
@@ -77,6 +77,7 @@ See the [screen guides](https://jtenniswood.github.io/espcontrol/getting-started
 - **Appearance controls** - choose icons, labels, status text, active colour, clock display, rotation, and temperature units from the setup page.
 - **Screensaver and brightness controls** - dim or sleep the display when it is not in use.
 - **Automatic updates** - keep standard firmware current after the first install.
+- **Optional Mac integration** - pair the EspDesktop menu-bar app with a supported display for approved apps, folders, shortcuts, media controls, and Mac statistics.
 - **Backup and restore** - save your layout and copy it to another panel.
 - **Language support** - choose the panel language, with translation files available for contributors.
 
@@ -87,13 +88,15 @@ See the [screen guides](https://jtenniswood.github.io/espcontrol/getting-started
 - A computer running Chrome or Edge for flashing the firmware
 - Home Assistant running on your home network
 - 2.4 GHz WiFi for the panel
+- macOS 13 or newer only when using the optional EspDesktop Mac app
 
 ## Project Links
 
-- [Documentation](https://jtenniswood.github.io/espcontrol/)
-- [Install guide](https://jtenniswood.github.io/espcontrol/getting-started/install)
-- [FAQ](https://jtenniswood.github.io/espcontrol/reference/faq)
-- [Report a bug or request a feature](https://github.com/jtenniswood/espcontrol/issues)
+- [Documentation](https://jtenniswood.github.io/espdesktop/)
+- [Install guide](https://jtenniswood.github.io/espdesktop/getting-started/install)
+- [Mac app setup](https://jtenniswood.github.io/espdesktop/getting-started/mac-app)
+- [FAQ](https://jtenniswood.github.io/espdesktop/reference/faq)
+- [Report a bug or request a feature](https://github.com/jtenniswood/espdesktop/issues)
 
 ## Contributor Checks
 
@@ -113,7 +116,7 @@ and the generated outputs that should be rebuilt instead of manually changed.
 
 ## License
 
-EspControl is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+EspDesktop is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
 
 In plain terms, you can view, change, and share the software for non-commercial purposes. Commercial use needs separate permission from the project owner.
 
@@ -123,7 +126,7 @@ Required notice: see [NOTICE](NOTICE).
 
 ## Support This Project
 
-If EspControl is useful in your home, you can support ongoing development by buying me a coffee.
+If EspDesktop is useful in your home, you can support ongoing development by buying me a coffee.
 
 <a href="https://www.buymeacoffee.com/jtenniswood">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" style="border-radius:999px;" />

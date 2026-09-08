@@ -1,7 +1,7 @@
 ---
 title: Subpage Cards
 description:
-  How to use Subpage cards on your EspControl panel to organise cards into folders.
+  How to use Subpage cards on your EspDesktop panel to organise cards into folders.
 ---
 
 # Subpage
@@ -15,7 +15,7 @@ A subpage has one fewer usable slot than the home screen because it includes a *
 ## Setting Up a Subpage
 
 1. Select a card on the home screen and change its type to **Subpage**.
-2. Choose a subpage **Type**. **Generic** is a normal folder. The other presets make the home-screen Subpage tile look and behave like the thing it represents, such as **Lights**, **Switch**, **Alarm**, **Cover**, **Garage Door**, **Lock**, **Vacuum**, **Lawn Mower**, **Weather**, **Sensor**, or **Camera / Image**, before opening the detailed subpage. **Companion Stat** shows a live Processor, Memory, Storage, Battery, or Network Throughput statistic supplied by the EspControl Companion app.
+2. Choose a subpage **Type**. **Generic** is a normal folder. The other presets make the home-screen Subpage tile look and behave like the thing it represents, such as **Lights**, **Switch**, **Alarm**, **Cover**, **Garage Door**, **Lock**, **Vacuum**, **Lawn Mower**, **Weather**, **Sensor**, or **Camera / Image**, before opening the detailed subpage. **Companion Stat** shows a live Processor, Memory, Storage, Battery, or Network Throughput statistic supplied by the EspDesktop app.
 3. Set a **Label** and **Icon** if you want them.
 4. Click **Edit Subpage** in the card settings, or right-click the card and choose **Edit Subpage**.
 5. The preview switches to the subpage. Add and arrange cards here the same way you would on the home screen.
@@ -110,13 +110,13 @@ You can cut, copy, and paste cards between the home screen and subpages. Right-c
 
 ## Copying Cards Between Controllers
 
-To copy a card to another EspControl panel:
+To copy a card to another EspDesktop panel:
 
 1. Right-click the card and choose **Copy Code**. If you selected several cards, choose **Copy Cards as Code**.
 2. The code is selected automatically. Copy it with **Ctrl+C** or **Command+C**.
 3. Open the setup page for the other controller, right-click an empty position, and choose **Paste Code**.
 4. Paste the code into the box and choose **Paste**.
 
-Card codes include the card size and any attached subpage. When the destination screen is a different size, EspControl finds suitable empty positions and may reduce a large card to a single tile. The complete group is checked before anything is saved, so a multi-card transfer is not partly applied when there is insufficient room.
+Card codes include the card size and any attached subpage. When the destination screen is a different size, EspDesktop finds suitable empty positions and may reduce a large card to a single tile. The complete group is checked before anything is saved, so a multi-card transfer is not partly applied when there is insufficient room.
 
 Cards that use an internal relay, local action, or local sensor may need to be edited for the destination controller. Card codes can also contain private webhook URLs or headers, so keep them private and do not post them publicly.

@@ -27,7 +27,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ESPCONTROL_NPM_CACHE_MAX_MB: 512
+  ESPDESKTOP_NPM_CACHE_MAX_MB: 512
 
 jobs:
   build-docs:
@@ -49,10 +49,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          NPM_CACHE="${HOME}/.cache/espcontrol-actions/npm"
+          NPM_CACHE="${HOME}/.cache/espdesktop-actions/npm"
           mkdir -p "${NPM_CACHE}"
           npm ci --prefer-offline --cache "${NPM_CACHE}"
-          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPCONTROL_NPM_CACHE_MAX_MB}" --strategy reset
+          bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPDESKTOP_NPM_CACHE_MAX_MB}" --strategy reset
 
       - name: Build docs
         run: npm run docs:build

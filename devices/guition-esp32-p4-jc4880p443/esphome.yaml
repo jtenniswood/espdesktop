@@ -25,10 +25,10 @@ wifi:
 # ---------------------------------------------------------------------------
 packages:
   api_encryption:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: common/addon/api_encryption_dynamic.yaml
     refresh: 1s
   setup:
-    url: https://github.com/jtenniswood/espcontrol/
+    url: https://github.com/jtenniswood/espdesktop/
     file: devices/guition-esp32-p4-jc4880p443/packages.yaml
     refresh: 1s

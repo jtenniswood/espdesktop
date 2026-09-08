@@ -25,7 +25,7 @@ import type { AppStatusPreviewFeature } from "../application/app_status_preview"
 import type { ArtworkPostApiFeature } from "../application/artwork_post_api";
 import type { ClockBarPostApiFeature } from "../application/clock_bar_post_api";
 import type { PublicFirmwareInstallFeature } from "../application/public_firmware_install";
-export function installAppTestHooksSettings(defaultTimezoneOptions: () => string[], environment: EnvironmentStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, firmwareVersion: FirmwareVersionFeature, firmwareUpdate: FirmwareUpdateFeature, clockBar: Pick<ClockBarFeature, "temperatureUnitSymbol">, entityState: Pick<EntityStateFeature, "entityLookupNames">, requestApi: Pick<ApplicationApiFeature, "entityDetailPath" | "entityDetailPaths" | "entityInitialDetail">, statusPreview: Pick<AppStatusPreviewFeature, "normalizeNetworkTransport">, artworkPostApi: Pick<ArtworkPostApiFeature, "coverArtHideExternalInputPostUrls" | "coverArtDelayPostUrls" | "coverArtTrackOverlayDurationPostUrls" | "homeAssistantArtworkPortPostUrls">, clockBarPostApi: Pick<ClockBarPostApiFeature, "voiceServicesPostUrls">, publicFirmwareInstall: Pick<PublicFirmwareInstallFeature, "failPublicFirmwareUpload">, registerEspControlTestHookGroup: AppTestHookRegistrar): void {
+export function installAppTestHooksSettings(defaultTimezoneOptions: () => string[], environment: EnvironmentStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, firmwareVersion: FirmwareVersionFeature, firmwareUpdate: FirmwareUpdateFeature, clockBar: Pick<ClockBarFeature, "temperatureUnitSymbol">, entityState: Pick<EntityStateFeature, "entityLookupNames">, requestApi: Pick<ApplicationApiFeature, "entityDetailPath" | "entityDetailPaths" | "entityInitialDetail">, statusPreview: Pick<AppStatusPreviewFeature, "normalizeNetworkTransport">, artworkPostApi: Pick<ArtworkPostApiFeature, "coverArtHideExternalInputPostUrls" | "coverArtDelayPostUrls" | "coverArtTrackOverlayDurationPostUrls" | "homeAssistantArtworkPortPostUrls">, clockBarPostApi: Pick<ClockBarPostApiFeature, "voiceServicesPostUrls">, publicFirmwareInstall: Pick<PublicFirmwareInstallFeature, "failPublicFirmwareUpload">, registerEspDesktopTestHookGroup: AppTestHookRegistrar): void {
     const { timezoneOptionsWithFallback, effectiveTimezoneOptionForWeb } = environment;
     const { supported: screensaverTimeoutSupported } = screensaverTimeout;
     const { set: setFirmwareVersion } = firmwareVersion;
@@ -48,8 +48,8 @@ export function installAppTestHooksSettings(defaultTimezoneOptions: () => string
     const { coverArtHideExternalInputPostUrls, coverArtDelayPostUrls, coverArtTrackOverlayDurationPostUrls, homeAssistantArtworkPortPostUrls } = artworkPostApi;
     const { voiceServicesPostUrls } = clockBarPostApi;
     const { failPublicFirmwareUpload } = publicFirmwareInstall;
-    if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
-        registerEspControlTestHookGroup("settings", {
+    if (typeof globalThis !== "undefined" && globalThis.__ESPDESKTOP_TEST_HOOKS__) {
+        registerEspDesktopTestHookGroup("settings", {
             normalizeTemperatureUnit: normalizeTemperatureUnit,
             normalizeCoverArtDelay: normalizeCoverArtDelay,
             normalizeHomeAssistantArtworkPort: normalizeHomeAssistantArtworkPort,

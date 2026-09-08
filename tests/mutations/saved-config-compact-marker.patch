@@ -1,6 +1,6 @@
-diff --git a/components/espcontrol/button_grid_config_parser.h b/components/espcontrol/button_grid_config_parser.h
---- a/components/espcontrol/button_grid_config_parser.h
-+++ b/components/espcontrol/button_grid_config_parser.h
+diff --git a/components/espdesktop/button_grid_config_parser.h b/components/espdesktop/button_grid_config_parser.h
+--- a/components/espdesktop/button_grid_config_parser.h
++++ b/components/espdesktop/button_grid_config_parser.h
 @@ -1209,4 +1209,4 @@
  inline ParsedCfg parse_cfg(const std::string &cfg) {
    ParsedCfg p;

@@ -11,7 +11,7 @@ from tempfile import TemporaryDirectory
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FIRMWARE_DIR = ROOT / "components" / "espcontrol"
+FIRMWARE_DIR = ROOT / "components" / "espdesktop"
 CORE_INFRA_PATH = ROOT / "common" / "device" / "core_infra.yaml"
 SCREEN_LOADING_PATH = ROOT / "common" / "device" / "screen_loading.yaml"
 SCREEN_WIFI_SETUP_PATH = ROOT / "common" / "device" / "screen_wifi_setup.yaml"
@@ -24,8 +24,8 @@ BACKLIGHT_PATH = ROOT / "common" / "addon" / "backlight.yaml"
 BACKLIGHT_SCHEDULE_PATH = ROOT / "common" / "addon" / "backlight_schedule.yaml"
 DISPLAY_CONFIG_PATH = ROOT / "common" / "config" / "display.yaml"
 TIME_ADDON_PATH = ROOT / "common" / "addon" / "time.yaml"
-SUN_CALC_PATH = ROOT / "components" / "espcontrol" / "sun_calc.h"
-CONNECTOR_STATE_PATH = ROOT / "components" / "espcontrol" / "connector_state.h"
+SUN_CALC_PATH = ROOT / "components" / "espdesktop" / "sun_calc.h"
+CONNECTOR_STATE_PATH = ROOT / "components" / "espdesktop" / "connector_state.h"
 S3_DEVICE_PATH = ROOT / "devices" / "guition-esp32-s3-4848s040" / "device" / "device.yaml"
 S3_PACKAGES_PATH = ROOT / "devices" / "guition-esp32-s3-4848s040" / "packages.yaml"
 DEVICE_DEVICE_PATHS = tuple(sorted((ROOT / "devices").glob("*/device/device.yaml")))
@@ -46,7 +46,7 @@ CONNECTIVITY_PATHS = (
 DISPLAY_LIFECYCLE_ROOTS = (
     ROOT / "common",
     ROOT / "devices",
-    ROOT / "components" / "espcontrol",
+    ROOT / "components" / "espdesktop",
 )
 REMOVED_DISPLAY_LIFECYCLE_SYMBOLS = (
     "display_asleep",
@@ -808,8 +808,8 @@ def firmware_cover_art_external_input_errors(path: Path, root: Path) -> list[str
         or "id(cover_art_primary_external_input_active) = false" not in resubscribe_body
     ):
         errors.append(f"{rel}: reset cached route probes when configured cover art entities change")
-    if ("espcontrol::cover_art::external_media_source" not in text or
-            "espcontrol::cover_art::use_secondary_media_entity" not in text):
+    if ("espdesktop::cover_art::external_media_source" not in text or
+            "espdesktop::cover_art::use_secondary_media_entity" not in text):
         errors.append(f"{rel}: use the shared TV, line-in, and HDMI media-entity router")
     if "cover_art_apply_external_input_policy" not in text:
         errors.append(f"{rel}: centralize cover art external-input behavior")
@@ -858,7 +858,7 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
     required_state = (
         ("cover_art_runtime).refresh_needed", "track/source metadata changes as stale artwork"),
         ("cover_art_runtime).effective_download_url", "keep source artwork URLs separate from downloader URLs"),
-        ("espcontrol::cover_art::RuntimeState", "own cover art lifecycle state in one controller"),
+        ("espdesktop::cover_art::RuntimeState", "own cover art lifecycle state in one controller"),
         ("cover_art_album", "track album names for artwork refresh decisions"),
     )
     for token, message in required_state:
@@ -886,7 +886,7 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
         ):
             errors.append(f"{rel}: refresh Home Assistant media proxy artwork when no image is currently available")
         replacement_match = re.search(
-            r"(?ms)target_mode_is\(espcontrol::DisplayMode::COVER_ART\).*?"
+            r"(?ms)target_mode_is\(espdesktop::DisplayMode::COVER_ART\).*?"
             r"id\(cover_art_runtime\)\.image_available.*?"
             r"id\(cover_art_runtime\)\.refresh_needed.*?"
             r"!\$\{cover_art_live_image_updates\}.*?"
@@ -989,7 +989,7 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
         or "id(cover_art_runtime).retry_url.clear()" not in playback_started_body
     ):
         errors.append(f"{rel}: reset artwork retry state when playback resumes without a visible image")
-    if playback_started_body and "espcontrol::cover_art::display_allowed(" in playback_started_body:
+    if playback_started_body and "espdesktop::cover_art::display_allowed(" in playback_started_body:
         errors.append(f"{rel}: let the playback-start event activate cover art before mirrored playback state settles")
     sync_text_body = yaml_script_body(text, "cover_art_sync_track_text")
     source_display_normalized = sync_text_body is not None and re.search(
@@ -1004,7 +1004,7 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: normalize decoded cover art metadata only at the label boundary")
     pause_body = yaml_script_body(text, "cover_art_pause_after_touch")
     if pause_body is not None and (
-        "target_mode_is(espcontrol::DisplayMode::COVER_ART)" not in pause_body
+        "target_mode_is(espdesktop::DisplayMode::COVER_ART)" not in pause_body
         or "id(cover_art_manual_pause_until_ms) != 0" not in pause_body
         or "id(cover_art_manual_pause_until_ms) = 1;" not in pause_body
     ):
@@ -1113,14 +1113,14 @@ def firmware_cover_art_lifecycle_controller_errors(
     ) or ""
 
     adapter_markers = (
-        "target_mode == static_cast<int>(espcontrol::DisplayMode::COVER_ART)",
+        "target_mode == static_cast<int>(espdesktop::DisplayMode::COVER_ART)",
         "id: display_mode_effect_cover_art",
         "id: cover_art_hide_effect",
     )
     if (
         any(marker not in adapter for marker in adapter_markers)
         or "complete_transition(" not in adapter
-        or "espcontrol::DisplayMode::COVER_ART);" not in adapter
+        or "espdesktop::DisplayMode::COVER_ART);" not in adapter
     ):
         errors.append(f"{backlight_rel}: route cover art presentation exclusively through the display adapter")
     if (
@@ -1167,7 +1167,7 @@ def firmware_cover_art_lifecycle_controller_errors(
 
     if (
         "transition_is_current(" not in effect
-        or "espcontrol::DisplayMode::COVER_ART" not in effect
+        or "espdesktop::DisplayMode::COVER_ART" not in effect
         or "lv_obj_move_foreground(id(cover_art_screensaver))" not in effect
     ):
         errors.append(f"{cover_art_rel}: guard the controller-owned cover art effect by transition generation")
@@ -1365,7 +1365,7 @@ def firmware_media_control_low_heap_metadata_errors(firmware_dir: Path, root: Pa
         return errors
 
     body = match.group("body")
-    marker = "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL"
+    marker = "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL"
     if marker not in body:
         errors.append(f"{rel}: keep S3 media modal progress metadata behind the low-heap guard")
         return errors
@@ -1501,7 +1501,7 @@ def firmware_media_group_lifecycle_errors(firmware_dir: Path, root: Path) -> lis
             errors.append(
                 f"{rel}: defer live speaker reads until after LVGL finishes constructing the list"
             )
-        low_heap_marker = "#ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL"
+        low_heap_marker = "#ifdef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL"
         full_heap_marker = "#else"
         if low_heap_marker not in add_body or full_heap_marker not in add_body:
             errors.append(f"{rel}: keep a compact speaker-row layout for low-heap S3 displays")
@@ -1531,7 +1531,7 @@ def firmware_media_power_binding_errors(firmware_dir: Path, root: Path) -> list[
     errors: list[str] = []
     if not media_path.exists() or not capability_path.exists():
         return [
-            "components/espcontrol: keep media Power capability and Home Assistant binding helpers"
+            "components/espdesktop: keep media Power capability and Home Assistant binding helpers"
         ]
 
     media_text = media_path.read_text(encoding="utf-8")
@@ -1554,17 +1554,17 @@ def firmware_media_power_binding_errors(firmware_dir: Path, root: Path) -> list[
         needle not in capability_text for needle in capability_required
     ):
         errors.append(
-            "components/espcontrol: keep media Power gated by supported_features and dispatch explicit turn_on/turn_off actions"
+            "components/espdesktop: keep media Power gated by supported_features and dispatch explicit turn_on/turn_off actions"
         )
 
     match = MEDIA_CONTROL_STATE_PATTERN.search(media_text)
     if match:
         always_on = match.group("body").split(
-            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL", 1
+            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL", 1
         )[0]
         if "media_playback_subscribe_volume(state)" not in always_on:
             errors.append(
-                "components/espcontrol/button_grid_media.h: keep media Power capabilities subscribed on low-heap displays"
+                "components/espdesktop/button_grid_media.h: keep media Power capabilities subscribed on low-heap displays"
             )
     return errors
 
@@ -1577,7 +1577,7 @@ def firmware_media_playback_mode_binding_errors(
     capability_path = firmware_dir / "media_playback_modes.h"
     if not media_path.exists() or not actions_path.exists() or not capability_path.exists():
         return [
-            "components/espcontrol: keep Shuffle and Repeat capability, subscription, and action helpers"
+            "components/espdesktop: keep Shuffle and Repeat capability, subscription, and action helpers"
         ]
 
     media_text = media_path.read_text(encoding="utf-8")
@@ -1597,7 +1597,7 @@ def firmware_media_playback_mode_binding_errors(
     )
     if any(needle not in capability_text for needle in capability_required):
         errors.append(
-            "components/espcontrol/media_playback_modes.h: preserve Shuffle and Repeat feature detection, parsing, and repeat cycling"
+            "components/espdesktop/media_playback_modes.h: preserve Shuffle and Repeat feature detection, parsing, and repeat cycling"
         )
 
     action_required = (
@@ -1610,7 +1610,7 @@ def firmware_media_playback_mode_binding_errors(
     )
     if any(needle not in actions_text for needle in action_required):
         errors.append(
-            "components/espcontrol/button_grid_actions.h: preserve Home Assistant Shuffle and Repeat services and payloads"
+            "components/espdesktop/button_grid_actions.h: preserve Home Assistant Shuffle and Repeat services and payloads"
         )
 
     media_required = (
@@ -1630,28 +1630,28 @@ def firmware_media_playback_mode_binding_errors(
     )
     if any(needle not in media_text for needle in media_required):
         errors.append(
-            "components/espcontrol/button_grid_media.h: keep capability-gated Shuffle and Repeat subscriptions and actions"
+            "components/espdesktop/button_grid_media.h: keep capability-gated Shuffle and Repeat subscriptions and actions"
         )
 
     subscribe_marker = "inline void media_playback_subscribe_modes"
     next_marker = "inline void media_playback_subscribe_content"
     if subscribe_marker not in media_text or next_marker not in media_text:
         errors.append(
-            "components/espcontrol/button_grid_media.h: keep dedicated Shuffle and Repeat subscriptions"
+            "components/espdesktop/button_grid_media.h: keep dedicated Shuffle and Repeat subscriptions"
         )
     else:
         subscribe_body = media_text.split(subscribe_marker, 1)[1].split(next_marker, 1)[0]
         if "state->controls.empty()" not in subscribe_body:
             errors.append(
-                "components/espcontrol/button_grid_media.h: do not subscribe volume-only media entities to Shuffle and Repeat attributes"
+                "components/espdesktop/button_grid_media.h: do not subscribe volume-only media entities to Shuffle and Repeat attributes"
             )
         if subscribe_body.count("media_playback_generation_valid(state, generation)") < 2:
             errors.append(
-                "components/espcontrol/button_grid_media.h: generation-guard both playback-mode subscriptions"
+                "components/espdesktop/button_grid_media.h: generation-guard both playback-mode subscriptions"
             )
         if "if (subscription_added) ha_reannounce_state_subscriptions();" not in subscribe_body:
             errors.append(
-                "components/espcontrol/button_grid_media.h: re-announce dynamically added playback-mode subscriptions"
+                "components/espdesktop/button_grid_media.h: re-announce dynamically added playback-mode subscriptions"
             )
 
     capabilities_marker = 'std::string("supported_features")'
@@ -1661,17 +1661,17 @@ def firmware_media_playback_mode_binding_errors(
         )[0]
         if "!state->controls.empty()" not in capabilities_body:
             errors.append(
-                "components/espcontrol/button_grid_media.h: gate capability-triggered playback-mode subscriptions on All Controls consumers"
+                "components/espdesktop/button_grid_media.h: gate capability-triggered playback-mode subscriptions on All Controls consumers"
             )
 
     match = MEDIA_CONTROL_STATE_PATTERN.search(media_text)
     if match:
         always_on = match.group("body").split(
-            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL", 1
+            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL", 1
         )[0]
         if "media_playback_subscribe_modes(state)" not in always_on:
             errors.append(
-                "components/espcontrol/button_grid_media.h: keep Shuffle and Repeat subscribed on low-heap displays"
+                "components/espdesktop/button_grid_media.h: keep Shuffle and Repeat subscribed on low-heap displays"
             )
     return errors
 
@@ -1767,7 +1767,7 @@ def firmware_cover_art_low_heap_progress_errors(
         )
         progress_support_body = progress_support_match.group("body") if progress_support_match else ""
         if (
-            "#ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL" not in progress_support_body
+            "#ifdef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL" not in progress_support_body
             or "ctx && media_playback_state_has_progress(ctx->entity_id)" not in progress_support_body
         ):
             errors.append(f"{rel}: give only matching S3 media controls a shared Progress tab")
@@ -1855,7 +1855,7 @@ def firmware_cover_art_low_heap_progress_errors(
     rel = cover_art_path.relative_to(root)
     text = cover_art_path.read_text(encoding="utf-8")
     stripped_low_heap = re.sub(
-        r"#ifndef ESPCONTROL_LOW_HEAP_COVER_ART.*?#endif",
+        r"#ifndef ESPDESKTOP_LOW_HEAP_COVER_ART.*?#endif",
         "",
         text,
         flags=re.DOTALL,
@@ -1870,7 +1870,7 @@ def firmware_cover_art_low_heap_progress_errors(
     if not refresh_body:
         errors.append(f"{rel}: missing cover_art_refresh_progress script")
     elif (
-        "#ifdef ESPCONTROL_LOW_HEAP_COVER_ART" not in refresh_body
+        "#ifdef ESPDESKTOP_LOW_HEAP_COVER_ART" not in refresh_body
         or "media_playback_prepare_cover_art_progress" not in refresh_body
         or "media_playback_state_snapshot" not in refresh_body
         or "lv_obj_clear_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN)" not in refresh_body
@@ -1881,7 +1881,7 @@ def firmware_cover_art_low_heap_progress_errors(
     if not resubscribe_body or any(
         token not in resubscribe_body
         for token in (
-            "#ifdef ESPCONTROL_LOW_HEAP_COVER_ART",
+            "#ifdef ESPDESKTOP_LOW_HEAP_COVER_ART",
             "media_playback_prepare_cover_art_progress",
             "media_playback_invalidate_stale_progress(cover_entity)",
             "media_playback_reset_cover_art_progress_subscriptions()",
@@ -1911,7 +1911,7 @@ def firmware_cover_art_low_heap_progress_errors(
         errors.append(f"{rel}: prepare S3 progress before checking cover art visibility")
 
     low_heap_refresh = re.search(
-        r"- interval: 1s.*?#ifdef ESPCONTROL_LOW_HEAP_COVER_ART(.*?)#else",
+        r"- interval: 1s.*?#ifdef ESPDESKTOP_LOW_HEAP_COVER_ART(.*?)#else",
         text,
         re.DOTALL,
     )
@@ -1920,7 +1920,7 @@ def firmware_cover_art_low_heap_progress_errors(
     else:
         condition_body = low_heap_refresh.group(1)
         active_guard = condition_body.find(
-            "if (!id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART))"
+            "if (!id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART))"
         )
         prepare_progress = condition_body.find("media_playback_prepare_cover_art_progress")
         if active_guard < 0 or prepare_progress < 0 or active_guard > prepare_progress:
@@ -1944,7 +1944,7 @@ def firmware_cover_art_progress_visibility_errors(path: Path, root: Path) -> lis
         errors.append(f"{rel}: initialize cover art playback time hidden")
 
     full_build_guard = (
-        "return espcontrol::cover_art::progress_available("
+        "return espdesktop::cover_art::progress_available("
         "id(cover_art_media_duration));"
     )
     for script_id in ("cover_art_show_black_screen", "cover_art_show_track_overlay"):
@@ -1956,7 +1956,7 @@ def firmware_cover_art_progress_visibility_errors(path: Path, root: Path) -> lis
     if sync_body is None or any(
         token not in sync_body
         for token in (
-            "espcontrol::cover_art::progress_available(id(cover_art_media_duration))",
+            "espdesktop::cover_art::progress_available(id(cover_art_media_duration))",
             "lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN)",
             "lv_obj_add_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN)",
         )
@@ -1967,7 +1967,7 @@ def firmware_cover_art_progress_visibility_errors(path: Path, root: Path) -> lis
     if refresh_body is None or any(
         token not in refresh_body
         for token in (
-            "espcontrol::cover_art::progress_available(duration)",
+            "espdesktop::cover_art::progress_available(duration)",
             "lv_bar_set_value(id(cover_art_progress_bar), 0, LV_ANIM_OFF)",
             'lv_label_set_text(id(cover_art_time_label), "0:00  /  0:00")',
             "lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN)",
@@ -2312,7 +2312,7 @@ def firmware_image_card_startup_errors(
 
 def firmware_camera_refresh_action_errors(root: Path) -> list[str]:
     errors: list[str] = []
-    image_header = root / "components" / "espcontrol" / "button_grid_image.h"
+    image_header = root / "components" / "espdesktop" / "button_grid_image.h"
     p4_package = root / "common" / "device" / "image_cards_6.yaml"
     s3_package = root / "common" / "device" / "image_cards_1.yaml"
     if not image_header.exists() or not p4_package.exists() or not s3_package.exists():
@@ -2340,16 +2340,16 @@ def firmware_camera_refresh_action_errors(root: Path) -> list[str]:
     )
     if any(token not in image_text for token in camera_refresh_contract):
         errors.append(
-            "components/espcontrol/button_grid_image.h: keep the Home Assistant camera "
+            "components/espdesktop/button_grid_image.h: keep the Home Assistant camera "
             "refresh action visible-only, camera-only, serialized, and throttled"
         )
     if (
         "action: refresh_camera_cards" not in p4_text
         or "refresh_visible_camera_cards();" not in p4_text
-        or "display.current_mode_is(espcontrol::DisplayMode::ACTIVE)" not in p4_text
-        or "display.current_mode_is(espcontrol::DisplayMode::DIMMED)" not in p4_text
-        or "display.target_mode_is(espcontrol::DisplayMode::ACTIVE)" not in p4_text
-        or "display.target_mode_is(espcontrol::DisplayMode::DIMMED)" not in p4_text
+        or "display.current_mode_is(espdesktop::DisplayMode::ACTIVE)" not in p4_text
+        or "display.current_mode_is(espdesktop::DisplayMode::DIMMED)" not in p4_text
+        or "display.target_mode_is(espdesktop::DisplayMode::ACTIVE)" not in p4_text
+        or "display.target_mode_is(espdesktop::DisplayMode::DIMMED)" not in p4_text
         or "if (!page_visible) return;" not in p4_text
     ):
         errors.append(
@@ -2413,7 +2413,7 @@ def firmware_screensaver_wake_guard_errors(
             pending_restore_tokens = (
                 "id: screensaver_wake_restore_pending",
                 "id(screensaver_wake_restore_pending) =",
-                "!id(espcontrol_app).display().target_mode_is(",
+                "!id(espdesktop_app).display().target_mode_is(",
                 "const bool restore_pending = id(screensaver_wake_restore_pending);",
                 "id(screensaver_wake_restore_pending) = false;",
                 "return restore_pending ||",
@@ -2443,16 +2443,16 @@ def firmware_screensaver_wake_guard_errors(
                     errors.append(f"{rel}: preserve the shared wake guard while screensaver state is restored")
 
             clear_marker = (
-                "id(espcontrol_app).display().clear("
-                "espcontrol::DisplayRequestSource::IDLE_TIMER);"
+                "id(espdesktop_app).display().clear("
+                "espdesktop::DisplayRequestSource::IDLE_TIMER);"
             )
             clear_index = body.find(clear_marker)
             guard_execute_index = body.find("script.execute: screensaver_wake_touch_block")
             pre_clear_body = body[:clear_index] if clear_index >= 0 else ""
             if (
                 "id(screensaver_wake_touch_guard_skip_once) =" not in pre_clear_body
-                or "espcontrol::DisplayMode::COVER_ART" not in pre_clear_body
-                or "espcontrol::DisplayMode::DISPLAY_OFF" not in pre_clear_body
+                or "espdesktop::DisplayMode::COVER_ART" not in pre_clear_body
+                or "espdesktop::DisplayMode::DISPLAY_OFF" not in pre_clear_body
             ):
                 errors.append(
                     f"{rel}: arm the shared wake guard from the pre-wake Cover Art and Display Off modes"
@@ -2575,8 +2575,8 @@ def firmware_display_backlight_manual_sleep_errors(
         errors.append(f"{backlight_rel}: missing shared display_backlight_handle_off script")
     else:
         if (
-            "!id(espcontrol_app).display().target_mode_is(" not in handler_body
-            or "espcontrol::DisplayMode::DISPLAY_OFF" not in handler_body
+            "!id(espdesktop_app).display().target_mode_is(" not in handler_body
+            or "espdesktop::DisplayMode::DISPLAY_OFF" not in handler_body
         ):
             errors.append(
                 f"{backlight_rel}: ignore only controller-owned DISPLAY_OFF backlight events"
@@ -2585,7 +2585,7 @@ def firmware_display_backlight_manual_sleep_errors(
             errors.append(
                 f"{backlight_rel}: route visible display modes into persistent manual sleep"
             )
-        if "espcontrol::DisplayMode::ACTIVE" in handler_body:
+        if "espdesktop::DisplayMode::ACTIVE" in handler_body:
             errors.append(
                 f"{backlight_rel}: do not limit Home Assistant manual sleep to ACTIVE mode"
             )
@@ -2630,7 +2630,7 @@ def firmware_display_backlight_manual_sleep_errors(
             errors.append(
                 f"{rel}: route Display Backlight OFF through display_backlight_handle_off"
             )
-        if "espcontrol::DisplayMode::ACTIVE" in off_body:
+        if "espdesktop::DisplayMode::ACTIVE" in off_body:
             errors.append(f"{rel}: do not gate manual sleep on ACTIVE display mode")
         if "script.execute: screen_schedule_manual_sleep" in off_body:
             errors.append(f"{rel}: use the shared display backlight OFF handler")
@@ -2699,7 +2699,7 @@ def firmware_clock_bar_pending_wake_errors(display_path: Path, root: Path) -> li
     body = yaml_script_body(text, "clock_bar_apply")
     if body is None:
         return [f"{rel}: missing clock_bar_apply script"]
-    if "id(espcontrol_app).display().target_mode()" not in body:
+    if "id(espdesktop_app).display().target_mode()" not in body:
         return [f"{rel}: resolve clock bar visibility from the pending display target"]
     return []
 
@@ -2748,7 +2748,7 @@ def firmware_clock_screensaver_overlay_errors(backlight_path: Path, root: Path) 
     else:
         activation_markers = (
             "script.execute: show_clock_view",
-            "espcontrol::DisplayMode::CLOCK",
+            "espdesktop::DisplayMode::CLOCK",
         )
         activation_indexes = [
             sleep_body.find(marker) for marker in activation_markers
@@ -2771,7 +2771,7 @@ def firmware_clock_screensaver_overlay_errors(backlight_path: Path, root: Path) 
             if any(token in pre_clock_show for token in cleanup_tokens):
                 errors.append(f"{rel}: let the clock screensaver overlay the existing UI without closing it")
 
-        if "espcontrol::DisplayMode::CLOCK" in sleep_body and (
+        if "espdesktop::DisplayMode::CLOCK" in sleep_body and (
             adapter_body is None or "id: show_clock_view" not in adapter_body
         ):
             errors.append(f"{rel}: route controller clock decisions through show_clock_view")
@@ -2885,7 +2885,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
         errors.append(f"{rel}: missing backlight_schedule_display_off script")
     elif not (
         adapter_body is not None
-        and "target_mode != static_cast<int>(espcontrol::DisplayMode::COVER_ART)" in adapter_body
+        and "target_mode != static_cast<int>(espdesktop::DisplayMode::COVER_ART)" in adapter_body
         and "id: cover_art_hide_effect" in adapter_body
         and controller_off_body is not None
         and "script.stop: cover_art_delay_timer" in controller_off_body
@@ -2898,15 +2898,15 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
     if reconcile_body is not None and "DisplayRequestSource::SCREEN_SCHEDULE" in reconcile_body:
         controller_owns_cover_art = (
             adapter_body is not None
-            and "espcontrol::DisplayMode::COVER_ART" in adapter_body
+            and "espdesktop::DisplayMode::COVER_ART" in adapter_body
             and "id: cover_art_hide_effect" in adapter_body
             and "DisplayRequestSource::MEDIA_PLAYBACK" not in reconcile_body
         )
         legacy_clears_cover_art = (
-            "if (schedule_night && id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART))" in reconcile_body
+            "if (schedule_night && id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART))" in reconcile_body
             or (
-                "if (id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART))" in reconcile_body
-                and "id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) = false;" in reconcile_body
+                "if (id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART))" in reconcile_body
+                and "id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) = false;" in reconcile_body
                 and "id(hide_cover_art_view).execute();" in reconcile_body
             )
         )
@@ -2920,10 +2920,10 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
         brightness_body = yaml_script_body(schedule_text, "backlight_apply_brightness")
         if brightness_body is not None:
             active_target = brightness_body.find(
-                "target_mode_is(\n                espcontrol::DisplayMode::ACTIVE)"
+                "target_mode_is(\n                espdesktop::DisplayMode::ACTIVE)"
             )
             cover_art_target = brightness_body.find(
-                "target_mode_is(\n                espcontrol::DisplayMode::COVER_ART)"
+                "target_mode_is(\n                espdesktop::DisplayMode::COVER_ART)"
             )
             if active_target == -1 or cover_art_target == -1:
                 errors.append(
@@ -2934,7 +2934,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
                 "DisplayRequestSource::SCREEN_SCHEDULE"
             )
             schedule_off = brightness_body.find(
-                "target_mode_is(\n                  espcontrol::DisplayMode::DISPLAY_OFF)",
+                "target_mode_is(\n                  espdesktop::DisplayMode::DISPLAY_OFF)",
                 schedule_source,
             )
             force_off = brightness_body.find(
@@ -2980,8 +2980,8 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
                     f"{schedule_rel}: keep onboarding visible at full setup brightness despite restored schedule policy"
                 )
             if (
-                "return !id(espcontrol_app).display().target_source_is(\n"
-                "                         espcontrol::DisplayRequestSource::ONBOARDING)" not in schedule_text
+                "return !id(espdesktop_app).display().target_source_is(\n"
+                "                         espdesktop::DisplayRequestSource::ONBOARDING)" not in schedule_text
             ):
                 errors.append(
                     f"{schedule_rel}: bypass the periodic fail-dark check while onboarding owns the display"
@@ -3031,7 +3031,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
                     or "lv_scr_act() == id(loading_page)->obj" in reconcile_body
                     or "!onboarding" not in reconcile_body
                     or "DisplayRequestSource::ONBOARDING" not in reconcile_body
-                    or "controller.clear(espcontrol::DisplayRequestSource::SETUP_TIMEOUT)" not in reconcile_body
+                    or "controller.clear(espdesktop::DisplayRequestSource::SETUP_TIMEOUT)" not in reconcile_body
                 ):
                     errors.append(
                         f"{rel}: keep first-time onboarding fully visible over dimming, boot guard, and scheduled night requests"
@@ -3066,10 +3066,10 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
             reconcile_index = sleep_body.find("script.execute: display_mode_reconcile")
             controller_reconciles_live_schedule = (
                 "screen_schedule_night_active(" in text
-                and "controller.request(espcontrol::DisplayRequestSource::SCREEN_SCHEDULE" in text
+                and "controller.request(espdesktop::DisplayRequestSource::SCREEN_SCHEDULE" in text
                 and "schedule_was_active" in text
-                and "controller.clear(espcontrol::DisplayRequestSource::IDLE_TIMER)" in text
-                and "controller.clear(espcontrol::DisplayRequestSource::PRESENCE_SENSOR)" in text
+                and "controller.clear(espdesktop::DisplayRequestSource::IDLE_TIMER)" in text
+                and "controller.clear(espdesktop::DisplayRequestSource::PRESENCE_SENSOR)" in text
                 and "restore_value: true" not in text[text.find("id: screen_schedule_asleep"):text.find("id: backlight_manual_off")]
                 and "id: screen_schedule_asleep" not in sleep_body
                 and reconcile_index != -1
@@ -3119,7 +3119,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
                     f"{rel}: reconcile sensor-triggered night schedule before presence wake behavior"
                 )
         if controller_presence_wake and (
-            "target_mode_is(\n                          espcontrol::DisplayMode::COVER_ART)" not in wake_body
+            "target_mode_is(\n                          espdesktop::DisplayMode::COVER_ART)" not in wake_body
             or "script.execute: screensaver_wake" not in wake_body
         ):
             errors.append(f"{rel}: clear cover art when presence wakes the screensaver")
@@ -3342,7 +3342,7 @@ def firmware_navigation_target_errors(
     grid_path = firmware_dir / "button_grid_grid.h"
 
     if not navigation_path.exists():
-        errors.append("components/espcontrol/button_grid_navigation.h: keep Home Assistant navigation targets available")
+        errors.append("components/espdesktop/button_grid_navigation.h: keep Home Assistant navigation targets available")
         return errors
     navigation_rel = navigation_path.relative_to(root)
     navigation_text = navigation_path.read_text(encoding="utf-8")
@@ -3364,7 +3364,7 @@ def firmware_navigation_target_errors(
         errors.append(f"{navigation_rel}: preserve home/main navigation targets")
 
     if not grid_path.exists():
-        errors.append("components/espcontrol/button_grid_grid.h: register home-screen navigation targets during grid refresh")
+        errors.append("components/espdesktop/button_grid_grid.h: register home-screen navigation targets during grid refresh")
     else:
         grid_rel = grid_path.relative_to(root)
         grid_text = grid_path.read_text(encoding="utf-8")
@@ -3375,7 +3375,7 @@ def firmware_navigation_target_errors(
         if "navigation_register_home_target(idx, pos, p.label, s.config->state, s.btn);" not in grid_text:
             errors.append(f"{grid_rel}: refresh displayed home-screen card targets during layout-only updates")
     if not navigation_driver_path.exists():
-        errors.append("components/espcontrol/button_grid_navigation_driver.h: preserve subpage navigation registration")
+        errors.append("components/espdesktop/button_grid_navigation_driver.h: preserve subpage navigation registration")
     else:
         navigation_driver_rel = navigation_driver_path.relative_to(root)
         navigation_driver_text = navigation_driver_path.read_text(encoding="utf-8")
@@ -3394,8 +3394,8 @@ def firmware_navigation_target_errors(
             errors.append(f"{api_rel}: route reserved voice targets through the device-specific voice hook")
         if "!navigation_has_home_label_target(target)" not in api_text:
             errors.append(f"{api_rel}: resolve configured card labels before reserved voice aliases")
-        if "espcontrol_navigate(target, id(main_page)->obj);" not in api_text:
-            errors.append(f"{api_rel}: keep normal navigate targets routed through espcontrol_navigate")
+        if "espdesktop_navigate(target, id(main_page)->obj);" not in api_text:
+            errors.append(f"{api_rel}: keep normal navigate targets routed through espdesktop_navigate")
 
     voice_package_found = False
     for package_path in package_paths:
@@ -3546,7 +3546,7 @@ def firmware_c6_update_status_errors(path: Path, root: Path) -> list[str]:
     if "on_update_available:" in text:
         errors.append(f"{rel}: do not rely on ESPHome's unfired C6 update-available trigger")
     if "update_interval: never" not in text:
-        errors.append(f"{rel}: let EspControl own C6 update scheduling")
+        errors.append(f"{rel}: let EspDesktop own C6 update scheduling")
     if not re.search(
         r"(?ms)on_turn_on:.*?script\.execute:\s*c6_check_and_install_update", text
     ):
@@ -3687,7 +3687,7 @@ def run_scan() -> int:
 def expect_errors(name: str, files: dict[str, str], expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         for filename, text in files.items():
             (firmware_dir / filename).write_text(text, encoding="utf-8")
@@ -3702,7 +3702,7 @@ def expect_errors(name: str, files: dict[str, str], expected: tuple[str, ...]) -
 def expect_ha_boundary_errors(name: str, files: dict[str, str], expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         for filename, text in files.items():
             (firmware_dir / filename).write_text(text, encoding="utf-8")
@@ -3722,7 +3722,7 @@ def expect_unavailable_retry_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         core_path = root / "common" / "device" / "core_infra.yaml"
         firmware_dir.mkdir(parents=True)
         core_path.parent.mkdir(parents=True)
@@ -3739,7 +3739,7 @@ def expect_unavailable_retry_errors(
 def expect_action_card_availability_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_grid.h").write_text(text, encoding="utf-8")
 
@@ -3753,7 +3753,7 @@ def expect_action_card_availability_errors(name: str, text: str, expected: tuple
 def expect_media_card_availability_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_media.h").write_text(text, encoding="utf-8")
 
@@ -3769,7 +3769,7 @@ def expect_media_cover_art_external_input_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         for filename, text in files.items():
             (firmware_dir / filename).write_text(text, encoding="utf-8")
@@ -3784,7 +3784,7 @@ def expect_media_cover_art_external_input_errors(
 def expect_action_card_script_fields_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_actions.h").write_text(text, encoding="utf-8")
 
@@ -3800,7 +3800,7 @@ def expect_local_sensor_binding_order_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         for filename, text in files.items():
             (firmware_dir / filename).write_text(text, encoding="utf-8")
@@ -3836,7 +3836,7 @@ def expect_ntp_startup_errors(
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
         time_path = root / "common" / "addon" / "time.yaml"
-        sun_calc_path = root / "components" / "espcontrol" / "sun_calc.h"
+        sun_calc_path = root / "components" / "espdesktop" / "sun_calc.h"
         connectivity_path = root / "common" / "addon" / "connectivity.yaml"
         time_path.parent.mkdir(parents=True, exist_ok=True)
         sun_calc_path.parent.mkdir(parents=True, exist_ok=True)
@@ -3860,7 +3860,7 @@ def expect_ntp_startup_errors(
 def expect_weather_request_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_config.h").write_text(text, encoding="utf-8")
 
@@ -3879,7 +3879,7 @@ def expect_weather_disconnect_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         core_path = root / "common" / "device" / "core_infra.yaml"
         firmware_dir.mkdir(parents=True)
         core_path.parent.mkdir(parents=True)
@@ -3915,7 +3915,7 @@ def expect_cover_request_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         core_path = root / "common" / "device" / "core_infra.yaml"
         firmware_dir.mkdir(parents=True)
         core_path.parent.mkdir(parents=True)
@@ -4052,7 +4052,7 @@ def expect_media_sleep_prevention_errors(
 def expect_media_control_low_heap_metadata_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_media.h").write_text(text, encoding="utf-8")
 
@@ -4068,7 +4068,7 @@ def expect_media_power_binding_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_media.h").write_text(media_text, encoding="utf-8")
         (firmware_dir / "media_power_capability.h").write_text(
@@ -4089,7 +4089,7 @@ def valid_media_power_binding_text() -> tuple[str, str]:
         "}\n"
         "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
         "  media_playback_subscribe_volume(state);\n"
-        "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
         "#endif\n"
         "}\n\n"
         "inline bool media_seek_pending_active() { return false; }\n"
@@ -4118,7 +4118,7 @@ def expect_media_playback_mode_binding_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_media.h").write_text(media_text, encoding="utf-8")
         (firmware_dir / "button_grid_actions.h").write_text(actions_text, encoding="utf-8")
@@ -4157,7 +4157,7 @@ def valid_media_playback_mode_binding_text() -> tuple[str, str, str]:
         "inline void media_playback_subscribe_content(MediaPlaybackState *state) {}\n"
         "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
         "  media_playback_subscribe_modes(state);\n"
-        "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
         "#endif\n"
         "}\n\n"
         "inline bool media_seek_pending_active() { return false; }\n"
@@ -4200,7 +4200,7 @@ def expect_cover_art_low_heap_progress_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         cover_art_path = root / "common" / "device" / "screen_cover_art.yaml"
         firmware_dir.mkdir(parents=True)
         cover_art_path.parent.mkdir(parents=True)
@@ -4233,7 +4233,7 @@ def expect_cover_art_progress_visibility_errors(
 def expect_image_card_entity_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_image.h").write_text(text, encoding="utf-8")
 
@@ -4247,7 +4247,7 @@ def expect_image_card_entity_errors(name: str, text: str, expected: tuple[str, .
 def expect_image_card_base_url_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_image.h").write_text(text, encoding="utf-8")
 
@@ -4261,7 +4261,7 @@ def expect_image_card_base_url_errors(name: str, text: str, expected: tuple[str,
 def expect_image_card_quality_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_image.h").write_text(text, encoding="utf-8")
 
@@ -4280,7 +4280,7 @@ def expect_image_card_startup_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         core_path = root / "common" / "device" / "core_infra.yaml"
         firmware_dir.mkdir(parents=True)
         core_path.parent.mkdir(parents=True)
@@ -4446,7 +4446,7 @@ def expect_artwork_image_auth_errors(name: str, text: str, expected: tuple[str, 
 def expect_climate_step_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
         (firmware_dir / "button_grid_climate.h").write_text(text, encoding="utf-8")
 
@@ -4511,7 +4511,7 @@ def expect_navigation_target_errors(
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir = root / "components" / "espdesktop"
         api_path = root / "common" / "device" / "api_navigate.yaml"
         firmware_dir.mkdir(parents=True)
         api_path.parent.mkdir(parents=True)
@@ -4657,8 +4657,8 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return !id(espcontrol_app).display().target_mode_is(\n"
-        "                  espcontrol::DisplayMode::DISPLAY_OFF);\n"
+        "              return !id(espdesktop_app).display().target_mode_is(\n"
+        "                  espdesktop::DisplayMode::DISPLAY_OFF);\n"
         "          then:\n"
         "            - script.execute: screen_schedule_manual_sleep\n"
     )
@@ -4703,7 +4703,7 @@ def run_self_test() -> int:
                 "        - script.execute: display_backlight_handle_off\n",
                 "        - if:\n"
                 "            condition:\n"
-                "              lambda: 'return controller.target_mode_is(espcontrol::DisplayMode::ACTIVE);'\n"
+                "              lambda: 'return controller.target_mode_is(espdesktop::DisplayMode::ACTIVE);'\n"
                 "            then:\n"
                 "              - script.execute: screen_schedule_manual_sleep\n",
             )
@@ -5051,7 +5051,7 @@ def run_self_test() -> int:
         "subpage trigger registered for availability",
         "if (sb_cfg.type == \"push\") {\n"
         "  register_ha_control_availability(sb_btn, sb_btn);\n"
-        "  std::string push_label = sb_cfg.label.empty() ? espcontrol_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
+        "  std::string push_label = sb_cfg.label.empty() ? espdesktop_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
         "  continue;\n"
         "}\n",
         ("keep subpage trigger cards tappable",),
@@ -5060,7 +5060,7 @@ def run_self_test() -> int:
         "trigger cards stay stateless",
         "if (p.type == \"push\") continue;\n"
         "if (sb_cfg.type == \"push\") {\n"
-        "  std::string push_label = sb_cfg.label.empty() ? espcontrol_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
+        "  std::string push_label = sb_cfg.label.empty() ? espdesktop_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
         "  continue;\n"
         "}\n",
         (),
@@ -5453,8 +5453,8 @@ def run_self_test() -> int:
         "      - script.stop: cover_art_request_artwork\n"
         "      - lambda: |-\n"
         "          id(cover_art_hide_external_input_enabled).state && id(cover_art_external_input_active);\n"
-        "          bool external = espcontrol::cover_art::external_media_source(next);\n"
-        "          bool use_secondary = espcontrol::cover_art::use_secondary_media_entity(\n"
+        "          bool external = espdesktop::cover_art::external_media_source(next);\n"
+        "          bool use_secondary = espdesktop::cover_art::use_secondary_media_entity(\n"
         "            external, true, true, true);\n"
         "          ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_COVER_ART);\n"
         "          ha_subscribe_attribute(\n"
@@ -5538,7 +5538,7 @@ def run_self_test() -> int:
         "    then:\n"
         "      - if:\n"
         "          condition:\n"
-        "            lambda: 'return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART);'\n"
+        "            lambda: 'return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART);'\n"
         "          then:\n"
         "            - lambda: 'id(cover_art_manual_pause_until_ms) = 1;'\n",
         ("restart its countdown after every touch",),
@@ -5558,7 +5558,7 @@ def run_self_test() -> int:
         "stale cover refresh guard present",
         "globals:\n"
         "  - id: cover_art_runtime\n"
-        "    type: espcontrol::cover_art::RuntimeState\n"
+        "    type: espdesktop::cover_art::RuntimeState\n"
         "# cover_art_runtime).refresh_needed\n"
         "# cover_art_runtime).effective_download_url\n"
         "  - id: cover_art_album\n"
@@ -5584,7 +5584,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) &&\n"
+        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) &&\n"
         "                     id(cover_art_runtime).image_available &&\n"
         "                     id(cover_art_runtime).refresh_needed &&\n"
         "                     !${cover_art_live_image_updates};\n"
@@ -5738,21 +5738,21 @@ def run_self_test() -> int:
         "script:\n"
         "  - id: display_mode_apply_transition\n"
         "    then:\n"
-        "      - lambda: 'return target_mode == static_cast<int>(espcontrol::DisplayMode::COVER_ART);'\n"
+        "      - lambda: 'return target_mode == static_cast<int>(espdesktop::DisplayMode::COVER_ART);'\n"
         "      - script.execute:\n"
         "          id: display_mode_effect_cover_art\n"
         "      - script.execute:\n"
         "          id: cover_art_hide_effect\n"
-        "      - lambda: 'id(espcontrol_app).display().complete_transition(generation, espcontrol::DisplayMode::COVER_ART);'\n"
+        "      - lambda: 'id(espdesktop_app).display().complete_transition(generation, espdesktop::DisplayMode::COVER_ART);'\n"
         "  - id: display_mode_request_cover_art\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().request(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK, espcontrol::DisplayMode::COVER_ART);'\n"
+        "      - lambda: 'id(espdesktop_app).display().request(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK, espdesktop::DisplayMode::COVER_ART);'\n"
         "      - script.execute: display_mode_reconcile\n"
         "      - script.wait: display_mode_reconcile\n"
         "      - script.wait: display_mode_apply_transition\n"
         "  - id: display_mode_clear_cover_art\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().clear(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK);'\n"
+        "      - lambda: 'id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK);'\n"
         "      - script.execute: display_mode_reconcile\n"
         "      - script.wait: display_mode_reconcile\n"
         "      - script.wait: display_mode_apply_transition\n"
@@ -5766,10 +5766,10 @@ def run_self_test() -> int:
         "script:\n"
         "  - id: display_mode_effect_cover_art\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, espcontrol::DisplayMode::COVER_ART); lv_obj_move_foreground(id(cover_art_screensaver));'\n"
+        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, espdesktop::DisplayMode::COVER_ART); lv_obj_move_foreground(id(cover_art_screensaver));'\n"
         "  - id: cover_art_hide_effect\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, target); return std::string(\"${device_slug}\") == \"guition-esp32-s3-4848s040\";'\n"
+        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, target); return std::string(\"${device_slug}\") == \"guition-esp32-s3-4848s040\";'\n"
         "      - artwork_image.release: cover_art_downloaded_image\n"
         "  - id: hide_cover_art_view\n"
         "    then:\n"
@@ -5783,22 +5783,22 @@ def run_self_test() -> int:
         "      - script.wait: display_mode_clear_cover_art\n"
         "  - id: cover_art_delay_timer\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().generation_is_current(generation);'\n"
+        "      - lambda: 'id(espdesktop_app).display().generation_is_current(generation);'\n"
         "  - id: cover_art_apply_downloaded_image\n"
         "    then:\n"
         "      - lambda: 'return id(cover_art_download_generation);'\n"
         "  - id: cover_art_deferred_download\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, mode);'\n"
+        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, mode);'\n"
         "  - id: cover_art_retry_download\n"
         "    then:\n"
         "      - lambda: 'return id(cover_art_download_generation);'\n"
         "  - id: cover_art_refresh_progress\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, mode);'\n"
+        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, mode);'\n"
         "  - id: cover_art_delayed_playback_stopped\n"
         "    then:\n"
-        "      - lambda: 'id(espcontrol_app).display().generation_is_current(generation);'\n"
+        "      - lambda: 'id(espdesktop_app).display().generation_is_current(generation);'\n"
         "      - globals.set: { id: cover_art_delay_interrupted_by_transition, value: 'false' }\n"
         "      - globals.set: { id: cover_art_media_playing, value: 'false' }\n"
         "      - script.execute: display_mode_clear_cover_art\n"
@@ -5831,7 +5831,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     ((id(media_player_sleep_prevention_enabled).state ||\n"
         "                       id(cover_art_screensaver_enabled).state) &&\n"
         "                      id(media_player_playing));\n",
@@ -5858,7 +5858,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n",
         "",
@@ -5873,7 +5873,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
@@ -5917,7 +5917,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
@@ -5927,7 +5927,7 @@ def run_self_test() -> int:
         "          condition:\n"
         "            lambda: |-\n"
         "              const std::string &state = id(cover_art_last_playback_state);\n"
-        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_media_playing) &&\n"
         "                      state != \"playing\" && state != \"buffering\" && state != \"paused\");\n"
         "          then:\n"
@@ -5967,7 +5967,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
@@ -6028,8 +6028,8 @@ def run_self_test() -> int:
         "low heap media Power subscription removed",
         valid_media_power.replace(
             "  media_playback_subscribe_volume(state);\n"
-            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n",
-            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n",
+            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
             "  media_playback_subscribe_volume(state);\n",
         ),
         valid_media_power_capability,
@@ -6049,8 +6049,8 @@ def run_self_test() -> int:
         "low heap media playback-mode subscription removed",
         valid_modes.replace(
             "  media_playback_subscribe_modes(state);\n"
-            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n",
-            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n",
+            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
             "  media_playback_subscribe_modes(state);\n",
         ),
         valid_mode_actions,
@@ -6105,7 +6105,7 @@ def run_self_test() -> int:
         "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
         "  MediaPlaybackState *state = media_playback_ensure_state(ctx->entity_id);\n"
         "  media_playback_subscribe_metadata(state);\n"
-        "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
         "  media_playback_subscribe_progress(state);\n"
         "#endif\n"
         "}\n\n"
@@ -6125,7 +6125,7 @@ def run_self_test() -> int:
         "}\n\n"
         "inline void media_playback_subscribe_volume(MediaPlaybackState *state) {}\n"
         "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
-        "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
         "  media_playback_subscribe_metadata(state);\n"
         "  media_playback_subscribe_progress(state);\n"
         "#endif\n"
@@ -6152,7 +6152,7 @@ def run_self_test() -> int:
         "  MediaPlaybackState *state = media_playback_ensure_state(ctx->entity_id);\n"
         "  media_playback_subscribe_metadata(state);\n"
         "  media_playback_subscribe_progress(state);\n"
-        "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
         "#endif\n"
         "}\n\n"
         "inline bool media_seek_pending_active() { return false; }\n",
@@ -6176,7 +6176,7 @@ def run_self_test() -> int:
         "  ha_subscribe_attribute(entity_id, std::string(\"media_position_updated_at\"), cb, scope);\n"
         "}\n"
         "inline bool media_control_progress_supported(MediaControlCtx *ctx) {\n"
-        "  #ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+        "  #ifdef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
         "  return ctx && media_playback_state_has_progress(ctx->entity_id);\n"
         "  #endif\n"
         "}\n"
@@ -6230,7 +6230,7 @@ def run_self_test() -> int:
         "  - id: cover_art_refresh_progress\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          #ifdef ESPCONTROL_LOW_HEAP_COVER_ART\n"
+        "          #ifdef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
         "          media_playback_prepare_cover_art_progress(id(cover_art_media_player_entity).state, id(cover_art_media_playing));\n"
         "          media_playback_state_snapshot(id(cover_art_media_player_entity).state, playing, duration, position);\n"
         "          lv_obj_clear_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN);\n"
@@ -6243,8 +6243,8 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              #ifdef ESPCONTROL_LOW_HEAP_COVER_ART\n"
-        "              if (!id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART)) return false;\n"
+        "              #ifdef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
+        "              if (!id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART)) return false;\n"
         "              media_playback_prepare_cover_art_progress(id(cover_art_media_player_entity).state, id(cover_art_media_playing));\n"
         "              return true;\n"
         "              #else\n"
@@ -6253,7 +6253,7 @@ def run_self_test() -> int:
         "  - id: cover_art_resubscribe\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          #ifdef ESPCONTROL_LOW_HEAP_COVER_ART\n"
+        "          #ifdef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
         "          if (id(cover_art_screensaver_enabled).state) {\n"
         "            media_playback_prepare_cover_art_progress(cover_entity, id(cover_art_media_playing));\n"
         "          } else {\n"
@@ -6264,7 +6264,7 @@ def run_self_test() -> int:
         "  - id: cover_art_disable\n"
         "    then:\n"
         "      - script.execute: cover_art_resubscribe\n"
-        "#ifndef ESPCONTROL_LOW_HEAP_COVER_ART\n"
+        "#ifndef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
         "ha_subscribe_attribute(cover_entity, std::string(\"media_duration\"), cb);\n"
         "ha_subscribe_attribute(cover_entity, std::string(\"media_position\"), cb);\n"
         "ha_subscribe_attribute(cover_entity, std::string(\"media_position_updated_at\"), cb);\n"
@@ -6303,13 +6303,13 @@ def run_self_test() -> int:
         "  - id: cover_art_sync_track_text\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          bool available = espcontrol::cover_art::progress_available(id(cover_art_media_duration));\n"
+        "          bool available = espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
         "          lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN);\n"
         "          lv_obj_add_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN);\n"
         "  - id: cover_art_refresh_progress\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          bool available = espcontrol::cover_art::progress_available(duration);\n"
+        "          bool available = espdesktop::cover_art::progress_available(duration);\n"
         "          lv_bar_set_value(id(cover_art_progress_bar), 0, LV_ANIM_OFF);\n"
         "          lv_label_set_text(id(cover_art_time_label), \"0:00  /  0:00\");\n"
         "          lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN);\n"
@@ -6319,11 +6319,11 @@ def run_self_test() -> int:
         "  - id: cover_art_show_black_screen\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          return espcontrol::cover_art::progress_available(id(cover_art_media_duration));\n"
+        "          return espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
         "  - id: cover_art_show_track_overlay\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          return espcontrol::cover_art::progress_available(id(cover_art_media_duration));\n"
+        "          return espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
         "std::function<void()> invalidate_stale_media_duration = []() {\n"
         "  const uint32_t last_duration_ms = id(cover_art_last_duration_callback_ms);\n"
         "  const bool duration_callback_is_fresh = last_duration_ms != 0 &&\n"
@@ -6360,7 +6360,7 @@ def run_self_test() -> int:
         "# duration callback\n"
         "std::function<void(esphome::StringRef)> handle_media_duration = [](esphome::StringRef duration) {\n"
         "  id(cover_art_last_duration_callback_ms) = millis();\n"
-        "  const bool next_progress_available = espcontrol::cover_art::progress_available(next_duration);\n"
+        "  const bool next_progress_available = espdesktop::cover_art::progress_available(next_duration);\n"
         "  if (!next_progress_available) {\n"
         "    next_duration = 0.0f;\n"
         "    id(cover_art_media_position) = 0.0f;\n"
@@ -6381,15 +6381,15 @@ def run_self_test() -> int:
         cover_art_progress_visibility
         .replace("        hidden: true\n", "")
         .replace(
-            "return espcontrol::cover_art::progress_available(id(cover_art_media_duration));",
+            "return espdesktop::cover_art::progress_available(id(cover_art_media_duration));",
             "return true;",
         )
         .replace(
-            "bool available = espcontrol::cover_art::progress_available(id(cover_art_media_duration));\n",
+            "bool available = espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n",
             "",
         )
         .replace(
-            "bool available = espcontrol::cover_art::progress_available(duration);\n",
+            "bool available = espdesktop::cover_art::progress_available(duration);\n",
             "",
         )
         .replace(
@@ -6415,9 +6415,9 @@ def run_self_test() -> int:
     expect_cover_art_progress_visibility_errors(
         "cover art progress discards fresh position before late duration",
         cover_art_progress_visibility.replace(
-            "  const bool next_progress_available = espcontrol::cover_art::progress_available(next_duration);\n",
-            "  const bool current_progress_available = espcontrol::cover_art::progress_available(id(cover_art_media_duration));\n"
-            "  const bool next_progress_available = espcontrol::cover_art::progress_available(next_duration);\n",
+            "  const bool next_progress_available = espdesktop::cover_art::progress_available(next_duration);\n",
+            "  const bool current_progress_available = espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
+            "  const bool next_progress_available = espdesktop::cover_art::progress_available(next_duration);\n",
         ),
         ("preserve fresh cover art position when duration arrives late",),
     )
@@ -6829,20 +6829,20 @@ def run_self_test() -> int:
         "    then:\n"
         "      - lambda: |-\n"
         "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "              !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
         "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
-        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF);\n"
+        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
+        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF);\n"
         "      - script.execute: screensaver_wake_touch_block\n"
         "      - lambda: |-\n"
-        "          id(espcontrol_app).display().clear(espcontrol::DisplayRequestSource::IDLE_TIMER);\n"
+        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
         "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
         "              id(screensaver_wake_restore_pending) = false;\n"
         "              return restore_pending ||\n"
-        "                  !id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "                  !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
         "          then:\n"
         "            - if:\n"
         "                condition:\n"
@@ -6867,20 +6867,20 @@ def run_self_test() -> int:
         "    then:\n"
         "      - lambda: |-\n"
         "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "              !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
         "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
-        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF);\n"
+        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
+        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF);\n"
         "      - script.execute: screensaver_wake_touch_block\n"
         "      - lambda: |-\n"
-        "          id(espcontrol_app).display().clear(espcontrol::DisplayRequestSource::IDLE_TIMER);\n"
+        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
         "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
         "              id(screensaver_wake_restore_pending) = false;\n"
         "              return restore_pending ||\n"
-        "                  !id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "                  !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
         "          then:\n"
         "            - globals.set:\n"
         "                id: screensaver_wake_touch_guard_active\n"
@@ -6904,7 +6904,7 @@ def run_self_test() -> int:
     expect_screensaver_wake_guard_errors(
         "Cover Art-only guard does not cover Display Off",
         valid_shared_wake_flow.replace(
-            " ||\n              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF)",
+            " ||\n              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF)",
             "",
         ),
         valid_shared_wake_guard_widget,
@@ -6950,8 +6950,8 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(espcontrol_app).display().target_mode_is(\n"
-        "                  espcontrol::DisplayMode::ACTIVE);\n"
+        "              return id(espdesktop_app).display().target_mode_is(\n"
+        "                  espdesktop::DisplayMode::ACTIVE);\n"
         "          then:\n"
         "            - lvgl.page.show: main_page\n",
         (),
@@ -6979,7 +6979,7 @@ def run_self_test() -> int:
         "  - id: clock_screensaver_keep_on_top\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          if (!id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::CLOCK)) return;\n"
+        "          if (!id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::CLOCK)) return;\n"
         "          hide_clock_bar_top_layer_widgets(nullptr, 0, nullptr, nullptr);\n"
         "          refresh_screensaver_fullscreen(id(clock_screensaver), id(dim_screensaver_touch_guard));\n"
         "          lv_obj_move_foreground(id(clock_screensaver));\n"
@@ -7020,7 +7020,7 @@ def run_self_test() -> int:
         "  - id: clock_screensaver_keep_on_top\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          if (!id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::CLOCK)) return;\n"
+        "          if (!id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::CLOCK)) return;\n"
         "          hide_clock_bar_top_layer_widgets(nullptr, 0, nullptr, nullptr);\n"
         "          refresh_screensaver_fullscreen(id(clock_screensaver), id(dim_screensaver_touch_guard));\n"
         "          lv_obj_move_foreground(id(clock_screensaver));\n"
@@ -7129,9 +7129,9 @@ def run_self_test() -> int:
         "          id: screen_schedule_asleep\n"
         "          value: 'true'\n"
         "      - lambda: |-\n"
-        "          id(espcontrol_app).display().request(\n"
-        "              espcontrol::DisplayRequestSource::SCREEN_SCHEDULE,\n"
-        "              espcontrol::DisplayMode::DISPLAY_OFF);\n"
+        "          id(espdesktop_app).display().request(\n"
+        "              espdesktop::DisplayRequestSource::SCREEN_SCHEDULE,\n"
+        "              espdesktop::DisplayMode::DISPLAY_OFF);\n"
         "      - script.execute: display_mode_reconcile\n"
     )
     expect_screen_schedule_screensaver_override_errors(
@@ -7144,7 +7144,7 @@ def run_self_test() -> int:
         "            - script.execute: screensaver_wake\n",
         "            - script.execute: screen_schedule_check\n"
         "            - lambda: 'return !screen_schedule_sensor_trigger(id(screen_schedule_trigger).state);'\n"
-        "            - lambda: 'return espcontrol::presence_can_wake_display(transition);'\n"
+        "            - lambda: 'return espdesktop::presence_can_wake_display(transition);'\n"
         "            - script.execute: screensaver_wake\n"
         "            - script.execute: display_mode_clear_automatic\n",
         1,
@@ -7169,10 +7169,10 @@ def run_self_test() -> int:
         "    then:\n"
         "      - lambda: |-\n"
         "          if (schedule_night) {\n"
-        "            controller.request(espcontrol::DisplayRequestSource::SCREEN_SCHEDULE,\n"
-        "                               espcontrol::DisplayMode::CLOCK);\n"
-        "            if (id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART)) {\n"
-        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) = false;\n"
+        "            controller.request(espdesktop::DisplayRequestSource::SCREEN_SCHEDULE,\n"
+        "                               espdesktop::DisplayMode::CLOCK);\n"
+        "            if (id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART)) {\n"
+        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) = false;\n"
         "              id(hide_cover_art_view).execute();\n"
         "            }\n"
         "          }\n"
@@ -7377,13 +7377,13 @@ def run_self_test() -> int:
         "inline bool navigation_is_voice_target() { return normalized == \"device_volume\"; }\n"
         "inline bool navigation_has_home_label_target() {}\n"
         "inline void navigation_activate_home_target() { navigation_return_home(main_page_obj); handle_button_click(target->config, target->slot, target->button); }\n"
-        "inline void espcontrol_navigate() { normalized == \"home\" || normalized == \"main\"; }\n",
+        "inline void espdesktop_navigate() { normalized == \"home\" || normalized == \"main\"; }\n",
         "navigation_clear_home_targets();\n"
         "navigation_register_home_target(idx, pos, p.label, scfg, s.btn);\n"
         "navigation_clear_home_targets();\n"
         "navigation_register_home_target(idx, pos, p.label, s.config->state, s.btn);\n",
         "inline bool navigation_driver_own_subpage() { navigation_register_subpage( }\n",
-        "if (navigation_is_voice_target(target) && !navigation_has_home_label_target(target)) { ${navigate_voice_target_code} } else { espcontrol_navigate(target, id(main_page)->obj); }\n",
+        "if (navigation_is_voice_target(target) && !navigation_has_home_label_target(target)) { ${navigate_voice_target_code} } else { espdesktop_navigate(target, id(main_page)->obj); }\n",
         {
             "esp32-p4-86": "navigate_voice_target_code: |-\n  if (id(voice_services_enabled).state) { id(open_device_volume_control).execute(); }\n",
             "future-voice-panel": "navigate_voice_target_code: |-\n  if (id(voice_services_enabled).state) { id(open_device_volume_control).execute(); }\n",
@@ -7435,7 +7435,7 @@ def run_self_test() -> int:
         "    then:\n"
         "      - if:\n"
         "          condition:\n"
-        "            lambda: 'return id(espcontrol_app).connector_onboarding_complete();'\n"
+        "            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'\n"
         "          then:\n"
         "            - script.execute: navigate_after_api\n",
         (),
@@ -7465,7 +7465,7 @@ def run_self_test() -> int:
         "                  - script.execute: navigate_after_api\n"
         "  - id: ha_reconnect_flow\n"
         "    then:\n"
-        "      - lambda: 'lv_label_set_text(id(ha_setup_title), espcontrol_i18n(\"Connecting to\\nHome Assistant\"));'\n"
+        "      - lambda: 'lv_label_set_text(id(ha_setup_title), espdesktop_i18n(\"Connecting to\\nHome Assistant\"));'\n"
         "      - lvgl.page.show: ha_setup_page\n",
         ("keep the current display visible",),
     )

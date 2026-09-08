@@ -247,7 +247,7 @@ const transferCode = model.createCardTransferCode(
 );
 assert(!transferCode.includes("\n"), "card transfer code is compact single-line JSON");
 const parsedTransfer = plain(model.parseCardTransferCode(transferCode));
-assert.strictEqual(parsedTransfer.format, "espcontrol.cards", "card transfer format marker is stable");
+assert.strictEqual(parsedTransfer.format, "espdesktop.cards", "card transfer format marker is stable");
 assert.strictEqual(parsedTransfer.version, 1, "card transfer format starts at version 1");
 assert.deepStrictEqual(parsedTransfer.source, { device: "panel-a", firmware: "2026.7.0" },
   "card transfer keeps source device and firmware");
@@ -271,7 +271,7 @@ assert.deepStrictEqual(
   "card transfer preserves a Safari shortcut folder",
 );
 assertTransferError({
-  format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" },
+  format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" },
   cards: [{ ...safariShortcutFolderCard, sensor: "url.https%3A%2F%2Fexample.com" }],
 }, "only a subpage-owning card");
 const extraLargeSubpageCard = {
@@ -370,18 +370,18 @@ function assertTransferError(value, expected) {
 assertTransferError("not json", "could not read the JSON");
 assertTransferError({ format: "other", version: 1, source: { device: "", firmware: "" }, cards: [transferCard] },
   "unsupported format");
-assertTransferError({ format: "espcontrol.cards", version: 2, source: { device: "", firmware: "" }, cards: [transferCard] },
+assertTransferError({ format: "espdesktop.cards", version: 2, source: { device: "", firmware: "" }, cards: [transferCard] },
   "newer version");
-assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [] },
+assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [] },
   "no cards");
-assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, size: model.CARD_SIZE_LANDSCAPE_LARGE + 1 }] },
+assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, size: model.CARD_SIZE_LANDSCAPE_LARGE + 1 }] },
   "invalid size");
-assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, options: 42 }] },
+assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, options: 42 }] },
   "invalid options field");
-assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, subpage: transferSubpageCard.subpage }] },
+assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, subpage: transferSubpageCard.subpage }] },
   "only a subpage-owning card");
 assertTransferError({
-  format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" },
+  format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" },
   cards: [{ ...transferSubpageCard, subpage: { ...transferSubpageCard.subpage, order: ["B", "99"] } }],
 }, "invalid order");
 assertTransferError("x".repeat(model.CARD_TRANSFER_MAX_BYTES + 1), "too large");

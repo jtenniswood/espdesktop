@@ -1,7 +1,7 @@
 ---
 title: Sensor Cards
 description:
-  How to display live readings, durations, text, or icon states from Home Assistant on EspControl.
+  How to display live readings, durations, text, or icon states from Home Assistant on EspDesktop.
 ---
 
 # Sensor

@@ -6,23 +6,23 @@ namespace {
 
 bool maps_to(int32_t pointer_y, int32_t top, int32_t bottom, int expected) {
   int actual = -1;
-  return espcontrol::slider_geometry::vertical_pointer_percent(
+  return espdesktop::slider_geometry::vertical_pointer_percent(
            pointer_y, top, bottom, actual) && actual == expected;
 }
 
 bool maps_position_to(int32_t pointer_y, int32_t top, int32_t bottom,
                       int max_position, int expected) {
   int actual = -1;
-  return espcontrol::slider_geometry::vertical_pointer_position(
+  return espdesktop::slider_geometry::vertical_pointer_position(
            pointer_y, top, bottom, max_position, actual) && actual == expected;
 }
 
 }  // namespace
 
 int main() {
-  using espcontrol::slider_geometry::vertical_edge_inset;
-  using espcontrol::slider_geometry::vertical_pointer_percent;
-  using espcontrol::slider_geometry::vertical_pointer_position;
+  using espdesktop::slider_geometry::vertical_edge_inset;
+  using espdesktop::slider_geometry::vertical_pointer_percent;
+  using espdesktop::slider_geometry::vertical_pointer_position;
 
   if (vertical_edge_inset(0) != 0) return EXIT_FAILURE;
   if (vertical_edge_inset(20) != 5) return EXIT_FAILURE;

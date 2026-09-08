@@ -14,7 +14,7 @@ const COMPAT_FIXTURES = path.join(ROOT, "product", "v2", "product_compatibility.
 function loadHooks(search = "") {
   const params = new URLSearchParams(search);
   const sandbox = {
-    __ESPCONTROL_TEST_HOOKS__: {},
+    __ESPDESKTOP_TEST_HOOKS__: {},
     console: { log() {}, warn() {}, error() {} },
     location: { search },
     URLSearchParams,
@@ -28,11 +28,11 @@ function loadHooks(search = "") {
     },
   };
   const device = params.get("device");
-  if (device) sandbox.__ESPCONTROL_DEVICE_PROFILE__ = device;
+  if (device) sandbox.__ESPDESKTOP_DEVICE_PROFILE__ = device;
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(loadBuiltWebSource(), sandbox, { filename: SOURCE });
-  return sandbox.__ESPCONTROL_TEST_HOOKS__.config;
+  return sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
 }
 
 function plain(value) {
@@ -98,7 +98,7 @@ const v2 = hooks.createBackupConfig({
 });
 
 assert.strictEqual(v2.version, 2, "exports v2 backups");
-assert.strictEqual(v2.format, "espcontrol.backup", "exports backup format marker");
+assert.strictEqual(v2.format, "espdesktop.backup", "exports backup format marker");
 assert.deepStrictEqual(plain(v2.source), { device: "panel-a", slots: 3 }, "exports source metadata");
 assert.strictEqual(v2.button_order, "1,2d", "exports legacy-compatible button_order");
 assert(Array.isArray(v2.buttons), "exports legacy-compatible buttons array");
@@ -329,7 +329,7 @@ throwsBackupMessage(
 
 throwsBackupMessage(
   () => hooks.normalizeBackupConfig({ version: 999, buttons: [] }),
-  "Backup was created by a newer version of EspControl"
+  "Backup was created by a newer version of EspDesktop"
 );
 throwsBackupMessage(
   () => hooks.normalizeBackupConfig({ version: 2, format: "other", buttons: [] }),

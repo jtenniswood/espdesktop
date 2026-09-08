@@ -18,7 +18,7 @@ function compiler() {
 }
 
 function checkCompiledHelper() {
-  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "espcontrol-saved-config-production-"));
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "espdesktop-saved-config-production-"));
   try {
     const source = path.join(temporary, "saved_config_vacuum.cpp");
     const binary = path.join(temporary, "saved_config_vacuum");
@@ -504,7 +504,7 @@ int main() {
 `);
     childProcess.execFileSync(compiler(), [
       "-std=c++17", "-Wall", "-Wextra", "-Werror",
-      `-I${path.join(ROOT, "components/espcontrol")}`, source, "-o", binary,
+      `-I${path.join(ROOT, "components/espdesktop")}`, source, "-o", binary,
     ]);
     childProcess.execFileSync(binary);
   } finally {
@@ -908,7 +908,7 @@ function main() {
   assert.match(robotOptions, /normalizeSavedConfigVacuumIconOn\(String\(button\.icon_on \|\| ""\)\)/);
   assert.doesNotMatch(robotOptions, /normalizeEntityModeCardConfig\(button,\s*\{[^}]*vacuum/s);
 
-  const firmware = fs.readFileSync(path.join(ROOT, "components/espcontrol/button_grid_config_parser.h"), "utf8");
+  const firmware = fs.readFileSync(path.join(ROOT, "components/espdesktop/button_grid_config_parser.h"), "utf8");
   assert.match(firmware, /#include "button_grid_saved_config_vacuum_generated\.h"/);
   const vacuumStart = firmware.indexOf('if (p.type == "vacuum")');
   const vacuumEnd = firmware.indexOf('const bool normalized_saved_mower', vacuumStart);

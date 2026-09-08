@@ -1,6 +1,6 @@
-diff --git a/components/espcontrol/configuration_service.cpp b/components/espcontrol/configuration_service.cpp
---- a/components/espcontrol/configuration_service.cpp
-+++ b/components/espcontrol/configuration_service.cpp
+diff --git a/components/espdesktop/configuration_service.cpp b/components/espdesktop/configuration_service.cpp
+--- a/components/espdesktop/configuration_service.cpp
++++ b/components/espdesktop/configuration_service.cpp
 @@ -166,9 +166,6 @@ ServiceSaveResult ConfigurationService::save(uint16_t document_version,
  
    const CommitResult committed =

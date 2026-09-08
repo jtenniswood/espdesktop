@@ -3,18 +3,18 @@
 #include "media_metadata_policy.h"
 
 int main() {
-  using espcontrol::media::MediaItemKind;
-  using espcontrol::media::media_content_identity_fingerprint;
-  using espcontrol::media::media_content_id_external_input;
-  using espcontrol::media::media_content_id_external_source;
-  using espcontrol::media::media_content_id_should_clear_external_source;
-  using espcontrol::media::media_content_id_should_override_source_update;
-  using espcontrol::media::media_content_id_should_replace_external_source;
-  using espcontrol::media::media_control_updates_parent_label;
-  using espcontrol::media::media_item_kind;
-  using espcontrol::media::media_modal_artist_visible;
-  using espcontrol::media::media_metadata_clear_decision;
-  using espcontrol::media::should_replace_media_metadata_identity;
+  using espdesktop::media::MediaItemKind;
+  using espdesktop::media::media_content_identity_fingerprint;
+  using espdesktop::media::media_content_id_external_input;
+  using espdesktop::media::media_content_id_external_source;
+  using espdesktop::media::media_content_id_should_clear_external_source;
+  using espdesktop::media::media_content_id_should_override_source_update;
+  using espdesktop::media::media_content_id_should_replace_external_source;
+  using espdesktop::media::media_control_updates_parent_label;
+  using espdesktop::media::media_item_kind;
+  using espdesktop::media::media_modal_artist_visible;
+  using espdesktop::media::media_metadata_clear_decision;
+  using espdesktop::media::should_replace_media_metadata_identity;
 
   assert(media_item_kind("library://track/456") == MediaItemKind::TRACK);
   assert(media_item_kind("audiobookshelf://audiobook/book-id") ==

@@ -3,16 +3,16 @@
 #include "media_volume_capability.h"
 
 int main() {
-  using espcontrol::media::SUPPORT_VOLUME_SET;
-  using espcontrol::media::SUPPORT_VOLUME_STEP;
-  using espcontrol::media::VolumeCommandKind;
-  using espcontrol::media::VolumeControlMode;
-  using espcontrol::media::volume_arc_interactive;
-  using espcontrol::media::volume_command;
-  using espcontrol::media::volume_control_mode;
-  using espcontrol::media::volume_decrease_enabled;
-  using espcontrol::media::volume_display_value;
-  using espcontrol::media::volume_increase_enabled;
+  using espdesktop::media::SUPPORT_VOLUME_SET;
+  using espdesktop::media::SUPPORT_VOLUME_STEP;
+  using espdesktop::media::VolumeCommandKind;
+  using espdesktop::media::VolumeControlMode;
+  using espdesktop::media::volume_arc_interactive;
+  using espdesktop::media::volume_command;
+  using espdesktop::media::volume_control_mode;
+  using espdesktop::media::volume_decrease_enabled;
+  using espdesktop::media::volume_display_value;
+  using espdesktop::media::volume_increase_enabled;
 
   // Preserve the existing absolute-volume behaviour until Home Assistant
   // publishes the entity's supported feature flags.

@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_REPO_URL = "https://github.com/jtenniswood/espcontrol"
+DEFAULT_REPO_URL = "https://github.com/jtenniswood/espdesktop"
 STABLE_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+$")
 PR_RE = re.compile(r"\(#(?P<number>\d+)\)")
 
@@ -524,7 +524,7 @@ def affected_devices_text(commits: list[Commit]) -> str:
 
 def build_changelog(version: str, from_ref: str | None, to_ref: str, repo_url: str | None) -> str:
     commits = load_commits(from_ref, to_ref)
-    title = f"# EspControl {version}"
+    title = f"# EspDesktop {version}"
     lines = [title, ""]
 
     if from_ref:

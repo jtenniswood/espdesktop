@@ -40,7 +40,7 @@ def with_temp_repo() -> tuple[TemporaryDirectory[str], Path]:
     git(repo, "init", "-b", "main")
     git(repo, "config", "user.email", "test@example.com")
     git(repo, "config", "user.name", "Test User")
-    git(repo, "remote", "add", "origin", "https://github.com/example/espcontrol.git")
+    git(repo, "remote", "add", "origin", "https://github.com/example/espdesktop.git")
     write(repo, "README.md", "# Demo\n")
     commit(repo, "Initial release")
     git(repo, "tag", "v1.0.0")
@@ -72,10 +72,10 @@ def test_future_release_uses_latest_tag() -> None:
     assert "Recommended for users who want the latest firmware, setup page, device fixes, or documented behavior." in text
     assert "### User-facing features" in text
     assert "Add light brightness card type" in text
-    assert "[#12](https://github.com/example/espcontrol/pull/12)" in text
+    assert "[#12](https://github.com/example/espdesktop/pull/12)" in text
     assert "1 user-facing change is included in this release." in text
     assert "Release range: `v1.0.0` to `" in text
-    assert f"[Full comparison](https://github.com/example/espcontrol/compare/v1.0.0...{full_hash})" in text
+    assert f"[Full comparison](https://github.com/example/espdesktop/compare/v1.0.0...{full_hash})" in text
 
 
 def test_existing_tag_uses_previous_tag() -> None:
@@ -83,7 +83,7 @@ def test_existing_tag_uses_previous_tag() -> None:
     original_root = release_changelog.ROOT
     try:
         release_changelog.ROOT = repo
-        write(repo, "components/espcontrol/button_grid.h", "// firmware\n")
+        write(repo, "components/espdesktop/button_grid.h", "// firmware\n")
         commit(repo, "Fix relay card behavior")
         git(repo, "tag", "v1.1.0")
         text = release_changelog.build_changelog(

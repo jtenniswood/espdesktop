@@ -16,7 +16,7 @@ import {
 import type { StructuredSubpageConfig } from "./subpage";
 
 export const BACKUP_CONFIG_VERSION = 2;
-export const BACKUP_FORMAT = "espcontrol.backup";
+export const BACKUP_FORMAT = "espdesktop.backup";
 
 export interface BackupSource {
   device: string;
@@ -115,7 +115,7 @@ export function validateBackupEnvelope(data: unknown): Record<string, unknown> {
     throw backupConfigError("Invalid config file - missing required fields");
   }
   if (version > BACKUP_CONFIG_VERSION) {
-    throw backupConfigError("Backup was created by a newer version of EspControl");
+    throw backupConfigError("Backup was created by a newer version of EspDesktop");
   }
   if (version >= 2 && data.format !== BACKUP_FORMAT) {
     throw backupConfigError("Invalid config file - unsupported backup format");

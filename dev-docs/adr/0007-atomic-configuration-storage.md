@@ -6,7 +6,7 @@ Accepted.
 
 ## Context
 
-EspControl currently persists cards and subpages through restored ESPHome text
+EspDesktop currently persists cards and subpages through restored ESPHome text
 entities. This remains the production compatibility path, but the versioned
 device configuration service needs storage that cannot lose the last
 working configuration when power is interrupted during a save.
@@ -32,7 +32,7 @@ the newest slot is incomplete or corrupt, the previous valid generation is
 returned.
 
 The core store depends only on a narrow `StorageBackend`. The first live
-adapter uses an isolated `espcontrol_cfg` namespace in ESPHome's NVS
+adapter uses an isolated `espdesktop_cfg` namespace in ESPHome's NVS
 partition. On the 7-inch P4, it reserves its fixed-size blobs from PSRAM at
 startup and writes only each slot's used bytes at the store's explicit
 durability boundaries. This preserves the two-slot protocol without a

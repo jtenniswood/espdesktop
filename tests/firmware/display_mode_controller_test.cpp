@@ -2,7 +2,7 @@
 
 #include "display_mode_controller.h"
 
-using namespace espcontrol;
+using namespace espdesktop;
 
 #define CHECK(condition) do { if (!(condition)) return EXIT_FAILURE; } while (false)
 

@@ -21,13 +21,13 @@ function plain(value) {
 
 function loadRuntime() {
   const sandbox = {
-    __ESPCONTROL_TEST_HOOKS__: {},
+    __ESPDESKTOP_TEST_HOOKS__: {},
     console: { log() {}, warn() {}, error() {} },
     setTimeout,
     clearTimeout,
     requestAnimationFrame(fn) { return setTimeout(fn, 0); },
     URLSearchParams,
-    location: { href: "http://espcontrol.test/", search: "" },
+    location: { href: "http://espdesktop.test/", search: "" },
     document: { readyState: "loading", activeElement: null, addEventListener() {} },
   };
   sandbox.window = sandbox;
@@ -44,7 +44,7 @@ function loadModel() {
 const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, "utf8"));
 const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
 const runtime = loadRuntime();
-const hooks = runtime.__ESPCONTROL_TEST_HOOKS__.config;
+const hooks = runtime.__ESPDESKTOP_TEST_HOOKS__.config;
 const model = loadModel();
 
 assert.deepStrictEqual(

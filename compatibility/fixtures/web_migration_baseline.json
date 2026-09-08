@@ -128,7 +128,7 @@
   },
   "backup": {
     "version": 2,
-    "format": "espcontrol.backup",
+    "format": "espdesktop.backup",
     "device": "panel-a",
     "source": {
       "device": "panel-a",
@@ -184,8 +184,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2639403,
-    "gzip": 1106305,
+    "minified": 2639373,
+    "gzip": 1099145,
     "gzipTolerance": 9216
   }
 }

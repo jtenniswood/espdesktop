@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import * as EspControlModel from "../model";
+import * as EspDesktopModel from "../model";
 import { sizeFromToken } from "../model/grid";
 import { createClipboardEntry } from "../features/clipboard";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -126,7 +126,7 @@ export function createPreviewClipboardFeature(
             size: entry.size || 1,
         };
         if (entry.subpageConfig) {
-            transfer.subpage = EspControlModel.structuredSubpageFromParsed(parseSubpageConfig(entry.subpageConfig));
+            transfer.subpage = EspDesktopModel.structuredSubpageFromParsed(parseSubpageConfig(entry.subpageConfig));
         }
         return transfer;
     }
@@ -137,7 +137,7 @@ export function createPreviewClipboardFeature(
             if (entry)
                 entries.push(cardTransferEntryFromClipboard(entry));
         });
-        return EspControlModel.createCardTransferCode({
+        return EspDesktopModel.createCardTransferCode({
             device: dependencies.layout.deviceId,
             firmware: String(state.firmwareVersion || ""),
         }, entries);
@@ -146,7 +146,7 @@ export function createPreviewClipboardFeature(
         return type ? type.replace(/_/g, " ") : "switch";
     }
     function validateCardTransferButton(button: any, inSubpage: any, warnings: any) {
-        var normalized: any = normalizeButtonConfig(EspControlModel.cloneCardConfig(button));
+        var normalized: any = normalizeButtonConfig(EspDesktopModel.cloneCardConfig(button));
         var type: any = normalized.type || "";
         var typeDef: any = dependencies.cards.definitions[type];
         if (!typeDef) {
@@ -183,7 +183,7 @@ export function createPreviewClipboardFeature(
                 layoutSlots.push(0);
                 return;
             }
-            if (EspControlModel.isBackOrderToken(token)) {
+            if (EspDesktopModel.isBackOrderToken(token)) {
                 if (!hasBack) {
                     orderedSlots.push(-2);
                     layoutSlots.push(-2);
@@ -296,7 +296,7 @@ export function createPreviewClipboardFeature(
                 if (!cardOwnsSubpage(button)) {
                     throw cardTransferError("This card type cannot own a subpage.");
                 }
-                var parsed: any = EspControlModel.parseStructuredSubpageConfig(transfer.subpage);
+                var parsed: any = EspDesktopModel.parseStructuredSubpageConfig(transfer.subpage);
                 parsed.buttons = parsed.buttons.map(function (subpageButton: any) {
                     return validateCardTransferButton(subpageButton, true, warnings);
                 });
@@ -333,7 +333,7 @@ export function createPreviewClipboardFeature(
         return out;
     }
     function clipboardButtonConfig(entry: any) {
-        return normalizeButtonConfig(EspControlModel.cloneCardConfig(entry));
+        return normalizeButtonConfig(EspDesktopModel.cloneCardConfig(entry));
     }
     function firstUnusedClipboardSlot(grid: any, maxSlots: any) {
         var used: any = {};
@@ -349,13 +349,13 @@ export function createPreviewClipboardFeature(
     }
     function clipboardSubpageFits(sp: any) {
         var serialized: any = serializeSubpageConfig(sp);
-        return !!EspControlModel.splitSubpageConfigChunks(serialized, configPersistence.subpageEntityKeys().length, 255);
+        return !!EspDesktopModel.splitSubpageConfigChunks(serialized, configPersistence.subpageEntityKeys().length, 255);
     }
     function planMainClipboardPaste(entries: any, pos: any) {
         var nextGrid: any = state.grid.slice();
         var nextSizes: any = cloneSizeMap(state.sizes);
         var nextButtons: any = state.buttons.map(function (button: any) {
-            return EspControlModel.cloneCardConfig(button);
+            return EspDesktopModel.cloneCardConfig(button);
         });
         var nextSubpages: any = {};
         for (var existingKey in state.subpages)
@@ -410,7 +410,7 @@ export function createPreviewClipboardFeature(
         return {
             order: (sp.order || []).slice(),
             buttons: (sp.buttons || []).map(function (button: any) {
-                return EspControlModel.cloneCardConfig(button);
+                return EspDesktopModel.cloneCardConfig(button);
             }),
             grid: (sp.grid || []).slice(),
             sizes: cloneSizeMap(sp.sizes),
@@ -620,7 +620,7 @@ export function createPreviewClipboardFeature(
         paste.addEventListener("click", function () {
             errorText.textContent = "";
             try {
-                var envelope: any = EspControlModel.parseCardTransferCode(textarea.value);
+                var envelope: any = EspDesktopModel.parseCardTransferCode(textarea.value);
                 var converted: any = clipboardEntriesFromCardTransfer(envelope, targetIsSubpage);
                 var result: any = performClipboardPaste(converted.entries, pos, targetIsSubpage);
                 if (!result.ok) {

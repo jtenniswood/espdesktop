@@ -12,7 +12,7 @@ substitutions:
 
 esphome:
   project:
-    name: jtenniswood.espcontrol
+    name: jtenniswood.espdesktop
     version: "${firmware_version}"
   on_boot:
     - priority: 200
@@ -30,7 +30,7 @@ esphome:
                   condition:
                     lambda: |-
                       auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-                      return id(espcontrol_app).display().target_schedule_inactive() ||
+                      return id(espdesktop_app).display().target_schedule_inactive() ||
                              screen_schedule_waiting_for_time(
                                id(screen_schedule_trigger).state,
                                id(schedule_enabled).state,
@@ -70,8 +70,8 @@ script:
           alarm_pin_hide_modal();
           network_status_hide_modal();
           lv_label_set_text(id(loading_status_icon), "${icon_progress_clock}");
-          lv_label_set_text(id(loading_status_title), espcontrol_i18n("Installing update"));
-          lv_label_set_text(id(loading_status_label), espcontrol_i18n("Preparing the screen\nDo not power off"));
+          lv_label_set_text(id(loading_status_title), espdesktop_i18n("Installing update"));
+          lv_label_set_text(id(loading_status_label), espdesktop_i18n("Preparing the screen\nDo not power off"));
       - lvgl.resume:
       - script.execute: clock_bar_hide
       - lvgl.page.show: loading_page
@@ -92,8 +92,8 @@ script:
           value: 'false'
       - lambda: |-
           lv_label_set_text(id(loading_status_icon), "${icon_progress_clock}");
-          lv_label_set_text(id(loading_status_title), espcontrol_i18n("Installing update"));
-          lv_label_set_text(id(loading_status_label), espcontrol_i18n("The screen may turn off\nDo not power off"));
+          lv_label_set_text(id(loading_status_title), espdesktop_i18n("Installing update"));
+          lv_label_set_text(id(loading_status_label), espdesktop_i18n("The screen may turn off\nDo not power off"));
       - lvgl.resume:
       - script.execute: clock_bar_hide
       - lvgl.page.show: loading_page
@@ -109,8 +109,8 @@ script:
       - script.execute: setup_screen_dim_cancel
       - lambda: |-
           lv_label_set_text(id(loading_status_icon), "${icon_check}");
-          lv_label_set_text(id(loading_status_title), espcontrol_i18n("Update complete"));
-          lv_label_set_text(id(loading_status_label), espcontrol_i18n("Restarting display"));
+          lv_label_set_text(id(loading_status_title), espdesktop_i18n("Update complete"));
+          lv_label_set_text(id(loading_status_label), espdesktop_i18n("Restarting display"));
       - lvgl.resume:
       - script.execute: clock_bar_hide
       - lvgl.page.show: loading_page
@@ -138,8 +138,8 @@ script:
       - lambda: |-
           global_preferences->sync();
           lv_label_set_text(id(loading_status_icon), "${icon_progress_clock}");
-          lv_label_set_text(id(loading_status_title), espcontrol_i18n("Update failed"));
-          lv_label_set_text(id(loading_status_label), espcontrol_i18n("Try installing the update again"));
+          lv_label_set_text(id(loading_status_title), espdesktop_i18n("Update failed"));
+          lv_label_set_text(id(loading_status_label), espdesktop_i18n("Try installing the update again"));
       - lvgl.resume:
       - script.execute: clock_bar_hide
       - lvgl.page.show: loading_page
@@ -179,7 +179,7 @@ update:
     id: firmware_update
     name: "${entity_firmware_update}"
     internal: true
-    source: https://jtenniswood.github.io/espcontrol/firmware/${firmware_manifest_slug}/manifest.json
+    source: https://jtenniswood.github.io/espdesktop/firmware/${firmware_manifest_slug}/manifest.json
     update_interval: never
     on_update_available:
       then:

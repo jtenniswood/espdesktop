@@ -1,7 +1,7 @@
 ---
 title: Presence Cards
 description:
-  How to show room, motion, or occupancy sensors on your EspControl panel.
+  How to show room, motion, or occupancy sensors on your EspDesktop panel.
 ---
 
 # Presence

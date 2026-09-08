@@ -1,7 +1,7 @@
 ---
-title: EspControl Firmware Updates
+title: EspDesktop Firmware Updates
 description:
-  How the EspControl panel checks for and installs firmware updates over the air, and how to control update behaviour.
+  How the EspDesktop panel checks for and installs firmware updates over the air, and how to control update behaviour.
 ---
 
 # Firmware Updates
@@ -50,11 +50,11 @@ You can also manage updates from Home Assistant. The **Auto Update** toggle, **U
 
 The standard Home Assistant **Update** entity may also appear, depending on your Home Assistant version.
 
-Displays built with `disable_updates: "true"` do not expose EspControl's built-in GitHub update controls. They can still be updated manually through ESPHome.
+Displays built with `disable_updates: "true"` do not expose EspDesktop's built-in GitHub update controls. They can still be updated manually through ESPHome.
 
 ## ESP32-C6 WiFi Co-processor Updates
 
-Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspControl exposes separate Home Assistant entities for that co-processor firmware on the supported P4 WiFi builds:
+Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspDesktop exposes separate Home Assistant entities for that co-processor firmware on the supported P4 WiFi builds:
 
 - **7-inch JC1060P470**
 - **7-inch JC1060P470 new panel**
@@ -63,13 +63,13 @@ Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspControl exposes
 - **4.3-inch JC4880P443**
 - **4-inch ESP32-P4-86**
 
-These entities are separate from the main EspControl display firmware controls. The normal **Firmware: Check for Update** and **Firmware: Install Update** controls update the panel firmware. The ESP32-C6 controls check and install compatible WiFi co-processor firmware from ESPHome's hosted firmware manifest.
+These entities are separate from the main EspDesktop display firmware controls. The normal **Firmware: Check for Update** and **Firmware: Install Update** controls update the panel firmware. The ESP32-C6 controls check and install compatible WiFi co-processor firmware from ESPHome's hosted firmware manifest.
 
 Supported displays check for compatible WiFi firmware once a day and install new versions automatically. Automatic WiFi firmware updates are on by default, helping displays receive connectivity fixes without requiring a separate manual update. The setting is remembered after restarts.
 
 On the panel's setup page, open the **WiFi firmware** panel under **Firmware** to turn **Auto Update** off or back on. You can still use **Check for Update** and **Update WiFi Firmware** manually while automatic updates are off.
 
-In Home Assistant, the **WiFi Firmware: Auto Update** switch provides the same opt-out. ESP32-C6 diagnostic entities show the current version, latest version, and whether an update is available. Continue using the regular EspControl firmware controls for normal panel updates.
+In Home Assistant, the **WiFi Firmware: Auto Update** switch provides the same opt-out. ESP32-C6 diagnostic entities show the current version, latest version, and whether an update is available. Continue using the regular EspDesktop firmware controls for normal panel updates.
 
 Advanced Ethernet-only builds keep the ESP32-C6 WiFi co-processor off, so they do not expose these ESP32-C6 update controls.
 

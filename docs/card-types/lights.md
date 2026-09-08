@@ -1,7 +1,7 @@
 ---
 title: Light Cards
 description:
-  How to use light cards on your EspControl panel for light switching, brightness, colour temperature, and colour presets.
+  How to use light cards on your EspDesktop panel for light switching, brightness, colour temperature, and colour presets.
 ---
 
 # Lights

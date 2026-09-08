@@ -102,7 +102,7 @@ def render(fixtures: dict) -> str:
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
-        '<title id="title">EspControl modal layout profiles</title>',
+        '<title id="title">EspDesktop modal layout profiles</title>',
         '<desc id="desc">Generated reference showing the shared modal shell, tabs, content region, and back button on each display family.</desc>',
         "<style>",
         "text { font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; }",

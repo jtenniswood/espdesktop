@@ -1,6 +1,6 @@
 ---
 title: Language
-description: Choose the panel language and learn how to contribute translations for EspControl.
+description: Choose the panel language and learn how to contribute translations for EspDesktop.
 ---
 
 # Language

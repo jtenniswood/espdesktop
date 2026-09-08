@@ -1,6 +1,6 @@
 ---
 title: Wifi Sharing
-description: Share separately configured guest Wifi with a scannable QR code on EspControl.
+description: Share separately configured guest Wifi with a scannable QR code on EspDesktop.
 ---
 
 # Wifi Sharing
@@ -10,7 +10,7 @@ description: Share separately configured guest Wifi with a scannable QR code on 
 - **Connect Card** shows a configurable title and Wifi icon.
 - **QR Card** shows the scannable QR code directly on a white tile, without a title or icon.
 
-It does not read, reveal, or share the Wifi network used by the EspControl panel itself. You enter a separate network name and, where needed, a password.
+It does not read, reveal, or share the Wifi network used by the EspDesktop panel itself. You enter a separate network name and, where needed, a password.
 
 ## Set It Up
 

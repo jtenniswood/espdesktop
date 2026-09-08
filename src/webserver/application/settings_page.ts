@@ -451,7 +451,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var companionPanel: any = document.createElement("div");
         var companionNote: any = document.createElement("p");
         companionNote.className = "sp-setting-note";
-        companionNote.textContent = "Keep the display visible while EspControl Companion is connected and the screen is unlocked. Start the screensaver when the Mac app disconnects or the screen is locked.";
+        companionNote.textContent = "Keep the display visible while EspDesktop is connected and the screen is unlocked. Start the screensaver when the Mac app disconnects or the screen is locked.";
         companionPanel.appendChild(companionNote);
         var companionClockControls: any = createScreensaverThenControls("sp-set-companion-clock-mode");
         companionPanel.appendChild(companionClockControls.clockField);

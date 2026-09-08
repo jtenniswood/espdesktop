@@ -1,22 +1,22 @@
 ---
 title: Privacy Policy
 description:
-  How EspControl handles information in the documentation website, firmware, and web configuration interface.
+  How EspDesktop handles information in the documentation website, firmware, and web configuration interface.
 ---
 
 # Privacy Policy
 
 **Effective date: September 5, 2026**
 
-EspControl is a source-available, non-commercial touchscreen control panel
+EspDesktop is a source-available, non-commercial touchscreen control panel
 project maintained by [jtenniswood](https://github.com/jtenniswood). This
 policy explains what
-information may be involved when you use the EspControl documentation website,
+information may be involved when you use the EspDesktop documentation website,
 firmware, or built-in web configuration interface.
 
 ## The short version
 
-EspControl does not operate an account system, advertising service, analytics
+EspDesktop does not operate an account system, advertising service, analytics
 platform, or central service that collects your smart-home data. The firmware is
 designed to communicate with your Home Assistant installation and other
 services you choose to configure. Your device configuration is stored on your
@@ -50,9 +50,9 @@ other documentation pages unless one of these installer components is used.
 The site also contains links to GitHub, Home Assistant, ESPHome, and other
 third-party websites. Those sites have their own terms and privacy practices.
 
-## The EspControl firmware and device
+## The EspDesktop firmware and device
 
-The firmware does not send your smart-home data to an EspControl server. It
+The firmware does not send your smart-home data to an EspDesktop server. It
 normally exchanges data directly with your Home Assistant instance over your
 local network, including entity states, names, media information, weather
 data, and commands needed for the cards you configure. Home Assistant and any
@@ -73,21 +73,21 @@ of those services before enabling them.
 
 ## Firmware and asset downloads
 
-Firmware with EspControl's update checker enabled periodically requests public
+Firmware with EspDesktop's update checker enabled periodically requests public
 version metadata and, when an update is installed, firmware files from the
-EspControl GitHub Pages site. Some builds also check the public ESPHome hosted
+EspDesktop GitHub Pages site. Some builds also check the public ESPHome hosted
 firmware manifest for an ESP32-C6 co-processor. These requests contain normal
 network request information, such as the device's IP address and request time,
 as observed by the hosting provider. They are not intended to include your
 Home Assistant entity data or account credentials.
 
-You can disable EspControl's built-in update checker where the firmware build
+You can disable EspDesktop's built-in update checker where the firmware build
 provides that option. Ethernet-only builds documented on this site omit the
-EspControl update checker. ESPHome OTA or other update methods may still
+EspDesktop update checker. ESPHome OTA or other update methods may still
 contact the services you select.
 
 Standard released firmware also loads the JavaScript for its built-in web
-configuration interface from EspControl's GitHub Pages site. The request URL
+configuration interface from EspDesktop's GitHub Pages site. The request URL
 includes the device model slug and firmware version, so the hosting provider
 may receive those values along with normal browser or device connection
 metadata when the interface is opened. This asset request is separate from
@@ -97,15 +97,15 @@ Networked standard builds automatically synchronize time with the public NTP
 pool at `0.pool.ntp.org`, `1.pool.ntp.org`, and `2.pool.ntp.org`. DNS and NTP
 requests may disclose normal connection metadata to the pool operators. This
 traffic occurs even when no optional cards or services are configured and the
-EspControl update checker is disabled.
+EspDesktop update checker is disabled.
 
-## Optional macOS Companion
+## Optional EspDesktop macOS app
 
-Companion connects to the display you pair on your local network. It stores
+EspDesktop connects to the display you pair on your local network. It stores
 connection preferences and approved-folder bookmarks locally on the Mac, and
 stores the pairing credential in macOS Keychain. Folder paths remain on the Mac;
 the display receives names and opaque identifiers for approved applications and
-folders. Companion can also share the focused application and Now Playing
+folders. EspDesktop can also share the focused application and Now Playing
 metadata/artwork needed by its cards. System statistics are shared only after
 you enable **Share Mac system statistics**; they contain overall resource usage
 and network throughput, not network contents.
@@ -119,10 +119,10 @@ display certificate. **Forget Display** removes those saved pairing values.
 Folder access is granted through the native folder picker. Finder automation
 can identify an approved folder in the frontmost Finder window; optional
 Accessibility access enables requested keyboard and window actions. Remove
-approved folders in Companion or revoke permissions in macOS System Settings.
+approved folders in EspDesktop or revoke permissions in macOS System Settings.
 Removing the application may leave preferences or Keychain items behind, so
 forget the display before uninstalling when you want to remove its pairing.
-Companion does not send these local card data to an EspControl analytics service.
+EspDesktop does not send these local card data to an analytics service.
 
 ## Information you provide to the project
 
@@ -135,7 +135,7 @@ confidential information.
 
 ## Retention and sharing
 
-The project maintainer does not operate a database of EspControl users and
+The project maintainer does not operate a database of EspDesktop users and
 does not sell or rent personal information. Information submitted through
 GitHub is retained and handled according to GitHub's policies and the
 project's public repository settings. Information handled by Home Assistant,
@@ -160,6 +160,6 @@ that service.
 
 ## Changes to this policy
 
-This policy may be updated when EspControl's data practices or the services it
+This policy may be updated when EspDesktop's data practices or the services it
 uses change. The effective date at the top of this page indicates when the
 current version was published.

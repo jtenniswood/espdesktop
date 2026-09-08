@@ -1,7 +1,7 @@
 ---
-title: EspControl Screensaver
+title: EspDesktop Screensaver
 description:
-  How to configure screensaver modes and presence sensor wake on your EspControl panel.
+  How to configure screensaver modes and presence sensor wake on your EspDesktop panel.
 ---
 
 # Screensaver
@@ -33,7 +33,7 @@ When the screensaver activates, you can choose what happens:
 
 - **Screen Dimmed** — keeps the normal screen visible, but lowers the backlight. The first tap wakes the screen instead of pressing a card.
 - **Clock** — shows a large drifting clock at reduced brightness (the default). The clock repositions itself periodically to prevent burn-in.
-- **Display Off** — switches to a black screen and turns the backlight off completely. While the backlight is off, EspControl can exercise the LCD pixels in the background to reduce burn-in risk; this should not be visible.
+- **Display Off** — switches to a black screen and turns the backlight off completely. While the backlight is off, EspDesktop can exercise the LCD pixels in the background to reduce burn-in risk; this should not be visible.
 
 When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brightness**. Automatic and Timed brightness modes use separate **Daytime Dimmed Screen Brightness** and **Nighttime Dimmed Screen Brightness** values, changing at the same sunrise/sunset or dawn/dusk boundary as the main screen. When Clock is selected, set separate **Daytime Clock Brightness** and **Nighttime Clock Brightness** values.
 
