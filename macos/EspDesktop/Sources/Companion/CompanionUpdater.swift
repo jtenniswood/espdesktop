@@ -71,18 +71,18 @@ struct CompanionUpdateSettings: View {
 
     var body: some View {
         Form {
-            Section("Current Version") {
-                LabeledContent("EspDesktop", value: updater.installedVersion)
+            Section {
                 HStack {
-                    if updater.isChecking || !updater.message.isEmpty {
-                        Text(updater.isChecking ? "Checking for updates…" : updater.message)
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text("Version \(updater.installedVersion)")
                     Spacer()
                     if updater.isChecking { ProgressView().controlSize(.small) }
                     Button("Check Now") { updater.check() }
                         .disabled(updater.isChecking)
+                }
+                if !updater.message.isEmpty {
+                    Text(updater.message)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
                 }
             }
             Section("Automatic Updates") {
