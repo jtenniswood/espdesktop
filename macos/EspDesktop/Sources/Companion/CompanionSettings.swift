@@ -343,13 +343,7 @@ struct CompanionSettings: View {
                 Form {
                     Section("Connection") {
                         Toggle(isOn: connectionToggleBinding) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                connectionStatus
-                                Text(store.panelHost)
-                                    .font(.callout)
-                                    .foregroundStyle(.secondary)
-                                    .textSelection(.enabled)
-                            }
+                            connectionStatus
                         }
                         .toggleStyle(.switch)
                         .disabled(store.connectionState.isBusy)
