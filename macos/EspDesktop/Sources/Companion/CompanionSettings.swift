@@ -66,7 +66,7 @@ private struct CompanionStatsToggle: View {
         HStack(spacing: 12) {
             Toggle("", isOn: $isEnabled)
                 .labelsHidden()
-                .toggleStyle(.switch)
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .accessibilityLabel("Share Mac system statistics")
             Text(isEnabled ? "Stats enabled" : "Stats disabled")
                 .font(.headline)
@@ -83,7 +83,7 @@ private struct CompanionLaunchAtLoginToggle: View {
         HStack(spacing: 12) {
             Toggle("", isOn: $isEnabled)
                 .labelsHidden()
-                .toggleStyle(.switch)
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .disabled(!isAvailable)
                 .accessibilityLabel("Open EspDesktop at Login")
             Text(isEnabled ? "Login enabled" : "Login disabled")
@@ -104,7 +104,7 @@ private struct CompanionAccessibilityToggle: View {
                 set: { _ in openSettings() }
             ))
             .labelsHidden()
-            .toggleStyle(.switch)
+            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
             .accessibilityLabel("Enable keyboard shortcuts and window controls")
             Text(isEnabled ? "Shortcuts enabled" : "Shortcuts disabled")
                 .font(.headline)
@@ -345,7 +345,7 @@ struct CompanionSettings: View {
                         Toggle(isOn: connectionToggleBinding) {
                             connectionStatus
                         }
-                        .toggleStyle(.switch)
+                        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                         .disabled(store.connectionState.isBusy)
                         .accessibilityLabel("Display connection")
                     }
