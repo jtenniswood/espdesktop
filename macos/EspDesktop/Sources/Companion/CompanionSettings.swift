@@ -257,7 +257,9 @@ struct CompanionSettings: View {
 
     private var settingsContent: some View {
         detailView
+            .scrollContentBackground(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color(nsColor: .windowBackgroundColor))
             .background(CompanionSettingsToolbar(selection: selectedPageBinding))
             .navigationTitle("Settings")
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
@@ -799,7 +801,10 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             self.window = window
             guard let window else { return }
             window.title = "Settings"
-            window.toolbarStyle = .preference
+            // Unified toolbars adopt macOS's modern, larger window corners.
+            window.toolbarStyle = .unified
+            window.backgroundColor = .windowBackgroundColor
+            window.titlebarAppearsTransparent = true
             window.titlebarSeparatorStyle = .line
             window.toolbar = toolbar
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
