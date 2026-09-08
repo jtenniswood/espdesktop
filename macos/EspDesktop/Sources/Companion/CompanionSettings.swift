@@ -65,15 +65,8 @@ private struct CompanionStatsToggle: View {
     @Binding var isEnabled: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            Toggle("", isOn: $isEnabled)
-                .labelsHidden()
-                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                .accessibilityLabel("Share Mac system statistics")
-            Text(isEnabled ? "Stats enabled" : "Stats disabled")
-                .font(.headline)
-                .foregroundStyle(isEnabled ? .primary : .secondary)
-        }
+        Toggle("Share Mac Statistics", isOn: $isEnabled)
+            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
     }
 }
 
@@ -82,16 +75,9 @@ private struct CompanionLaunchAtLoginToggle: View {
     let isAvailable: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            Toggle("", isOn: $isEnabled)
-                .labelsHidden()
-                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                .disabled(!isAvailable)
-                .accessibilityLabel("Start at Login")
-            Text("Start at Login")
-                .font(.headline)
-                .foregroundStyle(isEnabled ? .primary : .secondary)
-        }
+        Toggle("Start at Login", isOn: $isEnabled)
+            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+            .disabled(!isAvailable)
     }
 }
 
@@ -100,18 +86,11 @@ private struct CompanionAccessibilityToggle: View {
     let requestAccess: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            Toggle("", isOn: Binding(
-                get: { isEnabled },
-                set: { _ in requestAccess() }
-            ))
-            .labelsHidden()
-            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-            .accessibilityLabel("Enable keyboard shortcuts and window controls")
-            Text(isEnabled ? "Shortcuts enabled" : "Shortcuts disabled")
-                .font(.headline)
-                .foregroundStyle(isEnabled ? .primary : .secondary)
-        }
+        Toggle("Keyboard & Window Controls", isOn: Binding(
+            get: { isEnabled },
+            set: { _ in requestAccess() }
+        ))
+        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
     }
 }
 
@@ -548,12 +527,9 @@ struct CompanionSettings: View {
     private var applicationsPage: some View {
         Form {
             Section("Apps") {
-                HStack(spacing: 12) {
-                    Toggle("Select All", isOn: selectAllBinding)
-                        .toggleStyle(.checkbox)
-                        .disabled(store.availableApps.isEmpty)
-                    Spacer()
-                }
+                Toggle("Select All", isOn: selectAllBinding)
+                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                    .disabled(store.availableApps.isEmpty)
                 if store.availableApps.isEmpty {
                     emptyState("No Applications Found", symbol: "app.dashed",
                                detail: "Install applications in your Applications folder, then refresh this list.")
@@ -568,7 +544,7 @@ struct CompanionSettings: View {
                                 Text(application.name)
                             }
                         }
-                        .toggleStyle(.checkbox)
+                        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                         .padding(.vertical, 2)
                     }
                 }
@@ -645,24 +621,33 @@ struct CompanionSettings: View {
 
     private var permissionsPage: some View {
         Form {
-            Section("Startup") {
+            Section {
                 CompanionLaunchAtLoginToggle(
                     isEnabled: store.launchAtLoginBinding(),
                     isAvailable: store.supportsLaunchAtLogin
                 )
+            } header: {
+                Text("Startup")
+            } footer: {
                 Text(store.supportsLaunchAtLogin
                      ? store.launchAtLoginMessage
                      : "Install EspDesktop in Applications to open it automatically at login.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
-            Section("Privacy") {
+            Section {
                 CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
+            } header: {
+                Text("Privacy")
+            } footer: {
                 Text("Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.")
                     .font(.callout).foregroundStyle(.secondary)
             }
-            Section("Keyboard & Window Controls") {
+            Section {
                 CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
+            } header: {
+                Text("Accessibility")
+            } footer: {
                 Text(accessibilityGranted
                      ? "Keyboard shortcuts and window controls are enabled for your display."
                      : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
