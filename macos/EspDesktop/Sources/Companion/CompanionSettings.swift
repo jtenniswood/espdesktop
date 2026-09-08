@@ -364,7 +364,7 @@ struct CompanionSettings: View {
                                 .foregroundStyle(.secondary)
                         }
                         LabeledContent {
-                            Button("Forget Display…", role: .destructive) { confirmingForget = true }
+                            Button("Forget Display", role: .destructive) { confirmingForget = true }
                         } label: {
                             Text("Remove this Mac’s saved pairing with the display.")
                                 .foregroundStyle(.secondary)
