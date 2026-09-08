@@ -20,7 +20,7 @@ You will find these controls in **Settings > Display > Clock Bar** on the panel 
 
 The clock bar layout is not customizable. Hidden items stay greyed in the web preview so you can select and show them again, but they are hidden on the device screen. Extra saved temperature entries, weather settings, and older saved layout strings are ignored by current firmware.
 
-On the 4-inch S3 (Guition 4848S040), a Mac Companion indicator sits at the far left, before the temperature. It shows a monitor while connected and a monitor-off icon while disconnected, including before pairing. It stays visible whenever the clock bar is visible.
+On the 4-inch S3 (Guition 4848S040), Mac Companion does not add an icon to the clock bar. Hold the network status icon to start Mac Companion pairing.
 
 Tap the network status icon on the panel to see device details, including the device name, IP address, WiFi strength, uptime, and firmware version.
 
