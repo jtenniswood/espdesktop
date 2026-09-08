@@ -247,6 +247,14 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Paměť";
   if (std::strcmp(text, "Storage") == 0) return "Úložiště";
   if (std::strcmp(text, "Battery") == 0) return "Baterie";
+  if (std::strcmp(text, "Build") == 0) return "Sestavení";
+  if (std::strcmp(text, "IP address") == 0) return "IP adresa";
+  if (std::strcmp(text, "Connector") == 0) return "Konektor";
+  if (std::strcmp(text, "Disconnected") == 0) return "Odpojeno";
+  if (std::strcmp(text, "Not paired") == 0) return "Nespárováno";
+  if (std::strcmp(text, "Pairing") == 0) return "Párování";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Zadejte tento kód v aplikaci pro Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Platnost vypršela";
   return text;
 }
 
@@ -475,6 +483,13 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Hukommelse";
   if (std::strcmp(text, "Storage") == 0) return "Lager";
   if (std::strcmp(text, "Battery") == 0) return "Batteri";
+  if (std::strcmp(text, "IP address") == 0) return "IP-adresse";
+  if (std::strcmp(text, "Connector") == 0) return "Forbindelse";
+  if (std::strcmp(text, "Disconnected") == 0) return "Afbrudt";
+  if (std::strcmp(text, "Not paired") == 0) return "Ikke parret";
+  if (std::strcmp(text, "Pairing") == 0) return "Parring";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Indtast denne kode i Mac-appen";
+  if (std::strcmp(text, "Expired") == 0) return "Udløbet";
   return text;
 }
 
@@ -702,6 +717,12 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Arbeitsspeicher";
   if (std::strcmp(text, "Storage") == 0) return "Speicher";
   if (std::strcmp(text, "Battery") == 0) return "Batterie";
+  if (std::strcmp(text, "IP address") == 0) return "IP-Adresse";
+  if (std::strcmp(text, "Disconnected") == 0) return "Getrennt";
+  if (std::strcmp(text, "Not paired") == 0) return "Nicht gekoppelt";
+  if (std::strcmp(text, "Pairing") == 0) return "Kopplung";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Diesen Code in der Mac-App eingeben";
+  if (std::strcmp(text, "Expired") == 0) return "Abgelaufen";
   return text;
 }
 
@@ -936,6 +957,14 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Memoria";
   if (std::strcmp(text, "Storage") == 0) return "Almacenamiento";
   if (std::strcmp(text, "Battery") == 0) return "Batería";
+  if (std::strcmp(text, "Build") == 0) return "Compilación";
+  if (std::strcmp(text, "IP address") == 0) return "Dirección IP";
+  if (std::strcmp(text, "Connector") == 0) return "Conector";
+  if (std::strcmp(text, "Disconnected") == 0) return "Desconectado";
+  if (std::strcmp(text, "Not paired") == 0) return "Sin emparejar";
+  if (std::strcmp(text, "Pairing") == 0) return "Emparejamiento";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduce este código en la app para Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Caducado";
   return text;
 }
 
@@ -1180,6 +1209,14 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Muisti";
   if (std::strcmp(text, "Storage") == 0) return "Tallennustila";
   if (std::strcmp(text, "Battery") == 0) return "Akku";
+  if (std::strcmp(text, "Build") == 0) return "Koontiversio";
+  if (std::strcmp(text, "IP address") == 0) return "IP-osoite";
+  if (std::strcmp(text, "Connector") == 0) return "Yhdistin";
+  if (std::strcmp(text, "Disconnected") == 0) return "Yhteys katkaistu";
+  if (std::strcmp(text, "Not paired") == 0) return "Ei paritettu";
+  if (std::strcmp(text, "Pairing") == 0) return "Paritus";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Syötä tämä koodi Mac-sovellukseen";
+  if (std::strcmp(text, "Expired") == 0) return "Vanhentunut";
   return text;
 }
 
@@ -1407,6 +1444,14 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Mémoire";
   if (std::strcmp(text, "Storage") == 0) return "Stockage";
   if (std::strcmp(text, "Battery") == 0) return "Batterie";
+  if (std::strcmp(text, "Build") == 0) return "Version";
+  if (std::strcmp(text, "IP address") == 0) return "Adresse IP";
+  if (std::strcmp(text, "Connector") == 0) return "Connecteur";
+  if (std::strcmp(text, "Disconnected") == 0) return "Déconnecté";
+  if (std::strcmp(text, "Not paired") == 0) return "Non jumelé";
+  if (std::strcmp(text, "Pairing") == 0) return "Jumelage";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Saisissez ce code dans l’application Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Expiré";
   return text;
 }
 
@@ -1659,6 +1704,14 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "זיכרון";
   if (std::strcmp(text, "Storage") == 0) return "אחסון";
   if (std::strcmp(text, "Battery") == 0) return "סוללה";
+  if (std::strcmp(text, "Build") == 0) return "גרסה";
+  if (std::strcmp(text, "IP address") == 0) return "כתובת IP";
+  if (std::strcmp(text, "Connector") == 0) return "מחבר";
+  if (std::strcmp(text, "Disconnected") == 0) return "מנותק";
+  if (std::strcmp(text, "Not paired") == 0) return "לא מותאם";
+  if (std::strcmp(text, "Pairing") == 0) return "התאמה";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "הזן קוד זה באפליקציית Mac";
+  if (std::strcmp(text, "Expired") == 0) return "פג תוקף";
   return text;
 }
 
@@ -1903,6 +1956,13 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Memória";
   if (std::strcmp(text, "Storage") == 0) return "Tárhely";
   if (std::strcmp(text, "Battery") == 0) return "Akkumulátor";
+  if (std::strcmp(text, "IP address") == 0) return "IP-cím";
+  if (std::strcmp(text, "Connector") == 0) return "Csatlakozó";
+  if (std::strcmp(text, "Disconnected") == 0) return "Leválasztva";
+  if (std::strcmp(text, "Not paired") == 0) return "Nincs párosítva";
+  if (std::strcmp(text, "Pairing") == 0) return "Párosítás";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Adja meg ezt a kódot a Mac alkalmazásban";
+  if (std::strcmp(text, "Expired") == 0) return "Lejárt";
   return text;
 }
 
@@ -2138,6 +2198,13 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Memoria";
   if (std::strcmp(text, "Storage") == 0) return "Archiviazione";
   if (std::strcmp(text, "Battery") == 0) return "Batteria";
+  if (std::strcmp(text, "IP address") == 0) return "Indirizzo IP";
+  if (std::strcmp(text, "Connector") == 0) return "Connettore";
+  if (std::strcmp(text, "Disconnected") == 0) return "Disconnesso";
+  if (std::strcmp(text, "Not paired") == 0) return "Non abbinato";
+  if (std::strcmp(text, "Pairing") == 0) return "Abbinamento";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Inserisci questo codice nell’app per Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Scaduto";
   return text;
 }
 
@@ -2370,6 +2437,14 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Minne";
   if (std::strcmp(text, "Storage") == 0) return "Lagring";
   if (std::strcmp(text, "Battery") == 0) return "Batteri";
+  if (std::strcmp(text, "Build") == 0) return "Bygg";
+  if (std::strcmp(text, "IP address") == 0) return "IP-adresse";
+  if (std::strcmp(text, "Connector") == 0) return "Tilkobling";
+  if (std::strcmp(text, "Disconnected") == 0) return "Frakoblet";
+  if (std::strcmp(text, "Not paired") == 0) return "Ikke paret";
+  if (std::strcmp(text, "Pairing") == 0) return "Paring";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Skriv inn denne koden i Mac-appen";
+  if (std::strcmp(text, "Expired") == 0) return "Utløpt";
   return text;
 }
 
@@ -2602,6 +2677,12 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Geheugen";
   if (std::strcmp(text, "Storage") == 0) return "Opslag";
   if (std::strcmp(text, "Battery") == 0) return "Batterij";
+  if (std::strcmp(text, "IP address") == 0) return "IP-adres";
+  if (std::strcmp(text, "Disconnected") == 0) return "Verbinding verbroken";
+  if (std::strcmp(text, "Not paired") == 0) return "Niet gekoppeld";
+  if (std::strcmp(text, "Pairing") == 0) return "Koppelen";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Voer deze code in de Mac-app in";
+  if (std::strcmp(text, "Expired") == 0) return "Verlopen";
   return text;
 }
 
@@ -2834,6 +2915,14 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Pamięć";
   if (std::strcmp(text, "Storage") == 0) return "Pamięć masowa";
   if (std::strcmp(text, "Battery") == 0) return "Bateria";
+  if (std::strcmp(text, "Build") == 0) return "Kompilacja";
+  if (std::strcmp(text, "IP address") == 0) return "Adres IP";
+  if (std::strcmp(text, "Connector") == 0) return "Łącznik";
+  if (std::strcmp(text, "Disconnected") == 0) return "Rozłączono";
+  if (std::strcmp(text, "Not paired") == 0) return "Niesparowano";
+  if (std::strcmp(text, "Pairing") == 0) return "Parowanie";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Wpisz ten kod w aplikacji na Macu";
+  if (std::strcmp(text, "Expired") == 0) return "Wygasł";
   return text;
 }
 
@@ -3068,6 +3157,14 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Memória";
   if (std::strcmp(text, "Storage") == 0) return "Armazenamento";
   if (std::strcmp(text, "Battery") == 0) return "Bateria";
+  if (std::strcmp(text, "Build") == 0) return "Compilação";
+  if (std::strcmp(text, "IP address") == 0) return "Endereço IP";
+  if (std::strcmp(text, "Connector") == 0) return "Conector";
+  if (std::strcmp(text, "Disconnected") == 0) return "Desconectado";
+  if (std::strcmp(text, "Not paired") == 0) return "Não pareado";
+  if (std::strcmp(text, "Pairing") == 0) return "Pareamento";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Digite este código no aplicativo para Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Expirado";
   return text;
 }
 
@@ -3303,6 +3400,14 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Memória";
   if (std::strcmp(text, "Storage") == 0) return "Armazenamento";
   if (std::strcmp(text, "Battery") == 0) return "Bateria";
+  if (std::strcmp(text, "Build") == 0) return "Compilação";
+  if (std::strcmp(text, "IP address") == 0) return "Endereço IP";
+  if (std::strcmp(text, "Connector") == 0) return "Conector";
+  if (std::strcmp(text, "Disconnected") == 0) return "Desligado";
+  if (std::strcmp(text, "Not paired") == 0) return "Não emparelhado";
+  if (std::strcmp(text, "Pairing") == 0) return "Emparelhamento";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduza este código na aplicação para Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Expirado";
   return text;
 }
 
@@ -3547,6 +3652,14 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Memorie";
   if (std::strcmp(text, "Storage") == 0) return "Stocare";
   if (std::strcmp(text, "Battery") == 0) return "Baterie";
+  if (std::strcmp(text, "Build") == 0) return "Versiune";
+  if (std::strcmp(text, "IP address") == 0) return "Adresă IP";
+  if (std::strcmp(text, "Connector") == 0) return "Conector";
+  if (std::strcmp(text, "Disconnected") == 0) return "Deconectat";
+  if (std::strcmp(text, "Not paired") == 0) return "Neasociat";
+  if (std::strcmp(text, "Pairing") == 0) return "Asociere";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduceți acest cod în aplicația pentru Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Expirat";
   return text;
 }
 
@@ -3798,6 +3911,14 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Память";
   if (std::strcmp(text, "Storage") == 0) return "Хранилище";
   if (std::strcmp(text, "Battery") == 0) return "Батарея";
+  if (std::strcmp(text, "Build") == 0) return "Сборка";
+  if (std::strcmp(text, "IP address") == 0) return "IP-адрес";
+  if (std::strcmp(text, "Connector") == 0) return "Коннектор";
+  if (std::strcmp(text, "Disconnected") == 0) return "Отключено";
+  if (std::strcmp(text, "Not paired") == 0) return "Не сопряжено";
+  if (std::strcmp(text, "Pairing") == 0) return "Сопряжение";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Введите этот код в приложении для Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Срок действия истёк";
   return text;
 }
 
@@ -4034,6 +4155,14 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Pamäť";
   if (std::strcmp(text, "Storage") == 0) return "Úložisko";
   if (std::strcmp(text, "Battery") == 0) return "Batéria";
+  if (std::strcmp(text, "Build") == 0) return "Zostava";
+  if (std::strcmp(text, "IP address") == 0) return "IP adresa";
+  if (std::strcmp(text, "Connector") == 0) return "Konektor";
+  if (std::strcmp(text, "Disconnected") == 0) return "Odpojené";
+  if (std::strcmp(text, "Not paired") == 0) return "Nespárované";
+  if (std::strcmp(text, "Pairing") == 0) return "Párovanie";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Zadajte tento kód v aplikácii pre Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Platnosť vypršala";
   return text;
 }
 
@@ -4274,6 +4403,14 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Pomnilnik";
   if (std::strcmp(text, "Storage") == 0) return "Shramba";
   if (std::strcmp(text, "Battery") == 0) return "Baterija";
+  if (std::strcmp(text, "Build") == 0) return "Gradnja";
+  if (std::strcmp(text, "IP address") == 0) return "IP-naslov";
+  if (std::strcmp(text, "Connector") == 0) return "Povezovalnik";
+  if (std::strcmp(text, "Disconnected") == 0) return "Prekinjeno";
+  if (std::strcmp(text, "Not paired") == 0) return "Ni seznanjeno";
+  if (std::strcmp(text, "Pairing") == 0) return "Seznanjanje";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Vnesite to kodo v aplikacijo za Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Poteklo";
   return text;
 }
 
@@ -4505,6 +4642,14 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Minne";
   if (std::strcmp(text, "Storage") == 0) return "Lagring";
   if (std::strcmp(text, "Battery") == 0) return "Batteri";
+  if (std::strcmp(text, "Build") == 0) return "Byggversion";
+  if (std::strcmp(text, "IP address") == 0) return "IP-adress";
+  if (std::strcmp(text, "Connector") == 0) return "Anslutning";
+  if (std::strcmp(text, "Disconnected") == 0) return "Frånkopplad";
+  if (std::strcmp(text, "Not paired") == 0) return "Inte parkopplad";
+  if (std::strcmp(text, "Pairing") == 0) return "Parkoppling";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Ange den här koden i Mac-appen";
+  if (std::strcmp(text, "Expired") == 0) return "Utgången";
   return text;
 }
 
@@ -4749,6 +4894,14 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Bellek";
   if (std::strcmp(text, "Storage") == 0) return "Depolama";
   if (std::strcmp(text, "Battery") == 0) return "Pil";
+  if (std::strcmp(text, "Build") == 0) return "Derleme";
+  if (std::strcmp(text, "IP address") == 0) return "IP adresi";
+  if (std::strcmp(text, "Connector") == 0) return "Bağlayıcı";
+  if (std::strcmp(text, "Disconnected") == 0) return "Bağlantı kesildi";
+  if (std::strcmp(text, "Not paired") == 0) return "Eşleştirilmedi";
+  if (std::strcmp(text, "Pairing") == 0) return "Eşleştirme";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Bu kodu Mac uygulamasına girin";
+  if (std::strcmp(text, "Expired") == 0) return "Süresi doldu";
   return text;
 }
 
@@ -4995,6 +5148,14 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Memory") == 0) return "Пам’ять";
   if (std::strcmp(text, "Storage") == 0) return "Сховище";
   if (std::strcmp(text, "Battery") == 0) return "Батарея";
+  if (std::strcmp(text, "Build") == 0) return "Збірка";
+  if (std::strcmp(text, "IP address") == 0) return "IP-адреса";
+  if (std::strcmp(text, "Connector") == 0) return "Конектор";
+  if (std::strcmp(text, "Disconnected") == 0) return "Відключено";
+  if (std::strcmp(text, "Not paired") == 0) return "Не сполучено";
+  if (std::strcmp(text, "Pairing") == 0) return "Сполучення";
+  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Введіть цей код у програмі для Mac";
+  if (std::strcmp(text, "Expired") == 0) return "Термін дії минув";
   return text;
 }
 
@@ -5250,6 +5411,14 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Storage";
   if (std::strcmp(key, "battery") == 0) return "Battery";
   if (std::strcmp(key, "network_throughput") == 0) return "Network";
+  if (std::strcmp(key, "build") == 0) return "Build";
+  if (std::strcmp(key, "ip_address") == 0) return "IP address";
+  if (std::strcmp(key, "connector") == 0) return "Connector";
+  if (std::strcmp(key, "disconnected") == 0) return "Disconnected";
+  if (std::strcmp(key, "not_paired") == 0) return "Not paired";
+  if (std::strcmp(key, "pairing") == 0) return "Pairing";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code in the Mac app";
+  if (std::strcmp(key, "expired") == 0) return "Expired";
   return key;
 }
 
@@ -5487,6 +5656,14 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Úložiště";
   if (std::strcmp(key, "battery") == 0) return "Baterie";
   if (std::strcmp(key, "network_throughput") == 0) return "Síťová propustnost";
+  if (std::strcmp(key, "build") == 0) return "Sestavení";
+  if (std::strcmp(key, "ip_address") == 0) return "IP adresa";
+  if (std::strcmp(key, "connector") == 0) return "Konektor";
+  if (std::strcmp(key, "disconnected") == 0) return "Odpojeno";
+  if (std::strcmp(key, "not_paired") == 0) return "Nespárováno";
+  if (std::strcmp(key, "pairing") == 0) return "Párování";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód v aplikaci pro Mac";
+  if (std::strcmp(key, "expired") == 0) return "Platnost vypršela";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -5717,6 +5894,13 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Lager";
   if (std::strcmp(key, "battery") == 0) return "Batteri";
   if (std::strcmp(key, "network_throughput") == 0) return "Netværkshastighed";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-adresse";
+  if (std::strcmp(key, "connector") == 0) return "Forbindelse";
+  if (std::strcmp(key, "disconnected") == 0) return "Afbrudt";
+  if (std::strcmp(key, "not_paired") == 0) return "Ikke parret";
+  if (std::strcmp(key, "pairing") == 0) return "Parring";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i Mac-appen";
+  if (std::strcmp(key, "expired") == 0) return "Udløbet";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -5946,6 +6130,12 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Speicher";
   if (std::strcmp(key, "battery") == 0) return "Batterie";
   if (std::strcmp(key, "network_throughput") == 0) return "Netzwerkdurchsatz";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-Adresse";
+  if (std::strcmp(key, "disconnected") == 0) return "Getrennt";
+  if (std::strcmp(key, "not_paired") == 0) return "Nicht gekoppelt";
+  if (std::strcmp(key, "pairing") == 0) return "Kopplung";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Diesen Code in der Mac-App eingeben";
+  if (std::strcmp(key, "expired") == 0) return "Abgelaufen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6182,6 +6372,14 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Almacenamiento";
   if (std::strcmp(key, "battery") == 0) return "Batería";
   if (std::strcmp(key, "network_throughput") == 0) return "Rendimiento de red";
+  if (std::strcmp(key, "build") == 0) return "Compilación";
+  if (std::strcmp(key, "ip_address") == 0) return "Dirección IP";
+  if (std::strcmp(key, "connector") == 0) return "Conector";
+  if (std::strcmp(key, "disconnected") == 0) return "Desconectado";
+  if (std::strcmp(key, "not_paired") == 0) return "Sin emparejar";
+  if (std::strcmp(key, "pairing") == 0) return "Emparejamiento";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la app para Mac";
+  if (std::strcmp(key, "expired") == 0) return "Caducado";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6428,6 +6626,14 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Tallennustila";
   if (std::strcmp(key, "battery") == 0) return "Akku";
   if (std::strcmp(key, "network_throughput") == 0) return "Verkon siirtonopeus";
+  if (std::strcmp(key, "build") == 0) return "Koontiversio";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-osoite";
+  if (std::strcmp(key, "connector") == 0) return "Yhdistin";
+  if (std::strcmp(key, "disconnected") == 0) return "Yhteys katkaistu";
+  if (std::strcmp(key, "not_paired") == 0) return "Ei paritettu";
+  if (std::strcmp(key, "pairing") == 0) return "Paritus";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi Mac-sovellukseen";
+  if (std::strcmp(key, "expired") == 0) return "Vanhentunut";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6657,6 +6863,14 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Stockage";
   if (std::strcmp(key, "battery") == 0) return "Batterie";
   if (std::strcmp(key, "network_throughput") == 0) return "Débit réseau";
+  if (std::strcmp(key, "build") == 0) return "Version";
+  if (std::strcmp(key, "ip_address") == 0) return "Adresse IP";
+  if (std::strcmp(key, "connector") == 0) return "Connecteur";
+  if (std::strcmp(key, "disconnected") == 0) return "Déconnecté";
+  if (std::strcmp(key, "not_paired") == 0) return "Non jumelé";
+  if (std::strcmp(key, "pairing") == 0) return "Jumelage";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application Mac";
+  if (std::strcmp(key, "expired") == 0) return "Expiré";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6911,6 +7125,14 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "אחסון";
   if (std::strcmp(key, "battery") == 0) return "סוללה";
   if (std::strcmp(key, "network_throughput") == 0) return "קצב רשת";
+  if (std::strcmp(key, "build") == 0) return "גרסה";
+  if (std::strcmp(key, "ip_address") == 0) return "כתובת IP";
+  if (std::strcmp(key, "connector") == 0) return "מחבר";
+  if (std::strcmp(key, "disconnected") == 0) return "מנותק";
+  if (std::strcmp(key, "not_paired") == 0) return "לא מותאם";
+  if (std::strcmp(key, "pairing") == 0) return "התאמה";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציית Mac";
+  if (std::strcmp(key, "expired") == 0) return "פג תוקף";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7157,6 +7379,13 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Tárhely";
   if (std::strcmp(key, "battery") == 0) return "Akkumulátor";
   if (std::strcmp(key, "network_throughput") == 0) return "Hálózati átviteli sebesség";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-cím";
+  if (std::strcmp(key, "connector") == 0) return "Csatlakozó";
+  if (std::strcmp(key, "disconnected") == 0) return "Leválasztva";
+  if (std::strcmp(key, "not_paired") == 0) return "Nincs párosítva";
+  if (std::strcmp(key, "pairing") == 0) return "Párosítás";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Adja meg ezt a kódot a Mac alkalmazásban";
+  if (std::strcmp(key, "expired") == 0) return "Lejárt";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7394,6 +7623,13 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Archiviazione";
   if (std::strcmp(key, "battery") == 0) return "Batteria";
   if (std::strcmp(key, "network_throughput") == 0) return "Velocità di rete";
+  if (std::strcmp(key, "ip_address") == 0) return "Indirizzo IP";
+  if (std::strcmp(key, "connector") == 0) return "Connettore";
+  if (std::strcmp(key, "disconnected") == 0) return "Disconnesso";
+  if (std::strcmp(key, "not_paired") == 0) return "Non abbinato";
+  if (std::strcmp(key, "pairing") == 0) return "Abbinamento";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app per Mac";
+  if (std::strcmp(key, "expired") == 0) return "Scaduto";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7628,6 +7864,14 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Lagring";
   if (std::strcmp(key, "battery") == 0) return "Batteri";
   if (std::strcmp(key, "network_throughput") == 0) return "Nettverkshastighet";
+  if (std::strcmp(key, "build") == 0) return "Bygg";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-adresse";
+  if (std::strcmp(key, "connector") == 0) return "Tilkobling";
+  if (std::strcmp(key, "disconnected") == 0) return "Frakoblet";
+  if (std::strcmp(key, "not_paired") == 0) return "Ikke paret";
+  if (std::strcmp(key, "pairing") == 0) return "Paring";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i Mac-appen";
+  if (std::strcmp(key, "expired") == 0) return "Utløpt";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7861,6 +8105,12 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Opslag";
   if (std::strcmp(key, "battery") == 0) return "Batterij";
   if (std::strcmp(key, "network_throughput") == 0) return "Netwerkdoorvoer";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-adres";
+  if (std::strcmp(key, "disconnected") == 0) return "Verbinding verbroken";
+  if (std::strcmp(key, "not_paired") == 0) return "Niet gekoppeld";
+  if (std::strcmp(key, "pairing") == 0) return "Koppelen";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de Mac-app in";
+  if (std::strcmp(key, "expired") == 0) return "Verlopen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8095,6 +8345,14 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Pamięć masowa";
   if (std::strcmp(key, "battery") == 0) return "Bateria";
   if (std::strcmp(key, "network_throughput") == 0) return "Przepustowość sieci";
+  if (std::strcmp(key, "build") == 0) return "Kompilacja";
+  if (std::strcmp(key, "ip_address") == 0) return "Adres IP";
+  if (std::strcmp(key, "connector") == 0) return "Łącznik";
+  if (std::strcmp(key, "disconnected") == 0) return "Rozłączono";
+  if (std::strcmp(key, "not_paired") == 0) return "Niesparowano";
+  if (std::strcmp(key, "pairing") == 0) return "Parowanie";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji na Macu";
+  if (std::strcmp(key, "expired") == 0) return "Wygasł";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8331,6 +8589,14 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Armazenamento";
   if (std::strcmp(key, "battery") == 0) return "Bateria";
   if (std::strcmp(key, "network_throughput") == 0) return "Taxa de rede";
+  if (std::strcmp(key, "build") == 0) return "Compilação";
+  if (std::strcmp(key, "ip_address") == 0) return "Endereço IP";
+  if (std::strcmp(key, "connector") == 0) return "Conector";
+  if (std::strcmp(key, "disconnected") == 0) return "Desconectado";
+  if (std::strcmp(key, "not_paired") == 0) return "Não pareado";
+  if (std::strcmp(key, "pairing") == 0) return "Pareamento";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para Mac";
+  if (std::strcmp(key, "expired") == 0) return "Expirado";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8568,6 +8834,14 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Armazenamento";
   if (std::strcmp(key, "battery") == 0) return "Bateria";
   if (std::strcmp(key, "network_throughput") == 0) return "Taxa de rede";
+  if (std::strcmp(key, "build") == 0) return "Compilação";
+  if (std::strcmp(key, "ip_address") == 0) return "Endereço IP";
+  if (std::strcmp(key, "connector") == 0) return "Conector";
+  if (std::strcmp(key, "disconnected") == 0) return "Desligado";
+  if (std::strcmp(key, "not_paired") == 0) return "Não emparelhado";
+  if (std::strcmp(key, "pairing") == 0) return "Emparelhamento";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para Mac";
+  if (std::strcmp(key, "expired") == 0) return "Expirado";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8814,6 +9088,14 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Stocare";
   if (std::strcmp(key, "battery") == 0) return "Baterie";
   if (std::strcmp(key, "network_throughput") == 0) return "Debit rețea";
+  if (std::strcmp(key, "build") == 0) return "Versiune";
+  if (std::strcmp(key, "ip_address") == 0) return "Adresă IP";
+  if (std::strcmp(key, "connector") == 0) return "Conector";
+  if (std::strcmp(key, "disconnected") == 0) return "Deconectat";
+  if (std::strcmp(key, "not_paired") == 0) return "Neasociat";
+  if (std::strcmp(key, "pairing") == 0) return "Asociere";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduceți acest cod în aplicația pentru Mac";
+  if (std::strcmp(key, "expired") == 0) return "Expirat";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9067,6 +9349,14 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Хранилище";
   if (std::strcmp(key, "battery") == 0) return "Батарея";
   if (std::strcmp(key, "network_throughput") == 0) return "Пропускная способность сети";
+  if (std::strcmp(key, "build") == 0) return "Сборка";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-адрес";
+  if (std::strcmp(key, "connector") == 0) return "Коннектор";
+  if (std::strcmp(key, "disconnected") == 0) return "Отключено";
+  if (std::strcmp(key, "not_paired") == 0) return "Не сопряжено";
+  if (std::strcmp(key, "pairing") == 0) return "Сопряжение";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для Mac";
+  if (std::strcmp(key, "expired") == 0) return "Срок действия истёк";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9305,6 +9595,14 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Úložisko";
   if (std::strcmp(key, "battery") == 0) return "Batéria";
   if (std::strcmp(key, "network_throughput") == 0) return "Priepustnosť siete";
+  if (std::strcmp(key, "build") == 0) return "Zostava";
+  if (std::strcmp(key, "ip_address") == 0) return "IP adresa";
+  if (std::strcmp(key, "connector") == 0) return "Konektor";
+  if (std::strcmp(key, "disconnected") == 0) return "Odpojené";
+  if (std::strcmp(key, "not_paired") == 0) return "Nespárované";
+  if (std::strcmp(key, "pairing") == 0) return "Párovanie";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód v aplikácii pre Mac";
+  if (std::strcmp(key, "expired") == 0) return "Platnosť vypršala";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9547,6 +9845,14 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Shramba";
   if (std::strcmp(key, "battery") == 0) return "Baterija";
   if (std::strcmp(key, "network_throughput") == 0) return "Prepustnost omrežja";
+  if (std::strcmp(key, "build") == 0) return "Gradnja";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-naslov";
+  if (std::strcmp(key, "connector") == 0) return "Povezovalnik";
+  if (std::strcmp(key, "disconnected") == 0) return "Prekinjeno";
+  if (std::strcmp(key, "not_paired") == 0) return "Ni seznanjeno";
+  if (std::strcmp(key, "pairing") == 0) return "Seznanjanje";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v aplikacijo za Mac";
+  if (std::strcmp(key, "expired") == 0) return "Poteklo";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9780,6 +10086,14 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Lagring";
   if (std::strcmp(key, "battery") == 0) return "Batteri";
   if (std::strcmp(key, "network_throughput") == 0) return "Nätverkshastighet";
+  if (std::strcmp(key, "build") == 0) return "Byggversion";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-adress";
+  if (std::strcmp(key, "connector") == 0) return "Anslutning";
+  if (std::strcmp(key, "disconnected") == 0) return "Frånkopplad";
+  if (std::strcmp(key, "not_paired") == 0) return "Inte parkopplad";
+  if (std::strcmp(key, "pairing") == 0) return "Parkoppling";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i Mac-appen";
+  if (std::strcmp(key, "expired") == 0) return "Utgången";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10026,6 +10340,14 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Depolama";
   if (std::strcmp(key, "battery") == 0) return "Pil";
   if (std::strcmp(key, "network_throughput") == 0) return "Ağ aktarım hızı";
+  if (std::strcmp(key, "build") == 0) return "Derleme";
+  if (std::strcmp(key, "ip_address") == 0) return "IP adresi";
+  if (std::strcmp(key, "connector") == 0) return "Bağlayıcı";
+  if (std::strcmp(key, "disconnected") == 0) return "Bağlantı kesildi";
+  if (std::strcmp(key, "not_paired") == 0) return "Eşleştirilmedi";
+  if (std::strcmp(key, "pairing") == 0) return "Eşleştirme";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu Mac uygulamasına girin";
+  if (std::strcmp(key, "expired") == 0) return "Süresi doldu";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10274,6 +10596,14 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "storage") == 0) return "Сховище";
   if (std::strcmp(key, "battery") == 0) return "Батарея";
   if (std::strcmp(key, "network_throughput") == 0) return "Пропускна здатність мережі";
+  if (std::strcmp(key, "build") == 0) return "Збірка";
+  if (std::strcmp(key, "ip_address") == 0) return "IP-адреса";
+  if (std::strcmp(key, "connector") == 0) return "Конектор";
+  if (std::strcmp(key, "disconnected") == 0) return "Відключено";
+  if (std::strcmp(key, "not_paired") == 0) return "Не сполучено";
+  if (std::strcmp(key, "pairing") == 0) return "Сполучення";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для Mac";
+  if (std::strcmp(key, "expired") == 0) return "Термін дії минув";
   return espdesktop_i18n_key_en(key);
 }
 

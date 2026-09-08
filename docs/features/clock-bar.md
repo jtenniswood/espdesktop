@@ -20,9 +20,7 @@ You will find these controls in **Settings > Display > Clock Bar** on the panel 
 
 The clock bar layout is not customizable. Hidden items stay greyed in the web preview so you can select and show them again, but they are hidden on the device screen. Extra saved temperature entries, weather settings, and older saved layout strings are ignored by current firmware.
 
-On the 4-inch S3 (Guition 4848S040), Mac Companion does not add an icon to the clock bar. Hold the network status icon to start Mac Companion pairing.
-
-Tap the network status icon on the panel to see device details, including the device name, IP address, WiFi strength, uptime, and firmware version.
+Tap the network status icon on the panel to open Settings. The page uses the same card style as your other pages: **Build** shows the installed firmware version, **IP address** shows the current address, and **Connector** shows the Mac connector state. The address and connector state update while the page is open. Use the **Pairing** card to pair a Mac: its popup shows a pairing code and the display’s IP address. Pairing is disabled on builds without Mac connector support and while the screen is locked. Close the popup to return to Settings, then tap **Back** to return to the page you were using.
 
 The night mode moon appears whenever the [Night Schedule](/features/screen-schedule) is in its night period, in both **Time** and **Sensor** mode - in Sensor mode it follows the sensor entity and the activation state you chose. It is visible in practice when the schedule keeps the screen awake or dimmed rather than turning it off, and it disappears again when normal mode resumes.
 

@@ -61,16 +61,6 @@ lvgl:
           on_press:
             then:
               - script.execute: network_status_open_info
-          on_long_press:
-            then:
-              - lambda: |-
-                  esphome::companion::begin_companion_pairing();
-                  network_status_open_text_modal(
-                    "Mac Companion pairing",
-                    esphome::companion::companion_pairing_code(),
-                    "Enter this code in the Mac app",
-                    id(${media_title_font})->get_lv_font(),
-                    id(${icon_font})->get_lv_font());
 
       # Night mode indicator (schedule night period only). Starts hidden;
       # clock_bar_apply positions and reveals it beside the network icon, so the
