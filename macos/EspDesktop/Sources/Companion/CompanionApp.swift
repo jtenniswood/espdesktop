@@ -140,14 +140,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         labels.alignment = .leading
         labels.spacing = 1
 
-        let connectionSwitch = NSSwitch()
-        connectionSwitch.state = store.isConnected ? .on : .off
-        connectionSwitch.target = self
-        connectionSwitch.action = #selector(connectionSwitchChanged(_:))
-        connectionSwitch.toolTip = store.isConnected ? "Disconnect from the display" : "Connect to the display"
-        connectionSwitch.isEnabled = store.isConnected
-            || !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        connectionSwitch.setAccessibilityLabel("EspDesktop connection")
+        let connectionSwitch = NSHostingView(rootView: CompanionMenuConnectionToggle(store: store))
 
         container.addSubview(labels)
         container.addSubview(connectionSwitch)
@@ -172,14 +165,6 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         item.target = self
         item.image = image
         menu.addItem(item)
-    }
-
-    @objc private func connectionSwitchChanged(_ sender: NSSwitch) {
-        if sender.state == .on {
-            store.connect()
-        } else {
-            store.disconnect()
-        }
     }
 
     @objc private func openDisplaySettings() { store.openPanelWebServer() }
@@ -269,4 +254,22 @@ func activateCompanionApplication() {
         .activateIgnoringOtherApps,
     ])
     NSApp.activate(ignoringOtherApps: true)
+}
+
+private struct CompanionMenuConnectionToggle: View {
+    @ObservedObject var store: CompanionStore
+
+    var body: some View {
+        Toggle("EspDesktop connection", isOn: Binding(
+            get: { store.isConnected },
+            set: { connected in
+                if connected { store.connect() } else { store.disconnect() }
+            }
+        ))
+        .labelsHidden()
+        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+        .disabled(!store.isConnected && store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .help(store.isConnected ? "Disconnect from the display" : "Connect to the display")
+        .fixedSize()
+    }
 }
