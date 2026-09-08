@@ -726,7 +726,7 @@ struct CompanionSettings: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Enjoying EspDisplay?")
                         .font(.headline)
-                    Text("Buy me a coffee to support the time behind new features, improvements, and personal support. Every contribution helps keep the project moving. Thank you!")
+                    Text("Buy me a coffee to help fund new features, improvements, and support. Every contribution makes a difference. Thank you!")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                     Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
