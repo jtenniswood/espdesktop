@@ -71,7 +71,7 @@ struct CompanionUpdateSettings: View {
 
     var body: some View {
         Form {
-            Section {
+            Section("Installed") {
                 HStack {
                     Text("Version \(updater.installedVersion)")
                     Spacer()
