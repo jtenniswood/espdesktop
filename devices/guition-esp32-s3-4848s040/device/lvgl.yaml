@@ -149,15 +149,18 @@ esphome:
             };
 
 interval:
-  - interval: 500ms
+  - interval: 50ms
     then:
       - lambda: |-
           // Grid construction owns Companion card registration. Runtime
           // updates set the refresh flag, so consume only real changes instead
-          // of reparsing every card and repainting twice a second while idle.
+          // of reparsing every card or repainting while idle.
           companion_refresh_cards_if_requested();
           navigation_return_from_companion_shortcuts_if_needed(id(main_page)->obj);
           navigation_open_companion_subpage_if_requested(id(main_page)->obj);
+  - interval: 500ms
+    then:
+      - lambda: |-
           auto &refresh_clock_bar = navigation_subpage_clock_bar_refresh();
           if (refresh_clock_bar) refresh_clock_bar();
           static bool previous_companion_connection = false;

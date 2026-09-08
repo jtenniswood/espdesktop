@@ -830,14 +830,14 @@ inline bool media_fast_press_mode(const std::string &mode) {
   return mode == "previous" || mode == "next";
 }
 
-inline bool *media_fast_press_slots() {
+inline bool *button_fast_press_slots() {
   static bool slots[MAX_GRID_SLOTS + 1] = {};
   return slots;
 }
 
-inline bool media_fast_press_consume(int slot_num) {
+inline bool button_fast_press_consume(int slot_num) {
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return false;
-  bool *slots = media_fast_press_slots();
+  bool *slots = button_fast_press_slots();
   bool sent = slots[slot_num];
   slots[slot_num] = false;
   return sent;
@@ -859,10 +859,27 @@ inline bool button_press_opens_modal(const ParsedCfg &config, lv_obj_t *button) 
   return false;
 }
 
+namespace espdesktop::cards {
+inline bool basic_action_driver_handle_main_click(
+    const Context &context, const ParsedCfg &config,
+    int slot_number, lv_obj_t *button);
+}
+
 inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
+  // A cancelled gesture may have no click event. Start every touch fresh.
+  button_fast_press_slots()[slot_num] = false;
   ParsedCfg p = parse_cfg(cfg);
+  const auto context = card_runtime_context(p);
+  if (context.runtime.driver == espdesktop::card_runtime::CardDriverId::COMPANION &&
+      !companion_metric_key_valid(p.entity) && !companion_app_shortcuts_enabled(p)) {
+    // Send direct Mac actions on touch, then consume the release/long press.
+    // App-subpage navigation stays on release to avoid changing screens while held.
+    button_fast_press_slots()[slot_num] = true;
+    espdesktop::cards::basic_action_driver_handle_main_click(context, p, slot_num, btn_obj);
+    return;
+  }
   if (btn_obj && button_press_opens_modal(p, btn_obj)) {
     // The modal replaces this card on release. Clearing the state inside the
     // press event avoids scheduling a pointless pressed-card repaint first.
@@ -871,7 +888,7 @@ inline void handle_button_press(const std::string &cfg, int slot_num,
   if (p.type != "media") return;
   std::string mode = media_card_mode(p.sensor);
   if (!media_fast_press_mode(mode) || p.entity.empty()) return;
-  media_fast_press_slots()[slot_num] = true;
+  button_fast_press_slots()[slot_num] = true;
   send_media_playback_action(p.entity, mode);
 }
 
@@ -939,7 +956,7 @@ inline bool media_driver_handle_main_click(
 inline void handle_button_click(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   (void) btn_obj;
-  if (media_fast_press_consume(slot_num)) return;
+  if (button_fast_press_consume(slot_num)) return;
   ParsedCfg p = parse_cfg(cfg);
   const auto context = card_runtime_context(p);
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",

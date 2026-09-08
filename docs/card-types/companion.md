@@ -35,6 +35,8 @@ For **Launch app**, select an application from the approved list supplied by the
 
 For **Open URL**, enter an `http://` or `https://` address and choose the approved application that should open it, such as Safari or Chrome. Addresses containing an embedded username or password are rejected, and other URL types such as `file://` are not accepted.
 
+Direct Mac action cards on the main grid send their command as soon as you touch them and light up immediately, with a brief fade when released. App and folder highlights stay lit while focus confirmation arrives (up to one second), avoiding an off–on blink. App cards with an app subpage still activate on release so navigation cannot interrupt a held touch.
+
 When an app card is active on the Mac, the card uses the display's active colour. This also lets an app card safely switch the display to its matching app subpage only after the Mac confirms that the application came to the front.
 
 ## Ready-Made App Subpages

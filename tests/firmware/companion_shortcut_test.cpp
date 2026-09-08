@@ -12,6 +12,23 @@ inline std::string espdesktop_i18n(const std::string &value) { return value; }
 using namespace esphome::companion;
 
 int main() {
+  CompanionFocusFeedback feedback;
+  feedback.begin("com.apple.Safari", 10);
+  assert(!feedback.reconcile(true, "com.apple.Notes", 500));
+  assert(feedback.action_id == "com.apple.Safari");
+  assert(feedback.reconcile(true, "com.apple.Safari", 501));
+  assert(feedback.action_id.empty());
+  feedback.begin("com.apple.Safari", 600);
+  feedback.begin("com.apple.Notes", 650);
+  assert(!feedback.reconcile(true, "com.apple.Safari", 700));
+  assert(feedback.action_id == "com.apple.Notes");
+  assert(feedback.reconcile(true, "com.apple.Safari", 1650));
+  feedback.begin("com.apple.Notes", 1700);
+  assert(feedback.reconcile(false, "", 1701));
+  feedback.begin("com.apple.Notes", UINT32_MAX - 500);
+  assert(!feedback.reconcile(true, "", 100));
+  assert(feedback.reconcile(true, "", 500));
+
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
   assert(std::string(companion_play_pause_status(CompanionPlaybackState::PLAYING)) == "Playing");
