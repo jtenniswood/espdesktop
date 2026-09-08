@@ -167,7 +167,7 @@ esphome:
               },
               [=]() { id(relay_3_push).execute(); },
               [=]() -> bool { return id(relay_3).state; });
-    # The application owner starts at AFTER_WIFI (200). These handlers access
+    # The application owner starts just before AFTER_WIFI. These handlers access
     # its Companion runtime, so register them afterwards and before the grid.
     - priority: 190
       then:

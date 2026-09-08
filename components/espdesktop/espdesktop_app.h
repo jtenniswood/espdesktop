@@ -31,7 +31,9 @@ class EspDesktopApp : public esphome::Component {
     // Those entities, and the P4 display services they can refresh, are only
     // ready once Wifi setup has completed. Starting the owner earlier makes
     // P4 firmware reset before ESPHome can confirm a new OTA boot.
-    return esphome::setup_priority::AFTER_WIFI;
+    // CompanionService also starts at AFTER_WIFI and requires this owner.
+    // Run immediately before it instead of depending on equal-priority order.
+    return esphome::setup_priority::AFTER_WIFI + 1.0f;
   }
 
   DisplayModeController &display() { return core_.display(); }
