@@ -573,12 +573,6 @@ struct CompanionSettings: View {
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(folder.name)
-                                Text(folder.path)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                    .help(folder.path)
                                 if store.folderNeedsAccess(folder) {
                                     Label("Folder unavailable", systemImage: "exclamationmark.triangle")
                                         .font(.callout)
