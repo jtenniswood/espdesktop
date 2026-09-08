@@ -25,3 +25,8 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_display
+    on_value:
+      then:
+        # Rebuild cards and subpages with the saved palette. The shared refresh
+        # script debounces picker changes and waits for the display to be ready.
+        - script.execute: refresh_button_grid
