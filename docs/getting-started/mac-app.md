@@ -19,10 +19,6 @@ Mac Companion is currently a proof of concept for the **4-inch Guition ESP32-S3 
 
 Install the Mac app and display firmware from the same release so their Companion versions match.
 
-::: warning Replacing the older app
-If **EspControl Companion** is already installed, quit it and turn off its **Open at Login** setting before opening EspDesktop. EspDesktop carries the existing pairing, approved apps and folders, and preferences forward. Keep the older app closed so both versions do not compete for the same display.
-:::
-
 ## Choose the First-Run Options
 
 The Mac app explains three independent choices. You can change each one later from **Permissions**.
