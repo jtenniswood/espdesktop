@@ -589,9 +589,6 @@ struct CompanionSettings: View {
     private var foldersPage: some View {
         Form {
             Section {
-                Text("Add folders you want to open from your display. Their paths stay on this Mac.")
-            }
-            Section {
                 if store.approvedFolders.isEmpty {
                     emptyState("Add Your First Folder", symbol: "folder.badge.plus",
                                detail: "Keep a project, documents, or downloads one tap away on your display.")
