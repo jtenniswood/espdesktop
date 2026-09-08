@@ -1,104 +1,77 @@
-![EspDesktop on a 7-inch touchscreen: home screen with temperature, clock, and control tiles](docs/public/images/home_screen_hero.jpg)
-
 # EspDesktop
 
-**Turn an affordable touchscreen into a simple smart home control panel.**
+**Turn a small touchscreen into a dedicated controller for your Mac.**
 
-EspDesktop lets you put the Home Assistant controls you use every day onto a dedicated screen: lights by the door, heating in the hallway, garage controls in the utility room, room temperatures on a desk, or a tidy bedside panel for scenes and alarms.
+EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders, run keyboard shortcuts, arrange windows, control media and volume, open websites, and keep an eye on your Mac without reaching for the keyboard.
 
-You do not need to write code, edit YAML, or build your own ESPHome setup. Install the firmware from a web browser, connect the screen to WiFi, add it to Home Assistant, then choose what appears on the display from the screen's built-in setup page.
+Set up the display from a normal web browser. There is no YAML to write, no project to compile, and Home Assistant is not required for Mac controls.
 
-**Documentation and install guide:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
+> [!IMPORTANT]
+> Mac Companion controls are currently a proof of concept for the **4-inch Guition ESP32-S3 4848S040** display and one paired Mac. Use matching display firmware and Mac app versions from the same release.
 
-## What It Unlocks
-
-- **A real control panel for your home** - give family and guests simple buttons instead of asking them to use the Home Assistant app.
-- **Room-by-room control** - place a small screen where it is useful: kitchen, hallway, office, garage, bedroom, or next to a door.
-- **One-tap routines** - run scenes, scripts, and automations such as movie mode, bedtime, away mode, or garden lights.
-- **Live home information** - show temperatures, sensors, weather, dates, clocks, and other Home Assistant readings at a glance.
-- **Flexible pages of controls** - keep the main screen simple, then open extra pages for rooms, devices, or less common actions.
-- **Local smart home control** - the panel talks to Home Assistant on your own network. It is not a cloud dashboard.
-- **Easy changes later** - rearrange buttons, change icons, adjust the active colour, back up your setup, and install firmware updates without starting again.
+**Documentation:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
 
 ## What You Can Control
 
-EspDesktop works with devices and helpers that are already in Home Assistant, including:
+- **Applications** — launch only the Mac apps you approve in EspDesktop.
+- **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
+- **Windows** — close, minimise, hide, enter full screen, or use the move-and-resize controls available on your version of macOS.
+- **Media** — play or pause the current Now Playing session, skip tracks, and see the playback state confirmed by the Mac.
+- **Volume** — adjust Mac output and input volume from Slider cards.
+- **Folders and websites** — open approved Finder folders or safe `http://` and `https://` links in an approved app.
+- **Mac statistics** — optionally show processor, memory, storage, network throughput, and battery readings.
 
-- Lights, switches, fans, and plugs
-- Scenes, scripts, buttons, and automations
-- Blinds, shutters, covers, and garage doors
-- Media players for playback, volume, progress, and now-playing display
-- Climate controls for thermostats and HVAC devices
-- Sensors such as temperature, humidity, power, battery, or custom text states
-- Weather, clocks, dates, and time zones
-- Built-in relays on supported panels
-
-If Home Assistant can see it, EspDesktop is designed to make it easier to put that control or information on a touchscreen.
-
-![Web-based card configuration on the 4-inch 4848S040](docs/public/images/4848s040-buttons.png)
+You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up the finished layout from the display's built-in setup page.
 
 ## How It Works
 
-1. **Buy a supported ESP32 touchscreen.**
-2. **Install EspDesktop from your browser** using the web installer.
-3. **Connect the screen to WiFi** using the setup screen it creates.
-4. **Add it to Home Assistant** when Home Assistant discovers it.
-5. **Allow Home Assistant actions** so the panel is permitted to control your devices.
-6. **Open the panel's web page** and choose the buttons, sensors, pages, active colour, and display settings you want.
+1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
+2. **Connect the display to 2.4 GHz WiFi.**
+3. **Install the EspDesktop Mac app** from the matching release and open it from Applications.
+4. **Pair the Mac and display.** Open the display's web settings, choose **Connectors → Mac Companion**, and enter the temporary code in the Mac app.
+5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed only for keyboard shortcuts and window controls.
+6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
-After that, the panel runs on its own. You can still change the layout at any time from a phone, tablet, or computer browser.
+Start with the [firmware install guide](https://jtenniswood.github.io/espdesktop/getting-started/install), then follow the [Mac app and pairing guide](https://jtenniswood.github.io/espdesktop/getting-started/mac-app).
 
-Start here: [Install EspDesktop](https://jtenniswood.github.io/espdesktop/getting-started/install)
+## Designed to Stay Narrow
 
-## Supported Screens
+EspDesktop is a local companion, not remote desktop software. The Mac app connects to the paired display on your local network and limits it to a small set of defined actions.
 
-EspDesktop supports several low-cost ESP32 touchscreens. Larger screens give you more room for controls; smaller screens are useful beside doors, on desks, or in individual rooms.
+- Pairing uses a temporary code, a credential stored in macOS Keychain, and certificate pinning.
+- Applications and folders must be approved on the Mac before the display can use them.
+- Folder paths remain on the Mac; the display receives only a friendly name and an anonymous identifier.
+- Web cards accept only `http://` and `https://` links.
+- The connector does not run shell commands or accept incoming network connections on the Mac.
 
-| | 10.1" JC8012P4A1 | 7" JC1060P470 | 4.3" JC4880P443 | 4" ESP32-P4 86 Panel | 4" 4848S040 |
-|---|:-:|:-:|:-:|:-:|:-:|
-| Image | Image pending | ![7-inch JC1060P470](docs/public/images/jc1060p470-hero.jpg) | ![4.3-inch JC4880P443](docs/public/images/jc4880p443-hero.jpg) | Image pending | ![4-inch 4848S040](docs/public/images/4848s040-hero.jpg) |
-| Layout | 1280x800 landscape · 20 card slots | 1024x600 landscape · 15 card slots | 480x800 portrait · 6 card slots | 720x720 square · 9 card slots | 480x480 square · 9 card slots |
-| Processor | ESP32-P4 | ESP32-P4 | ESP32-P4 | ESP32-P4 | ESP32-S3 |
-| Panel | [AliExpress ~£40](https://s.click.aliexpress.com/e/_c4W6TYvp) | [AliExpress ~£40](https://s.click.aliexpress.com/e/_c335W0r5) | [AliExpress ~£24](https://s.click.aliexpress.com/e/_c32jr3eN) | [AliExpress ~£45](https://s.click.aliexpress.com/e/_c3O6ndAX) | [AliExpress ~£16](https://s.click.aliexpress.com/e/_c3sIhvBv) |
-| 3D mount | [MakerWorld](https://makerworld.com/en/models/2490049-guition-p4-10inch-screen-stand#profileId-2736046) | [MakerWorld](https://makerworld.com/en/models/2387421-guition-esp32p4-jc1060p470-7inch-screen-desk-mount#profileId-2614995) | [MakerWorld](https://makerworld.com/en/models/2982320-desk-stand-for-4-3-inch-jc4880p443-esp32-screen#profileId-3346161) | [MakerWorld](https://makerworld.com/en/models/2720366-waveshare-esp32-p4-smart-86-box-screen-desk-stand#profileId-3013481) | [MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301) |
-
-See the [screen guides](https://jtenniswood.github.io/espdesktop/getting-started/install) for full details on each model.
-
-## Built for Everyday Use
-
-- **Simple setup page** - configure the screen from a normal browser.
-- **Drag-and-drop layout** - move controls around without editing files.
-- **Subpages** - make folder-like pages for rooms or groups of controls.
-- **Different card sizes** - make important controls larger and keep smaller items compact.
-- **Dedicated card types** - Switch, Lights, Action, Local Action, Option Select, Webhook, Trigger, Sensor, Local Sensor, Doors & Windows, Presence, Slider, Fans, Vacuum, Lawn Mower, Cover, Garage Door, Lock, Alarm, Date & Time, World Clock, Weather, Camera, Media, Climate, Internal Switches, Screen Lock, and Subpage.
-- **Home Assistant action support** - run scenes, scripts, automations, buttons, webhooks, and helper changes directly from the panel.
-- **Camera and media displays** - show camera images, media player state, album art, playback controls, volume, and progress.
-- **Display scheduling** - use idle timers, night schedules, brightness controls, and optional presence sensors so the screen behaves well in real rooms.
-- **Appearance controls** - choose icons, labels, status text, active colour, clock display, rotation, and temperature units from the setup page.
-- **Screensaver and brightness controls** - dim or sleep the display when it is not in use.
-- **Automatic updates** - keep standard firmware current after the first install.
-- **Optional Mac integration** - pair the EspDesktop menu-bar app with a supported display for approved apps, folders, shortcuts, media controls, and Mac statistics.
-- **Backup and restore** - save your layout and copy it to another panel.
-- **Language support** - choose the panel language, with translation files available for contributors.
+Pair on a trusted local network and remove a display from the Mac app before replacing or re-pairing it.
 
 ## What You Need
 
-- A supported ESP32 touchscreen
-- A USB-C data cable for the first install
-- A computer running Chrome or Edge for flashing the firmware
-- Home Assistant running on your home network
-- 2.4 GHz WiFi for the panel
-- macOS 13 or newer only when using the optional EspDesktop Mac app
+- A 4-inch Guition ESP32-S3 4848S040 touchscreen
+- A USB-C data cable for the first firmware install
+- Chrome or Edge for browser-based flashing
+- A 2.4 GHz WiFi network shared by the display and Mac
+- A Mac running macOS 13 or newer
+- macOS 15 or newer for the newer window tiling and arrangement actions
+
+The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv), with a compatible [3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301).
+
+## Home Assistant Is Optional
+
+The Mac Companion connector is enough to complete setup and use Mac controls. If you also use Home Assistant, it can be connected alongside the Mac so the same display can mix Mac actions with smart-home controls and sensor information.
 
 ## Project Links
 
-- [Documentation](https://jtenniswood.github.io/espdesktop/)
-- [Install guide](https://jtenniswood.github.io/espdesktop/getting-started/install)
-- [Mac app setup](https://jtenniswood.github.io/espdesktop/getting-started/mac-app)
-- [FAQ](https://jtenniswood.github.io/espdesktop/reference/faq)
+- [Install EspDesktop firmware](https://jtenniswood.github.io/espdesktop/getting-started/install)
+- [Install and pair the Mac app](https://jtenniswood.github.io/espdesktop/getting-started/mac-app)
+- [Configure Companion cards](https://jtenniswood.github.io/espdesktop/card-types/companion)
+- [Companion compatibility](https://jtenniswood.github.io/espdesktop/generated/companion-compatibility)
 - [Report a bug or request a feature](https://github.com/jtenniswood/espdesktop/issues)
 
-## Contributor Checks
+## Development
+
+The repository contains both the display firmware and the native macOS app. See [DEVELOPERS.md](DEVELOPERS.md) for the development workflow and [macos/EspDesktop/README.md](macos/EspDesktop/README.md) for Mac app build and packaging details.
 
 After changing card configuration, the web setup page, or generated device files, run:
 
@@ -107,26 +80,15 @@ After changing card configuration, the web setup page, or generated device files
 - `npm run check:web-browser-smoke`
 - `npm run docs:build`
 
-Use `npm run check:product` as the focused product preflight when changing shared schema,
-card behavior, web setup behavior, device metadata, generated outputs, backup compatibility,
-or release-facing metadata.
-
-See [Product Source Map](product/README.md) for the files that should be edited by hand
-and the generated outputs that should be rebuilt instead of manually changed.
-
 ## License
 
-EspDesktop is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
-
-In plain terms, you can view, change, and share the software for non-commercial purposes. Commercial use needs separate permission from the project owner.
-
-This is a source-available non-commercial license rather than an OSI-approved open source license, because the standard open source definition does not allow restrictions on commercial use.
+EspDesktop is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). You can view, change, and share the software for non-commercial purposes. Commercial use needs separate permission from the project owner.
 
 Required notice: see [NOTICE](NOTICE).
 
 ## Support This Project
 
-If EspDesktop is useful in your home, you can support ongoing development by buying me a coffee.
+If EspDesktop is useful to you, you can support ongoing development by buying me a coffee.
 
 <a href="https://www.buymeacoffee.com/jtenniswood">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" style="border-radius:999px;" />

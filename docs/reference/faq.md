@@ -1,7 +1,7 @@
 ---
 title: EspDesktop FAQ
 description:
-  Frequently asked questions about the EspDesktop touchscreen panel — WiFi, setup, updates, troubleshooting, and more.
+  Frequently asked questions about EspDesktop Mac controls, Home Assistant, WiFi, setup, updates, and supported displays.
 ---
 
 # FAQ
@@ -38,14 +38,29 @@ Your card configuration is stored separately and will be preserved unless you ch
 
 ## Can I Use This Without Home Assistant?
 
-No. The panel is designed to work with Home Assistant. It needs Home Assistant for:
+Yes. On the **4-inch 4848S040**, the Mac Companion connector can complete setup and provide Mac controls without Home Assistant. Pair the EspDesktop Mac app to launch approved apps, open folders and websites, run shortcuts, arrange windows, control media and volume, and show optional Mac statistics.
 
-- Controlling your smart home devices (lights, switches, fans, etc.)
-- Keeping the clock accurate
-- Temperature readings
-- Motion sensor data for the screensaver
+Home Assistant is still required for smart-home entities such as lights, heating, sensors, and Home Assistant media players. You can connect it alongside Mac Companion to mix both types of cards on the 4848S040.
 
-Without Home Assistant, the panel would have no devices to control and no data to display.
+The other supported panel profiles currently do not offer Companion cards and continue to use Home Assistant for their main controls and information.
+
+## What Can I Control on My Mac?
+
+The 4848S040 can launch approved applications, create ready-made Safari, Slack, or Codex shortcut pages, replay custom keyboard shortcuts, open approved Finder folders, open safe web links, control and arrange the active window, control macOS Now Playing, adjust output or input volume, show Now Playing artwork, and display processor, memory, storage, network, or battery statistics.
+
+See [Mac Cards and Capabilities](/card-types/companion) for the complete list and required permissions.
+
+## Why Is a Mac Card Disabled?
+
+Check the monitor icon beside WiFi on the display. If it is missing, open EspDesktop on the Mac and check the **Display** page. If the Mac is connected:
+
+- approve the selected application in **Applications**;
+- add or renew the folder in **Folders**;
+- allow Accessibility for shortcut and window cards;
+- turn on statistic sharing for Mac statistic cards; or
+- check that the current audio or media application supplies the needed macOS control.
+
+The Mac app and display firmware should come from the same release or matching feature branch.
 
 ## How Do I Update the Firmware?
 
@@ -100,11 +115,11 @@ EspDesktop currently supports these touchscreen panels:
 - **ESP32-P4 86 Panel** — 4-inch, 720x720, square (ESP32-P4)
 - **4848S040** — 4-inch, 480x480, square (ESP32-S3)
 
-All use the same card configuration and web UI. The grid layout automatically matches each panel's screen size and orientation. Some ESP32-P4 models also have an advanced Ethernet-only manual install option, which changes how networking and firmware updates work.
+All use the same card configuration and web UI. The grid layout automatically matches each panel's screen size and orientation. **Mac Companion cards are currently limited to the 4-inch 4848S040.** Some ESP32-P4 models also have an advanced Ethernet-only manual install option, which changes how networking and firmware updates work.
 
 ## Does the Panel Work with Other Smart Home Platforms?
 
-EspDesktop is built specifically for Home Assistant. It does not support other platforms like Google Home, Apple HomeKit, or SmartThings directly. However, if those platforms are integrated into your Home Assistant setup, the panel can control devices that are exposed through Home Assistant.
+EspDesktop connects directly to its Mac app for Mac controls and to Home Assistant for smart-home controls. It does not support Google Home, Apple HomeKit, or SmartThings directly. If those platforms are integrated into Home Assistant, the panel can control devices exposed through Home Assistant.
 
 ## The Display Is Stuck on the Loading Screen
 
@@ -115,4 +130,6 @@ EspDesktop is built specifically for Home Assistant. It does not support other p
 
 ## How Is My Data Handled?
 
-Everything stays on your local network. The panel communicates directly with your Home Assistant instance over your home network, using WiFi or an advanced Ethernet build depending on how you installed it. No data is sent to external servers, cloud services, or third parties. The only internet connection the standard firmware makes is to check for firmware updates and to load the web page styling.
+Control connections stay on your local network. The panel communicates directly with the paired Mac app and, when configured, Home Assistant. The Mac pairing credential is stored in Keychain, approved folder paths stay on the Mac, and system statistics are shared only when you turn that option on. Internet access is used for firmware update checks and resources used by the panel's web page.
+
+See the [Privacy Policy](/reference/privacy) for the full data and network boundaries.

@@ -2,9 +2,9 @@ import { defineConfig } from 'vitepress'
 
 const hostname = 'https://jtenniswood.github.io/espdesktop/'
 const defaultImage = {
-  url: `${hostname}images/home_screen_hero.jpg`,
+  url: `${hostname}images/4848s040-hero.jpg`,
   width: '1024',
-  height: '798',
+  height: '999',
   type: 'image/jpeg',
 }
 
@@ -151,7 +151,17 @@ const faqItems = [
   {
     question: 'Can I Use This Without Home Assistant?',
     answer:
-      'No. EspDesktop is designed for Home Assistant and needs it for device control, clock sync, temperature data, and screensaver sensor data.',
+      'Yes. The 4-inch 4848S040 can use the Mac Companion connector without Home Assistant. Home Assistant remains optional for smart-home controls and is still the main connector on the other panel profiles.',
+  },
+  {
+    question: 'What Can I Control on My Mac?',
+    answer:
+      'A paired 4848S040 can launch approved apps, open approved folders and websites, run shortcuts, arrange windows, control media and volume, show Now Playing artwork, and display optional Mac statistics.',
+  },
+  {
+    question: 'Why Is a Mac Card Disabled?',
+    answer:
+      'Check that the Mac is connected, the app or folder is approved, required Accessibility or statistics permission is enabled, and the Mac app and display firmware versions match.',
   },
   {
     question: 'How Do I Update the Firmware?',
@@ -208,7 +218,7 @@ const faqItems = [
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Touchscreen control panel for Home Assistant on supported ESP32 panels — card-based controls, web configuration, automatic updates.',
+    'Pair a small ESP32 touchscreen with your Mac to launch apps, run shortcuts, arrange windows, control media and volume, and show Mac status.',
   base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
@@ -226,7 +236,7 @@ export default defineConfig({
       {
         name: 'keywords',
         content:
-          'EspDesktop, ESPHome, Home Assistant, ESP32-P4, ESP32-S3, Guition, LVGL, touchscreen, control panel',
+          'EspDesktop, Mac controller, macOS Companion, ESP32-S3, 4848S040, touchscreen, keyboard shortcuts, window controls, media controls, Home Assistant',
       },
     ],
     ['meta', { property: 'og:type', content: 'website' }],
@@ -255,7 +265,7 @@ export default defineConfig({
             url: hostname,
             name: 'EspDesktop',
             description:
-              'ESPHome firmware for supported ESP32 touchscreens: Home Assistant card controls, web UI, OTA updates.',
+              'A local touchscreen controller for Mac apps, shortcuts, windows, media, volume, folders, websites, and system statistics, with optional Home Assistant controls.',
             inLanguage: 'en-US',
           },
           {
@@ -263,9 +273,9 @@ export default defineConfig({
             '@id': `${hostname}#software`,
             name: 'EspDesktop',
             applicationCategory: 'UtilitiesApplication',
-            operatingSystem: 'ESP32',
+            operatingSystem: 'ESP32 and macOS',
             description:
-              'Home Assistant control panel firmware for supported ESP32 touchscreens. Configure cards and display from the built-in web UI.',
+              'Display firmware and a native Mac app that turn a 4-inch ESP32 touchscreen into a local Mac control surface.',
             url: hostname,
             author: {
               '@type': 'Person',
@@ -392,6 +402,8 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Install', link: '/getting-started/install' },
+      { text: 'Mac App', link: '/getting-started/mac-app' },
+      { text: 'Mac Cards', link: '/card-types/companion' },
       { text: 'Issues', link: 'https://github.com/jtenniswood/espdesktop/issues' },
       { text: 'GitHub', link: 'https://github.com/jtenniswood/espdesktop' },
     ],
@@ -403,8 +415,16 @@ export default defineConfig({
           { text: 'Overview', link: '/' },
           { text: 'Install', link: '/getting-started/install' },
           { text: 'Mac App', link: '/getting-started/mac-app' },
-          { text: 'Enable Actions', link: '/getting-started/home-assistant-actions' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
+        ],
+      },
+      {
+        text: 'Mac Control',
+        items: [
+          { text: 'Mac Cards & Capabilities', link: '/card-types/companion' },
+          { text: 'Volume Sliders', link: '/card-types/sliders' },
+          { text: 'Now Playing Cover Art', link: '/features/media-cover-art' },
+          { text: 'App & Stat Subpages', link: '/features/subpages' },
         ],
       },
       {
@@ -443,7 +463,6 @@ export default defineConfig({
           { text: 'Lawn Mower', link: '/card-types/lawn-mower' },
           { text: 'Lights', link: '/card-types/lights' },
           { text: 'Local Action', link: '/card-types/local-actions' },
-          { text: 'Companion', link: '/card-types/companion' },
           { text: 'Lock', link: '/card-types/locks' },
           { text: 'Media', link: '/card-types/media' },
           { text: 'Option Select', link: '/card-types/option-select' },
@@ -459,6 +478,12 @@ export default defineConfig({
           { text: 'Webhook', link: '/card-types/webhooks' },
           { text: 'Wifi Share', link: '/card-types/wifi-share' },
           { text: 'World Clock', link: '/card-types/timezones' },
+        ],
+      },
+      {
+        text: 'Home Assistant',
+        items: [
+          { text: 'Enable Actions', link: '/getting-started/home-assistant-actions' },
         ],
       },
       {
@@ -497,7 +522,6 @@ export default defineConfig({
           { text: 'Request Device Support', link: '/reference/request-device-support' },
           { text: 'Privacy Policy', link: '/reference/privacy' },
           { text: 'FAQ', link: '/reference/faq' },
-          { text: 'Privacy Policy', link: '/reference/privacy' },
         ],
       },
     ],
