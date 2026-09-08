@@ -79,27 +79,24 @@ inline void setup_screen_lock_card(BtnSlot &s, const ParsedCfg &p) {
 
 inline void apply_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
-  static const lv_style_prop_t push_props[] = {LV_STYLE_BG_COLOR, LV_STYLE_PROP_INV};
-  static lv_style_transition_dsc_t push_trans;
-  static lv_style_transition_dsc_t immediate_trans;
-  static bool push_trans_inited = false;
-  if (!push_trans_inited) {
-    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 80, 0, NULL);
-    lv_style_transition_dsc_init(&immediate_trans, push_props, lv_anim_path_linear, 0, 0, NULL);
-    push_trans_inited = true;
-  }
-  // Light up on touch immediately; only the release has a short fade.
-  // Confirmed active state must also appear without waiting for a fade.
-  lv_obj_set_style_transition(btn, &push_trans,
+  // Suppress the theme transition itself, including recolor animation, rather
+  // than overriding only its background-color transition.
+  lv_obj_set_style_transition(btn, nullptr,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
-  lv_obj_set_style_transition(btn, &immediate_trans,
+  lv_obj_set_style_transition(btn, nullptr,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_PRESSED);
-  lv_obj_set_style_transition(btn, &immediate_trans,
+  lv_obj_set_style_transition(btn, nullptr,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_CHECKED);
+  // The default LVGL theme darkens pressed buttons with a black overlay.
+  // Keep touch feedback the same brightness as the confirmed active state.
+  lv_obj_set_style_recolor_opa(btn, LV_OPA_TRANSP,
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_PRESSED);
 }
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
+  lv_obj_remove_local_style_prop(btn, LV_STYLE_RECOLOR_OPA,
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_PRESSED);
   lv_obj_remove_local_style_prop(btn, LV_STYLE_TRANSITION,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
   lv_obj_remove_local_style_prop(btn, LV_STYLE_TRANSITION,
