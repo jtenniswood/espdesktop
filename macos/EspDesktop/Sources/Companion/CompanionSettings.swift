@@ -447,7 +447,7 @@ struct CompanionSettings: View {
                     ProgressView().controlSize(.small)
                 }
                 Text(store.connectionState.title)
-                    .font(.title3.weight(.semibold))
+                    .font(.title.weight(.semibold))
             }
             .accessibilityElement(children: .combine)
             Text(store.panelHost)
