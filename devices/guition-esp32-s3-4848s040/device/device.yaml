@@ -167,8 +167,9 @@ esphome:
               },
               [=]() { id(relay_3_push).execute(); },
               [=]() -> bool { return id(relay_3).state; });
-    # The application owner starts just before AFTER_WIFI. These handlers access
-    # its Companion runtime, so register them afterwards and before the grid.
+    # EspDesktop owns the Companion runtime and starts at AFTER_WIFI (200).
+    # Register handlers afterwards so a fresh OTA boot cannot abort and roll
+    # back before the new embedded web bundle becomes active.
     - priority: 190
       then:
         - lambda: |-
