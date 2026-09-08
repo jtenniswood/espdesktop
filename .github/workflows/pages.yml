@@ -35,11 +35,8 @@ jobs:
     if: >-
       github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-      - name: Prepare self-hosted workspace
-        run: rm -rf "${GITHUB_WORKSPACE}/.esphome" || sudo rm -rf "${GITHUB_WORKSPACE}/.esphome"
-
       - uses: actions/checkout@v7.0.1
       - run: git sparse-checkout disable || true
 
@@ -68,11 +65,10 @@ jobs:
     if: >-
       github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    outputs:
+      has_stable: ${{ steps.stable.outputs.has_stable }}
     steps:
-      - name: Prepare self-hosted workspace
-        run: rm -rf "${GITHUB_WORKSPACE}/.esphome" || sudo rm -rf "${GITHUB_WORKSPACE}/.esphome"
-
       - uses: actions/checkout@v7.0.1
         with:
           sparse-checkout: devices/manifest.json
@@ -84,6 +80,7 @@ jobs:
           echo "DEVICE_SLUGS=${DEVICE_SLUGS}" >> "$GITHUB_ENV"
 
       - name: Download firmware from stable releases
+        id: stable
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -96,8 +93,10 @@ jobs:
 
           if [ "${RELEASE_COUNT}" -eq 0 ]; then
             echo "::warning::No stable firmware releases found"
+            echo "has_stable=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          echo "has_stable=true" >> "$GITHUB_OUTPUT"
 
           download_asset() {
             RELEASE_JSON="$1"
@@ -240,6 +239,7 @@ jobs:
           fi
 
       - name: Verify firmware assets
+        if: steps.stable.outputs.has_stable == 'true'
         run: |
           MISSING=false
           OPTIONAL_FIRMWARE_SLUGS="guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc1060p470-v2 esp32-p4-86"
@@ -257,6 +257,7 @@ jobs:
           if [ "$MISSING" = true ]; then exit 1; fi
 
       - name: Upload firmware artifact
+        if: hashFiles('firmware/**') != ''
         uses: actions/upload-artifact@v7
         with:
           name: firmware
@@ -265,7 +266,7 @@ jobs:
   deploy:
     name: Deploy to Pages
     needs: [build-docs, download-firmware]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -300,6 +301,7 @@ jobs:
         uses: actions/deploy-pages@v5
 
       - name: Verify public firmware assets
+        if: needs.download-firmware.outputs.has_stable == 'true'
         run: >-
           python3 scripts/check_public_firmware.py
           --base-url "${{ steps.deployment.outputs.page_url }}"
