@@ -673,7 +673,7 @@ struct CompanionSettings: View {
                 }
             }
             Section("Resources") {
-                Link("EspDesktop Support", destination: CompanionStore.supportURL)
+                Link("Support", destination: CompanionStore.supportURL)
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
             }
         }
