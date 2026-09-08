@@ -350,14 +350,14 @@ struct CompanionSettings: View {
                     }
                     Section("Display Settings") {
                         LabeledContent {
-                            Button("Customize Display") { store.openPanelWebServer() }
+                            Button("Customize") { store.openPanelWebServer() }
                                 .help("Open the display’s configuration in your browser")
                         } label: {
                             Text("Configure cards and layout in your browser.")
                                 .foregroundStyle(.secondary)
                         }
                         LabeledContent {
-                            Button("Forget Display", role: .destructive) { confirmingForget = true }
+                            Button("Remove", role: .destructive) { confirmingForget = true }
                         } label: {
                             Text("Remove this Mac’s saved pairing with the display.")
                                 .foregroundStyle(.secondary)
