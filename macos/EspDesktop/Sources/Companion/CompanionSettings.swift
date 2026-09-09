@@ -335,24 +335,18 @@ struct CompanionSettings: View {
             if store.hasSavedPairing && !pairingFlowActive {
                 Form {
                     Section {
-                        connectionStatus
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 24)
-                    }
-                    Section("Display Settings") {
-                        LabeledContent {
-                            Button("Customize") { store.openPanelWebServer() }
-                                .help("Open the display’s configuration in your browser")
-                        } label: {
-                            Text("Manage your display layout")
-                                .foregroundStyle(.secondary)
+                        VStack(spacing: 20) {
+                            connectionStatus
+                            HStack(spacing: 12) {
+                                Button("Customize") { store.openPanelWebServer() }
+                                    .help("Open the display’s configuration in your browser")
+                                Button("Remove", role: .destructive) { confirmingForget = true }
+                                    .help("Remove this display’s pairing")
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        LabeledContent {
-                            Button("Remove", role: .destructive) { confirmingForget = true }
-                        } label: {
-                            Text("Reset your display pairing")
-                                .foregroundStyle(.secondary)
-                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
                     }
                 }
                 .formStyle(.grouped)
