@@ -268,7 +268,8 @@ inline std::string navigation_active_companion_subpage_label() {
 }
 
 inline void navigation_refresh_companion_subpage_label() {
-  set_clock_bar_companion_subpage_label(navigation_active_companion_subpage_label());
+  set_clock_bar_companion_subpage_label(network_status_modal_ui().overlay
+      ? espdesktop_i18n(std::string("Settings")) : navigation_active_companion_subpage_label());
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(

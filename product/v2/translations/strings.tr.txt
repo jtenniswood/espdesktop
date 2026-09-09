@@ -260,3 +260,4 @@ pairing=Eşleştirme
 pairing_instructions=Bu kodu masaüstü uygulamasına girin
 expired=Süresi doldu
 pair=Eşleştir
+settings=Ayarlar

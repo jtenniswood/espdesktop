@@ -260,3 +260,4 @@ pairing=Parkoppling
 pairing_instructions=Ange den här koden i skrivbordsappen
 expired=Utgången
 pair=Parkoppla
+settings=Inställningar

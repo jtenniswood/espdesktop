@@ -139,8 +139,12 @@ inline std::string network_status_firmware_label(const std::string &version) {
   return espdesktop_i18n(std::string("Dev build"));
 }
 
+// Defined by navigation after the built-in page helpers.
+inline void navigation_subpage_screen_changed(lv_event_t *);
+
 inline void network_status_hide_modal() {
   NetworkStatusModalUi &ui = network_status_modal_ui();
+  const bool was_visible = ui.overlay != nullptr;
   if (ui.pairing_overlay) control_modal_close_nested_menu();
   if (ui.refresh_timer) lv_timer_del(ui.refresh_timer);
   if (ui.overlay) {
@@ -149,6 +153,7 @@ inline void network_status_hide_modal() {
   }
   ui = NetworkStatusModalUi{};
   control_modal_clear_active(ControlModalKind::NETWORK_STATUS);
+  if (was_visible) navigation_subpage_screen_changed(nullptr);
 }
 
 inline void network_status_close_pairing() {
@@ -212,7 +217,7 @@ inline void network_status_open_pairing() {
   auto *instruction = network_status_pairing_label(content, espdesktop_i18n("Enter this code into the desktop app"));
   lv_obj_set_style_text_color(instruction, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
   ui.pairing_ip = network_status_pairing_label(content, "");
-  lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+  lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
   ui.pairing_code = network_status_pairing_label(content, "");
   lv_obj_update_layout(content);
   lv_obj_align(content, LV_ALIGN_CENTER, 0, 0);
@@ -353,4 +358,5 @@ inline void network_status_open_modal(const std::string &device_name,
   network_status_refresh_page();
   ui.refresh_timer = lv_timer_create([](lv_timer_t *) { network_status_refresh_page(); }, 1000, nullptr);
   lv_obj_move_foreground(ui.overlay);
+  navigation_subpage_screen_changed(nullptr);
 }

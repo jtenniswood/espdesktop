@@ -260,3 +260,4 @@ pairing=Paring
 pairing_instructions=Skriv inn denne koden i skrivebordsappen
 expired=Utløpt
 pair=Koble sammen
+settings=Innstillinger

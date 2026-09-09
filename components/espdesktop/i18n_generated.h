@@ -256,6 +256,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadejte tento kód do desktopové aplikace";
   if (std::strcmp(text, "Expired") == 0) return "Platnost vypršela";
   if (std::strcmp(text, "Pair") == 0) return "Spárovat";
+  if (std::strcmp(text, "Settings") == 0) return "Nastavení";
   return text;
 }
 
@@ -492,6 +493,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Indtast denne kode i desktopappen";
   if (std::strcmp(text, "Expired") == 0) return "Udløbet";
   if (std::strcmp(text, "Pair") == 0) return "Par";
+  if (std::strcmp(text, "Settings") == 0) return "Indstillinger";
   return text;
 }
 
@@ -726,6 +728,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Gib diesen Code in der Desktop-App ein";
   if (std::strcmp(text, "Expired") == 0) return "Abgelaufen";
   if (std::strcmp(text, "Pair") == 0) return "Koppeln";
+  if (std::strcmp(text, "Settings") == 0) return "Einstellungen";
   return text;
 }
 
@@ -969,6 +972,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduce este código en la aplicación de escritorio";
   if (std::strcmp(text, "Expired") == 0) return "Caducado";
   if (std::strcmp(text, "Pair") == 0) return "Emparejar";
+  if (std::strcmp(text, "Settings") == 0) return "Ajustes";
   return text;
 }
 
@@ -1222,6 +1226,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
   if (std::strcmp(text, "Expired") == 0) return "Vanhentunut";
   if (std::strcmp(text, "Pair") == 0) return "Parita";
+  if (std::strcmp(text, "Settings") == 0) return "Asetukset";
   return text;
 }
 
@@ -1458,6 +1463,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Saisissez ce code dans l’application de bureau";
   if (std::strcmp(text, "Expired") == 0) return "Expiré";
   if (std::strcmp(text, "Pair") == 0) return "Associer";
+  if (std::strcmp(text, "Settings") == 0) return "Paramètres";
   return text;
 }
 
@@ -1719,6 +1725,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "הזן קוד זה באפליקציה למחשב";
   if (std::strcmp(text, "Expired") == 0) return "פג תוקף";
   if (std::strcmp(text, "Pair") == 0) return "צימוד";
+  if (std::strcmp(text, "Settings") == 0) return "הגדרות";
   return text;
 }
 
@@ -1971,6 +1978,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
   if (std::strcmp(text, "Expired") == 0) return "Lejárt";
   if (std::strcmp(text, "Pair") == 0) return "Párosítás";
+  if (std::strcmp(text, "Settings") == 0) return "Beállítások";
   return text;
 }
 
@@ -2214,6 +2222,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Inserisci questo codice nell’app desktop";
   if (std::strcmp(text, "Expired") == 0) return "Scaduto";
   if (std::strcmp(text, "Pair") == 0) return "Associa";
+  if (std::strcmp(text, "Settings") == 0) return "Impostazioni";
   return text;
 }
 
@@ -2455,6 +2464,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Skriv inn denne koden i skrivebordsappen";
   if (std::strcmp(text, "Expired") == 0) return "Utløpt";
   if (std::strcmp(text, "Pair") == 0) return "Koble sammen";
+  if (std::strcmp(text, "Settings") == 0) return "Innstillinger";
   return text;
 }
 
@@ -2694,6 +2704,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Voer deze code in de desktopapp in";
   if (std::strcmp(text, "Expired") == 0) return "Verlopen";
   if (std::strcmp(text, "Pair") == 0) return "Koppelen";
+  if (std::strcmp(text, "Settings") == 0) return "Instellingen";
   return text;
 }
 
@@ -2935,6 +2946,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Wpisz ten kod w aplikacji komputerowej";
   if (std::strcmp(text, "Expired") == 0) return "Wygasł";
   if (std::strcmp(text, "Pair") == 0) return "Sparuj";
+  if (std::strcmp(text, "Settings") == 0) return "Ustawienia";
   return text;
 }
 
@@ -3178,6 +3190,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Digite este código no aplicativo para computador";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Parear";
+  if (std::strcmp(text, "Settings") == 0) return "Configurações";
   return text;
 }
 
@@ -3422,6 +3435,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduza este código na aplicação para computador";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Emparelhar";
+  if (std::strcmp(text, "Settings") == 0) return "Definições";
   return text;
 }
 
@@ -3675,6 +3689,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introdu acest cod în aplicația desktop";
   if (std::strcmp(text, "Expired") == 0) return "Expirat";
   if (std::strcmp(text, "Pair") == 0) return "Asociază";
+  if (std::strcmp(text, "Settings") == 0) return "Setări";
   return text;
 }
 
@@ -3935,6 +3950,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введите этот код в приложении для компьютера";
   if (std::strcmp(text, "Expired") == 0) return "Срок действия истёк";
   if (std::strcmp(text, "Pair") == 0) return "Сопряжение";
+  if (std::strcmp(text, "Settings") == 0) return "Настройки";
   return text;
 }
 
@@ -4180,6 +4196,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadajte tento kód do počítačovej aplikácie";
   if (std::strcmp(text, "Expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(text, "Pair") == 0) return "Spárovať";
+  if (std::strcmp(text, "Settings") == 0) return "Nastavenia";
   return text;
 }
 
@@ -4429,6 +4446,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Vnesite to kodo v namizno aplikacijo";
   if (std::strcmp(text, "Expired") == 0) return "Poteklo";
   if (std::strcmp(text, "Pair") == 0) return "Seznani";
+  if (std::strcmp(text, "Settings") == 0) return "Nastavitve";
   return text;
 }
 
@@ -4669,6 +4687,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Ange den här koden i skrivbordsappen";
   if (std::strcmp(text, "Expired") == 0) return "Utgången";
   if (std::strcmp(text, "Pair") == 0) return "Parkoppla";
+  if (std::strcmp(text, "Settings") == 0) return "Inställningar";
   return text;
 }
 
@@ -4922,6 +4941,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Bu kodu masaüstü uygulamasına girin";
   if (std::strcmp(text, "Expired") == 0) return "Süresi doldu";
   if (std::strcmp(text, "Pair") == 0) return "Eşleştir";
+  if (std::strcmp(text, "Settings") == 0) return "Ayarlar";
   return text;
 }
 
@@ -5177,6 +5197,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введіть цей код у програмі для комп’ютера";
   if (std::strcmp(text, "Expired") == 0) return "Термін дії минув";
   if (std::strcmp(text, "Pair") == 0) return "Сполучити";
+  if (std::strcmp(text, "Settings") == 0) return "Налаштування";
   return text;
 }
 
@@ -5441,6 +5462,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code into the desktop app";
   if (std::strcmp(key, "expired") == 0) return "Expired";
   if (std::strcmp(key, "pair") == 0) return "Pair";
+  if (std::strcmp(key, "settings") == 0) return "Settings";
   return key;
 }
 
@@ -5687,6 +5709,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód do desktopové aplikace";
   if (std::strcmp(key, "expired") == 0) return "Platnost vypršela";
   if (std::strcmp(key, "pair") == 0) return "Spárovat";
+  if (std::strcmp(key, "settings") == 0) return "Nastavení";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -5925,6 +5948,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i desktopappen";
   if (std::strcmp(key, "expired") == 0) return "Udløbet";
   if (std::strcmp(key, "pair") == 0) return "Par";
+  if (std::strcmp(key, "settings") == 0) return "Indstillinger";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6161,6 +6185,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Gib diesen Code in der Desktop-App ein";
   if (std::strcmp(key, "expired") == 0) return "Abgelaufen";
   if (std::strcmp(key, "pair") == 0) return "Koppeln";
+  if (std::strcmp(key, "settings") == 0) return "Einstellungen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6406,6 +6431,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la aplicación de escritorio";
   if (std::strcmp(key, "expired") == 0) return "Caducado";
   if (std::strcmp(key, "pair") == 0) return "Emparejar";
+  if (std::strcmp(key, "settings") == 0) return "Ajustes";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6661,6 +6687,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
   if (std::strcmp(key, "expired") == 0) return "Vanhentunut";
   if (std::strcmp(key, "pair") == 0) return "Parita";
+  if (std::strcmp(key, "settings") == 0) return "Asetukset";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6899,6 +6926,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application de bureau";
   if (std::strcmp(key, "expired") == 0) return "Expiré";
   if (std::strcmp(key, "pair") == 0) return "Associer";
+  if (std::strcmp(key, "settings") == 0) return "Paramètres";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7162,6 +7190,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציה למחשב";
   if (std::strcmp(key, "expired") == 0) return "פג תוקף";
   if (std::strcmp(key, "pair") == 0) return "צימוד";
+  if (std::strcmp(key, "settings") == 0) return "הגדרות";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7416,6 +7445,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
   if (std::strcmp(key, "expired") == 0) return "Lejárt";
   if (std::strcmp(key, "pair") == 0) return "Párosítás";
+  if (std::strcmp(key, "settings") == 0) return "Beállítások";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7661,6 +7691,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app desktop";
   if (std::strcmp(key, "expired") == 0) return "Scaduto";
   if (std::strcmp(key, "pair") == 0) return "Associa";
+  if (std::strcmp(key, "settings") == 0) return "Impostazioni";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7904,6 +7935,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i skrivebordsappen";
   if (std::strcmp(key, "expired") == 0) return "Utløpt";
   if (std::strcmp(key, "pair") == 0) return "Koble sammen";
+  if (std::strcmp(key, "settings") == 0) return "Innstillinger";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8144,6 +8176,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de desktopapp in";
   if (std::strcmp(key, "expired") == 0) return "Verlopen";
   if (std::strcmp(key, "pair") == 0) return "Koppelen";
+  if (std::strcmp(key, "settings") == 0) return "Instellingen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8387,6 +8420,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji komputerowej";
   if (std::strcmp(key, "expired") == 0) return "Wygasł";
   if (std::strcmp(key, "pair") == 0) return "Sparuj";
+  if (std::strcmp(key, "settings") == 0) return "Ustawienia";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8632,6 +8666,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para computador";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Parear";
+  if (std::strcmp(key, "settings") == 0) return "Configurações";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8878,6 +8913,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para computador";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Emparelhar";
+  if (std::strcmp(key, "settings") == 0) return "Definições";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9133,6 +9169,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introdu acest cod în aplicația desktop";
   if (std::strcmp(key, "expired") == 0) return "Expirat";
   if (std::strcmp(key, "pair") == 0) return "Asociază";
+  if (std::strcmp(key, "settings") == 0) return "Setări";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9395,6 +9432,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для компьютера";
   if (std::strcmp(key, "expired") == 0) return "Срок действия истёк";
   if (std::strcmp(key, "pair") == 0) return "Сопряжение";
+  if (std::strcmp(key, "settings") == 0) return "Настройки";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9642,6 +9680,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód do počítačovej aplikácie";
   if (std::strcmp(key, "expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(key, "pair") == 0) return "Spárovať";
+  if (std::strcmp(key, "settings") == 0) return "Nastavenia";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9893,6 +9932,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v namizno aplikacijo";
   if (std::strcmp(key, "expired") == 0) return "Poteklo";
   if (std::strcmp(key, "pair") == 0) return "Seznani";
+  if (std::strcmp(key, "settings") == 0) return "Nastavitve";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10135,6 +10175,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i skrivbordsappen";
   if (std::strcmp(key, "expired") == 0) return "Utgången";
   if (std::strcmp(key, "pair") == 0) return "Parkoppla";
+  if (std::strcmp(key, "settings") == 0) return "Inställningar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10390,6 +10431,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu masaüstü uygulamasına girin";
   if (std::strcmp(key, "expired") == 0) return "Süresi doldu";
   if (std::strcmp(key, "pair") == 0) return "Eşleştir";
+  if (std::strcmp(key, "settings") == 0) return "Ayarlar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10647,6 +10689,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для комп’ютера";
   if (std::strcmp(key, "expired") == 0) return "Термін дії минув";
   if (std::strcmp(key, "pair") == 0) return "Сполучити";
+  if (std::strcmp(key, "settings") == 0) return "Налаштування";
   return espdesktop_i18n_key_en(key);
 }
 

@@ -260,3 +260,4 @@ pairing=Párování
 pairing_instructions=Zadejte tento kód do desktopové aplikace
 expired=Platnost vypršela
 pair=Spárovat
+settings=Nastavení

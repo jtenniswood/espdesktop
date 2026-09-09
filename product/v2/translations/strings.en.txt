@@ -260,3 +260,4 @@ pairing=Pairing
 pairing_instructions=Enter this code into the desktop app
 expired=Expired
 pair=Pair
+settings=Settings

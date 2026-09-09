@@ -260,3 +260,4 @@ pairing=Paritus
 pairing_instructions=Syötä tämä koodi työpöytäsovellukseen
 expired=Vanhentunut
 pair=Parita
+settings=Asetukset

@@ -260,3 +260,4 @@ pairing=Parring
 pairing_instructions=Indtast denne kode i desktopappen
 expired=Udløbet
 pair=Par
+settings=Indstillinger

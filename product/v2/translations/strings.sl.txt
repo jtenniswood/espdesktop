@@ -260,3 +260,4 @@ pairing=Seznanjanje
 pairing_instructions=Vnesite to kodo v namizno aplikacijo
 expired=Poteklo
 pair=Seznani
+settings=Nastavitve

@@ -260,3 +260,4 @@ pairing=Koppelen
 pairing_instructions=Voer deze code in de desktopapp in
 expired=Verlopen
 pair=Koppelen
+settings=Instellingen

@@ -260,3 +260,4 @@ pairing=Сполучення
 pairing_instructions=Введіть цей код у програмі для комп’ютера
 expired=Термін дії минув
 pair=Сполучити
+settings=Налаштування

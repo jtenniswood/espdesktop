@@ -260,3 +260,4 @@ pairing=Abbinamento
 pairing_instructions=Inserisci questo codice nell’app desktop
 expired=Scaduto
 pair=Associa
+settings=Impostazioni

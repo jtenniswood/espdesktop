@@ -260,3 +260,4 @@ pairing=Parowanie
 pairing_instructions=Wpisz ten kod w aplikacji komputerowej
 expired=Wygasł
 pair=Sparuj
+settings=Ustawienia

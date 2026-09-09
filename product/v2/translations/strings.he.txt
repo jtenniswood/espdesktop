@@ -260,3 +260,4 @@ pairing=התאמה
 pairing_instructions=הזן קוד זה באפליקציה למחשב
 expired=פג תוקף
 pair=צימוד
+settings=הגדרות
