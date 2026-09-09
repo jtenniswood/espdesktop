@@ -1318,7 +1318,7 @@ inline std::string normalize_saved_config_subpage_options(
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
   return p.type == "companion" &&
          (p.entity == "com.apple.Safari" || p.entity == "com.openai.codex" ||
-          p.entity == "com.tinyspeck.slackmacgap") &&
+          p.entity == "com.tinyspeck.slackmacgap" || p.entity == "com.apple.finder") &&
          p.sensor.empty() &&
          cfg_option_token_present(p.options, "app_shortcuts");
 }
@@ -1332,7 +1332,8 @@ inline std::string companion_app_shortcut_tabs_normalized(const ParsedCfg &p) {
   const std::string value = cfg_option_value(p.options, "app_shortcuts_tabs");
   if (value.empty()) return "";
   if (value == "none") return value;
-  const size_t count = p.entity == "com.openai.codex" ? 7 : 5;
+  const size_t count = p.entity == "com.apple.finder" ? 0 :
+    (p.entity == "com.openai.codex" ? 7 : 5);
   std::vector<std::string> tabs;
   for (const auto &part : split_config_fields(value, '|')) {
     if (part.size() != 1 || part[0] < '0' || static_cast<size_t>(part[0] - '0') >= count ||

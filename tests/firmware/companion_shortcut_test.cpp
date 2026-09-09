@@ -46,6 +46,14 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.command+f21"));
   assert(!companion_shortcut_action_valid("com.apple.Safari"));
 
+  ParsedCfg finder_launch;
+  finder_launch.type = "companion";
+  finder_launch.entity = "com.apple.finder";
+  finder_launch.options = "app_shortcuts,app_shortcuts_auto_switch";
+  assert(companion_app_shortcuts_enabled(finder_launch));
+  assert(companion_app_subpage_auto_switch_enabled(finder_launch));
+  assert(companion_card_options_normalized(finder_launch) == finder_launch.options);
+
   ParsedCfg safari_launch;
   safari_launch.type = "companion";
   safari_launch.entity = "com.apple.Safari";
@@ -154,13 +162,23 @@ int main() {
   assert(companion_action_focused(folder_action));
   assert(!companion_action_focused("com.apple.Safari"));
   assert(companion_consume_subpage_return_request());
-  assert(companion_pending_auto_subpage_action() == folder_action);
+  assert(companion_pending_auto_subpage_action() == "com.apple.finder");
   assert(!companion_consume_auto_subpage_action("com.apple.Safari"));
-  assert(companion_consume_auto_subpage_action(folder_action));
+  assert(companion_consume_auto_subpage_action("com.apple.finder"));
   companion_set_focused_action(folder_action);
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
+  companion_set_focused_action("folder.second");
+  assert(companion_action_focused("com.apple.finder"));
+  assert(!companion_action_focused(folder_action));
+  assert(!companion_consume_subpage_return_request());
+  assert(companion_pending_auto_subpage_action().empty());
+  companion_set_focused_action("com.apple.finder");
+  assert(companion_action_focused("com.apple.finder"));
+  assert(!companion_action_focused("folder.second"));
+  assert(!companion_consume_subpage_return_request());
   companion_set_focused_action("com.apple.Safari");
+  assert(!companion_action_focused("com.apple.finder"));
   assert(companion_consume_subpage_return_request());
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());

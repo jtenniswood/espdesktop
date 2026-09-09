@@ -60,7 +60,6 @@ import {
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
-const COMPANION_FINDER_ID = "com.apple.finder";
 const COMPANION_WINDOW_PREFIX = "window.";
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
 export const COMPANION_SUBTYPE_DEFAULT_ICONS = {
@@ -279,7 +278,7 @@ export function companionEntityForMode(mode: string): string {
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
-        action.id !== COMPANION_FINDER_ID && !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
         !COMPANION_MEDIA_ACTIONS.some((mediaAction) => mediaAction.id === action.id)));
 }
 
@@ -683,7 +682,9 @@ export function registerCompanionCardTypes(
             const shortcutFolderNote = document.createElement("div");
             shortcutFolderNote.className = "sp-field-info-text";
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
-            shortcutFolderNote.textContent = "Launch " + shortcutFolderApp +
+            shortcutFolderNote.textContent = card.entity === "com.apple.finder"
+                ? "Open Finder and an editable subpage. Add Open folder cards using folders configured in the Mac app."
+                : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
             shortcutFolderField.appendChild(shortcutFolderNote);
             appSubpageDisclosure.section.appendChild(shortcutFolderField);

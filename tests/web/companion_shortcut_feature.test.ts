@@ -54,6 +54,7 @@ import {
   SAFARI_BUNDLE_ID,
   CODEX_BUNDLE_ID,
   SLACK_BUNDLE_ID,
+  createCompanionShortcutSubpage,
   createSafariShortcutSubpage,
   createCodexShortcutSubpage,
   codexShortcutPresetCards,
@@ -87,6 +88,20 @@ function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
 }
 
 export function runCompanionShortcutFeatureTests(): void {
+  const finder = { ...emptyCardConfig("companion"), entity: "com.apple.finder", options: "app_shortcuts,app_shortcuts_auto_switch" };
+  if (!companionAppShortcutFolderEnabled(finder) || !companionAppShortcutAutoSwitchEnabled(finder) ||
+      !cardTransferOwnsSubpage(finder)) throw new Error("Finder must own an optional app subpage");
+  const finderPage = createCompanionShortcutSubpage(finder.entity);
+  if (finderPage.buttons.length || finderPage.order.join() !== "B") {
+    throw new Error("Finder should start with an empty editable folder page");
+  }
+  finderPage.buttons.push({ ...emptyCardConfig("companion"), entity: "folder.projects", label: "Projects" });
+  finderPage.order.push("1");
+  const restoredPage = JSON.parse(JSON.stringify(finderPage));
+  syncCompanionShortcutSubpage(finder.entity, [], restoredPage);
+  if (restoredPage.buttons[0]?.entity !== "folder.projects" || restoredPage.order.join() !== "B,1") {
+    throw new Error("Saving Finder settings must preserve configured directory cards");
+  }
   const companionModes = companionCardModeOptions();
   if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
       !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
@@ -442,8 +457,8 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const folderAction = "folder.00000000-0000-0000-0000-000000000001";
   if (companionCardMode({ entity: folderAction, sensor: "" }) !== "folder" ||
-      companionCardMode({ entity: "com.apple.finder", sensor: "" }) !== "folder") {
-    throw new Error("Folder actions and legacy Finder cards must use the folder subtype");
+      companionCardMode({ entity: "com.apple.finder", sensor: "" }) !== "app") {
+    throw new Error("Folder actions must use the folder subtype and Finder must use the app subtype");
   }
   const catalogue = [
     { id: "com.apple.Safari", label: "Safari" },
@@ -453,11 +468,11 @@ export function runCompanionShortcutFeatureTests(): void {
     { id: "folder.00000000-0000-0000-0000-000000000002", label: "Archive" },
     { id: COMPANION_MEDIA_PLAY_PAUSE_ACTION, label: "Media Play/Pause" },
   ];
-  if (companionApplicationActions(catalogue).map((action) => action.id).join() !== "com.google.Chrome,com.apple.Safari") {
-    throw new Error("Finder and approved folders must not appear in the alphabetized application list");
+  if (companionApplicationActions(catalogue).map((action) => action.id).join() !== "com.apple.finder,com.google.Chrome,com.apple.Safari") {
+    throw new Error("Finder must appear in the alphabetized application list without folder actions");
   }
   if (!companionApplicationActionIdValid(catalogue, "com.apple.Safari") ||
-      companionApplicationActionIdValid(catalogue, "com.apple.finder") ||
+      !companionApplicationActionIdValid(catalogue, "com.apple.finder") ||
       companionApplicationActionIdValid([], "com.apple.Safari")) {
     throw new Error("Companion app selections require an available application action");
   }

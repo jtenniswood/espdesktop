@@ -15,6 +15,11 @@
 #include <utility>
 #include <vector>
 
+// Folder focus belongs to Finder; switching directories must keep its subpage open.
+inline std::string companion_focus_application_id(const std::string &action_id) {
+  return action_id.rfind("folder.", 0) == 0 ? "com.apple.finder" : action_id;
+}
+
 struct CompanionAction {
   std::string id;
   std::string label;
@@ -211,12 +216,14 @@ class CompanionRuntimeService {
 
   bool set_focused_action(std::string action_id) {
     std::lock_guard<std::mutex> lock(mutex_);
-    const bool should_return = connected_ && !focused_action_id_.empty() &&
-      action_id != focused_action_id_;
+    const std::string application_id = companion_focus_application_id(action_id);
+    const std::string previous_application_id = companion_focus_application_id(focused_action_id_);
+    const bool should_return = connected_ && !previous_application_id.empty() &&
+      application_id != previous_application_id;
     if (action_id.empty() || !connected_) {
       pending_auto_subpage_action_id_.clear();
-    } else if (focused_action_id_ != action_id) {
-      pending_auto_subpage_action_id_ = action_id;
+    } else if (previous_application_id != application_id) {
+      pending_auto_subpage_action_id_ = application_id;
     }
     focused_action_id_ = std::move(action_id);
     request_refresh_();

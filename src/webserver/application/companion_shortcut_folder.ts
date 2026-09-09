@@ -17,6 +17,7 @@ export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const SLACK_BUNDLE_ID = "com.tinyspeck.slackmacgap";
 export const COMPANION_SHORTCUT_PREFIX = "shortcut.";
 const COMPANION_SHORTCUT_FOLDER_APPS: Readonly<Record<string, string>> = {
+    "com.apple.finder": "Finder",
     [SAFARI_BUNDLE_ID]: "Safari",
     [CODEX_BUNDLE_ID]: "Codex",
     [SLACK_BUNDLE_ID]: "Slack",

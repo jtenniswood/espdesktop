@@ -291,12 +291,14 @@ inline bool companion_action_focused(const std::string &action_id) {
   if (action_id.empty() ||
       action_id.rfind("shortcut.", 0) == 0 || action_id.rfind("media.", 0) == 0) return false;
   const auto snapshot = companion_runtime_snapshot();
-  return snapshot.connected && snapshot.focused_action_id == action_id;
+  return snapshot.connected && (snapshot.focused_action_id == action_id ||
+    (action_id == "com.apple.finder" &&
+     companion_focus_application_id(snapshot.focused_action_id) == action_id));
 }
 
 inline void companion_set_focused_application(std::string application_id) {
   if (application_id.size() > 96) application_id.clear();
-  const std::string focused_application_id = application_id;
+  const std::string focused_application_id = companion_focus_application_id(application_id);
   companion_set_focused_action(std::move(application_id));
   std::vector<CompanionActionResultHandler> successes;
   {

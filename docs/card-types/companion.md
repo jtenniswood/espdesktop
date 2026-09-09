@@ -31,7 +31,7 @@ Action cards are disabled when the Mac is offline or the selected application, f
 
 ## Launch Apps and Open Websites
 
-For **Launch app**, select an application from the approved list supplied by the Mac app. Finder is not listed as an application because folders have their own control.
+For **Launch app**, select an application from the approved list supplied by the Mac app. Approve **Finder** in the Mac app to include it. Its card lights up when a Finder window or the desktop is active.
 
 For **Open URL**, enter an `http://` or `https://` address and choose the approved application that should open it, such as Safari or Chrome. Addresses containing an embedded username or password are rejected, and other URL types such as `file://` are not accepted.
 
@@ -56,6 +56,12 @@ Launch cards for **Safari**, **Slack**, and **Codex** can create a ready-made su
 The generated page is a normal editable subpage. You can rename or reorder its shortcut cards and add other card types. Turning the app subpage off keeps those edits so they return if you enable it again.
 
 With **Auto switch to subpage** enabled, tapping the app card asks the Mac to activate the application first. The display opens the subpage only after the Mac confirms success, so its shortcuts are not accidentally sent to a different app.
+
+## Finder Folder Subpage
+
+Choose **Finder** on a **Launch app** card and enable **Add app subpage**. Finder starts with an empty editable subpage. Add **Companion → Open folder** cards there and select directories already configured in the Mac app's **Folders** page.
+
+Each folder card lights up when that directory is active in Finder. Switching between folders or the desktop keeps the Finder subpage open; switching to another application returns to the home screen. Enable **Auto switch to subpage** to open it whenever Finder becomes active. Folder highlighting needs macOS permission for EspDesktop to control Finder; allow the Automation prompt when shown.
 
 ## Custom Keyboard Shortcuts
 
