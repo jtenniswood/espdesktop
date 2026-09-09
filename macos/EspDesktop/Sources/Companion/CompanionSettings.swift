@@ -917,7 +917,7 @@ struct CompanionSettings: View {
             Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
             }
-            Section {
+            Section("Setup") {
                 Button("Restart Setup") { confirmingRestartSetup = true }
                     .buttonStyle(.link)
             }
