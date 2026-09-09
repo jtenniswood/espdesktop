@@ -102,7 +102,10 @@ inline const CompanionWindowCapability *companion_window_capability(const std::s
 }
 
 inline const CompanionMetricCapability *companion_metric_capability(const std::string &id) {
-  for (const auto &item : COMPANION_METRIC_CAPABILITIES) if (id == item.id) return &item;
+  const auto separator = id.find(':');
+  const auto base = id.substr(0, separator);
+  if (separator != std::string::npos && ((base != "stat.storage" && base != "stat.storage_free") || separator + 1 == id.size() || id.size() - separator - 1 > 64 || id.find(':', separator + 1) != std::string::npos)) return nullptr;
+  for (const auto &item : COMPANION_METRIC_CAPABILITIES) if (base == item.id) return &item;
   return nullptr;
 }
 

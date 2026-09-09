@@ -186,6 +186,17 @@ inline const char *companion_metric_suffix_key(const std::string &key) {
 inline bool companion_metric_value(const CompanionRuntimeSnapshot &snapshot,
                                    const std::string &key, float &value) {
   if (!snapshot.connected) return false;
+  const auto separator = key.find(':');
+  if (separator != std::string::npos) {
+    if (!companion_metric_key_valid(key)) return false;
+    const auto id = key.substr(separator + 1);
+    for (const auto &device : snapshot.system_metrics.storage_devices) {
+      if (device.id != id) continue;
+      value = key.substr(0, separator) == "stat.storage_free" ? 100.0f - device.usage_percent : device.usage_percent;
+      return std::isfinite(value);
+    }
+    return false;
+  }
   if (key == "stat.cpu") value = snapshot.system_metrics.cpu_usage_percent;
   else if (key == "stat.memory") value = snapshot.system_metrics.memory_usage_percent;
   else if (key == "stat.memory_free") value = 100.0f - snapshot.system_metrics.memory_usage_percent;
@@ -813,7 +824,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
   bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
     if (request->method() != HTTP_GET) return false;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
-    return request->url_to(url_buf) == "/companion/actions";
+    const auto url = request->url_to(url_buf);
+    return url == "/companion/actions" || url == "/companion/storage";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -821,7 +833,17 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     std::string json = "[";
     bool first = true;
     const auto snapshot = companion_runtime_snapshot();
-    if (snapshot.connected) {
+    char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    const bool storage = request->url_to(url_buf) == "/companion/storage";
+    if (snapshot.connected && storage) {
+      for (const auto &device : snapshot.system_metrics.storage_devices) {
+        if (!first) json += ",";
+        first = false;
+        json += "{\"id\":\"" + companion_json_escape(device.id) +
+          "\",\"label\":\"" + companion_json_escape(device.label) + "\"}";
+      }
+    }
+    if (snapshot.connected && !storage) {
       for (const auto &action : snapshot.actions) {
         if (!first) json += ",";
         first = false;

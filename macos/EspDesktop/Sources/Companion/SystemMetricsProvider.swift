@@ -3,6 +3,12 @@ import Foundation
 import IOKit.ps
 import SystemConfiguration
 
+struct CompanionStorageDevice: Equatable, Sendable {
+    let id: String
+    let label: String
+    let usagePercent: Double
+}
+
 struct CompanionSystemMetricsSnapshot: Equatable, Sendable {
     let generation: UInt32
     let cpuUsagePercent: Double
@@ -10,6 +16,7 @@ struct CompanionSystemMetricsSnapshot: Equatable, Sendable {
     let storageUsagePercent: Double
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
+    var storageDevices: [CompanionStorageDevice] = []
 }
 
 @MainActor
@@ -57,7 +64,8 @@ final class SystemMetricsProvider {
                 memoryUsagePercent: sample.memoryUsagePercent,
                 storageUsagePercent: sample.storageUsagePercent,
                 batteryPercent: sample.batteryPercent,
-                networkThroughputKBps: sample.networkThroughputKBps
+                networkThroughputKBps: sample.networkThroughputKBps,
+                storageDevices: sample.storageDevices
             )
             self.lastSnapshot = snapshot
             self.onSnapshot?(snapshot)
@@ -71,6 +79,7 @@ private struct SystemMetricsSample: Sendable {
     let storageUsagePercent: Double
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
+    var storageDevices: [CompanionStorageDevice] = []
 }
 
 private actor SystemMetricsSampler {
@@ -99,7 +108,8 @@ private actor SystemMetricsSampler {
             memoryUsagePercent: memory,
             storageUsagePercent: storage,
             batteryPercent: Self.batteryPercent(),
-            networkThroughputKBps: sampleNetworkThroughputKBps()
+            networkThroughputKBps: sampleNetworkThroughputKBps(),
+            storageDevices: Self.storageDevices()
         )
     }
 
@@ -191,13 +201,29 @@ private actor SystemMetricsSampler {
         return clampedPercent(usedBytes * 100 / totalBytes)
     }
 
-    private static func storageUsagePercent() -> Double? {
-        let keys: Set<URLResourceKey> = [.volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey]
-        guard let values = try? URL(fileURLWithPath: "/").resourceValues(forKeys: keys),
+    private static func storageUsagePercent(at url: URL = URL(fileURLWithPath: "/")) -> Double? {
+        let keys: Set<URLResourceKey> = [.volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey]
+        guard let values = try? url.resourceValues(forKeys: keys),
               let total = values.volumeTotalCapacity,
-              let available = values.volumeAvailableCapacityForImportantUsage,
+              let available = values.volumeAvailableCapacityForImportantUsage ?? values.volumeAvailableCapacity.map(Int64.init),
               total > 0 else { return nil }
         return clampedPercent((1 - Double(available) / Double(total)) * 100)
+    }
+
+    private static func storageDevices() -> [CompanionStorageDevice] {
+        let keys: Set<URLResourceKey> = [.volumeUUIDStringKey, .volumeNameKey, .volumeIsLocalKey]
+        let urls = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: Array(keys),
+                                                        options: [.skipHiddenVolumes]) ?? []
+        var seen = Set<String>()
+        return Array(urls.sorted { $0.path < $1.path }.compactMap { url -> CompanionStorageDevice? in
+            guard let values = try? url.resourceValues(forKeys: keys), values.volumeIsLocal == true,
+                  let id = values.volumeUUIDString, !id.isEmpty, id.utf8.count <= 64,
+                  seen.insert(id).inserted, let usage = storageUsagePercent(at: url) else { return nil }
+            var label = values.volumeName ?? url.lastPathComponent
+            while label.utf8.count > 96 { label.removeLast() }
+            if label.isEmpty { label = "Storage device" }
+            return CompanionStorageDevice(id: id, label: label, usagePercent: usage)
+        }.prefix(16))
     }
 
     private static func batteryPercent() -> Double? {

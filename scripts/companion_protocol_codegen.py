@@ -115,14 +115,17 @@ inline bool hex_valid(JsonVariantConst value) {
         if not m['fields']: out.append('  (void) message;\n')
         for key, spec in m['fields'].items():
             if spec['type'] == 'array':
+                if spec.get('optional'): out.append(f'  if (message.{key}) {{\n')
+                array = f'*message.{key}' if spec.get('optional') else f'message.{key}'
                 out.append(f'  auto values_{key} = root["{key}"].to<JsonArray>();\n')
-                out.append(f'  for (const auto &item : message.{key}) {{\n')
+                out.append(f'  for (const auto &item : {array}) {{\n')
                 if spec['items']['type'] == 'object':
                     out.append(f'    auto entry = values_{key}.add<JsonObject>();\n')
                     for child in spec['items']['fields']:
                         out.append(f'    entry["{child}"] = item.{child};\n')
                 else: out.append(f'    values_{key}.add(item);\n')
                 out.append('  }\n')
+                if spec.get('optional'): out.append('  }\n')
             elif spec.get('optional'):
                 out.append(f'  if (message.{key}) root["{key}"] = *message.{key};\n')
             else: out.append(f'  root["{key}"] = message.{key};\n')
@@ -147,12 +150,18 @@ inline bool hex_valid(JsonVariantConst value) {
         for key,spec in m['fields'].items():
             value=f'root[{json.dumps(key)}]'
             if spec['type']=='array':
+                target = f'result.{key}'
+                if spec.get('optional'):
+                    out.append(f'    if (!{value}.isUnbound()) {{\n    result.{key}.emplace();\n')
+                    target = f'result.{key}->'
+                else: target += '.'
                 out.append(f'    for (JsonVariantConst item : {value}.as<JsonArrayConst>()) {{\n')
                 if spec['items']['type']=='object':
                     members=', '.join(read(v,f'item[{json.dumps(k)}]',ident) for k,v in spec['items']['fields'].items())
-                    out.append(f'      result.{key}.push_back({{{members}}});\n')
-                else:out.append(f'      result.{key}.push_back({read(spec["items"],"item",ident)});\n')
+                    out.append(f'      {target}push_back({{{members}}});\n')
+                else:out.append(f'      {target}push_back({read(spec["items"],"item",ident)});\n')
                 out.append('    }\n')
+                if spec.get('optional'): out.append('    }\n')
             else:
                 prefix=f'if (root.containsKey({json.dumps(key)})) ' if spec.get('optional') else ''
                 out.append(f'    {prefix}result.{key} = {read(spec,value,ident)};\n')
@@ -174,7 +183,7 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
 ''']
     def typ(spec,ident):
         k=spec['type']
-        if k=='object':struct(ident,spec['fields']);return ident
+        if k=='object':struct(ident,spec['fields']);return 'CompanionWire'+ident
         if k=='array':return '['+typ(spec['items'],ident+'Item')+']'
         return {'string':'String','integer':'UInt32','number':'Double','boolean':'Bool'}[k]
     def struct(ident,fields):
@@ -256,8 +265,6 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
         n=name(m['id']);out.append(f'        case {json.dumps(m["id"])}: return (try? decoder.decode(CompanionWire{n}.self, from: data)).map(CompanionProtocolMessage.{n[0].lower()+n[1:]})\n')
     out.append('        default: return nil\n        }\n    }\n}\n')
     result=''.join(out)
-    # Nested catalogue entries are generated alongside the message structures.
-    result=result.replace('[CataloguePageItemsItem]','[CompanionWireCataloguePageItemsItem]')
     # Foundation dictionaries are immutable after initialization, but Any does not express Sendable.
     result=result.replace('private static let schemas', 'nonisolated(unsafe) private static let schemas')
     return result

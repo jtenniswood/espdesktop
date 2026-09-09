@@ -93,11 +93,15 @@ export function runCompanionShortcutFeatureTests(): void {
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
+  const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
+  normalizeCompanionCard(storageCard);
+  if (decodeCompanionCard(storageCard).mode !== "stats" || companionMetricDisplayMode(storageCard) !== "free" ||
+      storageCard.entity !== "stat.storage_free:external-volume") throw new Error("Selected storage device must survive normalization");
   const typedCard = decodeCompanionCard(emptyCardConfig("companion"), "app");
   if (typedCard.mode !== "app" || typedCard.applicationId !== "") {
     throw new Error("Companion cards must have a typed in-memory model without changing saved config");
   }
-  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free"]) {
+  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free", "stat.storage:external-volume", "stat.storage_free:external-volume"]) {
     const saved = { ...emptyCardConfig("companion"), entity, label: "Keep", options: "future_option=keep", precision: "2", unit: "%" };
     if (JSON.stringify(encodeCompanionCard(decodeCompanionCard(saved), saved)) !== JSON.stringify(saved)) {
       throw new Error("Companion variants must round-trip offline cards and unknown options");

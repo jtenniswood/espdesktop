@@ -55,6 +55,12 @@ struct CompanionNowPlayingSnapshot {
   bool artwork_follows{false};
 };
 
+struct CompanionStorageDevice {
+  std::string id;
+  std::string label;
+  float usage_percent{NAN};
+};
+
 struct CompanionSystemMetricsSnapshot {
   uint32_t generation{0};
   float cpu_usage_percent{NAN};
@@ -62,6 +68,7 @@ struct CompanionSystemMetricsSnapshot {
   float storage_usage_percent{NAN};
   float battery_percent{NAN};
   float network_throughput_kbps{NAN};
+  std::vector<CompanionStorageDevice> storage_devices;
 };
 
 struct CompanionRuntimeSnapshot {

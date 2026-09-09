@@ -132,6 +132,7 @@ int main() {
   metrics.memory_usage_percent = 61.0f;
   metrics.storage_usage_percent = 73.0f;
   metrics.network_throughput_kbps = 512.5f;
+  metrics.storage_devices.push_back({"external-volume", "External drive", 42.0f});
   companion_set_system_metrics(metrics);
   float metric_value = 0.0f;
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.cpu", metric_value));
@@ -140,6 +141,17 @@ int main() {
   assert(metric_value == 39.0f);
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.storage_free", metric_value));
   assert(metric_value == 27.0f);
+  assert(companion_metric_key_valid("stat.storage:external-volume"));
+  assert(!companion_metric_key_valid("stat.cpu:external-volume"));
+  assert(!companion_metric_key_valid("stat.storage:"));
+  assert(companion_metric_value(companion_runtime_snapshot(), "stat.storage:external-volume", metric_value));
+  assert(metric_value == 42.0f);
+  assert(companion_metric_value(companion_runtime_snapshot(), "stat.storage_free:external-volume", metric_value));
+  assert(metric_value == 58.0f);
+  assert(!companion_metric_value(companion_runtime_snapshot(), "stat.storage:missing-volume", metric_value));
+  metrics.storage_devices.clear();
+  companion_set_system_metrics(metrics);
+  assert(!companion_metric_value(companion_runtime_snapshot(), "stat.storage:external-volume", metric_value));
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.network_throughput", metric_value));
   assert(metric_value == 512.5f / 1024.0f);
   assert(!companion_metric_value(companion_runtime_snapshot(), "stat.battery", metric_value));

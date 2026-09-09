@@ -28,6 +28,18 @@ final class CompanionTransportPolicyTests: XCTestCase {
         ))
     }
 
+    func testStorageDeviceChangesPublishImmediately() {
+        var initial = snapshot(generation: 1, cpu: 20, memory: 40, storage: 60, battery: nil, network: nil)
+        initial.storageDevices = [.init(id: "drive", label: "External", usagePercent: 40)]
+        var current = initial
+        current.storageDevices = [.init(id: "drive", label: "External", usagePercent: 40.01)]
+        XCTAssertFalse(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: current, elapsedSeconds: 2))
+        current.storageDevices = [.init(id: "drive", label: "Renamed", usagePercent: 40)]
+        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: current, elapsedSeconds: 2))
+        current.storageDevices = []
+        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: current, elapsedSeconds: 2))
+    }
+
     private func snapshot(
         generation: UInt32, cpu: Double, memory: Double, storage: Double,
         battery: Double?, network: Double?

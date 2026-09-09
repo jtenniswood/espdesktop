@@ -467,6 +467,31 @@
             "minimum": 0,
             "maximum": 1000000000.0,
             "optional": true
+          },
+          "storageDevices": {
+            "type": "array",
+            "optional": true,
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "fields": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "usagePercent": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            }
           }
         },
         "states": [

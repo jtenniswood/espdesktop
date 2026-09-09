@@ -1,3 +1,5 @@
+import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+import { companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "../model/config_primitives";
@@ -43,7 +45,6 @@ import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
 import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
 import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
 import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
-import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
 import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
 import type { CardRegistry } from "./card_registry";
@@ -439,14 +440,12 @@ export function createConfigCodecFeature(
     }
     function normalizeSavedConfigSubpageFields(this: any, b?: any) {
         if (subpageKind(b) === "companion_stat") {
-            var metric: any = COMPANION_SYSTEM_METRICS.find(function (candidate) {
-                return candidate.id === b.entity || candidate.freeId === b.entity;
-            }) || COMPANION_SYSTEM_METRICS[0];
+            var metric: any = companionMetricForEntity(b.entity) || COMPANION_SYSTEM_METRICS[0];
             if (!metric)
                 return;
             if (!metric.id && !metric.freeId)
                 b.entity = "";
-            else if (b.entity !== metric.id && b.entity !== metric.freeId)
+            else if (!companionMetricForEntity(b.entity))
                 b.entity = metric.id;
             if (!b.label)
                 b.label = metric.label;
@@ -666,8 +665,7 @@ export function createConfigCodecFeature(
             options = normalizeSubpageOptions(options, sensor, precision);
         }
         else if (type === "companion") {
-            const isCompanionMetric = COMPANION_SYSTEM_METRICS.some((metric) =>
-                metric.id === (b && b.entity) || metric.freeId === (b && b.entity));
+            const isCompanionMetric = !!companionMetricForEntity(b?.entity);
             options = isCompanionMetric ? copyLargeNumbersOption("", options) :
                 normalizeCompanionAppShortcutOptions({
                     ...(b || {}),

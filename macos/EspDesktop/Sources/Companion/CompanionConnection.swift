@@ -555,6 +555,9 @@ final class CompanionConnection: NSObject {
             "cpuUsagePercent": snapshot.cpuUsagePercent,
             "memoryUsagePercent": snapshot.memoryUsagePercent,
             "storageUsagePercent": snapshot.storageUsagePercent,
+            "storageDevices": snapshot.storageDevices.map {
+                ["id": $0.id, "label": $0.label, "usagePercent": $0.usagePercent] as [String: Any]
+            },
         ]
         if let battery = snapshot.batteryPercent { message["batteryPercent"] = battery }
         if let throughput = snapshot.networkThroughputKBps {
@@ -688,6 +691,11 @@ final class CompanionConnection: NSObject {
         if elapsedSeconds >= 30 { return true }
         if abs(current.cpuUsagePercent - previous.cpuUsagePercent) >= 1 { return true }
         if abs(current.memoryUsagePercent - previous.memoryUsagePercent) >= 0.5 { return true }
+        if current.storageDevices.count != previous.storageDevices.count { return true }
+        for (currentDevice, previousDevice) in zip(current.storageDevices, previous.storageDevices) {
+            if currentDevice.id != previousDevice.id || currentDevice.label != previousDevice.label ||
+                abs(currentDevice.usagePercent - previousDevice.usagePercent) >= 0.1 { return true }
+        }
         if abs(current.storageUsagePercent - previous.storageUsagePercent) >= 0.1 { return true }
         if optionalDifference(current.batteryPercent, previous.batteryPercent) >= 1 { return true }
         if optionalDifference(current.networkThroughputKBps, previous.networkThroughputKBps) >= 32 { return true }

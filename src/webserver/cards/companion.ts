@@ -1,3 +1,4 @@
+import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { createCompanionCatalogue } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -248,7 +249,7 @@ export function companionCardIsMetric(card: any): boolean {
 
 export function companionMetricDisplayMode(card: any): "used" | "free" {
     const metric = companionMetricForEntity(card?.entity);
-    return metric?.freeId === card?.entity ? "free" : "used";
+    return metric?.freeId === card?.entity?.split(":")[0] ? "free" : "used";
 }
 
 export function companionLabelPlaceholder(card: any): string {
@@ -488,6 +489,9 @@ export function registerCompanionCardTypes(
                 statsField.appendChild(statsSelect);
                 helpers.markCardPrimaryField(statsField, "statistic");
                 panel?.appendChild(statsField);
+                if (metric?.mode === "storage") {
+                    renderCompanionStorageSelector(panel, card, helpers, fetchImpl);
+                }
                 if (metric?.freeId) {
                     const displayField = document.createElement("div");
                     displayField.className = "sp-field";
@@ -505,7 +509,8 @@ export function registerCompanionCardTypes(
                     });
                     displaySelect.value = companionMetricDisplayMode(card);
                     displaySelect.addEventListener("change", function () {
-                        card.entity = this.value === "free" ? metric.freeId : metric.id;
+                        const device = card.entity.split(":")[1];
+                        card.entity = (this.value === "free" ? metric.freeId : metric.id) + (device ? ":" + device : "");
                         helpers.saveField("entity", card.entity);
                         renderButtonSettings();
                     });

@@ -5271,6 +5271,53 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   }
 }
 
+async function assertCompanionStorageSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  for (const type of ["companion", "subpage"]) {
+    const nativeState = nativeConfigState(testCase.slug);
+    nativeState.document.buttons[1] = type === "companion"
+      ? "stat.storage;Storage;HardDrive;Auto;;%;companion;0;"
+      : "stat.storage;Storage;HardDrive;Auto;indicator;%;subpage;;subpage_kind=companion_stat";
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState });
+    let devices = [{ id: "external-volume", label: "External drive" }];
+    await context.route("**/companion/storage", (route) => route.fulfill({
+      contentType: "application/json", body: JSON.stringify(devices),
+    }));
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    const openSettings = async () => {
+      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      await page.waitForSelector(".sp-settings-overlay.sp-visible");
+      const field = page.locator('[id$="storage-device"]');
+      if (!(await field.isVisible())) {
+        await page.locator(".sp-disclosure").filter({ has: field }).last().locator(".sp-disclosure-button").first().click();
+      }
+    };
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      await openSettings();
+      const selector = page.locator('[id$="storage-device"]');
+      await selector.locator('option[value="external-volume"]').waitFor({ state: "attached" });
+      await selector.selectOption("external-volume");
+      await page.locator(type === "companion" ? '[id$="metric-display"]' : '[id$="companion-stat-display"]').selectOption("free");
+      assert.strictEqual(await selector.inputValue(), "external-volume", `${type}: used/free keeps the drive`);
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await waitForNativeState(nativeState, () => String(nativeState.document.buttons[1]).startsWith("stat.storage_free:external-volume;"), `${type}: saves selected drive`);
+      devices = [];
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      await openSettings();
+      assert.strictEqual(await selector.inputValue(), "external-volume", `${type}: offline reload keeps selected drive`);
+      assert.strictEqual(await selector.locator('option:checked').textContent(), "Saved device (unavailable)");
+    } finally { await context.close(); }
+  }
+}
+
 async function assertCompanionOnlyCardPicker(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -5723,6 +5770,7 @@ async function runCase(browser, testCase) {
       if (!acceptanceOnly) await runCase(browser, testCase);
       await assertNativeProfileJourney(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertCompanionStorageSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);
       await assertLegacyProfileFallback(browser, testCase);
       if (testCase.exerciseInteractions) await assertLegacyRestoreVerificationFailure(browser, testCase);
