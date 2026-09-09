@@ -5,8 +5,19 @@ final class CompanionSetupFlowTests: XCTestCase {
     func testNewSetupRequiresPairingBeforePreferences() {
         XCTAssertEqual(route(saved: false), .pairing)
         XCTAssertEqual(route(saved: false, pairing: true), .pairing)
-        XCTAssertEqual(route(saved: true, pairing: true), .pairing, "Keep the success page until Continue is pressed")
+        XCTAssertEqual(route(saved: true, pairing: true), .pairing, "Stay on pairing until the connection succeeds")
         XCTAssertEqual(route(saved: true), .preferences)
+    }
+
+    func testSuccessfulPairingGoesStraightToFinalAccessScreen() {
+        XCTAssertEqual(CompanionSetupRoute.resolve(
+            completed: false, showingHelp: false, hasSavedPairing: true,
+            pairingInProgress: true, pairingConnected: true
+        ), .preferences)
+        XCTAssertEqual(CompanionSetupRoute.resolve(
+            completed: true, showingHelp: false, hasSavedPairing: true,
+            pairingInProgress: true, pairingConnected: true
+        ), .settings, "Re-pairing must not restart first-run setup")
     }
 
     func testExistingPairingResumesPreferencesAndCompletedUsersKeepSettings() {

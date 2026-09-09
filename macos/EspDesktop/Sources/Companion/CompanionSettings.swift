@@ -7,7 +7,7 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, general, updates, help
+    case connection, applications, folders, updates, help
 
     var id: String { rawValue }
     var title: String {
@@ -15,7 +15,6 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "Display"
         case .applications: return "Apps"
         case .folders: return "Folders"
-        case .general: return "Permissions"
         case .updates: return "Updates"
         case .help: return "Support"
         }
@@ -25,7 +24,6 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "display"
         case .applications: return "square.grid.2x2"
         case .folders: return "folder"
-        case .general: return "gearshape"
         case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
@@ -36,33 +34,35 @@ private enum CompanionPairingStep {
     case address, code, connecting, connected
 }
 
-private struct CompanionOnboardingPage<Content: View>: View {
+private struct CompanionCapsuleButton: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 14.0, *) {
+            content.buttonBorderShape(.capsule)
+        } else {
+            // Keep the native bordered control on macOS 13, with pill-shaped edges.
+            content.clipShape(Capsule())
+        }
+    }
+}
+
+private struct CompanionSetupHeading: View {
+    let step: Int
     let title: String
     let summary: String
-    @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title).font(.title3.weight(.semibold))
-                Text(summary).font(.body).foregroundStyle(.secondary)
-            }
-            .fixedSize(horizontal: false, vertical: true)
-            VStack(alignment: .leading, spacing: 12) {
-                content()
-            }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.08))
-            }
+        VStack(spacing: 8) {
+            Text("Step \(step) of 3")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Text(title)
+                .font(.title.weight(.semibold))
+            Text(summary)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: 460, alignment: .leading)
+        .multilineTextAlignment(.center)
     }
 }
 
@@ -111,39 +111,6 @@ private struct CompanionPermissionRow: View {
     }
 }
 
-private struct CompanionStatsToggle: View {
-    @Binding var isEnabled: Bool
-
-    var body: some View {
-        Toggle("Share Mac Stats to Display", isOn: $isEnabled)
-            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-    }
-}
-
-private struct CompanionLaunchAtLoginToggle: View {
-    @Binding var isEnabled: Bool
-    let isAvailable: Bool
-
-    var body: some View {
-        Toggle("Launch Companion App at Login", isOn: $isEnabled)
-            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-            .disabled(!isAvailable)
-    }
-}
-
-private struct CompanionAccessibilityToggle: View {
-    @Binding var isEnabled: Bool
-    let requestAccess: () -> Void
-
-    var body: some View {
-        Toggle("Enable Keyboard Shortcuts", isOn: Binding(
-            get: { isEnabled },
-            set: { _ in requestAccess() }
-        ))
-        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-    }
-}
-
 private struct OnboardingWindowTitle: NSViewRepresentable {
     let hidden: Bool
 
@@ -166,105 +133,64 @@ private struct OnboardingWindowTitle: NSViewRepresentable {
 private struct CompanionOnboarding: View {
     @ObservedObject var store: CompanionStore
     let onComplete: () -> Void
-    @State private var step = 0
     @State private var accessibilityGranted = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    private let totalSteps = 3
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 36) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Step \(step + 1) of \(totalSteps)")
+        ScrollView {
+            VStack(spacing: 24) {
+                CompanionSetupHeading(
+                    step: 3,
+                    title: "Access and startup",
+                    summary: "Your display is paired. Choose what to enable."
+                )
+
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 16) {
+                        CompanionPermissionRow(
+                            title: "Keyboard shortcuts",
+                            information: "Allow Accessibility access in System Settings to use keyboard shortcuts and window controls.",
+                            isEnabled: Binding(
+                                get: { accessibilityGranted },
+                                set: { _ in enableAccessibility() }
+                            )
+                        )
+                        Divider()
+                        CompanionPermissionRow(
+                            title: "Share Mac stats",
+                            information: "Show your Mac’s performance. Stats are shared only with your paired display on your local network.",
+                            isEnabled: $store.shareSystemMetricsEnabled
+                        )
+                        Divider()
+                        CompanionPermissionRow(
+                            title: "Launch at login",
+                            information: "Open EspDesktop automatically when you sign in to your Mac.",
+                            isEnabled: store.launchAtLoginBinding(),
+                            isAvailable: store.supportsLaunchAtLogin
+                        )
+                        Text(store.supportsLaunchAtLogin
+                             ? store.launchAtLoginMessage
+                             : "Install EspDesktop in Applications to enable automatic startup.")
                             .font(.callout)
                             .foregroundStyle(.secondary)
-                        Text("Set up EspDesktop")
-                            .font(.system(size: 30, weight: .semibold))
-                        Text("Your display is paired. Customize it in three steps.")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    currentPage
-                        .id(step)
-                        .transition(.opacity)
+                    .padding(12)
                 }
-                .frame(maxWidth: 460, alignment: .leading)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 36)
-            }
 
-            Divider()
-            HStack {
-                Button("Skip for now") { onComplete() }
-                    .buttonStyle(.borderless)
-                Spacer()
-                if step > 0 {
-                    Button("Back") { step -= 1 }
-                }
-                Button(step == totalSteps - 1 ? "Finish" : "Continue") {
-                    if step == totalSteps - 1 {
-                        onComplete()
-                    } else {
-                        step += 1
-                    }
-                }
-                .buttonStyle(.borderedProminent)
+                Button("Finish") { onComplete() }
+                    .buttonStyle(.borderedProminent)
             }
             .controlSize(.large)
-            .frame(maxWidth: 460)
-            .padding(.vertical, 18)
+            .frame(maxWidth: 380)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 36)
+            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(nsColor: .windowBackgroundColor))
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: step)
         .onAppear { refreshAccessibilityStatus() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
-        }
-    }
-
-    @ViewBuilder private var currentPage: some View {
-        switch step {
-        case 0:
-            CompanionOnboardingPage(
-                title: "Control your Mac",
-                summary: "Use your display for shortcuts and window controls."
-            ) {
-                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
-                Text(accessibilityGranted
-                     ? "Accessibility access is enabled."
-                     : "Requires Accessibility access in System Settings.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-        case 1:
-            CompanionOnboardingPage(
-                title: "Choose what to see",
-                summary: "Show your Mac’s performance on your display."
-            ) {
-                CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
-                Text("Shared only with your paired display on your local network.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-        default:
-            CompanionOnboardingPage(
-                title: "Make it part of your day",
-                summary: "Keep your display ready whenever you sign in."
-            ) {
-                CompanionLaunchAtLoginToggle(
-                    isEnabled: store.launchAtLoginBinding(),
-                    isAvailable: store.supportsLaunchAtLogin
-                )
-                Text(store.supportsLaunchAtLogin
-                     ? store.launchAtLoginMessage
-                     : "Install EspDesktop in Applications before enabling automatic startup.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 
@@ -301,7 +227,8 @@ struct CompanionSettings: View {
                 completed: onboardingCompleted,
                 showingHelp: store.requestedSettingsPage == "help",
                 hasSavedPairing: store.hasSavedPairing,
-                pairingInProgress: pairingFlowActive
+                pairingInProgress: pairingFlowActive,
+                pairingConnected: pairingStep == .connected
             ) {
             case .settings:
                 settingsContent
@@ -311,6 +238,8 @@ struct CompanionSettings: View {
                     .onAppear { if !pairingFlowActive { startPairingFlow() } }
             case .preferences:
                 CompanionOnboarding(store: store) {
+                    pairingFlowActive = false
+                    pairingStep = .address
                     onboardingCompleted = true
                 }
             }
@@ -410,7 +339,6 @@ struct CompanionSettings: View {
         case .connection: connectionPage
         case .applications: applicationsPage
         case .folders: foldersPage
-        case .general: permissionsPage
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
@@ -429,25 +357,32 @@ struct CompanionSettings: View {
             if store.hasSavedPairing && !pairingFlowActive {
                 Form {
                     Section {
-                        connectionStatus
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 24)
-                    }
-                    Section("Display Settings") {
-                        LabeledContent {
-                            Button("Customize") { store.openPanelWebServer() }
-                                .help("Open the display’s configuration in your browser")
-                        } label: {
-                            Text("Manage your display layout")
-                                .foregroundStyle(.secondary)
+                        VStack(spacing: 20) {
+                            connectionStatus
+                            HStack(spacing: 12) {
+                                Button {
+                                    store.openPanelWebServer()
+                                } label: {
+                                    Label("Customize", systemImage: "slider.horizontal.3")
+                                        .padding(.vertical, 4)
+                                }
+                                    .help("Open the display’s configuration in your browser")
+                                    .modifier(CompanionCapsuleButton())
+                                Button(role: .destructive) {
+                                    confirmingForget = true
+                                } label: {
+                                    Label("Remove", systemImage: "trash")
+                                        .padding(.vertical, 4)
+                                }
+                                    .help("Remove this display’s pairing")
+                                    .modifier(CompanionCapsuleButton())
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        LabeledContent {
-                            Button("Remove", role: .destructive) { confirmingForget = true }
-                        } label: {
-                            Text("Reset your display pairing")
-                                .foregroundStyle(.secondary)
-                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
                     }
+                    permissionsSection
                 }
                 .formStyle(.grouped)
             } else {
@@ -459,18 +394,11 @@ struct CompanionSettings: View {
     private var pairingFlowPage: some View {
         ScrollView {
             VStack(spacing: 24) {
-                VStack(spacing: 8) {
-                    Text("Step \(pairingStepNumber) of 3")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    Text(pairingStepTitle)
-                        .font(.title.weight(.semibold))
-                    Text(pairingStepDescription)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .multilineTextAlignment(.center)
+                CompanionSetupHeading(
+                    step: pairingStepNumber,
+                    title: pairingStepTitle,
+                    summary: pairingStepDescription
+                )
 
                 if pairingStep == .address || pairingStep == .code {
                     VStack(alignment: .leading, spacing: 10) {
@@ -512,7 +440,7 @@ struct CompanionSettings: View {
                     ProgressView()
                         .accessibilityLabel("Connecting to display")
                 } else {
-                    Button(onboardingCompleted ? "Done" : "Continue to customize") {
+                    Button("Done") {
                         pairingFlowActive = false
                         pairingStep = .address
                     }
@@ -622,8 +550,8 @@ struct CompanionSettings: View {
     private var pairingStepNumber: Int {
         switch pairingStep {
         case .address: return 1
-        case .code: return 2
-        case .connecting, .connected: return 3
+        case .code, .connecting: return 2
+        case .connected: return 3
         }
     }
 
@@ -867,34 +795,31 @@ struct CompanionSettings: View {
         .padding(.vertical, 24)
     }
 
-    private var permissionsPage: some View {
-        Form {
-            Section("Permissions") {
-                CompanionPermissionRow(
-                    title: "Launch Companion App at Login",
-                    information: store.supportsLaunchAtLogin
-                        ? (store.launchAtLoginMessage.isEmpty
-                           ? "Open EspDesktop automatically after you sign in."
-                           : store.launchAtLoginMessage)
-                        : "Install EspDesktop in Applications to open it automatically at login.",
-                    isEnabled: store.launchAtLoginBinding(),
-                    isAvailable: store.supportsLaunchAtLogin
-                )
-                CompanionPermissionRow(
-                    title: "Share Mac Stats to Display",
-                    information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
-                    isEnabled: $store.shareSystemMetricsEnabled
-                )
-                CompanionPermissionRow(
-                    title: "Enable Keyboard Shortcuts",
-                    information: accessibilityGranted
-                        ? "Accessibility access is enabled."
-                        : "Requires Accessibility access in System Settings.",
-                    isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
-                )
-            }
+    private var permissionsSection: some View {
+        Section("Permissions") {
+            CompanionPermissionRow(
+                title: "Open Companion at Launch",
+                information: store.supportsLaunchAtLogin
+                    ? (store.launchAtLoginMessage.isEmpty
+                       ? "Open EspDesktop automatically after you sign in."
+                       : store.launchAtLoginMessage)
+                    : "Install EspDesktop in Applications to open it automatically at login.",
+                isEnabled: store.launchAtLoginBinding(),
+                isAvailable: store.supportsLaunchAtLogin
+            )
+            CompanionPermissionRow(
+                title: "Enable Keyboard Shortcuts",
+                information: accessibilityGranted
+                    ? "Accessibility access is enabled."
+                    : "Requires Accessibility access in System Settings.",
+                isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
+            )
+            CompanionPermissionRow(
+                title: "Share Stats to Device",
+                information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
+                isEnabled: $store.shareSystemMetricsEnabled
+            )
         }
-        .formStyle(.grouped)
     }
 
     private var helpPage: some View {

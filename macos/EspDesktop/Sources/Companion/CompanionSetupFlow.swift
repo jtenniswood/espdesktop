@@ -2,9 +2,9 @@
 enum CompanionSetupRoute: Equatable {
     case settings, pairing, preferences
 
-    static func resolve(completed: Bool, showingHelp: Bool, hasSavedPairing: Bool, pairingInProgress: Bool) -> Self {
+    static func resolve(completed: Bool, showingHelp: Bool, hasSavedPairing: Bool, pairingInProgress: Bool, pairingConnected: Bool = false) -> Self {
         if completed || showingHelp { return .settings }
-        if !hasSavedPairing || pairingInProgress { return .pairing }
+        if !hasSavedPairing || (pairingInProgress && !pairingConnected) { return .pairing }
         return .preferences
     }
 }
