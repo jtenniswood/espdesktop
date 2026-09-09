@@ -488,6 +488,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var screensaverCard: any = makeCollapsibleCard("Screensaver", ssBody, true, ssBadge);
         function syncScreensaverModeOptions(this: any) {
             var haAvailable = homeAssistantConfigured();
+            schedule.setHomeAssistantConfigured(haAvailable);
             coverArtCard.hidden = !haAvailable;
             coverArtCard.classList.toggle("sp-hidden", !haAvailable);
             var companionAvailable = companionConfigured();

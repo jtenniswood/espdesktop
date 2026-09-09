@@ -10,11 +10,13 @@ Screen schedule controls what the panel does overnight, then returns it to norma
 
 You will find it in the **Settings** tab on the [Setup](/features/setup) page, under **Night Schedule**.
 
+The **Home Assistant** mode is shown only when Home Assistant is configured. It stays available if Home Assistant is temporarily offline.
+
 ## Settings
 
-- **Mode** - choose **Disabled**, **Time**, or **Sensor**. Time uses the daytime and night-time hours. Sensor uses the configured sensor entity and activation state.
-- **Sensor Entity** - shown only for **Sensor**. Choose the Home Assistant binary sensor, sensor, or `input_boolean` that controls the schedule. This is separate from the Screensaver **Presence Entity**, so each feature can follow a different sensor.
-- **Activate Night Schedule When** - shown only for **Sensor**. Choose **Sensor Is Off** (the default) or **Sensor Is On**. The selected state applies the night-time action; the opposite state returns the panel to normal mode.
+- **Mode** - choose **Disabled**, **Time**, or **Home Assistant**. Time uses the daytime and night-time hours. Home Assistant uses the configured sensor entity and activation state.
+- **Sensor Entity** - shown only for **Home Assistant**. Choose the Home Assistant binary sensor, sensor, or `input_boolean` that controls the schedule. This is separate from the Screensaver **Presence Entity**, so each feature can follow a different sensor.
+- **Activate Night Schedule When** - shown only for **Home Assistant**. Choose **Sensor Is Off** (the default) or **Sensor Is On**. The selected state applies the night-time action; the opposite state returns the panel to normal mode.
 - **Daytime** - the first hour when the screen should be awake. The default is **6:00 AM**.
 - **Night Time** - the first hour when the night schedule starts. The default is **11:00 PM**.
 - **At Night Time** - what the panel should do overnight. **Screen Off** is the default, **Screen Dimmed** keeps the panel usable at a set brightness, and **Clock** shows the clock instead. Screen Off can protect the LCD in the background while the backlight stays off.
@@ -24,7 +26,7 @@ You will find it in the **Settings** tab on the [Setup](/features/setup) page, u
 - **Clock Brightness** - shown only for **Clock**. It controls the backlight level used by the overnight clock. The default is **10%**.
 - **Clock Text Color** - shown only for **Clock**. It controls the colour of the overnight schedule clock text.
 
-Time and Sensor modes share the same night-time action and brightness settings. Switching between them keeps those settings, including the sensor activation choice.
+Time and Home Assistant modes share the same night-time action and brightness settings. Switching between them keeps those settings, including the sensor activation choice.
 
 ## Updating an Existing Panel
 
@@ -32,9 +34,9 @@ When a panel first starts this firmware version, its existing Screensaver **Pres
 
 When the schedule is disabled, the panel uses the normal [screensaver](/features/screensaver) and [backlight](/features/backlight) rules.
 
-To see at a glance when the night period is active, turn on **Show Night Mode Icon** in [Clock Bar](/features/clock-bar). A moon appears beside the connectivity icon for as long as the night schedule is running, in both **Time** and **Sensor** mode.
+To see at a glance when the night period is active, turn on **Show Night Mode Icon** in [Clock Bar](/features/clock-bar). A moon appears beside the connectivity icon for as long as the night schedule is running, in both **Time** and **Home Assistant** mode.
 
-Time-based Night Schedule has priority over screensaver presence wake while night time is active. If someone walks past during scheduled night time, the normal screensaver sensor does not wake the panel; touch and the panel's **Screen: Wake** button in Home Assistant still work. To make presence control night and daytime behavior, use **Sensor** mode for Night Schedule instead.
+Time-based Night Schedule has priority over screensaver presence wake while night time is active. If someone walks past during scheduled night time, the normal screensaver sensor does not wake the panel; touch and the panel's **Screen: Wake** button in Home Assistant still work. To make presence control night and daytime behavior, use **Home Assistant** mode for Night Schedule instead.
 
 ## How the Times Work
 
