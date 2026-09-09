@@ -167,14 +167,9 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     const std::string unit = trim_display_unit(
       p.unit.empty() ? companion_metric_default_unit(p.entity) : p.unit);
     lv_label_set_display_text(s.unit_lbl, "");
-    const bool ip_address = p.entity.rfind("stat.ip_address", 0) == 0;
-    if (ip_address) {
-      lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
-      lv_label_set_display_text(s.icon_lbl, find_icon("Laptop"));
-    }
-    companion_track_metric_card(s.btn, ip_address ? s.text_lbl : s.sensor_lbl, s.unit_lbl, p.entity, unit,
-                                parse_precision(p.precision));
+    companion_track_metric_card(s.btn, s.text_lbl, nullptr, p.entity, unit,
+                                parse_precision(p.precision), false,
+                                !cfg_option_token_present(p.options, "stat_labels_off"));
     return;
   }
   const bool url_card = !companion_encoded_url(p.sensor).empty();

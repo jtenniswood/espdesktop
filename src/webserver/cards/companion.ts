@@ -1,5 +1,6 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { configOptionEnabled, setConfigOption } from "../model/config_primitives";
 import { createCompanionCatalogue } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
@@ -274,6 +275,15 @@ export function companionMetricLabel(entity: string, value: string, unit: string
     return value + (unit === "%" ? "" : " ") + unit + suffix;
 }
 
+export function companionMetricDescriptionEnabled(card: any): boolean {
+    return !configOptionEnabled(card?.options, "stat_labels_off");
+}
+
+export function companionMetricDisplayLabel(card: any, value: string, unit: string): string {
+    return companionMetricLabel(card.entity, value, unit).replace(
+        / (used|free|remaining)$/, companionMetricDescriptionEnabled(card) ? " $1" : "");
+}
+
 export function companionMetricPreviewValue(precision: unknown, sample = Math.random()): string {
     const parsed = Number.parseInt(String(precision ?? "0"), 10);
     const digits = parsed >= 0 && parsed <= 2 ? parsed : 0;
@@ -368,7 +378,7 @@ export function normalizeCompanionCard(card: any): void {
             precision: ["0", "1", "2"].includes(model.precision) ? model.precision : "0",
         }, card));
         card.options = String(card.options || "").split(",").filter((option) =>
-            option === "large_numbers" || option === "large_numbers=off").join(",");
+            option === "large_numbers" || option === "large_numbers=off" || option === "stat_labels_off").join(",");
         if (metric.mode === "ip_address") card.options = "";
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
@@ -553,6 +563,12 @@ export function registerCompanionCardTypes(
                     }).catch(() => { status.textContent = "Network devices unavailable. Connect the Mac and enable Stats sharing."; });
                     return;
                 }
+                const description = helpers.toggleRow("Show stat description", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));
+                description.input.addEventListener("change", function (this: HTMLInputElement) {
+                    card.options = setConfigOption(card.options, "stat_labels_off", !this.checked);
+                    helpers.saveField("options", card.options);
+                });
+                panel?.appendChild(description.row);
                 helpers.renderCardTextField(panel, card, helpers, {
                     label: "Unit", idSuffix: "unit", field: "unit",
                     placeholder: "%", rerender: true,
@@ -1025,8 +1041,8 @@ export function registerCompanionCardTypes(
                 };
                 return {
                     iconHtml: '<span class="sp-btn-icon mdi mdi-' + companionMetricIcon(card.entity) + '"></span>',
-                    labelHtml: cardBadgeLabelHtml(helpers, companionMetricLabel(
-                        card.entity, companionMetricPreviewValue(card.precision), card.unit || metric?.unit || "%")),
+                    labelHtml: cardBadgeLabelHtml(helpers, companionMetricDisplayLabel(card,
+                        companionMetricPreviewValue(card.precision), card.unit || metric?.unit || "%")),
                 };
             }
             if (mode === "stats") {

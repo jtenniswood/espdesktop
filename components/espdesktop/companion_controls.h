@@ -538,6 +538,7 @@ struct CompanionCardRef {
   std::string metric_key;
   std::string metric_unit;
   int precision{0};
+  bool metric_description{true};
   bool preserve_navigation{false};
 };
 
@@ -651,14 +652,15 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
 inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
                                         lv_obj_t *unit_label, const std::string &metric_key,
                                         const std::string &unit, int precision,
-                                        bool preserve_navigation = false) {
+                                        bool preserve_navigation = false,
+                                        bool metric_description = true) {
   if (!button || !companion_metric_key_valid(metric_key)) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
     return ref.button == button;
   });
   CompanionCardRef value{button, nullptr, "", "", value_label, unit_label, metric_key, unit,
-                         std::max(0, std::min(2, precision)), preserve_navigation};
+                         std::max(0, std::min(2, precision)), metric_description, preserve_navigation};
   if (existing != refs.end()) {
     *existing = std::move(value);
   } else {
@@ -686,8 +688,14 @@ inline void companion_refresh_cards_if_requested() {
         else if (it->precision == 2) snprintf(buffer, sizeof(buffer), "%.2f", value);
         else if (it->precision == 1) snprintf(buffer, sizeof(buffer), "%.1f", value);
         else snprintf(buffer, sizeof(buffer), "%.0f", value);
-        const auto address = companion_network_address(snapshot, it->metric_key);
-        lv_label_set_display_text(it->value_label, it->metric_key.rfind("stat.ip_address", 0) == 0 ? address.c_str() : buffer);
+        std::string label = it->metric_key.rfind("stat.ip_address", 0) == 0
+          ? companion_network_address(snapshot, it->metric_key) : buffer;
+        if (available && !it->unit_label) {
+          label += (it->metric_unit == "%" ? "" : " ") + it->metric_unit;
+          const char *suffix = it->metric_description ? companion_metric_suffix_key(it->metric_key) : "";
+          if (*suffix) label += " " + std::string(espdesktop_i18n_key(suffix));
+        }
+        lv_label_set_display_text(it->value_label, label.c_str());
       }
       if (it->unit_label) {
         lv_label_set_display_text(it->unit_label, available ? it->metric_unit.c_str() : "");

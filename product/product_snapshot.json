@@ -4916,6 +4916,12 @@
             "label": "Large Sensor Numbers",
             "kind": "flag",
             "omitDefault": true
+          },
+          {
+            "name": "stat_labels_off",
+            "label": "Show stat description",
+            "kind": "flag",
+            "omitDefault": true
           }
         ],
         "normalization": {
@@ -4965,7 +4971,8 @@
             "app_shortcuts_auto_switch",
             "app_shortcuts_tabs",
             "app_shortcut_preset",
-            "large_numbers"
+            "large_numbers",
+            "stat_labels_off"
           ],
           "optionHook": "normalize_date_time_options"
         },

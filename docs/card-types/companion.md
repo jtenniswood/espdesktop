@@ -117,7 +117,7 @@ Turn on **Share Mac system statistics** in the Mac app's **Permissions** page, t
 
 For **IP address**, choose a **Network device**, such as Wi-Fi or Ethernet. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
 
-Numeric statistics support the same label, unit, precision, and large-number display choices as numeric Sensor cards, but their values come directly from the paired Mac. Statistics are not shared until you turn the option on.
+Statistics show a metric icon above the live reading. Numeric labels include used, free or remaining as appropriate, with configurable units and decimal precision. Numeric cards include a **Show stat description** toggle, enabled by default, to control whether the used, free or remaining word appears after the value. Statistics are shared only when enabled in the Mac app.
 
 You can also choose **Subpage → Companion Stat** to put one of these readings on a home-screen tile that opens a page of related Mac controls.
 

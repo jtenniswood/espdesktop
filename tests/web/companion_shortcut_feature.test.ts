@@ -13,6 +13,8 @@ import {
   COMPANION_STATS_OPTIONS,
   companionLabelPlaceholder,
   companionMetricDisplayMode,
+  companionMetricDescriptionEnabled,
+  companionMetricDisplayLabel,
   companionMetricPreviewValue,
   companionMediaIcon,
   COMPANION_MEDIA_PLAY_PAUSE_ACTION,
@@ -373,6 +375,12 @@ export function runCompanionShortcutFeatureTests(): void {
       companionMetricDisplayMode({ entity: "stat.memory_free" }) !== "free" ||
       companionMetricDisplayMode({ entity: "stat.storage_free" }) !== "free") {
     throw new Error("Memory and storage statistics must retain their Used or Free display choice");
+  }
+  if (!companionMetricDescriptionEnabled({ entity: "stat.memory" }) ||
+      companionMetricDescriptionEnabled({ entity: "stat.memory", options: "stat_labels_off" }) ||
+      companionMetricDisplayLabel({ entity: "stat.memory", options: "stat_labels_off" }, "24", "%") !== "24%" ||
+      companionMetricDisplayLabel({ entity: "stat.memory" }, "24", "%") !== "24% used") {
+    throw new Error("Companion statistic description toggle must control the used/free wording");
   }
   if (companionLabelPlaceholder({ entity: "stat.network_throughput" }) !== "e.g. Network") {
     throw new Error("Network throughput must use Network as its default label");

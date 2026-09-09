@@ -81,7 +81,8 @@ inline bool navigation_driver_setup_visual(
     lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
     companion_track_metric_card(
       slot.btn, slot.text_lbl, nullptr, config.entity, unit,
-      parse_precision(config.precision), true);
+      parse_precision(config.precision), true,
+      !cfg_option_token_present(config.options, "stat_labels_off"));
   } else if (navigation_driver_parent_sensor_state_enabled(config, context)) {
     setup_subpage_parent_state_card(
       slot, config, display_sensor_font(display),
@@ -136,7 +137,8 @@ inline bool navigation_driver_bind_main(
     lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
     companion_track_metric_card(
       slot.btn, slot.text_lbl, nullptr, config.entity, unit,
-      parse_precision(config.precision), true);
+      parse_precision(config.precision), true,
+      !cfg_option_token_present(config.options, "stat_labels_off"));
     return true;
   }
 

@@ -346,6 +346,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_SCRIPT_FIELDS = "script_fields";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SECURITY = "security";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SPEAKER_GROUP_ENTITY = "speaker_group_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SSID64 = "ssid64";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_STAT_LABELS_OFF = "stat_labels_off";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_ENTITY = "state_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_HIGH_LABEL = "state_high_label";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT = "state_input";
