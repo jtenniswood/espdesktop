@@ -70,6 +70,7 @@ export {
   CARD_SIZE_PORTRAIT_LARGE,
   CARD_SIZE_SINGLE,
   CARD_SIZE_TALL,
+  CARD_SIZE_ULTRA_WIDE,
   CARD_SIZE_WIDE,
   applySpans,
   cardSizeClass,
