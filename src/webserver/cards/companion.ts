@@ -509,7 +509,7 @@ export function registerCompanionCardTypes(
                 }
                 if (metric?.freeId || metric?.mode === "battery") {
                     const displayField = document.createElement("div");
-                    displayField.className = "sp-field";
+                    displayField.className = "sp-field sp-metric-capacity-field";
                     displayField.appendChild(fieldLabel("Capacity", helpers.idPrefix + "metric-display"));
                     const displaySelect = document.createElement("select");
                     displaySelect.className = "sp-select";

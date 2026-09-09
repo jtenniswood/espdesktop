@@ -318,6 +318,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-panel{background:var(--surface);border-radius:var(--radius);padding:24px;" +
         "margin-bottom:var(--gap);border:1px solid var(--border)}" +
         ".sp-field{margin-bottom:28px}.sp-field:last-child{margin-bottom:0}" +
+        ".sp-metric-capacity-field{margin-bottom:8px}" +
         ".sp-field.sp-icon-on-field:last-child{margin-bottom:44px}" +
         ".sp-state-translation-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 14px;margin-bottom:28px}" +
         ".sp-state-translation-grid .sp-field{margin-bottom:0}" +
