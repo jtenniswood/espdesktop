@@ -284,6 +284,7 @@ struct CompanionSettings: View {
     @State private var selectedDisplayID: String?
     @State private var pairingCode = ""
     @State private var confirmingForget = false
+    @State private var confirmingRestartSetup = false
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -378,6 +379,19 @@ struct CompanionSettings: View {
             }
         } message: {
             Text("Your Mac will disconnect and remove its saved pairing. You’ll need the code from the device webpage to pair again. Your application and folder choices will be kept.")
+        }
+        .alert("Restart setup?", isPresented: $confirmingRestartSetup) {
+            Button("Cancel", role: .cancel) {}
+            Button("Restart Setup", role: .destructive) {
+                store.forgetPanel()
+                pairingCode = ""
+                startPairingFlow()
+                selectedPageID = CompanionSettingsPage.connection.rawValue
+                store.requestedSettingsPage = CompanionSettingsPage.connection.rawValue
+                onboardingCompleted = false
+            }
+        } message: {
+            Text("Your Mac will disconnect and remove its saved display pairing, then start onboarding again. You’ll need a new pairing code from your display. Your application and folder choices will be kept.")
         }
         .alert("Remove folder?", isPresented: Binding(
             get: { folderToRemove != nil },
@@ -914,6 +928,9 @@ struct CompanionSettings: View {
             }
             Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
+            } footer: {
+                Button("Restart Setup") { confirmingRestartSetup = true }
+                    .buttonStyle(.link)
             }
         }
         .formStyle(.grouped)
