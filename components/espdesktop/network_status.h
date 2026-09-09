@@ -4,6 +4,7 @@
 #pragma once
 
 #include "display_text.h"
+#include "settings_backlight.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -30,13 +31,26 @@ struct NetworkStatusModalUi {
   lv_obj_t *pairing_ip = nullptr;
   lv_obj_t *pairing_button = nullptr;
   const lv_font_t *text_font = nullptr;
+  const lv_font_t *modal_icon_font = nullptr;
+  const lv_font_t *title_font = nullptr;
   lv_obj_t *ip_lbl = nullptr;
   lv_obj_t *connector_lbl = nullptr;
   lv_obj_t *connector_icon = nullptr;
+  lv_obj_t *brightness_slider = nullptr;
+  lv_obj_t *brightness_label = nullptr;
+  lv_obj_t *brightness_icon = nullptr;
+  SliderCtx brightness_context;
+  bool brightness_dragging = false;
+  SettingsBacklightLevel brightness_level = SettingsBacklightLevel::MANUAL;
   lv_timer_t *refresh_timer = nullptr;
   lv_coord_t columns[5]{};
   lv_coord_t rows[5]{};
 };
+
+inline const lv_font_t *&network_status_card_icon_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
 
 inline NetworkStatusModalUi &network_status_modal_ui() {
   static NetworkStatusModalUi ui;
@@ -132,16 +146,24 @@ inline std::string network_status_firmware_label(const std::string &version) {
   return espdesktop_i18n(std::string("Dev build"));
 }
 
+// Defined by navigation after the built-in page helpers.
+inline void navigation_subpage_screen_changed(lv_event_t *);
+
 inline void network_status_hide_modal() {
   NetworkStatusModalUi &ui = network_status_modal_ui();
   if (ui.pairing_overlay) control_modal_close_nested_menu();
   if (ui.refresh_timer) lv_timer_del(ui.refresh_timer);
-  if (ui.overlay) {
-    screen_lock_unregister_tree(ui.overlay);
-    lv_obj_del(ui.overlay);
-  }
+  lv_obj_t *overlay = ui.overlay;
   ui = NetworkStatusModalUi{};
   control_modal_clear_active(ControlModalKind::NETWORK_STATUS);
+  if (overlay) {
+    // App subpages repaint when their screen unloads. Settings is an overlay,
+    // so update the title before revealing home and repaint the clock bar too.
+    navigation_subpage_screen_changed(nullptr);
+    screen_lock_unregister_tree(overlay);
+    lv_obj_del(overlay);
+    lv_obj_invalidate(lv_layer_top());
+  }
 }
 
 inline void network_status_close_pairing() {
@@ -163,6 +185,55 @@ inline lv_obj_t *network_status_pairing_label(lv_obj_t *parent, const char *text
   return label;
 }
 
+inline void network_status_refresh_backlight() {
+  auto &ui = network_status_modal_ui();
+  auto &service = settings_backlight_service();
+  if (!ui.brightness_slider) return;
+  const auto state = service.read ? service.read() : SettingsBacklightState{};
+  const bool enabled = state.available && service.write && !screen_lock_enabled();
+  ui.brightness_context.interactive = enabled;
+  if (enabled) lv_obj_add_flag(ui.brightness_slider, LV_OBJ_FLAG_CLICKABLE);
+  else lv_obj_clear_flag(ui.brightness_slider, LV_OBJ_FLAG_CLICKABLE);
+  if (!ui.brightness_dragging) {
+    ui.brightness_level = state.level;
+    lv_slider_set_value(ui.brightness_slider, settings_backlight_percent(state.level, state.percent), LV_ANIM_OFF);
+  }
+  const char *title = ui.brightness_level == SettingsBacklightLevel::MANUAL ? espdesktop_i18n("Brightness")
+      : ui.brightness_level == SettingsBacklightLevel::DAYTIME ? espdesktop_i18n("Daytime") : espdesktop_i18n("Nighttime");
+  std::string label = std::string(title) + " " + std::to_string(lv_slider_get_value(ui.brightness_slider)) + "%";
+  lv_label_set_display_text(ui.brightness_label, label.c_str());
+  lv_label_set_display_text(ui.brightness_icon, ui.brightness_level == SettingsBacklightLevel::NIGHTTIME
+      ? "\U000F1A4D" : "\U000F0336");
+  auto *button = lv_obj_get_parent(ui.brightness_slider);
+  lv_obj_set_width(ui.brightness_label, lv_obj_get_width(button) - ui.brightness_context.label_pad_left * 2);
+  slider_fit_to_button(ui.brightness_slider, button, false);
+  slider_update_fill(ui.brightness_context.fill, button, lv_slider_get_value(ui.brightness_slider),
+      false, false, ui.brightness_context.radius);
+}
+
+inline void network_status_backlight_event(lv_event_t *event) {
+  auto &ui = network_status_modal_ui();
+  const auto code = lv_event_get_code(event);
+  if (code == LV_EVENT_PRESSED) {
+    network_status_refresh_backlight();
+    if (!ui.brightness_context.interactive) return;
+    ui.brightness_dragging = true;
+    slider_apply_vertical_pointer_value(ui.brightness_slider);
+  } else if (code == LV_EVENT_PRESSING) {
+    if (ui.brightness_dragging) slider_apply_vertical_pointer_value(ui.brightness_slider);
+  } else if (code == LV_EVENT_VALUE_CHANGED) {
+    if (!ui.brightness_dragging) return;
+    lv_slider_set_value(ui.brightness_slider,
+        settings_backlight_percent(ui.brightness_level, lv_slider_get_value(ui.brightness_slider)), LV_ANIM_OFF);
+    network_status_refresh_backlight();
+  } else if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
+    settings_backlight_commit(ui.brightness_level, lv_slider_get_value(ui.brightness_slider),
+        code == LV_EVENT_RELEASED && ui.brightness_dragging && !screen_lock_enabled());
+    ui.brightness_dragging = false;
+    network_status_refresh_backlight();
+  }
+}
+
 inline void network_status_refresh_page();
 
 inline void network_status_open_pairing() {
@@ -175,39 +246,63 @@ inline void network_status_open_pairing() {
   const auto shell = control_modal_open_nested_menu(
       layout.panel_w, control_modal_card_radius(nullptr), network_status_close_pairing);
   ui.pairing_overlay = shell.overlay;
-  lv_obj_set_layout(shell.panel, LV_LAYOUT_FLEX);
-  lv_obj_set_flex_flow(shell.panel, LV_FLEX_FLOW_COLUMN);
-  lv_obj_set_style_pad_row(shell.panel, control_modal_scaled_px(12, layout.short_side), LV_PART_MAIN);
-  network_status_pairing_label(shell.panel, espdesktop_i18n("Pairing"));
-  ui.pairing_code = network_status_pairing_label(shell.panel, "");
-  network_status_pairing_label(shell.panel, espdesktop_i18n("IP address"));
-  ui.pairing_ip = network_status_pairing_label(shell.panel, "");
-  network_status_pairing_label(shell.panel, espdesktop_i18n("Enter this code in the Mac app"));
-  auto *back = control_modal_create_list_row(shell.panel, espdesktop_i18n("Back"), false,
-      layout.back_size, control_modal_card_radius(nullptr), DARK_BORDER, DARK_BORDER,
-      ui.text_font, icon_width_compensation_percent());
-  lv_obj_add_event_cb(back, [](lv_event_t *) { control_modal_close_nested_menu(); },
-                      LV_EVENT_CLICKED, nullptr);
+  control_modal_style_overlay(shell.overlay);
+  control_modal_style_panel(shell.panel, control_modal_card_radius(nullptr));
+  // The nested menu starts centered with flex layout; the full-card shell does not.
+  lv_obj_set_layout(shell.panel, LV_LAYOUT_NONE);
+  lv_obj_set_align(shell.panel, LV_ALIGN_TOP_LEFT);
+  control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, control_modal_card_radius(nullptr));
+  auto *close = control_modal_create_round_button(shell.panel, 32, "\U000F0156",
+      ui.modal_icon_font, DARK_BORDER, SECONDARY_GREY, icon_width_compensation_percent());
+  control_modal_style_chrome_button(close, layout, true);
+  lv_obj_add_event_cb(close, [](lv_event_t *) { control_modal_close_nested_menu(); }, LV_EVENT_CLICKED, nullptr);
+  auto *close_label = lv_obj_get_child(close, 0);
+  if (close_label) lv_obj_set_style_text_color(close_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+
+  // Match the original Wi-Fi details modal: centered content independent of chrome.
+  auto *content = lv_obj_create(shell.panel);
+  lv_obj_set_style_bg_opa(content, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_set_style_border_width(content, 0, LV_PART_MAIN);
+  lv_obj_set_style_shadow_width(content, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(content, 0, LV_PART_MAIN);
+  lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_size(content, layout.panel_w - layout.inset * 2, LV_SIZE_CONTENT);
+  lv_obj_set_style_pad_row(content, control_modal_scaled_px(12, layout.short_side), LV_PART_MAIN);
+  lv_obj_set_layout(content, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  auto *title = network_status_pairing_label(content, espdesktop_i18n("Pairing"));
+  if (ui.title_font) lv_obj_set_style_text_font(title, ui.title_font, LV_PART_MAIN);
+  auto *instruction = network_status_pairing_label(content, espdesktop_i18n("Enter this code into the desktop app"));
+  lv_obj_set_style_text_color(instruction, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+  ui.pairing_ip = network_status_pairing_label(content, "");
+  lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  ui.pairing_code = network_status_pairing_label(content, "");
+  lv_obj_update_layout(content);
+  lv_obj_align(content, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_move_foreground(close);
+  lv_obj_move_foreground(shell.overlay);
   network_status_refresh_page();
 }
 
 inline void network_status_refresh_page() {
   auto &ui = network_status_modal_ui();
   if (!ui.overlay) return;
+  network_status_refresh_backlight();
   lv_label_set_display_text(ui.ip_lbl, network_status_ip_address().c_str());
   const auto snapshot = companion_pairing_provider()
       ? companion_pairing_provider()() : CompanionPairingSnapshot{};
   const char *state = espdesktop_i18n("Unavailable");
-  const char *icon = "\U000F0156";
+  const char *icon = "\U000F0319";
   if (snapshot.available) {
     if (snapshot.connected) {
       state = espdesktop_i18n("Connected");
-      icon = "\U000F0379";
+      icon = "\U000F031A";
     } else if (snapshot.paired) {
       state = espdesktop_i18n("Disconnected");
     } else {
       state = espdesktop_i18n("Not paired");
-      icon = "\U000F0493";
+      icon = "\U000F0D33";
     }
   }
   lv_label_set_display_text(ui.connector_lbl, state);
@@ -245,27 +340,30 @@ inline void network_status_open_modal(const std::string &device_name,
   const lv_font_t *label_font = lv_obj_get_style_text_font(reference, LV_PART_MAIN);
   if (!label_font) label_font = text_font;
   ui.text_font = label_font;
+  ui.modal_icon_font = icon_font;
+  ui.title_font = text_font;
   const lv_color_t text_color = lv_obj_get_style_text_color(reference, LV_PART_MAIN);
 
   ui.overlay = lv_obj_create(lv_layer_top());
-  lv_obj_set_size(ui.overlay, lv_pct(100), lv_pct(100));
-  lv_obj_set_pos(ui.overlay, 0, 0);
+  // Leave the clock bar exposed, using the same reserved space as the grid.
+  lv_obj_update_layout(page);
+  const lv_coord_t top = lv_obj_get_style_pad_top(page, LV_PART_MAIN);
+  lv_obj_set_size(ui.overlay, lv_pct(100), lv_obj_get_height(page) - top);
+  lv_obj_set_pos(ui.overlay, 0, top);
   lv_obj_clear_flag(ui.overlay, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_style_radius(ui.overlay, 0, LV_PART_MAIN);
   lv_obj_set_style_border_width(ui.overlay, 0, LV_PART_MAIN);
   lv_obj_set_style_bg_opa(ui.overlay, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_bg_color(ui.overlay, lv_obj_get_style_bg_color(page, LV_PART_MAIN), LV_PART_MAIN);
-  lv_obj_set_style_pad_top(ui.overlay, lv_obj_get_style_pad_top(page, LV_PART_MAIN), LV_PART_MAIN);
+  lv_obj_set_style_pad_top(ui.overlay, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_bottom(ui.overlay, lv_obj_get_style_pad_bottom(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_left(ui.overlay, lv_obj_get_style_pad_left(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_right(ui.overlay, lv_obj_get_style_pad_right(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_row(ui.overlay, lv_obj_get_style_pad_row(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_column(ui.overlay, lv_obj_get_style_pad_column(page, LV_PART_MAIN), LV_PART_MAIN);
 
-  // Built-in tiles use the normal column count up to four. Extra rows
-  // give addresses and translated labels room to wrap.
-  const int cols = std::max(2, std::min(4, metrics.cols));
-  const int rows = (5 + cols - 1) / cols;
+  const int cols = 3;
+  const int rows = 3;
   for (int i = 0; i < cols; ++i) ui.columns[i] = LV_GRID_FR(1);
   for (int i = 0; i < rows; ++i) ui.rows[i] = LV_GRID_FR(1);
   ui.columns[cols] = LV_GRID_TEMPLATE_LAST;
@@ -273,21 +371,41 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), espdesktop_i18n("Build"),
-                         espdesktop_i18n("IP address"), espdesktop_i18n("Connector"),
-                         espdesktop_i18n("Pairing")};
-  for (int i = 0; i < 5; ++i) {
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", espdesktop_i18n("Pairing"), ""};
+  const char *icons[] = {"\U000F0141", "\U000F035B", "\U000F0200", "\U000F031A", "\U000F0D33", "\U000F0336"};
+  // Back first, wide IP beside it, then Pairing, wide connector state and version.
+  const int positions[] = {0, 8, 1, 4, 3, 6};
+  const lv_font_t *card_icon_font = network_status_card_icon_font();
+  if (!card_icon_font) card_icon_font = icon_font;
+  for (int i = 0; i < 6; ++i) {
     auto *button = create_grid_card_button(ui.overlay,
         lv_obj_get_style_radius(reference, LV_PART_MAIN),
         lv_obj_get_style_pad_top(reference, LV_PART_MAIN), label_font, text_color);
     apply_button_colors(button, false, DEFAULT_SLIDER_COLOR, true,
                         DEFAULT_OFF_COLOR);
-    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, i % cols, 1,
-                         LV_GRID_ALIGN_STRETCH, i / cols, 1);
-    BtnSlot slot = create_dynamic_card_slot(button, icon_font, label_font, label_font, text_color);
+    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, positions[i] % cols, (i == 2 || i == 3 || i == 5) ? 2 : 1,
+                         LV_GRID_ALIGN_STRETCH, positions[i] / cols, 1);
+    BtnSlot slot = create_dynamic_card_slot(button, card_icon_font, label_font, label_font, text_color);
     apply_width_compensation(slot.icon_lbl, icon_width_compensation_percent());
     apply_text_width_compensation(slot.text_lbl);
     lv_label_set_display_text(slot.text_lbl, labels[i]);
+    lv_label_set_display_text(slot.icon_lbl, icons[i]);
+    if (i == 5) {
+      const auto padding = capture_card_padding(button);
+      ui.brightness_slider = setup_slider_widget(button, DEFAULT_SLIDER_COLOR, false);
+      if (!ui.brightness_slider) continue;
+      ui.brightness_label = slot.text_lbl;
+      ui.brightness_icon = slot.icon_lbl;
+      lv_obj_align(slot.icon_lbl, LV_ALIGN_TOP_LEFT, padding.left, padding.top);
+      lv_obj_align(slot.text_lbl, LV_ALIGN_BOTTOM_LEFT, padding.left, -padding.bottom);
+      ui.brightness_context.label_pad_left = padding.left;
+      ui.brightness_context.fill = lv_obj_get_child(button, 0);
+      ui.brightness_context.radius = lv_obj_get_style_radius(button, LV_PART_MAIN);
+      lv_obj_set_user_data(ui.brightness_slider, &ui.brightness_context);
+      lv_obj_add_event_cb(ui.brightness_slider, network_status_backlight_event, LV_EVENT_ALL, nullptr);
+      screen_lock_register_controlled_button(ui.brightness_slider);
+      continue;
+    }
     if (i == 0) {
       lv_label_set_display_text(slot.icon_lbl, "\U000F0141");
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_hide_modal(); },
@@ -295,32 +413,27 @@ inline void network_status_open_modal(const std::string &device_name,
       continue;
     }
     if (i == 4) {
-      lv_label_set_display_text(slot.icon_lbl, "\U000F0493");
       ui.pairing_button = button;
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_open_pairing(); },
                           LV_EVENT_CLICKED, nullptr);
       continue;
     }
     lv_obj_clear_flag(button, LV_OBJ_FLAG_CLICKABLE);
-    auto *value = lv_label_create(button);
-    lv_obj_set_style_text_font(value, label_font, LV_PART_MAIN);
-    lv_label_set_long_mode(value, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(value, lv_pct(100));
-    apply_text_width_compensation(value);
     if (i == 3) {
-      lv_obj_align(value, LV_ALIGN_LEFT_MID, 0, 0);
-      ui.connector_lbl = value;
+      ui.connector_lbl = slot.text_lbl;
       ui.connector_icon = slot.icon_lbl;
+    } else if (i == 1) {
+      const std::string build_label = network_status_firmware_label(firmware_version);
+      lv_label_set_display_text(slot.text_lbl, build_label.c_str());
     } else {
-      lv_obj_add_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_align(value, LV_ALIGN_TOP_LEFT, 0, 0);
-      if (i == 1) lv_label_set_display_text(value, network_status_firmware_label(firmware_version).c_str());
-      else ui.ip_lbl = value;
+      ui.ip_lbl = slot.text_lbl;
     }
   }
   control_modal_set_active(ControlModalKind::NETWORK_STATUS, ui.overlay,
                           network_status_hide_modal, ControlModalDismissPolicy::DISMISS);
+  lv_obj_update_layout(ui.overlay);
   network_status_refresh_page();
   ui.refresh_timer = lv_timer_create([](lv_timer_t *) { network_status_refresh_page(); }, 1000, nullptr);
   lv_obj_move_foreground(ui.overlay);
+  navigation_subpage_screen_changed(nullptr);
 }

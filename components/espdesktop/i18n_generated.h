@@ -253,8 +253,13 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Odpojeno";
   if (std::strcmp(text, "Not paired") == 0) return "Nespárováno";
   if (std::strcmp(text, "Pairing") == 0) return "Párování";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Zadejte tento kód v aplikaci pro Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadejte tento kód do desktopové aplikace";
   if (std::strcmp(text, "Expired") == 0) return "Platnost vypršela";
+  if (std::strcmp(text, "Pair") == 0) return "Spárovat";
+  if (std::strcmp(text, "Settings") == 0) return "Nastavení";
+  if (std::strcmp(text, "Brightness") == 0) return "Jas";
+  if (std::strcmp(text, "Daytime") == 0) return "Den";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   return text;
 }
 
@@ -488,8 +493,13 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Afbrudt";
   if (std::strcmp(text, "Not paired") == 0) return "Ikke parret";
   if (std::strcmp(text, "Pairing") == 0) return "Parring";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Indtast denne kode i Mac-appen";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Indtast denne kode i desktopappen";
   if (std::strcmp(text, "Expired") == 0) return "Udløbet";
+  if (std::strcmp(text, "Pair") == 0) return "Par";
+  if (std::strcmp(text, "Settings") == 0) return "Indstillinger";
+  if (std::strcmp(text, "Brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(text, "Daytime") == 0) return "Dagtid";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   return text;
 }
 
@@ -721,8 +731,13 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Getrennt";
   if (std::strcmp(text, "Not paired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(text, "Pairing") == 0) return "Kopplung";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Diesen Code in der Mac-App eingeben";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Gib diesen Code in der Desktop-App ein";
   if (std::strcmp(text, "Expired") == 0) return "Abgelaufen";
+  if (std::strcmp(text, "Pair") == 0) return "Koppeln";
+  if (std::strcmp(text, "Settings") == 0) return "Einstellungen";
+  if (std::strcmp(text, "Brightness") == 0) return "Helligkeit";
+  if (std::strcmp(text, "Daytime") == 0) return "Tagsüber";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nachts";
   return text;
 }
 
@@ -963,8 +978,13 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Desconectado";
   if (std::strcmp(text, "Not paired") == 0) return "Sin emparejar";
   if (std::strcmp(text, "Pairing") == 0) return "Emparejamiento";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduce este código en la app para Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduce este código en la aplicación de escritorio";
   if (std::strcmp(text, "Expired") == 0) return "Caducado";
+  if (std::strcmp(text, "Pair") == 0) return "Emparejar";
+  if (std::strcmp(text, "Settings") == 0) return "Ajustes";
+  if (std::strcmp(text, "Brightness") == 0) return "Brillo";
+  if (std::strcmp(text, "Daytime") == 0) return "Día";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noche";
   return text;
 }
 
@@ -1215,8 +1235,13 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Yhteys katkaistu";
   if (std::strcmp(text, "Not paired") == 0) return "Ei paritettu";
   if (std::strcmp(text, "Pairing") == 0) return "Paritus";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Syötä tämä koodi Mac-sovellukseen";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
   if (std::strcmp(text, "Expired") == 0) return "Vanhentunut";
+  if (std::strcmp(text, "Pair") == 0) return "Parita";
+  if (std::strcmp(text, "Settings") == 0) return "Asetukset";
+  if (std::strcmp(text, "Brightness") == 0) return "Kirkkaus";
+  if (std::strcmp(text, "Daytime") == 0) return "Päivä";
+  if (std::strcmp(text, "Nighttime") == 0) return "Yö";
   return text;
 }
 
@@ -1450,8 +1475,13 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Déconnecté";
   if (std::strcmp(text, "Not paired") == 0) return "Non jumelé";
   if (std::strcmp(text, "Pairing") == 0) return "Jumelage";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Saisissez ce code dans l’application Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Saisissez ce code dans l’application de bureau";
   if (std::strcmp(text, "Expired") == 0) return "Expiré";
+  if (std::strcmp(text, "Pair") == 0) return "Associer";
+  if (std::strcmp(text, "Settings") == 0) return "Paramètres";
+  if (std::strcmp(text, "Brightness") == 0) return "Luminosité";
+  if (std::strcmp(text, "Daytime") == 0) return "Jour";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nuit";
   return text;
 }
 
@@ -1710,8 +1740,13 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "מנותק";
   if (std::strcmp(text, "Not paired") == 0) return "לא מותאם";
   if (std::strcmp(text, "Pairing") == 0) return "התאמה";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "הזן קוד זה באפליקציית Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "הזן קוד זה באפליקציה למחשב";
   if (std::strcmp(text, "Expired") == 0) return "פג תוקף";
+  if (std::strcmp(text, "Pair") == 0) return "צימוד";
+  if (std::strcmp(text, "Settings") == 0) return "הגדרות";
+  if (std::strcmp(text, "Brightness") == 0) return "בהירות";
+  if (std::strcmp(text, "Daytime") == 0) return "יום";
+  if (std::strcmp(text, "Nighttime") == 0) return "לילה";
   return text;
 }
 
@@ -1961,8 +1996,13 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Leválasztva";
   if (std::strcmp(text, "Not paired") == 0) return "Nincs párosítva";
   if (std::strcmp(text, "Pairing") == 0) return "Párosítás";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Adja meg ezt a kódot a Mac alkalmazásban";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
   if (std::strcmp(text, "Expired") == 0) return "Lejárt";
+  if (std::strcmp(text, "Pair") == 0) return "Párosítás";
+  if (std::strcmp(text, "Settings") == 0) return "Beállítások";
+  if (std::strcmp(text, "Brightness") == 0) return "Fényerő";
+  if (std::strcmp(text, "Daytime") == 0) return "Nappal";
+  if (std::strcmp(text, "Nighttime") == 0) return "Éjszaka";
   return text;
 }
 
@@ -2203,8 +2243,13 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Disconnesso";
   if (std::strcmp(text, "Not paired") == 0) return "Non abbinato";
   if (std::strcmp(text, "Pairing") == 0) return "Abbinamento";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Inserisci questo codice nell’app per Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Inserisci questo codice nell’app desktop";
   if (std::strcmp(text, "Expired") == 0) return "Scaduto";
+  if (std::strcmp(text, "Pair") == 0) return "Associa";
+  if (std::strcmp(text, "Settings") == 0) return "Impostazioni";
+  if (std::strcmp(text, "Brightness") == 0) return "Luminosità";
+  if (std::strcmp(text, "Daytime") == 0) return "Giorno";
+  if (std::strcmp(text, "Nighttime") == 0) return "Notte";
   return text;
 }
 
@@ -2443,8 +2488,13 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Frakoblet";
   if (std::strcmp(text, "Not paired") == 0) return "Ikke paret";
   if (std::strcmp(text, "Pairing") == 0) return "Paring";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Skriv inn denne koden i Mac-appen";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Skriv inn denne koden i skrivebordsappen";
   if (std::strcmp(text, "Expired") == 0) return "Utløpt";
+  if (std::strcmp(text, "Pair") == 0) return "Koble sammen";
+  if (std::strcmp(text, "Settings") == 0) return "Innstillinger";
+  if (std::strcmp(text, "Brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(text, "Daytime") == 0) return "Dagtid";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   return text;
 }
 
@@ -2681,8 +2731,13 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Verbinding verbroken";
   if (std::strcmp(text, "Not paired") == 0) return "Niet gekoppeld";
   if (std::strcmp(text, "Pairing") == 0) return "Koppelen";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Voer deze code in de Mac-app in";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Voer deze code in de desktopapp in";
   if (std::strcmp(text, "Expired") == 0) return "Verlopen";
+  if (std::strcmp(text, "Pair") == 0) return "Koppelen";
+  if (std::strcmp(text, "Settings") == 0) return "Instellingen";
+  if (std::strcmp(text, "Brightness") == 0) return "Helderheid";
+  if (std::strcmp(text, "Daytime") == 0) return "Overdag";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nacht";
   return text;
 }
 
@@ -2921,8 +2976,13 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Rozłączono";
   if (std::strcmp(text, "Not paired") == 0) return "Niesparowano";
   if (std::strcmp(text, "Pairing") == 0) return "Parowanie";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Wpisz ten kod w aplikacji na Macu";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Wpisz ten kod w aplikacji komputerowej";
   if (std::strcmp(text, "Expired") == 0) return "Wygasł";
+  if (std::strcmp(text, "Pair") == 0) return "Sparuj";
+  if (std::strcmp(text, "Settings") == 0) return "Ustawienia";
+  if (std::strcmp(text, "Brightness") == 0) return "Jasność";
+  if (std::strcmp(text, "Daytime") == 0) return "Dzień";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   return text;
 }
 
@@ -3163,8 +3223,13 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Desconectado";
   if (std::strcmp(text, "Not paired") == 0) return "Não pareado";
   if (std::strcmp(text, "Pairing") == 0) return "Pareamento";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Digite este código no aplicativo para Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Digite este código no aplicativo para computador";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
+  if (std::strcmp(text, "Pair") == 0) return "Parear";
+  if (std::strcmp(text, "Settings") == 0) return "Configurações";
+  if (std::strcmp(text, "Brightness") == 0) return "Brilho";
+  if (std::strcmp(text, "Daytime") == 0) return "Dia";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   return text;
 }
 
@@ -3406,8 +3471,13 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Desligado";
   if (std::strcmp(text, "Not paired") == 0) return "Não emparelhado";
   if (std::strcmp(text, "Pairing") == 0) return "Emparelhamento";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduza este código na aplicação para Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduza este código na aplicação para computador";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
+  if (std::strcmp(text, "Pair") == 0) return "Emparelhar";
+  if (std::strcmp(text, "Settings") == 0) return "Definições";
+  if (std::strcmp(text, "Brightness") == 0) return "Brilho";
+  if (std::strcmp(text, "Daytime") == 0) return "Dia";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   return text;
 }
 
@@ -3658,8 +3728,13 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Deconectat";
   if (std::strcmp(text, "Not paired") == 0) return "Neasociat";
   if (std::strcmp(text, "Pairing") == 0) return "Asociere";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduceți acest cod în aplicația pentru Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introdu acest cod în aplicația desktop";
   if (std::strcmp(text, "Expired") == 0) return "Expirat";
+  if (std::strcmp(text, "Pair") == 0) return "Asociază";
+  if (std::strcmp(text, "Settings") == 0) return "Setări";
+  if (std::strcmp(text, "Brightness") == 0) return "Luminozitate";
+  if (std::strcmp(text, "Daytime") == 0) return "Zi";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noapte";
   return text;
 }
 
@@ -3917,8 +3992,13 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Отключено";
   if (std::strcmp(text, "Not paired") == 0) return "Не сопряжено";
   if (std::strcmp(text, "Pairing") == 0) return "Сопряжение";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Введите этот код в приложении для Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введите этот код в приложении для компьютера";
   if (std::strcmp(text, "Expired") == 0) return "Срок действия истёк";
+  if (std::strcmp(text, "Pair") == 0) return "Сопряжение";
+  if (std::strcmp(text, "Settings") == 0) return "Настройки";
+  if (std::strcmp(text, "Brightness") == 0) return "Яркость";
+  if (std::strcmp(text, "Daytime") == 0) return "День";
+  if (std::strcmp(text, "Nighttime") == 0) return "Ночь";
   return text;
 }
 
@@ -4161,8 +4241,13 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Odpojené";
   if (std::strcmp(text, "Not paired") == 0) return "Nespárované";
   if (std::strcmp(text, "Pairing") == 0) return "Párovanie";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Zadajte tento kód v aplikácii pre Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadajte tento kód do počítačovej aplikácie";
   if (std::strcmp(text, "Expired") == 0) return "Platnosť vypršala";
+  if (std::strcmp(text, "Pair") == 0) return "Spárovať";
+  if (std::strcmp(text, "Settings") == 0) return "Nastavenia";
+  if (std::strcmp(text, "Brightness") == 0) return "Jas";
+  if (std::strcmp(text, "Daytime") == 0) return "Deň";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   return text;
 }
 
@@ -4409,8 +4494,13 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Prekinjeno";
   if (std::strcmp(text, "Not paired") == 0) return "Ni seznanjeno";
   if (std::strcmp(text, "Pairing") == 0) return "Seznanjanje";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Vnesite to kodo v aplikacijo za Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Vnesite to kodo v namizno aplikacijo";
   if (std::strcmp(text, "Expired") == 0) return "Poteklo";
+  if (std::strcmp(text, "Pair") == 0) return "Seznani";
+  if (std::strcmp(text, "Settings") == 0) return "Nastavitve";
+  if (std::strcmp(text, "Brightness") == 0) return "Svetlost";
+  if (std::strcmp(text, "Daytime") == 0) return "Dan";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noč";
   return text;
 }
 
@@ -4648,8 +4738,13 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Frånkopplad";
   if (std::strcmp(text, "Not paired") == 0) return "Inte parkopplad";
   if (std::strcmp(text, "Pairing") == 0) return "Parkoppling";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Ange den här koden i Mac-appen";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Ange den här koden i skrivbordsappen";
   if (std::strcmp(text, "Expired") == 0) return "Utgången";
+  if (std::strcmp(text, "Pair") == 0) return "Parkoppla";
+  if (std::strcmp(text, "Settings") == 0) return "Inställningar";
+  if (std::strcmp(text, "Brightness") == 0) return "Ljusstyrka";
+  if (std::strcmp(text, "Daytime") == 0) return "Dagtid";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   return text;
 }
 
@@ -4900,8 +4995,13 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Bağlantı kesildi";
   if (std::strcmp(text, "Not paired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(text, "Pairing") == 0) return "Eşleştirme";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Bu kodu Mac uygulamasına girin";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Bu kodu masaüstü uygulamasına girin";
   if (std::strcmp(text, "Expired") == 0) return "Süresi doldu";
+  if (std::strcmp(text, "Pair") == 0) return "Eşleştir";
+  if (std::strcmp(text, "Settings") == 0) return "Ayarlar";
+  if (std::strcmp(text, "Brightness") == 0) return "Parlaklık";
+  if (std::strcmp(text, "Daytime") == 0) return "Gündüz";
+  if (std::strcmp(text, "Nighttime") == 0) return "Gece";
   return text;
 }
 
@@ -5154,8 +5254,13 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Disconnected") == 0) return "Відключено";
   if (std::strcmp(text, "Not paired") == 0) return "Не сполучено";
   if (std::strcmp(text, "Pairing") == 0) return "Сполучення";
-  if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Введіть цей код у програмі для Mac";
+  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введіть цей код у програмі для комп’ютера";
   if (std::strcmp(text, "Expired") == 0) return "Термін дії минув";
+  if (std::strcmp(text, "Pair") == 0) return "Сполучити";
+  if (std::strcmp(text, "Settings") == 0) return "Налаштування";
+  if (std::strcmp(text, "Brightness") == 0) return "Яскравість";
+  if (std::strcmp(text, "Daytime") == 0) return "День";
+  if (std::strcmp(text, "Nighttime") == 0) return "Ніч";
   return text;
 }
 
@@ -5417,8 +5522,13 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Disconnected";
   if (std::strcmp(key, "not_paired") == 0) return "Not paired";
   if (std::strcmp(key, "pairing") == 0) return "Pairing";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code in the Mac app";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code into the desktop app";
   if (std::strcmp(key, "expired") == 0) return "Expired";
+  if (std::strcmp(key, "pair") == 0) return "Pair";
+  if (std::strcmp(key, "settings") == 0) return "Settings";
+  if (std::strcmp(key, "brightness") == 0) return "Brightness";
+  if (std::strcmp(key, "daytime") == 0) return "Daytime";
+  if (std::strcmp(key, "nighttime") == 0) return "Nighttime";
   return key;
 }
 
@@ -5662,8 +5772,13 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Odpojeno";
   if (std::strcmp(key, "not_paired") == 0) return "Nespárováno";
   if (std::strcmp(key, "pairing") == 0) return "Párování";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód v aplikaci pro Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód do desktopové aplikace";
   if (std::strcmp(key, "expired") == 0) return "Platnost vypršela";
+  if (std::strcmp(key, "pair") == 0) return "Spárovat";
+  if (std::strcmp(key, "settings") == 0) return "Nastavení";
+  if (std::strcmp(key, "brightness") == 0) return "Jas";
+  if (std::strcmp(key, "daytime") == 0) return "Den";
+  if (std::strcmp(key, "nighttime") == 0) return "Noc";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -5899,8 +6014,13 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Afbrudt";
   if (std::strcmp(key, "not_paired") == 0) return "Ikke parret";
   if (std::strcmp(key, "pairing") == 0) return "Parring";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i Mac-appen";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i desktopappen";
   if (std::strcmp(key, "expired") == 0) return "Udløbet";
+  if (std::strcmp(key, "pair") == 0) return "Par";
+  if (std::strcmp(key, "settings") == 0) return "Indstillinger";
+  if (std::strcmp(key, "brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(key, "daytime") == 0) return "Dagtid";
+  if (std::strcmp(key, "nighttime") == 0) return "Nattetid";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6134,8 +6254,13 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Getrennt";
   if (std::strcmp(key, "not_paired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(key, "pairing") == 0) return "Kopplung";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Diesen Code in der Mac-App eingeben";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Gib diesen Code in der Desktop-App ein";
   if (std::strcmp(key, "expired") == 0) return "Abgelaufen";
+  if (std::strcmp(key, "pair") == 0) return "Koppeln";
+  if (std::strcmp(key, "settings") == 0) return "Einstellungen";
+  if (std::strcmp(key, "brightness") == 0) return "Helligkeit";
+  if (std::strcmp(key, "daytime") == 0) return "Tagsüber";
+  if (std::strcmp(key, "nighttime") == 0) return "Nachts";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6378,8 +6503,13 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Desconectado";
   if (std::strcmp(key, "not_paired") == 0) return "Sin emparejar";
   if (std::strcmp(key, "pairing") == 0) return "Emparejamiento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la app para Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la aplicación de escritorio";
   if (std::strcmp(key, "expired") == 0) return "Caducado";
+  if (std::strcmp(key, "pair") == 0) return "Emparejar";
+  if (std::strcmp(key, "settings") == 0) return "Ajustes";
+  if (std::strcmp(key, "brightness") == 0) return "Brillo";
+  if (std::strcmp(key, "daytime") == 0) return "Día";
+  if (std::strcmp(key, "nighttime") == 0) return "Noche";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6632,8 +6762,13 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Yhteys katkaistu";
   if (std::strcmp(key, "not_paired") == 0) return "Ei paritettu";
   if (std::strcmp(key, "pairing") == 0) return "Paritus";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi Mac-sovellukseen";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
   if (std::strcmp(key, "expired") == 0) return "Vanhentunut";
+  if (std::strcmp(key, "pair") == 0) return "Parita";
+  if (std::strcmp(key, "settings") == 0) return "Asetukset";
+  if (std::strcmp(key, "brightness") == 0) return "Kirkkaus";
+  if (std::strcmp(key, "daytime") == 0) return "Päivä";
+  if (std::strcmp(key, "nighttime") == 0) return "Yö";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6869,8 +7004,13 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Déconnecté";
   if (std::strcmp(key, "not_paired") == 0) return "Non jumelé";
   if (std::strcmp(key, "pairing") == 0) return "Jumelage";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application de bureau";
   if (std::strcmp(key, "expired") == 0) return "Expiré";
+  if (std::strcmp(key, "pair") == 0) return "Associer";
+  if (std::strcmp(key, "settings") == 0) return "Paramètres";
+  if (std::strcmp(key, "brightness") == 0) return "Luminosité";
+  if (std::strcmp(key, "daytime") == 0) return "Jour";
+  if (std::strcmp(key, "nighttime") == 0) return "Nuit";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7131,8 +7271,13 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "מנותק";
   if (std::strcmp(key, "not_paired") == 0) return "לא מותאם";
   if (std::strcmp(key, "pairing") == 0) return "התאמה";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציית Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציה למחשב";
   if (std::strcmp(key, "expired") == 0) return "פג תוקף";
+  if (std::strcmp(key, "pair") == 0) return "צימוד";
+  if (std::strcmp(key, "settings") == 0) return "הגדרות";
+  if (std::strcmp(key, "brightness") == 0) return "בהירות";
+  if (std::strcmp(key, "daytime") == 0) return "יום";
+  if (std::strcmp(key, "nighttime") == 0) return "לילה";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7384,8 +7529,13 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Leválasztva";
   if (std::strcmp(key, "not_paired") == 0) return "Nincs párosítva";
   if (std::strcmp(key, "pairing") == 0) return "Párosítás";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Adja meg ezt a kódot a Mac alkalmazásban";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
   if (std::strcmp(key, "expired") == 0) return "Lejárt";
+  if (std::strcmp(key, "pair") == 0) return "Párosítás";
+  if (std::strcmp(key, "settings") == 0) return "Beállítások";
+  if (std::strcmp(key, "brightness") == 0) return "Fényerő";
+  if (std::strcmp(key, "daytime") == 0) return "Nappal";
+  if (std::strcmp(key, "nighttime") == 0) return "Éjszaka";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7628,8 +7778,13 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Disconnesso";
   if (std::strcmp(key, "not_paired") == 0) return "Non abbinato";
   if (std::strcmp(key, "pairing") == 0) return "Abbinamento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app per Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app desktop";
   if (std::strcmp(key, "expired") == 0) return "Scaduto";
+  if (std::strcmp(key, "pair") == 0) return "Associa";
+  if (std::strcmp(key, "settings") == 0) return "Impostazioni";
+  if (std::strcmp(key, "brightness") == 0) return "Luminosità";
+  if (std::strcmp(key, "daytime") == 0) return "Giorno";
+  if (std::strcmp(key, "nighttime") == 0) return "Notte";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7870,8 +8025,13 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Frakoblet";
   if (std::strcmp(key, "not_paired") == 0) return "Ikke paret";
   if (std::strcmp(key, "pairing") == 0) return "Paring";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i Mac-appen";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i skrivebordsappen";
   if (std::strcmp(key, "expired") == 0) return "Utløpt";
+  if (std::strcmp(key, "pair") == 0) return "Koble sammen";
+  if (std::strcmp(key, "settings") == 0) return "Innstillinger";
+  if (std::strcmp(key, "brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(key, "daytime") == 0) return "Dagtid";
+  if (std::strcmp(key, "nighttime") == 0) return "Nattetid";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8109,8 +8269,13 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Verbinding verbroken";
   if (std::strcmp(key, "not_paired") == 0) return "Niet gekoppeld";
   if (std::strcmp(key, "pairing") == 0) return "Koppelen";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de Mac-app in";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de desktopapp in";
   if (std::strcmp(key, "expired") == 0) return "Verlopen";
+  if (std::strcmp(key, "pair") == 0) return "Koppelen";
+  if (std::strcmp(key, "settings") == 0) return "Instellingen";
+  if (std::strcmp(key, "brightness") == 0) return "Helderheid";
+  if (std::strcmp(key, "daytime") == 0) return "Overdag";
+  if (std::strcmp(key, "nighttime") == 0) return "Nacht";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8351,8 +8516,13 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Rozłączono";
   if (std::strcmp(key, "not_paired") == 0) return "Niesparowano";
   if (std::strcmp(key, "pairing") == 0) return "Parowanie";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji na Macu";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji komputerowej";
   if (std::strcmp(key, "expired") == 0) return "Wygasł";
+  if (std::strcmp(key, "pair") == 0) return "Sparuj";
+  if (std::strcmp(key, "settings") == 0) return "Ustawienia";
+  if (std::strcmp(key, "brightness") == 0) return "Jasność";
+  if (std::strcmp(key, "daytime") == 0) return "Dzień";
+  if (std::strcmp(key, "nighttime") == 0) return "Noc";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8595,8 +8765,13 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Desconectado";
   if (std::strcmp(key, "not_paired") == 0) return "Não pareado";
   if (std::strcmp(key, "pairing") == 0) return "Pareamento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para computador";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
+  if (std::strcmp(key, "pair") == 0) return "Parear";
+  if (std::strcmp(key, "settings") == 0) return "Configurações";
+  if (std::strcmp(key, "brightness") == 0) return "Brilho";
+  if (std::strcmp(key, "daytime") == 0) return "Dia";
+  if (std::strcmp(key, "nighttime") == 0) return "Noite";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8840,8 +9015,13 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Desligado";
   if (std::strcmp(key, "not_paired") == 0) return "Não emparelhado";
   if (std::strcmp(key, "pairing") == 0) return "Emparelhamento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para computador";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
+  if (std::strcmp(key, "pair") == 0) return "Emparelhar";
+  if (std::strcmp(key, "settings") == 0) return "Definições";
+  if (std::strcmp(key, "brightness") == 0) return "Brilho";
+  if (std::strcmp(key, "daytime") == 0) return "Dia";
+  if (std::strcmp(key, "nighttime") == 0) return "Noite";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9094,8 +9274,13 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Deconectat";
   if (std::strcmp(key, "not_paired") == 0) return "Neasociat";
   if (std::strcmp(key, "pairing") == 0) return "Asociere";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduceți acest cod în aplicația pentru Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Introdu acest cod în aplicația desktop";
   if (std::strcmp(key, "expired") == 0) return "Expirat";
+  if (std::strcmp(key, "pair") == 0) return "Asociază";
+  if (std::strcmp(key, "settings") == 0) return "Setări";
+  if (std::strcmp(key, "brightness") == 0) return "Luminozitate";
+  if (std::strcmp(key, "daytime") == 0) return "Zi";
+  if (std::strcmp(key, "nighttime") == 0) return "Noapte";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9355,8 +9540,13 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Отключено";
   if (std::strcmp(key, "not_paired") == 0) return "Не сопряжено";
   if (std::strcmp(key, "pairing") == 0) return "Сопряжение";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для компьютера";
   if (std::strcmp(key, "expired") == 0) return "Срок действия истёк";
+  if (std::strcmp(key, "pair") == 0) return "Сопряжение";
+  if (std::strcmp(key, "settings") == 0) return "Настройки";
+  if (std::strcmp(key, "brightness") == 0) return "Яркость";
+  if (std::strcmp(key, "daytime") == 0) return "День";
+  if (std::strcmp(key, "nighttime") == 0) return "Ночь";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9601,8 +9791,13 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Odpojené";
   if (std::strcmp(key, "not_paired") == 0) return "Nespárované";
   if (std::strcmp(key, "pairing") == 0) return "Párovanie";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód v aplikácii pre Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód do počítačovej aplikácie";
   if (std::strcmp(key, "expired") == 0) return "Platnosť vypršala";
+  if (std::strcmp(key, "pair") == 0) return "Spárovať";
+  if (std::strcmp(key, "settings") == 0) return "Nastavenia";
+  if (std::strcmp(key, "brightness") == 0) return "Jas";
+  if (std::strcmp(key, "daytime") == 0) return "Deň";
+  if (std::strcmp(key, "nighttime") == 0) return "Noc";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9851,8 +10046,13 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Prekinjeno";
   if (std::strcmp(key, "not_paired") == 0) return "Ni seznanjeno";
   if (std::strcmp(key, "pairing") == 0) return "Seznanjanje";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v aplikacijo za Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v namizno aplikacijo";
   if (std::strcmp(key, "expired") == 0) return "Poteklo";
+  if (std::strcmp(key, "pair") == 0) return "Seznani";
+  if (std::strcmp(key, "settings") == 0) return "Nastavitve";
+  if (std::strcmp(key, "brightness") == 0) return "Svetlost";
+  if (std::strcmp(key, "daytime") == 0) return "Dan";
+  if (std::strcmp(key, "nighttime") == 0) return "Noč";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10092,8 +10292,13 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Frånkopplad";
   if (std::strcmp(key, "not_paired") == 0) return "Inte parkopplad";
   if (std::strcmp(key, "pairing") == 0) return "Parkoppling";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i Mac-appen";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i skrivbordsappen";
   if (std::strcmp(key, "expired") == 0) return "Utgången";
+  if (std::strcmp(key, "pair") == 0) return "Parkoppla";
+  if (std::strcmp(key, "settings") == 0) return "Inställningar";
+  if (std::strcmp(key, "brightness") == 0) return "Ljusstyrka";
+  if (std::strcmp(key, "daytime") == 0) return "Dagtid";
+  if (std::strcmp(key, "nighttime") == 0) return "Nattetid";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10346,8 +10551,13 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Bağlantı kesildi";
   if (std::strcmp(key, "not_paired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(key, "pairing") == 0) return "Eşleştirme";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu Mac uygulamasına girin";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu masaüstü uygulamasına girin";
   if (std::strcmp(key, "expired") == 0) return "Süresi doldu";
+  if (std::strcmp(key, "pair") == 0) return "Eşleştir";
+  if (std::strcmp(key, "settings") == 0) return "Ayarlar";
+  if (std::strcmp(key, "brightness") == 0) return "Parlaklık";
+  if (std::strcmp(key, "daytime") == 0) return "Gündüz";
+  if (std::strcmp(key, "nighttime") == 0) return "Gece";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10602,8 +10812,13 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "disconnected") == 0) return "Відключено";
   if (std::strcmp(key, "not_paired") == 0) return "Не сполучено";
   if (std::strcmp(key, "pairing") == 0) return "Сполучення";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для Mac";
+  if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для комп’ютера";
   if (std::strcmp(key, "expired") == 0) return "Термін дії минув";
+  if (std::strcmp(key, "pair") == 0) return "Сполучити";
+  if (std::strcmp(key, "settings") == 0) return "Налаштування";
+  if (std::strcmp(key, "brightness") == 0) return "Яскравість";
+  if (std::strcmp(key, "daytime") == 0) return "День";
+  if (std::strcmp(key, "nighttime") == 0) return "Ніч";
   return espdesktop_i18n_key_en(key);
 }
 
