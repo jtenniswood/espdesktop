@@ -37,32 +37,16 @@ private enum CompanionPairingStep {
 }
 
 private struct CompanionOnboardingPage<Content: View>: View {
-    let icon: String
     let title: String
     let summary: String
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: icon)
-                .font(.system(size: 38, weight: .medium))
-                .foregroundStyle(.white)
-                .frame(width: 88, height: 88)
-                .background {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(LinearGradient(colors: [.accentColor, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing))
-                }
-                .shadow(color: Color.accentColor.opacity(0.2), radius: 18, y: 8)
-                .accessibilityHidden(true)
-            VStack(spacing: 10) {
-                Text(title)
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
-                Text(summary)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .lineSpacing(3)
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title).font(.title3.weight(.semibold))
+                Text(summary).font(.body).foregroundStyle(.secondary)
             }
-            .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 12) {
                 content()
@@ -78,8 +62,7 @@ private struct CompanionOnboardingPage<Content: View>: View {
                     .strokeBorder(Color.primary.opacity(0.08))
             }
         }
-        .frame(maxWidth: 460)
-
+        .frame(maxWidth: 460, alignment: .leading)
     }
 }
 
@@ -161,34 +144,22 @@ private struct CompanionAccessibilityToggle: View {
     }
 }
 
-private struct CompanionOnboardingStep: View {
-    let index: Int
-    let current: Int
-    let title: String
+private struct OnboardingWindowTitle: NSViewRepresentable {
+    let hidden: Bool
 
-    var body: some View {
-        HStack(spacing: 7) {
-            ZStack {
-                Circle()
-                    .fill(index <= current ? Color.accentColor : Color.secondary.opacity(0.12))
-                if index < current {
-                    Image(systemName: "checkmark")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(.white)
-                } else {
-                    Text("\(index + 1)")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(index == current ? Color.white : Color.secondary)
-                }
-            }
-            .frame(width: 24, height: 24)
-            Text(title)
-                .font(.caption.weight(index == current ? .semibold : .regular))
-                .foregroundStyle(index == current ? Color.primary : Color.secondary)
+    func makeNSView(context: Context) -> TitleView { TitleView() }
+    func updateNSView(_ view: TitleView, context: Context) {
+        view.hideTitle = hidden
+    }
+
+    final class TitleView: NSView {
+        var hideTitle = false {
+            didSet { window?.titleVisibility = hideTitle ? .hidden : .visible }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Step \(index + 1): \(title)")
-        .accessibilityValue(index == current ? "Current step" : (index < current ? "Visited" : "Upcoming"))
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            window?.titleVisibility = hideTitle ? .hidden : .visible
+        }
     }
 }
 
@@ -204,32 +175,24 @@ private struct CompanionOnboarding: View {
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(spacing: 32) {
-                    VStack(spacing: 18) {
-                        Text("WELCOME TO ESPDESKTOP")
-                            .font(.caption.weight(.semibold))
-                            .tracking(2)
+                VStack(alignment: .leading, spacing: 36) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Step \(step + 1) of \(totalSteps)")
+                            .font(.callout)
                             .foregroundStyle(.secondary)
-                        HStack(spacing: 24) {
-                            ForEach(0..<totalSteps, id: \.self) { index in
-                                CompanionOnboardingStep(
-                                    index: index,
-                                    current: step,
-                                    title: ["Shortcuts", "Mac stats", "Startup"][index]
-                                )
-                            }
-                        }
+                        Text("Set up EspDesktop")
+                            .font(.system(size: 30, weight: .semibold))
+                        Text("Personalize your display in three quick steps.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
                     }
                     currentPage
                         .id(step)
                         .transition(.opacity)
-                    Text("Make it yours. You can change these options later in Settings.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                 }
+                .frame(maxWidth: 460, alignment: .leading)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 28)
+                .padding(.vertical, 36)
             }
 
             Divider()
@@ -266,33 +229,30 @@ private struct CompanionOnboarding: View {
         switch step {
         case 0:
             CompanionOnboardingPage(
-                icon: "keyboard",
-                title: "Your shortcuts, one tap away",
-                summary: "Run keyboard shortcuts and arrange windows from your display. Enable Accessibility access to control your Mac apps."
+                title: "Control your Mac",
+                summary: "Use your display for shortcuts and window controls."
             ) {
                 CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
                 Text(accessibilityGranted
-                     ? "Keyboard shortcuts and window controls are enabled for your display."
-                     : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
+                     ? "Accessibility access is enabled."
+                     : "Requires Accessibility access in System Settings.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
         case 1:
             CompanionOnboardingPage(
-                icon: "chart.bar.xaxis",
-                title: "Your Mac at a glance",
-                summary: "Keep an eye on processor, memory, storage, network, and battery activity, right on your display."
+                title: "Choose what to see",
+                summary: "Show your Mac’s performance on your display."
             ) {
                 CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
-                Text("Statistics are shared only with your paired display on the local network. You can change this later in Permissions settings.")
+                Text("Shared only with your paired display on your local network.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
         default:
             CompanionOnboardingPage(
-                icon: "power",
-                title: "Ready when you are",
-                summary: "Start EspDesktop automatically when you sign in so your paired display can reconnect to the Mac."
+                title: "Make it part of your day",
+                summary: "Keep your display ready whenever you sign in."
             ) {
                 CompanionLaunchAtLoginToggle(
                     isEnabled: store.launchAtLoginBinding(),
@@ -334,13 +294,16 @@ struct CompanionSettings: View {
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
-        if onboardingCompleted || store.requestedSettingsPage == "help" {
-            settingsContent
-        } else {
-            CompanionOnboarding(store: store) {
-                onboardingCompleted = true
+        Group {
+            if onboardingCompleted || store.requestedSettingsPage == "help" {
+                settingsContent
+            } else {
+                CompanionOnboarding(store: store) {
+                    onboardingCompleted = true
+                }
             }
         }
+        .background(OnboardingWindowTitle(hidden: !onboardingCompleted && store.requestedSettingsPage != "help"))
     }
 
     private var settingsContent: some View {
@@ -898,8 +861,8 @@ struct CompanionSettings: View {
                 CompanionPermissionRow(
                     title: "Enable Keyboard Shortcuts",
                     information: accessibilityGranted
-                        ? "Keyboard shortcuts and window controls are enabled for your display."
-                        : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.",
+                        ? "Accessibility access is enabled."
+                        : "Requires Accessibility access in System Settings.",
                     isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
                 )
             }
