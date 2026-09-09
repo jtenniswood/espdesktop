@@ -346,10 +346,20 @@ struct CompanionSettings: View {
                         VStack(spacing: 20) {
                             connectionStatus
                             HStack(spacing: 12) {
-                                Button("Customize") { store.openPanelWebServer() }
+                                Button {
+                                    store.openPanelWebServer()
+                                } label: {
+                                    Text("Customize")
+                                        .padding(.vertical, 4)
+                                }
                                     .help("Open the display’s configuration in your browser")
                                     .modifier(CompanionCapsuleButton())
-                                Button("Remove", role: .destructive) { confirmingForget = true }
+                                Button(role: .destructive) {
+                                    confirmingForget = true
+                                } label: {
+                                    Text("Remove")
+                                        .padding(.vertical, 4)
+                                }
                                     .help("Remove this display’s pairing")
                                     .modifier(CompanionCapsuleButton())
                             }
