@@ -236,7 +236,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         if (!els.clockBarSections)
             return;
         var layout: any = {
-            left: ["temperature"],
+            left: clockBar.temperatureAvailable() ? ["temperature"] : [],
             middle: ["time"],
             right: voiceServicesUiState().clockBarItemVisible ? ["voice", "network"] : ["network"],
         };
