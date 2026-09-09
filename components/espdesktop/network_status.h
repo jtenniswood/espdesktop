@@ -30,6 +30,7 @@ struct NetworkStatusModalUi {
   lv_obj_t *pairing_ip = nullptr;
   lv_obj_t *pairing_button = nullptr;
   const lv_font_t *text_font = nullptr;
+  const lv_font_t *modal_icon_font = nullptr;
   lv_obj_t *ip_lbl = nullptr;
   lv_obj_t *connector_lbl = nullptr;
   lv_obj_t *connector_icon = nullptr;
@@ -182,23 +183,39 @@ inline void network_status_open_pairing() {
   ui.pairing_overlay = shell.overlay;
   control_modal_style_overlay(shell.overlay);
   control_modal_style_panel(shell.panel, control_modal_card_radius(nullptr));
+  // The nested menu starts centered with flex layout; the full-card shell does not.
+  lv_obj_set_layout(shell.panel, LV_LAYOUT_NONE);
+  lv_obj_set_align(shell.panel, LV_ALIGN_TOP_LEFT);
   control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, control_modal_card_radius(nullptr));
   auto *close = control_modal_create_round_button(shell.panel, 32, "\U000F0156",
-      network_status_card_icon_font(), DARK_BORDER, SECONDARY_GREY, icon_width_compensation_percent());
+      ui.modal_icon_font, DARK_BORDER, SECONDARY_GREY, icon_width_compensation_percent());
   control_modal_style_chrome_button(close, layout, true);
-  lv_obj_add_flag(close, LV_OBJ_FLAG_FLOATING);
   lv_obj_add_event_cb(close, [](lv_event_t *) { control_modal_close_nested_menu(); }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_set_style_pad_all(shell.panel, layout.inset, LV_PART_MAIN);
-  lv_obj_set_style_pad_top(shell.panel, layout.back_size + layout.inset * 2, LV_PART_MAIN);
-  lv_obj_set_layout(shell.panel, LV_LAYOUT_FLEX);
-  lv_obj_set_flex_align(shell.panel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-  lv_obj_set_flex_flow(shell.panel, LV_FLEX_FLOW_COLUMN);
-  lv_obj_set_style_pad_row(shell.panel, control_modal_scaled_px(12, layout.short_side), LV_PART_MAIN);
-  network_status_pairing_label(shell.panel, espdesktop_i18n("Pairing"));
-  ui.pairing_code = network_status_pairing_label(shell.panel, "");
-  network_status_pairing_label(shell.panel, espdesktop_i18n("IP address"));
-  ui.pairing_ip = network_status_pairing_label(shell.panel, "");
-  network_status_pairing_label(shell.panel, espdesktop_i18n("Enter this code in the Mac app"));
+  auto *close_label = lv_obj_get_child(close, 0);
+  if (close_label) lv_obj_set_style_text_color(close_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+
+  // Match the original Wi-Fi details modal: centered content independent of chrome.
+  auto *content = lv_obj_create(shell.panel);
+  lv_obj_set_style_bg_opa(content, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_set_style_border_width(content, 0, LV_PART_MAIN);
+  lv_obj_set_style_shadow_width(content, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(content, 0, LV_PART_MAIN);
+  lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_size(content, layout.panel_w - layout.inset * 2, LV_SIZE_CONTENT);
+  lv_obj_set_style_pad_row(content, control_modal_scaled_px(12, layout.short_side), LV_PART_MAIN);
+  lv_obj_set_layout(content, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  network_status_pairing_label(content, espdesktop_i18n("Pairing"));
+  ui.pairing_code = network_status_pairing_label(content, "");
+  ui.pairing_ip = network_status_pairing_label(content, "");
+  lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+  auto *instruction = network_status_pairing_label(content, espdesktop_i18n("Enter this code in the Mac app"));
+  lv_obj_set_style_text_color(instruction, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+  lv_obj_update_layout(content);
+  lv_obj_align(content, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_move_foreground(close);
+  lv_obj_move_foreground(shell.overlay);
   network_status_refresh_page();
 }
 
@@ -256,6 +273,7 @@ inline void network_status_open_modal(const std::string &device_name,
   const lv_font_t *label_font = lv_obj_get_style_text_font(reference, LV_PART_MAIN);
   if (!label_font) label_font = text_font;
   ui.text_font = label_font;
+  ui.modal_icon_font = icon_font;
   const lv_color_t text_color = lv_obj_get_style_text_color(reference, LV_PART_MAIN);
 
   ui.overlay = lv_obj_create(lv_layer_top());
