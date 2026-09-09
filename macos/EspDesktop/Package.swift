@@ -6,6 +6,7 @@ let package = Package(
     name: "EspDesktop",
     platforms: [.macOS(.v13)],
     products: [.executable(name: "EspDesktop", targets: ["Companion"])],
+    dependencies: [.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.9.6")],
     targets: [
         .target(
             name: "MediaRemoteShim",
@@ -15,10 +16,11 @@ let package = Package(
         ),
         .executableTarget(
             name: "Companion",
-            dependencies: ["MediaRemoteShim"],
+            dependencies: ["MediaRemoteShim", .product(name: "Sparkle", package: "Sparkle")],
             path: "Sources/Companion",
             resources: [.process("Resources")],
             linkerSettings: [
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
                 .linkedFramework("IOKit"),
                 .linkedFramework("SystemConfiguration"),
             ]

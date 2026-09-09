@@ -7,15 +7,16 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, general, help
+    case connection, applications, folders, general, updates, help
 
     var id: String { rawValue }
     var title: String {
         switch self {
         case .connection: return "Display"
-        case .applications: return "Applications"
+        case .applications: return "Apps"
         case .folders: return "Folders"
         case .general: return "Permissions"
+        case .updates: return "Updates"
         case .help: return "Help"
         }
     }
@@ -25,6 +26,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .applications: return "square.grid.2x2"
         case .folders: return "folder"
         case .general: return "gearshape"
+        case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
     }
@@ -59,20 +61,57 @@ private struct CompanionOnboardingPage<Content: View>: View {
     }
 }
 
+private struct CompanionInfoButton: View {
+    let title: String
+    let information: String
+    @State private var showingInformation = false
+
+    var body: some View {
+        Button {
+            showingInformation = true
+        } label: {
+            Image(systemName: "info.circle")
+                .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel("About \(title)")
+        .onHover { showingInformation = $0 }
+        .popover(isPresented: $showingInformation, arrowEdge: .bottom) {
+            Text(information)
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(16)
+                .frame(width: 280, alignment: .leading)
+        }
+    }
+}
+
+private struct CompanionPermissionRow: View {
+    let title: String
+    let information: String
+    @Binding var isEnabled: Bool
+    var isAvailable = true
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(title)
+            CompanionInfoButton(title: title, information: information)
+            Spacer()
+            Toggle(title, isOn: $isEnabled)
+                .labelsHidden()
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                .disabled(!isAvailable)
+                .accessibilityHint(information)
+        }
+    }
+}
+
 private struct CompanionStatsToggle: View {
     @Binding var isEnabled: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            Toggle("", isOn: $isEnabled)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .tint(.green)
-                .accessibilityLabel("Share Mac system statistics")
-            Text(isEnabled ? "Stats enabled" : "Stats disabled")
-                .font(.headline)
-                .foregroundStyle(isEnabled ? .primary : .secondary)
-        }
+        Toggle("Share Mac Stats to Display", isOn: $isEnabled)
+            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
     }
 }
 
@@ -81,38 +120,22 @@ private struct CompanionLaunchAtLoginToggle: View {
     let isAvailable: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            Toggle("", isOn: $isEnabled)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .tint(.green)
-                .disabled(!isAvailable)
-                .accessibilityLabel("Open EspDesktop at Login")
-            Text(isEnabled ? "Login enabled" : "Login disabled")
-                .font(.headline)
-                .foregroundStyle(isEnabled ? .primary : .secondary)
-        }
+        Toggle("Launch Companion App at Login", isOn: $isEnabled)
+            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+            .disabled(!isAvailable)
     }
 }
 
 private struct CompanionAccessibilityToggle: View {
     @Binding var isEnabled: Bool
-    let openSettings: () -> Void
+    let requestAccess: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            Toggle("", isOn: Binding(
-                get: { isEnabled },
-                set: { _ in openSettings() }
-            ))
-            .labelsHidden()
-            .toggleStyle(.switch)
-            .tint(.green)
-            .accessibilityLabel("Enable keyboard shortcuts and window controls")
-            Text(isEnabled ? "Shortcuts enabled" : "Shortcuts disabled")
-                .font(.headline)
-                .foregroundStyle(isEnabled ? .primary : .secondary)
-        }
+        Toggle("Enable Keyboard Shortcuts", isOn: Binding(
+            get: { isEnabled },
+            set: { _ in requestAccess() }
+        ))
+        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
     }
 }
 
@@ -185,7 +208,7 @@ private struct CompanionOnboarding: View {
                 title: "Enable shortcut support",
                 summary: "Shortcut and window-control cards need macOS Accessibility permission to send commands to your active Mac app."
             ) {
-                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, openSettings: enableAccessibility)
+                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
                 Text(accessibilityGranted
                      ? "Keyboard shortcuts and window controls are enabled for your display."
                      : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
@@ -227,18 +250,13 @@ private struct CompanionOnboarding: View {
     }
 
     private func enableAccessibility() {
-        _ = CompanionAccessibilityAuthorizer.shared.isTrusted()
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
+        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
     }
 }
 
 struct CompanionSettings: View {
     @ObservedObject var store: CompanionStore
     @State private var pairingCode = ""
-    @State private var applicationSearch = ""
-    @FocusState private var applicationSearchFocused: Bool
     @State private var confirmingForget = false
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
@@ -246,11 +264,11 @@ struct CompanionSettings: View {
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
     @AppStorage("companion.onboarding.completed") private var onboardingCompleted = false
-    @AppStorage("settings.selectedPage") private var selectedPageID = CompanionSettingsPage.connection.rawValue
+    @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
-        if onboardingCompleted {
+        if onboardingCompleted || store.requestedSettingsPage == "help" {
             settingsContent
         } else {
             CompanionOnboarding(store: store) {
@@ -260,69 +278,25 @@ struct CompanionSettings: View {
     }
 
     private var settingsContent: some View {
-        ZStack(alignment: .bottomTrailing) {
-            HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 0) {
-                Text("EspDesktop")
-                    .font(.system(size: 24, weight: .semibold))
-                    .padding(.leading, 20)
-                    .padding(.top, 28)
-                    .padding(.bottom, 20)
-
-                Text("Settings")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color(white: 0.50))
-                    .padding(.leading, 20)
-                    .padding(.bottom, 0)
-
-                List {
-                    ForEach(CompanionSettingsPage.allCases) { page in
-                        Button {
-                            selectedPageID = page.rawValue
-                        } label: {
-                            Label {
-                                Text(page.title)
-                                    .font(.system(size: 14, weight: .medium))
-                            } icon: {
-                                Image(systemName: page.icon)
-                                    .font(.system(size: 16, weight: .regular))
-                                    .frame(width: 22)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 7)
-                        .contentShape(Rectangle())
-                        .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
-                        .listRowBackground(
-                            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                .fill(selectedPage == page ? Color(white: 0.21) : .clear)
-                                .padding(.horizontal, 10)
-                        )
-                        .listRowSeparator(.hidden)
-                    }
-                }
-                .listStyle(.sidebar)
-                .scrollContentBackground(.hidden)
+        detailView
+            .scrollContentBackground(.hidden)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color(nsColor: .windowBackgroundColor))
+            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
+            .navigationTitle("Settings")
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                floatingSupportButton
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
             }
-            .frame(minWidth: 190, idealWidth: 210, maxWidth: 230)
-            .foregroundStyle(Color(white: 0.98))
-            .background(Color(white: 0.14))
-
-                Divider()
-                    .ignoresSafeArea(.container, edges: .top)
-
-                detailView
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            }
-            floatingSupportButton
-                .padding(.trailing, 24)
-                .padding(.bottom, 24)
-        }
         .onAppear {
-            if !store.hasSavedPairing { selectedPageID = CompanionSettingsPage.connection.rawValue }
+            selectedPageID = store.requestedSettingsPage
             if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
             refreshAccessibilityStatus()
+        }
+        .onChange(of: store.settingsRequestID) { _ in
+            selectedPageID = store.requestedSettingsPage
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
@@ -379,6 +353,7 @@ struct CompanionSettings: View {
         case .applications: applicationsPage
         case .folders: foldersPage
         case .general: permissionsPage
+        case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
     }
@@ -394,126 +369,155 @@ struct CompanionSettings: View {
     private var connectionPage: some View {
         Group {
             if store.hasSavedPairing && !pairingFlowActive {
-                List {
+                Form {
                     Section {
-                        HStack {
-                            Toggle("Connection", isOn: connectionToggleBinding)
-                                .labelsHidden()
-                                .toggleStyle(.switch)
-                                .tint(.green)
-                                .disabled(store.connectionState.isBusy)
-                            Text(store.isConnected ? "Connected" : "Disconnected")
-                                .font(.headline)
-                                .foregroundStyle(store.isConnected ? .primary : .secondary)
-                            Spacer()
+                        connectionStatus
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
+                    }
+                    Section("Display Settings") {
+                        LabeledContent {
+                            Button("Customize") { store.openPanelWebServer() }
+                                .help("Open the display’s configuration in your browser")
+                        } label: {
+                            Text("Manage your display layout")
+                                .foregroundStyle(.secondary)
                         }
-                        Button("Forget Display…", role: .destructive) { confirmingForget = true }
-                        Button("Customize Display") { store.openPanelWebServer() }
-                            .help("Open the display’s configuration in your browser")
+                        LabeledContent {
+                            Button("Remove", role: .destructive) { confirmingForget = true }
+                        } label: {
+                            Text("Reset your display pairing")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
-                .listStyle(.inset)
+                .formStyle(.grouped)
             } else {
                 pairingFlowPage
             }
         }
     }
 
-    @ViewBuilder
     private var pairingFlowPage: some View {
-        Form {
-            switch pairingStep {
-            case .address:
-                Section("Step 1 of 3 · Display address") {
-                    Text("Enter the local address of your EspDesktop display.")
+        ScrollView {
+            VStack(spacing: 24) {
+                Text("Step \(pairingStepNumber) of 3")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                VStack(spacing: 12) {
+                    Text(pairingStepTitle)
+                        .font(.title.weight(.semibold))
+                    Text(pairingStepDescription)
+                        .font(.title3)
                         .foregroundStyle(.secondary)
-                    TextField("IP address or name.local", text: $store.panelHost)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("Display address")
-                        .focused($focusedField, equals: .panelHost)
-                        .onSubmit { openPairingPage() }
-                    if !pairingFlowError.isEmpty {
-                        Text(pairingFlowError)
-                            .font(.callout)
-                            .foregroundStyle(.orange)
-                    }
-                    HStack {
-                        Spacer()
-                        Button("Continue") { openPairingPage() }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(!canOpenPairingPage)
-                    }
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            case .code:
-                Section("Step 2 of 3 · Pairing code") {
-                    Text("A pairing page has opened for your display. Start pairing there, copy the eight-letter code, then enter it below.")
-                        .foregroundStyle(.secondary)
-                    TextField("ABCD-EFGH", text: $pairingCode)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(.body, design: .monospaced))
-                        .accessibilityLabel("Pairing code")
-                        .focused($focusedField, equals: .pairingCode)
-                        .onSubmit { pairDisplay() }
-                    if !pairingFlowError.isEmpty {
-                        Text(pairingFlowError)
-                            .font(.callout)
-                            .foregroundStyle(.orange)
+                .multilineTextAlignment(.center)
+
+                if pairingStep == .address || pairingStep == .code {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if pairingStep == .address {
+                            TextField("IP address or name.local", text: $store.panelHost)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityLabel("Display address")
+                                .focused($focusedField, equals: .panelHost)
+                                .onSubmit { openPairingPage() }
+                        } else {
+                            TextField("ABCD-EFGH", text: $pairingCode)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(.title3, design: .monospaced))
+                                .accessibilityLabel("Pairing code")
+                                .focused($focusedField, equals: .pairingCode)
+                                .onSubmit { pairDisplay() }
+                        }
+                        if !pairingFlowError.isEmpty {
+                            Label(pairingFlowError, systemImage: "exclamationmark.circle")
+                                .font(.callout)
+                                .foregroundStyle(.orange)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
+                    .font(.title3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     HStack {
-                        Button("Back") {
-                            pairingFlowError = ""
-                            pairingStep = .address
+                        if pairingStep == .code {
+                            Button("Back") {
+                                pairingFlowError = ""
+                                pairingStep = .address
+                                focusedField = .panelHost
+                            }
                         }
                         Spacer()
-                        Button("Continue") { pairDisplay() }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(!canPair)
-                    }
-                }
-            case .connecting:
-                Section("Step 3 of 3 · Confirm connection") {
-                    HStack(spacing: 10) {
-                        ProgressView().controlSize(.small)
-                        Text("Pairing and connecting to your display…")
-                    }
-                    .accessibilityElement(children: .combine)
-                    Text("Keep both devices connected to the same local network.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-            case .connected:
-                Section("Step 3 of 3 · Connection established") {
-                    Label("Connected", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Your Mac is paired with the EspDesktop display and ready to use.")
-                        .foregroundStyle(.secondary)
-                    HStack {
-                        Spacer()
-                        Button("Done") {
-                            pairingFlowActive = false
-                            pairingStep = .address
+                        Button(pairingStep == .address ? "Continue" : "Connect") {
+                            if pairingStep == .address { openPairingPage() } else { pairDisplay() }
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(pairingStep == .address ? !canOpenPairingPage : !canPair)
                     }
+                } else if pairingStep == .connecting {
+                    ProgressView()
+                        .accessibilityLabel("Connecting to display")
+                } else {
+                    Button("Done") {
+                        pairingFlowActive = false
+                        pairingStep = .address
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
             }
+            .controlSize(.large)
+            .frame(maxWidth: 380)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 32)
+            .frame(maxWidth: .infinity)
         }
-        .formStyle(.grouped)
-        .navigationTitle("Connect Display")
+    }
+
+    private var pairingStepNumber: Int {
+        switch pairingStep {
+        case .address: return 1
+        case .code: return 2
+        case .connecting, .connected: return 3
+        }
+    }
+
+    private var pairingStepTitle: String {
+        switch pairingStep {
+        case .address: return "Connect your display"
+        case .code: return "Enter pairing code"
+        case .connecting: return "Connecting your display"
+        case .connected: return "You’re connected"
+        }
+    }
+
+    private var pairingStepDescription: String {
+        switch pairingStep {
+        case .address:
+            return "Enter its address. Your Mac and display must be on the same network."
+        case .code:
+            return "Start pairing in your browser, then enter the eight-letter code."
+        case .connecting:
+            return "Keep your Mac and display on the same network."
+        case .connected:
+            return "Your display is ready to use."
+        }
     }
 
     private var connectionStatus: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 10) {
+            connectionSwitch
             HStack(spacing: 8) {
                 if store.connectionState.isBusy {
                     ProgressView().controlSize(.small)
-                } else {
-                    Image(systemName: store.connectionState.symbol)
-                        .foregroundStyle(store.connectionState == .failed ? Color.orange : Color.secondary)
                 }
                 Text(store.connectionState.title)
+                    .font(.title.weight(.semibold))
             }
             .accessibilityElement(children: .combine)
+            Text(store.panelHost)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
             if store.connectionState == .failed || store.connectionState == .reconnecting {
                 Text(store.connectionState == .reconnecting
                      ? "Check that your display is powered on and connected to the same network. EspDesktop will try again automatically."
@@ -522,6 +526,23 @@ struct CompanionSettings: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .multilineTextAlignment(.center)
+    }
+
+    private var connectionSwitch: some View {
+        Toggle("Display connection", isOn: connectionToggleBinding)
+            .labelsHidden()
+            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+            .controlSize(connectionSwitchSize)
+            .disabled(store.connectionState.isBusy)
+            .accessibilityLabel("Display connection")
+    }
+
+    private var connectionSwitchSize: ControlSize {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) { return .extraLarge }
+        #endif
+        return .large
     }
 
     private var connectionToggleBinding: Binding<Bool> {
@@ -577,57 +598,13 @@ struct CompanionSettings: View {
     private var applicationsPage: some View {
         Form {
             Section {
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
-                    TextField("Search", text: $applicationSearch)
-                        .textFieldStyle(.plain)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .focused($applicationSearchFocused)
-                    if !applicationSearch.isEmpty {
-                        Button {
-                            applicationSearch = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Clear Search")
-                    }
-                }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 14)
-                .background(.background, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(Color.primary.opacity(0.22), lineWidth: 1)
-                }
-                .contentShape(Capsule())
-                .simultaneousGesture(
-                    TapGesture().onEnded { applicationSearchFocused = true }
-                )
-            }
-            Section {
-                HStack(spacing: 12) {
-                    Toggle("Select All", isOn: selectAllBinding)
-                        .toggleStyle(.checkbox)
-                        .disabled(filteredApplications.isEmpty)
-                    Spacer()
-                }
-            }
-            Section {
                 if store.availableApps.isEmpty {
                     emptyState("No Applications Found", symbol: "app.dashed",
-                               detail: "Install applications in your Applications folder, then refresh this list.")
-                    Button("Refresh Applications") { store.refreshApplications() }
-                } else if filteredApplications.isEmpty {
-                    emptyState("No Results", symbol: "magnifyingglass",
-                               detail: "Try another application name or clear your search.")
-                    Button("Clear Search") { applicationSearch = "" }
+                               detail: "Install applications in your Applications folder, then refresh this list.") {
+                        Button("Refresh Applications") { store.refreshApplications() }
+                    }
                 } else {
-                    ForEach(filteredApplications) { application in
+                    ForEach(store.availableApps) { application in
                         Toggle(isOn: Binding(
                             get: { store.applicationIsApproved(application) },
                             set: { store.setApplication(application, approved: $0) }
@@ -636,42 +613,32 @@ struct CompanionSettings: View {
                                 Text(application.name)
                             }
                         }
-                        .toggleStyle(.checkbox)
+                        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                         .padding(.vertical, 2)
                     }
+                }
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Apps")
+                    CompanionInfoButton(
+                        title: "Apps",
+                        information: "Choose which Mac apps you can launch from your display. Enabled apps are available for app shortcuts; switch an app off to hide it from the display."
+                    )
                 }
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Applications")
-    }
-
-    private var isSearching: Bool { !applicationSearch.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-    private var selectAllBinding: Binding<Bool> {
-        Binding(
-            get: {
-                !filteredApplications.isEmpty && filteredApplications.allSatisfy(store.applicationIsApproved)
-            },
-            set: { store.setApplications(filteredApplications, approved: $0) }
-        )
-    }
-
-    private var filteredApplications: [LaunchableApp] {
-        let query = applicationSearch.trimmingCharacters(in: .whitespacesAndNewlines)
-        return query.isEmpty ? store.availableApps : store.availableApps.filter { $0.name.localizedCaseInsensitiveContains(query) }
     }
 
     private var foldersPage: some View {
         Form {
             Section {
-                Text("Add folders you want to open from your display. Their paths stay on this Mac.")
-            }
-            Section {
                 if store.approvedFolders.isEmpty {
                     emptyState("Add Your First Folder", symbol: "folder.badge.plus",
-                               detail: "Keep a project, documents, or downloads one tap away on your display.")
-                    Button("Add Folder…") { store.chooseFolder() }
-                        .buttonStyle(.borderedProminent)
+                               detail: "Keep a project, documents, or downloads one tap away on your display.") {
+                        Button("Add Folder…") { store.chooseFolder() }
+                            .buttonStyle(.borderedProminent)
+                    }
                 } else {
                     ForEach(store.approvedFolders) { folder in
                         HStack(spacing: 10) {
@@ -680,12 +647,6 @@ struct CompanionSettings: View {
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(folder.name)
-                                Text(folder.path)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                    .help(folder.path)
                                 if store.folderNeedsAccess(folder) {
                                     Label("Folder unavailable", systemImage: "exclamationmark.triangle")
                                         .font(.callout)
@@ -708,70 +669,95 @@ struct CompanionSettings: View {
                 if let message = store.folderMessage {
                     Text(message).font(.callout).foregroundStyle(.secondary)
                 }
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Folders")
+                    CompanionInfoButton(
+                        title: "Folders",
+                        information: "Add folders you want to open on this Mac from your display. Use them as folder shortcuts for projects, documents, or downloads. Folder paths stay on this Mac."
+                    )
+                }
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Folders")
     }
 
-    private func emptyState(_ title: String, symbol: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(title, systemImage: symbol).font(.headline)
-            Text(detail).foregroundStyle(.secondary)
+    private func emptyState<Action: View>(
+        _ title: String, symbol: String, detail: String,
+        @ViewBuilder action: () -> Action
+    ) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 32, weight: .regular))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.title3.weight(.semibold))
+                Text(detail)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: 300)
+            action()
+                .padding(.top, 4)
         }
-        .padding(.vertical, 8)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 24)
     }
 
     private var permissionsPage: some View {
         Form {
-            Section("Startup") {
-                CompanionLaunchAtLoginToggle(
+            Section("Permissions") {
+                CompanionPermissionRow(
+                    title: "Launch Companion App at Login",
+                    information: store.supportsLaunchAtLogin
+                        ? (store.launchAtLoginMessage.isEmpty
+                           ? "Open EspDesktop automatically after you sign in."
+                           : store.launchAtLoginMessage)
+                        : "Install EspDesktop in Applications to open it automatically at login.",
                     isEnabled: store.launchAtLoginBinding(),
                     isAvailable: store.supportsLaunchAtLogin
                 )
-                Text(store.supportsLaunchAtLogin
-                     ? store.launchAtLoginMessage
-                     : "Install EspDesktop in Applications to open it automatically at login.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-            Section("Privacy") {
-                CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
-                Text("Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            Section("Keyboard & Window Controls") {
-                CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, openSettings: enableAccessibility)
-                Text(accessibilityGranted
-                     ? "Keyboard shortcuts and window controls are enabled for your display."
-                     : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                CompanionPermissionRow(
+                    title: "Share Mac Stats to Display",
+                    information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
+                    isEnabled: $store.shareSystemMetricsEnabled
+                )
+                CompanionPermissionRow(
+                    title: "Enable Keyboard Shortcuts",
+                    information: accessibilityGranted
+                        ? "Keyboard shortcuts and window controls are enabled for your display."
+                        : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.",
+                    isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
+                )
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Permissions")
     }
 
     private var helpPage: some View {
         Form {
             Section("Support") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Support EspDesktop")
+                    Text("Enjoying EspDisplay?")
                         .font(.headline)
-                    Text("If EspDesktop is useful to you, you can support ongoing development and user support by buying me a coffee.")
+                    Text("Buy me a coffee to help fund new features, improvements, and support. Every contribution makes a difference. Thank you!")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                     Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
                 }
             }
             Section("Resources") {
-                Link("EspDesktop Support", destination: CompanionStore.supportURL)
+                Link("Support", destination: CompanionStore.supportURL)
+                Link("Raise an issue", destination: CompanionStore.issuesURL)
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Help")
     }
 
     private var companionResourceBundle: Bundle {
@@ -816,9 +802,116 @@ struct CompanionSettings: View {
     }
 
     private func enableAccessibility() {
-        _ = CompanionAccessibilityAuthorizer.shared.isTrusted()
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
+        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
+    }
+}
+
+/// Installs real selectable toolbar items in the hosting window. AppKit owns
+/// their layout, selection appearance, accessibility, and light/dark styling.
+private struct CompanionSettingsToolbar: NSViewRepresentable {
+    @Binding var selection: CompanionSettingsPage
+
+    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection) }
+
+    func makeNSView(context: Context) -> WindowObserver {
+        let view = WindowObserver()
+        view.onWindowChange = { [weak coordinator = context.coordinator] window in
+            coordinator?.attach(to: window)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: WindowObserver, context: Context) {
+        context.coordinator.selection = $selection
+        context.coordinator.toolbar.selectedItemIdentifier = .init(selection.rawValue)
+    }
+
+    static func dismantleNSView(_ nsView: WindowObserver, coordinator: Coordinator) {
+        nsView.onWindowChange = nil
+        coordinator.attach(to: nil)
+    }
+
+    final class WindowObserver: NSView {
+        var onWindowChange: ((NSWindow?) -> Void)?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            onWindowChange?(window)
+        }
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, NSToolbarDelegate {
+        var selection: Binding<CompanionSettingsPage>
+        let toolbar = NSToolbar(identifier: "EspDesktopSettingsNavigation")
+        private weak var window: NSWindow?
+
+        init(selection: Binding<CompanionSettingsPage>) {
+            self.selection = selection
+            super.init()
+            toolbar.delegate = self
+            toolbar.displayMode = .iconAndLabel
+            toolbar.allowsUserCustomization = false
+            toolbar.centeredItemIdentifiers = Set(pageIdentifiers)
+            toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
+        }
+
+        func attach(to window: NSWindow?) {
+            if let previous = self.window, previous !== window, previous.toolbar === toolbar {
+                previous.toolbar = nil
+            }
+            self.window = window
+            guard let window else { return }
+            window.title = "Settings"
+            // Keep the native icon-and-label tabs below the centered window title.
+            window.toolbarStyle = .preference
+            // Match the reference toolbar's neutral grey while retaining native light appearance.
+            window.backgroundColor = NSColor(name: nil) { appearance in
+                if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
+                    return NSColor(srgbRed: 35.0 / 255, green: 35.0 / 255, blue: 35.0 / 255, alpha: 1)
+                }
+                return .windowBackgroundColor
+            }
+            window.titlebarAppearsTransparent = true
+            window.titlebarSeparatorStyle = .line
+            window.toolbar = toolbar
+            toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
+        }
+
+        private var pageIdentifiers: [NSToolbarItem.Identifier] {
+            CompanionSettingsPage.allCases.map { .init($0.rawValue) }
+        }
+
+        func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+            pageIdentifiers
+        }
+
+        func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+            pageIdentifiers
+        }
+
+        func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+            pageIdentifiers
+        }
+
+        func toolbar(
+            _ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier,
+            willBeInsertedIntoToolbar flag: Bool
+        ) -> NSToolbarItem? {
+            guard let page = CompanionSettingsPage(rawValue: identifier.rawValue) else { return nil }
+            let item = NSToolbarItem(itemIdentifier: identifier)
+            item.label = page.title
+            item.paletteLabel = page.title
+            item.toolTip = "Show \(page.title) settings"
+            item.image = NSImage(systemSymbolName: page.icon, accessibilityDescription: page.title)
+            item.target = self
+            item.action = #selector(selectPage(_:))
+            return item
+        }
+
+        @objc private func selectPage(_ sender: NSToolbarItem) {
+            guard let page = CompanionSettingsPage(rawValue: sender.itemIdentifier.rawValue) else { return }
+            selection.wrappedValue = page
         }
     }
 }
