@@ -7,7 +7,7 @@ static std::map<std::string, uint16_t> services{{"_http._tcp", 80}, {"_esphomeli
 static std::map<std::string, std::string> advertised;
 static int result = 0;
 esp_err_t mdns_service_add(const char *instance, const char *type, const char *protocol, uint16_t port,
-                         const mdns_txt_item_t *records, size_t count) {
+                         mdns_txt_item_t *records, size_t count) {
   assert(instance == nullptr); // Inherit the existing ESPHome instance name.
   if (result != 0) return result;
   services[std::string(type) + "." + protocol] = port;
