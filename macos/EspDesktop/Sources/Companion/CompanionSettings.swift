@@ -784,16 +784,16 @@ struct CompanionSettings: View {
                 isAvailable: store.supportsLaunchAtLogin
             )
             CompanionPermissionRow(
-                title: "Share Stats to Device",
-                information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
-                isEnabled: $store.shareSystemMetricsEnabled
-            )
-            CompanionPermissionRow(
                 title: "Enable Keyboard Shortcuts",
                 information: accessibilityGranted
                     ? "Accessibility access is enabled."
                     : "Requires Accessibility access in System Settings.",
                 isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
+            )
+            CompanionPermissionRow(
+                title: "Share Stats to Device",
+                information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
+                isEnabled: $store.shareSystemMetricsEnabled
             )
         }
     }
