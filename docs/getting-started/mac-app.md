@@ -78,6 +78,12 @@ The **Permissions** page remains available after setup:
 
 If shortcuts or window cards stop working after replacing the app, remove the old EspDesktop entry from Accessibility, add the installed app again, and retry the card.
 
+## Support
+
+Open **Support** in the Mac app to get help, report issues, suggest features, or contribute through Buy Me a Coffee. Optional contributions help fund continued support, improvements, and new features over time.
+
+To start onboarding again, choose **Restart Setup** below Privacy Policy and confirm. This removes the Mac’s saved display pairing and returns to display setup, while keeping your application and folder choices. You’ll need a new pairing code from your display.
+
 ## Re-pair or Replace a Display
 
 Choose **Forget Display** in the Mac app before pairing a replacement display. On the old display, reset pairing from **Connectors → Mac Companion**. Pair again using the new temporary code.
