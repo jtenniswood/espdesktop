@@ -41,8 +41,6 @@ class CompanionService final : public Component {
   void setup() override;
   void loop() override;
   void dump_config() override;
-  void advertise_discovery_();
-  bool discovery_advertised_{false};
 
   // Called by the panel web setup page. It rotates the eight-letter setup code
   // and invalidates any unfinished attempt. The resulting trust is persistent.
@@ -55,6 +53,8 @@ class CompanionService final : public Component {
   void request_now_playing_artwork();
 
  protected:
+  void advertise_discovery_();
+  bool discovery_advertised_{false};
   enum class AuthenticationResult : uint8_t { FAILED, STALE_SEQUENCE, AUTHENTICATED };
 
   static esp_err_t websocket_handler_(httpd_req_t *request);

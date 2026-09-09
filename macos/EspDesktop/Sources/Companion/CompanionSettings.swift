@@ -327,6 +327,8 @@ struct CompanionSettings: View {
             Button("Cancel", role: .cancel) {}
             Button("Forget Display", role: .destructive) {
                 store.forgetPanel()
+                selectedDisplayID = nil
+                manualAddress = false
                 pairingCode = ""
                 pairingFlowActive = true
                 pairingStep = .address
@@ -607,6 +609,8 @@ struct CompanionSettings: View {
     }
 
     private func startPairingFlow() {
+        selectedDisplayID = nil
+        manualAddress = false
         pairingFlowActive = true
         pairingStep = .address
         pairingFlowError = ""
