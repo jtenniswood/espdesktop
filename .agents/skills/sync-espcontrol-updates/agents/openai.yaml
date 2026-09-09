@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sync EspControl Updates"
+  short_description: "Port recent EspControl changes into EspDesktop"
+  default_prompt: "Use $sync-espcontrol-updates to review the last 24 hours of EspControl PRs and port applicable changes into EspDesktop."
