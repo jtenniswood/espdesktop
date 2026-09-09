@@ -102,7 +102,7 @@ inline bool hex_valid(JsonVariantConst value) {
         declarations=[]
         for key,spec in fields.items():
             typ=type_for(spec,ident+name(key))
-            if spec.get('optional') and spec['type'] != 'array':typ=f'std::optional<{typ}>'
+            if spec.get('optional'):typ=f'std::optional<{typ}>'
             declarations.append(f'  {typ} {key}{{}};')
         out.append('struct '+ident+' {\n'+'\n'.join(declarations)+'\n};\n')
     def read(spec,value,ident):

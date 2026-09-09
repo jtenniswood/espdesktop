@@ -105,7 +105,7 @@ inline const CompanionWindowCapability *companion_window_capability(const std::s
 
 inline const CompanionMetricCapability *companion_metric_capability(const std::string &id) {
   for (const auto &item : COMPANION_METRIC_CAPABILITIES)
-    if (id == item.id || (std::string(item.id) == "stat.ip_address" && id.rfind("stat.ip_address:", 0) == 0)) return &item;
+    if (id == item.id || (std::string(item.id) == "stat.ip_address" && id.size() > std::string("stat.ip_address:").size() && id.rfind("stat.ip_address:", 0) == 0) || (std::string(item.id) == "stat.storage" && id.size() > std::string("stat.storage:").size() && id.rfind("stat.storage:", 0) == 0) || (std::string(item.id) == "stat.storage_free" && id.size() > std::string("stat.storage_free:").size() && id.rfind("stat.storage_free:", 0) == 0)) return &item;
   return nullptr;
 }
 
