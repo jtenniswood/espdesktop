@@ -205,7 +205,7 @@ export function registerSubpageCardTypes(
                 var statSelect: any = document.createElement("select");
                 statSelect.className = "sp-select";
                 statSelect.id = helpers.idPrefix + "companion-stat";
-                var statOptions: any = COMPANION_STATS_OPTIONS;
+                var statOptions: any = COMPANION_STATS_OPTIONS.filter(([mode]) => mode !== "ip_address");
                 statOptions.forEach(function (item: any) {
                     var option: any = document.createElement("option");
                     option.value = item[0];

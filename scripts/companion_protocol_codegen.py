@@ -102,7 +102,7 @@ inline bool hex_valid(JsonVariantConst value) {
         declarations=[]
         for key,spec in fields.items():
             typ=type_for(spec,ident+name(key))
-            if spec.get('optional'):typ=f'std::optional<{typ}>'
+            if spec.get('optional') and spec['type'] != 'array':typ=f'std::optional<{typ}>'
             declarations.append(f'  {typ} {key}{{}};')
         out.append('struct '+ident+' {\n'+'\n'.join(declarations)+'\n};\n')
     def read(spec,value,ident):
@@ -174,7 +174,7 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
 ''']
     def typ(spec,ident):
         k=spec['type']
-        if k=='object':struct(ident,spec['fields']);return ident
+        if k=='object':struct(ident,spec['fields']);return 'CompanionWire'+ident
         if k=='array':return '['+typ(spec['items'],ident+'Item')+']'
         return {'string':'String','integer':'UInt32','number':'Double','boolean':'Bool'}[k]
     def struct(ident,fields):
@@ -256,8 +256,6 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
         n=name(m['id']);out.append(f'        case {json.dumps(m["id"])}: return (try? decoder.decode(CompanionWire{n}.self, from: data)).map(CompanionProtocolMessage.{n[0].lower()+n[1:]})\n')
     out.append('        default: return nil\n        }\n    }\n}\n')
     result=''.join(out)
-    # Nested catalogue entries are generated alongside the message structures.
-    result=result.replace('[CataloguePageItemsItem]','[CompanionWireCataloguePageItemsItem]')
     # Foundation dictionaries are immutable after initialization, but Any does not express Sendable.
     result=result.replace('private static let schemas', 'nonisolated(unsafe) private static let schemas')
     return result

@@ -105,6 +105,11 @@ struct NowPlaying {
   bool hasArtwork{};
   std::optional<std::string> artworkSHA256{};
 };
+struct SystemMetricsNetworkInterfacesItem {
+  std::string id{};
+  std::string label{};
+  std::string address{};
+};
 struct SystemMetrics {
   uint32_t generation{};
   std::optional<bool> available{};
@@ -113,6 +118,7 @@ struct SystemMetrics {
   std::optional<double> storageUsagePercent{};
   std::optional<double> batteryPercent{};
   std::optional<double> networkThroughputKBps{};
+  std::vector<SystemMetricsNetworkInterfacesItem> networkInterfaces{};
 };
 struct ArtworkBegin {
   uint32_t generation{};
@@ -256,6 +262,13 @@ inline void encode(JsonObject root, const SystemMetrics &message) {
   if (message.storageUsagePercent) root["storageUsagePercent"] = *message.storageUsagePercent;
   if (message.batteryPercent) root["batteryPercent"] = *message.batteryPercent;
   if (message.networkThroughputKBps) root["networkThroughputKBps"] = *message.networkThroughputKBps;
+  auto values_networkInterfaces = root["networkInterfaces"].to<JsonArray>();
+  for (const auto &item : message.networkInterfaces) {
+    auto entry = values_networkInterfaces.add<JsonObject>();
+    entry["id"] = item.id;
+    entry["label"] = item.label;
+    entry["address"] = item.address;
+  }
 }
 inline void encode(JsonObject root, const ArtworkBegin &message) {
   root["type"] = "artwork.begin";
@@ -593,6 +606,21 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!root["networkThroughputKBps"].isUnbound()) {
       if (!(number_valid(root["networkThroughputKBps"], 0, 1000000000.0, false))) return std::nullopt;
     }
+    if (!root["networkInterfaces"].isUnbound()) {
+      if (!(root["networkInterfaces"].is<JsonArrayConst>() && root["networkInterfaces"].size() <= 32)) return std::nullopt;
+      for (JsonVariantConst item : root["networkInterfaces"].as<JsonArrayConst>()) {
+        if (!(item.is<JsonObjectConst>())) return std::nullopt;
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["id"], 1, 32))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["label"], 1, 128))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["address"], 0, 45))) return std::nullopt;
+        }
+      }
+    }
     if ((!!root["available"].isUnbound() || root["available"].as<bool>() != false)) {
       if (!!root["cpuUsagePercent"].isUnbound()) return std::nullopt;
       if (!!root["memoryUsagePercent"].isUnbound()) return std::nullopt;
@@ -606,6 +634,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!root["storageUsagePercent"].isUnbound()) result.storageUsagePercent = root["storageUsagePercent"].as<double>();
     if (!root["batteryPercent"].isUnbound()) result.batteryPercent = root["batteryPercent"].as<double>();
     if (!root["networkThroughputKBps"].isUnbound()) result.networkThroughputKBps = root["networkThroughputKBps"].as<double>();
+    for (JsonVariantConst item : root["networkInterfaces"].as<JsonArrayConst>()) {
+      result.networkInterfaces.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["address"].as<std::string>()});
+    }
     return result;
   }
   if (type == "artwork.begin") {

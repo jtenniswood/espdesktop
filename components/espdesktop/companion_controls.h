@@ -655,7 +655,8 @@ inline void companion_refresh_cards_if_requested() {
         else if (it->precision == 2) snprintf(buffer, sizeof(buffer), "%.2f", value);
         else if (it->precision == 1) snprintf(buffer, sizeof(buffer), "%.1f", value);
         else snprintf(buffer, sizeof(buffer), "%.0f", value);
-        lv_label_set_display_text(it->value_label, buffer);
+        const auto address = companion_network_address(snapshot, it->metric_key);
+        lv_label_set_display_text(it->value_label, it->metric_key.rfind("stat.ip_address", 0) == 0 ? address.c_str() : buffer);
       }
       if (it->unit_label) {
         lv_label_set_display_text(it->unit_label, available ? it->metric_unit.c_str() : "");
@@ -787,7 +788,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
   bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
     if (request->method() != HTTP_GET) return false;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
-    return request->url_to(url_buf) == "/companion/actions";
+    const auto url = request->url_to(url_buf);
+    return url == "/companion/actions" || url == "/companion/networks";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -795,7 +797,17 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     std::string json = "[";
     bool first = true;
     const auto snapshot = companion_runtime_snapshot();
-    if (snapshot.connected) {
+    char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    const bool networks = request->url_to(url_buf) == "/companion/networks";
+    if (snapshot.connected && networks) {
+      for (const auto &network : snapshot.system_metrics.network_interfaces) {
+        if (!first) json += ",";
+        first = false;
+        json += "{\"id\":\"" + companion_json_escape(network.id) +
+          "\",\"label\":\"" + companion_json_escape(network.label) + "\"}";
+      }
+    }
+    if (snapshot.connected && !networks) {
       for (const auto &action : snapshot.actions) {
         if (!first) json += ",";
         first = false;

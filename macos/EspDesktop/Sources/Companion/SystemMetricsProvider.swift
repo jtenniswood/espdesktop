@@ -3,6 +3,12 @@ import Foundation
 import IOKit.ps
 import SystemConfiguration
 
+struct CompanionNetworkInterface: Equatable, Sendable {
+    let id: String
+    let label: String
+    let address: String
+}
+
 struct CompanionSystemMetricsSnapshot: Equatable, Sendable {
     let generation: UInt32
     let cpuUsagePercent: Double
@@ -10,6 +16,7 @@ struct CompanionSystemMetricsSnapshot: Equatable, Sendable {
     let storageUsagePercent: Double
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
+    var networkInterfaces: [CompanionNetworkInterface] = []
 }
 
 @MainActor
@@ -57,7 +64,8 @@ final class SystemMetricsProvider {
                 memoryUsagePercent: sample.memoryUsagePercent,
                 storageUsagePercent: sample.storageUsagePercent,
                 batteryPercent: sample.batteryPercent,
-                networkThroughputKBps: sample.networkThroughputKBps
+                networkThroughputKBps: sample.networkThroughputKBps,
+                networkInterfaces: sample.networkInterfaces
             )
             self.lastSnapshot = snapshot
             self.onSnapshot?(snapshot)
@@ -71,6 +79,7 @@ private struct SystemMetricsSample: Sendable {
     let storageUsagePercent: Double
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
+    var networkInterfaces: [CompanionNetworkInterface] = []
 }
 
 private actor SystemMetricsSampler {
@@ -99,7 +108,8 @@ private actor SystemMetricsSampler {
             memoryUsagePercent: memory,
             storageUsagePercent: storage,
             batteryPercent: Self.batteryPercent(),
-            networkThroughputKBps: sampleNetworkThroughputKBps()
+            networkThroughputKBps: sampleNetworkThroughputKBps(),
+            networkInterfaces: Self.networkInterfaces()
         )
     }
 
@@ -115,6 +125,40 @@ private actor SystemMetricsSampler {
         let received = UInt64(current.receivedBytes &- previous.receivedBytes)
         let sent = UInt64(current.sentBytes &- previous.sentBytes)
         return Double(received + sent) / (current.timestamp - previous.timestamp) / 1024.0
+    }
+
+    // Include configured hardware even when disconnected so card selections stay stable.
+    private static func networkInterfaces() -> [CompanionNetworkInterface] {
+        let hardware = (SCNetworkInterfaceCopyAll() as? [SCNetworkInterface]) ?? []
+        var addresses: [String: String] = [:]
+        var interfaces: UnsafeMutablePointer<ifaddrs>?
+        if getifaddrs(&interfaces) == 0, let first = interfaces {
+            defer { freeifaddrs(first) }
+            var item: UnsafeMutablePointer<ifaddrs>? = first
+            while let pointer = item {
+                let interface = pointer.pointee
+                defer { item = interface.ifa_next }
+                guard let address = interface.ifa_addr,
+                      address.pointee.sa_family == UInt8(AF_INET),
+                      interface.ifa_flags & UInt32(IFF_UP) != 0,
+                      interface.ifa_flags & UInt32(IFF_LOOPBACK) == 0 else { continue }
+                var buffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                if getnameinfo(address, socklen_t(address.pointee.sa_len),
+                               &buffer, socklen_t(buffer.count), nil, 0, NI_NUMERICHOST) == 0 {
+                    addresses[String(cString: interface.ifa_name)] = String(decoding: buffer.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
+                }
+            }
+        }
+        var devices: [String: CompanionNetworkInterface] = [:]
+        for interface in hardware {
+            guard let id = SCNetworkInterfaceGetBSDName(interface) as String?,
+                  !id.isEmpty, id.utf8.count <= 32 else { continue }
+            let name = (SCNetworkInterfaceGetLocalizedDisplayName(interface) as String?) ?? id
+            devices[id] = CompanionNetworkInterface(
+                id: id, label: String(name.prefix(20)) + " (" + id + ")",
+                address: addresses[id] ?? "")
+        }
+        return devices.values.sorted { $0.id < $1.id }.prefix(32).map { $0 }
     }
 
     private static func primaryNetworkCounters() -> NetworkCounters? {

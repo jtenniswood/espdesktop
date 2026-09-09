@@ -175,6 +175,7 @@ export function companionMediaIcon(
 }
 
 export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
+    if (mode === "ip_address") return "Laptop";
     if (mode === "media") {
         return COMPANION_MEDIA_ACTIONS.find((action) => action.id === entity)?.icon
             || COMPANION_MEDIA_ACTIONS[0].icon;
@@ -235,7 +236,7 @@ const COMPANION_CARD_METADATA = {
     largeNumbers: {
         label: "Large Sensor Numbers",
         idSuffix: "large-companion-numbers",
-        supported: companionCardIsMetric,
+        supported: (card: any) => companionCardIsMetric(card) && companionMetricForEntity(card?.entity)?.mode !== "ip_address",
     },
     preview: { badge: "monitor" },
 };
@@ -347,11 +348,12 @@ export function normalizeCompanionCard(card: any): void {
         const model = decodeCompanionCard(card);
         if (model.mode !== "stats") return;
         Object.assign(card, encodeCompanionCard({ ...model,
-            unit: model.unit === "KB/s" ? metric.unit : (model.unit || metric.unit),
+            unit: metric.mode === "ip_address" ? "" : (model.unit === "KB/s" ? metric.unit : (model.unit || metric.unit)),
             precision: ["0", "1", "2"].includes(model.precision) ? model.precision : "0",
         }, card));
         card.options = String(card.options || "").split(",").filter((option) =>
             option === "large_numbers" || option === "large_numbers=off").join(",");
+        if (metric.mode === "ip_address") card.options = "";
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon(metric.mode, card.entity);
@@ -464,6 +466,8 @@ export function registerCompanionCardTypes(
                         card.unit = selected.unit;
                         helpers.saveField("unit", card.unit);
                     }
+                    card.icon = companionMediaIcon(card.icon, companionSubtypeDefaultIcon(metric?.mode || "stats"), companionSubtypeDefaultIcon(selected.mode));
+                    helpers.saveField("icon", card.icon);
                     card.entity = selected.id;
                     helpers.saveField("entity", card.entity);
                     renderButtonSettings();
@@ -494,6 +498,38 @@ export function registerCompanionCardTypes(
                     });
                     displayField.appendChild(displaySelect);
                     panel?.appendChild(displayField);
+                }
+                if (metric?.mode === "ip_address") {
+                    const field = document.createElement("div");
+                    field.className = "sp-field";
+                    field.appendChild(fieldLabel("Network device", helpers.idPrefix + "companion-network"));
+                    const select = document.createElement("select");
+                    select.id = helpers.idPrefix + "companion-network";
+                    select.className = "sp-select";
+                    const selectedId = String(card.entity).split(":")[1] || "";
+                    select.add(new Option(selectedId || "Select a network device", selectedId));
+                    select.value = selectedId;
+                    select.addEventListener("change", function () {
+                        card.entity = "stat.ip_address:" + this.value;
+                        helpers.saveField("entity", card.entity);
+                    });
+                    const status = document.createElement("p");
+                    status.textContent = "Loading Mac network devices…";
+                    field.append(select, status);
+                    panel?.appendChild(field);
+                    void fetch("/companion/networks", { cache: "no-store" }).then(async (response) => {
+                        if (!response.ok) throw new Error("unavailable");
+                        const networks: unknown = await response.json();
+                        if (!Array.isArray(networks)) throw new Error("unavailable");
+                        for (const network of networks) {
+                            if (typeof network?.id !== "string" || typeof network?.label !== "string") continue;
+                            if (network.id === selectedId) select.options[0]!.textContent = network.label;
+                            else select.add(new Option(network.label, network.id));
+                        }
+                        status.textContent = networks.length ? "Shows the selected device’s IPv4 address." :
+                            "Connect the Mac and enable Stats sharing to load network devices.";
+                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the Mac and enable Stats sharing."; });
+                    return;
                 }
                 helpers.renderCardTextField(panel, card, helpers, {
                     label: "Unit", idSuffix: "unit", field: "unit",
@@ -962,6 +998,10 @@ export function registerCompanionCardTypes(
             const mode = companionCardMode(card);
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
+                if (metric?.mode === "ip_address") return {
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-laptop"></span>',
+                    labelHtml: cardBadgeLabelHtml(helpers, "192.168.1.100"),
+                };
                 return {
                     iconHtml: cardSensorPreviewHtml(
                         card, helpers, companionMetricPreviewValue(card.precision),
