@@ -784,7 +784,7 @@ struct CompanionSettings: View {
                 isAvailable: store.supportsLaunchAtLogin
             )
             CompanionPermissionRow(
-                title: "Share Mac Stats to Display",
+                title: "Share Stats to Device",
                 information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
                 isEnabled: $store.shareSystemMetricsEnabled
             )
