@@ -492,12 +492,7 @@ struct CompanionSettings: View {
                                     if manual { discovery.stop() } else { discovery.start() }
                                 }
                         } else {
-                            TextField("ABCD-EFGH", text: $pairingCode)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.system(.title3, design: .monospaced))
-                                .accessibilityLabel("Pairing code")
-                                .focused($focusedField, equals: .pairingCode)
-                                .onSubmit { pairDisplay() }
+                            CompanionPairingCodeField(code: $pairingCode, onSubmit: pairDisplay)
                         }
                         if !pairingFlowError.isEmpty {
                             Label(pairingFlowError, systemImage: "exclamationmark.circle")
