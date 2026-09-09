@@ -249,8 +249,9 @@ export function companionCardIsMetric(card: any): boolean {
 
 
 
-export function companionMetricDisplayMode(card: any): "used" | "free" {
+export function companionMetricDisplayMode(card: any): "used" | "free" | "remaining" {
     const metric = companionMetricForEntity(card?.entity);
+    if (metric?.mode === "battery") return "remaining";
     return metric?.freeId === card?.entity?.split(":")[0] ? "free" : "used";
 }
 
@@ -506,7 +507,7 @@ export function registerCompanionCardTypes(
                 if (metric?.mode === "storage") {
                     renderCompanionStorageSelector(panel, card, helpers, fetchImpl);
                 }
-                if (metric?.freeId) {
+                if (metric?.freeId || metric?.mode === "battery") {
                     const displayField = document.createElement("div");
                     displayField.className = "sp-field";
                     displayField.appendChild(fieldLabel("Show", helpers.idPrefix + "metric-display"));
@@ -514,7 +515,8 @@ export function registerCompanionCardTypes(
                     displaySelect.className = "sp-select";
                     displaySelect.id = helpers.idPrefix + "metric-display";
                     sortCompanionLabels([
-                        { value: "used", label: "Used" }, { value: "free", label: "Free" },
+                        ...(metric?.freeId ? [{ value: "used", label: "Used" }, { value: "free", label: "Free" }] :
+                            [{ value: "remaining", label: "Remaining" }]),
                     ]).forEach((item) => {
                         const option = document.createElement("option");
                         option.value = item.value;
@@ -523,6 +525,7 @@ export function registerCompanionCardTypes(
                     });
                     displaySelect.value = companionMetricDisplayMode(card);
                     displaySelect.addEventListener("change", function () {
+                        if (!metric?.freeId) return;
                         const device = card.entity.split(":")[1];
                         card.entity = (this.value === "free" ? metric.freeId : metric.id) + (device ? ":" + device : "");
                         helpers.saveField("entity", card.entity);
