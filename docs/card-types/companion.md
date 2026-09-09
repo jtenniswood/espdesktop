@@ -138,6 +138,6 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 - Now Playing information is read through macOS's private `MediaRemote` framework because Apple's public API only lets an app publish its own session. If a macOS update removes the required interface, media and artwork become unavailable while the other Mac controls continue to work.
 - Companion cards are currently offered only on the 4848S040 profile. Other supported panels continue to provide their Home Assistant cards normally.
 
-If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. A long press on the display's WiFi icon can also start a pairing session.
+If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. You can also tap the display’s network icon and choose **Pairing**. The popup shows the pairing code and the display’s IP address.
 
 For version details, see [Companion Compatibility](/generated/companion-compatibility).
