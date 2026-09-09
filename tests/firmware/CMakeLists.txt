@@ -456,3 +456,8 @@ target_compile_features(companion_discovery_test PRIVATE cxx_std_17)
 target_compile_options(companion_discovery_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(companion_discovery_test PRIVATE discovery_stubs)
 add_test(NAME companion_discovery_test COMMAND companion_discovery_test)
+
+add_executable(network_status_layout_test network_status_layout_test.cpp)
+target_compile_features(network_status_layout_test PRIVATE cxx_std_17)
+target_compile_options(network_status_layout_test PRIVATE -Wall -Wextra -Werror)
+add_test(NAME network_status_layout_test COMMAND network_status_layout_test)

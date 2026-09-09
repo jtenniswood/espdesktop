@@ -5,6 +5,7 @@
 
 #include "display_text.h"
 #include "settings_backlight.h"
+#include "network_status_layout.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -43,8 +44,8 @@ struct NetworkStatusModalUi {
   bool brightness_dragging = false;
   SettingsBacklightLevel brightness_level = SettingsBacklightLevel::MANUAL;
   lv_timer_t *refresh_timer = nullptr;
-  lv_coord_t columns[5]{};
-  lv_coord_t rows[5]{};
+  lv_coord_t columns[MAX_GRID_SLOTS + 1]{};
+  lv_coord_t rows[MAX_GRID_SLOTS + 1]{};
 };
 
 inline const lv_font_t *&network_status_card_icon_font() {
@@ -359,8 +360,8 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_style_pad_row(ui.overlay, lv_obj_get_style_pad_row(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_column(ui.overlay, lv_obj_get_style_pad_column(page, LV_PART_MAIN), LV_PART_MAIN);
 
-  const int cols = 3;
-  const int rows = 3;
+  const int cols = std::max(1, std::min(metrics.cols, MAX_GRID_SLOTS));
+  const int rows = std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS));
   for (int i = 0; i < cols; ++i) ui.columns[i] = LV_GRID_FR(1);
   for (int i = 0; i < rows; ++i) ui.rows[i] = LV_GRID_FR(1);
   ui.columns[cols] = LV_GRID_TEMPLATE_LAST;
@@ -368,26 +369,25 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", espdesktop_i18n("Pairing"), ""};
-  const char *icons[] = {"\U000F0141", "\U000F035B", "\U000F0200", "\U000F031A", "\U000F0D33", "\U000F0336"};
-  // Back and wide IP first; Pairing, connector state and Build share row two.
-  const int positions[] = {0, 5, 1, 4, 3, 6};
+  const char *labels[] = {espdesktop_i18n("Back"), "", espdesktop_i18n("Pairing"), "", "", ""};
+  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F0336", "\U000F035B"};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < NETWORK_STATUS_CARD_COUNT; ++i) {
     auto *button = create_grid_card_button(ui.overlay,
         lv_obj_get_style_radius(reference, LV_PART_MAIN),
         lv_obj_get_style_pad_top(reference, LV_PART_MAIN), label_font, text_color);
     apply_button_colors(button, false, DEFAULT_SLIDER_COLOR, true,
                         DEFAULT_OFF_COLOR);
-    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, positions[i] % cols, i == 2 ? 2 : 1,
-                         LV_GRID_ALIGN_STRETCH, positions[i] / cols, 1);
+    const auto cell = network_status_grid_cell(i, cols);
+    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, cell.column, 1,
+                         LV_GRID_ALIGN_STRETCH, cell.row, 1);
     BtnSlot slot = create_dynamic_card_slot(button, card_icon_font, label_font, label_font, text_color);
     apply_width_compensation(slot.icon_lbl, icon_width_compensation_percent());
     apply_text_width_compensation(slot.text_lbl);
     lv_label_set_display_text(slot.text_lbl, labels[i]);
     lv_label_set_display_text(slot.icon_lbl, icons[i]);
-    if (i == 5) {
+    if (i == NETWORK_STATUS_BACKLIGHT_CARD_INDEX) {
       const auto padding = capture_card_padding(button);
       ui.brightness_slider = setup_slider_widget(button, DEFAULT_SLIDER_COLOR, false);
       if (!ui.brightness_slider) continue;
@@ -404,23 +404,23 @@ inline void network_status_open_modal(const std::string &device_name,
       screen_lock_register_controlled_button(ui.brightness_slider);
       continue;
     }
-    if (i == 0) {
+    if (i == NETWORK_STATUS_BACK_CARD_INDEX) {
       lv_label_set_display_text(slot.icon_lbl, "\U000F0141");
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_hide_modal(); },
                           LV_EVENT_CLICKED, nullptr);
       continue;
     }
-    if (i == 4) {
+    if (i == NETWORK_STATUS_PAIRING_CARD_INDEX) {
       ui.pairing_button = button;
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_open_pairing(); },
                           LV_EVENT_CLICKED, nullptr);
       continue;
     }
     lv_obj_clear_flag(button, LV_OBJ_FLAG_CLICKABLE);
-    if (i == 3) {
+    if (i == NETWORK_STATUS_CONNECTOR_CARD_INDEX) {
       ui.connector_lbl = slot.text_lbl;
       ui.connector_icon = slot.icon_lbl;
-    } else if (i == 1) {
+    } else if (i == NETWORK_STATUS_BUILD_CARD_INDEX) {
       const std::string build_label = network_status_firmware_label(firmware_version);
       lv_label_set_display_text(slot.text_lbl, build_label.c_str());
     } else {
