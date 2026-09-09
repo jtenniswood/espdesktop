@@ -13,7 +13,7 @@
     "cardTypes": 43,
     "entityNames": 102,
     "icons": 337,
-    "structuralIcons": 27,
+    "structuralIcons": 28,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -7577,6 +7577,12 @@
         "codepoint": "F0D90",
         "comment": "Disconnected Mac connector",
         "name": "Monitor Off"
+      },
+      {
+        "name": "Memory",
+        "codepoint": "F035B",
+        "mdi": "memory",
+        "comment": "Build information card"
       }
     ],
     "icons": [

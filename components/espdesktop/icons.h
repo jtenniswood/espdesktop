@@ -44,6 +44,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Shortcut Left",                  "\U000F004D"},
     {"Shortcut Right",                 "\U000F0054"},
     {"Monitor Off",                    "\U000F0D90"},
+    {"Memory",                         "\U000F035B"},
     {"Chevron Left",                   "\U000F0141"},
     {"Chevron Right",                  "\U000F0142"},
     {"Account",                        "\U000F0004"},

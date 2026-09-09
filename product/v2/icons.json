@@ -166,6 +166,12 @@
       "codepoint": "F0D90",
       "comment": "Disconnected Mac connector",
       "name": "Monitor Off"
+    },
+    {
+      "name": "Memory",
+      "codepoint": "F035B",
+      "mdi": "memory",
+      "comment": "Build information card"
     }
   ],
   "icons": [
