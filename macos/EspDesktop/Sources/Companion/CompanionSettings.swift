@@ -182,7 +182,7 @@ private struct CompanionOnboarding: View {
                             .foregroundStyle(.secondary)
                         Text("Set up EspDesktop")
                             .font(.system(size: 30, weight: .semibold))
-                        Text("Personalize your display in three quick steps.")
+                        Text("Your display is paired. Customize it in three steps.")
                             .font(.body)
                             .foregroundStyle(.secondary)
                     }
@@ -296,41 +296,25 @@ struct CompanionSettings: View {
 
     var body: some View {
         Group {
-            if onboardingCompleted || store.requestedSettingsPage == "help" {
+            switch CompanionSetupRoute.resolve(
+                completed: onboardingCompleted,
+                showingHelp: store.requestedSettingsPage == "help",
+                hasSavedPairing: store.hasSavedPairing,
+                pairingInProgress: pairingFlowActive
+            ) {
+            case .settings:
                 settingsContent
-            } else {
+            case .pairing:
+                pairingFlowPage
+                    .background(Color(nsColor: .windowBackgroundColor))
+                    .onAppear { if !pairingFlowActive { startPairingFlow() } }
+            case .preferences:
                 CompanionOnboarding(store: store) {
                     onboardingCompleted = true
                 }
             }
         }
         .background(OnboardingWindowTitle(hidden: !onboardingCompleted && store.requestedSettingsPage != "help"))
-    }
-
-    private var settingsContent: some View {
-        detailView
-            .scrollContentBackground(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(Color(nsColor: .windowBackgroundColor))
-            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
-            .navigationTitle("Settings")
-            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-                floatingSupportButton
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                    .padding(.bottom, 24)
-            }
-        .onAppear {
-            selectedPageID = store.requestedSettingsPage
-            if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
-            refreshAccessibilityStatus()
-        }
-        .onChange(of: store.settingsRequestID) { _ in
-            selectedPageID = store.requestedSettingsPage
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            refreshAccessibilityStatus()
-        }
         .onChange(of: store.isConnected) { connected in
             if connected {
                 pairingCode = ""
@@ -349,6 +333,34 @@ struct CompanionSettings: View {
             case .code: focusedField = .pairingCode
             case .connecting, .connected: focusedField = nil
             }
+        }
+    }
+
+    private var settingsContent: some View {
+        detailView
+            .scrollContentBackground(.hidden)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color(nsColor: .windowBackgroundColor))
+            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
+            .navigationTitle("Settings")
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                floatingSupportButton
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
+            }
+        .onAppear {
+            selectedPageID = store.requestedSettingsPage
+            if !store.hasSavedPairing && !pairingFlowActive && store.requestedSettingsPage != "help" {
+                startPairingFlow()
+            }
+            refreshAccessibilityStatus()
+        }
+        .onChange(of: store.settingsRequestID) { _ in
+            selectedPageID = store.requestedSettingsPage
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            refreshAccessibilityStatus()
         }
         .alert("Forget this display?", isPresented: $confirmingForget) {
             Button("Cancel", role: .cancel) {}
@@ -486,7 +498,7 @@ struct CompanionSettings: View {
                     ProgressView()
                         .accessibilityLabel("Connecting to display")
                 } else {
-                    Button("Done") {
+                    Button(onboardingCompleted ? "Done" : "Continue to customize") {
                         pairingFlowActive = false
                         pairingStep = .address
                     }

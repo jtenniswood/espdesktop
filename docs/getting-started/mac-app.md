@@ -15,27 +15,15 @@ Mac Companion is currently a proof of concept for the **4-inch Guition ESP32-S3 
 2. Download the `EspDesktop` DMG from the [matching GitHub release](https://github.com/jtenniswood/espdesktop/releases).
 3. Open the DMG and drag **EspDesktop** into **Applications**.
 4. Open **EspDesktop**. Its icon appears in the macOS menu bar.
-5. Complete the three short setup pages for shortcut support, statistics, and opening at login.
+5. Pair your display, then choose your shortcut, statistics, and startup options.
 
 Install the Mac app and display firmware from the same release so their Companion versions match.
-
-## Choose the First-Run Options
-
-The Mac app explains three independent choices. You can change each one later from **Permissions**.
-
-| Option | What it enables | Required? |
-|---|---|---|
-| **Shortcut support** | Keyboard shortcut and Window cards | Only for those cards |
-| **Statistics card support** | Processor, memory, storage, network, and battery cards | Optional |
-| **Stay connected at login** | Starts EspDesktop when you sign in so the display reconnects | Optional but recommended |
-
-Shortcut and window controls need macOS Accessibility access. When asked, turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, websites, media, artwork, and volume do not need Accessibility permission.
 
 ## Pair the Display
 
 Make sure the Mac and display are on the same trusted local network.
 
-1. In the Mac app, open **Display** and choose your display from the discovered list. Allow local-network access if macOS asks.
+1. On first launch, choose your display from the discovered list. If setup is already complete, open **Display** to pair. Allow local-network access if macOS asks.
 2. Choose **Continue** to open **Connectors → Mac Companion** in your browser. The page opens a temporary pairing window and shows a code.
 3. Enter that code in the Mac app and choose **Connect**.
 4. Wait for the Mac app to report that the display is connected.
@@ -47,6 +35,18 @@ After pairing, the Mac first tries the saved address. If that fails, it can disc
 The code expires after 15 minutes and is hidden after pairing. EspDesktop stores the pairing credential in macOS Keychain and pins the display's certificate so an unexpected certificate change is rejected later.
 
 When the connection is ready, a monitor icon appears beside WiFi in the display's clock bar. The icon disappears shortly after the Mac disconnects.
+
+## Choose the First-Run Options
+
+After pairing, choose **Continue to customize**. The Mac app explains three independent choices. You can change each one later from **Permissions**.
+
+| Option | What it enables | Required? |
+|---|---|---|
+| **Shortcut support** | Keyboard shortcut and Window cards | Only for those cards |
+| **Statistics card support** | Processor, memory, storage, network, and battery cards | Optional |
+| **Stay connected at login** | Starts EspDesktop when you sign in so the display reconnects | Optional but recommended |
+
+Shortcut and window controls need macOS Accessibility access. When asked, turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, websites, media, artwork, and volume do not need Accessibility permission.
 
 ## Approve Applications and Folders
 
