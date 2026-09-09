@@ -112,7 +112,7 @@ Turn on **Share Mac system statistics** in the Mac app's **Permissions** page, t
 | **Memory** | Used or free memory as a percentage |
 | **Storage** | Used or free storage as a percentage |
 | **Network** | Current combined network throughput in MB/s |
-| **Battery** | Battery charge percentage; unavailable on Macs without a battery |
+| **Battery** | Battery charge percentage, shown as left or used; unavailable on Macs without a battery |
 | **IP address** | Laptop icon and the IPv4 address of the selected Mac network device |
 
 For **IP address**, choose a **Network device**, such as Wi-Fi or Ethernet. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.

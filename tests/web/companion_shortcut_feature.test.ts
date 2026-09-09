@@ -379,7 +379,9 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!companionMetricDescriptionEnabled({ entity: "stat.memory" }) ||
       companionMetricDescriptionEnabled({ entity: "stat.memory", options: "stat_labels_off" }) ||
       companionMetricDisplayLabel({ entity: "stat.memory", options: "stat_labels_off" }, "24", "%") !== "24%" ||
-      companionMetricDisplayLabel({ entity: "stat.memory" }, "24", "%") !== "24% used") {
+      companionMetricDisplayLabel({ entity: "stat.memory" }, "24", "%") !== "24% used" ||
+      companionMetricDisplayMode({ entity: "stat.battery_used" }) !== "free" ||
+      companionMetricDisplayLabel({ entity: "stat.battery_used" }, "31", "%") !== "31% used") {
     throw new Error("Companion statistic description toggle must control the used/free wording");
   }
   if (companionLabelPlaceholder({ entity: "stat.network_throughput" }) !== "e.g. Network") {

@@ -304,6 +304,7 @@ export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [
   {
     mode: "battery",
     id: "stat.battery",
+    freeId: "stat.battery_used",
     label: "Battery",
     unit: "%"
   },

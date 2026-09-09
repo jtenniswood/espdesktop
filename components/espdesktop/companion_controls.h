@@ -168,15 +168,19 @@ inline const char *companion_metric_default_unit(const std::string &key) {
   return capability ? capability->unit : "";
 }
 
-inline const char *companion_metric_icon(const std::string &key) {
-  if (key == "stat.battery") return "Battery Outline";
+inline const char *companion_metric_icon(const std::string &entity) {
+  const std::string key = entity.substr(0, entity.find(':'));
+  if (key == "stat.ip_address") return "Laptop";
+  if (key == "stat.battery" || key == "stat.battery_used") return "Battery Outline";
   if (key == "stat.memory" || key == "stat.memory_free") return "Memory";
   if (key == "stat.storage" || key == "stat.storage_free") return "Harddisk";
   if (key == "stat.network_throughput") return "LAN";
   return "Gauge";
 }
 
-inline const char *companion_metric_suffix_key(const std::string &key) {
+inline const char *companion_metric_suffix_key(const std::string &entity) {
+  const std::string key = entity.substr(0, entity.find(':'));
+  if (key == "stat.battery_used") return "stat_used";
   if (key == "stat.battery") return "stat_remaining";
   if (key == "stat.memory_free" || key == "stat.storage_free") return "stat_free";
   if (key == "stat.network_throughput") return "";
@@ -203,6 +207,7 @@ inline bool companion_metric_value(const CompanionRuntimeSnapshot &snapshot,
   else if (key == "stat.storage") value = snapshot.system_metrics.storage_usage_percent;
   else if (key == "stat.storage_free") value = 100.0f - snapshot.system_metrics.storage_usage_percent;
   else if (key == "stat.battery") value = snapshot.system_metrics.battery_percent;
+  else if (key == "stat.battery_used") value = 100.0f - snapshot.system_metrics.battery_percent;
   else if (key == "stat.network_throughput") {
     // The Companion protocol remains in KB/s; cards display megabytes per second.
     value = snapshot.system_metrics.network_throughput_kbps / 1024.0f;

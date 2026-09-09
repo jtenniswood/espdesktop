@@ -953,6 +953,7 @@
     {
       "mode": "battery",
       "id": "stat.battery",
+      "freeId": "stat.battery_used",
       "label": "Battery",
       "labelKey": "battery",
       "unit": "%"

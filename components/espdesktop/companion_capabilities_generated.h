@@ -85,6 +85,7 @@ inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {
   {"stat.storage", "Storage", "storage", "%"},
   {"stat.storage_free", "Storage", "storage", "%"},
   {"stat.battery", "Battery", "battery", "%"},
+  {"stat.battery_used", "Battery", "battery", "%"},
   {"stat.network_throughput", "Network", "network_throughput", "MB/s"},
   {"stat.ip_address", "IP address", "ip_address", ""},
 };

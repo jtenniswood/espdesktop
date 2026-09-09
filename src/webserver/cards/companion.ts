@@ -251,7 +251,7 @@ export function companionCardIsMetric(card: any): boolean {
 
 export function companionMetricDisplayMode(card: any): "used" | "free" | "remaining" {
     const metric = companionMetricForEntity(card?.entity);
-    if (metric?.mode === "battery") return "remaining";
+    if (metric?.mode === "battery") return metric.freeId === card?.entity?.split(":")[0] ? "free" : "used";
     return metric?.freeId === card?.entity?.split(":")[0] ? "free" : "used";
 }
 
@@ -262,7 +262,7 @@ export function companionLabelPlaceholder(card: any): string {
 }
 
 export function companionMetricIcon(entity: string): string {
-    if (entity === "stat.battery") return "battery-outline";
+    if (entity === "stat.battery" || entity === "stat.battery_used") return "battery-outline";
     if (entity.startsWith("stat.memory")) return "memory";
     if (entity.startsWith("stat.storage")) return "harddisk";
     if (entity === "stat.network_throughput") return "lan";
@@ -271,7 +271,8 @@ export function companionMetricIcon(entity: string): string {
 
 export function companionMetricLabel(entity: string, value: string, unit: string): string {
     entity = entity.split(":")[0] || entity;
-    const suffix = entity === "stat.battery" ? " left"
+    const suffix = entity === "stat.battery_used" ? " used"
+        : entity === "stat.battery" ? " left"
         : entity.endsWith("_free") ? " free"
         : entity === "stat.network_throughput" ? "" : " used";
     return value + (unit === "%" ? "" : " ") + unit + suffix;
@@ -516,7 +517,7 @@ export function registerCompanionCardTypes(
                     displaySelect.className = "sp-select";
                     displaySelect.id = helpers.idPrefix + "metric-display";
                     sortCompanionLabels([
-                        ...(metric?.freeId ? [{ value: "used", label: "Used" }, { value: "free", label: "Free" }] :
+                        ...(metric?.freeId ? [{ value: "used", label: "Used" }, { value: "free", label: metric?.mode === "battery" ? "Left" : "Free" }] :
                             [{ value: "remaining", label: "Remaining" }]),
                     ]).forEach((item) => {
                         const option = document.createElement("option");
