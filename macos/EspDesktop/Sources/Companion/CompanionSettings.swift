@@ -900,7 +900,7 @@ struct CompanionSettings: View {
     private var helpPage: some View {
         Form {
             Section {
-                Link("Buy me a coffee", destination: CompanionStore.buyMeACoffeeURL)
+                Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
                     .help("Contribute to ongoing support and new features")
                 Link("Give Feedback", destination: CompanionStore.issuesURL)
                 Link("Get Help", destination: CompanionStore.supportURL)
@@ -913,13 +913,15 @@ struct CompanionSettings: View {
                         .fontWeight(.regular)
                         .foregroundStyle(.secondary)
                 }
+                .padding(.top, 16)
             }
             Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
-            }
-            Section("Setup") {
                 Button("Restart Setup") { confirmingRestartSetup = true }
                     .buttonStyle(.link)
+            } header: {
+                Text("Support")
+                    .padding(.top, 16)
             }
         }
         .formStyle(.grouped)
