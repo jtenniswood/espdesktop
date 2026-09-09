@@ -172,6 +172,24 @@
       "codepoint": "F035B",
       "mdi": "memory",
       "comment": "Build information card"
+    },
+    {
+      "name": "Shield Link Variant",
+      "codepoint": "F0D33",
+      "mdi": "shield-link-variant",
+      "comment": "Pairing card"
+    },
+    {
+      "name": "LAN Pending",
+      "codepoint": "F031A",
+      "mdi": "lan-pending",
+      "comment": "Connected connector card"
+    },
+    {
+      "name": "LAN Disconnect",
+      "codepoint": "F0319",
+      "mdi": "lan-disconnect",
+      "comment": "Disconnected connector card"
     }
   ],
   "icons": [
