@@ -349,7 +349,7 @@ struct CompanionSettings: View {
                                 Button {
                                     store.openPanelWebServer()
                                 } label: {
-                                    Text("Customize")
+                                    Label("Customize", systemImage: "slider.horizontal.3")
                                         .padding(.vertical, 4)
                                 }
                                     .help("Open the display’s configuration in your browser")
@@ -357,7 +357,7 @@ struct CompanionSettings: View {
                                 Button(role: .destructive) {
                                     confirmingForget = true
                                 } label: {
-                                    Text("Remove")
+                                    Label("Remove", systemImage: "trash")
                                         .padding(.vertical, 4)
                                 }
                                     .help("Remove this display’s pairing")
