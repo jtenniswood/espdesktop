@@ -299,3 +299,5 @@ window_left_quarters=Izquierda y cuartos
 window_right_quarters=Derecha y cuartos
 window_top_quarters=Arriba y cuartos
 window_bottom_quarters=Abajo y cuartos
+paired=Emparejado
+unpaired=Sin emparejar

@@ -299,3 +299,5 @@ window_left_quarters=Venstre og fjerdedeler
 window_right_quarters=Høyre og fjerdedeler
 window_top_quarters=Øverst og fjerdedeler
 window_bottom_quarters=Nederst og fjerdedeler
+paired=Paret
+unpaired=Ikke paret
