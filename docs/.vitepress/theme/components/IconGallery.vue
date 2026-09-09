@@ -334,6 +334,7 @@ const ICON_GROUPS = {
   'Application': 'Network & Tech',
   'Bluetooth': 'Network & Tech',
   'Folder Outline': 'Network & Tech',
+  'Harddisk': 'Network & Tech',
   'LAN': 'Network & Tech',
   'Printer': 'Network & Tech',
   'Printer 3D': 'Network & Tech',

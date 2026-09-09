@@ -744,6 +744,11 @@
       "mdi": "gesture-tap"
     },
     {
+      "name": "Harddisk",
+      "codepoint": "F02CA",
+      "mdi": "harddisk"
+    },
+    {
       "name": "Gauge",
       "codepoint": "F029A",
       "mdi": "gauge"

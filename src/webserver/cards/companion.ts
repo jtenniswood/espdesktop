@@ -257,6 +257,21 @@ export function companionLabelPlaceholder(card: any): string {
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
 }
 
+export function companionMetricIcon(entity: string): string {
+    if (entity === "stat.battery") return "battery-outline";
+    if (entity.startsWith("stat.memory")) return "memory";
+    if (entity.startsWith("stat.storage")) return "harddisk";
+    if (entity === "stat.network_throughput") return "lan";
+    return "gauge";
+}
+
+export function companionMetricLabel(entity: string, value: string, unit: string): string {
+    const suffix = entity === "stat.battery" ? " remaining"
+        : entity.endsWith("_free") ? " free"
+        : entity === "stat.network_throughput" ? "" : " used";
+    return value + (unit === "%" ? "" : " ") + unit + suffix;
+}
+
 export function companionMetricPreviewValue(precision: unknown, sample = Math.random()): string {
     const parsed = Number.parseInt(String(precision ?? "0"), 10);
     const digits = parsed >= 0 && parsed <= 2 ? parsed : 0;
@@ -437,10 +452,12 @@ export function registerCompanionCardTypes(
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
 
-            helpers.renderCardTextField(panel, card, helpers, {
-                label: "Label", idSuffix: "label", field: "label",
-                placeholder: companionLabelPlaceholder(card), rerender: true,
-            });
+            if (!companionCardIsMetric(card)) {
+                helpers.renderCardTextField(panel, card, helpers, {
+                    label: "Label", idSuffix: "label", field: "label",
+                    placeholder: companionLabelPlaceholder(card), rerender: true,
+                });
+            }
 
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
@@ -505,7 +522,6 @@ export function registerCompanionCardTypes(
                         helpers.saveField("precision", card.precision);
                     });
                 panel?.appendChild(precision.field);
-                helpers.renderCardLargeNumbersToggle(panel, card, helpers, COMPANION_CARD_METADATA);
                 return;
             }
 
@@ -963,11 +979,9 @@ export function registerCompanionCardTypes(
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
                 return {
-                    iconHtml: cardSensorPreviewHtml(
-                        card, helpers, companionMetricPreviewValue(card.precision),
-                        card.unit || metric?.unit || "%",
-                    ),
-                    labelHtml: cardBadgeLabelHtml(helpers, card.label || metric?.label || "Mac"),
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-' + companionMetricIcon(card.entity) + '"></span>',
+                    labelHtml: cardBadgeLabelHtml(helpers, companionMetricLabel(
+                        card.entity, companionMetricPreviewValue(card.precision), card.unit || metric?.unit || "%")),
                 };
             }
             if (mode === "stats") {

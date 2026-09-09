@@ -76,8 +76,11 @@ inline bool navigation_driver_setup_visual(
       grid.subpage_chevron_y, grid.subpage_chevron_text_width_percent);
     const std::string unit = trim_display_unit(
       config.unit.empty() ? subpage_companion_stat_default_unit(config.entity) : config.unit);
+    lv_label_set_display_text(slot.icon_lbl, find_icon(companion_metric_icon(config.entity)));
+    lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
     companion_track_metric_card(
-      slot.btn, slot.sensor_lbl, slot.unit_lbl, config.entity, unit,
+      slot.btn, slot.text_lbl, nullptr, config.entity, unit,
       parse_precision(config.precision), true);
   } else if (navigation_driver_parent_sensor_state_enabled(config, context)) {
     setup_subpage_parent_state_card(
@@ -128,9 +131,12 @@ inline bool navigation_driver_bind_main(
   if (navigation_driver_parent_companion_stat_state_enabled(config, context)) {
     const std::string unit = trim_display_unit(
       config.unit.empty() ? subpage_companion_stat_default_unit(config.entity) : config.unit);
+    lv_label_set_display_text(slot.icon_lbl, find_icon(companion_metric_icon(config.entity)));
+    lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
     companion_track_metric_card(
-      slot.btn, slot.sensor_lbl, slot.unit_lbl, config.entity, unit,
-      parse_precision(config.precision));
+      slot.btn, slot.text_lbl, nullptr, config.entity, unit,
+      parse_precision(config.precision), true);
     return true;
   }
 

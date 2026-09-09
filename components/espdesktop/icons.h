@@ -158,6 +158,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Gate",                           "\U000F0299"},
     {"Gate Open",                      "\U000F116A"},
     {"Gesture Tap",                    "\U000F0741"},
+    {"Harddisk",                       "\U000F02CA"},
     {"Gauge",                          "\U000F029A"},
     {"Gauge Empty",                    "\U000F0873"},
     {"Gauge Full",                     "\U000F0874"},

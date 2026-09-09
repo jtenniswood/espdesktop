@@ -168,6 +168,21 @@ inline const char *companion_metric_default_unit(const std::string &key) {
   return capability ? capability->unit : "";
 }
 
+inline const char *companion_metric_icon(const std::string &key) {
+  if (key == "stat.battery") return "Battery Outline";
+  if (key == "stat.memory" || key == "stat.memory_free") return "Memory";
+  if (key == "stat.storage" || key == "stat.storage_free") return "Harddisk";
+  if (key == "stat.network_throughput") return "LAN";
+  return "Gauge";
+}
+
+inline const char *companion_metric_suffix_key(const std::string &key) {
+  if (key == "stat.battery") return "stat_remaining";
+  if (key == "stat.memory_free" || key == "stat.storage_free") return "stat_free";
+  if (key == "stat.network_throughput") return "";
+  return "stat_used";
+}
+
 inline bool companion_metric_value(const CompanionRuntimeSnapshot &snapshot,
                                    const std::string &key, float &value) {
   if (!snapshot.connected) return false;
@@ -660,7 +675,13 @@ inline void companion_refresh_cards_if_requested() {
         else if (it->precision == 2) snprintf(buffer, sizeof(buffer), "%.2f", value);
         else if (it->precision == 1) snprintf(buffer, sizeof(buffer), "%.1f", value);
         else snprintf(buffer, sizeof(buffer), "%.0f", value);
-        lv_label_set_display_text(it->value_label, buffer);
+        std::string label = buffer;
+        if (available && !it->unit_label) {
+          label += (it->metric_unit == "%" ? "" : " ") + it->metric_unit;
+          const char *suffix = companion_metric_suffix_key(it->metric_key);
+          if (*suffix) label += " " + std::string(espdesktop_i18n_key(suffix));
+        }
+        lv_label_set_display_text(it->value_label, label.c_str());
       }
       if (it->unit_label) {
         lv_label_set_display_text(it->unit_label, available ? it->metric_unit.c_str() : "");

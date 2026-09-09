@@ -5,6 +5,8 @@ import {
     COMPANION_STATS_OPTIONS,
     COMPANION_SYSTEM_METRICS,
     companionMetricPreviewValue,
+    companionMetricIcon,
+    companionMetricLabel,
 } from "./companion";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ConfigCodecFeature } from "../application/config_codec";
@@ -440,8 +442,9 @@ export function registerSubpageCardTypes(
             var companionMetric: any = subpageKind(b) === "companion_stat" ? companionStatMetric(b.entity) : null;
             if (companionMetric) {
                 return {
-                    iconHtml: cardSensorPreviewHtml(b, helpers, companionMetricPreviewValue("0"), companionMetric.unit),
-                    labelHtml: subpageBadgeLabelHtml(helpers, b.label || companionMetric.label),
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-' + companionMetricIcon(b.entity) + '"></span>',
+                    labelHtml: subpageBadgeLabelHtml(helpers, companionMetricLabel(
+                        b.entity, companionMetricPreviewValue(b.precision), b.unit || companionMetric.unit)),
                 };
             }
             var label: any = b.label || (defaults && defaults.label) || b.entity || "Configure";
