@@ -110,7 +110,7 @@ esphome:
                 id(manual_brightness_pct) = percent;
                 id(backlight_apply_brightness).execute();
               } else {
-                auto *setting = level == SettingsBacklightLevel::DAYTIME ? &id(brightness_day) : &id(brightness_night);
+                auto *setting = level == SettingsBacklightLevel::DAYTIME ? id(brightness_day) : id(brightness_night);
                 auto call = setting->make_call();
                 call.set_value(percent);
                 call.perform();
