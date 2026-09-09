@@ -256,6 +256,9 @@ private struct CompanionOnboarding: View {
 
 struct CompanionSettings: View {
     @ObservedObject var store: CompanionStore
+    @StateObject private var discovery = CompanionDiscovery()
+    @State private var manualAddress = false
+    @State private var selectedDisplayID: String?
     @State private var pairingCode = ""
     @State private var confirmingForget = false
     @State private var folderToRemove: ApprovedFolder?
@@ -417,11 +420,12 @@ struct CompanionSettings: View {
                 if pairingStep == .address || pairingStep == .code {
                     VStack(alignment: .leading, spacing: 10) {
                         if pairingStep == .address {
-                            TextField("IP address or name.local", text: $store.panelHost)
-                                .textFieldStyle(.roundedBorder)
-                                .accessibilityLabel("Display address")
-                                .focused($focusedField, equals: .panelHost)
-                                .onSubmit { openPairingPage() }
+                            displaySelection
+                                .onAppear { if !manualAddress { discovery.start() } }
+                                .onDisappear { discovery.stop() }
+                                .onChange(of: manualAddress) { manual in
+                                    if manual { discovery.stop() } else { discovery.start() }
+                                }
                         } else {
                             TextField("ABCD-EFGH", text: $pairingCode)
                                 .textFieldStyle(.roundedBorder)
@@ -473,6 +477,41 @@ struct CompanionSettings: View {
         }
     }
 
+    @ViewBuilder
+    private var displaySelection: some View {
+        if manualAddress {
+            TextField("IP address or name.local", text: $store.panelHost)
+                .textFieldStyle(.roundedBorder)
+                .accessibilityLabel("Display address")
+                .focused($focusedField, equals: .panelHost)
+                .onSubmit { openPairingPage() }
+            Button("Find displays automatically") { manualAddress = false; selectedDisplayID = nil }
+        } else {
+            if discovery.displays.isEmpty {
+                Text(discovery.message).font(.callout).foregroundStyle(.secondary)
+                Button("Retry discovery") { discovery.stop(); discovery.start() }
+            }
+            ForEach(discovery.displays) { display in
+                Button {
+                    selectedDisplayID = display.id
+                } label: {
+                    HStack {
+                        Image(systemName: selectedDisplayID == display.id ? "checkmark.circle.fill" : "circle")
+                        VStack(alignment: .leading) {
+                            Text(display.name)
+                            Text(display.hostname).font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(8)
+                }
+                .buttonStyle(.bordered)
+                .accessibilityLabel("\(display.name), \(display.hostname)")
+            }
+            Button("Enter address manually") { manualAddress = true }
+        }
+    }
+
     private var pairingStepNumber: Int {
         switch pairingStep {
         case .address: return 1
@@ -483,7 +522,7 @@ struct CompanionSettings: View {
 
     private var pairingStepTitle: String {
         switch pairingStep {
-        case .address: return "Connect your display"
+        case .address: return "Choose your display"
         case .code: return "Enter pairing code"
         case .connecting: return "Connecting your display"
         case .connected: return "You’re connected"
@@ -493,7 +532,7 @@ struct CompanionSettings: View {
     private var pairingStepDescription: String {
         switch pairingStep {
         case .address:
-            return "Enter its address. Your Mac and display must be on the same network."
+            return "Your Mac and display must be on the same network."
         case .code:
             return "Start pairing in your browser, then enter the eight-letter code."
         case .connecting:
@@ -563,7 +602,8 @@ struct CompanionSettings: View {
     }
 
     private var canOpenPairingPage: Bool {
-        CompanionStore.panelWebServerURL(from: store.panelHost) != nil
+        manualAddress ? CompanionStore.panelWebServerURL(from: store.panelHost) != nil
+            : discovery.displays.contains(where: { $0.id == selectedDisplayID })
     }
 
     private func startPairingFlow() {
@@ -573,6 +613,10 @@ struct CompanionSettings: View {
     }
 
     private func openPairingPage() {
+        if !manualAddress {
+            guard let display = discovery.displays.first(where: { $0.id == selectedDisplayID }) else { return }
+            store.panelHost = display.endpoint
+        }
         guard canOpenPairingPage else {
             pairingFlowError = "Enter a valid local IP address or name.local."
             return

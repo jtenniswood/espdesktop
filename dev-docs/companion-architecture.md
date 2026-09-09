@@ -73,3 +73,9 @@ Run `npm run check:companion-contract`, `npm run test:firmware`, browser unit
 checks, and `swift test --package-path macos/EspDesktop` after boundary changes.
 Host protocol tests fetch checksum-pinned ArduinoJson 7.4.3. Offline CMake runs
 can use `-DFETCHCONTENT_SOURCE_DIR_ARDUINOJSON=/path/to/ArduinoJson-7.4.3`.
+
+## Local discovery
+
+Companion registers `_espdesktop._tcp` with the existing ESPHome/ESP-IDF mDNS responder after its TLS server starts. The SRV port is the configured Companion port; TXT fields are `v=1`, `name` (friendly name), and `id` (lowercase SHA-256 of the stored DER certificate). Registration retries until the shared responder is ready. ESPHome continues to own the hostname, other services and network-interface lifecycle. Firmware without Companion does not advertise this service.
+
+The Mac browses only during display selection and reconnect recovery. Bonjour data is untrusted: hostname/TXT validation limits accepted records, and the existing certificate pin remains authoritative. The recovery candidate and in-flight endpoint are separate from the saved `panelHost`; only successful pinned TLS plus `auth.accepted` commits the attempted endpoint. `pairingAccount`, Keychain credentials and authentication sequence keys retain their existing identity. The browser pairing page uses HTTP's default port independently of the advertised TLS port. Existing firmware and pairings retain manual-address support.

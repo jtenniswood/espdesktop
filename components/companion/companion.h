@@ -41,6 +41,8 @@ class CompanionService final : public Component {
   void setup() override;
   void loop() override;
   void dump_config() override;
+  void advertise_discovery_();
+  bool discovery_advertised_{false};
 
   // Called by the panel web setup page. It rotates the eight-letter setup code
   // and invalidates any unfinished attempt. The resulting trust is persistent.

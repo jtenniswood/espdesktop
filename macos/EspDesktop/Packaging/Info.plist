@@ -42,8 +42,10 @@
 	<string>EspDesktop reads installed app names so you can choose which apps your paired display may launch or control.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 jtenniswood</string>
+	<key>NSBonjourServices</key>
+	<array><string>_espdesktop._tcp</string></array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>EspDesktop connects to your paired EspDesktop panel on your local network.</string>
+	<string>EspDesktop discovers displays and connects to your paired display on your local network.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHighResolutionCapable</key>

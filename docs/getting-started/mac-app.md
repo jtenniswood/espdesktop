@@ -35,11 +35,14 @@ Shortcut and window controls need macOS Accessibility access. When asked, turn o
 
 Make sure the Mac and display are on the same trusted local network.
 
-1. Open the display's web page.
-2. Choose **Connectors → Mac Companion**. The page opens a temporary pairing window and shows a code.
-3. In the Mac app, open **Display** and enter the display address, such as `espdesktop.local` or its IP address.
-4. Choose **Continue**, enter the code shown by the display, then continue again.
-5. Wait for the Mac app to report that the display is connected.
+1. In the Mac app, open **Display** and choose your display from the discovered list. Allow local-network access if macOS asks.
+2. Choose **Continue** to open **Connectors → Mac Companion** in your browser. The page opens a temporary pairing window and shows a code.
+3. Enter that code in the Mac app and choose **Connect**.
+4. Wait for the Mac app to report that the display is connected.
+
+If your display does not appear, choose **Enter address manually** and enter its `.local` name or IP address. Older firmware supports manual pairing but needs an update for automatic discovery.
+
+After pairing, the Mac first tries the saved address. If that fails, it can discover the same display at its new address and reconnect without re-pairing. It verifies the saved device certificate and authenticates before remembering the new address. Discovery does not set up the display's WiFi and may be blocked by guest WiFi or separate network segments.
 
 The code expires after 15 minutes and is hidden after pairing. EspDesktop stores the pairing credential in macOS Keychain and pins the display's certificate so an unexpected certificate change is rejected later.
 
