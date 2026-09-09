@@ -218,6 +218,7 @@ private struct CompanionOnboarding: View {
         }
         .padding(.horizontal, 28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .windowBackgroundColor))
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: step)
         .onAppear { refreshAccessibilityStatus() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
