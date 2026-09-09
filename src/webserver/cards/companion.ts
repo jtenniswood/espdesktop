@@ -566,7 +566,7 @@ export function registerCompanionCardTypes(
                     }).catch(() => { status.textContent = "Network devices unavailable. Connect the Mac and enable Stats sharing."; });
                     return;
                 }
-                const description = helpers.toggleRow("Show stat description", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));
+                const description = helpers.toggleRow("Show capacity label", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));
                 description.input.addEventListener("change", function (this: HTMLInputElement) {
                     card.options = setConfigOption(card.options, "stat_labels_off", !this.checked);
                     helpers.saveField("options", card.options);

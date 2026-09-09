@@ -3027,7 +3027,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "stat_labels_off",
-        "label": "Show stat description",
+        "label": "Show capacity label",
         "kind": "flag",
         "omitDefault": true
       }
