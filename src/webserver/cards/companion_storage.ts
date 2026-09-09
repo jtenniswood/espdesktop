@@ -24,7 +24,7 @@ export function renderCompanionStorageSelector(panel: HTMLElement | undefined, c
         helpers.saveField("entity", card.entity);
     });
     const hint = document.createElement("div");
-    hint.className = "sp-hint";
+    hint.className = "sp-hint sp-storage-hint";
     hint.textContent = "Loading storage devices…";
     deviceField.appendChild(deviceSelect);
     deviceField.appendChild(hint);
