@@ -144,16 +144,19 @@ inline void navigation_subpage_screen_changed(lv_event_t *);
 
 inline void network_status_hide_modal() {
   NetworkStatusModalUi &ui = network_status_modal_ui();
-  const bool was_visible = ui.overlay != nullptr;
   if (ui.pairing_overlay) control_modal_close_nested_menu();
   if (ui.refresh_timer) lv_timer_del(ui.refresh_timer);
-  if (ui.overlay) {
-    screen_lock_unregister_tree(ui.overlay);
-    lv_obj_del(ui.overlay);
-  }
+  lv_obj_t *overlay = ui.overlay;
   ui = NetworkStatusModalUi{};
   control_modal_clear_active(ControlModalKind::NETWORK_STATUS);
-  if (was_visible) navigation_subpage_screen_changed(nullptr);
+  if (overlay) {
+    // App subpages repaint when their screen unloads. Settings is an overlay,
+    // so update the title before revealing home and repaint the clock bar too.
+    navigation_subpage_screen_changed(nullptr);
+    screen_lock_unregister_tree(overlay);
+    lv_obj_del(overlay);
+    lv_obj_invalidate(lv_layer_top());
+  }
 }
 
 inline void network_status_close_pairing() {
