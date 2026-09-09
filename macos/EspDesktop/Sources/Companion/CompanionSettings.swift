@@ -634,10 +634,15 @@ struct CompanionSettings: View {
     }
 
     private func pairDisplay() {
-        guard canPair else {
+        guard CompanionPairingInput.normalizedCode(pairingCode) != nil else {
             pairingFlowError = "Enter the eight-letter pairing code shown on the display."
             return
         }
+        guard ConnectionEndpointPolicy.isLocalEndpoint(store.panelHost) else {
+            pairingFlowError = "Go back and choose a display or enter a valid local address."
+            return
+        }
+        guard !store.connectionState.isBusy else { return }
         pairingFlowError = ""
         pairingStep = .connecting
         store.pair(code: pairingCode)
