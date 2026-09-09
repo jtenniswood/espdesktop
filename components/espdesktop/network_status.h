@@ -370,8 +370,8 @@ inline void network_status_open_modal(const std::string &device_name,
 
   const char *labels[] = {espdesktop_i18n("Back"), "", "", "", espdesktop_i18n("Pairing"), ""};
   const char *icons[] = {"\U000F0141", "\U000F035B", "\U000F0200", "\U000F031A", "\U000F0D33", "\U000F0336"};
-  // Back first, wide IP beside it, then Pairing, wide connector state and version.
-  const int positions[] = {0, 7, 1, 4, 3, 6};
+  // Back and wide IP first; Pairing, connector state and Build share row two.
+  const int positions[] = {0, 5, 1, 4, 3, 6};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   for (int i = 0; i < 6; ++i) {
@@ -380,7 +380,7 @@ inline void network_status_open_modal(const std::string &device_name,
         lv_obj_get_style_pad_top(reference, LV_PART_MAIN), label_font, text_color);
     apply_button_colors(button, false, DEFAULT_SLIDER_COLOR, true,
                         DEFAULT_OFF_COLOR);
-    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, positions[i] % cols, (i == 2 || i == 3) ? 2 : 1,
+    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, positions[i] % cols, i == 2 ? 2 : 1,
                          LV_GRID_ALIGN_STRETCH, positions[i] / cols, 1);
     BtnSlot slot = create_dynamic_card_slot(button, card_icon_font, label_font, label_font, text_color);
     apply_width_compensation(slot.icon_lbl, icon_width_compensation_percent());
