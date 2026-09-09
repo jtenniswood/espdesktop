@@ -666,8 +666,11 @@ export function createConfigCodecFeature(
         }
         else if (type === "companion") {
             const isCompanionMetric = !!companionMetricForEntity(b?.entity);
-            options = isCompanionMetric ? copyLargeNumbersOption("", options) :
-                normalizeCompanionAppShortcutOptions({
+            if (isCompanionMetric) {
+                options = copyLargeNumbersOption("", options);
+                if (configOptionEnabled(b?.options, "stat_labels_off"))
+                    options = options ? options + ",stat_labels_off" : "stat_labels_off";
+            } else options = normalizeCompanionAppShortcutOptions({
                     ...(b || {}),
                     type,
                     entity: b && b.entity,

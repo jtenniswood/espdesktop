@@ -542,11 +542,11 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const metricCard = {
     entity: "stat.cpu", label: "Processor", icon: "Monitor", sensor: "ignored",
-    unit: "", precision: "", options: "large_numbers,active_color", icon_on: "Auto",
+    unit: "", precision: "", options: "large_numbers,active_color,stat_labels_off", icon_on: "Auto",
   };
   normalizeCompanionCard(metricCard);
   if (metricCard.sensor !== "" || metricCard.unit !== "%" || metricCard.precision !== "0" ||
-      metricCard.options !== "large_numbers") {
+      metricCard.options !== "large_numbers,stat_labels_off") {
     throw new Error("Companion statistics must normalize their own sensor-style fields");
   }
   resetCompanionMetricPresentation(metricCard, "app");
