@@ -7,7 +7,7 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, general, updates, help
+    case connection, applications, folders, updates, help
 
     var id: String { rawValue }
     var title: String {
@@ -15,7 +15,6 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "Display"
         case .applications: return "Apps"
         case .folders: return "Folders"
-        case .general: return "Permissions"
         case .updates: return "Updates"
         case .help: return "Help"
         }
@@ -25,7 +24,6 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "display"
         case .applications: return "square.grid.2x2"
         case .folders: return "folder"
-        case .general: return "gearshape"
         case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
@@ -34,6 +32,17 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
 
 private enum CompanionPairingStep {
     case address, code, connecting, connected
+}
+
+private struct CompanionCapsuleButton: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 14.0, *) {
+            content.buttonBorderShape(.capsule)
+        } else {
+            // Keep the native bordered control on macOS 13, with pill-shaped edges.
+            content.clipShape(Capsule())
+        }
+    }
 }
 
 private struct CompanionSetupHeading: View {
@@ -316,7 +325,6 @@ struct CompanionSettings: View {
         case .connection: connectionPage
         case .applications: applicationsPage
         case .folders: foldersPage
-        case .general: permissionsPage
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
@@ -340,14 +348,17 @@ struct CompanionSettings: View {
                             HStack(spacing: 12) {
                                 Button("Customize") { store.openPanelWebServer() }
                                     .help("Open the display’s configuration in your browser")
+                                    .modifier(CompanionCapsuleButton())
                                 Button("Remove", role: .destructive) { confirmingForget = true }
                                     .help("Remove this display’s pairing")
+                                    .modifier(CompanionCapsuleButton())
                             }
                             .buttonStyle(.bordered)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
                     }
+                    permissionsSection
                 }
                 .formStyle(.grouped)
             } else {
@@ -760,34 +771,31 @@ struct CompanionSettings: View {
         .padding(.vertical, 24)
     }
 
-    private var permissionsPage: some View {
-        Form {
-            Section("Permissions") {
-                CompanionPermissionRow(
-                    title: "Launch Companion App at Login",
-                    information: store.supportsLaunchAtLogin
-                        ? (store.launchAtLoginMessage.isEmpty
-                           ? "Open EspDesktop automatically after you sign in."
-                           : store.launchAtLoginMessage)
-                        : "Install EspDesktop in Applications to open it automatically at login.",
-                    isEnabled: store.launchAtLoginBinding(),
-                    isAvailable: store.supportsLaunchAtLogin
-                )
-                CompanionPermissionRow(
-                    title: "Share Mac Stats to Display",
-                    information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
-                    isEnabled: $store.shareSystemMetricsEnabled
-                )
-                CompanionPermissionRow(
-                    title: "Enable Keyboard Shortcuts",
-                    information: accessibilityGranted
-                        ? "Accessibility access is enabled."
-                        : "Requires Accessibility access in System Settings.",
-                    isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
-                )
-            }
+    private var permissionsSection: some View {
+        Section("Permissions") {
+            CompanionPermissionRow(
+                title: "Launch Companion App at Login",
+                information: store.supportsLaunchAtLogin
+                    ? (store.launchAtLoginMessage.isEmpty
+                       ? "Open EspDesktop automatically after you sign in."
+                       : store.launchAtLoginMessage)
+                    : "Install EspDesktop in Applications to open it automatically at login.",
+                isEnabled: store.launchAtLoginBinding(),
+                isAvailable: store.supportsLaunchAtLogin
+            )
+            CompanionPermissionRow(
+                title: "Share Mac Stats to Display",
+                information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
+                isEnabled: $store.shareSystemMetricsEnabled
+            )
+            CompanionPermissionRow(
+                title: "Enable Keyboard Shortcuts",
+                information: accessibilityGranted
+                    ? "Accessibility access is enabled."
+                    : "Requires Accessibility access in System Settings.",
+                isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
+            )
         }
-        .formStyle(.grouped)
     }
 
     private var helpPage: some View {

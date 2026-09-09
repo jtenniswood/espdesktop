@@ -34,7 +34,7 @@ For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run.
 On first launch, the setup guide walks through Accessibility for shortcut and window-control cards, optional Mac statistics sharing, and opening EspDesktop at login. Use **General → Run Setup Guide…** to review these choices later.
 
 Click the EspDesktop icon in the macOS menu bar to see the display address and connection status, connect or disconnect, open display settings in your browser, or open EspDesktop settings. About EspDesktop is in the application menu.
-When EspDesktop is installed as a packaged `.app`, its Permissions page also includes an **Open EspDesktop at Login** switch. The local Swift launcher does not create an app bundle, so it shows the setting as unavailable with installation guidance. macOS may require approval under **System Settings → General → Login Items**.
+When EspDesktop is installed as a packaged `.app`, its Display tab includes a Permissions section with an **Open EspDesktop at Login** switch. The local Swift launcher does not create an app bundle, so it shows the setting as unavailable with installation guidance. macOS may require approval under **System Settings → General → Login Items**.
 
 The app automatically shares the active session shown by macOS Control Centre with a paired 4848S040. A Companion Play / Pause card displays the state confirmed by the Mac as **Playing**, **Paused**, **Stopped**, or **Unavailable**. It waits for a system notification or the two-second refresh rather than changing the label immediately after a tap. No additional macOS permission is required.
 
@@ -46,7 +46,7 @@ After pairing, use the **Applications** page to approve only the installed apps
 that the display may discover, launch, or control. The approved list is stored
 locally on the Mac and can be changed at any time. Apps are enabled by default on fresh installs, and newly discovered apps are enabled automatically. Switch individual apps off to exclude them; existing selections are preserved when upgrading.
 
-In **Folders**, use **Choose Again…** if a folder has been moved or removed. Removing a folder asks for confirmation and does not delete any files. **Permissions → Keyboard & Window Controls** shows Accessibility access and requests the native macOS permission prompt when needed. It does not automatically open System Settings; follow the displayed instructions to grant permission. Simply viewing EspDesktop settings does not request permission.
+In **Folders**, use **Choose Again…** if a folder has been moved or removed. Removing a folder asks for confirmation and does not delete any files. **Display → Permissions → Enable Keyboard Shortcuts** shows Accessibility access and requests the native macOS permission prompt when needed. It does not automatically open System Settings; follow the displayed instructions to grant permission. Simply viewing EspDesktop settings does not request permission.
 
 Enable **General → Share Mac system statistics** to share overall processor and memory usage, startup-disk storage, combined network throughput on the primary interface, and battery level when the Mac has a battery. Memory and storage cards can show either used or free capacity. No additional macOS permission is required, and it does not collect application, file, browsing, or network-content details. Choose the corresponding type on a Companion card to show a reading.
 
@@ -54,11 +54,11 @@ The versioned protocol is intentionally narrow: a Mac publishes installed bundle
 
 ### Settings navigation
 
-Use the native macOS toolbar to switch between **Display**, **Apps**, **Folders**, **Permissions**, **Updates**, and **Help**. Settings opens on Display by default; the Help menu shortcut opens Help directly. Support links are in Help, and the Buy Me a Coffee button is available at the bottom right of every settings page. Window controls, toolbar selection, and application switches use standard macOS components and follow the system appearance.
+Use the native macOS toolbar to switch between **Display**, **Apps**, **Folders**, **Updates**, and **Help**. Settings opens on Display by default; the Help menu shortcut opens Help directly. Support links are in Help, and the Buy Me a Coffee button is available at the bottom right of every settings page. Window controls, toolbar selection, and application switches use standard macOS components and follow the system appearance.
 
 ### Companion updates
 
-Choose **Check for Updates** from the menu-bar menu or the **Updates** tab. Sparkle presents native update dialogs with download and installation controls. **Automatically check for updates** is on by default and checks daily while the app is running. **Automatically install updates** is off by default; enabling it allows verified updates to download in the background and install on quit. macOS may still request authorization. Turn off automatic checks to stop scheduled downloads as well. Open at Login in Permissions keeps Companion available after signing in.
+Choose **Check for Updates** from the menu-bar menu or the **Updates** tab. Sparkle presents native update dialogs with download and installation controls. **Automatically check for updates** is on by default and checks daily while the app is running. **Automatically install updates** is off by default; enabling it allows verified updates to download in the background and install on quit. macOS may still request authorization. Turn off automatic checks to stop scheduled downloads as well. Launch at Login under Display → Permissions keeps Companion available after signing in.
 
 The updater uses an HTTPS feed published alongside each stable GitHub release. Archives and the feed are signed with the public key embedded in the app. Update feeds are separated by Companion protocol version, so an incompatible protocol upgrade requires manually installing a matching app/firmware release. If there is no published feed yet, a manual check reports that it cannot retrieve update information. Local Swift launches without an app bundle show installation guidance.
 

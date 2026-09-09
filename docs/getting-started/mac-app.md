@@ -38,7 +38,7 @@ When the connection is ready, a monitor icon appears beside WiFi in the display'
 
 ## Choose the First-Run Options
 
-First-run setup has three screens: choose your display, enter the pairing code, then **Access and startup**. The final screen opens automatically after pairing and keeps all three options together. Choose **Finish** when ready; you can change these options later in **Permissions**. Use the info buttons for more detail.
+First-run setup has three screens: choose your display, enter the pairing code, then **Access and startup**. The final screen opens automatically after pairing and keeps all three options together. Choose **Finish** when ready; you can change these options later in **Display → Permissions**. Use the info buttons for more detail.
 
 | Option | What it enables | Required? |
 |---|---|---|
@@ -68,9 +68,9 @@ Then add the controls you want:
 - [Mac Cards and Capabilities](/card-types/companion) covers app subpages, custom shortcuts, folders, websites, window controls, media, artwork, volume, and statistics.
 - [Setup](/features/setup) explains card placement, sizes, colours, subpages, and backups.
 
-## Permissions Page
+## Display Permissions
 
-The **Permissions** page remains available after setup:
+The **Permissions** section sits below the connection panel in the **Display** tab:
 
 - **Open EspDesktop at Login** keeps the local connector available after you sign in.
 - **Share Mac system statistics** sends overall processor, memory, storage, network, and battery readings only to the paired display.
