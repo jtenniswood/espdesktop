@@ -18,7 +18,6 @@
 #include "companion_capabilities_generated.h"
 #include "companion_runtime_access.h"
 #include "companion_pairing_policy.h"
-#include "companion_focus_feedback.h"
 #include "companion_timezone.h"
 
 #ifdef USE_WEBSERVER
@@ -521,7 +520,6 @@ struct CompanionSliderRef {
 };
 
 struct CompanionViewRegistry {
-  CompanionFocusFeedback focus_feedback;
   std::vector<CompanionCardRef> cards;
   std::vector<CompanionSliderRef> sliders;
 };
@@ -541,8 +539,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
     lv_obj_clear_state(button, LV_STATE_CHECKED);
     return;
   }
-  if (companion_view_registry().focus_feedback.action_id == action_id ||
-      companion_action_active(action_id)) lv_obj_add_state(button, LV_STATE_CHECKED);
+  if (companion_action_active(action_id)) lv_obj_add_state(button, LV_STATE_CHECKED);
   else lv_obj_clear_state(button, LV_STATE_CHECKED);
 }
 
@@ -641,12 +638,6 @@ inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
 }
 
 inline void companion_refresh_cards_if_requested() {
-  auto &feedback = companion_view_registry().focus_feedback;
-  if (!feedback.action_id.empty()) {
-    const auto state = companion_runtime_snapshot();
-    if (feedback.reconcile(state.connected, state.focused_action_id, esphome::millis()))
-      companion_request_card_refresh();
-  }
   if (!companion_card_refresh_requested().exchange(false)) return;
   auto &refs = companion_card_refs();
   const auto snapshot = companion_runtime_snapshot();
@@ -735,19 +726,7 @@ inline void companion_refresh_cards_if_requested() {}
 inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id) {
   if (!companion_action_available(action_id) || !companion_action_sender()) return false;
-  const bool sent = companion_action_sender()(action_id, request_id);
-#ifdef USE_LVGL
-  // Catalogue actions are applications/folders with reported focus. Media,
-  // keyboard shortcuts and window commands retain momentary feedback.
-  const auto snapshot = companion_runtime_snapshot();
-  if (sent && std::any_of(snapshot.actions.begin(), snapshot.actions.end(),
-      [&action_id](const CompanionAction &action) { return action.id == action_id; })) {
-    companion_view_registry().focus_feedback.begin(action_id, esphome::millis());
-    companion_request_card_refresh();
-    companion_refresh_cards_if_requested();
-  }
-#endif
-  return sent;
+  return companion_action_sender()(action_id, request_id);
 }
 
 inline bool invoke_companion_url(const std::string &app_id,

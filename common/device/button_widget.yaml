@@ -62,6 +62,8 @@ button:
         hidden: true
   # Fire push event, navigate to subpage, or toggle the bound HA entity
   on_press:
+    # Touch dispatch is immediate, but only the actual active state changes colour.
+    - lambda: 'lv_obj_clear_state(id(button_${num}), LV_STATE_PRESSED);'
     - if:
         condition:
           lambda: 'return id(screensaver_wake_touch_guard_active);'

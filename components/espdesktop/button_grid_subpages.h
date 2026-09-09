@@ -295,6 +295,10 @@ inline lv_obj_t *create_grid_card_button(lv_obj_t *parent, lv_coord_t radius,
                                          const lv_font_t *label_font,
                                          lv_color_t text_color) {
   lv_obj_t *btn = lv_btn_create(parent);
+  // Match the main grid: no temporary press colour, while checked state remains.
+  lv_obj_add_event_cb(btn, [](lv_event_t *event) {
+    lv_obj_clear_state(static_cast<lv_obj_t *>(lv_event_get_target(event)), LV_STATE_PRESSED);
+  }, LV_EVENT_PRESSED, nullptr);
   lv_obj_set_style_radius(btn, radius, LV_PART_MAIN);
   lv_obj_set_style_pad_all(btn, pad, LV_PART_MAIN);
   if (label_font) lv_obj_set_style_text_font(btn, label_font, LV_PART_MAIN);
