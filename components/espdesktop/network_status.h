@@ -285,10 +285,10 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", espdesktop_i18n("Pair")};
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", espdesktop_i18n("Pairing")};
   const char *icons[] = {"\U000F0141", "\U000F04F9", "\U000F0200", "\U000F0379", "\U000F0306"};
-  // Wide IP first, Back beside it, then version, connector state and Pair.
-  const int positions[] = {2, 3, 0, 4, 5};
+  // Back first, wide IP beside it, then version, connector state and Pairing.
+  const int positions[] = {0, 3, 1, 4, 5};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   for (int i = 0; i < 5; ++i) {
