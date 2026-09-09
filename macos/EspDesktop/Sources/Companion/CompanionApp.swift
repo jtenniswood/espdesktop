@@ -10,11 +10,8 @@ struct CompanionApp: App {
     var body: some Scene {
         Settings {
             CompanionSettings(store: appDelegate.store)
-                .dynamicTypeSize(.large)
-                .frame(minWidth: 760, minHeight: 500)
+                .frame(minWidth: 500, minHeight: 500)
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About EspDesktop") {
@@ -22,7 +19,7 @@ struct CompanionApp: App {
                 }
             }
             CommandGroup(replacing: .appSettings) {
-                Button("EspDesktop Settings") { appDelegate.openCompanionWindow() }
+                Button("Mac Settings") { appDelegate.openCompanionWindow() }
                     .keyboardShortcut(",", modifiers: .command)
             }
         }
@@ -73,6 +70,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         if store.hasSavedPairing && !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             store.connect()
         }
+        store.updater.startAutomaticChecks()
         if !launchedAsLoginItem() {
             DispatchQueue.main.async { [weak self] in self?.openCompanionWindow() }
         }
@@ -102,7 +100,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.addItem(.separator())
 
         let panelWebpageItem = NSMenuItem(
-            title: "Customize Panel",
+            title: "Customize Display",
             action: #selector(openDisplaySettings),
             keyEquivalent: "d"
         )
@@ -113,9 +111,15 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         panelWebpageItem.isEnabled = !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         menu.addItem(panelWebpageItem)
 
-        addMenuItem("EspDesktop Settings", action: #selector(openSettings), key: ",", to: menu)
+        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",", to: menu)
+        addMenuItem("Updates",
+                    action: #selector(checkForUpdates), key: "u",
+                    image: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates"), to: menu)
+        menu.items.last?.isEnabled = !store.updater.isChecking
+        addMenuItem("Help", action: #selector(openHelp), key: "?",
+                    image: NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help"), to: menu)
         addMenuItem(
-            "Quit App", action: #selector(quit), key: "q",
+            "Quit", action: #selector(quit), key: "q",
             image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
     }
 
@@ -136,14 +140,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         labels.alignment = .leading
         labels.spacing = 1
 
-        let connectionSwitch = NSSwitch()
-        connectionSwitch.state = store.isConnected ? .on : .off
-        connectionSwitch.target = self
-        connectionSwitch.action = #selector(connectionSwitchChanged(_:))
-        connectionSwitch.toolTip = store.isConnected ? "Disconnect from the display" : "Connect to the display"
-        connectionSwitch.isEnabled = store.isConnected
-            || !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        connectionSwitch.setAccessibilityLabel("EspDesktop connection")
+        let connectionSwitch = NSHostingView(rootView: CompanionMenuConnectionToggle(store: store))
 
         container.addSubview(labels)
         container.addSubview(connectionSwitch)
@@ -170,14 +167,6 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.addItem(item)
     }
 
-    @objc private func connectionSwitchChanged(_ sender: NSSwitch) {
-        if sender.state == .on {
-            store.connect()
-        } else {
-            store.disconnect()
-        }
-    }
-
     @objc private func openDisplaySettings() { store.openPanelWebServer() }
 
     private func updateStatusItemImage(connected: Bool) {
@@ -190,6 +179,10 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     @objc private func openSettings() { openCompanionWindow() }
+    @objc private func openHelp() {
+        openCompanionWindow(showHelp: true)
+    }
+    @objc private func checkForUpdates() { store.updater.check() }
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func existingInstanceWasOpened(_ notification: Notification) { openCompanionWindow() }
 
@@ -212,7 +205,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             .booleanValue == true
     }
 
-    func openCompanionWindow() {
+    func openCompanionWindow(showHelp: Bool = false) {
+        store.requestedSettingsPage = showHelp ? "help" : "connection"
+        store.settingsRequestID = UUID()
         activateCompanionApplication()
 
         if let settingsWindow {
@@ -222,22 +217,19 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 600),
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.identifier = NSUserInterfaceItemIdentifier("io.espdesktop.app.settings")
-        window.title = "EspDesktop"
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
-        window.styleMask.insert(.fullSizeContentView)
+        window.title = "Settings"
+        window.backgroundColor = .windowBackgroundColor
         window.delegate = self
-        positionWindowControls(in: window)
-        window.minSize = NSSize(width: 760, height: 500)
+        window.minSize = NSSize(width: 500, height: 500)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
-            rootView: CompanionSettings(store: store).dynamicTypeSize(.large)
+            rootView: CompanionSettings(store: store)
         )
         window.center()
         settingsWindow = window
@@ -252,27 +244,6 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         // once the settings window has been closed.
         NSApp.setActivationPolicy(.accessory)
     }
-
-    private func positionWindowControls(in window: NSWindow) {
-        let buttons: [NSButton?] = [
-            window.standardWindowButton(.closeButton),
-            window.standardWindowButton(.miniaturizeButton),
-            window.standardWindowButton(.zoomButton),
-        ]
-        let inset: CGFloat = 32
-        let topPadding: CGFloat = 12
-        let spacing: CGFloat = 8
-        var nextX = inset
-        for button in buttons.compactMap({ $0 }) {
-            var frame = button.frame
-            frame.origin.x = nextX
-            frame.origin.y = max(0, frame.origin.y - topPadding)
-            button.frame = frame
-            button.contentTintColor = .secondaryLabelColor
-            nextX += frame.width + spacing
-        }
-    }
-
 }
 
 @MainActor
@@ -284,4 +255,22 @@ func activateCompanionApplication() {
         .activateIgnoringOtherApps,
     ])
     NSApp.activate(ignoringOtherApps: true)
+}
+
+private struct CompanionMenuConnectionToggle: View {
+    @ObservedObject var store: CompanionStore
+
+    var body: some View {
+        Toggle("EspDesktop connection", isOn: Binding(
+            get: { store.isConnected },
+            set: { connected in
+                if connected { store.connect() } else { store.disconnect() }
+            }
+        ))
+        .labelsHidden()
+        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+        .disabled(!store.isConnected && store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .help(store.isConnected ? "Disconnect from the display" : "Connect to the display")
+        .fixedSize()
+    }
 }

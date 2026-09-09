@@ -327,6 +327,15 @@ assert.strictEqual(
   model.CARD_SIZE_LANDSCAPE_LARGE,
   "card transfer accepts the supported 4x3 camera card size",
 );
+const ultraWideTransferCode = model.createCardTransferCode(
+  { device: "panel-a", firmware: "2026.7.0" },
+  [{ ...transferCard, size: model.CARD_SIZE_ULTRA_WIDE }],
+);
+assert.strictEqual(
+  model.parseCardTransferCode(ultraWideTransferCode).cards[0].size,
+  model.CARD_SIZE_ULTRA_WIDE,
+  "card transfer accepts the supported 1x5 card size",
+);
 const maxWideSubpageCard = {
   ...transferSubpageCard,
   subpage: {
@@ -374,7 +383,8 @@ assertTransferError({ format: "espdesktop.cards", version: 2, source: { device: 
   "newer version");
 assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [] },
   "no cards");
-assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, size: model.CARD_SIZE_LANDSCAPE_LARGE + 1 }] },
+const unknownCardSize = Math.max(...model.CARD_SIZE_DEFINITIONS.map((definition) => definition.size)) + 1;
+assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, size: unknownCardSize }] },
   "invalid size");
 assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, options: 42 }] },
   "invalid options field");

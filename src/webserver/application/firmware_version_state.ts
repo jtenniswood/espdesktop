@@ -20,7 +20,7 @@ export function createFirmwareVersionFeature(
     const els = runtime.els;
     // ── Firmware Version State ─────────────────────────────────────────────
     const checkingLabel = "Checking version...";
-    const devLabel = "Dev build";
+    const devLabel = "Dev Build";
     const unknownLabel = "Version unknown";
     function render() {
         if (!els.fwVersionLabel)

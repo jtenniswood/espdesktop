@@ -54,6 +54,20 @@ jobs:
         with:
           node-version: 24
 
+      - name: Prepare Python test environment
+        shell: bash
+        run: |
+          PYTHON_VENV="${RUNNER_TEMP}/espdesktop-release-python"
+          python3 -m venv "${PYTHON_VENV}"
+          "${PYTHON_VENV}/bin/python" -m pip install \
+            --disable-pip-version-check \
+            --no-cache-dir \
+            "PyYAML==6.0.2"
+          PYTHON_SITE_PACKAGES="$("${PYTHON_VENV}/bin/python" -c 'import site; print(site.getsitepackages()[0])')"
+          echo "PATH=${PYTHON_VENV}/bin:${PATH}" >> "${GITHUB_ENV}"
+          echo "PYTHONPATH=${PYTHON_SITE_PACKAGES}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
+          echo "${PYTHON_VENV}/bin" >> "${GITHUB_PATH}"
+
       - name: Ensure CMake is available
         shell: bash
         run: |
@@ -220,9 +234,21 @@ jobs:
           ESPHOME_IMAGE="ghcr.io/esphome/esphome:${ESPHOME_VERSION}"
           LOCK_FILE="/tmp/espdesktop-esphome-image.lock"
           if command -v flock >/dev/null 2>&1; then
-            flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}"
+            flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}" || {
+              echo "Initial ESPHome image pull failed; pruning stale Docker state and retrying."
+              ESPDESKTOP_DOCKER_PRUNE_CONTAINERS=false \
+                ESPDESKTOP_DOCKER_PRUNE_VOLUMES=false \
+                bash scripts/reclaim_actions_disk.sh
+              flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}"
+            }
           else
-            ${DOCKER} pull "${ESPHOME_IMAGE}"
+            ${DOCKER} pull "${ESPHOME_IMAGE}" || {
+              echo "Initial ESPHome image pull failed; pruning stale Docker state and retrying."
+              ESPDESKTOP_DOCKER_PRUNE_CONTAINERS=false \
+                ESPDESKTOP_DOCKER_PRUNE_VOLUMES=false \
+                bash scripts/reclaim_actions_disk.sh
+              ${DOCKER} pull "${ESPHOME_IMAGE}"
+            }
           fi
           echo "ESPHOME_IMAGE=${ESPHOME_IMAGE}" >> "$GITHUB_ENV"
 
@@ -434,6 +460,7 @@ jobs:
           NOTARY_KEY_BASE64: ${{ secrets.APPLE_NOTARY_KEY_BASE64 }}
           NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
           NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           for required in \
@@ -442,7 +469,8 @@ jobs:
             DEVELOPER_ID_APPLICATION \
             NOTARY_KEY_BASE64 \
             NOTARY_KEY_ID \
-            NOTARY_ISSUER_ID; do
+            NOTARY_ISSUER_ID \
+            SPARKLE_PRIVATE_KEY; do
             if [[ -z "${!required}" ]]; then
               echo "Missing required repository secret for EspDesktop notarization: ${required}" >&2
               exit 2
@@ -495,12 +523,17 @@ jobs:
           RELEASE_ASSET_VERSION="${COMPANION_VERSION}" \
           ./macos/EspDesktop/Packaging/notarize_standalone.sh \
             "${OUTPUT_DIR}/EspDesktop.app"
+          ./macos/EspDesktop/Packaging/build_appcast.sh \
+            "${OUTPUT_DIR}/EspDesktop-${COMPANION_VERSION}.zip" \
+            "${RELEASE_TAG}" "${OUTPUT_DIR}"
 
       - name: Upload notarized EspDesktop release asset
         uses: actions/upload-artifact@v7
         with:
           name: espdesktop-app-release
-          path: ${{ runner.temp }}/espdesktop-app/EspDesktop-*
+          path: |
+            ${{ runner.temp }}/espdesktop-app/EspDesktop-*
+            ${{ runner.temp }}/espdesktop-app/companion-appcast-v*.xml
           if-no-files-found: error
 
   publish:
@@ -542,6 +575,9 @@ jobs:
             echo "The notarized Companion ZIP or DMG release asset is missing" >&2
             exit 1
           fi
+          PROTOCOL_VERSION="$(python3 -c 'import json; print(json.load(open("product/v2/companion_capabilities.json"))["protocol"]["version"])')"
+          COMPANION_FEED="dist/companion/companion-appcast-v${PROTOCOL_VERSION}.xml"
+          test -s "${COMPANION_FEED}"
           python3 scripts/companion_release.py create \
             --firmware-dir dist/firmware --companion-dir dist/companion \
             --source-revision "${{ needs.preflight.outputs.source_sha }}" \
@@ -561,4 +597,4 @@ jobs:
             --release-contract product/release_contract.json \
             --web-manifest docs/public/webserver/web-assets.json \
             --web-root docs/public/webserver \
-            --additional-files "${COMPANION_ZIP}" "${COMPANION_DMG}" dist/companion/companion-compatibility.json
+            --additional-files "${COMPANION_ZIP}" "${COMPANION_DMG}" "${COMPANION_FEED}" dist/companion/companion-compatibility.json
