@@ -510,7 +510,7 @@ export function registerCompanionCardTypes(
                 if (metric?.freeId || metric?.mode === "battery") {
                     const displayField = document.createElement("div");
                     displayField.className = "sp-field";
-                    displayField.appendChild(fieldLabel("Show", helpers.idPrefix + "metric-display"));
+                    displayField.appendChild(fieldLabel("Capacity", helpers.idPrefix + "metric-display"));
                     const displaySelect = document.createElement("select");
                     displaySelect.className = "sp-select";
                     displaySelect.id = helpers.idPrefix + "metric-display";
