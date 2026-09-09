@@ -255,6 +255,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Párování";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Zadejte tento kód v aplikaci pro Mac";
   if (std::strcmp(text, "Expired") == 0) return "Platnost vypršela";
+  if (std::strcmp(text, "Pair") == 0) return "Spárovat";
   return text;
 }
 
@@ -490,6 +491,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Parring";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Indtast denne kode i Mac-appen";
   if (std::strcmp(text, "Expired") == 0) return "Udløbet";
+  if (std::strcmp(text, "Pair") == 0) return "Par";
   return text;
 }
 
@@ -723,6 +725,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Kopplung";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Diesen Code in der Mac-App eingeben";
   if (std::strcmp(text, "Expired") == 0) return "Abgelaufen";
+  if (std::strcmp(text, "Pair") == 0) return "Koppeln";
   return text;
 }
 
@@ -965,6 +968,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Emparejamiento";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduce este código en la app para Mac";
   if (std::strcmp(text, "Expired") == 0) return "Caducado";
+  if (std::strcmp(text, "Pair") == 0) return "Emparejar";
   return text;
 }
 
@@ -1217,6 +1221,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Paritus";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Syötä tämä koodi Mac-sovellukseen";
   if (std::strcmp(text, "Expired") == 0) return "Vanhentunut";
+  if (std::strcmp(text, "Pair") == 0) return "Parita";
   return text;
 }
 
@@ -1452,6 +1457,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Jumelage";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Saisissez ce code dans l’application Mac";
   if (std::strcmp(text, "Expired") == 0) return "Expiré";
+  if (std::strcmp(text, "Pair") == 0) return "Associer";
   return text;
 }
 
@@ -1712,6 +1718,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "התאמה";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "הזן קוד זה באפליקציית Mac";
   if (std::strcmp(text, "Expired") == 0) return "פג תוקף";
+  if (std::strcmp(text, "Pair") == 0) return "צימוד";
   return text;
 }
 
@@ -1963,6 +1970,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Párosítás";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Adja meg ezt a kódot a Mac alkalmazásban";
   if (std::strcmp(text, "Expired") == 0) return "Lejárt";
+  if (std::strcmp(text, "Pair") == 0) return "Párosítás";
   return text;
 }
 
@@ -2205,6 +2213,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Abbinamento";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Inserisci questo codice nell’app per Mac";
   if (std::strcmp(text, "Expired") == 0) return "Scaduto";
+  if (std::strcmp(text, "Pair") == 0) return "Associa";
   return text;
 }
 
@@ -2445,6 +2454,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Paring";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Skriv inn denne koden i Mac-appen";
   if (std::strcmp(text, "Expired") == 0) return "Utløpt";
+  if (std::strcmp(text, "Pair") == 0) return "Koble sammen";
   return text;
 }
 
@@ -2683,6 +2693,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Koppelen";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Voer deze code in de Mac-app in";
   if (std::strcmp(text, "Expired") == 0) return "Verlopen";
+  if (std::strcmp(text, "Pair") == 0) return "Koppelen";
   return text;
 }
 
@@ -2923,6 +2934,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Parowanie";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Wpisz ten kod w aplikacji na Macu";
   if (std::strcmp(text, "Expired") == 0) return "Wygasł";
+  if (std::strcmp(text, "Pair") == 0) return "Sparuj";
   return text;
 }
 
@@ -3165,6 +3177,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Pareamento";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Digite este código no aplicativo para Mac";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
+  if (std::strcmp(text, "Pair") == 0) return "Parear";
   return text;
 }
 
@@ -3408,6 +3421,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Emparelhamento";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduza este código na aplicação para Mac";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
+  if (std::strcmp(text, "Pair") == 0) return "Emparelhar";
   return text;
 }
 
@@ -3660,6 +3674,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Asociere";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Introduceți acest cod în aplicația pentru Mac";
   if (std::strcmp(text, "Expired") == 0) return "Expirat";
+  if (std::strcmp(text, "Pair") == 0) return "Asociază";
   return text;
 }
 
@@ -3919,6 +3934,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Сопряжение";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Введите этот код в приложении для Mac";
   if (std::strcmp(text, "Expired") == 0) return "Срок действия истёк";
+  if (std::strcmp(text, "Pair") == 0) return "Сопряжение";
   return text;
 }
 
@@ -4163,6 +4179,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Párovanie";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Zadajte tento kód v aplikácii pre Mac";
   if (std::strcmp(text, "Expired") == 0) return "Platnosť vypršala";
+  if (std::strcmp(text, "Pair") == 0) return "Spárovať";
   return text;
 }
 
@@ -4411,6 +4428,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Seznanjanje";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Vnesite to kodo v aplikacijo za Mac";
   if (std::strcmp(text, "Expired") == 0) return "Poteklo";
+  if (std::strcmp(text, "Pair") == 0) return "Seznani";
   return text;
 }
 
@@ -4650,6 +4668,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Parkoppling";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Ange den här koden i Mac-appen";
   if (std::strcmp(text, "Expired") == 0) return "Utgången";
+  if (std::strcmp(text, "Pair") == 0) return "Parkoppla";
   return text;
 }
 
@@ -4902,6 +4921,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Eşleştirme";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Bu kodu Mac uygulamasına girin";
   if (std::strcmp(text, "Expired") == 0) return "Süresi doldu";
+  if (std::strcmp(text, "Pair") == 0) return "Eşleştir";
   return text;
 }
 
@@ -5156,6 +5176,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Pairing") == 0) return "Сполучення";
   if (std::strcmp(text, "Enter this code in the Mac app") == 0) return "Введіть цей код у програмі для Mac";
   if (std::strcmp(text, "Expired") == 0) return "Термін дії минув";
+  if (std::strcmp(text, "Pair") == 0) return "Сполучити";
   return text;
 }
 
@@ -5419,6 +5440,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Pairing";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code in the Mac app";
   if (std::strcmp(key, "expired") == 0) return "Expired";
+  if (std::strcmp(key, "pair") == 0) return "Pair";
   return key;
 }
 
@@ -5664,6 +5686,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Párování";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód v aplikaci pro Mac";
   if (std::strcmp(key, "expired") == 0) return "Platnost vypršela";
+  if (std::strcmp(key, "pair") == 0) return "Spárovat";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -5901,6 +5924,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Parring";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i Mac-appen";
   if (std::strcmp(key, "expired") == 0) return "Udløbet";
+  if (std::strcmp(key, "pair") == 0) return "Par";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6136,6 +6160,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Kopplung";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Diesen Code in der Mac-App eingeben";
   if (std::strcmp(key, "expired") == 0) return "Abgelaufen";
+  if (std::strcmp(key, "pair") == 0) return "Koppeln";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6380,6 +6405,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Emparejamiento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la app para Mac";
   if (std::strcmp(key, "expired") == 0) return "Caducado";
+  if (std::strcmp(key, "pair") == 0) return "Emparejar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6634,6 +6660,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Paritus";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi Mac-sovellukseen";
   if (std::strcmp(key, "expired") == 0) return "Vanhentunut";
+  if (std::strcmp(key, "pair") == 0) return "Parita";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6871,6 +6898,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Jumelage";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application Mac";
   if (std::strcmp(key, "expired") == 0) return "Expiré";
+  if (std::strcmp(key, "pair") == 0) return "Associer";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7133,6 +7161,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "התאמה";
   if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציית Mac";
   if (std::strcmp(key, "expired") == 0) return "פג תוקף";
+  if (std::strcmp(key, "pair") == 0) return "צימוד";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7386,6 +7415,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Párosítás";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Adja meg ezt a kódot a Mac alkalmazásban";
   if (std::strcmp(key, "expired") == 0) return "Lejárt";
+  if (std::strcmp(key, "pair") == 0) return "Párosítás";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7630,6 +7660,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Abbinamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app per Mac";
   if (std::strcmp(key, "expired") == 0) return "Scaduto";
+  if (std::strcmp(key, "pair") == 0) return "Associa";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7872,6 +7903,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Paring";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i Mac-appen";
   if (std::strcmp(key, "expired") == 0) return "Utløpt";
+  if (std::strcmp(key, "pair") == 0) return "Koble sammen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8111,6 +8143,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Koppelen";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de Mac-app in";
   if (std::strcmp(key, "expired") == 0) return "Verlopen";
+  if (std::strcmp(key, "pair") == 0) return "Koppelen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8353,6 +8386,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Parowanie";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji na Macu";
   if (std::strcmp(key, "expired") == 0) return "Wygasł";
+  if (std::strcmp(key, "pair") == 0) return "Sparuj";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8597,6 +8631,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Pareamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para Mac";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
+  if (std::strcmp(key, "pair") == 0) return "Parear";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8842,6 +8877,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Emparelhamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para Mac";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
+  if (std::strcmp(key, "pair") == 0) return "Emparelhar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9096,6 +9132,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Asociere";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduceți acest cod în aplicația pentru Mac";
   if (std::strcmp(key, "expired") == 0) return "Expirat";
+  if (std::strcmp(key, "pair") == 0) return "Asociază";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9357,6 +9394,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Сопряжение";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для Mac";
   if (std::strcmp(key, "expired") == 0) return "Срок действия истёк";
+  if (std::strcmp(key, "pair") == 0) return "Сопряжение";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9603,6 +9641,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Párovanie";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód v aplikácii pre Mac";
   if (std::strcmp(key, "expired") == 0) return "Platnosť vypršala";
+  if (std::strcmp(key, "pair") == 0) return "Spárovať";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9853,6 +9892,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Seznanjanje";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v aplikacijo za Mac";
   if (std::strcmp(key, "expired") == 0) return "Poteklo";
+  if (std::strcmp(key, "pair") == 0) return "Seznani";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10094,6 +10134,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Parkoppling";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i Mac-appen";
   if (std::strcmp(key, "expired") == 0) return "Utgången";
+  if (std::strcmp(key, "pair") == 0) return "Parkoppla";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10348,6 +10389,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Eşleştirme";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu Mac uygulamasına girin";
   if (std::strcmp(key, "expired") == 0) return "Süresi doldu";
+  if (std::strcmp(key, "pair") == 0) return "Eşleştir";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10604,6 +10646,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "pairing") == 0) return "Сполучення";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для Mac";
   if (std::strcmp(key, "expired") == 0) return "Термін дії минув";
+  if (std::strcmp(key, "pair") == 0) return "Сполучити";
   return espdesktop_i18n_key_en(key);
 }
 

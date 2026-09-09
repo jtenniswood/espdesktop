@@ -259,3 +259,4 @@ not_paired=Не сопряжено
 pairing=Сопряжение
 pairing_instructions=Введите этот код в приложении для Mac
 expired=Срок действия истёк
+pair=Сопряжение

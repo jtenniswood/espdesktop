@@ -259,3 +259,4 @@ not_paired=לא מותאם
 pairing=התאמה
 pairing_instructions=הזן קוד זה באפליקציית Mac
 expired=פג תוקף
+pair=צימוד

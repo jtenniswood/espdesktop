@@ -259,3 +259,4 @@ not_paired=Sin emparejar
 pairing=Emparejamiento
 pairing_instructions=Introduce este código en la app para Mac
 expired=Caducado
+pair=Emparejar

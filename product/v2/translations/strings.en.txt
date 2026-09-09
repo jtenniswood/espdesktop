@@ -259,3 +259,4 @@ not_paired=Not paired
 pairing=Pairing
 pairing_instructions=Enter this code in the Mac app
 expired=Expired
+pair=Pair

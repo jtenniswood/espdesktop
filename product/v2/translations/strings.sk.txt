@@ -259,3 +259,4 @@ not_paired=Nespárované
 pairing=Párovanie
 pairing_instructions=Zadajte tento kód v aplikácii pre Mac
 expired=Platnosť vypršala
+pair=Spárovať

@@ -259,3 +259,4 @@ not_paired=Inte parkopplad
 pairing=Parkoppling
 pairing_instructions=Ange den här koden i Mac-appen
 expired=Utgången
+pair=Parkoppla

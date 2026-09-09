@@ -259,3 +259,4 @@ not_paired=Non jumelé
 pairing=Jumelage
 pairing_instructions=Saisissez ce code dans l’application Mac
 expired=Expiré
+pair=Associer

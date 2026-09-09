@@ -259,3 +259,4 @@ not_paired=Ikke parret
 pairing=Parring
 pairing_instructions=Indtast denne kode i Mac-appen
 expired=Udløbet
+pair=Par

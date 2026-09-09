@@ -221,8 +221,7 @@ inline void network_status_refresh_page() {
       icon = "\U000F0306";
     }
   }
-  const std::string connector_label = std::string(espdesktop_i18n("Connector")) + "\n" + state;
-  lv_label_set_display_text(ui.connector_lbl, connector_label.c_str());
+  lv_label_set_display_text(ui.connector_lbl, state);
   lv_label_set_display_text(ui.connector_icon, icon);
   const bool can_pair = snapshot.available && companion_runtime_service().begin_pairing;
   if (can_pair && !screen_lock_enabled()) {
@@ -286,12 +285,10 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), espdesktop_i18n("Build"),
-                         espdesktop_i18n("IP address"), espdesktop_i18n("Connector"),
-                         espdesktop_i18n("Pairing")};
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", espdesktop_i18n("Pair")};
   const char *icons[] = {"\U000F0141", "\U000F04F9", "\U000F0200", "\U000F0379", "\U000F0306"};
-  // Keep order: Back, Build, wide IP, Connector, Pairing.
-  const int positions[] = {0, 1, 3, 5, 6};
+  // Wide IP first, Back beside it, then version, connector state and Pair.
+  const int positions[] = {2, 3, 0, 4, 5};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   for (int i = 0; i < 5; ++i) {
@@ -324,8 +321,7 @@ inline void network_status_open_modal(const std::string &device_name,
       ui.connector_lbl = slot.text_lbl;
       ui.connector_icon = slot.icon_lbl;
     } else if (i == 1) {
-      const std::string build_label = std::string(espdesktop_i18n("Build")) + "\n" +
-          network_status_firmware_label(firmware_version);
+      const std::string build_label = network_status_firmware_label(firmware_version);
       lv_label_set_display_text(slot.text_lbl, build_label.c_str());
     } else {
       ui.ip_lbl = slot.text_lbl;

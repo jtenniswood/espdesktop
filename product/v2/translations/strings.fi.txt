@@ -259,3 +259,4 @@ not_paired=Ei paritettu
 pairing=Paritus
 pairing_instructions=Syötä tämä koodi Mac-sovellukseen
 expired=Vanhentunut
+pair=Parita

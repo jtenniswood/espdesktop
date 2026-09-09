@@ -259,3 +259,4 @@ not_paired=Neasociat
 pairing=Asociere
 pairing_instructions=Introduceți acest cod în aplicația pentru Mac
 expired=Expirat
+pair=Asociază

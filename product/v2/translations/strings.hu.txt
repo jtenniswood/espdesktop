@@ -259,3 +259,4 @@ not_paired=Nincs párosítva
 pairing=Párosítás
 pairing_instructions=Adja meg ezt a kódot a Mac alkalmazásban
 expired=Lejárt
+pair=Párosítás

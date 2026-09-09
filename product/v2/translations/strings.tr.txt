@@ -259,3 +259,4 @@ not_paired=Eşleştirilmedi
 pairing=Eşleştirme
 pairing_instructions=Bu kodu Mac uygulamasına girin
 expired=Süresi doldu
+pair=Eşleştir

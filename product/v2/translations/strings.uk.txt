@@ -259,3 +259,4 @@ not_paired=Не сполучено
 pairing=Сполучення
 pairing_instructions=Введіть цей код у програмі для Mac
 expired=Термін дії минув
+pair=Сполучити

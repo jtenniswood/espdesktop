@@ -13,7 +13,7 @@
     "cardTypes": 43,
     "entityNames": 102,
     "icons": 337,
-    "structuralIcons": 26,
+    "structuralIcons": 27,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -7571,6 +7571,12 @@
         "codepoint": "F0054",
         "mdi": "arrow-right",
         "comment": "Companion shortcut labels"
+      },
+      {
+        "mdi": "monitor-off",
+        "codepoint": "F0D90",
+        "comment": "Disconnected Mac connector",
+        "name": "Monitor Off"
       }
     ],
     "icons": [
