@@ -38,6 +38,11 @@ struct NetworkStatusModalUi {
   lv_coord_t rows[5]{};
 };
 
+inline const lv_font_t *&network_status_card_icon_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+
 inline NetworkStatusModalUi &network_status_modal_ui() {
   static NetworkStatusModalUi ui;
   return ui;
@@ -175,7 +180,18 @@ inline void network_status_open_pairing() {
   const auto shell = control_modal_open_nested_menu(
       layout.panel_w, control_modal_card_radius(nullptr), network_status_close_pairing);
   ui.pairing_overlay = shell.overlay;
+  control_modal_style_overlay(shell.overlay);
+  control_modal_style_panel(shell.panel, control_modal_card_radius(nullptr));
+  control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, control_modal_card_radius(nullptr));
+  auto *close = control_modal_create_round_button(shell.panel, 32, "\U000F0156",
+      network_status_card_icon_font(), DARK_BORDER, SECONDARY_GREY, icon_width_compensation_percent());
+  control_modal_style_chrome_button(close, layout, true);
+  lv_obj_add_flag(close, LV_OBJ_FLAG_FLOATING);
+  lv_obj_add_event_cb(close, [](lv_event_t *) { control_modal_close_nested_menu(); }, LV_EVENT_CLICKED, nullptr);
+  lv_obj_set_style_pad_all(shell.panel, layout.inset, LV_PART_MAIN);
+  lv_obj_set_style_pad_top(shell.panel, layout.back_size + layout.inset * 2, LV_PART_MAIN);
   lv_obj_set_layout(shell.panel, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_align(shell.panel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   lv_obj_set_flex_flow(shell.panel, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_style_pad_row(shell.panel, control_modal_scaled_px(12, layout.short_side), LV_PART_MAIN);
   network_status_pairing_label(shell.panel, espdesktop_i18n("Pairing"));
@@ -183,11 +199,6 @@ inline void network_status_open_pairing() {
   network_status_pairing_label(shell.panel, espdesktop_i18n("IP address"));
   ui.pairing_ip = network_status_pairing_label(shell.panel, "");
   network_status_pairing_label(shell.panel, espdesktop_i18n("Enter this code in the Mac app"));
-  auto *back = control_modal_create_list_row(shell.panel, espdesktop_i18n("Back"), false,
-      layout.back_size, control_modal_card_radius(nullptr), DARK_BORDER, DARK_BORDER,
-      ui.text_font, icon_width_compensation_percent());
-  lv_obj_add_event_cb(back, [](lv_event_t *) { control_modal_close_nested_menu(); },
-                      LV_EVENT_CLICKED, nullptr);
   network_status_refresh_page();
 }
 
@@ -198,7 +209,7 @@ inline void network_status_refresh_page() {
   const auto snapshot = companion_pairing_provider()
       ? companion_pairing_provider()() : CompanionPairingSnapshot{};
   const char *state = espdesktop_i18n("Unavailable");
-  const char *icon = "\U000F0156";
+  const char *icon = "\U000F0D90";
   if (snapshot.available) {
     if (snapshot.connected) {
       state = espdesktop_i18n("Connected");
@@ -207,10 +218,11 @@ inline void network_status_refresh_page() {
       state = espdesktop_i18n("Disconnected");
     } else {
       state = espdesktop_i18n("Not paired");
-      icon = "\U000F0493";
+      icon = "\U000F0306";
     }
   }
-  lv_label_set_display_text(ui.connector_lbl, state);
+  const std::string connector_label = std::string(espdesktop_i18n("Connector")) + "\n" + state;
+  lv_label_set_display_text(ui.connector_lbl, connector_label.c_str());
   lv_label_set_display_text(ui.connector_icon, icon);
   const bool can_pair = snapshot.available && companion_runtime_service().begin_pairing;
   if (can_pair && !screen_lock_enabled()) {
@@ -248,24 +260,25 @@ inline void network_status_open_modal(const std::string &device_name,
   const lv_color_t text_color = lv_obj_get_style_text_color(reference, LV_PART_MAIN);
 
   ui.overlay = lv_obj_create(lv_layer_top());
-  lv_obj_set_size(ui.overlay, lv_pct(100), lv_pct(100));
-  lv_obj_set_pos(ui.overlay, 0, 0);
+  // Leave the clock bar exposed, using the same reserved space as the grid.
+  lv_obj_update_layout(page);
+  const lv_coord_t top = lv_obj_get_style_pad_top(page, LV_PART_MAIN);
+  lv_obj_set_size(ui.overlay, lv_pct(100), lv_obj_get_height(page) - top);
+  lv_obj_set_pos(ui.overlay, 0, top);
   lv_obj_clear_flag(ui.overlay, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_style_radius(ui.overlay, 0, LV_PART_MAIN);
   lv_obj_set_style_border_width(ui.overlay, 0, LV_PART_MAIN);
   lv_obj_set_style_bg_opa(ui.overlay, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_bg_color(ui.overlay, lv_obj_get_style_bg_color(page, LV_PART_MAIN), LV_PART_MAIN);
-  lv_obj_set_style_pad_top(ui.overlay, lv_obj_get_style_pad_top(page, LV_PART_MAIN), LV_PART_MAIN);
+  lv_obj_set_style_pad_top(ui.overlay, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_bottom(ui.overlay, lv_obj_get_style_pad_bottom(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_left(ui.overlay, lv_obj_get_style_pad_left(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_right(ui.overlay, lv_obj_get_style_pad_right(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_row(ui.overlay, lv_obj_get_style_pad_row(page, LV_PART_MAIN), LV_PART_MAIN);
   lv_obj_set_style_pad_column(ui.overlay, lv_obj_get_style_pad_column(page, LV_PART_MAIN), LV_PART_MAIN);
 
-  // Built-in tiles use the normal column count up to four. Extra rows
-  // give addresses and translated labels room to wrap.
-  const int cols = std::max(2, std::min(4, metrics.cols));
-  const int rows = (5 + cols - 1) / cols;
+  const int cols = 3;
+  const int rows = 3;
   for (int i = 0; i < cols; ++i) ui.columns[i] = LV_GRID_FR(1);
   for (int i = 0; i < rows; ++i) ui.rows[i] = LV_GRID_FR(1);
   ui.columns[cols] = LV_GRID_TEMPLATE_LAST;
@@ -276,18 +289,24 @@ inline void network_status_open_modal(const std::string &device_name,
   const char *labels[] = {espdesktop_i18n("Back"), espdesktop_i18n("Build"),
                          espdesktop_i18n("IP address"), espdesktop_i18n("Connector"),
                          espdesktop_i18n("Pairing")};
+  const char *icons[] = {"\U000F0141", "\U000F04F9", "\U000F0200", "\U000F0379", "\U000F0306"};
+  // Keep order: Back, Build, wide IP, Connector, Pairing.
+  const int positions[] = {0, 1, 3, 5, 6};
+  const lv_font_t *card_icon_font = network_status_card_icon_font();
+  if (!card_icon_font) card_icon_font = icon_font;
   for (int i = 0; i < 5; ++i) {
     auto *button = create_grid_card_button(ui.overlay,
         lv_obj_get_style_radius(reference, LV_PART_MAIN),
         lv_obj_get_style_pad_top(reference, LV_PART_MAIN), label_font, text_color);
     apply_button_colors(button, false, DEFAULT_SLIDER_COLOR, true,
                         DEFAULT_OFF_COLOR);
-    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, i % cols, 1,
-                         LV_GRID_ALIGN_STRETCH, i / cols, 1);
-    BtnSlot slot = create_dynamic_card_slot(button, icon_font, label_font, label_font, text_color);
+    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, positions[i] % cols, i == 2 ? 2 : 1,
+                         LV_GRID_ALIGN_STRETCH, positions[i] / cols, 1);
+    BtnSlot slot = create_dynamic_card_slot(button, card_icon_font, label_font, label_font, text_color);
     apply_width_compensation(slot.icon_lbl, icon_width_compensation_percent());
     apply_text_width_compensation(slot.text_lbl);
     lv_label_set_display_text(slot.text_lbl, labels[i]);
+    lv_label_set_display_text(slot.icon_lbl, icons[i]);
     if (i == 0) {
       lv_label_set_display_text(slot.icon_lbl, "\U000F0141");
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_hide_modal(); },
@@ -295,27 +314,21 @@ inline void network_status_open_modal(const std::string &device_name,
       continue;
     }
     if (i == 4) {
-      lv_label_set_display_text(slot.icon_lbl, "\U000F0493");
       ui.pairing_button = button;
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_open_pairing(); },
                           LV_EVENT_CLICKED, nullptr);
       continue;
     }
     lv_obj_clear_flag(button, LV_OBJ_FLAG_CLICKABLE);
-    auto *value = lv_label_create(button);
-    lv_obj_set_style_text_font(value, label_font, LV_PART_MAIN);
-    lv_label_set_long_mode(value, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(value, lv_pct(100));
-    apply_text_width_compensation(value);
     if (i == 3) {
-      lv_obj_align(value, LV_ALIGN_LEFT_MID, 0, 0);
-      ui.connector_lbl = value;
+      ui.connector_lbl = slot.text_lbl;
       ui.connector_icon = slot.icon_lbl;
+    } else if (i == 1) {
+      const std::string build_label = std::string(espdesktop_i18n("Build")) + "\n" +
+          network_status_firmware_label(firmware_version);
+      lv_label_set_display_text(slot.text_lbl, build_label.c_str());
     } else {
-      lv_obj_add_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_align(value, LV_ALIGN_TOP_LEFT, 0, 0);
-      if (i == 1) lv_label_set_display_text(value, network_status_firmware_label(firmware_version).c_str());
-      else ui.ip_lbl = value;
+      ui.ip_lbl = slot.text_lbl;
     }
   }
   control_modal_set_active(ControlModalKind::NETWORK_STATUS, ui.overlay,

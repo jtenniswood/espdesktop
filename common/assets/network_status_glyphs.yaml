@@ -57,3 +57,5 @@
 - "\U000F0079"  # mdi-battery (100%)
 - "\U000F0141"  # mdi-chevron-left (Settings back tile)
 - "\U000F0493"  # mdi-cog (Connector not paired)
+- "\U000F0306"  # mdi-key (Pairing)
+- "\U000F04F9"  # mdi-tag (Build version)
