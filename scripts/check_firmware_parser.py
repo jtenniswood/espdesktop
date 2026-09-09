@@ -42,6 +42,7 @@ SAVED_CONFIG_WEBHOOK_HEADER = ROOT / "components" / "espdesktop" / "button_grid_
 SAVED_CONFIG_SUBPAGE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_subpage_generated.h"
 SAVED_CONFIG_SWITCH_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_switch_generated.h"
 BACKLIGHT_HEADER = ROOT / "components" / "espdesktop" / "backlight.h"
+BACKLIGHT_FADE_HEADER = ROOT / "components" / "espdesktop" / "backlight_fade.h"
 DISPLAY_MODE_CONTROLLER_HEADER = ROOT / "components" / "espdesktop" / "display_mode_controller.h"
 CLOCK_BAR_HEADER = ROOT / "components" / "espdesktop" / "clock_bar.h"
 LAYOUT_HEADER = ROOT / "components" / "espdesktop" / "button_grid_layout.h"
@@ -755,7 +756,7 @@ int main() {
   assert(rise_h == 6 && rise_m == 0 && set_h == 18 && set_m == 0);
 
   OrderResult parsed;
-  parse_order_string("1,2d,3w,4b,5t,6x,7h,8v,9l,99", 10, parsed);
+  parse_order_string("1,2d,3w,4b,5t,6x,7h,8v,9l,10u,99", 11, parsed);
   assert(parsed.positions[0] == 1);
   assert(parsed.positions[1] == 2);
   assert(parsed.row_span[1] == 2 && parsed.col_span[1] == 1);
@@ -766,6 +767,7 @@ int main() {
   assert(parsed.row_span[6] == 2 && parsed.col_span[6] == 3);
   assert(parsed.row_span[7] == 3 && parsed.col_span[7] == 2);
   assert(parsed.row_span[8] == 3 && parsed.col_span[8] == 4);
+  assert(parsed.row_span[9] == 1 && parsed.col_span[9] == 5);
 
   OrderResult overlap;
   parse_order_string("1b,2,3,4,5,6", 9, overlap);
@@ -984,6 +986,7 @@ def main() -> int:
         shutil.copy2(SAVED_CONFIG_SWITCH_HEADER, tmp_path / "button_grid_saved_config_switch_generated.h")
         shutil.copy2(CLOCK_BAR_HEADER, tmp_path / "clock_bar.h")
         shutil.copy2(BACKLIGHT_HEADER, tmp_path / "backlight.h")
+        shutil.copy2(BACKLIGHT_FADE_HEADER, tmp_path / "backlight_fade.h")
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
         shutil.copy2(LIMITS_HEADER, tmp_path / "button_grid_limits.h")

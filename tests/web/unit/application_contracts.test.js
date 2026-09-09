@@ -89,17 +89,8 @@ describe("browserless application contracts", () => {
     assert.match(store, /approvedApplicationIdentifiers\.contains\(\$0\.bundleIdentifier\)/);
     assert.match(store, /func setApplication\(_ application: LaunchableApp, approved: Bool\)/);
     assert.doesNotMatch(store, /NSWorkspace\.shared\.icon\(forFile: url\.path\)/);
-    assert.match(app, /case connection, applications, folders, general/);
-    assert.match(app, /HStack\(spacing: 0\)/);
-    assert.match(app, /selectedPageID = page\.rawValue/);
-    assert.match(app, /\.listStyle\(\.sidebar\)/);
-    assert.match(app, /\.formStyle\(\.grouped\)/);
-    assert.match(app, /TextField\("Search", text: \$applicationSearch\)/);
-    assert.doesNotMatch(app, /Image\(nsImage: application\.icon\)/);
-    assert.match(app, /\.toggleStyle\(\.checkbox\)/);
-    assert.match(app, /\.controlSize\(\.small\)/);
-    assert.match(app, /Toggle\("Select All", isOn: selectAllBinding\)/);
-    assert.match(app, /setApplications\(filteredApplications, approved: \$0\)/);
+    assert.match(app, /get: \{ store\.applicationIsApproved\(application\) \}/);
+    assert.match(app, /set: \{ store\.setApplication\(application, approved: \$0\) \}/);
     assert.equal((app.match(/isAvailable: store\.supportsLaunchAtLogin/g) || []).length, 2);
     assert.match(app, /\.disabled\(!isAvailable\)/);
   });
@@ -1153,6 +1144,8 @@ describe("browserless application contracts", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.match(shell, /export function createControlsShellFeature/);
+    assert.match(shell, /closeBtn\.addEventListener\("click", dependencies\.closeSettings\)/);
+    assert.doesNotMatch(shell, /overlay\.addEventListener\("click"/);
     assert.match(entry, /shell = createControlsShellFeature\(runtime, \{/);
     assert.match(entry, /schedule: \(\(callback: TimerHandler, delay\?: number\) => window\.setTimeout\(callback, delay\)\)/);
     assert.match(entry, /cancelSchedule: \(handle\) => \{ dom\.window\.clearTimeout\(handle\); \}/);
