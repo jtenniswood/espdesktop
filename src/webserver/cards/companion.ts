@@ -301,7 +301,7 @@ export function companionFolderActions(actions: readonly CompanionAction[]): rea
 export function companionFolderActionIdCanSave(
     actions: readonly CompanionAction[], actionId: string, savedActionId: string,
 ): boolean {
-    return actionId.startsWith(COMPANION_FOLDER_PREFIX) &&
+    return actionId.startsWith(COMPANION_FOLDER_PREFIX) && actionId.length > COMPANION_FOLDER_PREFIX.length &&
         (actionId === savedActionId || companionFolderActions(actions).some((action) => action.id === actionId));
 }
 
@@ -871,7 +871,7 @@ export function registerCompanionCardTypes(
                     option.selected = action.id === card.entity;
                     folderSelect.appendChild(option);
                 });
-                if (initialMode === "folder" && card.entity &&
+                if (initialMode === "folder" && card.entity && card.entity !== COMPANION_FOLDER_PREFIX &&
                     !folderActions.some(function (action) { return action.id === card.entity; })) {
                     const unavailable = document.createElement("option");
                     unavailable.value = card.entity;
@@ -891,8 +891,9 @@ export function registerCompanionCardTypes(
                 select.appendChild(unavailable);
                 folderSelect.replaceChildren();
                 const folderUnavailable = document.createElement("option");
-                folderUnavailable.value = initialMode === "folder" ? card.entity || "" : "";
-                folderUnavailable.textContent = card.entity && initialMode === "folder"
+                folderUnavailable.value = initialMode === "folder" && card.entity !== COMPANION_FOLDER_PREFIX
+                    ? card.entity || "" : "";
+                folderUnavailable.textContent = folderUnavailable.value
                     ? "Unavailable (companion offline)" : "Mac companion unavailable";
                 folderUnavailable.selected = true;
                 folderSelect.appendChild(folderUnavailable);

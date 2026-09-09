@@ -571,6 +571,9 @@ export function runCompanionShortcutFeatureTests(): void {
       || companionApplicationActionIdCanSave([], "com.apple.TextEdit", offlineSavedApp)) {
     throw new Error("Offline app editing must preserve only the card's existing app identifier");
   }
+  if (companionFolderActionIdCanSave([], "folder.", "folder.")) {
+    throw new Error("An empty folder placeholder must not be saved as an unavailable folder");
+  }
   const offlineSavedFolder = "folder.approved-documents";
   if (!companionFolderActionIdCanSave([], offlineSavedFolder, offlineSavedFolder)
       || companionFolderActionIdCanSave([], "folder.unapproved", offlineSavedFolder)) {
