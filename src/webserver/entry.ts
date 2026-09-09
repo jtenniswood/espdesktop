@@ -599,6 +599,7 @@ function composeApplicationContext(): ApplicationContext {
     },
   );
   preview = createPreviewRenderFeature({
+    updateClockBarItemUi: statusPreview.updateClockBarItemUi,
     document: dom.document,
     layout,
     cards,
