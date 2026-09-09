@@ -25,17 +25,20 @@ enum CompanionConnectionState: Equatable {
 
 enum CompanionPairingInput {
     static func normalizedCode(_ code: String) -> String? {
-        var letters = Array(code.trimmingCharacters(in: .whitespacesAndNewlines).utf8)
+        var letters = Array(code.trimmingCharacters(in: .whitespacesAndNewlines).unicodeScalars)
         // Firmware displays and verifies ABCD-EFGH. Accept typing without the
         // separator, but always send the exact format the display generates.
-        if letters.count == 9, letters[4] == 45 { letters.remove(at: 4) }
+        // Pasting or macOS smart punctuation may replace the separator. Only
+        // normalize a dash in the expected position; letters remain ASCII-only.
+        let separators: Set<UInt32> = [0x2D, 0x2010, 0x2011, 0x2013, 0x2014, 0x2212]
+        if letters.count == 9, separators.contains(letters[4].value) { letters.remove(at: 4) }
         guard letters.count == 8,
-              letters.allSatisfy({ (65...90).contains($0) || (97...122).contains($0) }) else { return nil }
-        let uppercase = String(decoding: letters, as: UTF8.self).uppercased()
+              letters.allSatisfy({ (65...90).contains($0.value) || (97...122).contains($0.value) }) else { return nil }
+        let uppercase = String(String.UnicodeScalarView(letters)).uppercased()
         return "\(uppercase.prefix(4))-\(uppercase.suffix(4))"
     }
 
     static func isValid(host: String, code: String) -> Bool {
-        ConnectionEndpointPolicy.isLocalHost(host) && normalizedCode(code) != nil
+        ConnectionEndpointPolicy.isLocalEndpoint(host) && normalizedCode(code) != nil
     }
 }

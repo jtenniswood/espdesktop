@@ -47,6 +47,8 @@ final class CompanionConnection: NSObject {
     private unowned let resources: any CompanionSessionResources
     private let credentials: any CompanionSessionCredentials
     var onEvent: ((CompanionSessionEvent) -> Void)?
+    private let discovery: CompanionDiscovery
+    private var endpointRecovery = CompanionEndpointRecovery()
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
     private var mode: Mode = .authenticate
@@ -95,10 +97,12 @@ final class CompanionConnection: NSObject {
 
     init(preferences: any CompanionSessionPreferences,
          resources: any CompanionSessionResources,
-         credentials: any CompanionSessionCredentials = CompanionKeychainCredentials()) {
+         credentials: any CompanionSessionCredentials = CompanionKeychainCredentials(),
+         discovery: CompanionDiscovery = CompanionDiscovery()) {
         self.preferences = preferences
         self.resources = resources
         self.credentials = credentials
+        self.discovery = discovery
     }
 
     private func updateConnectionStatus(_ message: String, state: CompanionConnectionState, recovery: String? = nil) {
@@ -106,6 +110,8 @@ final class CompanionConnection: NSObject {
     }
 
     func connect(mode: Mode) {
+        discovery.stop()
+        endpointRecovery = CompanionEndpointRecovery()
         startConnection(mode: mode, resetBackoff: true)
     }
 
@@ -124,6 +130,7 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Enter the display address first", state: .failed)
             return
         }
+        endpointRecovery.begin(savedEndpoint: preferences.panelHost)
         guard let url = connectionURL() else {
             shouldReconnect = false
             return
@@ -145,6 +152,8 @@ final class CompanionConnection: NSObject {
 
     func disconnect() {
         shouldReconnect = false
+        discovery.stop()
+        endpointRecovery = CompanionEndpointRecovery()
         reconnectTask?.cancel()
         reconnectTask = nil
         tearDownConnection()
@@ -152,8 +161,10 @@ final class CompanionConnection: NSObject {
     }
 
     private func tearDownConnection() {
+        if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
@@ -211,7 +222,7 @@ final class CompanionConnection: NSObject {
     }
 
     private func connectionURL() -> URL? {
-        let raw = preferences.panelHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = (endpointRecovery.attempted ?? preferences.panelHost).trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parsed = URL(string: raw.contains("://") ? raw : "wss://\(raw)"),
               let host = parsed.host,
               ConnectionEndpointPolicy.isLocalHost(host) else {
@@ -244,6 +255,7 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code from its webpage.")
             completionHandler(.cancelAuthenticationChallenge, nil)
         } else if saved != nil {
+            endpointRecovery.verifiedFingerprint = fingerprint
             if case .pair = mode { pendingCertificateFingerprint = fingerprint }
             completionHandler(.useCredential, URLCredential(trust: trust))
         } else if case .pair = mode {
@@ -335,7 +347,7 @@ final class CompanionConnection: NSObject {
     }
 
     private func scheduleReconnect() {
-        guard !hasTerminalConnectionError else { return }
+        guard !hasTerminalConnectionError else { discovery.stop(); return }
         // Pairing failures deliberately close their unauthenticated socket.
         // Keep the specific server error visible instead of replacing it with
         // a generic disconnect message during that expected teardown.
@@ -344,6 +356,12 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Display disconnected", state: .disconnected)
             return
         }
+        discovery.onChange = { [weak self] displays in
+            guard let self, self.shouldReconnect, !self.hasTerminalConnectionError else { return }
+            let saved = self.preferences.stringPreference(forKey: self.certificateFingerprintKey)
+            self.endpointRecovery.discovered(displays, expectedFingerprint: saved)
+        }
+        discovery.start()
         guard reconnectTask == nil else { return }
         updateConnectionStatus("Display unavailable — reconnecting…", state: .reconnecting)
         reconnectTask = Task { [weak self] in
@@ -401,6 +419,14 @@ final class CompanionConnection: NSObject {
             guard case .authenticate = mode, authenticationRequestOutstanding else { return false }
             authenticationRequestOutstanding = false
             sessionAuthenticated = true
+            // A Bonjour TXT record never authorizes a location change. Both the
+            // pinned TLS certificate and the authenticated session must agree.
+            if let endpoint = endpointRecovery.authenticatedEndpoint(
+                expectedFingerprint: preferences.stringPreference(forKey: certificateFingerprintKey)) {
+                preferences.panelHost = endpoint
+            }
+            endpointRecovery = CompanionEndpointRecovery()
+            discovery.stop()
             connectionTimeoutTask?.cancel()
             connectionTimeoutTask = nil
             reconnectAttempt = 0

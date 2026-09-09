@@ -5,6 +5,17 @@ import Foundation
 /// Keeping this policy next to URL construction prevents a future feature from
 /// accidentally sending panel-bound telemetry to a public host.
 enum ConnectionEndpointPolicy {
+    /// Form input can include the Companion port supplied by Bonjour.
+    static func isLocalEndpoint(_ value: String) -> Bool {
+        let raw = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty,
+              let endpoint = URLComponents(string: raw.contains("://") ? raw : "wss://\(raw)"),
+              let scheme = endpoint.scheme?.lowercased(), ["http", "https", "ws", "wss"].contains(scheme),
+              endpoint.user == nil, endpoint.password == nil,
+              endpoint.url != nil, let host = endpoint.host, isLocalHost(host) else { return false }
+        return endpoint.port.map { (1...65535).contains($0) } ?? true
+    }
+
     static func isLocalHost(_ value: String) -> Bool {
         let host = value.trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()

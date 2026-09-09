@@ -37,27 +37,32 @@ private enum CompanionPairingStep {
 }
 
 private struct CompanionOnboardingPage<Content: View>: View {
-    let icon: String
     let title: String
     let summary: String
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            Image(systemName: icon)
-                .font(.system(size: 36, weight: .medium))
-                .foregroundStyle(.tint)
-                .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(.system(size: 28, weight: .semibold))
-                Text(summary)
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
+                Text(title).font(.title3.weight(.semibold))
+                Text(summary).font(.body).foregroundStyle(.secondary)
             }
-            content()
+            .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 12) {
+                content()
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.08))
+            }
         }
-        .frame(maxWidth: 620, alignment: .leading)
+        .frame(maxWidth: 460, alignment: .leading)
     }
 }
 
@@ -139,37 +144,56 @@ private struct CompanionAccessibilityToggle: View {
     }
 }
 
+private struct OnboardingWindowTitle: NSViewRepresentable {
+    let hidden: Bool
+
+    func makeNSView(context: Context) -> TitleView { TitleView() }
+    func updateNSView(_ view: TitleView, context: Context) {
+        view.hideTitle = hidden
+    }
+
+    final class TitleView: NSView {
+        var hideTitle = false {
+            didSet { window?.titleVisibility = hideTitle ? .hidden : .visible }
+        }
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            window?.titleVisibility = hideTitle ? .hidden : .visible
+        }
+    }
+}
+
 private struct CompanionOnboarding: View {
     @ObservedObject var store: CompanionStore
     let onComplete: () -> Void
     @State private var step = 0
     @State private var accessibilityGranted = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let totalSteps = 3
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Set up EspDesktop")
-                    .font(.title2.weight(.semibold))
-                HStack(spacing: 10) {
-                    ProgressView(value: Double(step + 1), total: Double(totalSteps))
-                    Text("\(step + 1) of \(totalSteps)")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 36) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Step \(step + 1) of \(totalSteps)")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                        Text("Set up EspDesktop")
+                            .font(.system(size: 30, weight: .semibold))
+                        Text("Your display is paired. Customize it in three steps.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    currentPage
+                        .id(step)
+                        .transition(.opacity)
                 }
+                .frame(maxWidth: 460, alignment: .leading)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 36)
             }
-            .frame(maxWidth: 620, alignment: .leading)
-            .padding(.top, 34)
-
-            Spacer(minLength: 28)
-
-            currentPage
-                .id(step)
-                .transition(.opacity)
-
-            Spacer(minLength: 28)
 
             Divider()
             HStack {
@@ -188,12 +212,14 @@ private struct CompanionOnboarding: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-            .frame(maxWidth: 620)
+            .controlSize(.large)
+            .frame(maxWidth: 460)
             .padding(.vertical, 18)
         }
-        .padding(.horizontal, 44)
+        .padding(.horizontal, 28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .animation(.easeInOut(duration: 0.2), value: step)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: step)
         .onAppear { refreshAccessibilityStatus() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
@@ -204,33 +230,30 @@ private struct CompanionOnboarding: View {
         switch step {
         case 0:
             CompanionOnboardingPage(
-                icon: "keyboard",
-                title: "Enable shortcut support",
-                summary: "Shortcut and window-control cards need macOS Accessibility permission to send commands to your active Mac app."
+                title: "Control your Mac",
+                summary: "Use your display for shortcuts and window controls."
             ) {
                 CompanionAccessibilityToggle(isEnabled: $accessibilityGranted, requestAccess: enableAccessibility)
                 Text(accessibilityGranted
-                     ? "Keyboard shortcuts and window controls are enabled for your display."
-                     : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.")
+                     ? "Accessibility access is enabled."
+                     : "Requires Accessibility access in System Settings.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
         case 1:
             CompanionOnboardingPage(
-                icon: "chart.bar.xaxis",
-                title: "Statistics card support",
-                summary: "Stats cards can show processor, memory, storage, network, and battery information from this Mac. Data is only shared to your local device."
+                title: "Choose what to see",
+                summary: "Show your Mac’s performance on your display."
             ) {
                 CompanionStatsToggle(isEnabled: $store.shareSystemMetricsEnabled)
-                Text("Statistics are shared only with your paired display on the local network. You can change this later in Permissions settings.")
+                Text("Shared only with your paired display on your local network.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
         default:
             CompanionOnboardingPage(
-                icon: "power",
-                title: "Stay connected at login",
-                summary: "Start EspDesktop automatically when you sign in so your paired display can reconnect to the Mac."
+                title: "Make it part of your day",
+                summary: "Keep your display ready whenever you sign in."
             ) {
                 CompanionLaunchAtLoginToggle(
                     isEnabled: store.launchAtLoginBinding(),
@@ -256,10 +279,14 @@ private struct CompanionOnboarding: View {
 
 struct CompanionSettings: View {
     @ObservedObject var store: CompanionStore
+    @StateObject private var discovery = CompanionDiscovery()
+    @State private var manualAddress = false
+    @State private var selectedDisplayID: String?
     @State private var pairingCode = ""
     @State private var confirmingForget = false
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pairingStep: CompanionPairingStep = .address
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
@@ -268,39 +295,26 @@ struct CompanionSettings: View {
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
-        if onboardingCompleted || store.requestedSettingsPage == "help" {
-            settingsContent
-        } else {
-            CompanionOnboarding(store: store) {
-                onboardingCompleted = true
+        Group {
+            switch CompanionSetupRoute.resolve(
+                completed: onboardingCompleted,
+                showingHelp: store.requestedSettingsPage == "help",
+                hasSavedPairing: store.hasSavedPairing,
+                pairingInProgress: pairingFlowActive
+            ) {
+            case .settings:
+                settingsContent
+            case .pairing:
+                pairingFlowPage
+                    .background(Color(nsColor: .windowBackgroundColor))
+                    .onAppear { if !pairingFlowActive { startPairingFlow() } }
+            case .preferences:
+                CompanionOnboarding(store: store) {
+                    onboardingCompleted = true
+                }
             }
         }
-    }
-
-    private var settingsContent: some View {
-        detailView
-            .scrollContentBackground(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(Color(nsColor: .windowBackgroundColor))
-            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
-            .navigationTitle("Settings")
-            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-                floatingSupportButton
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                    .padding(.bottom, 24)
-            }
-        .onAppear {
-            selectedPageID = store.requestedSettingsPage
-            if !store.hasSavedPairing && !pairingFlowActive { startPairingFlow() }
-            refreshAccessibilityStatus()
-        }
-        .onChange(of: store.settingsRequestID) { _ in
-            selectedPageID = store.requestedSettingsPage
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            refreshAccessibilityStatus()
-        }
+        .background(OnboardingWindowTitle(hidden: !onboardingCompleted && store.requestedSettingsPage != "help"))
         .onChange(of: store.isConnected) { connected in
             if connected {
                 pairingCode = ""
@@ -320,10 +334,40 @@ struct CompanionSettings: View {
             case .connecting, .connected: focusedField = nil
             }
         }
+    }
+
+    private var settingsContent: some View {
+        detailView
+            .scrollContentBackground(.hidden)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color(nsColor: .windowBackgroundColor))
+            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
+            .navigationTitle("Settings")
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                floatingSupportButton
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
+            }
+        .onAppear {
+            selectedPageID = store.requestedSettingsPage
+            if !store.hasSavedPairing && !pairingFlowActive && store.requestedSettingsPage != "help" {
+                startPairingFlow()
+            }
+            refreshAccessibilityStatus()
+        }
+        .onChange(of: store.settingsRequestID) { _ in
+            selectedPageID = store.requestedSettingsPage
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            refreshAccessibilityStatus()
+        }
         .alert("Forget this display?", isPresented: $confirmingForget) {
             Button("Cancel", role: .cancel) {}
             Button("Forget Display", role: .destructive) {
                 store.forgetPanel()
+                selectedDisplayID = nil
+                manualAddress = false
                 pairingCode = ""
                 pairingFlowActive = true
                 pairingStep = .address
@@ -401,14 +445,14 @@ struct CompanionSettings: View {
     private var pairingFlowPage: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Text("Step \(pairingStepNumber) of 3")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
+                    Text("Step \(pairingStepNumber) of 3")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
                     Text(pairingStepTitle)
                         .font(.title.weight(.semibold))
                     Text(pairingStepDescription)
-                        .font(.title3)
+                        .font(.callout)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -417,18 +461,14 @@ struct CompanionSettings: View {
                 if pairingStep == .address || pairingStep == .code {
                     VStack(alignment: .leading, spacing: 10) {
                         if pairingStep == .address {
-                            TextField("IP address or name.local", text: $store.panelHost)
-                                .textFieldStyle(.roundedBorder)
-                                .accessibilityLabel("Display address")
-                                .focused($focusedField, equals: .panelHost)
-                                .onSubmit { openPairingPage() }
+                            displaySelection
+                                .onAppear { if !manualAddress { discovery.start() } }
+                                .onDisappear { discovery.stop() }
+                                .onChange(of: manualAddress) { manual in
+                                    if manual { discovery.stop() } else { discovery.start() }
+                                }
                         } else {
-                            TextField("ABCD-EFGH", text: $pairingCode)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.system(.title3, design: .monospaced))
-                                .accessibilityLabel("Pairing code")
-                                .focused($focusedField, equals: .pairingCode)
-                                .onSubmit { pairDisplay() }
+                            CompanionPairingCodeField(code: $pairingCode, onSubmit: pairDisplay)
                         }
                         if !pairingFlowError.isEmpty {
                             Label(pairingFlowError, systemImage: "exclamationmark.circle")
@@ -447,7 +487,7 @@ struct CompanionSettings: View {
                                 focusedField = .panelHost
                             }
                         }
-                        Spacer()
+                        if pairingStep == .code { Spacer() }
                         Button(pairingStep == .address ? "Continue" : "Connect") {
                             if pairingStep == .address { openPairingPage() } else { pairDisplay() }
                         }
@@ -458,7 +498,7 @@ struct CompanionSettings: View {
                     ProgressView()
                         .accessibilityLabel("Connecting to display")
                 } else {
-                    Button("Done") {
+                    Button(onboardingCompleted ? "Done" : "Continue to customize") {
                         pairingFlowActive = false
                         pairingStep = .address
                     }
@@ -473,6 +513,98 @@ struct CompanionSettings: View {
         }
     }
 
+    @ViewBuilder
+    private var displaySelection: some View {
+        if manualAddress {
+            TextField("IP address or name.local", text: $store.panelHost)
+                .textFieldStyle(.roundedBorder)
+                .accessibilityLabel("Display address")
+                .focused($focusedField, equals: .panelHost)
+                .onSubmit { openPairingPage() }
+            Button("Find displays automatically") {
+                manualAddress = false
+                selectedDisplayID = nil
+            }
+            .buttonStyle(.link)
+            .font(.callout)
+        } else {
+            if discovery.displays.isEmpty {
+                displayOption(
+                    title: discovery.isSearching ? "Searching for displays…" : "Discovery unavailable",
+                    subtitle: discovery.message,
+                    icon: "exclamationmark.circle",
+                    selected: false,
+                    searching: discovery.isSearching
+                )
+                if !discovery.isSearching {
+                    Button("Retry discovery") { discovery.stop(); discovery.start() }
+                }
+            }
+            ForEach(discovery.displays) { display in
+                Button {
+                    selectedDisplayID = display.id
+                } label: {
+                    displayOption(
+                        title: display.name,
+                        subtitle: display.hostname,
+                        icon: selectedDisplayID == display.id ? "checkmark.circle.fill" : "circle",
+                        selected: selectedDisplayID == display.id
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(display.name), \(display.hostname)")
+                .accessibilityAddTraits(selectedDisplayID == display.id ? .isSelected : [])
+            }
+            Button {
+                manualAddress = true
+                selectedDisplayID = nil
+                focusedField = .panelHost
+            } label: {
+                displayOption(
+                    title: "Enter address manually",
+                    subtitle: "Use an IP address or hostname",
+                    icon: "keyboard",
+                    selected: false
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func displayOption(title: String, subtitle: String, icon: String, selected: Bool, searching: Bool = false) -> some View {
+        HStack(spacing: 12) {
+            Group {
+                if searching {
+                    ProgressView().controlSize(.small)
+                        .accessibilityLabel("Searching for displays")
+                } else {
+                    Image(systemName: icon)
+                        .font(.title3)
+                        .foregroundStyle(selected ? Color.accentColor : Color.secondary)
+                }
+            }
+            .frame(width: 24)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.body.weight(.medium))
+                Text(subtitle).font(.caption).foregroundStyle(.secondary)
+            }
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(selected ? Color.accentColor.opacity(0.1) : Color.primary.opacity(0.04))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(selected ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: 1)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 10))
+    }
+
     private var pairingStepNumber: Int {
         switch pairingStep {
         case .address: return 1
@@ -483,7 +615,7 @@ struct CompanionSettings: View {
 
     private var pairingStepTitle: String {
         switch pairingStep {
-        case .address: return "Connect your display"
+        case .address: return "Choose your display"
         case .code: return "Enter pairing code"
         case .connecting: return "Connecting your display"
         case .connected: return "You’re connected"
@@ -493,7 +625,7 @@ struct CompanionSettings: View {
     private var pairingStepDescription: String {
         switch pairingStep {
         case .address:
-            return "Enter its address. Your Mac and display must be on the same network."
+            return "Your Mac and display must be on the same network."
         case .code:
             return "Start pairing in your browser, then enter the eight-letter code."
         case .connecting:
@@ -563,16 +695,23 @@ struct CompanionSettings: View {
     }
 
     private var canOpenPairingPage: Bool {
-        CompanionStore.panelWebServerURL(from: store.panelHost) != nil
+        manualAddress ? CompanionStore.panelWebServerURL(from: store.panelHost) != nil
+            : discovery.displays.contains(where: { $0.id == selectedDisplayID })
     }
 
     private func startPairingFlow() {
+        selectedDisplayID = nil
+        manualAddress = false
         pairingFlowActive = true
         pairingStep = .address
         pairingFlowError = ""
     }
 
     private func openPairingPage() {
+        if !manualAddress {
+            guard let display = discovery.displays.first(where: { $0.id == selectedDisplayID }) else { return }
+            store.panelHost = display.endpoint
+        }
         guard canOpenPairingPage else {
             pairingFlowError = "Enter a valid local IP address or name.local."
             return
@@ -586,10 +725,15 @@ struct CompanionSettings: View {
     }
 
     private func pairDisplay() {
-        guard canPair else {
+        guard CompanionPairingInput.normalizedCode(pairingCode) != nil else {
             pairingFlowError = "Enter the eight-letter pairing code shown on the display."
             return
         }
+        guard ConnectionEndpointPolicy.isLocalEndpoint(store.panelHost) else {
+            pairingFlowError = "Go back and choose a display or enter a valid local address."
+            return
+        }
+        guard !store.connectionState.isBusy else { return }
         pairingFlowError = ""
         pairingStep = .connecting
         store.pair(code: pairingCode)
@@ -730,8 +874,8 @@ struct CompanionSettings: View {
                 CompanionPermissionRow(
                     title: "Enable Keyboard Shortcuts",
                     information: accessibilityGranted
-                        ? "Keyboard shortcuts and window controls are enabled for your display."
-                        : "Turn on EspDesktop in System Settings → Privacy & Security → Accessibility to enable keyboard shortcuts and window controls.",
+                        ? "Accessibility access is enabled."
+                        : "Requires Accessibility access in System Settings.",
                     isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
                 )
             }

@@ -61,3 +61,11 @@ description:
 - For startup, WiFi, loading screen, or Home Assistant connection problems, include a USB log from the [Collect USB Logs](/reference/collect-usb-logs) guide.
 
 Next: [Setup](/features/setup)
+
+## Mac app cannot find a display
+
+- Connect the Mac and display to the same local network. Guest WiFi and separate network segments can block Bonjour discovery.
+- Use display firmware with discovery support and the matching Mac app. Mac Companion currently supports the 4-inch S3 4848S040.
+- On macOS versions with local-network privacy controls, allow **EspDesktop** under **System Settings → Privacy & Security → Local Network**, then choose **Retry discovery**. Restart the app if needed.
+- Choose **Enter address manually** to use the display's IP address or `.local` name. Local-network permission is still needed to connect.
+- An unexpected certificate change requires forgetting and pairing the display again; discovery never bypasses that check.

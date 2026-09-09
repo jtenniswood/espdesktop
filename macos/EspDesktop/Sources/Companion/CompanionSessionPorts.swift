@@ -4,7 +4,7 @@ import Foundation
 // replaceable ports; the transport never depends on SwiftUI or CompanionStore.
 @MainActor
 protocol CompanionSessionPreferences: AnyObject {
-    var panelHost: String { get }
+    var panelHost: String { get set }
     var pairingAccount: String { get }
     var hasSavedPairing: Bool { get }
     func stringPreference(forKey key: String) -> String?

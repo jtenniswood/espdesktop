@@ -17,7 +17,7 @@ function sourceFiles(directory) {
 
 describe("browserless application contracts", () => {
   const { runClipboardFeatureTests } = loadTypescriptTest("tests/web/clipboard_feature.test.ts");
-  const { runCompanionPairingFeatureTests } = loadTypescriptTest("tests/web/companion_pairing_feature.test.ts");
+  const { runCompanionPairingFeatureTests, runCompanionCopyTests } = loadTypescriptTest("tests/web/companion_pairing_feature.test.ts");
   const { runCompanionShortcutFeatureTests } = loadTypescriptTest("tests/web/companion_shortcut_feature.test.ts");
   const { runConnectorsFeatureTests } = loadTypescriptTest("tests/web/connectors_feature.test.ts");
   const { runApplicationContextTests } = loadTypescriptTest("tests/web/application_context.test.ts");
@@ -32,6 +32,8 @@ describe("browserless application contracts", () => {
   test("plans clipboard transfers", () => {
     runClipboardFeatureTests();
   });
+
+  test("copies Companion codes on HTTPS and local HTTP", runCompanionCopyTests);
 
   test("formats browser Companion pairing status", () => {
     runCompanionPairingFeatureTests();
@@ -59,9 +61,9 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(connectors, /Actions confirmed/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
-    assert.match(companion, /Open this page to start pairing/);
-    assert.match(companion, /Copy the pairing code shown below/);
-    assert.doesNotMatch(companion, /Pairing code:|copyButton/);
+    assert.match(companion, /Connect your Mac/);
+    assert.match(companion, /Copy the code below/);
+    assert.match(companion, /Copy pairing code/);
     assert.match(styles, /\.sp-connectors-config\{max-width:960px/);
     assert.doesNotMatch(connectors, /sp-connectors-intro|Manage the services that provide data and actions/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
