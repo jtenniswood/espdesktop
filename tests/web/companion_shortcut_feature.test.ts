@@ -358,6 +358,12 @@ export function runCompanionShortcutFeatureTests(): void {
       slackSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
     throw new Error("Slack app subpage layout changed");
   }
+  const ipCard: any = { type: "companion", entity: "stat.ip_address:en1", icon: "Auto" };
+  normalizeCompanionCard(ipCard);
+  if (ipCard.entity !== "stat.ip_address:en1" || ipCard.icon !== "Laptop" ||
+      decodeCompanionCard(ipCard).mode !== "stats") {
+    throw new Error("Mac IP cards must preserve their selected network device and use a laptop icon");
+  }
   if (!companionCardIsMetric({ entity: "stat.memory" }) ||
       !companionCardIsMetric({ entity: "stat.memory_free" }) ||
       companionCardIsMetric({ entity: "sensor.memory_use" })) {
@@ -376,6 +382,7 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   if (JSON.stringify(COMPANION_STATS_OPTIONS) !== JSON.stringify([
     ["battery", "Battery"],
+    ["ip_address", "IP address"],
     ["memory_usage", "Memory"],
     ["network_throughput", "Network"],
     ["processor", "Processor"],

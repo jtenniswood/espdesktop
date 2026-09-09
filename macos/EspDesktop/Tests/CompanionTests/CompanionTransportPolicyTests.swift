@@ -28,16 +28,12 @@ final class CompanionTransportPolicyTests: XCTestCase {
         ))
     }
 
-    func testStorageDeviceChangesPublishImmediately() {
-        var initial = snapshot(generation: 1, cpu: 20, memory: 40, storage: 60, battery: nil, network: nil)
-        initial.storageDevices = [.init(id: "drive", label: "External", usagePercent: 40)]
-        var current = initial
-        current.storageDevices = [.init(id: "drive", label: "External", usagePercent: 40.01)]
-        XCTAssertFalse(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: current, elapsedSeconds: 2))
-        current.storageDevices = [.init(id: "drive", label: "Renamed", usagePercent: 40)]
-        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: current, elapsedSeconds: 2))
-        current.storageDevices = []
-        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: current, elapsedSeconds: 2))
+    func testNetworkAddressChangePublishesWithoutWaitingForHeartbeat() {
+        let initial = snapshot(generation: 1, cpu: 20, memory: 40, storage: 60, battery: nil, network: nil)
+        var changed = initial
+        changed.networkInterfaces = [.init(id: "en0", label: "Wi-Fi", address: "192.168.1.10")]
+        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: changed, elapsedSeconds: 2))
+        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: changed, current: initial, elapsedSeconds: 2))
     }
 
     private func snapshot(

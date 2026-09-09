@@ -3,11 +3,7 @@ import { COMPANION_MEDIA_ACTIONS, COMPANION_SYSTEM_METRICS } from "../generated/
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 
 export function companionMetricForEntity(entity: unknown) {
-  if (typeof entity !== "string") return undefined;
-  const [base, device, ...extra] = entity.split(":");
-  if (device !== undefined && ((!device || device.length > 64 || extra.length) ||
-      (base !== "stat.storage" && base !== "stat.storage_free"))) return undefined;
-  return COMPANION_SYSTEM_METRICS.find((metric) => metric.id === base || metric.freeId === base);
+  return COMPANION_SYSTEM_METRICS.find((metric) => metric.id === entity || metric.freeId === entity || (metric.id === "stat.ip_address" && typeof entity === "string" && entity.startsWith("stat.ip_address:")));
 }
 
 export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCardModeId {

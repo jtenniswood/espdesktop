@@ -113,10 +113,11 @@ Turn on **Share Mac system statistics** in the Mac app's **Permissions** page, t
 | **Storage** | Used or free storage as a percentage |
 | **Network** | Current combined network throughput in MB/s |
 | **Battery** | Battery charge percentage; unavailable on Macs without a battery |
+| **IP address** | Laptop icon and the IPv4 address of the selected Mac network device |
 
-**Storage device** lets you choose a mounted local drive, including external drives. Existing cards use **Startup disk (default)**. The selected drive is remembered when renamed or disconnected; a disconnected drive shows `--` until it returns. Reopen card settings to refresh the drive list. This needs both the updated Mac app and display firmware, with statistics sharing enabled.
+For **IP address**, choose a **Network device**, such as Wi-Fi or Ethernet. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
 
-These cards support the same label, unit, precision, and large-number display choices as numeric Sensor cards, but their values come directly from the paired Mac. Statistics are not shared until you turn the option on.
+Numeric statistics support the same label, unit, precision, and large-number display choices as numeric Sensor cards, but their values come directly from the paired Mac. Statistics are not shared until you turn the option on.
 
 You can also choose **Subpage → Companion Stat** to put one of these readings on a home-screen tile that opens a page of related Mac controls.
 

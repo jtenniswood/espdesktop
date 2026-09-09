@@ -386,6 +386,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Window Open",                    "\U000F05B1"},
     {"Window Shutter",                 "\U000F111C"},
     {"Window Shutter Open",            "\U000F111E"},
+    {"Laptop",                         "\U000F0322"},
     // --- GENERATED:ICONS END ---
 };
 

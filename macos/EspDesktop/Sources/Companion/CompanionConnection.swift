@@ -559,6 +559,9 @@ final class CompanionConnection: NSObject {
                 ["id": $0.id, "label": $0.label, "usagePercent": $0.usagePercent] as [String: Any]
             },
         ]
+        message["networkInterfaces"] = snapshot.networkInterfaces.map {
+            ["id": $0.id, "label": $0.label, "address": $0.address]
+        }
         if let battery = snapshot.batteryPercent { message["batteryPercent"] = battery }
         if let throughput = snapshot.networkThroughputKBps {
             message["networkThroughputKBps"] = throughput
@@ -688,6 +691,7 @@ final class CompanionConnection: NSObject {
         elapsedSeconds: TimeInterval
     ) -> Bool {
         guard let previous else { return true }
+        if current.networkInterfaces != previous.networkInterfaces { return true }
         if elapsedSeconds >= 30 { return true }
         if abs(current.cpuUsagePercent - previous.cpuUsagePercent) >= 1 { return true }
         if abs(current.memoryUsagePercent - previous.memoryUsagePercent) >= 0.5 { return true }

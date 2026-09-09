@@ -55,10 +55,10 @@ struct CompanionNowPlayingSnapshot {
   bool artwork_follows{false};
 };
 
-struct CompanionStorageDevice {
+struct CompanionNetworkInterface {
   std::string id;
   std::string label;
-  float usage_percent{NAN};
+  std::string address;
 };
 
 struct CompanionSystemMetricsSnapshot {
@@ -68,7 +68,7 @@ struct CompanionSystemMetricsSnapshot {
   float storage_usage_percent{NAN};
   float battery_percent{NAN};
   float network_throughput_kbps{NAN};
-  std::vector<CompanionStorageDevice> storage_devices;
+  std::vector<CompanionNetworkInterface> network_interfaces;
 };
 
 struct CompanionRuntimeSnapshot {
@@ -82,6 +82,15 @@ struct CompanionRuntimeSnapshot {
   CompanionNowPlayingSnapshot now_playing;
   CompanionSystemMetricsSnapshot system_metrics;
 };
+
+inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
+                                              const std::string &key) {
+  if (!snapshot.connected || key.rfind("stat.ip_address:", 0) != 0) return "--";
+  const auto id = key.substr(16);
+  for (const auto &network : snapshot.system_metrics.network_interfaces)
+    if (network.id == id && !network.address.empty()) return network.address;
+  return "--";
+}
 
 using CompanionActionSender = std::function<bool(const std::string &, const std::string &)>;
 using CompanionUrlSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;

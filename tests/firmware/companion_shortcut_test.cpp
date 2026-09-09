@@ -122,6 +122,14 @@ int main() {
   assert(!companion_action_available("shortcut.command+a"));
   assert(!companion_action_available("window.close"));
   assert(!companion_action_available("window.not-real"));
+  assert(companion_metric_key_valid("stat.ip_address:en0"));
+  CompanionRuntimeSnapshot network_snapshot;
+  network_snapshot.connected = true;
+  network_snapshot.system_metrics.network_interfaces = {{"en0", "Wi-Fi", "192.168.1.10"}, {"en1", "Ethernet", "10.0.0.2"}};
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en1") == "10.0.0.2");
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en2") == "--");
+  network_snapshot.connected = false;
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en0") == "--");
   assert(companion_metric_key_valid("stat.cpu"));
   assert(!companion_metric_key_valid("sensor.cpu"));
   assert(std::string(companion_metric_label_key("stat.memory")) == "memory");

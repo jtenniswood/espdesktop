@@ -962,196 +962,70 @@
     "valid": false
   },
   {
-    "name": "storage devices",
-    "direction": "mac_to_panel",
-    "state": "connected",
-    "valid": true,
+    "name": "statistics-network-devices",
     "message": {
-      "type": "system_metrics",
       "protocol": 3,
+      "type": "system_metrics",
       "generation": 1,
-      "cpuUsagePercent": 10,
-      "memoryUsagePercent": 20,
-      "storageUsagePercent": 30,
-      "storageDevices": [
+      "cpuUsagePercent": 20.2,
+      "memoryUsagePercent": 33,
+      "storageUsagePercent": 80,
+      "batteryPercent": 50,
+      "networkThroughputKBps": 1024,
+      "networkInterfaces": [
         {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
+          "id": "en0",
+          "label": "Wi-Fi (en0)",
+          "address": "192.168.1.10"
+        },
+        {
+          "id": "en1",
+          "label": "Ethernet (en1)",
+          "address": ""
         }
       ]
-    }
-  },
-  {
-    "name": "empty storage devices",
+    },
     "direction": "mac_to_panel",
     "state": "connected",
-    "valid": true,
-    "message": {
-      "type": "system_metrics",
-      "protocol": 3,
-      "generation": 1,
-      "cpuUsagePercent": 10,
-      "memoryUsagePercent": 20,
-      "storageUsagePercent": 30,
-      "storageDevices": []
-    }
+    "valid": true
   },
   {
-    "name": "null storage devices",
+    "name": "statistics-network-devices-null",
+    "message": {
+      "protocol": 3,
+      "type": "system_metrics",
+      "generation": 1,
+      "cpuUsagePercent": 20.2,
+      "memoryUsagePercent": 33,
+      "storageUsagePercent": 80,
+      "batteryPercent": 50,
+      "networkThroughputKBps": 1024,
+      "networkInterfaces": null
+    },
     "direction": "mac_to_panel",
     "state": "connected",
-    "valid": false,
-    "message": {
-      "type": "system_metrics",
-      "protocol": 3,
-      "generation": 1,
-      "cpuUsagePercent": 10,
-      "memoryUsagePercent": 20,
-      "storageUsagePercent": 30,
-      "storageDevices": null
-    }
+    "valid": false
   },
   {
-    "name": "too many storage devices",
-    "direction": "mac_to_panel",
-    "state": "connected",
-    "valid": false,
+    "name": "statistics-network-device-missing-address",
     "message": {
-      "type": "system_metrics",
       "protocol": 3,
+      "type": "system_metrics",
       "generation": 1,
-      "cpuUsagePercent": 10,
-      "memoryUsagePercent": 20,
-      "storageUsagePercent": 30,
-      "storageDevices": [
+      "cpuUsagePercent": 20.2,
+      "memoryUsagePercent": 33,
+      "storageUsagePercent": 80,
+      "batteryPercent": 50,
+      "networkThroughputKBps": 1024,
+      "networkInterfaces": [
         {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
-        },
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 42
+          "id": "en0",
+          "label": "Wi-Fi"
         }
       ]
-    }
-  },
-  {
-    "name": "invalid storage percent",
+    },
     "direction": "mac_to_panel",
     "state": "connected",
-    "valid": false,
-    "message": {
-      "type": "system_metrics",
-      "protocol": 3,
-      "generation": 1,
-      "cpuUsagePercent": 10,
-      "memoryUsagePercent": 20,
-      "storageUsagePercent": 30,
-      "storageDevices": [
-        {
-          "id": "external",
-          "label": "External drive",
-          "usagePercent": 101
-        }
-      ]
-    }
-  },
-  {
-    "name": "missing storage identity",
-    "direction": "mac_to_panel",
-    "state": "connected",
-    "valid": false,
-    "message": {
-      "type": "system_metrics",
-      "protocol": 3,
-      "generation": 1,
-      "cpuUsagePercent": 10,
-      "memoryUsagePercent": 20,
-      "storageUsagePercent": 30,
-      "storageDevices": [
-        {
-          "label": "External",
-          "usagePercent": 42
-        }
-      ]
-    }
+    "valid": false
   }
 ]

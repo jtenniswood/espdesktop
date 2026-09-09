@@ -312,6 +312,12 @@ export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [
     id: "stat.network_throughput",
     label: "Network",
     unit: "MB/s"
+  },
+  {
+    mode: "ip_address",
+    id: "stat.ip_address",
+    label: "IP address",
+    unit: ""
   }
 ];
 export const COMPANION_MEDIA_PLAY_PAUSE_ACTION = "media.play_pause" as const;
