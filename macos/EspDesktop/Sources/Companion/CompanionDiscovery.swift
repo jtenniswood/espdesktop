@@ -43,7 +43,8 @@ protocol DisplayDiscoveryBackend: AnyObject {
 @MainActor
 final class CompanionDiscovery: ObservableObject {
     @Published private(set) var displays: [DiscoveredDisplay] = []
-    @Published private(set) var message = "Searching for displays…"
+    @Published private(set) var message = "Displays will appear here automatically."
+    @Published private(set) var isSearching = false
     private let backend: any DisplayDiscoveryBackend
     private let emptyResultsDelay: Duration
     private var records: [String: DiscoveredDisplay] = [:]
@@ -60,17 +61,21 @@ final class CompanionDiscovery: ObservableObject {
     func start() {
         guard !active else { return }
         active = true
+        isSearching = true
         generation += 1
         let current = generation
         records = [:]
         displays = []
-        message = "Searching for displays…"
+        message = "Displays will appear here automatically."
         backend.start { [weak self] event in
             guard let self, self.active, self.generation == current else { return }
             switch event {
-            case let .found(key, display): self.records[key] = display
+            case let .found(key, display):
+                self.isSearching = true
+                self.records[key] = display
             case let .removed(key): self.records.removeValue(forKey: key)
             case let .unavailable(denied):
+                self.isSearching = false
                 self.message = denied
                     ? "Allow EspDesktop in System Settings → Privacy & Security → Local Network, then retry. You can also enter an address manually."
                     : "Discovery is unavailable. Check your network or enter an address manually."
@@ -92,6 +97,7 @@ final class CompanionDiscovery: ObservableObject {
 
     func stop() {
         active = false
+        isSearching = false
         generation += 1
         timeout?.cancel()
         timeout = nil

@@ -406,14 +406,14 @@ struct CompanionSettings: View {
     private var pairingFlowPage: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Text("Step \(pairingStepNumber) of 3")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
+                    Text("Step \(pairingStepNumber) of 3")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
                     Text(pairingStepTitle)
                         .font(.title.weight(.semibold))
                     Text(pairingStepDescription)
-                        .font(.title3)
+                        .font(.callout)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -453,7 +453,7 @@ struct CompanionSettings: View {
                                 focusedField = .panelHost
                             }
                         }
-                        Spacer()
+                        if pairingStep == .code { Spacer() }
                         Button(pairingStep == .address ? "Continue" : "Connect") {
                             if pairingStep == .address { openPairingPage() } else { pairDisplay() }
                         }
@@ -487,31 +487,88 @@ struct CompanionSettings: View {
                 .accessibilityLabel("Display address")
                 .focused($focusedField, equals: .panelHost)
                 .onSubmit { openPairingPage() }
-            Button("Find displays automatically") { manualAddress = false; selectedDisplayID = nil }
+            Button("Find displays automatically") {
+                manualAddress = false
+                selectedDisplayID = nil
+            }
+            .buttonStyle(.link)
+            .font(.callout)
         } else {
             if discovery.displays.isEmpty {
-                Text(discovery.message).font(.callout).foregroundStyle(.secondary)
-                Button("Retry discovery") { discovery.stop(); discovery.start() }
+                displayOption(
+                    title: discovery.isSearching ? "Searching for displays…" : "Discovery unavailable",
+                    subtitle: discovery.message,
+                    icon: "exclamationmark.circle",
+                    selected: false,
+                    searching: discovery.isSearching
+                )
+                if !discovery.isSearching {
+                    Button("Retry discovery") { discovery.stop(); discovery.start() }
+                }
             }
             ForEach(discovery.displays) { display in
                 Button {
                     selectedDisplayID = display.id
                 } label: {
-                    HStack {
-                        Image(systemName: selectedDisplayID == display.id ? "checkmark.circle.fill" : "circle")
-                        VStack(alignment: .leading) {
-                            Text(display.name)
-                            Text(display.hostname).font(.caption).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                    .padding(8)
+                    displayOption(
+                        title: display.name,
+                        subtitle: display.hostname,
+                        icon: selectedDisplayID == display.id ? "checkmark.circle.fill" : "circle",
+                        selected: selectedDisplayID == display.id
+                    )
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
                 .accessibilityLabel("\(display.name), \(display.hostname)")
+                .accessibilityAddTraits(selectedDisplayID == display.id ? .isSelected : [])
             }
-            Button("Enter address manually") { manualAddress = true }
+            Button {
+                manualAddress = true
+                selectedDisplayID = nil
+                focusedField = .panelHost
+            } label: {
+                displayOption(
+                    title: "Enter address manually",
+                    subtitle: "Use an IP address or hostname",
+                    icon: "keyboard",
+                    selected: false
+                )
+            }
+            .buttonStyle(.plain)
         }
+    }
+
+    private func displayOption(title: String, subtitle: String, icon: String, selected: Bool, searching: Bool = false) -> some View {
+        HStack(spacing: 12) {
+            Group {
+                if searching {
+                    ProgressView().controlSize(.small)
+                        .accessibilityLabel("Searching for displays")
+                } else {
+                    Image(systemName: icon)
+                        .font(.title3)
+                        .foregroundStyle(selected ? Color.accentColor : Color.secondary)
+                }
+            }
+            .frame(width: 24)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.body.weight(.medium))
+                Text(subtitle).font(.caption).foregroundStyle(.secondary)
+            }
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(selected ? Color.accentColor.opacity(0.1) : Color.primary.opacity(0.04))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(selected ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: 1)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 10))
     }
 
     private var pairingStepNumber: Int {
