@@ -200,8 +200,7 @@ inline void network_status_refresh_backlight() {
   }
   const char *title = ui.brightness_level == SettingsBacklightLevel::MANUAL ? espdesktop_i18n("Brightness")
       : ui.brightness_level == SettingsBacklightLevel::DAYTIME ? espdesktop_i18n("Daytime") : espdesktop_i18n("Nighttime");
-  std::string label = std::string(title) + " " + std::to_string(lv_slider_get_value(ui.brightness_slider)) + "%";
-  lv_label_set_display_text(ui.brightness_label, label.c_str());
+  lv_label_set_display_text(ui.brightness_label, title);
   lv_label_set_display_text(ui.brightness_icon, ui.brightness_level == SettingsBacklightLevel::NIGHTTIME
       ? "\U000F1A4D" : "\U000F0336");
   auto *button = lv_obj_get_parent(ui.brightness_slider);
@@ -383,7 +382,7 @@ inline void network_status_open_modal(const std::string &device_name,
         lv_obj_get_style_pad_top(reference, LV_PART_MAIN), label_font, text_color);
     apply_button_colors(button, false, DEFAULT_SLIDER_COLOR, true,
                         DEFAULT_OFF_COLOR);
-    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, positions[i] % cols, (i == 2 || i == 3 || i == 5) ? 2 : 1,
+    lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, positions[i] % cols, (i == 2 || i == 3) ? 2 : 1,
                          LV_GRID_ALIGN_STRETCH, positions[i] / cols, 1);
     BtnSlot slot = create_dynamic_card_slot(button, card_icon_font, label_font, label_font, text_color);
     apply_width_compensation(slot.icon_lbl, icon_width_compensation_percent());
@@ -394,6 +393,7 @@ inline void network_status_open_modal(const std::string &device_name,
       const auto padding = capture_card_padding(button);
       ui.brightness_slider = setup_slider_widget(button, DEFAULT_SLIDER_COLOR, false);
       if (!ui.brightness_slider) continue;
+      lv_slider_set_range(ui.brightness_slider, SETTINGS_BACKLIGHT_MIN_PERCENT, 100);
       ui.brightness_label = slot.text_lbl;
       ui.brightness_icon = slot.icon_lbl;
       lv_obj_align(slot.icon_lbl, LV_ALIGN_TOP_LEFT, padding.left, padding.top);
