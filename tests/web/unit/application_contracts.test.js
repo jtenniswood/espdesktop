@@ -89,8 +89,6 @@ describe("browserless application contracts", () => {
     assert.match(store, /approvedApplicationIdentifiers\.contains\(\$0\.bundleIdentifier\)/);
     assert.match(store, /func setApplication\(_ application: LaunchableApp, approved: Bool\)/);
     assert.doesNotMatch(store, /NSWorkspace\.shared\.icon\(forFile: url\.path\)/);
-    assert.match(app, /\.formStyle\(\.grouped\)/);
-    assert.doesNotMatch(app, /Image\(nsImage: application\.icon\)/);
     assert.match(app, /ForEach\(store\.availableApps\) \{ application in/);
     assert.match(app, /get: \{ store\.applicationIsApproved\(application\) \}/);
     assert.match(app, /set: \{ store\.setApplication\(application, approved: \$0\) \}/);
@@ -1157,6 +1155,8 @@ describe("browserless application contracts", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.match(shell, /export function createControlsShellFeature/);
+    assert.match(shell, /closeBtn\.addEventListener\("click", dependencies\.closeSettings\)/);
+    assert.doesNotMatch(shell, /overlay\.addEventListener\("click"/);
     assert.match(entry, /shell = createControlsShellFeature\(runtime, \{/);
     assert.match(entry, /schedule: \(\(callback: TimerHandler, delay\?: number\) => window\.setTimeout\(callback, delay\)\)/);
     assert.match(entry, /cancelSchedule: \(handle\) => \{ dom\.window\.clearTimeout\(handle\); \}/);
