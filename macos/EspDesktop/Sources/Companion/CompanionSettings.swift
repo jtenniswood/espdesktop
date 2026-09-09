@@ -345,12 +345,10 @@ struct CompanionSettings: View {
             .background(CompanionSettingsToolbar(selection: selectedPageBinding))
             .navigationTitle("Settings")
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-                if selectedPage != .help {
-                    floatingSupportButton
-                        .padding(.horizontal, 24)
-                        .padding(.top, 16)
-                        .padding(.bottom, 24)
-                }
+                floatingSupportButton
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
             }
         .onAppear {
             selectedPageID = store.requestedSettingsPage
@@ -902,21 +900,10 @@ struct CompanionSettings: View {
     private var helpPage: some View {
         Form {
             Section {
-                VStack(alignment: .leading, spacing: 12) {
-                    Link(destination: CompanionStore.buyMeACoffeeURL) {
-                        Label("Buy me a coffee", systemImage: "cup.and.saucer")
-                    }
+                Link("Buy me a coffee", destination: CompanionStore.buyMeACoffeeURL)
                     .help("Contribute to ongoing support and new features")
-                    Link(destination: CompanionStore.issuesURL) {
-                        Label("Give Feedback", systemImage: "bubble.left")
-                    }
-                    Link(destination: CompanionStore.supportURL) {
-                        Label("Get Help", systemImage: "questionmark.circle")
-                    }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .padding(.vertical, 8)
+                Link("Give Feedback", destination: CompanionStore.issuesURL)
+                Link("Get Help", destination: CompanionStore.supportURL)
             } header: {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Help EspDesktop grow")
