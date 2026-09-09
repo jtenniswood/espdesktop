@@ -16,7 +16,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .applications: return "Apps"
         case .folders: return "Folders"
         case .updates: return "Updates"
-        case .help: return "Help"
+        case .help: return "Support"
         }
     }
     var icon: String {
@@ -210,6 +210,7 @@ struct CompanionSettings: View {
     @State private var selectedDisplayID: String?
     @State private var pairingCode = ""
     @State private var confirmingForget = false
+    @State private var confirmingRestartSetup = false
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -305,6 +306,19 @@ struct CompanionSettings: View {
             }
         } message: {
             Text("Your Mac will disconnect and remove its saved pairing. You’ll need the code from the device webpage to pair again. Your application and folder choices will be kept.")
+        }
+        .alert("Restart setup?", isPresented: $confirmingRestartSetup) {
+            Button("Cancel", role: .cancel) {}
+            Button("Restart Setup", role: .destructive) {
+                store.forgetPanel()
+                pairingCode = ""
+                startPairingFlow()
+                selectedPageID = CompanionSettingsPage.connection.rawValue
+                store.requestedSettingsPage = CompanionSettingsPage.connection.rawValue
+                onboardingCompleted = false
+            }
+        } message: {
+            Text("Your Mac will disconnect and remove its saved display pairing, then start onboarding again. You’ll need a new pairing code from your display. Your application and folder choices will be kept.")
         }
         .alert("Remove folder?", isPresented: Binding(
             get: { folderToRemove != nil },
@@ -810,20 +824,29 @@ struct CompanionSettings: View {
 
     private var helpPage: some View {
         Form {
-            Section("Support") {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Enjoying EspDisplay?")
-                        .font(.headline)
-                    Text("Buy me a coffee to help fund new features, improvements, and support. Every contribution makes a difference. Thank you!")
-                        .font(.callout)
+            Section {
+                Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
+                    .help("Contribute to ongoing support and new features")
+                Link("Give Feedback", destination: CompanionStore.issuesURL)
+                Link("Get Help", destination: CompanionStore.supportURL)
+            } header: {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Help EspDesktop grow")
+                        .font(.title2.weight(.semibold))
+                    Text("Your contributions help fund ongoing support and new features.")
+                        .font(.title3)
+                        .fontWeight(.regular)
                         .foregroundStyle(.secondary)
-                    Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
                 }
+                .padding(.top, 16)
             }
-            Section("Resources") {
-                Link("Support", destination: CompanionStore.supportURL)
-                Link("Raise an issue", destination: CompanionStore.issuesURL)
+            Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
+                Button("Restart Setup") { confirmingRestartSetup = true }
+                    .buttonStyle(.link)
+            } header: {
+                Text("Support")
+                    .padding(.top, 16)
             }
         }
         .formStyle(.grouped)
