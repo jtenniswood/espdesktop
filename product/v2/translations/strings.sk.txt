@@ -261,3 +261,6 @@ pairing_instructions=Zadajte tento kód do počítačovej aplikácie
 expired=Platnosť vypršala
 pair=Spárovať
 settings=Nastavenia
+brightness=Jas
+daytime=Deň
+nighttime=Noc

@@ -261,3 +261,6 @@ pairing_instructions=Gib diesen Code in der Desktop-App ein
 expired=Abgelaufen
 pair=Koppeln
 settings=Einstellungen
+brightness=Helligkeit
+daytime=Tagsüber
+nighttime=Nachts

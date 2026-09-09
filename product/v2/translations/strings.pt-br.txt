@@ -261,3 +261,6 @@ pairing_instructions=Digite este código no aplicativo para computador
 expired=Expirado
 pair=Parear
 settings=Configurações
+brightness=Brilho
+daytime=Dia
+nighttime=Noite

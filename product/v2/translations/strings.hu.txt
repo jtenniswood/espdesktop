@@ -261,3 +261,6 @@ pairing_instructions=Írd be ezt a kódot az asztali alkalmazásba
 expired=Lejárt
 pair=Párosítás
 settings=Beállítások
+brightness=Fényerő
+daytime=Nappal
+nighttime=Éjszaka

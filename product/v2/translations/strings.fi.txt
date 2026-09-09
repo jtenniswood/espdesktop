@@ -261,3 +261,6 @@ pairing_instructions=Syötä tämä koodi työpöytäsovellukseen
 expired=Vanhentunut
 pair=Parita
 settings=Asetukset
+brightness=Kirkkaus
+daytime=Päivä
+nighttime=Yö

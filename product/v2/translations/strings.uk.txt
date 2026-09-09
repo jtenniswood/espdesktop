@@ -261,3 +261,6 @@ pairing_instructions=Введіть цей код у програмі для к�
 expired=Термін дії минув
 pair=Сполучити
 settings=Налаштування
+brightness=Яскравість
+daytime=День
+nighttime=Ніч

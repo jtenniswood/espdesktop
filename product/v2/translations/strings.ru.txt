@@ -261,3 +261,6 @@ pairing_instructions=Введите этот код в приложении дл
 expired=Срок действия истёк
 pair=Сопряжение
 settings=Настройки
+brightness=Яркость
+daytime=День
+nighttime=Ночь

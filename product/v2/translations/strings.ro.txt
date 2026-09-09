@@ -261,3 +261,6 @@ pairing_instructions=Introdu acest cod în aplicația desktop
 expired=Expirat
 pair=Asociază
 settings=Setări
+brightness=Luminozitate
+daytime=Zi
+nighttime=Noapte

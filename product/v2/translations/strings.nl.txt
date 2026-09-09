@@ -261,3 +261,6 @@ pairing_instructions=Voer deze code in de desktopapp in
 expired=Verlopen
 pair=Koppelen
 settings=Instellingen
+brightness=Helderheid
+daytime=Overdag
+nighttime=Nacht

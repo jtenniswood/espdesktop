@@ -330,3 +330,8 @@ target_include_directories(saved_config_parser_test PRIVATE
   ../../components/espdesktop
 )
 add_test(NAME saved_config_parser_test COMMAND saved_config_parser_test)
+
+add_executable(settings_backlight_test settings_backlight_test.cpp)
+target_compile_features(settings_backlight_test PRIVATE cxx_std_17)
+target_compile_options(settings_backlight_test PRIVATE -Wall -Wextra -Werror)
+add_test(NAME settings_backlight_test COMMAND settings_backlight_test)

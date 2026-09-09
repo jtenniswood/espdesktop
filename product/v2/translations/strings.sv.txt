@@ -261,3 +261,6 @@ pairing_instructions=Ange den här koden i skrivbordsappen
 expired=Utgången
 pair=Parkoppla
 settings=Inställningar
+brightness=Ljusstyrka
+daytime=Dagtid
+nighttime=Nattetid

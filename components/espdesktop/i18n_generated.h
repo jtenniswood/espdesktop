@@ -257,6 +257,9 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Platnost vypršela";
   if (std::strcmp(text, "Pair") == 0) return "Spárovat";
   if (std::strcmp(text, "Settings") == 0) return "Nastavení";
+  if (std::strcmp(text, "Brightness") == 0) return "Jas";
+  if (std::strcmp(text, "Daytime") == 0) return "Den";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   return text;
 }
 
@@ -494,6 +497,9 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Udløbet";
   if (std::strcmp(text, "Pair") == 0) return "Par";
   if (std::strcmp(text, "Settings") == 0) return "Indstillinger";
+  if (std::strcmp(text, "Brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(text, "Daytime") == 0) return "Dagtid";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   return text;
 }
 
@@ -729,6 +735,9 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Abgelaufen";
   if (std::strcmp(text, "Pair") == 0) return "Koppeln";
   if (std::strcmp(text, "Settings") == 0) return "Einstellungen";
+  if (std::strcmp(text, "Brightness") == 0) return "Helligkeit";
+  if (std::strcmp(text, "Daytime") == 0) return "Tagsüber";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nachts";
   return text;
 }
 
@@ -973,6 +982,9 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Caducado";
   if (std::strcmp(text, "Pair") == 0) return "Emparejar";
   if (std::strcmp(text, "Settings") == 0) return "Ajustes";
+  if (std::strcmp(text, "Brightness") == 0) return "Brillo";
+  if (std::strcmp(text, "Daytime") == 0) return "Día";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noche";
   return text;
 }
 
@@ -1227,6 +1239,9 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Vanhentunut";
   if (std::strcmp(text, "Pair") == 0) return "Parita";
   if (std::strcmp(text, "Settings") == 0) return "Asetukset";
+  if (std::strcmp(text, "Brightness") == 0) return "Kirkkaus";
+  if (std::strcmp(text, "Daytime") == 0) return "Päivä";
+  if (std::strcmp(text, "Nighttime") == 0) return "Yö";
   return text;
 }
 
@@ -1464,6 +1479,9 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Expiré";
   if (std::strcmp(text, "Pair") == 0) return "Associer";
   if (std::strcmp(text, "Settings") == 0) return "Paramètres";
+  if (std::strcmp(text, "Brightness") == 0) return "Luminosité";
+  if (std::strcmp(text, "Daytime") == 0) return "Jour";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nuit";
   return text;
 }
 
@@ -1726,6 +1744,9 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "פג תוקף";
   if (std::strcmp(text, "Pair") == 0) return "צימוד";
   if (std::strcmp(text, "Settings") == 0) return "הגדרות";
+  if (std::strcmp(text, "Brightness") == 0) return "בהירות";
+  if (std::strcmp(text, "Daytime") == 0) return "יום";
+  if (std::strcmp(text, "Nighttime") == 0) return "לילה";
   return text;
 }
 
@@ -1979,6 +2000,9 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Lejárt";
   if (std::strcmp(text, "Pair") == 0) return "Párosítás";
   if (std::strcmp(text, "Settings") == 0) return "Beállítások";
+  if (std::strcmp(text, "Brightness") == 0) return "Fényerő";
+  if (std::strcmp(text, "Daytime") == 0) return "Nappal";
+  if (std::strcmp(text, "Nighttime") == 0) return "Éjszaka";
   return text;
 }
 
@@ -2223,6 +2247,9 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Scaduto";
   if (std::strcmp(text, "Pair") == 0) return "Associa";
   if (std::strcmp(text, "Settings") == 0) return "Impostazioni";
+  if (std::strcmp(text, "Brightness") == 0) return "Luminosità";
+  if (std::strcmp(text, "Daytime") == 0) return "Giorno";
+  if (std::strcmp(text, "Nighttime") == 0) return "Notte";
   return text;
 }
 
@@ -2465,6 +2492,9 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Utløpt";
   if (std::strcmp(text, "Pair") == 0) return "Koble sammen";
   if (std::strcmp(text, "Settings") == 0) return "Innstillinger";
+  if (std::strcmp(text, "Brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(text, "Daytime") == 0) return "Dagtid";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   return text;
 }
 
@@ -2705,6 +2735,9 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Verlopen";
   if (std::strcmp(text, "Pair") == 0) return "Koppelen";
   if (std::strcmp(text, "Settings") == 0) return "Instellingen";
+  if (std::strcmp(text, "Brightness") == 0) return "Helderheid";
+  if (std::strcmp(text, "Daytime") == 0) return "Overdag";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nacht";
   return text;
 }
 
@@ -2947,6 +2980,9 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Wygasł";
   if (std::strcmp(text, "Pair") == 0) return "Sparuj";
   if (std::strcmp(text, "Settings") == 0) return "Ustawienia";
+  if (std::strcmp(text, "Brightness") == 0) return "Jasność";
+  if (std::strcmp(text, "Daytime") == 0) return "Dzień";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   return text;
 }
 
@@ -3191,6 +3227,9 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Parear";
   if (std::strcmp(text, "Settings") == 0) return "Configurações";
+  if (std::strcmp(text, "Brightness") == 0) return "Brilho";
+  if (std::strcmp(text, "Daytime") == 0) return "Dia";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   return text;
 }
 
@@ -3436,6 +3475,9 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Emparelhar";
   if (std::strcmp(text, "Settings") == 0) return "Definições";
+  if (std::strcmp(text, "Brightness") == 0) return "Brilho";
+  if (std::strcmp(text, "Daytime") == 0) return "Dia";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   return text;
 }
 
@@ -3690,6 +3732,9 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Expirat";
   if (std::strcmp(text, "Pair") == 0) return "Asociază";
   if (std::strcmp(text, "Settings") == 0) return "Setări";
+  if (std::strcmp(text, "Brightness") == 0) return "Luminozitate";
+  if (std::strcmp(text, "Daytime") == 0) return "Zi";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noapte";
   return text;
 }
 
@@ -3951,6 +3996,9 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Срок действия истёк";
   if (std::strcmp(text, "Pair") == 0) return "Сопряжение";
   if (std::strcmp(text, "Settings") == 0) return "Настройки";
+  if (std::strcmp(text, "Brightness") == 0) return "Яркость";
+  if (std::strcmp(text, "Daytime") == 0) return "День";
+  if (std::strcmp(text, "Nighttime") == 0) return "Ночь";
   return text;
 }
 
@@ -4197,6 +4245,9 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(text, "Pair") == 0) return "Spárovať";
   if (std::strcmp(text, "Settings") == 0) return "Nastavenia";
+  if (std::strcmp(text, "Brightness") == 0) return "Jas";
+  if (std::strcmp(text, "Daytime") == 0) return "Deň";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   return text;
 }
 
@@ -4447,6 +4498,9 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Poteklo";
   if (std::strcmp(text, "Pair") == 0) return "Seznani";
   if (std::strcmp(text, "Settings") == 0) return "Nastavitve";
+  if (std::strcmp(text, "Brightness") == 0) return "Svetlost";
+  if (std::strcmp(text, "Daytime") == 0) return "Dan";
+  if (std::strcmp(text, "Nighttime") == 0) return "Noč";
   return text;
 }
 
@@ -4688,6 +4742,9 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Utgången";
   if (std::strcmp(text, "Pair") == 0) return "Parkoppla";
   if (std::strcmp(text, "Settings") == 0) return "Inställningar";
+  if (std::strcmp(text, "Brightness") == 0) return "Ljusstyrka";
+  if (std::strcmp(text, "Daytime") == 0) return "Dagtid";
+  if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   return text;
 }
 
@@ -4942,6 +4999,9 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Süresi doldu";
   if (std::strcmp(text, "Pair") == 0) return "Eşleştir";
   if (std::strcmp(text, "Settings") == 0) return "Ayarlar";
+  if (std::strcmp(text, "Brightness") == 0) return "Parlaklık";
+  if (std::strcmp(text, "Daytime") == 0) return "Gündüz";
+  if (std::strcmp(text, "Nighttime") == 0) return "Gece";
   return text;
 }
 
@@ -5198,6 +5258,9 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Expired") == 0) return "Термін дії минув";
   if (std::strcmp(text, "Pair") == 0) return "Сполучити";
   if (std::strcmp(text, "Settings") == 0) return "Налаштування";
+  if (std::strcmp(text, "Brightness") == 0) return "Яскравість";
+  if (std::strcmp(text, "Daytime") == 0) return "День";
+  if (std::strcmp(text, "Nighttime") == 0) return "Ніч";
   return text;
 }
 
@@ -5463,6 +5526,9 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Expired";
   if (std::strcmp(key, "pair") == 0) return "Pair";
   if (std::strcmp(key, "settings") == 0) return "Settings";
+  if (std::strcmp(key, "brightness") == 0) return "Brightness";
+  if (std::strcmp(key, "daytime") == 0) return "Daytime";
+  if (std::strcmp(key, "nighttime") == 0) return "Nighttime";
   return key;
 }
 
@@ -5710,6 +5776,9 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Platnost vypršela";
   if (std::strcmp(key, "pair") == 0) return "Spárovat";
   if (std::strcmp(key, "settings") == 0) return "Nastavení";
+  if (std::strcmp(key, "brightness") == 0) return "Jas";
+  if (std::strcmp(key, "daytime") == 0) return "Den";
+  if (std::strcmp(key, "nighttime") == 0) return "Noc";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -5949,6 +6018,9 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Udløbet";
   if (std::strcmp(key, "pair") == 0) return "Par";
   if (std::strcmp(key, "settings") == 0) return "Indstillinger";
+  if (std::strcmp(key, "brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(key, "daytime") == 0) return "Dagtid";
+  if (std::strcmp(key, "nighttime") == 0) return "Nattetid";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6186,6 +6258,9 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Abgelaufen";
   if (std::strcmp(key, "pair") == 0) return "Koppeln";
   if (std::strcmp(key, "settings") == 0) return "Einstellungen";
+  if (std::strcmp(key, "brightness") == 0) return "Helligkeit";
+  if (std::strcmp(key, "daytime") == 0) return "Tagsüber";
+  if (std::strcmp(key, "nighttime") == 0) return "Nachts";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6432,6 +6507,9 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Caducado";
   if (std::strcmp(key, "pair") == 0) return "Emparejar";
   if (std::strcmp(key, "settings") == 0) return "Ajustes";
+  if (std::strcmp(key, "brightness") == 0) return "Brillo";
+  if (std::strcmp(key, "daytime") == 0) return "Día";
+  if (std::strcmp(key, "nighttime") == 0) return "Noche";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6688,6 +6766,9 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Vanhentunut";
   if (std::strcmp(key, "pair") == 0) return "Parita";
   if (std::strcmp(key, "settings") == 0) return "Asetukset";
+  if (std::strcmp(key, "brightness") == 0) return "Kirkkaus";
+  if (std::strcmp(key, "daytime") == 0) return "Päivä";
+  if (std::strcmp(key, "nighttime") == 0) return "Yö";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6927,6 +7008,9 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Expiré";
   if (std::strcmp(key, "pair") == 0) return "Associer";
   if (std::strcmp(key, "settings") == 0) return "Paramètres";
+  if (std::strcmp(key, "brightness") == 0) return "Luminosité";
+  if (std::strcmp(key, "daytime") == 0) return "Jour";
+  if (std::strcmp(key, "nighttime") == 0) return "Nuit";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7191,6 +7275,9 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "פג תוקף";
   if (std::strcmp(key, "pair") == 0) return "צימוד";
   if (std::strcmp(key, "settings") == 0) return "הגדרות";
+  if (std::strcmp(key, "brightness") == 0) return "בהירות";
+  if (std::strcmp(key, "daytime") == 0) return "יום";
+  if (std::strcmp(key, "nighttime") == 0) return "לילה";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7446,6 +7533,9 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Lejárt";
   if (std::strcmp(key, "pair") == 0) return "Párosítás";
   if (std::strcmp(key, "settings") == 0) return "Beállítások";
+  if (std::strcmp(key, "brightness") == 0) return "Fényerő";
+  if (std::strcmp(key, "daytime") == 0) return "Nappal";
+  if (std::strcmp(key, "nighttime") == 0) return "Éjszaka";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7692,6 +7782,9 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Scaduto";
   if (std::strcmp(key, "pair") == 0) return "Associa";
   if (std::strcmp(key, "settings") == 0) return "Impostazioni";
+  if (std::strcmp(key, "brightness") == 0) return "Luminosità";
+  if (std::strcmp(key, "daytime") == 0) return "Giorno";
+  if (std::strcmp(key, "nighttime") == 0) return "Notte";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7936,6 +8029,9 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Utløpt";
   if (std::strcmp(key, "pair") == 0) return "Koble sammen";
   if (std::strcmp(key, "settings") == 0) return "Innstillinger";
+  if (std::strcmp(key, "brightness") == 0) return "Lysstyrke";
+  if (std::strcmp(key, "daytime") == 0) return "Dagtid";
+  if (std::strcmp(key, "nighttime") == 0) return "Nattetid";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8177,6 +8273,9 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Verlopen";
   if (std::strcmp(key, "pair") == 0) return "Koppelen";
   if (std::strcmp(key, "settings") == 0) return "Instellingen";
+  if (std::strcmp(key, "brightness") == 0) return "Helderheid";
+  if (std::strcmp(key, "daytime") == 0) return "Overdag";
+  if (std::strcmp(key, "nighttime") == 0) return "Nacht";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8421,6 +8520,9 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Wygasł";
   if (std::strcmp(key, "pair") == 0) return "Sparuj";
   if (std::strcmp(key, "settings") == 0) return "Ustawienia";
+  if (std::strcmp(key, "brightness") == 0) return "Jasność";
+  if (std::strcmp(key, "daytime") == 0) return "Dzień";
+  if (std::strcmp(key, "nighttime") == 0) return "Noc";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8667,6 +8769,9 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Parear";
   if (std::strcmp(key, "settings") == 0) return "Configurações";
+  if (std::strcmp(key, "brightness") == 0) return "Brilho";
+  if (std::strcmp(key, "daytime") == 0) return "Dia";
+  if (std::strcmp(key, "nighttime") == 0) return "Noite";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8914,6 +9019,9 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Emparelhar";
   if (std::strcmp(key, "settings") == 0) return "Definições";
+  if (std::strcmp(key, "brightness") == 0) return "Brilho";
+  if (std::strcmp(key, "daytime") == 0) return "Dia";
+  if (std::strcmp(key, "nighttime") == 0) return "Noite";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9170,6 +9278,9 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Expirat";
   if (std::strcmp(key, "pair") == 0) return "Asociază";
   if (std::strcmp(key, "settings") == 0) return "Setări";
+  if (std::strcmp(key, "brightness") == 0) return "Luminozitate";
+  if (std::strcmp(key, "daytime") == 0) return "Zi";
+  if (std::strcmp(key, "nighttime") == 0) return "Noapte";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9433,6 +9544,9 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Срок действия истёк";
   if (std::strcmp(key, "pair") == 0) return "Сопряжение";
   if (std::strcmp(key, "settings") == 0) return "Настройки";
+  if (std::strcmp(key, "brightness") == 0) return "Яркость";
+  if (std::strcmp(key, "daytime") == 0) return "День";
+  if (std::strcmp(key, "nighttime") == 0) return "Ночь";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9681,6 +9795,9 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(key, "pair") == 0) return "Spárovať";
   if (std::strcmp(key, "settings") == 0) return "Nastavenia";
+  if (std::strcmp(key, "brightness") == 0) return "Jas";
+  if (std::strcmp(key, "daytime") == 0) return "Deň";
+  if (std::strcmp(key, "nighttime") == 0) return "Noc";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9933,6 +10050,9 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Poteklo";
   if (std::strcmp(key, "pair") == 0) return "Seznani";
   if (std::strcmp(key, "settings") == 0) return "Nastavitve";
+  if (std::strcmp(key, "brightness") == 0) return "Svetlost";
+  if (std::strcmp(key, "daytime") == 0) return "Dan";
+  if (std::strcmp(key, "nighttime") == 0) return "Noč";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10176,6 +10296,9 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Utgången";
   if (std::strcmp(key, "pair") == 0) return "Parkoppla";
   if (std::strcmp(key, "settings") == 0) return "Inställningar";
+  if (std::strcmp(key, "brightness") == 0) return "Ljusstyrka";
+  if (std::strcmp(key, "daytime") == 0) return "Dagtid";
+  if (std::strcmp(key, "nighttime") == 0) return "Nattetid";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10432,6 +10555,9 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Süresi doldu";
   if (std::strcmp(key, "pair") == 0) return "Eşleştir";
   if (std::strcmp(key, "settings") == 0) return "Ayarlar";
+  if (std::strcmp(key, "brightness") == 0) return "Parlaklık";
+  if (std::strcmp(key, "daytime") == 0) return "Gündüz";
+  if (std::strcmp(key, "nighttime") == 0) return "Gece";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10690,6 +10816,9 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "expired") == 0) return "Термін дії минув";
   if (std::strcmp(key, "pair") == 0) return "Сполучити";
   if (std::strcmp(key, "settings") == 0) return "Налаштування";
+  if (std::strcmp(key, "brightness") == 0) return "Яскравість";
+  if (std::strcmp(key, "daytime") == 0) return "День";
+  if (std::strcmp(key, "nighttime") == 0) return "Ніч";
   return espdesktop_i18n_key_en(key);
 }
 

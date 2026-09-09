@@ -261,3 +261,6 @@ pairing_instructions=Saisissez ce code dans l’application de bureau
 expired=Expiré
 pair=Associer
 settings=Paramètres
+brightness=Luminosité
+daytime=Jour
+nighttime=Nuit

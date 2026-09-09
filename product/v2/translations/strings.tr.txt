@@ -261,3 +261,6 @@ pairing_instructions=Bu kodu masaüstü uygulamasına girin
 expired=Süresi doldu
 pair=Eşleştir
 settings=Ayarlar
+brightness=Parlaklık
+daytime=Gündüz
+nighttime=Gece

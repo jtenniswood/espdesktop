@@ -261,3 +261,6 @@ pairing_instructions=Introduce este código en la aplicación de escritorio
 expired=Caducado
 pair=Emparejar
 settings=Ajustes
+brightness=Brillo
+daytime=Día
+nighttime=Noche

@@ -261,3 +261,6 @@ pairing_instructions=Wpisz ten kod w aplikacji komputerowej
 expired=Wygasł
 pair=Sparuj
 settings=Ustawienia
+brightness=Jasność
+daytime=Dzień
+nighttime=Noc
