@@ -264,3 +264,4 @@ settings=Setări
 brightness=Luminozitate
 daytime=Zi
 nighttime=Noapte
+backlight=Iluminare de fundal

@@ -198,9 +198,7 @@ inline void network_status_refresh_backlight() {
     ui.brightness_level = state.level;
     lv_slider_set_value(ui.brightness_slider, settings_backlight_percent(state.level, state.percent), LV_ANIM_OFF);
   }
-  const char *title = ui.brightness_level == SettingsBacklightLevel::MANUAL ? espdesktop_i18n("Brightness")
-      : ui.brightness_level == SettingsBacklightLevel::DAYTIME ? espdesktop_i18n("Daytime") : espdesktop_i18n("Nighttime");
-  lv_label_set_display_text(ui.brightness_label, title);
+  lv_label_set_display_text(ui.brightness_label, espdesktop_i18n("Backlight"));
   lv_label_set_display_text(ui.brightness_icon, ui.brightness_level == SettingsBacklightLevel::NIGHTTIME
       ? "\U000F1A4D" : "\U000F0336");
   auto *button = lv_obj_get_parent(ui.brightness_slider);
@@ -373,7 +371,7 @@ inline void network_status_open_modal(const std::string &device_name,
   const char *labels[] = {espdesktop_i18n("Back"), "", "", "", espdesktop_i18n("Pairing"), ""};
   const char *icons[] = {"\U000F0141", "\U000F035B", "\U000F0200", "\U000F031A", "\U000F0D33", "\U000F0336"};
   // Back first, wide IP beside it, then Pairing, wide connector state and version.
-  const int positions[] = {0, 8, 1, 4, 3, 6};
+  const int positions[] = {0, 7, 1, 4, 3, 6};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   for (int i = 0; i < 6; ++i) {

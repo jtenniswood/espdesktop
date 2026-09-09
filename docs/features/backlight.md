@@ -32,7 +32,7 @@ Sunrise and sunset times are derived from the timezone set in [Time Settings](/f
 
 ## On-device brightness card
 
-Open Settings on the display and slide up or down on the 1×1 brightness card, just like a light brightness card. The coloured fill shows the selected level without a percentage label; release to save it. The minimum is 10%, so this control cannot turn off the backlight.
+Open Settings on the display and slide up or down on the 1×1 **Backlight** card beside the Build card, just like a light brightness card. The coloured fill shows the selected level without a percentage label; release to save it. The minimum is 10%, so this control cannot turn off the backlight.
 
 In Manual mode it adjusts the normal brightness. In automatic modes it adjusts the current Daytime or Nighttime level without changing the schedule.
 

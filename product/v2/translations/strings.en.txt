@@ -264,3 +264,4 @@ settings=Settings
 brightness=Brightness
 daytime=Daytime
 nighttime=Nighttime
+backlight=Backlight

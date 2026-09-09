@@ -264,3 +264,4 @@ settings=Налаштування
 brightness=Яскравість
 daytime=День
 nighttime=Ніч
+backlight=Підсвічування
