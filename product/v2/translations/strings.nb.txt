@@ -257,6 +257,6 @@ connector=Tilkobling
 disconnected=Frakoblet
 not_paired=Ikke paret
 pairing=Paring
-pairing_instructions=Skriv inn denne koden i Mac-appen
+pairing_instructions=Skriv inn denne koden i skrivebordsappen
 expired=Utløpt
 pair=Koble sammen

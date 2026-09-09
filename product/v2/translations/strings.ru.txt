@@ -257,6 +257,6 @@ connector=Коннектор
 disconnected=Отключено
 not_paired=Не сопряжено
 pairing=Сопряжение
-pairing_instructions=Введите этот код в приложении для Mac
+pairing_instructions=Введите этот код в приложении для компьютера
 expired=Срок действия истёк
 pair=Сопряжение

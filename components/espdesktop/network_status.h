@@ -31,6 +31,7 @@ struct NetworkStatusModalUi {
   lv_obj_t *pairing_button = nullptr;
   const lv_font_t *text_font = nullptr;
   const lv_font_t *modal_icon_font = nullptr;
+  const lv_font_t *title_font = nullptr;
   lv_obj_t *ip_lbl = nullptr;
   lv_obj_t *connector_lbl = nullptr;
   lv_obj_t *connector_icon = nullptr;
@@ -206,12 +207,13 @@ inline void network_status_open_pairing() {
   lv_obj_set_layout(content, LV_LAYOUT_FLEX);
   lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-  network_status_pairing_label(content, espdesktop_i18n("Pairing"));
-  ui.pairing_code = network_status_pairing_label(content, "");
+  auto *title = network_status_pairing_label(content, espdesktop_i18n("Pairing"));
+  if (ui.title_font) lv_obj_set_style_text_font(title, ui.title_font, LV_PART_MAIN);
+  auto *instruction = network_status_pairing_label(content, espdesktop_i18n("Enter this code into the desktop app"));
+  lv_obj_set_style_text_color(instruction, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
   ui.pairing_ip = network_status_pairing_label(content, "");
   lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
-  auto *instruction = network_status_pairing_label(content, espdesktop_i18n("Enter this code in the Mac app"));
-  lv_obj_set_style_text_color(instruction, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+  ui.pairing_code = network_status_pairing_label(content, "");
   lv_obj_update_layout(content);
   lv_obj_align(content, LV_ALIGN_CENTER, 0, 0);
   lv_obj_move_foreground(close);
@@ -274,6 +276,7 @@ inline void network_status_open_modal(const std::string &device_name,
   if (!label_font) label_font = text_font;
   ui.text_font = label_font;
   ui.modal_icon_font = icon_font;
+  ui.title_font = text_font;
   const lv_color_t text_color = lv_obj_get_style_text_color(reference, LV_PART_MAIN);
 
   ui.overlay = lv_obj_create(lv_layer_top());

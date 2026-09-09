@@ -257,6 +257,6 @@ connector=Povezovalnik
 disconnected=Prekinjeno
 not_paired=Ni seznanjeno
 pairing=Seznanjanje
-pairing_instructions=Vnesite to kodo v aplikacijo za Mac
+pairing_instructions=Vnesite to kodo v namizno aplikacijo
 expired=Poteklo
 pair=Seznani

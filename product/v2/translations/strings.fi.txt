@@ -257,6 +257,6 @@ connector=Yhdistin
 disconnected=Yhteys katkaistu
 not_paired=Ei paritettu
 pairing=Paritus
-pairing_instructions=Syötä tämä koodi Mac-sovellukseen
+pairing_instructions=Syötä tämä koodi työpöytäsovellukseen
 expired=Vanhentunut
 pair=Parita

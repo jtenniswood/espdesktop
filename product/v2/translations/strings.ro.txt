@@ -257,6 +257,6 @@ connector=Conector
 disconnected=Deconectat
 not_paired=Neasociat
 pairing=Asociere
-pairing_instructions=Introduceți acest cod în aplicația pentru Mac
+pairing_instructions=Introdu acest cod în aplicația desktop
 expired=Expirat
 pair=Asociază

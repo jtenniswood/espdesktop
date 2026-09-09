@@ -257,6 +257,6 @@ connector=Konektor
 disconnected=Odpojeno
 not_paired=Nespárováno
 pairing=Párování
-pairing_instructions=Zadejte tento kód v aplikaci pro Mac
+pairing_instructions=Zadejte tento kód do desktopové aplikace
 expired=Platnost vypršela
 pair=Spárovat

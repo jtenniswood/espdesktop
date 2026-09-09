@@ -257,6 +257,6 @@ connector=Forbindelse
 disconnected=Afbrudt
 not_paired=Ikke parret
 pairing=Parring
-pairing_instructions=Indtast denne kode i Mac-appen
+pairing_instructions=Indtast denne kode i desktopappen
 expired=Udløbet
 pair=Par

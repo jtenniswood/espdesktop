@@ -257,6 +257,6 @@ connector=Csatlakozó
 disconnected=Leválasztva
 not_paired=Nincs párosítva
 pairing=Párosítás
-pairing_instructions=Adja meg ezt a kódot a Mac alkalmazásban
+pairing_instructions=Írd be ezt a kódot az asztali alkalmazásba
 expired=Lejárt
 pair=Párosítás

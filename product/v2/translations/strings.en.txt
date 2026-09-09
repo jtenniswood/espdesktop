@@ -257,6 +257,6 @@ connector=Connector
 disconnected=Disconnected
 not_paired=Not paired
 pairing=Pairing
-pairing_instructions=Enter this code in the Mac app
+pairing_instructions=Enter this code into the desktop app
 expired=Expired
 pair=Pair

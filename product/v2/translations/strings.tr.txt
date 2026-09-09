@@ -257,6 +257,6 @@ connector=Bağlayıcı
 disconnected=Bağlantı kesildi
 not_paired=Eşleştirilmedi
 pairing=Eşleştirme
-pairing_instructions=Bu kodu Mac uygulamasına girin
+pairing_instructions=Bu kodu masaüstü uygulamasına girin
 expired=Süresi doldu
 pair=Eşleştir
