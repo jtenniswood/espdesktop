@@ -3,7 +3,6 @@
 
 struct lv_obj_t {};
 inline void lv_label_set_text(lv_obj_t *, const char *) {}
-inline std::string espdesktop_i18n(const std::string &value) { return value; }
 
 #include "companion_controls.h"
 #include "companion_timezone.h"
@@ -12,6 +11,20 @@ inline std::string espdesktop_i18n(const std::string &value) { return value; }
 using namespace esphome::companion;
 
 int main() {
+  // Exercise the real translation tables at the device-label boundary.
+  set_espdesktop_language("de");
+  assert(std::string(companion_volume_control_label("media.output_volume")) == "Ausgabelautstärke");
+  assert(std::string(companion_volume_control_label("media.input_volume")) == "Eingabelautstärke");
+  assert(companion_default_action_label("window.minimize") == "Minimieren");
+  assert(companion_default_action_label("window.arrange.left-right") == "Links und rechts");
+  assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
+  assert(companion_default_action_label("") == "Mac-App");
+  assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
+  assert(companion_shortcut_label("shortcut.command+space") == "\U000F0633" "Leertaste");
+  assert(companion_shortcut_label("shortcut.command+home") == "\U000F0633" "Pos1");
+  assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
+  assert(companion_shortcut_label("shortcut.command+left") == "\U000F0633\U000F004D");
+  set_espdesktop_language("en");
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
   assert(std::string(companion_play_pause_status(CompanionPlaybackState::PLAYING)) == "Playing");
