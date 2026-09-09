@@ -907,8 +907,9 @@ struct CompanionSettings: View {
             } header: {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Help EspDesktop grow")
+                        .font(.title2.weight(.semibold))
                     Text("Your contributions help fund ongoing support and new features.")
-                        .font(.callout)
+                        .font(.title3)
                         .fontWeight(.regular)
                         .foregroundStyle(.secondary)
                 }
