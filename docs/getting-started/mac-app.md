@@ -38,13 +38,13 @@ When the connection is ready, a monitor icon appears beside WiFi in the display'
 
 ## Choose the First-Run Options
 
-After pairing, choose **Continue to customize**. The Mac app explains three independent choices. You can change each one later from **Permissions**.
+First-run setup has three screens: choose your display, enter the pairing code, then **Access and startup**. The final screen opens automatically after pairing and keeps all three options together. Choose **Finish** when ready; you can change these options later in **Permissions**. Use the info buttons for more detail.
 
 | Option | What it enables | Required? |
 |---|---|---|
-| **Shortcut support** | Keyboard shortcut and Window cards | Only for those cards |
-| **Statistics card support** | Processor, memory, storage, network, and battery cards | Optional |
-| **Stay connected at login** | Starts EspDesktop when you sign in so the display reconnects | Optional but recommended |
+| **Keyboard shortcuts** | Keyboard shortcut and Window cards | Only for those cards |
+| **Share Mac stats** | Processor, memory, storage, network, and battery cards | Optional |
+| **Launch at login** | Starts EspDesktop when you sign in so the display reconnects | Optional but recommended |
 
 Shortcut and window controls need macOS Accessibility access. When asked, turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, websites, media, artwork, and volume do not need Accessibility permission.
 
