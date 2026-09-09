@@ -17,7 +17,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .folders: return "Folders"
         case .general: return "Permissions"
         case .updates: return "Updates"
-        case .help: return "Help"
+        case .help: return "Support"
         }
     }
     var icon: String {
@@ -885,19 +885,24 @@ struct CompanionSettings: View {
 
     private var helpPage: some View {
         Form {
-            Section("Support") {
+            Section("Help and feedback") {
+                Text("Get help, report an issue, or share an idea. Your feedback helps shape EspDesktop’s ongoing improvements and new features.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Link("Get help", destination: CompanionStore.supportURL)
+                Link("Report an issue or suggest a feature", destination: CompanionStore.issuesURL)
+            }
+            Section("Support ongoing development") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Enjoying EspDisplay?")
+                    Text("Help EspDesktop grow")
                         .font(.headline)
-                    Text("Buy me a coffee to help fund new features, improvements, and support. Every contribution makes a difference. Thank you!")
+                    Text("Optional financial contributions help fund continued support, improvements, and new features over time. Thank you for helping move EspDesktop forward.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
-                    Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
+                    Link("Contribute via Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
                 }
             }
-            Section("Resources") {
-                Link("Support", destination: CompanionStore.supportURL)
-                Link("Raise an issue", destination: CompanionStore.issuesURL)
+            Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
             }
         }

@@ -116,8 +116,8 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
                     action: #selector(checkForUpdates), key: "u",
                     image: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates"), to: menu)
         menu.items.last?.isEnabled = !store.updater.isChecking
-        addMenuItem("Help", action: #selector(openHelp), key: "?",
-                    image: NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help"), to: menu)
+        addMenuItem("Support", action: #selector(openHelp), key: "?",
+                    image: NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Support"), to: menu)
         addMenuItem(
             "Quit", action: #selector(quit), key: "q",
             image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
