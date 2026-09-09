@@ -456,6 +456,13 @@ inline void format_clock_bar_temperature_list(char *buf, size_t size,
   }
 }
 
+using ClockBarHomeAssistantConfiguredProvider = bool (*)();
+
+inline ClockBarHomeAssistantConfiguredProvider &clock_bar_home_assistant_configured_provider() {
+  static ClockBarHomeAssistantConfiguredProvider provider = nullptr;
+  return provider;
+}
+
 inline void refresh_clock_bar_temperature_label_values(
     lv_obj_t *main_page_obj, bool clock_bar_visible,
     bool indoor_enabled, bool outdoor_enabled,
@@ -477,6 +484,13 @@ inline void refresh_clock_bar_temperature_label_values(
     for (size_t i = 1; i < labels.size(); i++) {
       clock_bar_set_widget_hidden(labels[i], true);
     }
+    return;
+  }
+
+  // The left label also holds subpage titles, which do not require Home Assistant.
+  const auto configured = clock_bar_home_assistant_configured_provider();
+  if (!configured || !configured()) {
+    for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
     return;
   }
 

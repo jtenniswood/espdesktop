@@ -18,6 +18,7 @@ export interface ScreenScheduleStateFeature {
     formatDuration(seconds?: any): string;
     formatHour(hour?: any): string;
     syncUi(): void;
+    setHomeAssistantConfigured(configured: boolean): void;
 }
 
 export function createScreenScheduleStateFeature(
@@ -29,6 +30,11 @@ export function createScreenScheduleStateFeature(
     },
 ): ScreenScheduleStateFeature {
     const els = runtime.els;
+    let homeAssistantConfigured = true;
+    function setHomeAssistantConfigured(configured: boolean) {
+        homeAssistantConfigured = configured;
+        syncUi();
+    }
     function controllerState() {
         return {
             trigger: state.scheduleTrigger,
@@ -74,7 +80,12 @@ export function createScreenScheduleStateFeature(
     }
     function syncUi() {
         applyControllerState(screenScheduleController.normalize(controllerState()));
-        var uiState: any = screenScheduleController.uiState(controllerState());
+        // Hide an unavailable saved mode without changing the device configuration.
+        const visibleState = controllerState();
+        if (visibleState.trigger === "sensor" && !homeAssistantConfigured) {
+            visibleState.trigger = "disabled";
+        }
+        var uiState: any = screenScheduleController.uiState(visibleState);
         state.brightnessMode = normalizeBrightnessMode(state.brightnessMode);
         state.brightnessDawnTime = normalizeTimeOfDay(state.brightnessDawnTime, "06:00");
         state.brightnessDuskTime = normalizeTimeOfDay(state.brightnessDuskTime, "18:00");
@@ -106,9 +117,10 @@ export function createScreenScheduleStateFeature(
         if (els.setScheduleToggle)
             els.setScheduleToggle.checked = !!state.scheduleEnabled;
         if (els.setScheduleModeButtons) {
-            els.setScheduleModeButtons.disabled.className = state.scheduleTrigger === "disabled" ? "active" : "";
-            els.setScheduleModeButtons.time.className = state.scheduleTrigger === "time" ? "active" : "";
-            els.setScheduleModeButtons.sensor.className = state.scheduleTrigger === "sensor" ? "active" : "";
+            els.setScheduleModeButtons.disabled.className = visibleState.trigger === "disabled" ? "active" : "";
+            els.setScheduleModeButtons.time.className = visibleState.trigger === "time" ? "active" : "";
+            els.setScheduleModeButtons.sensor.className = (visibleState.trigger === "sensor" ? "active" : "") + (homeAssistantConfigured ? "" : " sp-hidden");
+            els.setScheduleModeButtons.sensor.hidden = !homeAssistantConfigured;
         }
         if (els.setScheduleOnHour)
             els.setScheduleOnHour.value = String(state.scheduleOnHour);
@@ -168,5 +180,6 @@ export function createScreenScheduleStateFeature(
         formatDuration,
         formatHour,
         syncUi,
+        setHomeAssistantConfigured,
     };
 }

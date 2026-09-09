@@ -46,7 +46,7 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
         var scheduleModeSegment: any = segmentControl([
             ["disabled", "Disabled"],
             ["time", "Time"],
-            ["sensor", "Sensor"],
+            ["sensor", "Home Assistant"],
         ], state.scheduleTrigger, function (this: any, mode?: any) {
             setScheduleTrigger(mode);
         }, "sp-segment sp-screensaver-mode");
