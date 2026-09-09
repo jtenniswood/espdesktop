@@ -127,8 +127,8 @@ export function createControlsShellFeature(
         nav.setAttribute("aria-label", "Primary");
         var tabs: any = [
             { id: "screen", label: "Screen" },
-            { id: "connectors", label: "Connectors" },
             { id: "settings", label: "Settings" },
+            { id: "connectors", label: "Connectors" },
         ];
         tabs.forEach(function (this: any, t?: any) {
             var tab: any = document.createElement("div");
