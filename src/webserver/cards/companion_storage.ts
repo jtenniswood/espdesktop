@@ -42,6 +42,6 @@ export function renderCompanionStorageSelector(panel: HTMLElement | undefined, c
             });
         deviceSelect.value = current;
         hint.textContent = devices.length ? "Mounted local drives. Reopen settings to refresh." :
-            "Connect Companion and enable Share Mac system statistics to list drives.";
+            "Enable full disk access to list all drives.";
     }).catch(() => { hint.textContent = "Storage devices unavailable. Check the Companion connection."; });
 }
