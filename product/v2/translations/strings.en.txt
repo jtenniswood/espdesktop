@@ -266,4 +266,5 @@ daytime=Daytime
 nighttime=Nighttime
 stat_used=used
 stat_free=free
-stat_remaining=remaining
+stat_remaining=left
+backlight=Backlight

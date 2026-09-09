@@ -270,7 +270,8 @@ export function companionMetricIcon(entity: string): string {
 }
 
 export function companionMetricLabel(entity: string, value: string, unit: string): string {
-    const suffix = entity === "stat.battery" ? " remaining"
+    entity = entity.split(":")[0] || entity;
+    const suffix = entity === "stat.battery" ? " left"
         : entity.endsWith("_free") ? " free"
         : entity === "stat.network_throughput" ? "" : " used";
     return value + (unit === "%" ? "" : " ") + unit + suffix;

@@ -1774,7 +1774,7 @@ verifyLocalFirmwareProfileSelection()
   });
 
 for (const [entity, icon, suffix] of [
-  ["stat.battery", "battery-outline", "% remaining"],
+  ["stat.battery", "battery-outline", "% left"],
   ["stat.memory", "memory", "% used"],
   ["stat.memory_free", "memory", "% free"],
   ["stat.storage", "harddisk", "% used"],

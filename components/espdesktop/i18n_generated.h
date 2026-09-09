@@ -262,7 +262,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "used") == 0) return "využito";
   if (std::strcmp(text, "free") == 0) return "volné";
-  if (std::strcmp(text, "remaining") == 0) return "zbývá";
+  if (std::strcmp(text, "left") == 0) return "zbývá";
+  if (std::strcmp(text, "Backlight") == 0) return "Podsvícení";
   return text;
 }
 
@@ -505,7 +506,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "used") == 0) return "brugt";
   if (std::strcmp(text, "free") == 0) return "ledig";
-  if (std::strcmp(text, "remaining") == 0) return "tilbage";
+  if (std::strcmp(text, "left") == 0) return "tilbage";
+  if (std::strcmp(text, "Backlight") == 0) return "Baggrundslys";
   return text;
 }
 
@@ -746,7 +748,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nachts";
   if (std::strcmp(text, "used") == 0) return "belegt";
   if (std::strcmp(text, "free") == 0) return "frei";
-  if (std::strcmp(text, "remaining") == 0) return "verbleibend";
+  if (std::strcmp(text, "left") == 0) return "verbleibend";
+  if (std::strcmp(text, "Backlight") == 0) return "Hintergrundbeleuchtung";
   return text;
 }
 
@@ -996,7 +999,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noche";
   if (std::strcmp(text, "used") == 0) return "usado";
   if (std::strcmp(text, "free") == 0) return "libre";
-  if (std::strcmp(text, "remaining") == 0) return "restante";
+  if (std::strcmp(text, "left") == 0) return "restante";
+  if (std::strcmp(text, "Backlight") == 0) return "Retroiluminación";
   return text;
 }
 
@@ -1256,7 +1260,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Yö";
   if (std::strcmp(text, "used") == 0) return "käytössä";
   if (std::strcmp(text, "free") == 0) return "vapaana";
-  if (std::strcmp(text, "remaining") == 0) return "jäljellä";
+  if (std::strcmp(text, "left") == 0) return "jäljellä";
+  if (std::strcmp(text, "Backlight") == 0) return "Taustavalo";
   return text;
 }
 
@@ -1499,7 +1504,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nuit";
   if (std::strcmp(text, "used") == 0) return "utilisé";
   if (std::strcmp(text, "free") == 0) return "libre";
-  if (std::strcmp(text, "remaining") == 0) return "restant";
+  if (std::strcmp(text, "left") == 0) return "restant";
+  if (std::strcmp(text, "Backlight") == 0) return "Rétroéclairage";
   return text;
 }
 
@@ -1767,7 +1773,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "לילה";
   if (std::strcmp(text, "used") == 0) return "בשימוש";
   if (std::strcmp(text, "free") == 0) return "פנוי";
-  if (std::strcmp(text, "remaining") == 0) return "נותרו";
+  if (std::strcmp(text, "left") == 0) return "נותרו";
+  if (std::strcmp(text, "Backlight") == 0) return "תאורה אחורית";
   return text;
 }
 
@@ -2026,7 +2033,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Éjszaka";
   if (std::strcmp(text, "used") == 0) return "használt";
   if (std::strcmp(text, "free") == 0) return "szabad";
-  if (std::strcmp(text, "remaining") == 0) return "hátralévő";
+  if (std::strcmp(text, "left") == 0) return "hátralévő";
+  if (std::strcmp(text, "Backlight") == 0) return "Háttérvilágítás";
   return text;
 }
 
@@ -2276,7 +2284,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Notte";
   if (std::strcmp(text, "used") == 0) return "usato";
   if (std::strcmp(text, "free") == 0) return "libero";
-  if (std::strcmp(text, "remaining") == 0) return "rimanente";
+  if (std::strcmp(text, "left") == 0) return "rimanente";
+  if (std::strcmp(text, "Backlight") == 0) return "Retroilluminazione";
   return text;
 }
 
@@ -2524,7 +2533,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "used") == 0) return "brukt";
   if (std::strcmp(text, "free") == 0) return "ledig";
-  if (std::strcmp(text, "remaining") == 0) return "igjen";
+  if (std::strcmp(text, "left") == 0) return "igjen";
+  if (std::strcmp(text, "Backlight") == 0) return "Bakgrunnsbelysning";
   return text;
 }
 
@@ -2770,7 +2780,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nacht";
   if (std::strcmp(text, "used") == 0) return "gebruikt";
   if (std::strcmp(text, "free") == 0) return "vrij";
-  if (std::strcmp(text, "remaining") == 0) return "resterend";
+  if (std::strcmp(text, "left") == 0) return "resterend";
+  if (std::strcmp(text, "Backlight") == 0) return "Achtergrondverlichting";
   return text;
 }
 
@@ -3018,7 +3029,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "used") == 0) return "użyte";
   if (std::strcmp(text, "free") == 0) return "wolne";
-  if (std::strcmp(text, "remaining") == 0) return "pozostało";
+  if (std::strcmp(text, "left") == 0) return "pozostało";
+  if (std::strcmp(text, "Backlight") == 0) return "Podświetlenie";
   return text;
 }
 
@@ -3268,7 +3280,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   if (std::strcmp(text, "used") == 0) return "usado";
   if (std::strcmp(text, "free") == 0) return "livre";
-  if (std::strcmp(text, "remaining") == 0) return "restante";
+  if (std::strcmp(text, "left") == 0) return "restante";
+  if (std::strcmp(text, "Backlight") == 0) return "Luz de fundo";
   return text;
 }
 
@@ -3519,7 +3532,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   if (std::strcmp(text, "used") == 0) return "usado";
   if (std::strcmp(text, "free") == 0) return "livre";
-  if (std::strcmp(text, "remaining") == 0) return "restante";
+  if (std::strcmp(text, "left") == 0) return "restante";
+  if (std::strcmp(text, "Backlight") == 0) return "Luz de fundo";
   return text;
 }
 
@@ -3779,7 +3793,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noapte";
   if (std::strcmp(text, "used") == 0) return "utilizat";
   if (std::strcmp(text, "free") == 0) return "liber";
-  if (std::strcmp(text, "remaining") == 0) return "rămas";
+  if (std::strcmp(text, "left") == 0) return "rămas";
+  if (std::strcmp(text, "Backlight") == 0) return "Iluminare de fundal";
   return text;
 }
 
@@ -4046,7 +4061,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Ночь";
   if (std::strcmp(text, "used") == 0) return "использовано";
   if (std::strcmp(text, "free") == 0) return "свободно";
-  if (std::strcmp(text, "remaining") == 0) return "осталось";
+  if (std::strcmp(text, "left") == 0) return "осталось";
+  if (std::strcmp(text, "Backlight") == 0) return "Подсветка";
   return text;
 }
 
@@ -4298,7 +4314,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "used") == 0) return "využité";
   if (std::strcmp(text, "free") == 0) return "voľné";
-  if (std::strcmp(text, "remaining") == 0) return "zostáva";
+  if (std::strcmp(text, "left") == 0) return "zostáva";
+  if (std::strcmp(text, "Backlight") == 0) return "Podsvietenie";
   return text;
 }
 
@@ -4554,7 +4571,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noč";
   if (std::strcmp(text, "used") == 0) return "porabljeno";
   if (std::strcmp(text, "free") == 0) return "prosto";
-  if (std::strcmp(text, "remaining") == 0) return "preostalo";
+  if (std::strcmp(text, "left") == 0) return "preostalo";
+  if (std::strcmp(text, "Backlight") == 0) return "Osvetlitev ozadja";
   return text;
 }
 
@@ -4801,7 +4819,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "used") == 0) return "använt";
   if (std::strcmp(text, "free") == 0) return "ledigt";
-  if (std::strcmp(text, "remaining") == 0) return "kvar";
+  if (std::strcmp(text, "left") == 0) return "kvar";
+  if (std::strcmp(text, "Backlight") == 0) return "Bakgrundsbelysning";
   return text;
 }
 
@@ -5061,7 +5080,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Gece";
   if (std::strcmp(text, "used") == 0) return "kullanılan";
   if (std::strcmp(text, "free") == 0) return "boş";
-  if (std::strcmp(text, "remaining") == 0) return "kalan";
+  if (std::strcmp(text, "left") == 0) return "kalan";
+  if (std::strcmp(text, "Backlight") == 0) return "Arka aydınlatma";
   return text;
 }
 
@@ -5323,7 +5343,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Ніч";
   if (std::strcmp(text, "used") == 0) return "використано";
   if (std::strcmp(text, "free") == 0) return "вільно";
-  if (std::strcmp(text, "remaining") == 0) return "залишилося";
+  if (std::strcmp(text, "left") == 0) return "залишилося";
+  if (std::strcmp(text, "Backlight") == 0) return "Підсвічування";
   return text;
 }
 
@@ -5594,7 +5615,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "nighttime") == 0) return "Nighttime";
   if (std::strcmp(key, "stat_used") == 0) return "used";
   if (std::strcmp(key, "stat_free") == 0) return "free";
-  if (std::strcmp(key, "stat_remaining") == 0) return "remaining";
+  if (std::strcmp(key, "stat_remaining") == 0) return "left";
+  if (std::strcmp(key, "backlight") == 0) return "Backlight";
   return key;
 }
 
