@@ -89,19 +89,23 @@ describe("browserless application contracts", () => {
     assert.match(store, /approvedApplicationIdentifiers\.contains\(\$0\.bundleIdentifier\)/);
     assert.match(store, /func setApplication\(_ application: LaunchableApp, approved: Bool\)/);
     assert.doesNotMatch(store, /NSWorkspace\.shared\.icon\(forFile: url\.path\)/);
-    assert.match(app, /case connection, applications, folders, general/);
-    assert.match(app, /HStack\(spacing: 0\)/);
-    assert.match(app, /selectedPageID = page\.rawValue/);
-    assert.match(app, /\.listStyle\(\.sidebar\)/);
     assert.match(app, /\.formStyle\(\.grouped\)/);
-    assert.match(app, /TextField\("Search", text: \$applicationSearch\)/);
     assert.doesNotMatch(app, /Image\(nsImage: application\.icon\)/);
-    assert.match(app, /\.toggleStyle\(\.checkbox\)/);
-    assert.match(app, /\.controlSize\(\.small\)/);
-    assert.match(app, /Toggle\("Select All", isOn: selectAllBinding\)/);
-    assert.match(app, /setApplications\(filteredApplications, approved: \$0\)/);
+    assert.match(app, /ForEach\(store\.availableApps\) \{ application in/);
+    assert.match(app, /get: \{ store\.applicationIsApproved\(application\) \}/);
+    assert.match(app, /set: \{ store\.setApplication\(application, approved: \$0\) \}/);
     assert.equal((app.match(/isAvailable: store\.supportsLaunchAtLogin/g) || []).length, 2);
     assert.match(app, /\.disabled\(!isAvailable\)/);
+  });
+
+  test("connects native Mac settings navigation to the selected page", () => {
+    const app = fs.readFileSync(path.join(ROOT, "macos/EspDesktop/Sources/Companion/CompanionSettings.swift"), "utf8");
+    assert.match(app, /CompanionSettingsToolbar\(selection: selectedPageBinding\)/);
+    assert.match(app, /set: \{ selectedPageID = \$0\.rawValue \}/);
+    assert.match(app, /CompanionSettingsPage\.allCases\.map/);
+    assert.match(app, /item\.action = #selector\(selectPage\(_:\)\)/);
+    assert.match(app, /selection\.wrappedValue = page/);
+    assert.match(app, /context\.coordinator\.toolbar\.selectedItemIdentifier = \.init\(selection\.rawValue\)/);
   });
 
   test("owns browser composition and compatibility layout state", () => {
