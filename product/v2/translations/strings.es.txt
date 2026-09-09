@@ -264,3 +264,4 @@ settings=Ajustes
 brightness=Brillo
 daytime=Día
 nighttime=Noche
+backlight=Retroiluminación
