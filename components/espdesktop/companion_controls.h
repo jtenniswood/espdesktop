@@ -19,6 +19,7 @@
 #include "companion_runtime_access.h"
 #include "companion_pairing_policy.h"
 #include "companion_timezone.h"
+#include "i18n_generated.h"
 
 #ifdef USE_WEBSERVER
 #include "esphome/components/web_server_idf/web_server_idf.h"
@@ -28,7 +29,6 @@
 #ifdef USE_LVGL
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
-#include "i18n_generated.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
@@ -242,9 +242,9 @@ inline bool companion_volume_control_valid(const std::string &control_id) {
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
-  if (control_id == "media.output_volume") return "Output Volume";
-  if (control_id == "media.input_volume") return "Input Volume";
-  return "Volume";
+  if (control_id == "media.output_volume") return espdesktop_i18n("Output Volume");
+  if (control_id == "media.input_volume") return espdesktop_i18n("Input Volume");
+  return espdesktop_i18n("Volume");
 }
 
 inline bool companion_value(const std::string &control_id, int &value) {
@@ -414,15 +414,20 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
   }
   std::string key = parts.back();
   if (key.size() == 1 && key[0] >= 'a' && key[0] <= 'z') key[0] = static_cast<char>(key[0] - 'a' + 'A');
-  else if (key == "enter") key = "Return";
-  else if (key == "escape") key = "Esc";
-  else if (key == "forwarddelete") key = "Forward Delete";
+  else if (key == "space") key = espdesktop_i18n("Space");
+  else if (key == "tab") key = espdesktop_i18n("Tab");
+  else if (key == "delete") key = espdesktop_i18n("Delete");
+  else if (key == "home") key = espdesktop_i18n_key("keyboard_home");
+  else if (key == "end") key = espdesktop_i18n("End");
+  else if (key == "enter") key = espdesktop_i18n("Return");
+  else if (key == "escape") key = espdesktop_i18n("Esc");
+  else if (key == "forwarddelete") key = espdesktop_i18n("Forward Delete");
   else if (key == "left") key = "\U000F004D";
   else if (key == "right") key = "\U000F0054";
   else if (key == "up") key = "\U000F005D";
   else if (key == "down") key = "\U000F0045";
-  else if (key == "pageup") key = "Page Up";
-  else if (key == "pagedown") key = "Page Down";
+  else if (key == "pageup") key = espdesktop_i18n("Page Up");
+  else if (key == "pagedown") key = espdesktop_i18n("Page Down");
   else if (key == "keycomma") key = ",";
   else if (key == "keyperiod") key = ".";
   else if (key == "keyslash") key = "/";
@@ -444,7 +449,7 @@ inline bool companion_window_action_valid(const std::string &action_id) {
 
 inline std::string companion_window_action_label(const std::string &action_id) {
   const auto *capability = companion_window_capability(action_id);
-  return capability ? capability->label : "";
+  return capability ? espdesktop_i18n(capability->label) : "";
 }
 
 inline bool companion_action_available(const std::string &action_id) {
@@ -480,8 +485,8 @@ inline std::string companion_default_action_label(const std::string &action_id,
   if (!shortcut_label.empty()) return shortcut_label;
   const std::string window_label = companion_window_action_label(action_id);
   if (!window_label.empty()) return window_label;
-  if (!companion_encoded_url(url_config).empty()) return "Open URL";
-  return action_id.empty() ? "Mac App" : action_id;
+  if (!companion_encoded_url(url_config).empty()) return espdesktop_i18n("Open URL");
+  return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
 }
 
 inline bool companion_metric_card_should_disable(bool connected, bool preserve_navigation) {
