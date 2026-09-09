@@ -888,31 +888,29 @@ struct CompanionSettings: View {
     private var helpPage: some View {
         Form {
             Section {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Help EspDesktop grow")
-                            .font(.title2.weight(.semibold))
-                        Text("Your contributions help fund ongoing support and new features.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 12) {
+                    Link(destination: CompanionStore.buyMeACoffeeURL) {
+                        Label("Buy me a coffee", systemImage: "cup.and.saucer")
                     }
-                    HStack(spacing: 12) {
-                        Link(destination: CompanionStore.supportURL) {
-                            Label("Get help", systemImage: "questionmark.circle")
-                        }
-                        Link(destination: CompanionStore.issuesURL) {
-                            Label("Share feedback", systemImage: "bubble.left")
-                        }
-                        Link(destination: CompanionStore.buyMeACoffeeURL) {
-                            Label("Buy Me a Coffee", systemImage: "cup.and.saucer")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .help("Contribute to ongoing support and new features")
+                    .help("Contribute to ongoing support and new features")
+                    Link(destination: CompanionStore.issuesURL) {
+                        Label("Give Feedback", systemImage: "bubble.left")
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+                    Link(destination: CompanionStore.supportURL) {
+                        Label("Get Help", systemImage: "questionmark.circle")
+                    }
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
                 .padding(.vertical, 8)
+            } header: {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Help EspDesktop grow")
+                    Text("Your contributions help fund ongoing support and new features.")
+                        .font(.callout)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.secondary)
+                }
             }
             Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
