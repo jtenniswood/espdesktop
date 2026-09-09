@@ -344,10 +344,12 @@ struct CompanionSettings: View {
             .background(CompanionSettingsToolbar(selection: selectedPageBinding))
             .navigationTitle("Settings")
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-                floatingSupportButton
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                    .padding(.bottom, 24)
+                if selectedPage != .help {
+                    floatingSupportButton
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+                        .padding(.bottom, 24)
+                }
             }
         .onAppear {
             selectedPageID = store.requestedSettingsPage
@@ -885,22 +887,32 @@ struct CompanionSettings: View {
 
     private var helpPage: some View {
         Form {
-            Section("Help and feedback") {
-                Text("Get help, report an issue, or share an idea. Your feedback helps shape EspDesktop’s ongoing improvements and new features.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                Link("Get help", destination: CompanionStore.supportURL)
-                Link("Report an issue or suggest a feature", destination: CompanionStore.issuesURL)
-            }
-            Section("Support ongoing development") {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Help EspDesktop grow")
-                        .font(.headline)
-                    Text("Optional financial contributions help fund continued support, improvements, and new features over time. Thank you for helping move EspDesktop forward.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    Link("Contribute via Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
+            Section {
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Help EspDesktop grow")
+                            .font(.title2.weight(.semibold))
+                        Text("Your contributions help fund ongoing support and new features.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 12) {
+                        Link(destination: CompanionStore.supportURL) {
+                            Label("Get help", systemImage: "questionmark.circle")
+                        }
+                        Link(destination: CompanionStore.issuesURL) {
+                            Label("Share feedback", systemImage: "bubble.left")
+                        }
+                        Link(destination: CompanionStore.buyMeACoffeeURL) {
+                            Label("Buy Me a Coffee", systemImage: "cup.and.saucer")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .help("Contribute to ongoing support and new features")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                 }
+                .padding(.vertical, 8)
             }
             Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
