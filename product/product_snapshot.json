@@ -12,7 +12,7 @@
     "deviceProfiles": 7,
     "cardTypes": 43,
     "entityNames": 102,
-    "icons": 337,
+    "icons": 338,
     "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
   },
@@ -8153,6 +8153,11 @@
         "name": "Gesture Tap",
         "codepoint": "F0741",
         "mdi": "gesture-tap"
+      },
+      {
+        "name": "Harddisk",
+        "codepoint": "F02CA",
+        "mdi": "harddisk"
       },
       {
         "name": "Gauge",
