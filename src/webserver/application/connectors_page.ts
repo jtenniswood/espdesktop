@@ -90,6 +90,7 @@ export function createConnectorsPageFeature(
     let homeAssistantSteps: HTMLElement | null = null;
     let homeAssistantActionInfo: HTMLElement | null = null;
     let homeAssistantConfirmButton: HTMLButtonElement | null = null;
+    let homeAssistantForgetButton: HTMLButtonElement | null = null;
     let homeAssistantBadge: HTMLElement | null = null;
     let current: ConnectorsStatus | null = null;
     let statusEndpointAvailable = false;
@@ -155,6 +156,8 @@ export function createConnectorsPageFeature(
             homeAssistantConfirmButton.disabled = !value.home_assistant.connected ||
                 value.home_assistant.actions_confirmed;
         }
+        setHidden(homeAssistantForgetButton,
+            !value.home_assistant.configured || value.home_assistant.connected);
         setHidden(homeAssistantInstructions, value.home_assistant.connected &&
             value.home_assistant.actions_confirmed);
         setHidden(homeAssistantBadge, !value.home_assistant.connected);
@@ -238,6 +241,28 @@ export function createConnectorsPageFeature(
         actionInfo.appendChild(document.createElement("br"));
         actionInfo.appendChild(homeAssistantConfirmButton);
         homeAssistantInstructions.appendChild(actionInfo);
+
+        homeAssistantForgetButton = document.createElement("button");
+        homeAssistantForgetButton.type = "button";
+        homeAssistantForgetButton.className = "sp-button";
+        homeAssistantForgetButton.textContent = "Forget Home Assistant";
+        homeAssistantForgetButton.hidden = true;
+        homeAssistantForgetButton.addEventListener("click", async function () {
+            if (!current?.home_assistant.configured ||
+                current.home_assistant.connected || !homeAssistantForgetButton) return;
+            homeAssistantForgetButton.disabled = true;
+            try {
+                const response = await fetch("/connectors/home-assistant/forget", {
+                    method: "POST",
+                    headers: { Accept: "application/json" },
+                });
+                if (!response.ok) throw new Error("Home Assistant could not be forgotten");
+                applyStatus(await response.json() as ConnectorsStatus);
+            } catch {
+                if (homeAssistantForgetButton) homeAssistantForgetButton.disabled = false;
+            }
+        });
+        body.appendChild(homeAssistantForgetButton);
         body.insertBefore(homeAssistantInstructions, homeAssistantStatus);
 
         homeAssistantBadge = document.createElement("span");

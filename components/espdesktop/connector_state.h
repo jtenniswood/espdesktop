@@ -40,13 +40,17 @@ class ConnectorStateService {
     const bool loaded = preference_.load(&state_);
     const bool current_preference = loaded && state_.version == 1;
     if (!current_preference) state_ = ConnectorPreference{};
-    // Before connector-aware onboarding, every configured layout necessarily
-    // came through the Home Assistant setup path. Preserve that experience on
-    // upgrade instead of sending an established panel back to first-run setup.
     if (!current_preference && existing_layout) {
+#ifdef USE_COMPANION
+      // Connector setup runs before the Companion component has restored its
+      // pairing. Defer migration until status() can distinguish a Home
+      // Assistant panel from a Companion-only panel.
+      legacy_layout_migration_pending_ = true;
+#else
       state_.home_assistant_configured = 1;
       state_.home_assistant_actions_confirmed = 1;
       save_();
+#endif
     }
     initialized_ = true;
   }
@@ -55,6 +59,14 @@ class ConnectorStateService {
     if (!ha_api_state_connected()) return false;
     state_.home_assistant_configured = 1;
     state_.home_assistant_actions_confirmed = 1;
+    save_();
+    return true;
+  }
+
+  bool forget_home_assistant() {
+    if (ha_api_state_connected()) return false;
+    state_.home_assistant_configured = 0;
+    state_.home_assistant_actions_confirmed = 0;
     save_();
     return true;
   }
@@ -72,6 +84,15 @@ class ConnectorStateService {
         : CompanionPairingSnapshot{};
     ConnectorStatus result;
     result.home_assistant_connected = ha_api_state_connected();
+    if (legacy_layout_migration_pending_ &&
+        (result.home_assistant_connected || companion_pairing_provider())) {
+      if (result.home_assistant_connected || !companion.paired) {
+        state_.home_assistant_configured = 1;
+        state_.home_assistant_actions_confirmed = 1;
+      }
+      save_();
+      legacy_layout_migration_pending_ = false;
+    }
     // A live Home Assistant connection establishes the connector. The action
     // permission is a separate device setting shown in the web setup guide;
     // there is no additional browser confirmation step.
@@ -101,6 +122,7 @@ class ConnectorStateService {
   esphome::ESPPreferenceObject preference_{};
   ConnectorPreference state_{};
   bool initialized_{false};
+  bool legacy_layout_migration_pending_{false};
   const char *web_auth_username_{""};
   const char *web_auth_password_{""};
 };
@@ -141,7 +163,8 @@ class ConnectorStatusHandler : public esphome::web_server_idf::AsyncWebHandler {
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const auto url = request->url_to(url_buf);
     return url == "/connectors/status" ||
-           url == "/connectors/home-assistant/complete";
+           url == "/connectors/home-assistant/complete" ||
+           url == "/connectors/home-assistant/forget";
   }
 
   void handleRequest(
@@ -160,6 +183,9 @@ class ConnectorStatusHandler : public esphome::web_server_idf::AsyncWebHandler {
     if (url == "/connectors/home-assistant/complete") {
       accepted = request->method() == HTTP_POST &&
                  connector_state_service().confirm_home_assistant();
+    } else if (url == "/connectors/home-assistant/forget") {
+      accepted = request->method() == HTTP_POST &&
+                 connector_state_service().forget_home_assistant();
     } else if (request->method() != HTTP_GET) {
       accepted = false;
     }

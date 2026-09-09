@@ -41,6 +41,7 @@ CONFIG_SCHEMA = cv.All(
 
 
 async def to_code(config):
+    cg.add_define("USE_COMPANION")
     esp32.add_idf_sdkconfig_option("CONFIG_HTTPD_WS_SUPPORT", True)
     esp32.add_idf_sdkconfig_option("CONFIG_ESP_HTTPS_SERVER_ENABLE", True)
     esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_X509_CRT_WRITE_C", True)
