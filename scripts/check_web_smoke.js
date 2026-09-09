@@ -1600,10 +1600,10 @@ assert.strictEqual(hooks.networkPreviewIconSlug("wifi", 50), "wifi-strength-3");
 assert.strictEqual(hooks.networkPreviewIconSlug("wifi", 75), "wifi-strength-4");
 assert.strictEqual(hooks.networkPreviewIconSlug("ethernet", 0), "ethernet");
 assert.strictEqual(hooks.displayFirmwareVersion("v1.11.1"), "v1.11.1");
-assert.strictEqual(hooks.displayFirmwareVersion("dev"), "Dev build");
-assert.strictEqual(hooks.displayFirmwareVersion("0.0.0"), "Dev build");
-assert.strictEqual(hooks.displayFirmwareVersion("main"), "Dev build");
-assert.strictEqual(hooks.displayFirmwareVersion("dev-jc8012p4a1-20260611-livecheck"), "Dev build");
+assert.strictEqual(hooks.displayFirmwareVersion("dev"), "Dev Build");
+assert.strictEqual(hooks.displayFirmwareVersion("0.0.0"), "Dev Build");
+assert.strictEqual(hooks.displayFirmwareVersion("main"), "Dev Build");
+assert.strictEqual(hooks.displayFirmwareVersion("dev-jc8012p4a1-20260611-livecheck"), "Dev Build");
 assert.strictEqual(hooks.displayFirmwareVersion(""), "Version unknown");
 assert.strictEqual(hooks.firmwareVersionFromMetadata({ firmware_version: "v1.12.0" }), "v1.12.0");
 assert.strictEqual(hooks.firmwareVersionFromMetadata({ project_version: "v1.12.1" }), "v1.12.1");
@@ -1722,14 +1722,14 @@ assert.strictEqual(
 );
 assert.strictEqual(
   hooks.firmwareVersionAfterUpdateInfo("Dev", { state: "UPDATE AVAILABLE", latest_version: "v1.11.1" }).version,
-  "Dev build"
+  "Dev Build"
 );
 assert.strictEqual(
   hooks.firmwareVersionAfterUpdateInfo("v1.10.0", { state: "NO UPDATE", latest_version: "v1.11.1" }).version,
   "v1.10.0"
 );
 assert.deepStrictEqual(plain(hooks.firmwareStateAfterPublicManifest("Dev", publicManifest)), {
-  version: "Dev build",
+  version: "Dev Build",
   latest: "v1.12.0",
   updateState: "",
   releaseUrl: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
