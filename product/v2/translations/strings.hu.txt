@@ -264,3 +264,4 @@ settings=Beállítások
 brightness=Fényerő
 daytime=Nappal
 nighttime=Éjszaka
+backlight=Háttérvilágítás

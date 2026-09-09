@@ -1,4 +1,5 @@
 #include "companion.h"
+#include "companion_discovery.h"
 #include "now_playing_protocol.h"
 #include "../espdesktop/companion_protocol_generated.h"
 
@@ -128,7 +129,13 @@ void CompanionService::setup() {
   companion_runtime_service().revoke_pairing = [this] { this->revoke_pairing(); };
   register_companion_pairing_provider(pairing_snapshot);
   register_companion_actions_endpoint();
-  if (!this->start_server_()) this->mark_failed();
+  if (!this->start_server_()) {
+    this->mark_failed();
+    return;
+  }
+  // ESPHome owns mDNS initialization and network-interface lifecycle. It starts
+  // later than Companion, so retry registration until that shared responder is ready.
+  this->set_interval("discovery", 5000, [this] { this->advertise_discovery_(); });
 }
 
 void CompanionService::loop() {
@@ -154,6 +161,20 @@ void CompanionService::loop() {
       !this->authentication_expiry_queued_.exchange(true)) {
     if (!this->server_ || httpd_queue_work(this->server_, &CompanionService::authentication_expiry_work_, this) != ESP_OK)
       this->authentication_expiry_queued_.store(false);
+  }
+}
+
+void CompanionService::advertise_discovery_() {
+  if (this->discovery_advertised_ || !this->server_) return;
+  uint8_t digest[32]{};
+  if (mbedtls_sha256(this->identity_.certificate, this->identity_.certificate_len, digest, 0) != 0) return;
+  const std::string fingerprint = hex(digest, sizeof(digest));
+  const std::string name = App.get_friendly_name().empty() ? App.get_name() : App.get_friendly_name();
+  // This adds to the existing responder; never call mdns_init/free or replace
+  // ESPHome's hostname, HTTP, or native API announcements.
+  if (register_discovery(this->port_, name, fingerprint) == ESP_OK) {
+    this->discovery_advertised_ = true;
+    this->cancel_interval("discovery");
   }
 }
 

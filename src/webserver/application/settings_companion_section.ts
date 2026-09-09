@@ -43,6 +43,29 @@ export function companionPairingCodeVisible(state: CompanionPairingState): boole
     return !state.paired && state.active && state.pairing_code.trim().length > 0;
 }
 
+// Display pages use local HTTP, where the modern Clipboard API may be unavailable.
+export async function copyCompanionCode(document: Document, navigator: Navigator, code: string): Promise<void> {
+    if (navigator.clipboard) {
+        try {
+            await navigator.clipboard.writeText(code);
+            return;
+        } catch { /* Fall back to copying from a selected field on local HTTP. */ }
+    }
+    const previousFocus = document.activeElement;
+    const field = document.createElement("textarea");
+    field.value = code;
+    field.readOnly = true;
+    field.style.cssText = "position:fixed;left:-9999px;top:0";
+    document.body.appendChild(field);
+    try {
+        field.select();
+        if (!document.execCommand("copy")) throw new Error("Clipboard unavailable");
+    } finally {
+        field.remove();
+        if (previousFocus && "focus" in previousFocus) (previousFocus as HTMLElement).focus();
+    }
+}
+
 export function createSettingsCompanionSectionFeature(
     dom: Pick<ApplicationDomServices, "document" | "window" | "fetch">,
     shell: Pick<ControlsShellFeature, "createActionButton" | "showBanner">,
@@ -72,15 +95,18 @@ export function createSettingsCompanionSectionFeature(
         instructions.className = "sp-connector-instructions";
         const note = document.createElement("p");
         note.className = "sp-setting-note sp-companion-note";
-        note.textContent = "Open this page to start pairing. The setup code expires after 15 minutes or as soon as the Mac connects; the trusted pairing remains saved across reboots.";
+        const heading = document.createElement("h3");
+        heading.className = "sp-companion-heading";
+        heading.textContent = "Connect your Mac";
+        instructions.appendChild(heading);
+        note.textContent = "Your display and Mac, working together. Pair once to get started.";
         instructions.appendChild(note);
 
         const steps = document.createElement("ol");
         steps.className = "sp-connector-steps";
         [
-            "Copy the pairing code shown below.",
-            "Open EspDesktop on your Mac and enter the display address and code.",
-            "Select Continue in the Companion app to complete pairing.",
+            "Choose this display in the EspDesktop Mac app, or enter its address manually.",
+            "Copy the code below, paste it into the app, then select Connect.",
         ].forEach(function (text) {
             const item = document.createElement("li");
             item.textContent = text;
@@ -93,11 +119,38 @@ export function createSettingsCompanionSectionFeature(
         pairingDetails.className = "sp-companion-details sp-hidden";
         const pairingCodeRow = document.createElement("div");
         pairingCodeRow.className = "sp-companion-code-row";
-        pairingCodeRow.appendChild(document.createTextNode("Pairing code"));
+        const codeLabel = document.createElement("div");
+        codeLabel.className = "sp-companion-code-label";
+        codeLabel.textContent = "YOUR PAIRING CODE";
+        pairingDetails.appendChild(codeLabel);
         const pairingCode = document.createElement("strong");
         pairingCode.className = "sp-companion-code";
         pairingCodeRow.appendChild(pairingCode);
+        const copyButton = createActionButton("sp-action-btn sp-companion-copy", "Copy", "content-copy", "Copy pairing code");
+        copyButton.disabled = true;
+        pairingCodeRow.appendChild(copyButton);
+        const copyFeedback = document.createElement("div");
+        copyFeedback.className = "sp-companion-copy-feedback";
+        copyFeedback.setAttribute("role", "status");
+        copyFeedback.setAttribute("aria-live", "polite");
+        let copying = false;
+        copyButton.addEventListener("click", async () => {
+            if (copying || !latestState || !companionPairingCodeVisible(latestState)) return;
+            const code = latestState.pairing_code;
+            copying = true;
+            copyButton.disabled = true;
+            try {
+                await copyCompanionCode(document, window.navigator, code);
+                if (latestState?.pairing_code === code) copyFeedback.textContent = "Copied. Paste it into the Mac app.";
+            } catch {
+                copyFeedback.textContent = "Select the code and press ⌘C on Mac or Ctrl+C to copy.";
+            } finally {
+                copying = false;
+                copyButton.disabled = !latestState || !companionPairingCodeVisible(latestState);
+            }
+        });
         pairingDetails.appendChild(pairingCodeRow);
+        pairingDetails.appendChild(copyFeedback);
         body.appendChild(pairingDetails);
 
         const status = document.createElement("div");
@@ -149,7 +202,11 @@ export function createSettingsCompanionSectionFeature(
         badge.appendChild(document.createTextNode("ON"));
 
         function render(value: CompanionPairingState): void {
+            if (latestState?.pairing_code !== value.pairing_code || !companionPairingCodeVisible(value)) {
+                copyFeedback.textContent = "";
+            }
             latestState = value;
+            copyButton.disabled = copying || !companionPairingCodeVisible(value);
             if (onStatus) onStatus(value);
             status.textContent = companionPairingStatusText(value);
             status.classList.toggle("sp-companion-status-connected", value.connected);
