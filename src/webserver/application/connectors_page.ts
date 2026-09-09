@@ -83,6 +83,8 @@ export function createConnectorsPageFeature(
 ): ConnectorsPageFeature {
     const { document, window, fetch } = dom;
     let heading: HTMLElement | null = null;
+    let homeAssistantCard: HTMLElement | null = null;
+    let companionCard: HTMLElement | null = null;
     let homeAssistantStatus: HTMLElement | null = null;
     let homeAssistantInstructions: HTMLElement | null = null;
     let homeAssistantSteps: HTMLElement | null = null;
@@ -131,6 +133,15 @@ export function createConnectorsPageFeature(
         const wasComplete = previous?.onboarding_complete === true;
         const announceCompletion = !!previous && !wasComplete && value.onboarding_complete;
         current = value;
+        if (homeAssistantCard && companionCard) {
+            // Use saved setup state so a temporary disconnect does not reorder cards.
+            const companionFirst = value.mac_companion.paired && !value.home_assistant.configured;
+            const first = companionFirst ? companionCard : homeAssistantCard;
+            const second = companionFirst ? homeAssistantCard : companionCard;
+            if (first.nextElementSibling !== second) {
+                second.parentElement?.insertBefore(first, second);
+            }
+        }
         if (homeAssistantStatus) {
             homeAssistantStatus.textContent = homeAssistantConnectorStatusText(value.home_assistant);
             homeAssistantStatus.classList.toggle(
@@ -261,13 +272,15 @@ export function createConnectorsPageFeature(
         heading.className = "sp-connectors-heading sp-settings-status-title";
         heading.textContent = "Connect EspDesktop";
         config.appendChild(heading);
-        config.appendChild(buildHomeAssistantCard());
+        homeAssistantCard = buildHomeAssistantCard();
+        config.appendChild(homeAssistantCard);
         if (companionSupported) {
             const openCompanion = requestedConnectorFromSearch(window.location.search) === "mac_companion";
-            config.appendChild(companionSection.buildCompanionSettingsCard(
+            companionCard = companionSection.buildCompanionSettingsCard(
                 applyCompanionStatus,
                 !openCompanion,
-            ));
+            );
+            config.appendChild(companionCard);
         }
         page.appendChild(config);
         parent.appendChild(page);
