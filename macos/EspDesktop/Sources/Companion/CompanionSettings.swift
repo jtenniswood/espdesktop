@@ -774,7 +774,7 @@ struct CompanionSettings: View {
     private var permissionsSection: some View {
         Section("Permissions") {
             CompanionPermissionRow(
-                title: "Launch Companion App at Login",
+                title: "Open Companion at Launch",
                 information: store.supportsLaunchAtLogin
                     ? (store.launchAtLoginMessage.isEmpty
                        ? "Open EspDesktop automatically after you sign in."
