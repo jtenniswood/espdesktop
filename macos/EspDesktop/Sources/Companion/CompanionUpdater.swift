@@ -78,6 +78,7 @@ struct CompanionUpdateSettings: View {
                     if updater.isChecking { ProgressView().controlSize(.small) }
                     Button("Check Now") { updater.check() }
                         .buttonStyle(.bordered)
+                        .controlSize(.large)
                         .modifier(CompanionCapsuleButton())
                         .disabled(updater.isChecking)
                 }
