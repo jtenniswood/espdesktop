@@ -29,6 +29,7 @@
 #ifdef USE_LVGL
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
+#include "card_availability.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
@@ -709,9 +710,9 @@ inline void companion_refresh_cards_if_requested() {
       // connection is offline. A missing optional metric (for example,
       // battery on a desktop Mac) remains enabled while Companion is online.
       if (companion_metric_card_should_disable(snapshot.connected, it->preserve_navigation)) {
-        lv_obj_add_state(it->button, LV_STATE_DISABLED);
+        set_card_disabled_state(it->button, true);
       } else {
-        lv_obj_clear_state(it->button, LV_STATE_DISABLED);
+        set_card_disabled_state(it->button, false);
       }
       ++it;
       continue;
@@ -728,9 +729,9 @@ inline void companion_refresh_cards_if_requested() {
       lv_label_set_display_text(it->text_label, translated_status.c_str());
     }
     if (available) {
-      lv_obj_clear_state(it->button, LV_STATE_DISABLED);
+      set_card_disabled_state(it->button, false);
     } else {
-      lv_obj_add_state(it->button, LV_STATE_DISABLED);
+      set_card_disabled_state(it->button, true);
     }
     companion_apply_card_focus(it->button, it->action_id, it->url_config);
     ++it;
