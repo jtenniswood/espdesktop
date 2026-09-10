@@ -593,8 +593,9 @@ export function registerCompanionCardTypes(
             shortcutPanel.button.addEventListener("click", function () {
                 card._shortcutPanelOpen = shortcutPanel.panel.classList.contains("sp-open");
             });
-            shortcutPanel.panel.style.display = shortcutType === "custom" ? "" : "none";
-            const customField = shortcutPanel.section;
+            const customField = document.createElement("div");
+            customField.style.display = shortcutType === "custom" ? "" : "none";
+            shortcutPanel.section.appendChild(customField);
             const modifierLabel = document.createElement("div");
             modifierLabel.className = "sp-field-label";
             modifierLabel.textContent = "Modifiers";
@@ -718,7 +719,7 @@ export function registerCompanionCardTypes(
             catalogShortcut.value = savedCatalogShortcut?.options || "";
             catalogShortcutField.appendChild(catalogShortcut);
             catalogField.appendChild(catalogShortcutField);
-            shortcutField.appendChild(catalogField);
+            shortcutPanel.section.appendChild(catalogField);
             helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "catalog";
             }, function () {

@@ -62,7 +62,7 @@ With **Auto switch to subpage** enabled, tapping the app card asks the Mac to ac
 Choose **Keyboard shortcut**, then choose a **Type**:
 
 - **Custom Shortcut** groups its modifier buttons and key selector in an expandable **Shortcut** panel. Click modifiers and choose a key without pressing the combination on your Mac. For Command-W, enable **⌘ Command**, choose **W**, then save. Existing saved shortcuts remain editable with these controls.
-- **Shortcut Catalog** lets you choose **Safari**, then **Back**, **Forward**, **Reload**, **New Tab**, or **Close Tab**. The card starts with the shortcut’s name and icon, which you can customise in Card Settings.
+- **Shortcut Catalog** groups its App and Shortcut selectors in the same expandable **Shortcut** panel. Choose **Safari**, then **Back**, **Forward**, **Reload**, **New Tab**, or **Close Tab**. The card starts with the shortcut’s name and icon, which you can customise in Card Settings.
 
 Contributors can extend the catalog through [one JSON file per app](https://github.com/jtenniswood/espdesktop/tree/main/product/v2/app_shortcuts), shared with app subpage presets. New definitions are included when the project is rebuilt.
 

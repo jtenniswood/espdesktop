@@ -5226,6 +5226,15 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await type.inputValue(), "custom", "existing shortcuts use Custom Shortcut");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
     await type.selectOption("catalog");
+    const catalogPanel = page.locator(".sp-disclosure").filter({
+      has: page.getByRole("button", { name: "Shortcut", exact: true }),
+    });
+    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
+    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
+    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    assert.strictEqual(await app.isVisible(), false);
+    assert.strictEqual(await action.isVisible(), false);
+    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
     assert.strictEqual(await action.isDisabled(), true, "choose an app first");
     assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
     await app.selectOption("com.apple.Safari");
