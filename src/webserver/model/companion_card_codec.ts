@@ -1,5 +1,5 @@
-import type { CardConfig } from "../contracts/types";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+import type { CardConfig } from "../contracts/types";
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 
 export function companionMetricForEntity(entity: unknown) {

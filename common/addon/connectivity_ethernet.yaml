@@ -17,7 +17,6 @@ ethernet:
   phy_addr: 1
   on_connect:
     - script.execute: ntp_servers_apply_after_network
-    - lambda: 'id(espdesktop_app).home_assistant_endpoint().request_discovery();'
     - script.execute: setup_screen_dim_cancel
     - lambda: |-
         ESP_LOGI("connectivity", "Ethernet connected (%lu ms)", millis());

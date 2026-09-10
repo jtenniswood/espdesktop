@@ -1,145 +1,36 @@
 ---
-title: EspDesktop Screen Setup
-description:
-  How to use the built-in web page to configure cards, icons, display settings, screensaver, and brightness on your EspDesktop panel.
+title: Screen Setup
+description: "Pair your Mac and configure cards and display settings in the built-in web interface."
 ---
 
-# Setting Up Your Device's Screen
+# Screen Setup
 
-Your EspDesktop panel has a built-in web page where you can set everything up. Open it by typing the panel's address into any browser on your phone or computer.
+Open the display's IP address or `.local` name in a browser. Find the address on the display or in your router's connected-device list.
 
-![Screen setup page](/images/screen-setup.png)
+## Pair Your Mac
 
-![Webserver card grid with examples of lights, climate, media, weather, covers, locks, actions, sensors, and date cards](/images/webserver-card-gallery.png)
+Choose **Settings**. The expanded **Mac Companion** box is the first item, above Display settings. Use the temporary code to [pair the Mac app](/getting-started/mac-app). The same box shows connection status and lets you reset pairing.
 
-::: tip Finding the address
-The address is shown on the display screen when no cards are configured yet. You can also find it in your router's connected devices list or, when connected, in Home Assistant under **Settings > Devices & Services > ESPHome**.
-:::
+There are two tabs: **Screen** for the card layout and **Settings** for Companion, display preferences, backup and firmware controls.
 
-### Adding a Card
+## Add Cards
 
-Tap any empty space in the grid (shown as a dashed outline with a **+** icon). A settings panel appears below the preview where you configure the card:
+1. Open **Screen** and select an empty slot marked **+**.
+2. Choose a [card type](/card-types/).
+3. Select the application, shortcut, statistic, timezone or URL that the card should use.
+4. Set a label and icon where available.
+5. Save the card and use **Apply Configuration** when prompted.
 
-![Card settings panel](/images/button-settings.png)
+Mac application and folder choices come from the approved list on the connected Mac. Statistic cards show `--` until a reading is available.
 
-![Light card settings panel showing card type, entity, label, and icon fields](/images/settings-panel-light-card.png)
+## Arrange the Layout
 
-![Switch card showing a Heater icon](/images/card-toggle.png)
+Drag cards to rearrange them. Use the card's **Size** menu to choose a size that fits the current grid. Wider and taller cards use more slots; a size change is not applied if the layout has insufficient room.
 
-The setup page uses these card names and grouped modes on the device. For a quick comparison, see the [Card Types overview](/card-types/).
+[Subpages](/features/subpages) group related controls. **Copy Code** and **Paste Code** transfer selected cards; [Backup](/features/backup) saves a complete configuration.
 
-| Type | What it does | Needs an entity? |
-|---|---|---|
-| **[Companion](/card-types/companion)** | Launches approved Mac apps, opens folders or websites, runs shortcuts, arranges windows, controls media, or shows Mac statistics. Available on the 4848S040. | Paired Mac target or statistic |
-| **[Switch](/card-types/switches)** | Controls a Home Assistant entity and shows its on/off state. This is the default card type. | Yes |
-| **[Lights](/card-types/lights)** | Controls a light as a full control popup, switch, brightness slider, or colour temperature slider. | Yes, as a light entity |
-| **[Action](/card-types/actions)** | Runs a one-tap Home Assistant scene, script, button, helper action, Option Select picker, or local panel action. | Depends on the selected action |
-| **[Option Select](/card-types/option-select)** | Opens a live `select` or `input_select` option list through the Action card. | Yes, as a select entity |
-| **[Webhook](/card-types/webhooks)** | Calls an HTTP URL directly from the panel for other automation platforms and webhook services. | URL |
-| **[Wifi Sharing](/card-types/wifi-share)** | Shows a QR code for separately configured guest Wifi. | No |
-| **[Trigger](/card-types/buttons)** | Fires an event to Home Assistant for use in automations. | No |
-| **[Sensor](/card-types/sensors)** | Shows a live numeric reading, readable duration, text state, or icon state from Home Assistant or a local device sensor. | Yes for Home Assistant, local sensor key for Local Sensor source |
-| **[Doors & Windows](/card-types/doors-windows)** | Shows a door or window contact sensor with open and closed icons. | Yes, as **Sensor Entity** |
-| **[Presence](/card-types/presence)** | Shows whether a person, room, or motion sensor is active. | Yes, as **Sensor Entity** |
-| **[Slider](/card-types/sliders)** | Controls Mac output/input volume, light brightness, fan speed, or a `number` / `input_number` value with a draggable fill bar. | Paired Mac control or Home Assistant entity |
-| **[Fans](/card-types/fans)** | Controls supported fan switch, speed, oscillation, direction, and preset features. | Yes, as a fan entity |
-| **[Vacuum](/card-types/vacuum)** | Shows vacuum status or controls start/stop, dock, pause/resume, spot clean, locate, and clean area. | Yes, as a vacuum entity |
-| **[Lawn Mower](/card-types/lawn-mower)** | Shows mower status or controls start mowing, dock, and pause/resume. | Yes, as a lawn mower entity |
-| **[Cover](/card-types/covers)** | Controls blinds, shutters, and similar cover entities with a full control popup, slider, or tap action. | Yes |
-| **[Garage Door](/card-types/garage-doors)** | Controls a garage door cover entity with an open/close tap action. | Yes |
-| **[Lock](/card-types/locks)** | Locks, unlocks, or toggles a Home Assistant lock entity. | Yes |
-| **[Alarm](/card-types/alarms)** | Arms, disarms, or shows a Home Assistant alarm control panel. | Yes, as an alarm control panel entity |
-| **[Date & Time](/card-types/calendar)** | Shows the local clock, date, date and time, or a world clock. | No |
-| **[Weather](/card-types/weather)** | Shows the current condition or today's/tomorrow's forecast from a weather entity. | Yes, as **Weather Entity** |
-| **[Media](/card-types/media)** | Controls playback, volume, track position, or now-playing details for a media player. | Yes, as a media player entity |
-| **[Climate](/card-types/climate)** | Controls a Home Assistant thermostat or HVAC entity. | Yes, as a climate entity |
-| **[Internal Switches](/card-types/internal-relays)** | Controls a built-in relay locally on panels that have relay hardware. | Choose a relay |
-| **[Screen Lock](/card-types/screen-lock)** | Locks and unlocks local touchscreen controls on the panel. | No |
-| **[Subpage](/features/subpages)** | Opens a folder-like page of extra cards. | No |
+## Settings
 
-For Mac cards, first [pair the EspDesktop Mac app](/getting-started/mac-app). The setup page then loads the approved applications and folders from the connected Mac. See [Mac Cards and Capabilities](/card-types/companion) for their complete setup and permissions.
+Below Mac Companion, configure [appearance](/features/appearance), [backlight](/features/backlight), [clock bar](/features/clock-bar), [rotation](/features/rotation), [idle behaviour](/features/idle), [screensaver](/features/screensaver), [night schedule](/features/screen-schedule), [language](/features/language) and [time](/features/clock).
 
-For cards that use Home Assistant, enter the entity name from Home Assistant in the **Entity** field, such as `light.living_room`, `switch.garden_lights`, `scene.movie_mode`, or `weather.forecast_home`. Some card types use a more specific label, such as **Sensor Entity**, **Weather Entity**, or **Climate Entity**. You can find entity names under **Settings > Devices & Services** in Home Assistant.
-
-Some card names group several related controls together. **Companion** contains Launch app, Keyboard shortcut, Open URL, Open folder, Stats, and Window control. **Lights** contains All Controls, Switch, Brightness, and Colour Temperature options. **Fans** contains All Controls, Switch, Speed, Oscillation, Direction, and Preset options. **Action** contains scene, script, helper, Option Select, and Local Action modes. **Sensor** contains Home Assistant and Local Sensor sources. **Vacuum** contains Status, Start / Stop, Dock, Pause / Resume, Spot Clean, Locate, and Clean Area options. **Lawn Mower** contains Status, Start Mowing, Dock, and Pause / Resume options. **Cover** contains All Controls, Position, Tilt, Toggle, Open, Close, Stop, and Set Position options. **Alarm** contains All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, and Disarm options. **Date & Time** contains Clock, Date, Time & Date, and World Clock options.
-
-For the generated list of current card domains, subpage support, grouping, and options, see the [Card Capability Reference](/generated/cards/capabilities).
-
-Most cards also let you choose an icon and set a label. If the label is left blank, the panel uses the friendly name from Home Assistant when it can.
-
-### Active Switch Display
-
-Each [Switch](/card-types/switches) card has separate **Off Icon** and **On Icon** settings. The on icon is used while the entity is active.
-
-You can also turn on **Active Display**:
-
-- **Numeric** — show a live reading instead of the icon, for example temperature, power usage, or a percentage. Pick the **Sensor Entity**, **Unit**, and **Unit Precision**.
-- **Text** — show a live text state instead of the label, for example a machine status or current mode.
-
-When the entity is not active, the card goes back to its off icon and normal label.
-
-### Moving Cards
-
-Drag and drop any card to reposition it. If you drop it onto an occupied space, the existing card shifts to the next available slot.
-
-To copy cards to another controller without replacing its other settings, use **Copy Code** and **Paste Code**. See [Copying Cards Between Controllers](/features/subpages#copying-cards-between-controllers) for the steps and compatibility notes.
-
-### Card Sizes
-
-Right-click a card and open **Size** to choose:
-
-- **Single** - normal one-slot card.
-- **Tall** - spans two rows.
-- **Extra Tall** - spans three rows.
-- **Wide** - spans two columns.
-- **Extra Wide** - spans three columns.
-- **Ultra Wide** - spans five columns and is available on screens with a five-column grid.
-- **Large** - spans a 2 x 2 area.
-- **Extra Large** - spans a 3 x 3 area and is available for Media cover-art cards.
-- **Max Wide** - spans a 3 x 2 area and is available for Camera cards.
-- **Max tall** - spans a 2 x 3 area and is available for Camera cards.
-- **Massive Wide (3x4)** - spans three rows by four columns and is available for Camera cards when the current screen orientation has room.
-- **Massive (4x3)** - spans four rows by three columns and is available for Camera and Media cover-art cards when the current screen orientation has room.
-
-If a card already occupies the space needed for a larger size, the setup page tries to move it to the next available slot. If there is not enough room, the size change is not applied.
-
-## Device Settings
-
-The **Settings** tab also includes display, brightness, screensaver, backup, and firmware update controls.
-
-![Settings tab showing appearance, backlight, schedule, clock, and firmware controls](/images/settings-tab-display.png)
-
-Open **Settings > System > Home Assistant Settings** to manage the address used for camera/image cards and media artwork downloads. **Automatic** connection mode discovers the HTTP endpoint advertised by the connected Home Assistant instance, including port `80` used by new Home Assistant OS installations and port `8123` commonly used by existing installations and Home Assistant Container.
-
-If automatic discovery is unavailable because multicast traffic is blocked between network segments, select **Manual** and enter the protocol and port shown under **Home Assistant > Settings > System > Network**. Automatic mode keeps these values as its fallback. EspDesktop never rewrites complete artwork URLs supplied by media services or external CDNs.
-
-## Apply Configuration
-
-After making changes, tap **Apply Configuration** at the bottom of the page. The panel restarts and loads your new settings — you'll see a message while it reconnects.
-
-## Restart From Home Assistant
-
-Each EspDesktop device has an enabled **Restart** button in Home Assistant. Open **Settings > Devices & services > ESPHome**, choose your EspDesktop device, and look under its configuration controls. Pressing **Restart** safely restarts the display without changing its cards, brightness, schedules, or other saved settings.
-
-You can also press the button from a Home Assistant automation. Replace `button.your_panel_restart` with the Restart entity shown for your display:
-
-```yaml
-actions:
-  - action: button.press
-    target:
-      entity_id: button.your_panel_restart
-```
-
-If the automation runs when Home Assistant starts, wait until the Restart entity is available before pressing it:
-
-```yaml
-actions:
-  - wait_template: >
-      {{ states.button.your_panel_restart is not none
-         and not is_state('button.your_panel_restart', 'unavailable') }}
-  - action: button.press
-    target:
-      entity_id: button.your_panel_restart
-```
-
-The web setup page's **Apply Configuration** button remains separate: use it after saving web settings, and use the Home Assistant **Restart** entity when you only need to restart the display.
+Use **Apply Configuration** after changes that require a restart. Wait for the device to reconnect before editing again.

@@ -11,8 +11,6 @@ constexpr int COMPANION_CAPABILITY_VERSION = 2;
 constexpr int COMPANION_PROTOCOL_VERSION = 3;
 constexpr const char *COMPANION_PROTOCOL_PATH = "/companion/v3";
 constexpr size_t COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384;
-constexpr size_t COMPANION_MAXIMUM_ARTWORK_BYTES = 262144;
-constexpr size_t COMPANION_ARTWORK_CHUNK_BYTES = 12288;
 constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = 900;
 
 constexpr bool COMPANION_BROWSER_STARTS_PAIRING = true;
@@ -33,13 +31,7 @@ inline constexpr CompanionProtocolMessagePolicy COMPANION_PROTOCOL_MESSAGES[] = 
   {"value.state", "mac_to_panel", "session"},
   {"focus.changed", "mac_to_panel", "session"},
   {"timezone.changed", "mac_to_panel", "session"},
-  {"now_playing", "mac_to_panel", "session"},
   {"system_metrics", "mac_to_panel", "session"},
-  {"artwork.begin", "mac_to_panel", "session"},
-  {"artwork.ack", "panel_to_mac", "session"},
-  {"artwork.end", "mac_to_panel", "session"},
-  {"artwork.abort", "bidirectional", "session"},
-  {"artwork.request", "panel_to_mac", "session"},
   {"error", "bidirectional", "public"},
 };
 

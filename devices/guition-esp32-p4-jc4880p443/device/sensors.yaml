@@ -78,22 +78,6 @@ script:
           cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
             id(display_takeover_end).execute(static_cast<int>(kind));
           };
-          static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
-            id(image_card_download_1),
-            id(image_card_download_2),
-            id(image_card_download_3),
-            id(image_card_download_4),
-            id(image_card_download_5),
-            id(image_card_download_6),
-          };
-          cfg.image_card_images = image_card_downloaders;
-          cfg.image_card_modal_image = id(image_card_modal_download_1);
-          cfg.image_card_image_count = 6;
-          cfg.home_assistant_base_url = []() {
-            std::string base = id(cover_art_home_assistant_base_url);
-            while (!base.empty() && base.back() == '/') base.pop_back();
-            return base;
-          };
           register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {
             auto response = id(http_req).start(url, method, body, headers);
             if (response == nullptr) {
@@ -112,7 +96,7 @@ script:
           set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
           set_text_width_compensation_percent(cfg.text_width_compensation_percent);
           apply_text_width_compensation(id(display_time));
-          apply_text_width_compensation(id(temperatures));
+          apply_text_width_compensation(id(clock_bar_subpage_title));
           apply_text_width_compensation(id(clock_label));
           // END GENERATED REFRESH GRID WIRING
           #define SP_CFG(n) subpage_##n##_config
@@ -228,22 +212,6 @@ script:
           cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
             id(display_takeover_end).execute(static_cast<int>(kind));
           };
-          static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
-            id(image_card_download_1),
-            id(image_card_download_2),
-            id(image_card_download_3),
-            id(image_card_download_4),
-            id(image_card_download_5),
-            id(image_card_download_6),
-          };
-          cfg.image_card_images = image_card_downloaders;
-          cfg.image_card_modal_image = id(image_card_modal_download_1);
-          cfg.image_card_image_count = 6;
-          cfg.home_assistant_base_url = []() {
-            std::string base = id(cover_art_home_assistant_base_url);
-            while (!base.empty() && base.back() == '/') base.pop_back();
-            return base;
-          };
           register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {
             auto response = id(http_req).start(url, method, body, headers);
             if (response == nullptr) {
@@ -262,7 +230,7 @@ script:
           set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
           set_text_width_compensation_percent(cfg.text_width_compensation_percent);
           apply_text_width_compensation(id(display_time));
-          apply_text_width_compensation(id(temperatures));
+          apply_text_width_compensation(id(clock_bar_subpage_title));
           apply_text_width_compensation(id(clock_label));
           // END GENERATED SUBPAGE REFRESH WIRING
           #define SP_CFG(n) subpage_##n##_config
@@ -373,22 +341,6 @@ esphome:
             cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
               id(display_takeover_end).execute(static_cast<int>(kind));
             };
-            static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
-              id(image_card_download_1),
-              id(image_card_download_2),
-              id(image_card_download_3),
-              id(image_card_download_4),
-              id(image_card_download_5),
-              id(image_card_download_6),
-            };
-            cfg.image_card_images = image_card_downloaders;
-            cfg.image_card_modal_image = id(image_card_modal_download_1);
-            cfg.image_card_image_count = 6;
-            cfg.home_assistant_base_url = []() {
-              std::string base = id(cover_art_home_assistant_base_url);
-              while (!base.empty() && base.back() == '/') base.pop_back();
-              return base;
-            };
             register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {
               auto response = id(http_req).start(url, method, body, headers);
               if (response == nullptr) {
@@ -407,7 +359,7 @@ esphome:
             set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
             set_text_width_compensation_percent(cfg.text_width_compensation_percent);
             apply_text_width_compensation(id(display_time));
-            apply_text_width_compensation(id(temperatures));
+            apply_text_width_compensation(id(clock_bar_subpage_title));
             apply_text_width_compensation(id(clock_label));
             // END GENERATED PHASE 1 GRID WIRING
             grid_phase1(slots, cfg,
@@ -514,22 +466,6 @@ esphome:
             cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {
               id(display_takeover_end).execute(static_cast<int>(kind));
             };
-            static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {
-              id(image_card_download_1),
-              id(image_card_download_2),
-              id(image_card_download_3),
-              id(image_card_download_4),
-              id(image_card_download_5),
-              id(image_card_download_6),
-            };
-            cfg.image_card_images = image_card_downloaders;
-            cfg.image_card_modal_image = id(image_card_modal_download_1);
-            cfg.image_card_image_count = 6;
-            cfg.home_assistant_base_url = []() {
-              std::string base = id(cover_art_home_assistant_base_url);
-              while (!base.empty() && base.back() == '/') base.pop_back();
-              return base;
-            };
             register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {
               auto response = id(http_req).start(url, method, body, headers);
               if (response == nullptr) {
@@ -548,7 +484,7 @@ esphome:
             set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
             set_text_width_compensation_percent(cfg.text_width_compensation_percent);
             apply_text_width_compensation(id(display_time));
-            apply_text_width_compensation(id(temperatures));
+            apply_text_width_compensation(id(clock_bar_subpage_title));
             apply_text_width_compensation(id(clock_label));
             // END GENERATED PHASE 2 GRID WIRING
             grid_phase2(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3, sp_ext4, sp_ext5, sp_ext6, sp_ext7,
@@ -558,46 +494,6 @@ esphome:
         - script.execute: time_update
         - delay: 100ms
 
-        # Phase 3: Temperature + presence subscriptions
-        - lambda: |-
-            lv_obj_t *temperature_labels[] = {
-              id(temperatures),
-            };
-            grid_phase3(
-              id(indoor_temp_enable).state,
-              id(outdoor_temp_enable).state,
-              id(indoor_temp_entity).state,
-              id(outdoor_temp_entity).state,
-              id(clock_bar_temperature_entities).state,
-              &id(indoor_temp), &id(outdoor_temp),
-              temperature_labels,
-              1,
-              id(main_page)->obj,
-              id(presence_sensor_entity).state,
-              &id(presence_detected),
-              id(screen_schedule_sensor_entity).state,
-              &id(schedule_presence_detected),
-              id(media_player_sleep_prevention_entity).state,
-              &id(media_player_playing),
-              []() {
-                return clock_bar_should_show(
-                    id(clock_bar_enabled).state,
-                    id(main_page)->obj,
-                    id(espdesktop_app).display().current_mode(),
-                    id(espdesktop_app).display().target_schedule_inactive());
-              },
-              []() {
-                id(screensaver_presence_wake).execute();
-              },
-              []() {
-                id(screensaver_presence_sleep).execute();
-              },
-              []() {
-                id(screen_schedule_check).execute();
-              },
-              []() {
-                return id(outdoor_temp_enable).state;
-              });
         - delay: 500ms
         - script.execute: refresh_button_grid
         - delay: 1500ms

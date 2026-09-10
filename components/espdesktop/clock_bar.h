@@ -14,7 +14,6 @@
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
 #include "display_mode_controller.h"
-#include "temperature_unit.h"
 
 inline void format_clock_time_without_suffix(char *buf, size_t size,
                                              int hour, int minute,
@@ -312,20 +311,9 @@ inline bool clock_bar_should_show(
       schedule_inactive).visible;
 }
 
-// ── Temperature labels ─────────────────────────────────────────────────────
+// ── Subpage title ─────────────────────────────────────────────────────
 
-inline void format_clock_bar_temperature_single(char *buf, size_t size,
-                                                const char *value_text) {
-  snprintf(buf, size, "%s%s", value_text ? value_text : "-",
-           display_clock_bar_temperature_suffix());
-}
-
-inline std::vector<float> &clock_bar_temperature_values() {
-  static std::vector<float> values;
-  return values;
-}
-
-inline std::vector<lv_obj_t *> &clock_bar_temperature_labels() {
+inline std::vector<lv_obj_t *> &clock_bar_title_labels() {
   static std::vector<lv_obj_t *> labels;
   return labels;
 }
@@ -336,7 +324,6 @@ inline std::string &clock_bar_companion_subpage_label() {
 }
 
 struct ClockBarLeftTextWidths {
-  int temperature = 88;
   int title = 176;
 };
 
@@ -348,15 +335,14 @@ inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
 inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   if (!label) return;
   const auto &widths = clock_bar_left_text_widths();
-  lv_obj_set_width(label, clock_bar_companion_subpage_label().empty()
-      ? widths.temperature : widths.title);
+  lv_obj_set_width(label, widths.title);
 }
 
 inline void set_clock_bar_companion_subpage_label(const std::string &label) {
   if (clock_bar_companion_subpage_label() == label) return;
   clock_bar_companion_subpage_label() = label;
   // Update the visible text in the navigation event, not the periodic refresh.
-  auto &labels = clock_bar_temperature_labels();
+  auto &labels = clock_bar_title_labels();
   if (!labels.empty() && labels[0]) {
     lv_label_set_display_text(labels[0], label.c_str());
     clock_bar_update_left_text_width(labels[0]);
@@ -364,8 +350,8 @@ inline void set_clock_bar_companion_subpage_label(const std::string &label) {
   }
 }
 
-inline void set_clock_bar_temperature_labels(lv_obj_t **labels, size_t count) {
-  std::vector<lv_obj_t *> &out = clock_bar_temperature_labels();
+inline void set_clock_bar_title_labels(lv_obj_t **labels, size_t count) {
+  std::vector<lv_obj_t *> &out = clock_bar_title_labels();
   out.clear();
   for (size_t i = 0; labels && i < count; i++) {
     out.push_back(labels[i]);
@@ -378,170 +364,30 @@ inline void clock_bar_set_widget_hidden(lv_obj_t *obj, bool hidden) {
   else lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
 }
 
-inline void hide_clock_bar_top_layer_widgets(lv_obj_t **temperature_labels,
-                                             size_t temperature_label_count,
+inline void hide_clock_bar_top_layer_widgets(lv_obj_t **title_labels,
+                                             size_t title_label_count,
                                              lv_obj_t *display_time,
                                              lv_obj_t *network_status_button) {
-  set_clock_bar_temperature_labels(temperature_labels, temperature_label_count);
-  for (size_t i = 0; temperature_labels && i < temperature_label_count; i++) {
-    clock_bar_set_widget_hidden(temperature_labels[i], true);
+  set_clock_bar_title_labels(title_labels, title_label_count);
+  for (size_t i = 0; title_labels && i < title_label_count; i++) {
+    clock_bar_set_widget_hidden(title_labels[i], true);
   }
   clock_bar_set_widget_hidden(display_time, true);
   clock_bar_set_widget_hidden(network_status_button, true);
 }
 
-inline void set_clock_bar_temperature_value_count(size_t count) {
-  clock_bar_temperature_values().assign(count, NAN);
-}
-
-inline bool clock_bar_temperature_has_items() {
-  return !clock_bar_temperature_values().empty();
-}
-
-inline std::string clock_bar_trim(const std::string &value) {
-  size_t start = 0;
-  while (start < value.size() && std::isspace(static_cast<unsigned char>(value[start]))) {
-    start++;
-  }
-  size_t end = value.size();
-  while (end > start && std::isspace(static_cast<unsigned char>(value[end - 1]))) {
-    end--;
-  }
-  return value.substr(start, end - start);
-}
-
-inline std::vector<std::string> parse_clock_bar_temperature_entities(const std::string &value) {
-  std::vector<std::string> entities;
-  std::string current;
-  for (char ch : value) {
-    if (ch == '|' || ch == ',' || ch == '\n') {
-      std::string entity = clock_bar_trim(current);
-      if (!entity.empty() && std::find(entities.begin(), entities.end(), entity) == entities.end()) {
-        entities.push_back(entity);
-      }
-      current.clear();
-      if (entities.size() >= 1) return entities;
-    } else {
-      current.push_back(ch);
+inline void refresh_clock_bar_subpage_title(lv_obj_t *main_page_obj, bool clock_bar_visible) {
+  const std::string &title = clock_bar_companion_subpage_label();
+  const bool visible = clock_bar_visible && !title.empty() &&
+      clock_bar_active_on_button_grid_page(main_page_obj);
+  auto &labels = clock_bar_title_labels();
+  for (size_t i = 0; i < labels.size(); ++i) {
+    if (!labels[i]) continue;
+    if (i == 0) {
+      lv_label_set_display_text(labels[i], title.c_str());
+      clock_bar_update_left_text_width(labels[i]);
     }
-  }
-  std::string entity = clock_bar_trim(current);
-  if (!entity.empty() && std::find(entities.begin(), entities.end(), entity) == entities.end()) {
-    entities.push_back(entity);
-  }
-  if (entities.size() > 1) {
-    entities.resize(1);
-  }
-  return entities;
-}
-
-inline void format_clock_bar_temperature_list(char *buf, size_t size,
-                                              const std::vector<float> &values) {
-  if (size == 0) return;
-  buf[0] = '\0';
-  const char *suffix = display_clock_bar_temperature_suffix();
-  size_t used = 0;
-  for (size_t i = 0; i < values.size(); i++) {
-    char value_buf[16];
-    if (std::isnan(values[i])) snprintf(value_buf, sizeof(value_buf), "-");
-    else format_fixed_decimal(value_buf, sizeof(value_buf), values[i], 0);
-    int written = snprintf(buf + used, size - used, "%s%s%s",
-                           i == 0 ? "" : " / ", value_buf, suffix);
-    if (written < 0) break;
-    if ((size_t) written >= size - used) {
-      buf[size - 1] = '\0';
-      break;
-    }
-    used += (size_t) written;
-  }
-}
-
-using ClockBarHomeAssistantConfiguredProvider = bool (*)();
-
-inline ClockBarHomeAssistantConfiguredProvider &clock_bar_home_assistant_configured_provider() {
-  static ClockBarHomeAssistantConfiguredProvider provider = nullptr;
-  return provider;
-}
-
-inline void refresh_clock_bar_temperature_label_values(
-    lv_obj_t *main_page_obj, bool clock_bar_visible,
-    bool indoor_enabled, bool outdoor_enabled,
-    float indoor, float outdoor) {
-  const bool show_on_screen =
-      clock_bar_visible && clock_bar_active_on_button_grid_page(main_page_obj);
-  std::vector<lv_obj_t *> &labels = clock_bar_temperature_labels();
-
-  if (!labels.empty()) clock_bar_update_left_text_width(labels[0]);
-  const std::string &companion_label = clock_bar_companion_subpage_label();
-  if (!companion_label.empty()) {
-    if (!show_on_screen || labels.empty()) {
-      for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
-      return;
-    }
-    if (!labels[0]) return;
-    lv_label_set_display_text(labels[0], companion_label.c_str());
-    clock_bar_set_widget_hidden(labels[0], false);
-    for (size_t i = 1; i < labels.size(); i++) {
-      clock_bar_set_widget_hidden(labels[i], true);
-    }
-    return;
-  }
-
-  // The left label also holds subpage titles, which do not require Home Assistant.
-  const auto configured = clock_bar_home_assistant_configured_provider();
-  if (!configured || !configured()) {
-    for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
-    return;
-  }
-
-  if (!clock_bar_temperature_has_items()) {
-    if (!show_on_screen || (!indoor_enabled && !outdoor_enabled)) {
-      for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
-      return;
-    }
-
-    size_t label_index = 0;
-    auto set_legacy_temperature = [&](float value) {
-      if (label_index >= labels.size()) return;
-      if (label_index >= 1) return;
-      lv_obj_t *label = labels[label_index++];
-      if (!label) return;
-      char value_buf[16];
-      if (std::isnan(value)) snprintf(value_buf, sizeof(value_buf), "-");
-      else format_fixed_decimal(value_buf, sizeof(value_buf), value, 0);
-      char buf[24];
-      format_clock_bar_temperature_single(buf, sizeof(buf), value_buf);
-      lv_label_set_display_text(label, buf);
-      clock_bar_set_widget_hidden(label, !show_on_screen);
-    };
-    if (outdoor_enabled) set_legacy_temperature(outdoor);
-    if (indoor_enabled) set_legacy_temperature(indoor);
-    for (size_t i = label_index; i < labels.size(); i++) {
-      clock_bar_set_widget_hidden(labels[i], true);
-    }
-    return;
-  }
-
-  if (!show_on_screen || !outdoor_enabled) {
-    for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
-    return;
-  }
-
-  std::vector<float> &values = clock_bar_temperature_values();
-  for (size_t i = 0; i < labels.size(); i++) {
-    lv_obj_t *label = labels[i];
-    if (!label) continue;
-    if (i >= values.size()) {
-      clock_bar_set_widget_hidden(label, true);
-      continue;
-    }
-    char value_buf[16];
-    if (std::isnan(values[i])) snprintf(value_buf, sizeof(value_buf), "-");
-    else format_fixed_decimal(value_buf, sizeof(value_buf), values[i], 0);
-    char buf[24];
-    format_clock_bar_temperature_single(buf, sizeof(buf), value_buf);
-    lv_label_set_display_text(label, buf);
-    clock_bar_set_widget_hidden(label, false);
+    clock_bar_set_widget_hidden(labels[i], !visible || i != 0);
   }
 }
 
@@ -624,41 +470,40 @@ inline void clock_bar_prepare_text_label(lv_obj_t *obj, int width,
   lv_obj_set_style_text_align(obj, align, LV_PART_MAIN);
 }
 
-inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
+inline void apply_clock_bar_fixed_layout(lv_obj_t *title_label,
                                          lv_obj_t *display_time,
                                          lv_obj_t *network_status_button,
-                                         bool temperature_visible,
+                                         bool title_visible,
                                          bool time_visible,
                                          bool network_visible,
                                          int left_x, int label_y,
                                          int right_x, int network_y,
                                          int item_gap) {
-  int temperature_width = item_gap - 8;
-  if (temperature_width < 56) temperature_width = 56;
-  if (temperature_width > 88) temperature_width = 88;
+  int title_width = item_gap - 8;
+  if (title_width < 56) title_width = 56;
+  if (title_width > 88) title_width = 88;
 
   int time_width = item_gap;
   if (time_width < 62) time_width = 62;
   if (time_width > 96) time_width = 96;
 
   auto &left_widths = clock_bar_left_text_widths();
-  left_widths.temperature = temperature_width;
-  // Titles can use the free space up to the centered clock, rather than a
-  // temperature-sized box. Retain a gap so text cannot run into the time.
-  const int title_width = (clock_bar_current_screen_width(480) - time_width) / 2 - left_x - 8;
-  left_widths.title = title_width > 0 ? title_width : temperature_width;
+  left_widths.title = title_width;
+  // Reserve a gap between the subpage title and the centered clock.
+  const int available_title_width = (clock_bar_current_screen_width(480) - time_width) / 2 - left_x - 8;
+  left_widths.title = available_title_width > 0 ? available_title_width : title_width;
   clock_bar_prepare_text_label(
-      temperature_label, temperature_width, LV_TEXT_ALIGN_LEFT);
-  clock_bar_update_left_text_width(temperature_label);
+      title_label, title_width, LV_TEXT_ALIGN_LEFT);
+  clock_bar_update_left_text_width(title_label);
   clock_bar_prepare_text_label(display_time, time_width, LV_TEXT_ALIGN_CENTER);
 
-  clock_bar_set_widget_hidden(temperature_label, !temperature_visible);
+  clock_bar_set_widget_hidden(title_label, !title_visible);
   clock_bar_set_widget_hidden(display_time, !time_visible);
   clock_bar_set_widget_hidden(network_status_button, !network_visible);
 
-  if (temperature_label) {
-    lv_obj_align(temperature_label, LV_ALIGN_TOP_LEFT, left_x, label_y);
-    lv_obj_move_background(temperature_label);
+  if (title_label) {
+    lv_obj_align(title_label, LV_ALIGN_TOP_LEFT, left_x, label_y);
+    lv_obj_move_background(title_label);
   }
   if (display_time) {
     lv_obj_align(display_time, LV_ALIGN_TOP_MID, 0, label_y);

@@ -20,15 +20,12 @@
 #include <algorithm>
 #include <vector>
 #include <functional>
-#include "esphome/components/api/homeassistant_service.h"
 #include "esphome/components/http_request/http_request.h"
-#include "esphome/components/artwork_image/artwork_image.h"
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "esphome/core/string_ref.h"
 #include "i18n_generated.h"
 #include "icons.h"
 #include "backlight.h"
-#include "alarm_delay_audio.h"
 
 // Public compatibility include. Device YAML includes this file, while the
 // implementation is split into focused headers below for easier review.
@@ -36,7 +33,6 @@
 #include "button_grid_string.h"
 #include "display_text.h"
 
-#include "button_grid_ha.h"
 #include "button_grid_config.h"
 #include "button_grid_style.h"
 #include "button_grid_card_runtime.h"
@@ -45,21 +41,9 @@
 #include "button_grid_cards.h"
 #include "companion_controls.h"
 #include "button_grid_modal.h"
-#include "button_grid_subscriptions.h"
-#include "button_grid_vacuum.h"
-#include "button_grid_lawn_mower.h"
 #include "button_grid_actions.h"
-#include "button_grid_media_group.h"
-#include "button_grid_media_slider_lifecycle.h"
-#include "button_grid_sliders.h"
-#include "button_grid_fan.h"
-#include "button_grid_climate.h"
-#include "button_grid_confirm.h"
-#include "button_grid_option_select.h"
 #include "battery_status.h"
-#include "button_grid_media.h"
 #include "button_grid_subpages.h"
 #include "network_status.h"
-#include "button_grid_alarm.h"
 #include "button_grid_navigation.h"
 #include "button_grid_grid.h"

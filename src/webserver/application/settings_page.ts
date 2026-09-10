@@ -34,13 +34,13 @@ import type { SettingsScheduleSectionFeature } from "./settings_schedule_section
 import type { SettingsCoverArtSectionFeature } from "./settings_cover_art_section";
 import type { SettingsSystemSectionFeature } from "./settings_system_section";
 import type { PreviewRenderFeature } from "./preview_render";
-import type { ConnectorsPageFeature } from "./connectors_page";
+import type { CompanionSetupFeature } from "./companion_setup";
 
 export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConfigured" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<CompanionSetupFeature, "buildSettingsCard" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { appendSettingsSection, buildAlarmDelayAudioSettingsCard, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -53,7 +53,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { bindTextPost } = codec;
     const { appendTimezoneOption, syncInput, updateClock, updateSunInfo, updateTempPreview } = statusPreview;
     const { syncPreviewOrientation } = core;
-    const { homeAssistantConfigured, companionConfigured, onStatusChange } = connectorState;
+    const { buildSettingsCard, companionConfigured, onStatusChange } = connectorState;
     const { postPresenceSensorEntity } = artworkPostApi;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
     const { postClockBar, postBatteryStatus, postVoiceServices } = clockBarPostApi;
@@ -78,6 +78,8 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         page.className = "sp-page";
         var config: any = document.createElement("div");
         config.className = "sp-config fade-in";
+        const companionCard = buildSettingsCard();
+        if (companionCard) config.appendChild(companionCard);
         var appearBody: any = document.createElement("div");
         var onColor: any = colorField("sp-set-on-color", WEB_UI_COLORS.primary, function (this: any, hex?: any) {
             postText(entityName("button_on_color"), hex);
@@ -328,35 +330,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             rotationCard = makeCollapsibleCard("Rotation", rotationBody, true);
             els.setScreenRotation = rotSelect;
         }
-        var tempBody: any = document.createElement("div");
-        var unitField: any = document.createElement("div");
-        unitField.className = "sp-field";
-        unitField.appendChild(fieldLabel("Temperature Unit", "sp-set-temperature-unit"));
-        var unitSelect: any = document.createElement("select");
-        unitSelect.className = "sp-select";
-        unitSelect.id = "sp-set-temperature-unit";
-        [
-            ["Auto", "Auto (from timezone)"],
-            ["\u00B0C", "Centigrade (\u00B0C)"],
-            ["\u00B0F", "Fahrenheit (\u00B0F)"],
-        ].forEach(function (this: any, opt?: any) {
-            var o: any = document.createElement("option");
-            o.value = opt[0];
-            o.textContent = opt[1];
-            unitSelect.appendChild(o);
-        });
-        unitSelect.value = normalizeTemperatureUnit(state.temperatureUnit);
-        unitSelect.addEventListener("change", function (this: any) {
-            state.temperatureUnit = normalizeTemperatureUnit(this.value);
-            postSelect(entityName("screen_temperature_unit"), state.temperatureUnit);
-            updateTempPreview();
-            renderPreview();
-        });
-        unitField.appendChild(unitSelect);
-        tempBody.appendChild(unitField);
-        els.setTemperatureUnit = unitSelect;
-        syncTemperatureUi();
-        var temperatureCard: any = makeCollapsibleCard("Temperature", tempBody, true);
         var ssBody: any = document.createElement("div");
         var ssMode: any = getActiveScreensaverMode();
         ssBody.appendChild(fieldLabel("Mode"));
@@ -483,7 +456,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setSsMode = setSsMode;
         var screensaverCard: any = makeCollapsibleCard("Screensaver", ssBody, true, ssBadge);
         function syncScreensaverModeOptions(this: any) {
-            var haAvailable = homeAssistantConfigured();
+            var haAvailable = false;
             schedule.setHomeAssistantConfigured(haAvailable);
             coverArtCard.hidden = !haAvailable;
             coverArtCard.classList.toggle("sp-hidden", !haAvailable);
@@ -536,7 +509,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var idleCard: any = makeCollapsibleCard("Idle", idleBody, true, idleBadge);
         var systemSettingsCards: any = buildSystemSettingsCards();
         function syncHomeAssistantSettingsVisibility() {
-            var hidden = !homeAssistantConfigured();
+            var hidden = true;
             systemSettingsCards.homeAssistantSettingsCard.hidden = hidden;
             systemSettingsCards.homeAssistantSettingsCard.classList.toggle("sp-hidden", hidden);
         }
@@ -561,7 +534,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         appendSettingsSection(config, "Preferences", [
             languageCard,
             timeSettingsCard,
-            temperatureCard,
         ]);
         appendSettingsSection(config, "System", [
             systemSettingsCards.backupCard,

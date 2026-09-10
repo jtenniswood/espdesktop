@@ -14,8 +14,6 @@ enum CompanionCapabilities {
     static let protocolVersion = 3
     static let protocolPath = "/companion/v3"
     static let maximumTextFrameBytes = 16384
-    static let maximumArtworkBytes = 262144
-    static let artworkChunkBytes = 12288
     static let pairingWindowSeconds = 900
     static let protocolMessages: Set<String> = [
         "hello",
@@ -32,13 +30,7 @@ enum CompanionCapabilities {
         "value.state",
         "focus.changed",
         "timezone.changed",
-        "now_playing",
         "system_metrics",
-        "artwork.begin",
-        "artwork.ack",
-        "artwork.end",
-        "artwork.abort",
-        "artwork.request",
         "error",
     ]
     static let cardModes: [String: String] = [

@@ -14,7 +14,6 @@
 #include "button_grid_card_runtime.h"
 #include "configuration_service.h"
 #include "display_lifecycle_service.h"
-#include "home_assistant_binding_service.h"
 
 namespace espdesktop {
 
@@ -135,20 +134,6 @@ class EspDesktopAppCore {
     return configuration_service_ ? &*configuration_service_ : nullptr;
   }
 
-  HomeAssistantCallbackOwnerService &home_assistant_callback_owner() {
-    return home_assistant_callback_owner_;
-  }
-  const HomeAssistantCallbackOwnerService &home_assistant_callback_owner() const {
-    return home_assistant_callback_owner_;
-  }
-
-  // The ESPHome transport type stays in the UI/wiring layer, but its binding
-  // and callback state receive one core-owned lifetime.
-  template<typename BindingService>
-  BindingService &home_assistant_binding_service() {
-    return home_assistant_binding_service_.get_or_create_ui_service<BindingService>();
-  }
-
   template<typename NavigationService>
   NavigationService &grid_navigation_service() {
     return grid_navigation_service_.get_or_create_ui_service<NavigationService>();
@@ -186,10 +171,8 @@ class EspDesktopAppCore {
   DisplayLifecycleService display_lifecycle_{};
   cards::CardRuntimeRegistryService card_runtime_registry_{};
   std::optional<configuration::ConfigurationService> configuration_service_;
-  HomeAssistantCallbackOwnerService home_assistant_callback_owner_{};
   // The binding service is 200 bytes: coordinator metadata and vector handles
   // are fixed here, while pointed-to request data remains demand-allocated.
-  FixedRuntimeServiceSlot<224> home_assistant_binding_service_{};
   // The concrete UI services assert their own sizes when they bind to these
   // slots. Keeping each bound small avoids reserving a generic 128-byte buffer
   // for every service in every firmware image.

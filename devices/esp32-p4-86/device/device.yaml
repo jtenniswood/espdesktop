@@ -76,13 +76,13 @@ esp32:
 # External component
 # ---------------------------------------------------------------------------
 external_components:
-  - source:
-      type: git
-      url: ${espdesktop_component_url}
-      ref: ${espdesktop_component_ref}
-      path: components
-    components: [espdesktop, web_server_idf, artwork_image, sendspin]
-    refresh: 1s
+- source:
+    type: git
+    url: ${espdesktop_component_url}
+    ref: ${espdesktop_component_ref}
+    path: components
+  components: [espdesktop, web_server_idf, sendspin]
+  refresh: 1s
 
 espdesktop:
   id: espdesktop_app
@@ -92,24 +92,24 @@ espdesktop:
     button_order: button_order
     button_on_color: button_on_color
     buttons:
-      - config: button_1_config
-        subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3, subpage_1_config_ext_4, subpage_1_config_ext_5, subpage_1_config_ext_6, subpage_1_config_ext_7]
-      - config: button_2_config
-        subpage_chunks: [subpage_2_config, subpage_2_config_ext, subpage_2_config_ext_2, subpage_2_config_ext_3, subpage_2_config_ext_4, subpage_2_config_ext_5, subpage_2_config_ext_6, subpage_2_config_ext_7]
-      - config: button_3_config
-        subpage_chunks: [subpage_3_config, subpage_3_config_ext, subpage_3_config_ext_2, subpage_3_config_ext_3, subpage_3_config_ext_4, subpage_3_config_ext_5, subpage_3_config_ext_6, subpage_3_config_ext_7]
-      - config: button_4_config
-        subpage_chunks: [subpage_4_config, subpage_4_config_ext, subpage_4_config_ext_2, subpage_4_config_ext_3, subpage_4_config_ext_4, subpage_4_config_ext_5, subpage_4_config_ext_6, subpage_4_config_ext_7]
-      - config: button_5_config
-        subpage_chunks: [subpage_5_config, subpage_5_config_ext, subpage_5_config_ext_2, subpage_5_config_ext_3, subpage_5_config_ext_4, subpage_5_config_ext_5, subpage_5_config_ext_6, subpage_5_config_ext_7]
-      - config: button_6_config
-        subpage_chunks: [subpage_6_config, subpage_6_config_ext, subpage_6_config_ext_2, subpage_6_config_ext_3, subpage_6_config_ext_4, subpage_6_config_ext_5, subpage_6_config_ext_6, subpage_6_config_ext_7]
-      - config: button_7_config
-        subpage_chunks: [subpage_7_config, subpage_7_config_ext, subpage_7_config_ext_2, subpage_7_config_ext_3, subpage_7_config_ext_4, subpage_7_config_ext_5, subpage_7_config_ext_6, subpage_7_config_ext_7]
-      - config: button_8_config
-        subpage_chunks: [subpage_8_config, subpage_8_config_ext, subpage_8_config_ext_2, subpage_8_config_ext_3, subpage_8_config_ext_4, subpage_8_config_ext_5, subpage_8_config_ext_6, subpage_8_config_ext_7]
-      - config: button_9_config
-        subpage_chunks: [subpage_9_config, subpage_9_config_ext, subpage_9_config_ext_2, subpage_9_config_ext_3, subpage_9_config_ext_4, subpage_9_config_ext_5, subpage_9_config_ext_6, subpage_9_config_ext_7]
+    - config: button_1_config
+      subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3, subpage_1_config_ext_4, subpage_1_config_ext_5, subpage_1_config_ext_6, subpage_1_config_ext_7]
+    - config: button_2_config
+      subpage_chunks: [subpage_2_config, subpage_2_config_ext, subpage_2_config_ext_2, subpage_2_config_ext_3, subpage_2_config_ext_4, subpage_2_config_ext_5, subpage_2_config_ext_6, subpage_2_config_ext_7]
+    - config: button_3_config
+      subpage_chunks: [subpage_3_config, subpage_3_config_ext, subpage_3_config_ext_2, subpage_3_config_ext_3, subpage_3_config_ext_4, subpage_3_config_ext_5, subpage_3_config_ext_6, subpage_3_config_ext_7]
+    - config: button_4_config
+      subpage_chunks: [subpage_4_config, subpage_4_config_ext, subpage_4_config_ext_2, subpage_4_config_ext_3, subpage_4_config_ext_4, subpage_4_config_ext_5, subpage_4_config_ext_6, subpage_4_config_ext_7]
+    - config: button_5_config
+      subpage_chunks: [subpage_5_config, subpage_5_config_ext, subpage_5_config_ext_2, subpage_5_config_ext_3, subpage_5_config_ext_4, subpage_5_config_ext_5, subpage_5_config_ext_6, subpage_5_config_ext_7]
+    - config: button_6_config
+      subpage_chunks: [subpage_6_config, subpage_6_config_ext, subpage_6_config_ext_2, subpage_6_config_ext_3, subpage_6_config_ext_4, subpage_6_config_ext_5, subpage_6_config_ext_6, subpage_6_config_ext_7]
+    - config: button_7_config
+      subpage_chunks: [subpage_7_config, subpage_7_config_ext, subpage_7_config_ext_2, subpage_7_config_ext_3, subpage_7_config_ext_4, subpage_7_config_ext_5, subpage_7_config_ext_6, subpage_7_config_ext_7]
+    - config: button_8_config
+      subpage_chunks: [subpage_8_config, subpage_8_config_ext, subpage_8_config_ext_2, subpage_8_config_ext_3, subpage_8_config_ext_4, subpage_8_config_ext_5, subpage_8_config_ext_6, subpage_8_config_ext_7]
+    - config: button_9_config
+      subpage_chunks: [subpage_9_config, subpage_9_config_ext, subpage_9_config_ext_2, subpage_9_config_ext_3, subpage_9_config_ext_4, subpage_9_config_ext_5, subpage_9_config_ext_6, subpage_9_config_ext_7]
 network:
   enable_high_performance: true
 
@@ -120,39 +120,20 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   build_flags:
-    - "-Wno-deprecated-declarations"
-    - "-DESPDESKTOP_MAX_GRID_SLOTS=9"
+  - "-Wno-deprecated-declarations"
+  - "-DESPDESKTOP_MAX_GRID_SLOTS=9"
     # Force cached ESPHome objects to rebuild after the 2026.5
     # core/scheduler/watchdog changes; stale 2026.4 objects can boot-loop.
-    - "-DESPDESKTOP_ESPHOME_2026_5_REBUILD=1"
+  - "-DESPDESKTOP_ESPHOME_2026_5_REBUILD=1"
     # Keep the ESP-IDF header warning suppressed without warning on C sources.
-    - "-Wno-literal-suffix"
-    - "-Wno-complain-wrong-lang"
+  - "-Wno-literal-suffix"
+  - "-Wno-complain-wrong-lang"
   on_boot:
-    - priority: 700
-      then:
-        - lambda: |-
-            register_internal_relay(
-              "relay_1", "Relay 1",
-              [=](bool on) {
-                if (on) id(relay_1).turn_on();
-                else id(relay_1).turn_off();
-              },
-              [=]() { id(relay_1_push).execute(); },
-              [=]() -> bool { return id(relay_1).state; });
-            register_internal_relay(
-              "relay_2", "Relay 2",
-              [=](bool on) {
-                if (on) id(relay_2).turn_on();
-                else id(relay_2).turn_off();
-              },
-              [=]() { id(relay_2_push).execute(); },
-              [=]() -> bool { return id(relay_2).state; });
-    - priority: -100
-      then:
-        - lambda: 'id(screen_rotation_ready) = true;'
-        - script.execute: apply_screen_rotation
-        - script.execute: clock_bar_apply
+  - priority: -100
+    then:
+    - lambda: 'id(screen_rotation_ready) = true;'
+    - script.execute: apply_screen_rotation
+    - script.execute: clock_bar_apply
 
 # ---------------------------------------------------------------------------
 # PSRAM (video frame buffer memory)
@@ -164,34 +145,34 @@ psram:
 # OTA updates (ESPHome native + HTTP-based)
 # ---------------------------------------------------------------------------
 ota:
-  - platform: esphome
-    on_begin:
-      then:
-        - script.execute: show_update_writing
-        - script.wait: show_update_writing
-    on_end:
-      then:
-        - globals.set:
-            id: firmware_update_complete_pending
-            value: 'true'
-        - lambda: 'global_preferences->sync();'
-    on_error:
-      then:
-        - script.execute: show_update_failed
-  - platform: http_request
-    on_begin:
-      then:
-        - script.execute: show_update_writing
-        - script.wait: show_update_writing
-    on_end:
-      then:
-        - globals.set:
-            id: firmware_update_complete_pending
-            value: 'true'
-        - lambda: 'global_preferences->sync();'
-    on_error:
-      then:
-        - script.execute: show_update_failed
+- platform: esphome
+  on_begin:
+    then:
+    - script.execute: show_update_writing
+    - script.wait: show_update_writing
+  on_end:
+    then:
+    - globals.set:
+        id: firmware_update_complete_pending
+        value: 'true'
+    - lambda: 'global_preferences->sync();'
+  on_error:
+    then:
+    - script.execute: show_update_failed
+- platform: http_request
+  on_begin:
+    then:
+    - script.execute: show_update_writing
+    - script.wait: show_update_writing
+  on_end:
+    then:
+    - globals.set:
+        id: firmware_update_complete_pending
+        value: 'true'
+    - lambda: 'global_preferences->sync();'
+  on_error:
+    then:
+    - script.execute: show_update_failed
 
 # ---------------------------------------------------------------------------
 # Shared infrastructure (API, logging, web server, restart button)
@@ -213,120 +194,90 @@ logger:
 # Power management (LDO channel for DSI PHY)
 # ---------------------------------------------------------------------------
 esp_ldo:
-  - channel: 3
-    id: dsi_phy_enable
-    voltage: 2.5V
-    adjustable: True
+- channel: 3
+  id: dsi_phy_enable
+  voltage: 2.5V
+  adjustable: true
 
 # ---------------------------------------------------------------------------
 # Backlight (LEDC PWM output + monochromatic light entity)
 # ---------------------------------------------------------------------------
 output:
-  - platform: ledc
-    pin: GPIO26
-    id: gpio_backlight_pwm
-    frequency: ${backlight_pwm_frequency}
-    inverted: true
-    min_power: 0.0
-    max_power: 0.8
+- platform: ledc
+  pin: GPIO26
+  id: gpio_backlight_pwm
+  frequency: ${backlight_pwm_frequency}
+  inverted: true
+  min_power: 0.0
+  max_power: 0.8
 
 light:
-  - platform: monochromatic
-    output: gpio_backlight_pwm
-    name: Display Backlight
-    icon: mdi:lightbulb-on
-    id: display_backlight
-    restore_mode: RESTORE_DEFAULT_ON
-    default_transition_length: 0s
-    gamma_correct: 1.0
-    on_turn_on:
-      then:
+- platform: monochromatic
+  output: gpio_backlight_pwm
+  name: Display Backlight
+  icon: mdi:lightbulb-on
+  id: display_backlight
+  restore_mode: RESTORE_DEFAULT_ON
+  default_transition_length: 0s
+  gamma_correct: 1.0
+  on_turn_on:
+    then:
+    - if:
+        condition:
+          lambda: |-
+            auto now = id(panel_time).now();
+            return (id(espdesktop_app).display().target_source_is(
+                        espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
+                    id(espdesktop_app).display().target_mode_is(
+                        espdesktop::DisplayMode::DISPLAY_OFF)) ||
+                   screen_schedule_waiting_for_time(
+                     id(screen_schedule_trigger).state,
+                     id(schedule_enabled).state,
+                     now.is_valid());
+        then:
+        - script.execute: backlight_force_display_off
+        else:
         - if:
             condition:
               lambda: |-
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-                return (id(espdesktop_app).display().target_source_is(
-                            espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
-                        id(espdesktop_app).display().target_mode_is(
-                            espdesktop::DisplayMode::DISPLAY_OFF)) ||
-                       screen_schedule_waiting_for_time(
-                         id(screen_schedule_trigger).state,
-                         id(schedule_enabled).state,
-                         now.is_valid());
+                return id(espdesktop_app).display().current_mode_is(
+                    espdesktop::DisplayMode::DISPLAY_OFF);
             then:
-              - script.execute: backlight_force_display_off
-            else:
-              - if:
-                  condition:
-                    lambda: |-
-                      return id(espdesktop_app).display().current_mode_is(
-                          espdesktop::DisplayMode::DISPLAY_OFF);
-                  then:
-                    - script.execute: screensaver_wake
-    on_turn_off:
-      then:
-        - script.execute: display_backlight_handle_off
-    on_state:
-      then:
-        - script.execute: display_backlight_handle_state
+            - script.execute: screensaver_wake
+  on_turn_off:
+    then:
+    - script.execute: display_backlight_handle_off
+  on_state:
+    then:
+    - script.execute: display_backlight_handle_state
 
 # ---------------------------------------------------------------------------
 # Built-in relays (ESP32-P4-86-Panel-ETH-2RO bottom board)
 # ---------------------------------------------------------------------------
-switch:
-  - platform: gpio
-    name: Relay 1
-    id: relay_1
-    icon: mdi:electric-switch
-    pin:
-      number: GPIO32
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", false);'
-
-  - platform: gpio
-    name: Relay 2
-    id: relay_2
-    icon: mdi:electric-switch
-    pin:
-      number: GPIO46
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", false);'
-
-# Momentary relay buttons for push-button/dimmer inputs.
 button:
-  - platform: template
-    name: Relay 1 Push
-    icon: mdi:gesture-tap-button
-    on_press:
-      then:
-        - script.execute: relay_1_push
+- platform: template
+  name: Relay 1 Push
+  icon: mdi:gesture-tap-button
+  on_press:
+    then:
+    - script.execute: relay_1_push
 
-  - platform: template
-    name: Relay 2 Push
-    icon: mdi:gesture-tap-button
-    on_press:
-      then:
-        - script.execute: relay_2_push
+- platform: template
+  name: Relay 2 Push
+  icon: mdi:gesture-tap-button
+  on_press:
+    then:
+    - script.execute: relay_2_push
 
 # ---------------------------------------------------------------------------
 # Display (4" 720x720 MIPI DSI panel)
 # ---------------------------------------------------------------------------
 display:
-  - platform: mipi_dsi
-    id: my_display
-    model: WAVESHARE-P4-86-PANEL
-    update_interval: never
-    auto_clear_enabled: false
+- platform: mipi_dsi
+  id: my_display
+  model: WAVESHARE-P4-86-PANEL
+  update_interval: never
+  auto_clear_enabled: false
 
 # ---------------------------------------------------------------------------
 # LVGL base (display binding, must be before any page definitions)
@@ -338,67 +289,53 @@ lvgl:
   rotation: 0
   byte_order: little_endian
   touchscreens:
-    - touchscreen_id: my_touchscreen
-      long_press_time: 3s
+  - touchscreen_id: my_touchscreen
+    long_press_time: 3s
 
 script:
-  - id: relay_1_push
-    mode: restart
-    then:
-      - switch.turn_on: relay_1
-      - delay: 200ms
-      - switch.turn_off: relay_1
-
-  - id: relay_2_push
-    mode: restart
-    then:
-      - switch.turn_on: relay_2
-      - delay: 200ms
-      - switch.turn_off: relay_2
-
-  - id: apply_screen_rotation
-    then:
+- id: apply_screen_rotation
+  then:
+  - if:
+      condition:
+        lambda: 'return id(screen_rotation_select).current_option() == "90";'
+      then:
+      - lvgl.display.set_rotation: 90
+      else:
       - if:
           condition:
-            lambda: 'return id(screen_rotation_select).current_option() == "90";'
+            lambda: 'return id(screen_rotation_select).current_option() == "180";'
           then:
-            - lvgl.display.set_rotation: 90
+          - lvgl.display.set_rotation: 180
           else:
-            - if:
-                condition:
-                  lambda: 'return id(screen_rotation_select).current_option() == "180";'
-                then:
-                  - lvgl.display.set_rotation: 180
-                else:
-                  - if:
-                      condition:
-                        lambda: 'return id(screen_rotation_select).current_option() == "270";'
-                      then:
-                        - lvgl.display.set_rotation: 270
-                      else:
-                        - lvgl.display.set_rotation: 0
+          - if:
+              condition:
+                lambda: 'return id(screen_rotation_select).current_option() == "270";'
+              then:
+              - lvgl.display.set_rotation: 270
+              else:
+              - lvgl.display.set_rotation: 0
 
 select:
-  - platform: template
-    name: "${entity_screen_rotation}"
-    internal: true
-    disabled_by_default: true
-    id: screen_rotation_select
-    entity_category: config
-    icon: "mdi:screen-rotation"
-    optimistic: true
-    restore_value: true
-    initial_option: "0"
-    options:
-      - "0"
-      - "90"
-      - "180"
-      - "270"
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(screen_rotation_ready);'
-            then:
-              - script.execute: apply_screen_rotation
-              - script.execute: clock_bar_apply
+- platform: template
+  name: "${entity_screen_rotation}"
+  internal: true
+  disabled_by_default: true
+  id: screen_rotation_select
+  entity_category: config
+  icon: "mdi:screen-rotation"
+  optimistic: true
+  restore_value: true
+  initial_option: "0"
+  options:
+  - "0"
+  - "90"
+  - "180"
+  - "270"
+  on_value:
+    then:
+    - if:
+        condition:
+          lambda: 'return id(screen_rotation_ready);'
+        then:
+        - script.execute: apply_screen_rotation
+        - script.execute: clock_bar_apply

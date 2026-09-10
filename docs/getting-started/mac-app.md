@@ -5,9 +5,9 @@ description: Install EspDesktop on macOS, pair a 4848S040 display, approve apps 
 
 # Install and Pair the EspDesktop Mac App
 
-The EspDesktop menu-bar app connects one Mac to one supported display over your local network. It powers Mac cards for launching apps, opening folders and websites, replaying shortcuts, arranging windows, controlling media and volume, showing Now Playing artwork, and sharing Mac statistics.
+The EspDesktop menu-bar app connects one Mac to one supported display over your local network. It powers Mac cards for launching apps, opening folders and websites, replaying shortcuts, arranging windows, and sharing Mac statistics.
 
-Mac Companion is currently a proof of concept for the **4-inch Guition ESP32-S3 4848S040** display. Home Assistant is optional and can be connected alongside it.
+Mac Companion is currently a proof of concept for the **4-inch Guition ESP32-S3 4848S040** display.
 
 ## Install a Release
 
@@ -24,11 +24,11 @@ Install the Mac app and display firmware from the same release so their Companio
 Make sure the Mac and display are on the same trusted local network.
 
 1. On first launch, choose your display from the discovered list. If setup is already complete, open **Display** to pair. Allow local-network access if macOS asks.
-2. Choose **Continue** to open **Connectors → Mac Companion** in your browser. The page opens a temporary pairing window and shows a code.
+2. Choose **Continue** to open **Settings → Mac Companion** in your browser. The page opens a temporary pairing window and shows a code.
 3. Enter that code in the Mac app and choose **Connect**.
 4. Wait for the Mac app to report that the display is connected.
 
-If your display does not appear, choose **Enter address manually** and enter its `.local` name or IP address. Older firmware supports manual pairing but needs an update for automatic discovery.
+If your display does not appear, choose **Enter address manually** and enter its `.local` name or IP address.
 
 After pairing, the Mac first tries the saved address. If that fails, it can discover the same display at its new address and reconnect without re-pairing. It verifies the saved device certificate and authenticates before remembering the new address. Discovery does not set up the display's WiFi and may be blocked by guest WiFi or separate network segments.
 
@@ -36,17 +36,11 @@ The code expires after 15 minutes and is hidden after pairing. EspDesktop stores
 
 When the connection is ready, a monitor icon appears beside WiFi in the display's clock bar. The icon disappears shortly after the Mac disconnects.
 
-## Choose the First-Run Options
+## Permissions and Startup
 
-First-run setup has three screens: choose your display, enter the pairing code, then **Access and startup**. The final screen opens automatically after pairing and keeps all three options together. Choose **Finish** when ready; you can change these options later in **Display → Permissions**. Use the info buttons for more detail.
+Approve the applications and folders the display may open. For keyboard shortcuts and window controls, enable EspDesktop in **System Settings → Privacy & Security → Accessibility**.
 
-| Option | What it enables | Required? |
-|---|---|---|
-| **Keyboard shortcuts** | Keyboard shortcut and Window cards | Only for those cards |
-| **Share Mac stats** | Processor, memory, storage, network, and battery cards | Optional |
-| **Launch at login** | Starts EspDesktop when you sign in so the display reconnects | Optional but recommended |
-
-Shortcut and window controls need macOS Accessibility access. When asked, turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, websites, media, artwork, and volume do not need Accessibility permission.
+Mac statistics are shared automatically while connected. **Launch at login** starts the app when you sign in so it can reconnect to the display.
 
 ## Approve Applications and Folders
 
@@ -65,7 +59,7 @@ After pairing, open the display's web page and add a simple **Companion → Laun
 
 Then add the controls you want:
 
-- [Mac Cards and Capabilities](/card-types/companion) covers app subpages, custom shortcuts, folders, websites, window controls, media, artwork, volume, and statistics.
+- [Mac Cards and Capabilities](/card-types/companion) covers app subpages, custom shortcuts, folders, websites, window controls and statistics.
 - [Setup](/features/setup) explains card placement, sizes, colours, subpages, and backups.
 
 ## Accessibility and Startup
@@ -87,7 +81,7 @@ To start onboarding again, choose **Restart Setup** below Privacy Policy and con
 
 ## Re-pair or Replace a Display
 
-Choose **Forget Display** in the Mac app before pairing a replacement display. On the old display, reset pairing from **Connectors → Mac Companion**. Pair again using the new temporary code.
+Choose **Forget Display** in the Mac app before pairing a replacement display. On the old display, reset pairing from **Settings → Mac Companion**. Pair again using the new temporary code.
 
 For security, an unexpected display certificate change is not accepted silently; forgetting and pairing again is required.
 

@@ -4,35 +4,77 @@
   "domains": [],
   "options": [
     {
-      "name": "subpage_connector", "label": "Subpage Connector", "kind": "choice",
-      "values": ["", "mac_companion"],
-      "defaultValue": "", "omitDefault": true
+      "name": "subpage_kind",
+      "label": "Subpage Type",
+      "kind": "choice",
+      "values": [
+        "",
+        "companion_stat"
+      ],
+      "defaultValue": "",
+      "omitDefault": true
     },
     {
-      "name": "subpage_kind", "label": "Subpage Type", "kind": "choice",
-      "values": ["", "switch", "lights", "climate", "presence", "media", "alarm", "cover", "garage", "gate", "lock", "vacuum", "lawn_mower", "weather", "sensor", "image", "companion_stat"],
-      "defaultValue": "", "omitDefault": true
-    },
-    { "name": "large_numbers", "label": "Large State Numbers", "kind": "flag", "omitDefault": true }
+      "name": "large_numbers",
+      "label": "Large State Numbers",
+      "kind": "flag",
+      "omitDefault": true
+    }
   ],
   "normalization": {
     "fields": {
-      "entity": { "policy": "keep" },
-      "label": { "policy": "hook", "hook": "normalize_subpage_fields" },
-      "icon": { "policy": "hook", "hook": "normalize_subpage_fields" },
-      "icon_on": { "policy": "hook", "hook": "normalize_subpage_fields" },
-      "sensor": { "policy": "hook", "hook": "normalize_subpage_fields" },
-      "unit": { "policy": "hook", "hook": "normalize_subpage_fields" },
-      "type": { "policy": "default", "value": "subpage" },
-      "precision": { "policy": "hook", "hook": "normalize_subpage_fields" },
-      "options": { "policy": "hook", "hook": "normalize_subpage_options" }
+      "entity": {
+        "policy": "keep"
+      },
+      "label": {
+        "policy": "hook",
+        "hook": "normalize_subpage_fields"
+      },
+      "icon": {
+        "policy": "hook",
+        "hook": "normalize_subpage_fields"
+      },
+      "icon_on": {
+        "policy": "hook",
+        "hook": "normalize_subpage_fields"
+      },
+      "sensor": {
+        "policy": "hook",
+        "hook": "normalize_subpage_fields"
+      },
+      "unit": {
+        "policy": "hook",
+        "hook": "normalize_subpage_fields"
+      },
+      "type": {
+        "policy": "default",
+        "value": "subpage"
+      },
+      "precision": {
+        "policy": "hook",
+        "hook": "normalize_subpage_fields"
+      },
+      "options": {
+        "policy": "hook",
+        "hook": "normalize_subpage_options"
+      }
     },
     "unknownOptions": "drop",
-    "canonicalOptionOrder": ["subpage_connector", "subpage_kind", "large_numbers"],
+    "canonicalOptionOrder": [
+      "subpage_kind",
+      "large_numbers"
+    ],
     "optionHook": "normalize_subpage_options"
   },
   "default": {
-    "entity": "", "label": "", "icon": "Auto", "icon_on": "Auto",
-    "sensor": "", "unit": "", "type": "subpage", "precision": "", "options": ""
+    "entity": "",
+    "label": "",
+    "icon": "Auto",
+    "icon_on": "Auto",
+    "sensor": "",
+    "unit": "",
+    "type": "subpage",
+    "precision": "",
+    "options": ""
   }
 }

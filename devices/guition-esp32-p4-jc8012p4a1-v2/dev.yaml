@@ -5,7 +5,6 @@
 # =============================================================================
 
 substitutions:
-  cover_art_placeholder_file: "../../common/assets/cover_art_placeholder.svg"
   name: "espdesktop-10inch-p4-v2"
   friendly_name: "EspDesktop 10inch P4 V2"
   espdesktop_component_url: "../.."

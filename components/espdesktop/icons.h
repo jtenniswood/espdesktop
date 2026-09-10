@@ -31,7 +31,6 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Wifi Strength 3",                "\U000F0925"},
     {"Wifi Strength Off Outline",      "\U000F092E"},
     {"Ethernet",                       "\U000F0200"},
-    {"Home Assistant",                 "\U000F07D0"},
     {"Image Card Loading",             "\U000F02E9"},
     {"Shuffle",                        "\U000F049D"},
     {"Repeat",                         "\U000F0456"},

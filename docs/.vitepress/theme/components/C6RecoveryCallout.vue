@@ -3,7 +3,7 @@
     <strong>Having unreliable Wifi?</strong>
     <p>
       This P4 panel uses a separate ESP32-C6 Wifi processor. If it repeatedly
-      disconnects, disappears from Home Assistant, or cannot finish initial setup, use
+      disconnects, disappears from your network, or cannot finish initial setup, use
       the USB C6 recovery installer.
     </p>
     <div class="links">

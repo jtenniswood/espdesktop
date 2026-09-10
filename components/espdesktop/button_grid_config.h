@@ -1,14 +1,5 @@
 #pragma once
 
-#ifndef ESPDESKTOP_HA_SUBSCRIPTION_SCOPE_CONSTANTS_DEFINED
-constexpr uint32_t HA_SUBSCRIPTION_SCOPE_ALL = 0;
-constexpr uint32_t HA_SUBSCRIPTION_SCOPE_DEFAULT = 1u << 0;
-constexpr uint32_t HA_SUBSCRIPTION_SCOPE_COVER_ART = 1u << 1;
-constexpr uint32_t HA_SUBSCRIPTION_SCOPE_PHASE3 = 1u << 2;
-constexpr uint32_t HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS = 1u << 3;
-#define ESPDESKTOP_HA_SUBSCRIPTION_SCOPE_CONSTANTS_DEFINED 1
-#endif
-
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 #include "esphome/core/defines.h"
 #ifdef USE_SENSOR
@@ -64,26 +55,3 @@ inline void set_card_checked_state(lv_obj_t *btn, bool checked);
 
 #include "button_grid_config_parser.h"
 
-#include "button_grid_weather_forecast.h"
-
-struct ClimateControlCtx;
-inline ClimateControlCtx **climate_control_refs();
-inline int &climate_control_ref_count();
-inline void climate_update_card(ClimateControlCtx *ctx);
-inline void climate_control_set_modal_value(ClimateControlCtx *ctx);
-
-inline void refresh_temperature_unit_labels() {
-  ClimateControlCtx **climate_refs = climate_control_refs();
-  int climate_count = climate_control_ref_count();
-  for (int i = 0; i < climate_count; i++) {
-    if (!climate_refs[i]) continue;
-    climate_update_card(climate_refs[i]);
-    climate_control_set_modal_value(climate_refs[i]);
-  }
-  refresh_weather_forecast_card_visuals();
-  if (climate_count > 0) notify_dashboard_content_changed();
-}
-
-#include "button_grid_access_cards.h"
-
-#include "button_grid_local_controls.h"

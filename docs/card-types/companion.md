@@ -1,13 +1,12 @@
 ---
 title: Mac Cards and Capabilities
-description: Launch approved Mac apps, open folders and websites, run shortcuts, arrange windows, control media and volume, and show Mac statistics from EspDesktop.
+description: Launch approved Mac apps, open folders and websites, run shortcuts, arrange windows, and show Mac statistics from EspDesktop.
 ---
 
 # Mac Cards and Capabilities
 
 Mac controls use the **Mac Companion** connector between the EspDesktop display and the EspDesktop menu-bar app. They currently work on the **4-inch Guition ESP32-S3 4848S040** with one paired Mac.
 
-Home Assistant is not required for these controls. You can connect Home Assistant as well if you want Mac and smart-home cards on the same display.
 
 ::: tip Before adding cards
 First [install and pair the EspDesktop Mac app](/getting-started/mac-app). The monitor icon beside WiFi in the display's clock bar shows that the Mac is connected.
@@ -74,26 +73,6 @@ Window cards act on the active Mac window. Choose **Companion → Window control
 
 The Mac app must have Accessibility permission. Some applications or windows do not support every macOS window command; in that case the window stays where it is.
 
-## Cover Art
-
-Play / Pause, Previous, and Next are no longer offered as Mac cards. Existing saved playback cards are removed from layouts when loaded, including cards in subpages and imported backups.
-
-Apple Music, Spotify, and browser playback can work when the application publishes a usable session to macOS. Support depends on the application's macOS media integration.
-
-To turn the whole display into a Now Playing view, open **Settings → Sleep & Schedule → Media Cover Art**, turn on **Show Cover Art**, and choose **Mac Companion** as the source. EspDesktop can then show the title, artist, album, progress, playback state, source application, and artwork supplied by the Mac. No Home Assistant media-player entity is needed for this source.
-
-See [Media Cover Art](/features/media-cover-art) for its display and timing options.
-
-## Mac Volume Sliders
-
-Mac volume uses the normal [Slider card](/card-types/sliders), not a Companion card.
-
-1. Add a **Slider** card.
-2. Set **Control** to **Mac output volume** for the selected speakers or **Mac input volume** for the selected microphone.
-3. Choose the label and icons you want.
-
-The slider follows volume changes made on the Mac. It is disabled when the Companion is disconnected or the selected audio device does not provide software volume control.
-
 ## Mac Statistics
 
 Add **Companion → Stats** cards. The Mac app shares statistics automatically while connected to the paired display.
@@ -109,7 +88,7 @@ Add **Companion → Stats** cards. The Mac app shares statistics automatically w
 
 For **IP address**, **Automatic (available network)** shows the first Mac network device with an IPv4 address. You can choose a specific **Network device**, such as Wi-Fi or Ethernet, instead. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
 
-Statistics show a metric icon above the live reading. Numeric labels include used or free as appropriate, and battery shows left, with configurable units and decimal precision. Numeric cards include a **Show capacity label** toggle, enabled by default, to control whether the used, free, or left word appears after the value. Statistics are shared only when enabled in the Mac app.
+Statistics show a metric icon above the live reading. Numeric labels include used or free as appropriate, and battery shows left, with configurable units and decimal precision. Numeric cards include a **Show capacity label** toggle, enabled by default, to control whether the used, free, or left word appears after the value. Statistics are shared automatically by the paired Mac while connected.
 
 You can also choose **Subpage → Companion Stat** to put one of these readings on a home-screen tile that opens a page of related Mac controls.
 
@@ -121,8 +100,6 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 | Opening a folder | The folder must be added in EspDesktop's **Folders** page |
 | Keyboard and window controls | EspDesktop must be enabled in **System Settings → Privacy & Security → Accessibility** |
 | Mac statistics | Shared automatically while connected to the paired display |
-| Media and artwork | The playing application must publish a usable macOS Now Playing session |
-| Output or input volume | The selected audio device must expose software volume control |
 
 ## Security and Current Limits
 
@@ -130,9 +107,7 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 - Pairing uses a temporary code that expires after 15 minutes. The Mac stores the credential in Keychain and pins the display certificate after the first pairing.
 - Applications and folders must be approved on the Mac. Folder paths remain on the Mac; the display receives a friendly name and anonymous identifier.
 - The connector accepts only its defined actions. It does not run shell commands or accept incoming network connections on the Mac.
-- Now Playing information is read through macOS's private `MediaRemote` framework because Apple's public API only lets an app publish its own session. If a macOS update removes the required interface, media and artwork become unavailable while the other Mac controls continue to work.
-- Companion cards are currently offered only on the 4848S040 profile. Other supported panels continue to provide their Home Assistant cards normally.
 
-If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. You can also tap the display’s network icon and choose **Pairing**. The popup shows the pairing code and the display’s IP address.
+If pairing needs to be replaced, reset it from **Settings → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. You can also tap the display’s network icon and choose **Pairing**. The popup shows the pairing code and the display’s IP address.
 
 For version details, see [Companion Compatibility](/generated/companion-compatibility).

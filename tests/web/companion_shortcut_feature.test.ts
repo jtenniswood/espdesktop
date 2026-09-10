@@ -35,12 +35,6 @@ import {
   subpageKindOptions,
 } from "../../src/webserver/application/config_subpage_options";
 import {
-  COMPANION_INPUT_VOLUME_ID,
-  COMPANION_OUTPUT_VOLUME_ID,
-  companionSliderIcon,
-  companionSliderMode,
-} from "../../src/webserver/cards/slider";
-import {
   companionAppShortcutFolderEnabled,
   companionAppShortcutAutoSwitchEnabled,
   companionShortcutActionIdValid,
@@ -478,24 +472,6 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   if (companionFolderActions(catalogue).map((action) => action.label).join() !== "Archive,Projects") {
     throw new Error("Approved folders must appear alphabetically in the folder list");
-  }
-  if (companionSliderMode({ entity: COMPANION_OUTPUT_VOLUME_ID }) !== "mac_output") {
-    throw new Error("Output volume must be available as a Slider control");
-  }
-  if (companionSliderMode({ entity: COMPANION_INPUT_VOLUME_ID }) !== "mac_input") {
-    throw new Error("Input volume must be available as a Slider control");
-  }
-  if (companionSliderMode({ entity: "light.office" }) !== "home_assistant") {
-    throw new Error("Existing Home Assistant sliders must remain unchanged");
-  }
-  if (companionSliderIcon("Volume High", "mac_output", "mac_input") !== "Microphone") {
-    throw new Error("Changing volume controls must refresh generated slider icons");
-  }
-  if (companionSliderIcon("Palette", "mac_output", "mac_input") !== "Palette") {
-    throw new Error("Changing volume controls must preserve custom slider icons");
-  }
-  if (companionSliderIcon("Microphone", "mac_input", "home_assistant") !== "Auto") {
-    throw new Error("Leaving a volume control must clear its generated slider icon");
   }
   if (companionAppLabel("", "", "Safari") !== "Safari") {
     throw new Error("Selecting a Companion app must prefill an empty card label");

@@ -90,12 +90,6 @@
       "comment": "Setup screens"
     },
     {
-      "name": "Home Assistant",
-      "codepoint": "F07D0",
-      "mdi": "home-assistant",
-      "comment": "Setup screens"
-    },
-    {
       "name": "Image Card Loading",
       "codepoint": "F02E9",
       "mdi": "image",

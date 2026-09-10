@@ -62,16 +62,10 @@ final class CompanionConnection: NSObject {
     private var hasTerminalConnectionError = false
     private var sessionAuthenticated = false
     private var authenticationRequestOutstanding = false
-    private var artworkData: Data?
-    private var artworkGeneration: UInt32 = 0
-    private var artworkOffset = 0
-    private var lastArtworkGeneration: UInt32 = 0
-    private var lastArtworkSHA256: String?
     private var lastFocusedActionIdentifier: String?
     private var catalogueGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
-    private static let artworkChunkBytes = CompanionCapabilities.artworkChunkBytes
     private static let maximumTextFrameBytes = CompanionCapabilities.maximumTextFrameBytes
     private var connectionGeneration: UInt64 = 0
     private func makeSessionDelegate() -> CompanionSessionDelegate {
@@ -166,7 +160,6 @@ final class CompanionConnection: NSObject {
         sessionAuthenticated = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
-        resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -324,7 +317,6 @@ final class CompanionConnection: NSObject {
         }
         connectionGeneration &+= 1
         sessionAuthenticated = false
-        resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -338,13 +330,6 @@ final class CompanionConnection: NSObject {
         scheduleReconnect()
     }
 
-    private func resetArtworkTransferState() {
-        artworkData = nil
-        artworkGeneration = 0
-        artworkOffset = 0
-        lastArtworkGeneration = 0
-        lastArtworkSHA256 = nil
-    }
 
     private func scheduleReconnect() {
         guard !hasTerminalConnectionError else { discovery.stop(); return }
@@ -490,55 +475,12 @@ final class CompanionConnection: NSObject {
                     updateConnectionStatus(message, state: .failed)
                 }
             }
-        case .artworkAck(let payload):
-            guard sessionAuthenticated else { return false }
-            if payload.generation == artworkGeneration, Int(payload.nextOffset) == artworkOffset {
-                sendNextArtworkChunk()
-            }
-        case .artworkAbort:
-            guard sessionAuthenticated else { return false }
-            resetArtworkTransferState()
-        case .artworkRequest(let payload):
-            guard sessionAuthenticated else { return false }
-            onEvent?(.artworkRequested(payload.generation))
         default:
             return false
         }
         return true
     }
 
-    func publishNowPlaying(_ snapshot: CompanionNowPlayingSnapshot, forceArtwork: Bool = false) {
-        let artworkHash = snapshot.artworkSHA256
-        let hasArtwork = snapshot.artworkJPEG != nil
-        let shouldSendArtwork = hasArtwork && (forceArtwork ||
-            snapshot.generation != lastArtworkGeneration || artworkHash != lastArtworkSHA256)
-        if artworkData != nil && (shouldSendArtwork || snapshot.generation != artworkGeneration) {
-            sendJSON(["type": "artwork.abort", "generation": artworkGeneration])
-            artworkData = nil
-            artworkOffset = 0
-        }
-        var message: [String: Any] = [
-            "type": "now_playing", "generation": snapshot.generation,
-            "applicationIdentifier": snapshot.applicationIdentifier,
-            "applicationName": snapshot.applicationName, "state": snapshot.state.rawValue,
-            "contentIdentifier": snapshot.contentIdentifier, "title": snapshot.title,
-            "artist": snapshot.artist, "album": snapshot.album,
-            "durationMs": snapshot.durationMilliseconds, "positionMs": snapshot.positionMilliseconds,
-            "playbackRate": snapshot.playbackRate, "hasArtwork": hasArtwork,
-        ]
-        if shouldSendArtwork, let artworkHash { message["artworkSHA256"] = artworkHash }
-        sendJSON(message)
-        guard shouldSendArtwork, let artwork = snapshot.artworkJPEG else { return }
-        artworkData = nil
-        artworkOffset = 0
-        artworkGeneration = snapshot.generation
-        artworkData = artwork
-        lastArtworkGeneration = snapshot.generation
-        lastArtworkSHA256 = artworkHash
-        sendJSON(["type": "artwork.begin", "generation": snapshot.generation,
-                  "byteLength": artwork.count, "sha256": artworkHash ?? "",
-                  "mimeType": "image/jpeg"])
-    }
 
     func publishSystemMetrics(_ snapshot: CompanionSystemMetricsSnapshot, force: Bool = false) {
         let now = Date()
@@ -573,31 +515,6 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "system_metrics", "generation": 1, "available": false])
     }
 
-    private func sendNextArtworkChunk() {
-        guard let artworkData else { return }
-        if artworkOffset >= artworkData.count {
-            sendJSON(["type": "artwork.end", "generation": artworkGeneration])
-            self.artworkData = nil
-            artworkOffset = 0
-            return
-        }
-        let end = min(artworkOffset + Self.artworkChunkBytes, artworkData.count)
-        var frame = Data()
-        var generation = artworkGeneration.bigEndian
-        var offset = UInt32(artworkOffset).bigEndian
-        withUnsafeBytes(of: &generation) { frame.append(contentsOf: $0) }
-        withUnsafeBytes(of: &offset) { frame.append(contentsOf: $0) }
-        frame.append(artworkData[artworkOffset..<end])
-        artworkOffset = end
-        guard let sendingTask = task else { resetArtworkTransferState(); return }
-        sendingTask.send(.data(frame)) { [weak self, weak sendingTask] error in
-            guard error != nil else { return }
-            Task { @MainActor [weak self, weak sendingTask] in
-                guard let self, let sendingTask, self.task === sendingTask else { return }
-                self.resetArtworkTransferState()
-            }
-        }
-    }
 
     private func sendJSON(_ object: [String: Any]) {
         var envelope = object

@@ -44,5 +44,4 @@ enum CompanionSessionEvent {
     case status(String)
     case capabilities(systemMetrics: Bool)
     case publishCurrentState
-    case artworkRequested(UInt32)
 }

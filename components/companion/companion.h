@@ -50,7 +50,6 @@ class CompanionService final : public Component {
   uint32_t pairing_expires_in_seconds() const;
   bool paired() const;
   void revoke_pairing();
-  void request_now_playing_artwork();
 
  protected:
   void advertise_discovery_();
@@ -69,10 +68,6 @@ class CompanionService final : public Component {
   void defer_session_(std::function<void()> callback);
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
-  void handle_binary_(int socket_fd, const uint8_t *data, size_t size);
-  void reset_artwork_transfer_(const char *reason = nullptr, bool notify = false);
-  void send_artwork_ack_(uint32_t generation, size_t next_offset);
-  void expire_now_playing_();
   bool send_(int socket_fd, const std::string &message);
   void track_unauthenticated_socket_(int socket_fd);
   void forget_unauthenticated_socket_(int socket_fd);
@@ -99,14 +94,6 @@ class CompanionService final : public Component {
   uint8_t failed_attempts_{0};
   mutable std::mutex pairing_mutex_;
   std::string pairing_code_;
-  RAMAllocator<uint8_t> artwork_allocator_{};
-  uint8_t *artwork_buffer_{nullptr};
-  size_t artwork_length_{0};
-  size_t artwork_offset_{0};
-  uint32_t artwork_generation_{0};
-  std::array<uint8_t, 32> artwork_sha256_{};
-  uint32_t now_playing_generation_{0};
-  bool now_playing_artwork_follows_{false};
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
   uint32_t catalogue_generation_{0};
   uint16_t catalogue_next_page_{0};
@@ -127,6 +114,5 @@ void begin_companion_pairing();
 std::string companion_pairing_code();
 bool companion_pairing_active();
 void revoke_companion_pairing();
-void request_companion_now_playing_artwork();
 
 }  // namespace esphome::companion

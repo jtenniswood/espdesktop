@@ -7,7 +7,6 @@
 # =============================================================================
 
 substitutions:
-  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/common/assets/cover_art_placeholder.svg"
   device_slug: "guition-esp32-p4-jc1060p470"
   firmware_manifest_slug: "guition-esp32-p4-jc1060p470"
   firmware_version: "dev"
@@ -53,38 +52,6 @@ substitutions:
   firmware_update_package_suffix: ${ "_disabled" if disable_updates == "true" else "" }
   esp32_c6_firmware_update_package_suffix: ${ "_disabled" if network_transport == "ethernet" else "" }
   backlight_pwm_frequency: ${ "20000Hz" if network_transport == "ethernet" else "1000Hz" }
-  cover_art_size: "600"
-  cover_art_decode_size: "600"
-  cover_art_x: "0"
-  cover_art_y: "0"
-  cover_art_accent_x: "585"
-  cover_art_accent_y: "0"
-  cover_art_accent_width: "439"
-  cover_art_accent_height: "600"
-  cover_art_accent_bg_opa: "100%"
-  cover_art_accent_opa: "100%"
-  cover_art_panel_x: "615"
-  cover_art_panel_y: "34"
-  cover_art_panel_width: "377"
-  cover_art_panel_height: "430"
-  cover_art_panel_pad_top: "0"
-  cover_art_panel_pad_bottom: "0"
-  cover_art_panel_pad_left: "0"
-  cover_art_panel_pad_right: "0"
-  cover_art_panel_pad_row: "0"
-  cover_art_title_font: "font_cover_art_title"
-  cover_art_title_max_height: "260"
-  cover_art_title_line_space: "-8"
-  cover_art_artist_font: "font_cover_art_artist"
-  cover_art_artist_pad_top: "10"
-  cover_art_artist_long_mode: "dot"
-  cover_art_time_font: "font_cover_art_time"
-  cover_art_time_pad_top: "14"
-  cover_art_progress_width: "1024"
-  cover_art_progress_height: "4"
-  cover_art_text_color: "0xFFFFFF"
-  cover_art_square_overlay: "false"
-  cover_art_live_image_updates: "false"
   battery_status_apply_code: ""
   battery_status_hide_code: ""
 
@@ -128,7 +95,6 @@ packages:
   # Addons
   # ---------------------------------------------------------------------------
   connectivity:    !include ../../common/addon/connectivity${network_package_suffix}.yaml
-  api_navigate:    !include ../../common/device/api_navigate.yaml
   time_sync:       !include ../../common/addon/time.yaml
   backlight:       !include ../../common/addon/backlight.yaml
   bl_schedule:     !include ../../common/addon/backlight_schedule.yaml
@@ -141,12 +107,8 @@ packages:
   # ---------------------------------------------------------------------------
   screen_loading:  !include ../../common/device/screen_loading${network_package_suffix}.yaml
   screen_network:  !include ../../common/device/screen_${network_transport}_setup.yaml
-  screen_ha:       !include ../../common/device/screen_ha_setup.yaml
-  screen_ha_act:   !include ../../common/device/screen_ha_actions.yaml
   screen_setup:    !include ../../common/device/screen_button_setup.yaml
   screen_clock:    !include ../../common/device/screen_clock.yaml
-  screen_art:      !include ../../common/device/screen_cover_art.yaml
-  image_cards:     !include ../../common/device/image_cards_6.yaml
   # ---------------------------------------------------------------------------
   # Main page and dynamic sensor subscriptions (after setup screens)
   # ---------------------------------------------------------------------------

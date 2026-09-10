@@ -7,11 +7,11 @@ description: Choose the panel language and learn how to contribute translations 
 
 Open the panel web page, go to **Settings**, then choose **Language**.
 
-The language setting is stored on the device as the Home Assistant select entity **Screen: Language**. It is also included when you export a backup from the panel setup page.
+The language setting is stored on the device. It is also included when you export a backup from the panel setup page.
 
 The selector shows languages that are included in the firmware. English, Czech, Danish, German, Spanish, Finnish, French, Hebrew, Hungarian, Italian, Norwegian Bokmål, Dutch, Polish, Portuguese, Brazilian Portuguese, Romanian, Russian, Slovak, Slovenian, Swedish, Turkish, and Ukrainian are included.
 
-Built-in panel labels follow the selected language, including Cover Art, Mac volume controls, window actions, and named shortcut keys. Custom card labels and app names keep their original text.
+Built-in panel labels follow the selected language, including pairing status, window actions and named shortcut keys. Custom card labels and app names keep their original text.
 
 ## Translation Files
 
@@ -33,4 +33,4 @@ settings_language=Language
 
 For another language, `settings_language` stays unchanged. Only `Language` is translated.
 
-The strings file is for words shown on the panel screen. It does not include text that comes from the Home Assistant API, such as entity names, custom labels, option values, or media titles. It also does not include text shown only by the built-in webserver setup page.
+The strings file is for words shown on the panel screen. Custom card labels and names supplied by the Mac keep their original text. It also does not include text shown only by the built-in webserver setup page.

@@ -37,7 +37,6 @@ import { createConfigImageOptionsFeature } from "./application/config_image_opti
 import { createConfigWeatherOptionsFeature } from "./application/config_weather_options";
 import { createConfigWebhookOptionsFeature } from "./application/config_webhook_options";
 import { createConfigInternalRelayOptionsFeature } from "./application/config_internal_relay_options";
-import { createConfigRobotCardOptionsFeature } from "./application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "./application/config_lock_options";
 import { createConfigDateTimeOptionsFeature } from "./application/config_date_time_options";
 import { createConfigModalTabOptionsFeature } from "./application/config_modal_tab_options";
@@ -58,7 +57,7 @@ import { createSettingsScheduleSectionFeature } from "./application/settings_sch
 import { createSettingsCoverArtSectionFeature } from "./application/settings_cover_art_section";
 import { createSettingsSystemSectionFeature } from "./application/settings_system_section";
 import { createSettingsCompanionSectionFeature } from "./application/settings_companion_section";
-import { createConnectorsPageFeature, type ConnectorsPageFeature } from "./application/connectors_page";
+import { createCompanionSetupFeature, type CompanionSetupFeature } from "./application/companion_setup";
 import { createSettingsPageFeature, type SettingsPageFeature } from "./application/settings_page";
 import { createControlsFieldsFeature, type ControlsFieldsFeature } from "./application/controls_fields";
 import { createPreviewRenderFeature, type PreviewRenderFeature } from "./application/preview_render";
@@ -97,35 +96,12 @@ import { createAppEventsFeature, type AppEventsFeature } from "./application/app
 import { createAppFeature, type AppFeature } from "./application/app";
 import { startApp } from "./application/app_start";
 import { createReconnectController } from "./features/reconnect";
-import { registerActionCardTypes } from "./cards/action";
-import { registerAlarmCardTypes } from "./cards/alarm";
 import { registerCalendarCardTypes } from "./cards/calendar";
 import { registerCompanionCardTypes } from "./cards/companion";
-import { registerClimateCardTypes } from "./cards/climate";
 import { registerClockCardTypes } from "./cards/clock";
-import { createCoverLikeCardRegistration } from "./cards/cover_like_card";
-import { registerDoorWindowCardTypes } from "./cards/door_window";
-import { registerFanCardTypes } from "./cards/fan";
-import { registerGarageCardTypes } from "./cards/garage";
-import { registerGateCardTypes } from "./cards/gate";
-import { registerImageCardTypes } from "./cards/image";
-import { registerWifiQrCardTypes } from "./cards/wifi_qr";
-import { registerInternalCardTypes } from "./cards/internal";
-import { registerLawnMowerCardTypes } from "./cards/lawn_mower";
-import { registerLightTemperatureCardTypes } from "./cards/light_temperature";
-import { registerLockCardTypes } from "./cards/lock";
-import { registerMediaCardTypes } from "./cards/media";
-import { registerPresenceCardTypes } from "./cards/presence";
-import { registerPushCardTypes } from "./cards/push";
 import { registerScreenLockCardTypes } from "./cards/screen_lock";
-import { registerSensorCardTypes } from "./cards/sensor";
-import { registerSliderCardTypes } from "./cards/slider";
 import { registerSubpageCardTypes } from "./cards/subpage";
-import { registerSwitchCardTypes } from "./cards/switch";
 import { registerTimezoneCardTypes } from "./cards/timezone";
-import { registerVacuumCardTypes } from "./cards/vacuum";
-import { registerWeatherCardTypes } from "./cards/weather";
-import { registerWeatherForecastCardTypes } from "./cards/weather_forecast";
 import { registerWebhookCardTypes } from "./cards/webhook";
 import { createAppTestHookRegistrar } from "./testing/app_test_hooks";
 import { installAppTestHooksConfig } from "./testing/app_test_hooks_config";
@@ -149,9 +125,6 @@ function registerCards(context: ApplicationContext) {
     renderPreview: () => context.controllers.preview.render(),
     renderButtonSettings: (force?: boolean) => context.controllers.buttonSettings.render(force),
   };
-  const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
-  registerActionCardTypes(registry, context.configuration.confirmationOptions, context.controllers.entityState, fields, cardUi);
-  registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields);
   registerCompanionCardTypes(
     registry,
@@ -165,67 +138,14 @@ function registerCards(context: ApplicationContext) {
     context.controllers.selection,
     context.layout.numSlots,
   );
-  registerClimateCardTypes(
-    registry,
-    context.configuration.modalTabs,
-    context.configuration.accessClimateAlarm,
-    context.controllers.clockBarState,
-    context.controllers.renderQueue,
-    fields,
-  );
   registerClockCardTypes(registry, context.configuration.dateTimeOptions, fields);
-  registerDoorWindowCardTypes(registry, context.configuration.options, fields);
-  registerFanCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
-  registerGarageCardTypes(
-    coverLikeCards.register,
-    context.configuration.accessClimateAlarm,
-    context.configuration.confirmationOptions,
-  );
-  registerGateCardTypes(
-    coverLikeCards.register,
-    context.configuration.accessClimateAlarm,
-  );
-  registerImageCardTypes(
-    registry,
-    context.configuration.imageOptions,
-    fields,
-    cardUi,
-  );
-  registerWifiQrCardTypes(registry, context.configuration.modalTabs, fields, cardUi, context.configuration.native);
-  registerInternalCardTypes(
-    registry,
-    context.configuration.internalRelayOptions,
-    context.dom.document,
-    fields,
-  );
-  registerLawnMowerCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
-  const lightCards = registerLightTemperatureCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
-  registerLockCardTypes(registry, context.configuration.lockOptions, fields, cardUi);
-  registerMediaCardTypes(registry, context.configuration.mediaOptions, context.device.id, fields, context.controllers.settingsUi, cardUi);
-  registerPresenceCardTypes(registry, context.configuration.options, fields);
-  registerPushCardTypes(registry, fields);
   registerScreenLockCardTypes(registry, fields);
-  registerSensorCardTypes(registry, context.configuration.options, fields, cardUi);
-  registerSliderCardTypes(
-    registry,
-    context.configuration.modalTabs,
-    lightCards,
-    fields,
-    context.controllers.settingsUi,
-    !!context.device.profile.features?.companion,
-    cardUi,
-  );
   registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
-  registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);
   registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields);
-  registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
-  const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, context.controllers.clockBarState, fields, cardUi);
-  registerWeatherForecastCardTypes(registry, weatherCards, context.controllers.clockBarState, fields);
   registerWebhookCardTypes(registry, context.configuration.webhookOptions, fields, cardUi);
-  return lightCards;
 }
 
-function installTestHooks(context: ApplicationContext, lightCards: ReturnType<typeof registerLightTemperatureCardTypes>): void {
+function installTestHooks(context: ApplicationContext): void {
   const register = createAppTestHookRegistrar();
   installAppTestHooksConfig(
     context.cards,
@@ -241,7 +161,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.configuration.accessClimateAlarm,
     context.configuration.confirmationOptions,
     context.configuration.codec,
-    lightCards,
     context.core,
     context.layout,
     context.configuration.persistence,
@@ -307,7 +226,7 @@ function composeApplicationContext(): ApplicationContext {
   let fields: ControlsFieldsFeature;
   let settingsHelpers: SettingsPageHelpersFeature;
   let settingsPage: SettingsPageFeature;
-  let connectorsPage: ConnectorsPageFeature;
+  let companionSetup: CompanionSetupFeature;
   let buttonSettings: ButtonSettingsFeature;
   let app: AppFeature;
   const shell = createControlsShellFeature(runtime, {
@@ -316,7 +235,6 @@ function composeApplicationContext(): ApplicationContext {
     schedule: dom.schedule,
     cancelSchedule: (handle) => { dom.window.clearTimeout(handle); },
     buildSettingsPage: (parent) => { settingsPage.buildSettingsPage(parent); },
-    buildConnectorsPage: (parent) => { connectorsPage.buildPage(parent); },
     closeSettings: () => { selection.closeSettings(); },
     postButtonPress: (name) => requestApi.postButtonPress(name),
     waitForReboot: () => { stateLoader.waitForReboot(); },
@@ -395,7 +313,6 @@ function composeApplicationContext(): ApplicationContext {
   const weatherConfigurationOptions = createConfigWeatherOptionsFeature(layout.config);
   const webhookConfigurationOptions = createConfigWebhookOptionsFeature();
   const internalRelayConfigurationOptions = createConfigInternalRelayOptionsFeature(layout.config);
-  const robotConfigurationOptions = createConfigRobotCardOptionsFeature();
   const lockConfigurationOptions = createConfigLockOptionsFeature();
   let configurationCodec: ReturnType<typeof createConfigCodecFeature>;
   const core = createCoreFeature(
@@ -433,7 +350,6 @@ function composeApplicationContext(): ApplicationContext {
     imageConfigurationOptions,
     weatherConfigurationOptions,
     webhookConfigurationOptions,
-    robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,
     modalTabOptions,
@@ -524,7 +440,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const clockBar = createClockBarController();
   clockBarState = createClockBarFeature(clockBar, runtime, core, environment, {
-    homeAssistantConfigured: () => !!connectorsPage?.homeAssistantConfigured(),
+    homeAssistantConfigured: () => false,
     hideSettingsOverlay: () => selection.hideSettingsOverlay(),
     timezoneId: (value) => statusPreview.getTzId(value),
     postTemperatureEntities: (value) => clockBarPostApi.postClockBarTemperatureEntities(value),
@@ -678,9 +594,7 @@ function composeApplicationContext(): ApplicationContext {
     confirmationOptions, configurationCodec, layout, runtime, entityState,
     shell, requestApi, grid, iconPicker, selection, preview, interactions, fields,
     {
-      homeAssistantEnabled: () => connectorsPage
-        ? connectorsPage.homeAssistantCardPickerEnabled()
-        : true,
+      homeAssistantEnabled: () => false,
     },
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
@@ -882,39 +796,25 @@ function composeApplicationContext(): ApplicationContext {
   stateLoader, firmwarePostApi, artworkPostApi, publicFirmwareInstall, fields,
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
-  connectorsPage = createConnectorsPageFeature(
-    dom, shell, fields, companionSection, !!layout.config.features?.companion,
+  companionSetup = createCompanionSetupFeature(
+    shell, companionSection, !!layout.config.features?.companion,
   );
-  let temperatureHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
-  connectorsPage.onStatusChange(() => {
-    const configured = connectorsPage.homeAssistantConfigured();
-    if (configured === temperatureHomeAssistantConfigured) return;
-    temperatureHomeAssistantConfigured = configured;
-    statusPreview.updateClockBarItemUi();
-  });
-  let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
-  connectorsPage.onStatusChange(() => {
-    const enabled = connectorsPage.homeAssistantCardPickerEnabled();
-    if (enabled === pickerHomeAssistantEnabled) return;
-    pickerHomeAssistantEnabled = enabled;
-    buttonSettings.render();
-  });
   settingsPage = createSettingsPageFeature(
     configurationCodec, runtime, core, layout, environment, screenScheduleState,
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
-    systemSection, preview, connectorsPage,
+    systemSection, preview, companionSetup,
   );
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
+    interactions, preview, buttonSettings,
   );
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
+    interactions, preview, buttonSettings,
   );
   requestApi.connectReconnect(appEvents.connect);
   return createApplicationContext({
@@ -932,7 +832,6 @@ function composeApplicationContext(): ApplicationContext {
     weatherConfigurationOptions,
     webhookConfigurationOptions,
     internalRelayConfigurationOptions,
-    robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,
     modalTabOptions,
@@ -1005,9 +904,9 @@ function startEspDesktop(): void {
 
   const context = composeApplicationContext();
 
-  const lightCards = registerCards(context);
+  registerCards(context);
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {
-    installTestHooks(context, lightCards);
+    installTestHooks(context);
   }
   startApp(context.controllers.app);
 

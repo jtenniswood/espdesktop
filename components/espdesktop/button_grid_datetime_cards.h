@@ -219,31 +219,6 @@ inline bool update_calendar_cards_from_date_text(const std::string &value) {
   return valid;
 }
 
-inline std::string calendar_date_entity_or_default(const std::string &entity_id) {
-  return entity_id.empty() ? std::string("sensor.date") : entity_id;
-}
-
-inline void subscribe_calendar_date_source(const std::string &entity_id) {
-  std::string source = calendar_date_entity_or_default(entity_id);
-  static std::vector<std::string> subscribed;
-  static uint32_t subscribed_generation = 0;
-  const uint32_t generation = ha_subscription_generation();
-  if (subscribed_generation != generation) {
-    subscribed.clear();
-    subscribed_generation = generation;
-  }
-  for (const auto &existing : subscribed) {
-    if (existing == source) return;
-  }
-  subscribed.push_back(source);
-  ha_subscribe_state(
-    source,
-    std::function<void(esphome::StringRef)>([](esphome::StringRef state) {
-      update_calendar_cards_from_date_text(string_ref_limited(state, 16));
-    })
-  );
-}
-
 struct TimezoneCardRef {
   lv_obj_t *value_lbl;
   lv_obj_t *unit_lbl;

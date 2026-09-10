@@ -234,11 +234,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             buttons: state.buttons,
             subpages: state.subpages,
             settings: {
-                indoor_temp_enable: state._indoorOn,
-                outdoor_temp_enable: state._outdoorOn,
-                clock_bar_temperature_entities: serializeClockBarTemperatureEntities(clockBarTemperatureEntities()),
-                indoor_temp_entity: state.indoorEntity,
-                outdoor_temp_entity: state.outdoorEntity,
                 temperature_unit: normalizeTemperatureUnit(state.temperatureUnit),
                 clock_bar: state.clockBarOn,
                 clock_bar_time: state.clockBarTimeOn,
@@ -441,15 +436,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     els.setOnColor._syncColor(state.onColor);
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
-                    state._clockBarTemperatureVisibilityReceived = true;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    applyClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities, false);
-                    postClockBarTemperatureEntities(serializeClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities));
-                    postSwitch(entityName("outdoor_temp_enable"), importedSettings.outdoorTempEnable);
-                    postSwitch(entityName("indoor_temp_enable"), importedSettings.indoorTempEnable);
-                    postText(entityName("outdoor_temp_entity"), importedSettings.outdoorTempEntity);
-                    postText(entityName("indoor_temp_entity"), importedSettings.indoorTempEntity);
                     postClockBar(importedSettings.clockBar);
                     postClockBarTime(importedSettings.clockBarTime);
                     postClockBarNightMode(importedSettings.clockBarNightMode);
@@ -530,12 +516,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
-                    state.clockBarTemperatureEntities = importedSettings.clockBarTemperatureEntities;
-                    state._clockBarTemperatureEntitiesReceived = true;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state.indoorEntity = importedSettings.indoorTempEntity;
-                    state.outdoorEntity = importedSettings.outdoorTempEntity;
                     state.temperatureUnit = importedTemperatureUnit;
                     state.clockBarOn = importedSettings.clockBar;
                     state.clockBarTimeOn = importedSettings.clockBarTime;

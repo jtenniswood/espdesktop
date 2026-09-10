@@ -127,9 +127,6 @@ inline CompanionRuntimeSnapshot companion_runtime_snapshot() {
   return companion_runtime_service().snapshot();
 }
 
-inline CompanionNowPlayingHandler &companion_now_playing_handler() {
-  return companion_runtime_service().now_playing_handler;
-}
 
 inline CompanionConnectionChangedHandler &companion_connection_changed_handler() {
   return companion_runtime_service().connection_changed_handler;
@@ -140,20 +137,8 @@ inline void register_companion_connection_changed_handler(
   companion_connection_changed_handler() = std::move(handler);
 }
 
-inline CompanionArtworkHandler &companion_artwork_handler() {
-  return companion_runtime_service().artwork_handler;
-}
 
-inline void register_companion_now_playing_handlers(CompanionNowPlayingHandler now_playing,
-                                                     CompanionArtworkHandler artwork) {
-  companion_now_playing_handler() = std::move(now_playing);
-  companion_artwork_handler() = std::move(artwork);
-}
 
-inline void companion_set_now_playing(CompanionNowPlayingSnapshot snapshot) {
-  companion_runtime_service().set_now_playing(snapshot);
-  if (companion_now_playing_handler()) companion_now_playing_handler()(snapshot);
-}
 
 inline bool companion_metric_key_valid(const std::string &key) {
   return companion_metric_capability(key) != nullptr;
@@ -221,9 +206,6 @@ inline void companion_set_system_metrics(CompanionSystemMetricsSnapshot snapshot
   companion_runtime_service().set_system_metrics(std::move(snapshot));
 }
 
-inline bool companion_deliver_artwork(uint32_t generation, uint8_t *data, size_t size) {
-  return companion_artwork_handler() && companion_artwork_handler()(generation, data, size);
-}
 
 inline bool companion_connected() {
   return companion_runtime_service().connected();
@@ -252,6 +234,8 @@ inline void companion_set_actions(std::vector<CompanionAction> actions) {
     }), actions.end());
   companion_runtime_service().set_actions(std::move(actions));
 }
+
+
 
 inline void companion_set_window_actions(std::vector<std::string> actions) {
   companion_runtime_service().set_window_actions(std::move(actions));
@@ -345,8 +329,6 @@ inline bool companion_application_focused(const std::string &application_id) {
 }
 
 inline bool companion_action_active(const std::string &action_id) {
-  const auto snapshot = companion_runtime_snapshot();
-
   return companion_action_focused(action_id);
 }
 
@@ -708,7 +690,6 @@ inline void companion_refresh_cards_if_requested() {
     const bool available = it->url_config.empty()
       ? companion_action_available(it->action_id)
       : companion_url_available(it->action_id, it->url_config);
-
     if (available) {
       set_card_disabled_state(it->button, false);
     } else {

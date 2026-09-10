@@ -10,7 +10,6 @@ import type { PreviewContextMenuFeature } from "./preview_context_menu";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
-import type { ConnectorsPageFeature } from "./connectors_page";
 
 declare const __ESPDESKTOP_EMBEDDED_MDI_STYLES__: string;
 
@@ -18,7 +17,7 @@ export interface AppFeature {
     init(): void;
 }
 
-export function createAppFeature(pageTitle: AppTitleFeature, webStyles: string, core: Pick<CoreFeature, "syncPreviewOrientation">, screenRotation: ScreenRotationFeature, clockBar: ClockBarFeature, shell: Pick<ControlsShellFeature, "buildUI" | "syncTabChrome">, appEvents: Pick<AppEventsFeature, "connect">, statusPreview: Pick<AppStatusPreviewFeature, "updateClock">, selection: Pick<ButtonSettingsSelectionFeature, "handleDocumentSelectionMouseDown">, contextMenu: Pick<PreviewContextMenuFeature, "hide">, interactions: Pick<PreviewInteractionsFeature, "setup">, preview: Pick<PreviewRenderFeature, "render">, buttonSettings: Pick<ButtonSettingsFeature, "render">, connectorsPage: Pick<ConnectorsPageFeature, "start">): AppFeature {
+export function createAppFeature(pageTitle: AppTitleFeature, webStyles: string, core: Pick<CoreFeature, "syncPreviewOrientation">, screenRotation: ScreenRotationFeature, clockBar: ClockBarFeature, shell: Pick<ControlsShellFeature, "buildUI" | "syncTabChrome">, appEvents: Pick<AppEventsFeature, "connect">, statusPreview: Pick<AppStatusPreviewFeature, "updateClock">, selection: Pick<ButtonSettingsSelectionFeature, "handleDocumentSelectionMouseDown">, contextMenu: Pick<PreviewContextMenuFeature, "hide">, interactions: Pick<PreviewInteractionsFeature, "setup">, preview: Pick<PreviewRenderFeature, "render">, buttonSettings: Pick<ButtonSettingsFeature, "render">): AppFeature {
     const { buildUI, syncTabChrome } = shell;
     const { syncPreviewOrientation } = core;
     const { startInitialCheck: startInitialScreenRotationCheck } = screenRotation;
@@ -78,7 +77,6 @@ export function createAppFeature(pageTitle: AppTitleFeature, webStyles: string, 
         document.head.appendChild(style);
         installLocalWebAssets();
         buildUI();
-        connectorsPage.start();
         addSupportButton();
         syncClockBarUi();
         interactions.setup();

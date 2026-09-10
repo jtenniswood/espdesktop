@@ -90,21 +90,6 @@ struct FocusChanged {
 struct TimezoneChanged {
   std::string identifier{};
 };
-struct NowPlaying {
-  uint32_t generation{};
-  std::string applicationIdentifier{};
-  std::string applicationName{};
-  std::string contentIdentifier{};
-  std::string title{};
-  std::string artist{};
-  std::string album{};
-  std::string state{};
-  double durationMs{};
-  double positionMs{};
-  double playbackRate{};
-  bool hasArtwork{};
-  std::optional<std::string> artworkSHA256{};
-};
 struct SystemMetricsStorageDevicesItem {
   std::string id{};
   std::string label{};
@@ -125,25 +110,6 @@ struct SystemMetrics {
   std::optional<double> networkThroughputKBps{};
   std::optional<std::vector<SystemMetricsStorageDevicesItem>> storageDevices{};
   std::optional<std::vector<SystemMetricsNetworkInterfacesItem>> networkInterfaces{};
-};
-struct ArtworkBegin {
-  uint32_t generation{};
-  uint32_t byteLength{};
-  std::string sha256{};
-  std::string mimeType{};
-};
-struct ArtworkAck {
-  uint32_t generation{};
-  uint32_t nextOffset{};
-};
-struct ArtworkEnd {
-  uint32_t generation{};
-};
-struct ArtworkAbort {
-  uint32_t generation{};
-};
-struct ArtworkRequest {
-  uint32_t generation{};
 };
 struct Error {
   std::string code{};
@@ -241,23 +207,6 @@ inline void encode(JsonObject root, const TimezoneChanged &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["identifier"] = message.identifier;
 }
-inline void encode(JsonObject root, const NowPlaying &message) {
-  root["type"] = "now_playing";
-  root["protocol"] = COMPANION_PROTOCOL_VERSION;
-  root["generation"] = message.generation;
-  root["applicationIdentifier"] = message.applicationIdentifier;
-  root["applicationName"] = message.applicationName;
-  root["contentIdentifier"] = message.contentIdentifier;
-  root["title"] = message.title;
-  root["artist"] = message.artist;
-  root["album"] = message.album;
-  root["state"] = message.state;
-  root["durationMs"] = message.durationMs;
-  root["positionMs"] = message.positionMs;
-  root["playbackRate"] = message.playbackRate;
-  root["hasArtwork"] = message.hasArtwork;
-  if (message.artworkSHA256) root["artworkSHA256"] = *message.artworkSHA256;
-}
 inline void encode(JsonObject root, const SystemMetrics &message) {
   root["type"] = "system_metrics";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -287,42 +236,13 @@ inline void encode(JsonObject root, const SystemMetrics &message) {
   }
   }
 }
-inline void encode(JsonObject root, const ArtworkBegin &message) {
-  root["type"] = "artwork.begin";
-  root["protocol"] = COMPANION_PROTOCOL_VERSION;
-  root["generation"] = message.generation;
-  root["byteLength"] = message.byteLength;
-  root["sha256"] = message.sha256;
-  root["mimeType"] = message.mimeType;
-}
-inline void encode(JsonObject root, const ArtworkAck &message) {
-  root["type"] = "artwork.ack";
-  root["protocol"] = COMPANION_PROTOCOL_VERSION;
-  root["generation"] = message.generation;
-  root["nextOffset"] = message.nextOffset;
-}
-inline void encode(JsonObject root, const ArtworkEnd &message) {
-  root["type"] = "artwork.end";
-  root["protocol"] = COMPANION_PROTOCOL_VERSION;
-  root["generation"] = message.generation;
-}
-inline void encode(JsonObject root, const ArtworkAbort &message) {
-  root["type"] = "artwork.abort";
-  root["protocol"] = COMPANION_PROTOCOL_VERSION;
-  root["generation"] = message.generation;
-}
-inline void encode(JsonObject root, const ArtworkRequest &message) {
-  root["type"] = "artwork.request";
-  root["protocol"] = COMPANION_PROTOCOL_VERSION;
-  root["generation"] = message.generation;
-}
 inline void encode(JsonObject root, const Error &message) {
   root["type"] = "error";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["code"] = message.code;
   if (message.lastSequence) root["lastSequence"] = *message.lastSequence;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, Error>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, SystemMetrics, Error>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -541,64 +461,6 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.identifier = root["identifier"].as<std::string>();
     return result;
   }
-  if (type == "now_playing") {
-    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
-    if (!(state == SessionState::CONNECTED)) return std::nullopt;
-    {
-      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["applicationIdentifier"], 0, 256))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["applicationName"], 0, 256))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["contentIdentifier"], 0, 256))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["title"], 0, 256))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["artist"], 0, 256))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["album"], 0, 256))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["state"], 1, 11) && (root["state"].as<std::string>() == "playing" || root["state"].as<std::string>() == "paused" || root["state"].as<std::string>() == "stopped" || root["state"].as<std::string>() == "unavailable"))) return std::nullopt;
-    }
-    {
-      if (!(number_valid(root["durationMs"], 0, 86400000, false))) return std::nullopt;
-    }
-    {
-      if (!(number_valid(root["positionMs"], 0, 86400000, false))) return std::nullopt;
-    }
-    {
-      if (!(number_valid(root["playbackRate"], -16, 16, false))) return std::nullopt;
-    }
-    {
-      if (!(root["hasArtwork"].is<bool>())) return std::nullopt;
-    }
-    if (!root["artworkSHA256"].isUnbound()) {
-      if (!(string_valid(root["artworkSHA256"], 1, 64) && hex_valid(root["artworkSHA256"]))) return std::nullopt;
-    }
-    NowPlaying result;
-    result.generation = root["generation"].as<uint32_t>();
-    result.applicationIdentifier = root["applicationIdentifier"].as<std::string>();
-    result.applicationName = root["applicationName"].as<std::string>();
-    result.contentIdentifier = root["contentIdentifier"].as<std::string>();
-    result.title = root["title"].as<std::string>();
-    result.artist = root["artist"].as<std::string>();
-    result.album = root["album"].as<std::string>();
-    result.state = root["state"].as<std::string>();
-    result.durationMs = root["durationMs"].as<double>();
-    result.positionMs = root["positionMs"].as<double>();
-    result.playbackRate = root["playbackRate"].as<double>();
-    result.hasArtwork = root["hasArtwork"].as<bool>();
-    if (!root["artworkSHA256"].isUnbound()) result.artworkSHA256 = root["artworkSHA256"].as<std::string>();
-    return result;
-  }
   if (type == "system_metrics") {
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
@@ -678,71 +540,6 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       result.networkInterfaces->push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["address"].as<std::string>()});
     }
     }
-    return result;
-  }
-  if (type == "artwork.begin") {
-    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
-    if (!(state == SessionState::CONNECTED)) return std::nullopt;
-    {
-      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
-    }
-    {
-      if (!(number_valid(root["byteLength"], 1, 262144, true))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["sha256"], 1, 64) && hex_valid(root["sha256"]))) return std::nullopt;
-    }
-    {
-      if (!(string_valid(root["mimeType"], 1, 10) && (root["mimeType"].as<std::string>() == "image/jpeg"))) return std::nullopt;
-    }
-    ArtworkBegin result;
-    result.generation = root["generation"].as<uint32_t>();
-    result.byteLength = root["byteLength"].as<uint32_t>();
-    result.sha256 = root["sha256"].as<std::string>();
-    result.mimeType = root["mimeType"].as<std::string>();
-    return result;
-  }
-  if (type == "artwork.ack") {
-    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
-    if (!(state == SessionState::CONNECTED)) return std::nullopt;
-    {
-      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
-    }
-    {
-      if (!(number_valid(root["nextOffset"], 0, 262144, true))) return std::nullopt;
-    }
-    ArtworkAck result;
-    result.generation = root["generation"].as<uint32_t>();
-    result.nextOffset = root["nextOffset"].as<uint32_t>();
-    return result;
-  }
-  if (type == "artwork.end") {
-    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
-    if (!(state == SessionState::CONNECTED)) return std::nullopt;
-    {
-      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
-    }
-    ArtworkEnd result;
-    result.generation = root["generation"].as<uint32_t>();
-    return result;
-  }
-  if (type == "artwork.abort") {
-    if (!(state == SessionState::CONNECTED)) return std::nullopt;
-    {
-      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
-    }
-    ArtworkAbort result;
-    result.generation = root["generation"].as<uint32_t>();
-    return result;
-  }
-  if (type == "artwork.request") {
-    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
-    if (!(state == SessionState::CONNECTED)) return std::nullopt;
-    {
-      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
-    }
-    ArtworkRequest result;
-    result.generation = root["generation"].as<uint32_t>();
     return result;
   }
   if (type == "error") {

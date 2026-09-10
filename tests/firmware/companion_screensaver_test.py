@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the real sleep predicates against retained/disconnected media state."""
+"""Exercise Companion startup and connection sleep predicates."""
 from pathlib import Path
 import re
 import subprocess
@@ -15,57 +15,36 @@ assert 'register_companion_connection_changed_handler' in boot
 assert 'register_screen_lock_changed_handler' in boot
 assert 'id(screensaver_companion_ready) = true;' in boot
 assert '- script.execute: screensaver_companion_reconcile' in boot
-reconcile = text.split('  - id: screensaver_companion_reconcile\n', 1)[1].split('\n  - id:', 1)[0]
-ready_predicate = re.search(r"lambda: '(return .*?;)'", reconcile).group(1)
-
-
-script = text.split('  - id: screensaver_sleep_timer\n', 1)[1].split('\n  - id:', 1)[0]
-predicates = re.findall(r'condition:\n\s+lambda: \|-\n(.*?)(?=\n\s*then:)', script, re.S)
+reconcile = text.split('- id: screensaver_companion_reconcile\n', 1)[1].split('\n- id:', 1)[0]
+predicates = re.findall(r'lambda: \|-\n\s*(return .*?;)', reconcile)
 assert len(predicates) == 2
 source = r'''
 #include <cassert>
 #include <string>
-#include "display_mode_controller.h"
-struct Text { std::string state; } screensaver_mode, cover_art_media_player_entity;
-struct Switch { bool state = false; } cover_art_screensaver_enabled, cover_art_hide_external_input_enabled;
-struct App { espdesktop::DisplayModeController controller;
-  auto &display() { return controller; }
-} espdesktop_app;
-std::string cover_art_last_playback_state;
-bool cover_art_media_playing = false, cover_art_attribute_conditions_match = true;
-bool cover_art_external_input_active = false, cover_art_companion_source_active = true;
-#define id(x) x
+struct Text { std::string state; } screensaver_mode;
 bool screensaver_companion_ready = false;
+bool connected = false, locked = false;
+bool companion_connected() { return connected; }
+bool screen_lock_enabled() { return locked; }
+#define id(x) x
 bool can_reconcile() {
-''' + ready_predicate + r'''
+''' + predicates[0] + r'''
 }
-bool defers_sleep() {
-''' + predicates[0] + '\n}\nbool chooses_cover_art() {\n' + predicates[1].replace('${voice_interaction_active_condition}', 'false') + r'''
+bool should_wake() {
+''' + predicates[1] + r'''
 }
 int main() {
-  using namespace espdesktop;
-  for (const auto *mode : {"companion", "timer", "sensor"}) {
+  for (const auto *mode : {"companion", "timer", "disabled"}) {
     screensaver_mode.state = mode;
-    const bool companion = screensaver_mode.state == "companion";
     screensaver_companion_ready = false;
-    assert(!can_reconcile());  // Restored text publishes before the app runtime exists.
+    assert(!can_reconcile());
     screensaver_companion_ready = true;
-    assert(can_reconcile() == companion);
-    for (bool visible : {false, true}) {
-      if (visible) espdesktop_app.display().request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART);
-      else espdesktop_app.display().clear(DisplayRequestSource::MEDIA_PLAYBACK);
-      for (bool playing : {false, true}) {
-        cover_art_media_playing = playing;
-        for (const auto *state : {"", "unavailable", "idle", "playing", "buffering", "paused"}) {
-          cover_art_last_playback_state = state;
-          const bool stale = cover_art_last_playback_state != "playing" &&
-              cover_art_last_playback_state != "buffering" && cover_art_last_playback_state != "paused";
-          assert(defers_sleep() == (!companion && (visible || (playing && stale))));
-          for (bool enabled : {false, true}) {
-            cover_art_screensaver_enabled.state = enabled;
-            assert(chooses_cover_art() == (!companion && enabled && playing));
-          }
-        }
+    assert(can_reconcile() == (screensaver_mode.state == "companion"));
+    for (bool is_connected : {false, true}) {
+      connected = is_connected;
+      for (bool is_locked : {false, true}) {
+        locked = is_locked;
+        assert(should_wake() == (connected && !locked));
       }
     }
   }

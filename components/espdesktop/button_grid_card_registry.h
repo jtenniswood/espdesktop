@@ -6,37 +6,7 @@ namespace espdesktop::cards {
 
 constexpr uint8_t REGISTRY_VERSION = 1;
 
-enum class Family : uint8_t {
-  TOGGLE,
-  ACTION,
-  ALARM,
-  ALARM_ACTION,
-  DATE_TIME,
-  CLIMATE,
-  COVER,
-  OCCUPANCY,
-  FAN,
-  ACCESS,
-  IMAGE,
-  WIFI_QR,
-  INTERNAL,
-  MOWER,
-  LIGHT_CONTROL,
-  LIGHT_TEMPERATURE,
-  LOCAL_SENSOR,
-  MEDIA,
-  OPTION_SELECT,
-  PUSH,
-  COMPANION,
-  SCREEN_LOCK,
-  SENSOR,
-  SLIDER,
-  SUBPAGE,
-  VACUUM,
-  WEATHER,
-  WEBHOOK,
-  UNKNOWN,
-};
+enum class Family : uint8_t { DATE_TIME, COMPANION, SCREEN_LOCK, SUBPAGE, WEBHOOK, UNKNOWN };
 
 struct Registration {
   uint8_t version = REGISTRY_VERSION;

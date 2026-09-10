@@ -148,10 +148,10 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         return clockBarTemperatureItemIndex(item) >= 0;
     }
     function clockBarTemperatureItemIds(this: any) {
-        return ["temperature"];
+        return [];
     }
     function clockBarItems(this: any) {
-        var items: any = ["temperature", "time"];
+        var items: any = ["time"];
         if (voiceServicesUiState().clockBarItemVisible)
             items.push("voice");
         items.push("network");
@@ -202,16 +202,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         button.setAttribute("aria-label", clockBarItemLabel(item));
         button.setAttribute("role", "button");
         button.setAttribute("tabindex", "0");
-        if (isClockBarTemperatureItem(item)) {
-            var temp: any = document.createElement("span");
-            temp.className = "sp-temp";
-            temp.textContent = "--";
-            button.appendChild(temp);
-            if (!els.temps)
-                els.temps = {};
-            els.temps[item] = temp;
-        }
-        else if (item === "time") {
+        if (item === "time") {
             var clock: any = document.createElement("span");
             clock.className = "sp-clock";
             clock.textContent = "--:--";
@@ -236,7 +227,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         if (!els.clockBarSections)
             return;
         var layout: any = {
-            left: clockBar.temperatureAvailable() ? ["temperature"] : [],
+            left: [],
             middle: ["time"],
             right: voiceServicesUiState().clockBarItemVisible ? ["voice", "network"] : ["network"],
         };

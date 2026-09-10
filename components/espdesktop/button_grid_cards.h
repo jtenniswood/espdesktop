@@ -8,39 +8,6 @@
 inline void apply_push_button_transition(lv_obj_t *btn);
 inline void clear_push_button_transition(lv_obj_t *btn);
 
-inline void setup_garage_card(BtnSlot &s, const ParsedCfg &p) {
-  if (garage_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, garage_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, garage_closed_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
-}
-
-inline void setup_gate_card(BtnSlot &s, const ParsedCfg &p) {
-  if (gate_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, gate_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, gate_closed_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
-}
-
-inline void setup_lock_card(BtnSlot &s, const ParsedCfg &p) {
-  if (lock_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, lock_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, lock_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, lock_locked_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, lock_card_label(p));
-}
-
 inline const char *screen_lock_locked_icon(const ParsedCfg &p) {
   (void) p;
   return find_icon("Lock");
@@ -96,60 +63,12 @@ inline void clear_push_button_transition(lv_obj_t *btn) {
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
 
-inline void setup_internal_relay_card(BtnSlot &s, const ParsedCfg &p) {
-  bool push_mode = internal_relay_push_mode(p);
-  std::string label = internal_relay_label(p);
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon_off = internal_relay_icon(p, push_mode);
-  lv_label_set_display_text(s.icon_lbl, icon_off);
-  if (push_mode) {
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  bool has_icon_on = !p.icon_on.empty() && p.icon_on != "Auto";
-  const char *icon_on = has_icon_on ? find_icon(p.icon_on.c_str()) : nullptr;
-  apply_internal_relay_state(s.btn, s.icon_lbl, internal_relay_state(p.entity),
-    has_icon_on, icon_off, icon_on);
-}
-
-// Set icon and label on a toggle/push button based on its config
 inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
-  if (!p.entity.empty()) {
-    if (!p.label.empty()) {
-      lv_label_set_display_text(s.text_lbl, p.label.c_str());
-    }
-    const char* icon_cp = "\U000F0493";
-    if (p.icon.empty() || p.icon == "Auto") {
-      std::string domain = p.entity.substr(0, p.entity.find('.'));
-      icon_cp = domain_default_icon(domain);
-    } else {
-      icon_cp = find_icon(p.icon.c_str());
-    }
-    lv_label_set_display_text(s.icon_lbl, icon_cp);
-
-    if (!p.sensor.empty()) {
-      if (!p.unit.empty()) {
-        std::string unit = trim_display_unit(p.unit);
-        lv_label_set_display_text(s.unit_lbl, unit.c_str());
-      }
-    }
-  } else {
-    if (!p.label.empty()) {
-      lv_label_set_display_text(s.text_lbl, p.label.c_str());
-    }
-    if (!p.icon.empty() && p.icon != "Auto") {
-      lv_label_set_display_text(s.icon_lbl, find_icon(p.icon.c_str()));
-    } else if (p.type == "push") {
-      lv_label_set_display_text(s.icon_lbl, "\U000F0741");
-      apply_push_button_transition(s.btn);
-    }
-    if (p.type == "push" && p.label.empty()) {
-      lv_label_set_display_text(s.text_lbl, espdesktop_i18n("Push"));
-    }
-  }
+  lv_label_set_display_text(s.text_lbl, p.label.c_str());
+  lv_label_set_display_text(s.icon_lbl, find_icon(p.icon.empty() || p.icon == "Auto" ? "Monitor" : p.icon.c_str()));
+  lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
 }
 
-inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p);
 
 inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                  uint32_t sensor_color = TERTIARY_GREY) {
@@ -193,69 +112,6 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   companion_apply_card_focus(s.btn, p.entity, p.sensor);
 }
 
-inline void setup_action_card(BtnSlot &s, const ParsedCfg &p) {
-  if (action_card_local_action(p)) {
-    setup_local_action_card(s, p);
-    return;
-  }
-  std::string action_label = p.label.empty()
-    ? (p.entity.empty() ? espdesktop_i18n(std::string("Action")) : p.entity)
-    : p.label;
-  lv_label_set_display_text(s.text_lbl, action_label.c_str());
-  const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Flash") : find_icon(p.icon.c_str());
-  lv_label_set_display_text(s.icon_lbl, icon_cp);
-  if (action_card_state_icon_mode(p) || action_card_state_text_mode(p)) {
-    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
-  } else if (action_card_state_numeric_mode(p)) {
-    lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
-    lv_label_set_display_text(s.sensor_lbl, "--");
-    std::string unit = trim_display_unit(action_card_state_unit(p));
-    lv_label_set_display_text(s.unit_lbl, unit.c_str());
-  }
-  apply_push_button_transition(s.btn);
-}
-
-inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p) {
-  std::string label = p.label.empty() ? (p.entity.empty() ? espdesktop_i18n("Local Action") : sentence_cap_text(p.entity)) : p.label;
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Gesture Tap") : find_icon(p.icon.c_str());
-  lv_label_set_display_text(s.icon_lbl, icon_cp);
-  apply_push_button_transition(s.btn);
-}
-
-inline void send_local_sensor_update(const std::string &key, float value) {
-  if (!local_sensor_apply_value(key, value)) {
-    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
-  }
-}
-
-inline void send_local_sensor_update(const std::string &key, const char *value) {
-  if (!local_sensor_apply_text(key, value ? value : "--")) {
-    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
-  }
-}
-
-inline const char *door_window_closed_icon(const ParsedCfg &p) {
-  if (!p.icon.empty() && p.icon != "Auto") return find_icon(p.icon.c_str());
-  return find_icon(door_window_closed_icon_name(p.precision));
-}
-
-inline const char *door_window_open_icon(const ParsedCfg &p) {
-  if (!p.icon_on.empty() && p.icon_on != "Auto") return find_icon(p.icon_on.c_str());
-  return find_icon(door_window_open_icon_name(p.precision));
-}
-
-inline const char *presence_clear_icon(const ParsedCfg &p) {
-  if (!p.icon.empty() && p.icon != "Auto") return find_icon(p.icon.c_str());
-  return find_icon("Motion Sensor Off");
-}
-
-inline const char *presence_detected_icon(const ParsedCfg &p) {
-  if (!p.icon_on.empty() && p.icon_on != "Auto") return find_icon(p.icon_on.c_str());
-  return find_icon("Motion Sensor");
-}
 
 inline void setup_subpage_parent_state_card(BtnSlot &s, const ParsedCfg &p,
                                             const lv_font_t *value_font,

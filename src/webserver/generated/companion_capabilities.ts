@@ -120,38 +120,8 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
     authorization: "session"
   },
   {
-    id: "now_playing",
-    direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
     id: "system_metrics",
     direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
-    id: "artwork.begin",
-    direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
-    id: "artwork.ack",
-    direction: "panel_to_mac",
-    authorization: "session"
-  },
-  {
-    id: "artwork.end",
-    direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
-    id: "artwork.abort",
-    direction: "bidirectional",
-    authorization: "session"
-  },
-  {
-    id: "artwork.request",
-    direction: "panel_to_mac",
     authorization: "session"
   },
   {

@@ -6,7 +6,7 @@ description:
 
 # Privacy Policy
 
-**Effective date: September 5, 2026**
+**Effective date: September 10, 2026**
 
 EspDesktop is a source-available, non-commercial touchscreen control panel
 project maintained by [jtenniswood](https://github.com/jtenniswood). This
@@ -16,11 +16,7 @@ firmware, or built-in web configuration interface.
 
 ## The short version
 
-EspDesktop does not operate an account system, advertising service, analytics
-platform, or central service that collects your smart-home data. The firmware is
-designed to communicate with your Home Assistant installation and other
-services you choose to configure. Your device configuration is stored on your
-device or in your own backups.
+EspDesktop does not operate an account system, advertising service, analytics platform or central service that collects your card data. Your display stores its configuration locally and communicates with your paired Mac and the services you configure.
 
 ## The documentation website
 
@@ -47,29 +43,14 @@ request metadata, such as your IP address, browser and device information, and
 request time, to the relevant hosting providers. The library is not loaded on
 other documentation pages unless one of these installer components is used.
 
-The site also contains links to GitHub, Home Assistant, ESPHome, and other
+The site also contains links to GitHub, ESPHome, and other
 third-party websites. Those sites have their own terms and privacy practices.
 
 ## The EspDesktop firmware and device
 
-The firmware does not send your smart-home data to an EspDesktop server. It
-normally exchanges data directly with your Home Assistant instance over your
-local network, including entity states, names, media information, weather
-data, and commands needed for the cards you configure. Home Assistant and any
-integrations in your installation determine how that information is stored and
-processed.
+The display exchanges approved application and folder identifiers, focused-application state, keyboard and window actions, and system statistics with the paired Mac over the local network.
 
-Depending on the cards and options you enable, the device may also:
-
-- request media artwork from URLs supplied by Home Assistant or by your
-  configuration;
-- send requests to webhook URLs that you configure; and
-- use Home Assistant's voice-assistant pipeline, which may involve a speech
-  service or other provider selected in Home Assistant.
-
-These requests are initiated by your configuration and may expose information
-to the service named by the URL or integration. Review the privacy practices
-of those services before enabling them.
+Webhook cards send requests to the URLs you configure. These requests may include headers, credentials and request bodies and can contact local or external services. Review the privacy practices of the destination service before configuring a webhook.
 
 ## Firmware and asset downloads
 
@@ -79,7 +60,7 @@ EspDesktop GitHub Pages site. Some builds also check the public ESPHome hosted
 firmware manifest for an ESP32-C6 co-processor. These requests contain normal
 network request information, such as the device's IP address and request time,
 as observed by the hosting provider. They are not intended to include your
-Home Assistant entity data or account credentials.
+your configured card data or account credentials.
 
 You can disable EspDesktop's built-in update checker where the firmware build
 provides that option. Ethernet-only builds documented on this site omit the
@@ -105,8 +86,7 @@ EspDesktop connects to the display you pair on your local network. It stores
 connection preferences and approved-folder bookmarks locally on the Mac, and
 stores the pairing credential in macOS Keychain. Folder paths remain on the Mac;
 the display receives names and opaque identifiers for approved applications and
-folders. EspDesktop can also share the focused application and Now Playing
-metadata/artwork needed by its cards. System statistics are shared automatically with your paired display while connected; they contain overall resource usage
+folders. EspDesktop can also share the focused application needed by its cards. System statistics are shared automatically with your paired display while connected; they contain overall resource usage
 and network throughput, not network contents.
 
 Opening the display’s Companion setup page starts pairing on an unpaired
@@ -137,24 +117,22 @@ confidential information.
 The project maintainer does not operate a database of EspDesktop users and
 does not sell or rent personal information. Information submitted through
 GitHub is retained and handled according to GitHub's policies and the
-project's public repository settings. Information handled by Home Assistant,
-Buy Me a Coffee, GitHub Pages, or another service you choose is governed by
+project's public repository settings. Information handled by Buy Me a Coffee, GitHub Pages, or another service you choose is governed by
 that service's policy and retention practices.
 
 ## Your choices and privacy requests
 
 You can choose whether to use automatic firmware updates, configure optional
-webhooks or voice features, visit external links, or submit information to
+webhooks, visit external links, or submit information to
 GitHub. To remove local device settings, use a full flash erase or another
 verified factory-reset procedure that clears the device's storage. A normal
-reset or firmware re-flash may preserve saved configuration, including entity
-IDs, webhook credentials, and other settings. This does not remove copies you
+reset or firmware re-flash may preserve saved configuration, including card targets, webhook credentials, and other settings. This does not remove copies you
 have made elsewhere.
 
 For a question about this policy or a request concerning information directly
 controlled by the project maintainer, contact [jtenniswood through GitHub](https://github.com/jtenniswood).
 Please do not include private information in a public issue. Requests about
-GitHub, Home Assistant, or another third-party service should be directed to
+GitHub or another third-party service should be directed to
 that service.
 
 ## Changes to this policy

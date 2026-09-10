@@ -34,7 +34,6 @@ def package_data(device: dict) -> dict:
 def package_substitution_lines(device: dict) -> list[str]:
     package = package_data(device)
     lines = [
-        '  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/common/assets/cover_art_placeholder.svg"',
         f'  device_slug: "{device["slug"]}"',
         f'  firmware_manifest_slug: "{device["slug"]}"',
     ]
@@ -60,7 +59,6 @@ def package_substitution_lines(device: dict) -> list[str]:
                 f'  backlight_pwm_frequency: ${{ "{frequency["ethernet"]}" if network_transport == "ethernet" else "{frequency["wifi"]}" }}',
             ]
         )
-    lines.extend(cover_art_substitution_lines(device))
     lines.extend(battery_substitution_lines(device))
     return lines
 
@@ -237,8 +235,6 @@ def package_file_text(device: dict) -> str:
             ),
         ]
     )
-    if package.get("apiNavigateAction", True):
-        lines.append(include_line("api_navigate", "!include ../../common/device/api_navigate.yaml"))
     lines.extend(
         [
             include_line("time_sync", "!include ../../common/addon/time.yaml"),
@@ -263,23 +259,8 @@ def package_file_text(device: dict) -> str:
                 f"!include ../../common/device/screen_loading{network_suffix}.yaml",
             ),
             include_line(network_screen_key, f"!include {network_screen_path}"),
-            include_line("screen_ha", "!include ../../common/device/screen_ha_setup.yaml"),
-            include_line("screen_ha_act", "!include ../../common/device/screen_ha_actions.yaml"),
             include_line("screen_setup", "!include ../../common/device/screen_button_setup.yaml"),
             include_line("screen_clock", "!include ../../common/device/screen_clock.yaml"),
-            include_line("screen_art", "!include ../../common/device/screen_cover_art.yaml"),
-            *(
-                [
-                    include_line(
-                        "image_cards",
-                        "!include ../../common/device/image_cards.yaml"
-                        if int(device["image_slot_capacity"]) == 4
-                        else f"!include ../../common/device/image_cards_{int(device['image_slot_capacity'])}.yaml",
-                    )
-                ]
-                if int(device["image_slot_capacity"]) > 0
-                else []
-            ),
             "  # ---------------------------------------------------------------------------",
             "  # Main page and dynamic sensor subscriptions (after setup screens)",
             "  # ---------------------------------------------------------------------------",
@@ -466,47 +447,6 @@ def cfg_lines(device: dict) -> list[str]:
     lines.append("            cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {")
     lines.append("              id(display_takeover_end).execute(static_cast<int>(kind));")
     lines.append("            };")
-    if package_data(device).get("alarmDelayAudio"):
-        lines.extend(
-            [
-                "            cfg.alarm_delay_audio.enabled = []() {",
-                "              return id(alarm_delay_audio_enabled).state;",
-                "            };",
-                "            cfg.alarm_delay_audio.tts_enabled = []() {",
-                "              return id(alarm_delay_tts_enabled).state && id(voice_services_enabled).state;",
-                "            };",
-                "            cfg.alarm_delay_audio.final_countdown_seconds = []() {",
-                "              return static_cast<int>(id(alarm_delay_final_countdown_seconds).state);",
-                "            };",
-                "            cfg.alarm_delay_audio.ready = []() {",
-                "              return !id(alarm_delay_tts_pending);",
-                "            };",
-                "            cfg.alarm_delay_audio.play_beep = [](AlarmDelayAudioMode mode) {",
-                "              id(play_alarm_delay_beep).execute(mode == AlarmDelayAudioMode::ENTRY);",
-                "            };",
-                "            cfg.alarm_delay_audio.announce = [](AlarmDelayAudioMode mode) {",
-                "              id(announce_alarm_delay).execute(mode == AlarmDelayAudioMode::ENTRY);",
-                "            };",
-                "            cfg.alarm_delay_audio.stop = []() {",
-                "              id(stop_alarm_delay_audio).execute();",
-                "            };",
-            ]
-        )
-    if image_card_count > 0:
-        lines.append("            static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {")
-        for num in range(1, image_card_count + 1):
-            lines.append(f"              id(image_card_download_{num}),")
-        lines.append("            };")
-        lines.append("            cfg.image_card_images = image_card_downloaders;")
-        lines.append("            cfg.image_card_modal_image = id(image_card_modal_download_1);")
-        lines.append(f"            cfg.image_card_image_count = {image_card_count};")
-    if device.get("image_card_diagnostics"):
-        lines.append("            cfg.image_card_diagnostics = true;")
-    lines.append("            cfg.home_assistant_base_url = []() {")
-    lines.append("              std::string base = id(cover_art_home_assistant_base_url);")
-    lines.append("              while (!base.empty() && base.back() == '/') base.pop_back();")
-    lines.append("              return base;")
-    lines.append("            };")
     lines.append("            register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {")
     lines.append("              auto response = id(http_req).start(url, method, body, headers);")
     lines.append("              if (response == nullptr) {")
@@ -525,7 +465,7 @@ def cfg_lines(device: dict) -> list[str]:
     lines.append("            set_width_compensation_vertical_axis(cfg.width_compensation_vertical);")
     lines.append("            set_text_width_compensation_percent(cfg.text_width_compensation_percent);")
     lines.append("            apply_text_width_compensation(id(display_time));")
-    lines.append("            apply_text_width_compensation(id(temperatures));")
+    lines.append("            apply_text_width_compensation(id(clock_bar_subpage_title));")
     lines.append("            apply_text_width_compensation(id(clock_label));")
     return lines
 
@@ -797,7 +737,7 @@ def replace_sensor_blocks(text: str, device: dict) -> str:
         text,
     )
     text = re.sub(
-        r"(?m)^(              temperature_labels,\n)              6,",
+        r"(?m)^(              title_labels,\n)              6,",
         r"\1              1,",
         text,
     )

@@ -16,7 +16,7 @@ The **Brightness Mode** setting gives you three clear choices:
 - **Sunrise and sunset** — uses your **Daytime Brightness** and **Nighttime Brightness**, changing at locally calculated sunrise and sunset.
 - **Fixed times** — uses the same day and night levels, changing at the **Dawn** and **Dusk** times you choose.
 
-Sunrise and sunset are calculated on-device from your selected timezone using a NOAA solar algorithm. The transition is checked every 60 seconds and recalculated at midnight. No internet connection or Home Assistant is required.
+Sunrise and sunset are calculated on-device from your selected timezone using a NOAA solar algorithm. The transition is checked every 60 seconds and recalculated at midnight. The calculation runs locally after time has synced.
 
 ## Settings
 
@@ -32,17 +32,9 @@ Sunrise and sunset times are derived from the timezone set in [Time Settings](/f
 
 ## On-device brightness card
 
-Open Settings on the display and slide up or down on the 1×1 **Backlight** card, just like a light brightness card. The coloured fill shows the selected level without a percentage label; release to save it. The minimum is 10%, so this control cannot turn off the backlight.
+Open Settings on the display and slide up or down on the 1×1 **Backlight** card. The coloured fill shows the selected level without a percentage label; release to save it. The minimum is 10%, so this control cannot turn off the backlight.
 
 In Manual mode it adjusts the normal brightness. In automatic modes it adjusts the current Daytime or Nighttime level without changing the schedule.
-
-## Home Assistant Control
-
-The panel exposes **Screen: Brightness Mode** and **Display Backlight** to Home Assistant, along with the day, night, dawn, and dusk settings. Selecting the mode in Home Assistant behaves the same as selecting it in Setup.
-
-Changing the brightness of **Display Backlight** automatically selects **Manual** mode. Turning the backlight on or off does not change the selected mode, so existing sleep and wake automations continue to work.
-
-For example, select **Fixed times**, then set Dawn to `07:00` and Dusk to `22:00` to keep the panel at daytime brightness for that daily window. Select **Sunrise and sunset** to return to locally calculated times.
 
 ## Screensaver
 

@@ -115,7 +115,8 @@ int main() {
       CHECK(light.transition_length == 0);
     }
   }
-  for (const auto destination : {DisplayMode::ACTIVE, DisplayMode::COVER_ART}) {
+  {
+    const auto destination = DisplayMode::ACTIVE;
     // Interrupt an automatic screen-off fade.
     {
       Fixture fixture;
@@ -129,11 +130,7 @@ int main() {
       light.physical_level = fade.level(1200);
       CHECK(light.physical_level < light.stored_level);
 
-      if (destination == DisplayMode::ACTIVE) {
-        CHECK(controller.begin_takeover(DisplayTakeoverKind::CRITICAL));
-      } else {
-        CHECK(controller.request(DisplayRequestSource::MEDIA_PLAYBACK, destination));
-      }
+      CHECK(controller.begin_takeover(DisplayTakeoverKind::CRITICAL));
       CHECK(controller.cancel_transition());
       const auto recovery = controller.resolve();
       CHECK(recovery.target_mode == destination);

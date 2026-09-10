@@ -24,10 +24,10 @@ final class ConnectionEndpointPolicyTests: XCTestCase {
         XCTAssertEqual(
             CompanionStore.panelWebServerURL(
                 from: "192.168.1.20",
-                tab: "connectors",
+                tab: "settings",
                 connector: "mac_companion"
             )?.absoluteString,
-            "http://192.168.1.20?tab=connectors&connector=mac_companion"
+            "http://192.168.1.20?tab=settings&connector=mac_companion"
         )
     }
 }
