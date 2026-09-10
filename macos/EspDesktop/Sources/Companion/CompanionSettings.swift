@@ -847,9 +847,12 @@ struct CompanionSettings: View {
         Form {
             Section {
                 Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
+                    .font(.title2)
                     .help("Contribute to ongoing support and new features")
                 Link("Give Feedback", destination: CompanionStore.issuesURL)
+                    .font(.title2)
                 Link("Get Help", destination: CompanionStore.supportURL)
+                    .font(.title2)
             } header: {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Help EspDesktop grow")
