@@ -65,3 +65,9 @@ The updater uses an HTTPS feed published alongside each stable GitHub release. A
 Release setup: store the private Ed25519 seed in the repository secret `SPARKLE_PRIVATE_KEY`; the matching public key is in `Packaging/sparkle-public-key.txt`. Keep a backup of the private key in Keychain. The release workflow requires this secret in addition to the existing Apple signing/notarization credentials, generates and verifies a signed appcast with Sparkle's tools, and publishes it with the notarized ZIP and DMG. Never commit the private key. Do not replace the public key after shipping without following Sparkle's key-rotation procedure. Use increasing release build numbers; Sparkle compares `CFBundleVersion`.
 
 Ad-hoc local app builds embed Sparkle and disable library validation only for that local signature. Developer ID release builds retain library validation and sign Sparkle's nested helper components with the same signing identity as the app.
+
+### Keyboard shortcut permission
+
+Use **Open System Settings** beside Keyboard shortcuts, then enable **EspDesktop** under Privacy & Security → Accessibility. Return to EspDesktop to refresh the status. macOS owns this permission; the app cannot grant it itself.
+
+For local test builds, launch the copy installed in `/Applications/EspDesktop.app`. Ad-hoc signatures change when the app is rebuilt; if an existing Accessibility entry no longer works, remove that EspDesktop entry and add the installed copy again. Release builds should use the same Developer ID signing identity across updates.

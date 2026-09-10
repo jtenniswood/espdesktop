@@ -1,3 +1,4 @@
+import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
@@ -6,6 +7,10 @@ import Foundation
 final class CompanionAccessibilityAuthorizer {
     static let shared = CompanionAccessibilityAuthorizer(
         isProcessTrusted: AXIsProcessTrusted,
+        openSettings: {
+            guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
+            NSWorkspace.shared.open(url)
+        },
         requestPrompt: {
             let prompt = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
             _ = AXIsProcessTrustedWithOptions(prompt)
@@ -14,15 +19,23 @@ final class CompanionAccessibilityAuthorizer {
 
     private let isProcessTrusted: () -> Bool
     private let requestPrompt: () -> Void
+    private let openSettings: () -> Void
     private var didRequestPrompt = false
 
-    init(isProcessTrusted: @escaping () -> Bool, requestPrompt: @escaping () -> Void) {
+    init(isProcessTrusted: @escaping () -> Bool, openSettings: @escaping () -> Void = {}, requestPrompt: @escaping () -> Void) {
         self.isProcessTrusted = isProcessTrusted
         self.requestPrompt = requestPrompt
+        self.openSettings = openSettings
     }
 
     /// Read permission status without prompting merely because settings opened.
     var hasAccess: Bool { isProcessTrusted() }
+
+    /// Explicit user requests always reach Settings, even after the first prompt.
+    func requestAccess() {
+        _ = isTrusted()
+        openSettings()
+    }
 
     func isTrusted() -> Bool {
         guard !isProcessTrusted() else { return true }

@@ -111,6 +111,28 @@ private struct CompanionPermissionRow: View {
     }
 }
 
+private struct CompanionAccessibilityRow: View {
+    let isGranted: Bool
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Keyboard shortcuts")
+                Text(isGranted ? "Accessibility access is enabled." : "Enable EspDesktop in System Settings → Privacy & Security → Accessibility.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Open System Settings") {
+                // Leave the SwiftUI control transaction before opening another app.
+                DispatchQueue.main.async {
+                    CompanionAccessibilityAuthorizer.shared.requestAccess()
+                }
+            }
+        }
+    }
+}
+
 private struct OnboardingWindowTitle: NSViewRepresentable {
     let hidden: Bool
 
@@ -121,11 +143,18 @@ private struct OnboardingWindowTitle: NSViewRepresentable {
 
     final class TitleView: NSView {
         var hideTitle = false {
-            didSet { window?.titleVisibility = hideTitle ? .hidden : .visible }
+            didSet { updateTitle() }
         }
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
-            window?.titleVisibility = hideTitle ? .hidden : .visible
+            updateTitle()
+        }
+        private func updateTitle() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self, let window = self.window else { return }
+                let visibility: NSWindow.TitleVisibility = self.hideTitle ? .hidden : .visible
+                if window.titleVisibility != visibility { window.titleVisibility = visibility }
+            }
         }
     }
 }
@@ -146,14 +175,7 @@ private struct CompanionOnboarding: View {
 
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
-                        CompanionPermissionRow(
-                            title: "Keyboard shortcuts",
-                            information: "Allow Accessibility access in System Settings to use keyboard shortcuts and window controls.",
-                            isEnabled: Binding(
-                                get: { accessibilityGranted },
-                                set: { _ in enableAccessibility() }
-                            )
-                        )
+                        CompanionAccessibilityRow(isGranted: accessibilityGranted)
                         Divider()
                         CompanionPermissionRow(
                             title: "Share Mac stats",
@@ -198,9 +220,6 @@ private struct CompanionOnboarding: View {
         accessibilityGranted = CompanionAccessibilityAuthorizer.shared.hasAccess
     }
 
-    private func enableAccessibility() {
-        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
-    }
 }
 
 struct CompanionSettings: View {
@@ -817,13 +836,7 @@ struct CompanionSettings: View {
                 isEnabled: store.launchAtLoginBinding(),
                 isAvailable: store.supportsLaunchAtLogin
             )
-            CompanionPermissionRow(
-                title: "Enable Keyboard Shortcuts",
-                information: accessibilityGranted
-                    ? "Accessibility access is enabled."
-                    : "Requires Accessibility access in System Settings.",
-                isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
-            )
+            CompanionAccessibilityRow(isGranted: accessibilityGranted)
             CompanionPermissionRow(
                 title: "Share Stats to Device",
                 information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
@@ -903,9 +916,6 @@ struct CompanionSettings: View {
         accessibilityGranted = CompanionAccessibilityAuthorizer.shared.hasAccess
     }
 
-    private func enableAccessibility() {
-        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
-    }
 }
 
 /// Installs real selectable toolbar items in the hosting window. AppKit owns
@@ -925,7 +935,7 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
 
     func updateNSView(_ nsView: WindowObserver, context: Context) {
         context.coordinator.selection = $selection
-        context.coordinator.toolbar.selectedItemIdentifier = .init(selection.rawValue)
+        context.coordinator.updateSelection()
     }
 
     static func dismantleNSView(_ nsView: WindowObserver, coordinator: Coordinator) {
@@ -938,7 +948,10 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
-            onWindowChange?(window)
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.onWindowChange?(self.window)
+            }
         }
     }
 
@@ -958,7 +971,18 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
         }
 
+        func updateSelection() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                let identifier = NSToolbarItem.Identifier(self.selection.wrappedValue.rawValue)
+                if self.toolbar.selectedItemIdentifier != identifier {
+                    self.toolbar.selectedItemIdentifier = identifier
+                }
+            }
+        }
+
         func attach(to window: NSWindow?) {
+            guard self.window !== window else { return }
             if let previous = self.window, previous !== window, previous.toolbar === toolbar {
                 previous.toolbar = nil
             }
