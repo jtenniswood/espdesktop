@@ -395,7 +395,7 @@ struct CompanionSettings: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
                     }
-                    permissionsSection
+                    accessibilityAndStartupSections
                 }
                 .formStyle(.grouped)
             } else {
@@ -818,8 +818,12 @@ struct CompanionSettings: View {
         .padding(.vertical, 24)
     }
 
-    private var permissionsSection: some View {
-        Section("Permissions") {
+    @ViewBuilder
+    private var accessibilityAndStartupSections: some View {
+        Section("Accessibility") {
+            CompanionAccessibilityRow(isGranted: accessibilityGranted)
+        }
+        Section("Startup") {
             CompanionPermissionRow(
                 title: "Open Companion at Launch",
                 information: store.supportsLaunchAtLogin
@@ -830,8 +834,6 @@ struct CompanionSettings: View {
                 isEnabled: store.launchAtLoginBinding(),
                 isAvailable: store.supportsLaunchAtLogin
             )
-            CompanionAccessibilityRow(isGranted: accessibilityGranted)
-
         }
     }
 

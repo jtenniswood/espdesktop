@@ -68,9 +68,9 @@ Then add the controls you want:
 - [Mac Cards and Capabilities](/card-types/companion) covers app subpages, custom shortcuts, folders, websites, window controls, media, artwork, volume, and statistics.
 - [Setup](/features/setup) explains card placement, sizes, colours, subpages, and backups.
 
-## Display Permissions
+## Accessibility and Startup
 
-The **Permissions** section sits below the connection panel in the **Display** tab:
+The **Accessibility** and **Startup** groups sit below the connection panel in the **Display** tab:
 
 - **Open EspDesktop at Login** keeps the local connector available after you sign in.
 - **Keyboard & Window Controls** opens the macOS Accessibility setting and shows whether permission is available.
