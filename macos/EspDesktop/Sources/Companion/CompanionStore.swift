@@ -618,7 +618,6 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func performResultStatus(actionIdentifier: String) async -> String {
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
-            && !mediaController.supports(actionIdentifier: actionIdentifier)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
         let performed = await perform(actionIdentifier: actionIdentifier)
@@ -648,9 +647,7 @@ final class CompanionStore: NSObject, ObservableObject {
         if actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix) {
             return openFolder(actionIdentifier: actionIdentifier)
         }
-        if mediaController.supports(actionIdentifier: actionIdentifier) {
-            return mediaController.perform(actionIdentifier: actionIdentifier)
-        }
+
         guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) ||
               actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) else {
             return await launch(bundleIdentifier: actionIdentifier)
@@ -701,8 +698,6 @@ final class CompanionStore: NSObject, ObservableObject {
         lastMediaControlValues = values
         connection.publishMediaControlValues(values, unavailable: unavailable)
     }
-
-    var mediaActionsAvailable: Bool { mediaController.actionsAvailable }
 
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool {
         guard encodedURL.utf8.count <= 128,

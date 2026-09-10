@@ -1383,6 +1383,9 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  // Retired Mac playback cards become empty slots, including inside subpages.
+  if (p.type == "companion" && (p.entity == "media.play_pause" ||
+      p.entity == "media.previous" || p.entity == "media.next")) return ParsedCfg{};
   migrate_saved_config_action_legacy(p);
   const bool was_legacy_text_sensor = p.type == "text_sensor";
   migrate_saved_config_sensor_legacy(p);

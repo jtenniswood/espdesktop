@@ -475,9 +475,21 @@
             "items": {
               "type": "object",
               "fields": {
-                "id": { "type": "string", "minLength": 1, "maxLength": 64 },
-                "label": { "type": "string", "minLength": 1, "maxLength": 96 },
-                "usagePercent": { "type": "number", "minimum": 0, "maximum": 100 }
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "usagePercent": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                }
               }
             }
           },
@@ -679,12 +691,6 @@
       "label": "Open folder",
       "capability": "folders",
       "defaultIcon": "Folder Outline"
-    },
-    {
-      "id": "media",
-      "label": "Media control",
-      "capability": "media_actions",
-      "defaultIcon": "Play Pause"
     },
     {
       "id": "stats",
@@ -917,26 +923,6 @@
         "shift"
       ],
       "minimumMacOS": 15
-    }
-  ],
-  "mediaActions": [
-    {
-      "id": "media.play_pause",
-      "label": "Play / Pause",
-      "icon": "Play Pause",
-      "command": "togglePlayPause"
-    },
-    {
-      "id": "media.previous",
-      "label": "Previous",
-      "icon": "Skip Previous",
-      "command": "previousTrack"
-    },
-    {
-      "id": "media.next",
-      "label": "Next",
-      "icon": "Skip Next",
-      "command": "nextTrack"
     }
   ],
   "systemMetrics": [

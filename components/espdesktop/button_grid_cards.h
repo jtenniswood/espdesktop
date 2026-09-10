@@ -173,21 +173,14 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     return;
   }
   const bool url_card = !companion_encoded_url(p.sensor).empty();
-  const bool media_play_pause = p.entity == COMPANION_MEDIA_PLAY_PAUSE_ACTION;
   const bool available = url_card
     ? companion_url_available(p.entity, p.sensor)
     : companion_action_available(p.entity);
-  const auto companion_snapshot = companion_runtime_snapshot();
-  std::string label = media_play_pause
-    ? espdesktop_i18n(std::string(companion_play_pause_status(
-        companion_snapshot.now_playing.playback_state, available)))
-    : p.label.empty()
-    ? companion_default_action_label(p.entity, p.sensor)
-    : p.label;
+  std::string label = p.label.empty()
+    ? companion_default_action_label(p.entity, p.sensor) : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon = (p.icon.empty() || p.icon == "Auto" ||
-                      (media_play_pause && p.icon == "Monitor"))
-    ? find_icon(media_play_pause ? "Play Pause" : "Monitor") : find_icon(p.icon.c_str());
+  const char *icon = (p.icon.empty() || p.icon == "Auto")
+    ? find_icon("Monitor") : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl);
   if (available) {
