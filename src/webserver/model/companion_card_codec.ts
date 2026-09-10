@@ -3,7 +3,8 @@ import type { CardConfig } from "../contracts/types";
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 
 export function companionMetricForEntity(entity: unknown) {
-  return COMPANION_SYSTEM_METRICS.find((metric) => metric.id === entity || metric.freeId === entity);
+  const baseEntity = typeof entity === "string" ? entity.split(":", 1)[0] : entity;
+  return COMPANION_SYSTEM_METRICS.find((metric) => metric.id === baseEntity || metric.freeId === baseEntity);
 }
 
 export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCardModeId {

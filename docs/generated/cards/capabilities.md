@@ -11,7 +11,7 @@ This generated reference lists stable setup facts from the shared card contract.
 |---|---|---|---|---|---|---|
 | Date & Time | calendar | None | Yes | Own picker item | Type: clock, datetime, default, timezone; Large Clock | Visible |
 | Date & Time | clock | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
-| Companion | companion | None | Yes | Own picker item | App Subpage; Auto switch to subpage; Large Sensor Numbers | Visible |
+| Companion | companion | None | Yes | Own picker item | App Subpage; Auto switch to subpage; Large Sensor Numbers; Show capacity label | Visible |
 | Screen Lock | screen_lock | None | Yes | Own picker item | None | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
 | Subpage | subpage | None | No | Own picker item | Subpage Type: default, companion_stat; Large State Numbers | Visible |

@@ -337,7 +337,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             ["disabled", "Disabled"],
             ["timer", "Timer"],
             ["sensor", "Home Assistant"],
-            ["companion", "Companion App"],
+            ["companion", "App Connection"],
         ], ssMode, function (this: any, mode?: any) {
             setSsMode(mode);
             state.screensaverMode = mode;
@@ -414,11 +414,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setSensorClockBrightnessNightVal = sensorClockControls.clockBrightnessNightVal;
         els.setSensorClockBrightnessField = sensorClockControls.brightnessField;
         var companionPanel: any = document.createElement("div");
-        var companionNote: any = document.createElement("p");
-        companionNote.className = "sp-setting-note";
-        companionNote.textContent = "Keep the display visible while EspDesktop is connected and the screen is unlocked. Start the screensaver when the Mac app disconnects or the screen is locked.";
-        companionPanel.appendChild(companionNote);
-        var companionClockControls: any = createScreensaverThenControls("sp-set-companion-clock-mode");
+        var companionClockControls: any = createScreensaverThenControls("sp-set-companion-clock-mode", "When disconnected");
         companionPanel.appendChild(companionClockControls.clockField);
         companionPanel.appendChild(companionClockControls.dimBrightnessField);
         companionPanel.appendChild(companionClockControls.brightnessField);

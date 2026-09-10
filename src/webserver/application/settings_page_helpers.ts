@@ -499,7 +499,7 @@ export function createSettingsPageHelpersFeature(
         if (previousField)
             previousField.style.marginBottom = display === "none" ? "20px" : "";
     }
-    function createScreensaverThenControls(this: any, selectId?: any) {
+    function createScreensaverThenControls(this: any, selectId?: any, actionLabel: string = "Then") {
         var fieldPrefix: any = selectId === "sp-set-sensor-clock-mode"
             ? "sp-set-sensor-"
             : selectId === "sp-set-companion-clock-mode"
@@ -507,7 +507,7 @@ export function createSettingsPageHelpersFeature(
                 : "sp-set-";
         var clockField: any = document.createElement("div");
         clockField.className = "sp-field";
-        clockField.appendChild(fieldLabel("Then", selectId));
+        clockField.appendChild(fieldLabel(actionLabel, selectId));
         var clockSelect: any = document.createElement("select");
         clockSelect.className = "sp-select";
         clockSelect.id = selectId;

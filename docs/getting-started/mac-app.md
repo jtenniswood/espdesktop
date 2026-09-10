@@ -92,3 +92,5 @@ For an unreleased test build, open [`macos/EspDesktop/Package.swift`](https://gi
 Keep the display firmware and Mac app on matching branches when testing Companion changes. A normal release app may connect but will not necessarily understand cards added by a newer firmware branch.
 
 See [Companion Compatibility](/generated/companion-compatibility) for the current protocol details.
+
+Mac statistics cards show an icon above the reading. Memory and storage labels include **used** or **free**, battery shows the percentage **remaining**, and network shows throughput in **MB/s**. The same layout is used for statistics on subpage cards.

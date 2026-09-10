@@ -83,9 +83,12 @@ Add **Companion → Stats** cards. The Mac app shares statistics automatically w
 | **Memory** | Used or free memory as a percentage |
 | **Storage** | Used or free storage as a percentage |
 | **Network** | Current combined network throughput in MB/s |
-| **Battery** | Battery charge percentage; unavailable on Macs without a battery |
+| **Battery** | Battery charge percentage, shown as left or used; unavailable on Macs without a battery |
+| **IP address** | Laptop icon and the IPv4 address of the selected Mac network device |
 
-These cards support label, unit, precision and large-number display choices. Their readings are shared automatically by the paired Mac while connected.
+For **IP address**, choose a **Network device**, such as Wi-Fi or Ethernet. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
+
+Statistics show a metric icon above the live reading. Numeric labels include used or free as appropriate, and battery shows left, with configurable units and decimal precision. Numeric cards include a **Show capacity label** toggle, enabled by default, to control whether the used, free, or left word appears after the value. Statistics are shared automatically by the paired Mac while connected.
 
 You can also choose **Subpage → Companion Stat** to put one of these readings on a home-screen tile that opens a page of related Mac controls.
 

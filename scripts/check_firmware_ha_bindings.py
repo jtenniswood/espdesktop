@@ -1263,7 +1263,7 @@ def firmware_media_sleep_prevention_errors(
         sleep_body = yaml_script_body(text, "screensaver_sleep_timer")
         if sleep_body is not None:
             if "id(cover_art_media_playing)" in sleep_body and not re.search(
-                r"id\(cover_art_last_playback_state\)[\s\S]{0,240}"
+                r"id\(cover_art_last_playback_state\)[\s\S]{0,360}"
                 r'state != "playing"[\s\S]{0,120}'
                 r'state != "buffering"[\s\S]{0,120}'
                 r'state != "paused"[\s\S]{0,240}'

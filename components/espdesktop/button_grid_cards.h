@@ -73,11 +73,10 @@ inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
 inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                  uint32_t sensor_color = TERTIARY_GREY) {
   if (companion_metric_key_valid(p.entity)) {
-    const std::string label = p.label.empty()
-      ? espdesktop_i18n_key(companion_metric_label_key(p.entity)) : p.label;
-    lv_label_set_display_text(s.text_lbl, label.c_str());
-    lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_display_text(s.icon_lbl, find_icon(companion_metric_icon(p.entity)));
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_display_text(s.text_lbl, "--");
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_bg_color(
       s.btn, lv_color_hex(sensor_color),
@@ -87,24 +86,27 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     const std::string unit = trim_display_unit(
       p.unit.empty() ? companion_metric_default_unit(p.entity) : p.unit);
     lv_label_set_display_text(s.unit_lbl, "");
-    companion_track_metric_card(s.btn, s.sensor_lbl, s.unit_lbl, p.entity, unit,
-                                parse_precision(p.precision));
+    companion_track_metric_card(s.btn, s.text_lbl, nullptr, p.entity, unit,
+                                parse_precision(p.precision), false,
+                                !cfg_option_token_present(p.options, "stat_labels_off"));
     return;
   }
   const bool url_card = !companion_encoded_url(p.sensor).empty();
   const bool available = url_card
     ? companion_url_available(p.entity, p.sensor)
     : companion_action_available(p.entity);
-  const std::string label = p.label.empty() ? companion_default_action_label(p.entity, p.sensor) : p.label;
+  std::string label = p.label.empty()
+    ? companion_default_action_label(p.entity, p.sensor) : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon = find_icon(p.icon.empty() || p.icon == "Auto" ? "Monitor" : p.icon.c_str());
+  const char *icon = (p.icon.empty() || p.icon == "Auto")
+    ? find_icon("Monitor") : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl);
   if (available) {
-    lv_obj_clear_state(s.btn, LV_STATE_DISABLED);
+    set_card_disabled_state(s.btn, false);
     apply_push_button_transition(s.btn);
   } else {
-    lv_obj_add_state(s.btn, LV_STATE_DISABLED);
+    set_card_disabled_state(s.btn, true);
     clear_push_button_transition(s.btn);
   }
   companion_apply_card_focus(s.btn, p.entity, p.sensor);

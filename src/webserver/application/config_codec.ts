@@ -1,3 +1,5 @@
+import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+import { companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "../model/config_primitives";
@@ -20,7 +22,6 @@ import {
     cardContractSubpageTypeCode,
     cardContractSubpageTypeFromCode,
 } from "../generated/card_contract";
-import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
 import type { CardRegistry } from "./card_registry";
 import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
@@ -150,6 +151,8 @@ export function createConfigCodecFeature(
     function normalizeButtonConfig(this: any, value?: any) {
         const b = value || EspDesktopModel.emptyCardConfig();
         if (!b.type) return EspDesktopModel.emptyCardConfig();
+        if (b.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity))
+            return EspDesktopModel.emptyCardConfig();
         if (!cardRegistry.definitions[b.type]) return EspDesktopModel.emptyCardConfig();
         b.options = b.options || "";
         b.icon_on = "Auto";

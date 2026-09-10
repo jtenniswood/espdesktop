@@ -24,7 +24,8 @@ export function companionCardModeValid(mode: unknown): mode is CompanionCardMode
 }
 
 export function companionCardModeOptions(): ReadonlyArray<readonly [CompanionCardModeId, string]> {
-  return COMPANION_CARD_MODES.map((mode) => [mode.id, mode.label] as const);
+  return COMPANION_CARD_MODES
+    .map((mode) => [mode.id, mode.label] as const);
 }
 
 export function companionCardDefaultIcon(mode: CompanionCardModeId): string {

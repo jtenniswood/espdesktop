@@ -179,6 +179,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         (dragAnimation ? ".sp-btn.sp-dragging{opacity:.4;transform:scale(.95)}" +
             ".sp-empty-cell.sp-drop-placeholder{border-color:rgba(92,156,245,.5)}" : "") +
         ".sp-hint{text-align:center;font-size:.7rem;color:var(--text3);padding:8px 0 12px;user-select:none}" +
+        ".sp-storage-hint{text-align:left}" +
         ".sp-selection-bar{display:none;align-items:center;justify-content:space-between;gap:12px;" +
         "width:100%;max-width:960px;margin:0 auto;box-sizing:border-box;overflow:hidden;" +
         "padding:14px var(--gap);background:var(--surface);" +
@@ -307,6 +308,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-panel{background:var(--surface);border-radius:var(--radius);padding:24px;" +
         "margin-bottom:var(--gap);border:1px solid var(--border)}" +
         ".sp-field{margin-bottom:28px}.sp-field:last-child{margin-bottom:0}" +
+        ".sp-metric-capacity-field{margin-bottom:8px}" +
         ".sp-field.sp-icon-on-field:last-child{margin-bottom:44px}" +
         ".sp-state-translation-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 14px;margin-bottom:28px}" +
         ".sp-state-translation-grid .sp-field{margin-bottom:0}" +

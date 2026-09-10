@@ -50,6 +50,11 @@ def generate() -> str:
         "",
         "int main() {",
     ]
+    for action in ("media.play_pause", "media.previous", "media.next"):
+        encoded = action + ";Old playback;Play Pause;;;;companion;;"
+        lines.append(f'  assert(parse_cfg({cpp_string(encoded)}).entity.empty());')
+        lines.append(f'  assert(parse_cfg({cpp_string(encoded)}).type.empty());')
+        lines.append(f'  assert(parse_cfg({cpp_string(encoded)}).label.empty());')
     for group, fixtures in fixture_groups():
         lines.append(f"  // {group}")
         for fixture in fixtures:

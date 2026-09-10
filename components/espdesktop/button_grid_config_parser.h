@@ -218,6 +218,10 @@ inline std::string date_time_card_options_normalized(const std::string &options,
   return "";
 }
 
+inline std::string companion_metric_options_normalized(const std::string &options) {
+  return cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
+}
+
 inline std::string normalize_webhook_method(const std::string &value) {
   std::string method;
   method.reserve(value.size());
@@ -309,11 +313,27 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (!card_runtime_context(p).known) return {};
+  if (p.type == "companion" && (p.entity == "media.play_pause" ||
+      p.entity == "media.previous" || p.entity == "media.next")) return {};
   if (p.icon.empty()) p.icon = card_runtime_default_icon_name(p.type);
   p.icon_on = "Auto";
   if (p.type == "companion") {
-    p.options = companion_system_metric_config(p)
-      ? date_time_card_options_normalized(p.options, p) : companion_card_options_normalized(p);
+    if (companion_system_metric_config(p)) {
+      p.sensor.clear();
+      if (p.entity.rfind("stat.ip_address", 0) == 0) p.unit.clear();
+      else if (p.unit.empty()) {
+        if (p.entity == "stat.network_throughput") p.unit = "MB/s";
+        else p.unit = "%";
+      } else if (p.entity == "stat.network_throughput" && p.unit == "KB/s") {
+        p.unit = "MB/s";
+      }
+      if (p.precision != "0" && p.precision != "1" && p.precision != "2") p.precision = "0";
+      p.options = companion_metric_options_normalized(p.options);
+    } else {
+      p.unit.clear();
+      p.precision.clear();
+      p.options = companion_card_options_normalized(p);
+    }
   } else if (p.type == "webhook") {
     p.sensor = normalize_webhook_method(p.sensor);
     p.options = webhook_card_options_normalized(p.options);

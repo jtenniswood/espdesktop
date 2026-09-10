@@ -12,7 +12,10 @@ import {
   COMPANION_STATS_OPTIONS,
   companionLabelPlaceholder,
   companionMetricDisplayMode,
+  companionMetricDescriptionEnabled,
+  companionMetricDisplayLabel,
   companionMetricPreviewValue,
+  companionGeneratedIcon,
   companionShortcutActionId,
   companionSubtypeDefaultIcon,
   companionSubtypeIcon,
@@ -77,16 +80,21 @@ function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
 
 export function runCompanionShortcutFeatureTests(): void {
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
+  if (companionModes.length !== 6 || new Set(companionModes.map(([mode]) => mode)).size !== 6 ||
       !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
+  const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
+  normalizeCompanionCard(storageCard);
+  if (decodeCompanionCard(storageCard).mode !== "stats" || companionMetricDisplayMode(storageCard) !== "free" ||
+      storageCard.entity !== "stat.storage_free:external-volume") throw new Error("Selected storage device must survive normalization");
+
   const typedCard = decodeCompanionCard(emptyCardConfig("companion"), "app");
   if (typedCard.mode !== "app" || typedCard.applicationId !== "") {
     throw new Error("Companion cards must have a typed in-memory model without changing saved config");
   }
-  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free"]) {
+  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free", "stat.storage:external-volume", "stat.storage_free:external-volume"]) {
     const saved = { ...emptyCardConfig("companion"), entity, label: "Keep", options: "future_option=keep", precision: "2", unit: "%" };
     if (JSON.stringify(encodeCompanionCard(decodeCompanionCard(saved), saved)) !== JSON.stringify(saved)) {
       throw new Error("Companion variants must round-trip offline cards and unknown options");
@@ -343,6 +351,12 @@ export function runCompanionShortcutFeatureTests(): void {
       slackSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
     throw new Error("Slack app subpage layout changed");
   }
+  const ipCard: any = { type: "companion", entity: "stat.ip_address:en1", icon: "Auto" };
+  normalizeCompanionCard(ipCard);
+  if (ipCard.entity !== "stat.ip_address:en1" || ipCard.icon !== "Laptop" ||
+      decodeCompanionCard(ipCard).mode !== "stats") {
+    throw new Error("Mac IP cards must preserve their selected network device and use a laptop icon");
+  }
   if (!companionCardIsMetric({ entity: "stat.memory" }) ||
       !companionCardIsMetric({ entity: "stat.memory_free" }) ||
       companionCardIsMetric({ entity: "sensor.memory_use" })) {
@@ -353,6 +367,14 @@ export function runCompanionShortcutFeatureTests(): void {
       companionMetricDisplayMode({ entity: "stat.storage_free" }) !== "free") {
     throw new Error("Memory and storage statistics must retain their Used or Free display choice");
   }
+  if (!companionMetricDescriptionEnabled({ entity: "stat.memory" }) ||
+      companionMetricDescriptionEnabled({ entity: "stat.memory", options: "stat_labels_off" }) ||
+      companionMetricDisplayLabel({ entity: "stat.memory", options: "stat_labels_off" }, "24", "%") !== "24%" ||
+      companionMetricDisplayLabel({ entity: "stat.memory" }, "24", "%") !== "24% used" ||
+      companionMetricDisplayMode({ entity: "stat.battery_used" }) !== "free" ||
+      companionMetricDisplayLabel({ entity: "stat.battery_used" }, "31", "%") !== "31% used") {
+    throw new Error("Companion statistic description toggle must control the used/free wording");
+  }
   if (companionLabelPlaceholder({ entity: "stat.network_throughput" }) !== "e.g. Network") {
     throw new Error("Network throughput must use Network as its default label");
   }
@@ -361,6 +383,7 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   if (JSON.stringify(COMPANION_STATS_OPTIONS) !== JSON.stringify([
     ["battery", "Battery"],
+    ["ip_address", "IP address"],
     ["memory_usage", "Memory"],
     ["network_throughput", "Network"],
     ["processor", "Processor"],
@@ -437,6 +460,7 @@ export function runCompanionShortcutFeatureTests(): void {
     { id: "com.apple.finder", label: "Finder" },
     { id: folderAction, label: "Projects" },
     { id: "folder.00000000-0000-0000-0000-000000000002", label: "Archive" },
+    { id: "media.play_pause", label: "Media Play/Pause" },
   ];
   if (companionApplicationActions(catalogue).map((action) => action.id).join() !== "com.google.Chrome,com.apple.Safari") {
     throw new Error("Finder and approved folders must not appear in the alphabetized application list");
@@ -458,13 +482,19 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionAppLabel("Work browser", "Safari", "Google Chrome") !== "Work browser") {
     throw new Error("Changing a Companion app must preserve a custom card label");
   }
+  if (companionGeneratedIcon("Play Pause", "Play Pause", "Skip Next") !== "Skip Next") {
+    throw new Error("Changing media actions must refresh a generated icon");
+  }
+  if (companionGeneratedIcon("Music", "Play Pause", "Skip Next") !== "Music") {
+    throw new Error("Changing media actions must preserve a custom icon");
+  }
   const metricCard = {
     entity: "stat.cpu", label: "Processor", icon: "Monitor", sensor: "ignored",
-    unit: "", precision: "", options: "large_numbers,active_color", icon_on: "Auto",
+    unit: "", precision: "", options: "large_numbers,active_color,stat_labels_off", icon_on: "Auto",
   };
   normalizeCompanionCard(metricCard);
   if (metricCard.sensor !== "" || metricCard.unit !== "%" || metricCard.precision !== "0" ||
-      metricCard.options !== "large_numbers") {
+      metricCard.options !== "large_numbers,stat_labels_off") {
     throw new Error("Companion statistics must normalize their own sensor-style fields");
   }
   resetCompanionMetricPresentation(metricCard, "app");
@@ -555,4 +585,5 @@ export function runCompanionShortcutFeatureTests(): void {
   const statsCard = { entity: "stat.cpu", sensor: "", icon: "Monitor" };
   normalizeCompanionCard(statsCard);
   if (statsCard.icon !== "Gauge") throw new Error("Existing stats cards must adopt the Gauge default icon");
+
 }
