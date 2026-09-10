@@ -24,7 +24,7 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 | **Open URL** | Opens an `http://` or `https://` address in an approved app | Choose an approved browser or other app |
 | **Open folder** | Opens an approved Finder folder | Add the folder in the Mac app's **Folders** page |
 | **Media control** | Plays, pauses, or skips the current macOS Now Playing session | The media app must publish a usable Now Playing session |
-| **Stats** | Shows live Mac processor, memory, storage, network, or battery information | Turn on **Share Mac system statistics** |
+| **Stats** | Shows live Mac processor, memory, storage, network, or battery information | Shared automatically while connected |
 | **Window control** | Controls or arranges the active Mac window | Allow Accessibility access; tiling needs macOS 15+ |
 
 Action cards are disabled when the Mac is offline or the selected application, folder, command, or URL is unavailable. Statistic cards show `--` until a reading is available.
@@ -104,7 +104,7 @@ The slider follows volume changes made on the Mac. It is disabled when the Compa
 
 ## Mac Statistics
 
-Turn on **Share Mac system statistics** in the Mac app's **Permissions** page, then add **Companion → Stats** cards.
+Add **Companion → Stats** cards. The Mac app shares statistics automatically while connected to the paired display.
 
 | Statistic | What is shown |
 |---|---|
@@ -112,9 +112,12 @@ Turn on **Share Mac system statistics** in the Mac app's **Permissions** page, t
 | **Memory** | Used or free memory as a percentage |
 | **Storage** | Used or free storage as a percentage |
 | **Network** | Current combined network throughput in MB/s |
-| **Battery** | Battery charge percentage; unavailable on Macs without a battery |
+| **Battery** | Battery charge percentage, shown as left or used; unavailable on Macs without a battery |
+| **IP address** | Laptop icon and the IPv4 address of the selected Mac network device |
 
-These cards support the same label, unit, precision, and large-number display choices as numeric Sensor cards, but their values come directly from the paired Mac. Statistics are not shared until you turn the option on.
+For **IP address**, choose a **Network device**, such as Wi-Fi or Ethernet. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
+
+Statistics show a metric icon above the live reading. Numeric labels include used or free as appropriate, and battery shows left, with configurable units and decimal precision. Numeric cards include a **Show capacity label** toggle, enabled by default, to control whether the used, free, or left word appears after the value. Statistics are shared only when enabled in the Mac app.
 
 You can also choose **Subpage → Companion Stat** to put one of these readings on a home-screen tile that opens a page of related Mac controls.
 
@@ -125,7 +128,7 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 | Launching an app | The app must be selected in EspDesktop's **Applications** page |
 | Opening a folder | The folder must be added in EspDesktop's **Folders** page |
 | Keyboard and window controls | EspDesktop must be enabled in **System Settings → Privacy & Security → Accessibility** |
-| Mac statistics | **Share Mac system statistics** must be on in EspDesktop's **Permissions** page |
+| Mac statistics | Shared automatically while connected to the paired display |
 | Media and artwork | The playing application must publish a usable macOS Now Playing session |
 | Output or input volume | The selected audio device must expose software volume control |
 

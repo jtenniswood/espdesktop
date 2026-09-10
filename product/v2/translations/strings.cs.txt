@@ -299,3 +299,5 @@ window_left_quarters=Vlevo a čtvrtiny
 window_right_quarters=Vpravo a čtvrtiny
 window_top_quarters=Nahoře a čtvrtiny
 window_bottom_quarters=Dole a čtvrtiny
+paired=Spárováno
+unpaired=Nespárováno

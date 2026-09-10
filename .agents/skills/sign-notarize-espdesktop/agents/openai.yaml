@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sign and Notarize EspDesktop"
+  short_description: "Sign, notarize and verify EspDesktop Mac builds"
+  default_prompt: "Use $sign-notarize-espdesktop to sign and notarize the current EspDesktop build, then install and verify it."

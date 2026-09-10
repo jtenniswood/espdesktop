@@ -299,3 +299,5 @@ window_left_quarters=Bal és negyedek
 window_right_quarters=Jobb és negyedek
 window_top_quarters=Fent és negyedek
 window_bottom_quarters=Lent és negyedek
+paired=Párosítva
+unpaired=Nincs párosítva

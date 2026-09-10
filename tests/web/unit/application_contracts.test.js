@@ -77,7 +77,7 @@ describe("browserless application contracts", () => {
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     assert.match(settings, /\["sensor", "Home Assistant"\]/);
-    assert.match(settings, /\["companion", "Companion App"\]/);
+    assert.match(settings, /\["companion", "App Connection"\]/);
     assert.match(settings, /sensorBtn\.hidden = !haAvailable/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);

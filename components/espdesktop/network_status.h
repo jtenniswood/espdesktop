@@ -31,18 +31,15 @@ struct NetworkStatusModalUi {
   lv_obj_t *pairing_code = nullptr;
   lv_obj_t *pairing_ip = nullptr;
   lv_obj_t *pairing_button = nullptr;
+  lv_obj_t *pairing_label = nullptr;
+  lv_obj_t *wifi_label = nullptr;
+  float (*wifi_quality)() = nullptr;
   const lv_font_t *text_font = nullptr;
   const lv_font_t *modal_icon_font = nullptr;
   const lv_font_t *title_font = nullptr;
   lv_obj_t *ip_lbl = nullptr;
   lv_obj_t *connector_lbl = nullptr;
   lv_obj_t *connector_icon = nullptr;
-  lv_obj_t *brightness_slider = nullptr;
-  lv_obj_t *brightness_label = nullptr;
-  lv_obj_t *brightness_icon = nullptr;
-  SliderCtx brightness_context;
-  bool brightness_dragging = false;
-  SettingsBacklightLevel brightness_level = SettingsBacklightLevel::MANUAL;
   lv_timer_t *refresh_timer = nullptr;
   lv_coord_t columns[MAX_GRID_SLOTS + 1]{};
   lv_coord_t rows[MAX_GRID_SLOTS + 1]{};
@@ -186,52 +183,6 @@ inline lv_obj_t *network_status_pairing_label(lv_obj_t *parent, const char *text
   return label;
 }
 
-inline void network_status_refresh_backlight() {
-  auto &ui = network_status_modal_ui();
-  auto &service = settings_backlight_service();
-  if (!ui.brightness_slider) return;
-  const auto state = service.read ? service.read() : SettingsBacklightState{};
-  const bool enabled = state.available && service.write && !screen_lock_enabled();
-  ui.brightness_context.interactive = enabled;
-  if (enabled) lv_obj_add_flag(ui.brightness_slider, LV_OBJ_FLAG_CLICKABLE);
-  else lv_obj_clear_flag(ui.brightness_slider, LV_OBJ_FLAG_CLICKABLE);
-  if (!ui.brightness_dragging) {
-    ui.brightness_level = state.level;
-    lv_slider_set_value(ui.brightness_slider, settings_backlight_percent(state.level, state.percent), LV_ANIM_OFF);
-  }
-  lv_label_set_display_text(ui.brightness_label, espdesktop_i18n("Backlight"));
-  lv_label_set_display_text(ui.brightness_icon, ui.brightness_level == SettingsBacklightLevel::NIGHTTIME
-      ? "\U000F1A4D" : "\U000F0336");
-  auto *button = lv_obj_get_parent(ui.brightness_slider);
-  lv_obj_set_width(ui.brightness_label, lv_obj_get_width(button) - ui.brightness_context.label_pad_left * 2);
-  slider_fit_to_button(ui.brightness_slider, button, false);
-  slider_update_fill(ui.brightness_context.fill, button, lv_slider_get_value(ui.brightness_slider),
-      false, false, ui.brightness_context.radius);
-}
-
-inline void network_status_backlight_event(lv_event_t *event) {
-  auto &ui = network_status_modal_ui();
-  const auto code = lv_event_get_code(event);
-  if (code == LV_EVENT_PRESSED) {
-    network_status_refresh_backlight();
-    if (!ui.brightness_context.interactive) return;
-    ui.brightness_dragging = true;
-    slider_apply_vertical_pointer_value(ui.brightness_slider);
-  } else if (code == LV_EVENT_PRESSING) {
-    if (ui.brightness_dragging) slider_apply_vertical_pointer_value(ui.brightness_slider);
-  } else if (code == LV_EVENT_VALUE_CHANGED) {
-    if (!ui.brightness_dragging) return;
-    lv_slider_set_value(ui.brightness_slider,
-        settings_backlight_percent(ui.brightness_level, lv_slider_get_value(ui.brightness_slider)), LV_ANIM_OFF);
-    network_status_refresh_backlight();
-  } else if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
-    settings_backlight_commit(ui.brightness_level, lv_slider_get_value(ui.brightness_slider),
-        code == LV_EVENT_RELEASED && ui.brightness_dragging && !screen_lock_enabled());
-    ui.brightness_dragging = false;
-    network_status_refresh_backlight();
-  }
-}
-
 inline void network_status_refresh_page();
 
 inline void network_status_open_pairing() {
@@ -286,10 +237,17 @@ inline void network_status_open_pairing() {
 inline void network_status_refresh_page() {
   auto &ui = network_status_modal_ui();
   if (!ui.overlay) return;
-  network_status_refresh_backlight();
+  if (ui.wifi_label && ui.wifi_quality) {
+    const float quality = ui.wifi_quality();
+    const std::string label = std::isfinite(quality)
+        ? "Wi-Fi " + std::to_string(static_cast<int>(std::lround(std::max(0.0f, std::min(100.0f, quality))))) + "%"
+        : "Wi-Fi —";
+    lv_label_set_display_text(ui.wifi_label, label.c_str());
+  }
   lv_label_set_display_text(ui.ip_lbl, network_status_ip_address().c_str());
   const auto snapshot = companion_pairing_provider()
       ? companion_pairing_provider()() : CompanionPairingSnapshot{};
+  lv_label_set_display_text(ui.pairing_label, espdesktop_i18n(snapshot.paired ? "Paired" : "Unpaired"));
   const char *state = espdesktop_i18n("Unavailable");
   const char *icon = "\U000F0319";
   if (snapshot.available) {
@@ -325,7 +283,8 @@ inline void network_status_open_modal(const std::string &device_name,
                                       const std::string &ip_address,
                                       const std::string &firmware_version,
                                       const lv_font_t *text_font,
-                                      const lv_font_t *icon_font) {
+                                      const lv_font_t *icon_font,
+                                      float (*wifi_quality)() = nullptr) {
   (void) device_name;
   (void) ip_address;
   control_modal_close_nested_menu();
@@ -337,6 +296,7 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_t *reference = metrics.first_card ? metrics.first_card : page;
   const lv_font_t *label_font = lv_obj_get_style_text_font(reference, LV_PART_MAIN);
   if (!label_font) label_font = text_font;
+  ui.wifi_quality = wifi_quality;
   ui.text_font = label_font;
   ui.modal_icon_font = icon_font;
   ui.title_font = text_font;
@@ -361,7 +321,9 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_style_pad_column(ui.overlay, lv_obj_get_style_pad_column(page, LV_PART_MAIN), LV_PART_MAIN);
 
   const int cols = std::max(1, std::min(metrics.cols, MAX_GRID_SLOTS));
-  const int rows = std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS));
+  const int card_count = NETWORK_STATUS_CARD_COUNT - (wifi_quality ? 0 : 1);
+  const int rows = network_status_grid_rows(cols,
+      std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS)), card_count);
   for (int i = 0; i < cols; ++i) ui.columns[i] = LV_GRID_FR(1);
   for (int i = 0; i < rows; ++i) ui.rows[i] = LV_GRID_FR(1);
   ui.columns[cols] = LV_GRID_TEMPLATE_LAST;
@@ -369,17 +331,19 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), "", espdesktop_i18n("Pairing"), "", "", ""};
-  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F0336", "\U000F035B"};
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", ""};
+  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B"};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
+  int visible_index = 0;
   for (int i = 0; i < NETWORK_STATUS_CARD_COUNT; ++i) {
+    if (i == NETWORK_STATUS_WIFI_CARD_INDEX && !wifi_quality) continue;
     auto *button = create_grid_card_button(ui.overlay,
         lv_obj_get_style_radius(reference, LV_PART_MAIN),
         lv_obj_get_style_pad_top(reference, LV_PART_MAIN), label_font, text_color);
     apply_button_colors(button, false, DEFAULT_SLIDER_COLOR, true,
                         DEFAULT_OFF_COLOR);
-    const auto cell = network_status_grid_cell(i, cols);
+    const auto cell = network_status_grid_cell(visible_index++, cols);
     lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, cell.column, 1,
                          LV_GRID_ALIGN_STRETCH, cell.row, 1);
     BtnSlot slot = create_dynamic_card_slot(button, card_icon_font, label_font, label_font, text_color);
@@ -387,23 +351,6 @@ inline void network_status_open_modal(const std::string &device_name,
     apply_text_width_compensation(slot.text_lbl);
     lv_label_set_display_text(slot.text_lbl, labels[i]);
     lv_label_set_display_text(slot.icon_lbl, icons[i]);
-    if (i == NETWORK_STATUS_BACKLIGHT_CARD_INDEX) {
-      const auto padding = capture_card_padding(button);
-      ui.brightness_slider = setup_slider_widget(button, DEFAULT_SLIDER_COLOR, false);
-      if (!ui.brightness_slider) continue;
-      lv_slider_set_range(ui.brightness_slider, SETTINGS_BACKLIGHT_MIN_PERCENT, 100);
-      ui.brightness_label = slot.text_lbl;
-      ui.brightness_icon = slot.icon_lbl;
-      lv_obj_align(slot.icon_lbl, LV_ALIGN_TOP_LEFT, padding.left, padding.top);
-      lv_obj_align(slot.text_lbl, LV_ALIGN_BOTTOM_LEFT, padding.left, -padding.bottom);
-      ui.brightness_context.label_pad_left = padding.left;
-      ui.brightness_context.fill = lv_obj_get_child(button, 0);
-      ui.brightness_context.radius = lv_obj_get_style_radius(button, LV_PART_MAIN);
-      lv_obj_set_user_data(ui.brightness_slider, &ui.brightness_context);
-      lv_obj_add_event_cb(ui.brightness_slider, network_status_backlight_event, LV_EVENT_ALL, nullptr);
-      screen_lock_register_controlled_button(ui.brightness_slider);
-      continue;
-    }
     if (i == NETWORK_STATUS_BACK_CARD_INDEX) {
       lv_label_set_display_text(slot.icon_lbl, "\U000F0141");
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_hide_modal(); },
@@ -412,6 +359,7 @@ inline void network_status_open_modal(const std::string &device_name,
     }
     if (i == NETWORK_STATUS_PAIRING_CARD_INDEX) {
       ui.pairing_button = button;
+      ui.pairing_label = slot.text_lbl;
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_open_pairing(); },
                           LV_EVENT_CLICKED, nullptr);
       continue;
@@ -420,6 +368,8 @@ inline void network_status_open_modal(const std::string &device_name,
     if (i == NETWORK_STATUS_CONNECTOR_CARD_INDEX) {
       ui.connector_lbl = slot.text_lbl;
       ui.connector_icon = slot.icon_lbl;
+    } else if (i == NETWORK_STATUS_WIFI_CARD_INDEX) {
+      ui.wifi_label = slot.text_lbl;
     } else if (i == NETWORK_STATUS_BUILD_CARD_INDEX) {
       const std::string build_label = network_status_firmware_label(firmware_version);
       lv_label_set_display_text(slot.text_lbl, build_label.c_str());

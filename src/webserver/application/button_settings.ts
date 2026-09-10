@@ -82,9 +82,10 @@ export function createButtonSettingsFeature(
     function cardSettingsTitle(this: any, typeDefinition?: any, button?: any): string {
         var label: any = buttonTypeRegistryValue(typeDefinition, "label", "Card");
         var mode: any = typeDefinition && typeDefinition.cardMetadata && typeDefinition.cardMetadata.mode;
-        if (mode && Array.isArray(mode.options) && typeof mode.value === "function") {
+        var options: any = mode && (typeof mode.options === "function" ? mode.options(button) : mode.options);
+        if (Array.isArray(options) && typeof mode.value === "function") {
             var selectedMode: any = mode.value(button);
-            var selectedOption: any = mode.options.find(function (this: any, option?: any) {
+            var selectedOption: any = options.find(function (this: any, option?: any) {
                 return option && option[0] === selectedMode;
             });
             if (selectedOption && selectedOption[1])
@@ -93,7 +94,7 @@ export function createButtonSettingsFeature(
         label = String(label || "Card").replace(/\b[a-z]/g, function (character?: any) {
             return character.toUpperCase();
         });
-        return label + " Settings";
+        return label;
     }
 
     const {
@@ -215,7 +216,7 @@ export function createButtonSettingsFeature(
         var isNewDraft: any = !!state.settingsDraft!.isNew;
         var title: any = document.createElement("div");
         title.className = "sp-section-title";
-        title.textContent = "Settings";
+        title.textContent = "Choose Card";
         container.appendChild(title);
         var panel: any = document.createElement("div");
         panel.className = "sp-panel";

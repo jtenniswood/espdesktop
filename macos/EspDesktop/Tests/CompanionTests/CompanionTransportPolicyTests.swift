@@ -28,6 +28,14 @@ final class CompanionTransportPolicyTests: XCTestCase {
         ))
     }
 
+    func testNetworkAddressChangePublishesWithoutWaitingForHeartbeat() {
+        let initial = snapshot(generation: 1, cpu: 20, memory: 40, storage: 60, battery: nil, network: nil)
+        var changed = initial
+        changed.networkInterfaces = [.init(id: "en0", label: "Wi-Fi", address: "192.168.1.10")]
+        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: initial, current: changed, elapsedSeconds: 2))
+        XCTAssertTrue(CompanionConnection.shouldPublishSystemMetrics(previous: changed, current: initial, elapsedSeconds: 2))
+    }
+
     private func snapshot(
         generation: UInt32, cpu: Double, memory: Double, storage: Double,
         battery: Double?, network: Double?

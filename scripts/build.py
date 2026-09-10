@@ -387,7 +387,7 @@ def load_companion_capabilities_data():
             raise BuildError(f"Invalid Companion media action id: {action['id']}")
         identifiers.append(action["id"])
     for metric in data["systemMetrics"]:
-        if not all(isinstance(metric.get(key), str) and metric[key] for key in ("mode", "id", "label", "labelKey", "unit")):
+        if not all(isinstance(metric.get(key), str) and (metric[key] or key == "unit") for key in ("mode", "id", "label", "labelKey", "unit")):
             raise BuildError("Each Companion system metric requires mode, id, label, labelKey, and unit")
         if not metric["id"].startswith("stat."):
             raise BuildError(f"Invalid Companion system metric id: {metric['id']}")
@@ -844,7 +844,8 @@ def gen_companion_capabilities_h(data):
         "  return nullptr;\n",
         "}\n\n",
         "inline const CompanionMetricCapability *companion_metric_capability(const std::string &id) {\n",
-        "  for (const auto &item : COMPANION_METRIC_CAPABILITIES) if (id == item.id) return &item;\n",
+        '  for (const auto &item : COMPANION_METRIC_CAPABILITIES)\n',
+        '    if (id == item.id || (std::string(item.id) == "stat.ip_address" && id.size() > std::string("stat.ip_address:").size() && id.rfind("stat.ip_address:", 0) == 0) || (std::string(item.id) == "stat.storage" && id.size() > std::string("stat.storage:").size() && id.rfind("stat.storage:", 0) == 0) || (std::string(item.id) == "stat.storage_free" && id.size() > std::string("stat.storage_free:").size() && id.rfind("stat.storage_free:", 0) == 0)) return &item;\n',
         "  return nullptr;\n",
         "}\n\n",
         "inline bool companion_generated_media_action_valid(const std::string &id) {\n",
@@ -4151,12 +4152,12 @@ def gen_web_icon_module(data):
     """Typed icon names and exception map for the web bundle."""
     fb = data["fallback"]
     exceptions = [f'    Auto: "{fb["mdi"]}",\n']
-    names = []
+    names = [icon["name"] for icon in data["icons"]]
 
-    for icon in data["icons"]:
+    # Saved cards can also reference structural icons used by firmware defaults.
+    for icon in icon_items(data):
         name = icon["name"]
         mdi = icon["mdi"]
-        names.append(name)
         expected = re.sub(r"[^a-z0-9 ]", "", name.lower()).replace(" ", "-")
         if expected != mdi:
             key = name if re.match(r"^[A-Za-z_$][A-Za-z0-9_$]*$", name) else f'"{name}"'

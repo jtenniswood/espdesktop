@@ -641,8 +641,16 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       snapshot.cpu_usage_percent = payload->cpuUsagePercent.value_or(NAN);
       snapshot.memory_usage_percent = payload->memoryUsagePercent.value_or(NAN);
       snapshot.storage_usage_percent = payload->storageUsagePercent.value_or(NAN);
+      if (payload->storageDevices) {
+        for (const auto &device : *payload->storageDevices)
+          snapshot.storage_devices.push_back({device.id, device.label, static_cast<float>(device.usagePercent)});
+      }
       snapshot.battery_percent = payload->batteryPercent.value_or(NAN);
       snapshot.network_throughput_kbps = payload->networkThroughputKBps.value_or(NAN);
+      if (payload->networkInterfaces) {
+        for (const auto &network : *payload->networkInterfaces)
+          snapshot.network_interfaces.push_back({network.id, network.label, network.address});
+      }
       const std::array<float, 3> required{{
           snapshot.cpu_usage_percent,
           snapshot.memory_usage_percent,

@@ -906,6 +906,10 @@ inline std::string date_time_card_options_normalized(const std::string &options,
   return "";
 }
 
+inline std::string companion_metric_options_normalized(const std::string &options) {
+  return cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
+}
+
 inline std::string normalize_garage_label_display(const std::string &value) {
   return card_runtime_garage_label_display(value);
 }
@@ -1412,14 +1416,15 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {
       p.sensor.clear();
-      if (p.unit.empty()) {
+      if (p.entity.rfind("stat.ip_address", 0) == 0) p.unit.clear();
+      else if (p.unit.empty()) {
         if (p.entity == "stat.network_throughput") p.unit = "MB/s";
         else p.unit = "%";
       } else if (p.entity == "stat.network_throughput" && p.unit == "KB/s") {
         p.unit = "MB/s";
       }
       if (p.precision != "0" && p.precision != "1" && p.precision != "2") p.precision = "0";
-      p.options = date_time_card_options_normalized(p.options, p);
+      p.options = companion_metric_options_normalized(p.options);
     } else {
       p.unit.clear();
       p.precision.clear();
