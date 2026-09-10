@@ -119,12 +119,18 @@ private struct CompanionAccessibilityRow: View {
             Text(isGranted ? "Shortcut Enabled" : "Enable Shortcuts")
                 .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
             Spacer()
-            Button("Open Settings") {
+            Button {
                 // Leave the SwiftUI control transaction before opening another app.
                 DispatchQueue.main.async {
                     CompanionAccessibilityAuthorizer.shared.requestAccess()
                 }
+            } label: {
+                Text("Open Settings")
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
             }
+            .buttonStyle(.bordered)
+            .modifier(CompanionCapsuleButton())
         }
     }
 }
