@@ -172,10 +172,14 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     private func updateStatusItemImage(connected: Bool) {
         guard let button = statusItem?.button else { return }
         let description = connected ? "EspDesktop connected" : "EspDesktop disconnected"
-        let symbol = connected ? "laptopcomputer" : "laptopcomputer.slash"
-        let image = NSImage(systemSymbolName: symbol, accessibilityDescription: description)
+        let image = NSImage(
+            systemSymbolName: "rectangle.and.hand.point.up.left",
+            accessibilityDescription: description
+        )
         image?.isTemplate = true
         button.image = image
+        button.alphaValue = connected ? 1 : 0.5
+        button.toolTip = description
     }
 
     @objc private func openSettings() { openCompanionWindow() }
