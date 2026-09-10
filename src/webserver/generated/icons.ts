@@ -3,6 +3,17 @@
 // --- GENERATED:ICONS START ---
 export const GENERATED_ICON_EXCEPTIONS: Readonly<Record<string, string>> = {
     Auto: "cog",
+    "Wifi QR Tab": "qrcode",
+    "Wifi Password Tab": "key",
+    "Wifi Setup": "wifi-strength-4",
+    "Image Card Loading": "image",
+    "Image Card Unavailable": "image-broken",
+    "Shortcut Command": "apple-keyboard-command",
+    "Shortcut Control": "apple-keyboard-control",
+    "Shortcut Option": "apple-keyboard-option",
+    "Shortcut Shift": "apple-keyboard-shift",
+    "Shortcut Left": "arrow-left",
+    "Shortcut Right": "arrow-right",
     Alarm: "bell-ring",
     Application: "application-outline",
     "Ceiling Lights Multiple": "ceiling-light-multiple",

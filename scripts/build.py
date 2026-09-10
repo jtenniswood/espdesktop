@@ -4154,12 +4154,11 @@ def gen_web_icon_module(data):
     """Typed icon names and exception map for the web bundle."""
     fb = data["fallback"]
     exceptions = [f'    Auto: "{fb["mdi"]}",\n']
-    names = []
+    names = [icon["name"] for icon in data["icons"]]
 
-    for icon in data["icons"]:
+    for icon in [*data.get("structural", []), *data["icons"]]:
         name = icon["name"]
         mdi = icon["mdi"]
-        names.append(name)
         expected = re.sub(r"[^a-z0-9 ]", "", name.lower()).replace(" ", "-")
         if expected != mdi:
             key = name if re.match(r"^[A-Za-z_$][A-Za-z0-9_$]*$", name) else f'"{name}"'
