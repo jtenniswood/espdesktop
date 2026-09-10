@@ -129,7 +129,7 @@ private struct CompanionAccessibilityRow: View {
                     CompanionAccessibilityAuthorizer.shared.requestAccess()
                 }
             } label: {
-                Text("Open Settings")
+                Text("Setup")
                     .padding(.horizontal, 4)
                     .padding(.vertical, 4)
             }
