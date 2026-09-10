@@ -1,3 +1,5 @@
+import { companionMetricForEntity } from "../model/companion_card_codec";
+import { renderCompanionStorageSelector } from "./companion_storage";
 import { state } from "../state/app_instance";
 import { setConfigOptionValue } from "../model/config_primitives";
 import { escHtml, iconSlug } from "../application/ui_primitives";
@@ -5,6 +7,8 @@ import {
     COMPANION_STATS_OPTIONS,
     COMPANION_SYSTEM_METRICS,
     companionMetricPreviewValue,
+    companionMetricIcon,
+    companionMetricLabel,
 } from "./companion";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ConfigCodecFeature } from "../application/config_codec";
@@ -23,14 +27,12 @@ import {
 } from "../application/config_subpage_options";
 
 function companionStatMetric(entity: any): any {
-    return COMPANION_SYSTEM_METRICS.find(function (metric) {
-        return metric.id === entity || metric.freeId === entity;
-    });
+    return companionMetricForEntity(entity);
 }
 
 function companionStatMode(entity: any): string {
     var metric: any = companionStatMetric(entity);
-    return metric && metric.freeId === entity ? "free" : "used";
+    return metric && metric.freeId === entity?.split(":")[0] ? "free" : "used";
 }
 
 function companionStatEntity(metric: any, mode: string): string {
@@ -205,7 +207,7 @@ export function registerSubpageCardTypes(
                 var statSelect: any = document.createElement("select");
                 statSelect.className = "sp-select";
                 statSelect.id = helpers.idPrefix + "companion-stat";
-                var statOptions: any = COMPANION_STATS_OPTIONS;
+                var statOptions: any = COMPANION_STATS_OPTIONS.filter(([mode]) => mode !== "ip_address");
                 statOptions.forEach(function (item: any) {
                     var option: any = document.createElement("option");
                     option.value = item[0];
@@ -216,6 +218,7 @@ export function registerSubpageCardTypes(
                 statField.appendChild(statSelect);
                 panel.appendChild(statField);
 
+                if (initialMetric.mode === "storage") renderCompanionStorageSelector(panel, b, helpers);
                 var displaySelect: any = null;
                 if (initialMetric.freeId) {
                     var displayField: any = document.createElement("div");
@@ -243,7 +246,8 @@ export function registerSubpageCardTypes(
                         b.label = metric.label;
                         helpers.saveField("label", b.label);
                     }
-                    b.entity = companionStatEntity(metric, mode);
+                    const device = metric.mode === "storage" && previousMetric?.mode === "storage" ? b.entity.split(":")[1] : "";
+                    b.entity = companionStatEntity(metric, mode) + (device ? ":" + device : "");
                     b.sensor = "indicator";
                     b.unit = metric.unit;
                     b.precision = "";
@@ -440,8 +444,9 @@ export function registerSubpageCardTypes(
             var companionMetric: any = subpageKind(b) === "companion_stat" ? companionStatMetric(b.entity) : null;
             if (companionMetric) {
                 return {
-                    iconHtml: cardSensorPreviewHtml(b, helpers, companionMetricPreviewValue("0"), companionMetric.unit),
-                    labelHtml: subpageBadgeLabelHtml(helpers, b.label || companionMetric.label),
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-' + companionMetricIcon(b.entity) + '"></span>',
+                    labelHtml: subpageBadgeLabelHtml(helpers, companionMetricLabel(
+                        b.entity, companionMetricPreviewValue(b.precision), b.unit || companionMetric.unit)),
                 };
             }
             var label: any = b.label || (defaults && defaults.label) || b.entity || "Configure";

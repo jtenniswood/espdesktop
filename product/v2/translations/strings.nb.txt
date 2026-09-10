@@ -301,3 +301,6 @@ window_top_quarters=Øverst og fjerdedeler
 window_bottom_quarters=Nederst og fjerdedeler
 paired=Paret
 unpaired=Ikke paret
+stat_used=brukt
+stat_free=ledig
+stat_remaining=igjen

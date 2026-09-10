@@ -326,7 +326,7 @@ def load_card_contract_data():
 
 def load_companion_capabilities_data():
     data = load_json(COMPANION_CAPABILITIES_JSON)
-    required_lists = ("windowActions", "mediaActions", "systemMetrics")
+    required_lists = ("windowActions", "systemMetrics")
     if not isinstance(data.get("version"), int) or data["version"] < 1:
         raise BuildError("Companion capability version must be a positive integer")
     for key in required_lists:
@@ -380,14 +380,8 @@ def load_companion_capabilities_data():
         if not isinstance(modifiers, list) or not modifiers or any(item not in allowed_modifiers for item in modifiers):
             raise BuildError(f"Invalid Companion window action modifiers: {action['id']}")
         identifiers.append(action["id"])
-    for action in data["mediaActions"]:
-        if not all(isinstance(action.get(key), str) and action[key] for key in ("id", "label", "icon", "command")):
-            raise BuildError("Each Companion media action requires id, label, icon, and command")
-        if not action["id"].startswith("media."):
-            raise BuildError(f"Invalid Companion media action id: {action['id']}")
-        identifiers.append(action["id"])
     for metric in data["systemMetrics"]:
-        if not all(isinstance(metric.get(key), str) and metric[key] for key in ("mode", "id", "label", "labelKey", "unit")):
+        if not all(isinstance(metric.get(key), str) and (metric[key] or key == "unit") for key in ("mode", "id", "label", "labelKey", "unit")):
             raise BuildError("Each Companion system metric requires mode, id, label, labelKey, and unit")
         if not metric["id"].startswith("stat."):
             raise BuildError(f"Invalid Companion system metric id: {metric['id']}")
@@ -780,9 +774,7 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
         f"export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = {companion_ts_literal([{key: item[key] for key in ('id', 'label', 'group')} for item in data['windowActions']])};\n"
-        f"export const COMPANION_MEDIA_ACTIONS = {companion_ts_literal([{key: item[key] for key in ('id', 'label', 'icon')} for item in data['mediaActions']])} as const;\n"
         f"export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = {companion_ts_literal([{key: item[key] for key in ('mode', 'id', 'freeId', 'label', 'unit') if key in item} for item in data['systemMetrics']])};\n"
-        f"export const COMPANION_MEDIA_PLAY_PAUSE_ACTION = {json.dumps(data['mediaActions'][0]['id'])} as const;\n"
     )
 
 
@@ -833,26 +825,17 @@ def gen_companion_capabilities_h(data):
     lines.extend(f"  {{{json.dumps(item[0])}, {json.dumps(item[1])}, {json.dumps(item[2])}, {json.dumps(item[3])}}},\n" for item in metric_entries)
     lines.extend([
         "};\n\n",
-        "inline constexpr const char *COMPANION_MEDIA_ACTION_IDS[] = {\n",
-    ])
-    lines.extend(f"  {json.dumps(item['id'])},\n" for item in data["mediaActions"])
-    lines.extend([
-        "};\n\n",
-        f"constexpr const char *COMPANION_MEDIA_PLAY_PAUSE_ACTION = {json.dumps(data['mediaActions'][0]['id'])};\n\n",
         "inline const CompanionWindowCapability *companion_window_capability(const std::string &id) {\n",
         "  for (const auto &item : COMPANION_WINDOW_CAPABILITIES) if (id == item.id) return &item;\n",
         "  return nullptr;\n",
         "}\n\n",
         "inline const CompanionMetricCapability *companion_metric_capability(const std::string &id) {\n",
-        "  for (const auto &item : COMPANION_METRIC_CAPABILITIES) if (id == item.id) return &item;\n",
+        '  for (const auto &item : COMPANION_METRIC_CAPABILITIES)\n',
+        '    if (id == item.id || (std::string(item.id) == "stat.ip_address" && id.size() > std::string("stat.ip_address:").size() && id.rfind("stat.ip_address:", 0) == 0) || (std::string(item.id) == "stat.storage" && id.size() > std::string("stat.storage:").size() && id.rfind("stat.storage:", 0) == 0) || (std::string(item.id) == "stat.storage_free" && id.size() > std::string("stat.storage_free:").size() && id.rfind("stat.storage_free:", 0) == 0)) return &item;\n',
         "  return nullptr;\n",
         "}\n\n",
-        "inline bool companion_generated_media_action_valid(const std::string &id) {\n",
-        "  for (const auto *item : COMPANION_MEDIA_ACTION_IDS) if (id == item) return true;\n",
-        "  return false;\n",
-        "}\n",
     ])
-    return "".join(lines)
+    return "".join(lines).rstrip() + "\n"
 
 
 def gen_companion_capabilities_swift(data):
@@ -894,12 +877,6 @@ def gen_companion_capabilities_swift(data):
         lines.append(f"        {json.dumps(item['id'])}: .init(key: {json.dumps(item['key'])}, flags: [{flags}], minimumMacOS: {item['minimumMacOS']}),\n")
     lines.extend([
         "    ]\n",
-        "    static let mediaCommandByActionID: [String: String] = [\n",
-    ])
-    lines.extend(f"        {json.dumps(item['id'])}: {json.dumps(item['command'])},\n" for item in data["mediaActions"])
-    lines.extend([
-        "    ]\n",
-        f"    static let mediaPlayPauseID = {json.dumps(data['mediaActions'][0]['id'])}\n",
         "}\n",
     ])
     return "".join(lines)
@@ -4151,12 +4128,12 @@ def gen_web_icon_module(data):
     """Typed icon names and exception map for the web bundle."""
     fb = data["fallback"]
     exceptions = [f'    Auto: "{fb["mdi"]}",\n']
-    names = []
+    names = [icon["name"] for icon in data["icons"]]
 
-    for icon in data["icons"]:
+    # Saved cards can also reference structural icons used by firmware defaults.
+    for icon in icon_items(data):
         name = icon["name"]
         mdi = icon["mdi"]
-        names.append(name)
         expected = re.sub(r"[^a-z0-9 ]", "", name.lower()).replace(" ", "-")
         if expected != mdi:
             key = name if re.match(r"^[A-Za-z_$][A-Za-z0-9_$]*$", name) else f'"{name}"'

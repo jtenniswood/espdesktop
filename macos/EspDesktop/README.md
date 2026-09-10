@@ -68,7 +68,7 @@ Ad-hoc local app builds embed Sparkle and disable library validation only for th
 
 ### Keyboard shortcut permission
 
-Use **Open Settings** beside Enable Shortcuts or Shortcut Enabled, then enable **EspDesktop** under Privacy & Security → Accessibility. Return to EspDesktop to refresh the status. macOS owns this permission; the app cannot grant it itself.
+Use **Open Settings** beside **Enable Shortcuts**, then enable **EspDesktop** under Privacy & Security → Accessibility. Return to EspDesktop to refresh the status. The shortcut setup row disappears once access is enabled and reappears if access is revoked. macOS owns this permission; the app cannot grant it itself.
 
 ### Preserve Accessibility approval across local builds
 

@@ -12,3 +12,5 @@ These settings control the active colour used across your panel. You'll find the
 - Secondary inactive cards and tertiary information cards use fixed panel colours so setup stays simpler and modal styling remains consistent.
 
 Colour changes apply to the panel automatically after a brief pause (about 200 ms), plus the time needed to redraw the cards, including cards on subpages. You do not need to restart the panel. **Reset colours** applies the default colour in the same way.
+
+Disabled cards keep their background colour and show dark grey labels and icons. Their normal text and icon colours return when the card becomes available again.

@@ -301,3 +301,6 @@ window_top_quarters=Fent és negyedek
 window_bottom_quarters=Lent és negyedek
 paired=Párosítva
 unpaired=Nincs párosítva
+stat_used=használt
+stat_free=szabad
+stat_remaining=maradt

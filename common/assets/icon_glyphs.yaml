@@ -20,7 +20,6 @@
 - "\U000F0456"  # mdi-repeat (Media modal repeat control)
 - "\U000F0458"  # mdi-repeat-once (Media modal repeat-one state)
 - "\U000F02ED"  # mdi-image-broken (Image card unavailable state)
-- "\U000F0633"  # mdi-apple-keyboard-command (Companion shortcut labels)
 - "\U000F0634"  # mdi-apple-keyboard-control (Companion shortcut labels)
 - "\U000F0635"  # mdi-apple-keyboard-option (Companion shortcut labels)
 - "\U000F0636"  # mdi-apple-keyboard-shift (Companion shortcut labels)
@@ -31,6 +30,7 @@
 - "\U000F0D33"  # mdi-shield-link-variant (Pairing card)
 - "\U000F031A"  # mdi-lan-pending (Connected connector card)
 - "\U000F0319"  # mdi-lan-disconnect (Disconnected connector card)
+- "\U000F0633"  # mdi-apple-keyboard-command
 - "\U000F0141"  # mdi-chevron-left
 - "\U000F0142"  # mdi-chevron-right
 - "\U000F0004"  # mdi-account
@@ -141,6 +141,7 @@
 - "\U000F0299"  # mdi-gate
 - "\U000F116A"  # mdi-gate-open
 - "\U000F0741"  # mdi-gesture-tap
+- "\U000F02CA"  # mdi-harddisk
 - "\U000F029A"  # mdi-gauge
 - "\U000F0873"  # mdi-gauge-empty
 - "\U000F0874"  # mdi-gauge-full
@@ -365,5 +366,5 @@
 - "\U000F05B1"  # mdi-window-open
 - "\U000F111C"  # mdi-window-shutter
 - "\U000F111E"  # mdi-window-shutter-open
+- "\U000F0322"  # mdi-laptop
 # --- GENERATED:ICONS END ---
-- "\U000F05A9"  # mdi-wifi (Settings quality)

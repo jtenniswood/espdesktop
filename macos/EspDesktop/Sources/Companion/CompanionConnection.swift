@@ -555,7 +555,13 @@ final class CompanionConnection: NSObject {
             "cpuUsagePercent": snapshot.cpuUsagePercent,
             "memoryUsagePercent": snapshot.memoryUsagePercent,
             "storageUsagePercent": snapshot.storageUsagePercent,
+            "storageDevices": snapshot.storageDevices.map {
+                ["id": $0.id, "label": $0.label, "usagePercent": $0.usagePercent] as [String: Any]
+            },
         ]
+        message["networkInterfaces"] = snapshot.networkInterfaces.map {
+            ["id": $0.id, "label": $0.label, "address": $0.address]
+        }
         if let battery = snapshot.batteryPercent { message["batteryPercent"] = battery }
         if let throughput = snapshot.networkThroughputKBps {
             message["networkThroughputKBps"] = throughput
@@ -612,7 +618,7 @@ final class CompanionConnection: NSObject {
         let supportedWindowActions = Self.supportedWindowActionIDs(
             for: ProcessInfo.processInfo.operatingSystemVersion
         )
-        var capabilities = (resources.mediaActionsAvailable ? ["media_actions"] : []) + supportedWindowActions
+        var capabilities = supportedWindowActions
         capabilities.append("keyboard_shortcuts")
         sendJSON(["type": "capabilities", "values": capabilities])
         // Bundle identifiers are stable and opaque to the browser layout editor;
@@ -685,9 +691,15 @@ final class CompanionConnection: NSObject {
         elapsedSeconds: TimeInterval
     ) -> Bool {
         guard let previous else { return true }
+        if current.networkInterfaces != previous.networkInterfaces { return true }
         if elapsedSeconds >= 30 { return true }
         if abs(current.cpuUsagePercent - previous.cpuUsagePercent) >= 1 { return true }
         if abs(current.memoryUsagePercent - previous.memoryUsagePercent) >= 0.5 { return true }
+        if current.storageDevices.count != previous.storageDevices.count { return true }
+        for (currentDevice, previousDevice) in zip(current.storageDevices, previous.storageDevices) {
+            if currentDevice.id != previousDevice.id || currentDevice.label != previousDevice.label ||
+                abs(currentDevice.usagePercent - previousDevice.usagePercent) >= 0.1 { return true }
+        }
         if abs(current.storageUsagePercent - previous.storageUsagePercent) >= 0.1 { return true }
         if optionalDifference(current.batteryPercent, previous.batteryPercent) >= 1 { return true }
         if optionalDifference(current.networkThroughputKBps, previous.networkThroughputKBps) >= 32 { return true }

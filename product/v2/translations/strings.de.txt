@@ -301,3 +301,6 @@ window_top_quarters=Oben und Viertel
 window_bottom_quarters=Unten und Viertel
 paired=Gekoppelt
 unpaired=Nicht gekoppelt
+stat_used=belegt
+stat_free=frei
+stat_remaining=übrig

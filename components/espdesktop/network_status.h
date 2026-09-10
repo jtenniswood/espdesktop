@@ -240,8 +240,8 @@ inline void network_status_refresh_page() {
   if (ui.wifi_label && ui.wifi_quality) {
     const float quality = ui.wifi_quality();
     const std::string label = std::isfinite(quality)
-        ? "Wi-Fi " + std::to_string(static_cast<int>(std::lround(std::max(0.0f, std::min(100.0f, quality))))) + "%"
-        : "Wi-Fi —";
+        ? std::to_string(static_cast<int>(std::lround(std::max(0.0f, std::min(100.0f, quality))))) + "%"
+        : espdesktop_i18n("Disconnected");
     lv_label_set_display_text(ui.wifi_label, label.c_str());
   }
   lv_label_set_display_text(ui.ip_lbl, network_status_ip_address().c_str());

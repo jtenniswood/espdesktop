@@ -16,7 +16,6 @@ protocol CompanionSessionPreferences: AnyObject {
 
 @MainActor
 protocol CompanionSessionResources: AnyObject {
-    var mediaActionsAvailable: Bool { get }
     func folderActions() -> [ApprovedFolder]
     func launchableApps() -> [LaunchableApp]
     func focusedCompanionActionIdentifier() -> String

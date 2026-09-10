@@ -126,12 +126,6 @@
       "comment": "Image card unavailable state"
     },
     {
-      "name": "Shortcut Command",
-      "codepoint": "F0633",
-      "mdi": "apple-keyboard-command",
-      "comment": "Companion shortcut labels"
-    },
-    {
       "name": "Shortcut Control",
       "codepoint": "F0634",
       "mdi": "apple-keyboard-control",
@@ -193,6 +187,11 @@
     }
   ],
   "icons": [
+    {
+      "name": "Shortcut Command",
+      "codepoint": "F0633",
+      "mdi": "apple-keyboard-command"
+    },
     {
       "name": "Chevron Left",
       "codepoint": "F0141",
@@ -742,6 +741,11 @@
       "name": "Gesture Tap",
       "codepoint": "F0741",
       "mdi": "gesture-tap"
+    },
+    {
+      "name": "Harddisk",
+      "codepoint": "F02CA",
+      "mdi": "harddisk"
     },
     {
       "name": "Gauge",
@@ -1877,6 +1881,11 @@
       "name": "Window Shutter Open",
       "codepoint": "F111E",
       "mdi": "window-shutter-open"
+    },
+    {
+      "name": "Laptop",
+      "codepoint": "F0322",
+      "mdi": "laptop"
     }
   ],
   "domain_defaults": {

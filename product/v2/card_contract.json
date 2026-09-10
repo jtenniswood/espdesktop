@@ -1905,6 +1905,12 @@
           "label": "Large Sensor Numbers",
           "kind": "flag",
           "omitDefault": true
+        },
+        {
+          "name": "stat_labels_off",
+          "label": "Show capacity label",
+          "kind": "flag",
+          "omitDefault": true
         }
       ],
       "normalization": {
@@ -1920,7 +1926,7 @@
           "options": { "policy": "hook", "hook": "normalize_date_time_options" }
         },
         "unknownOptions": "drop",
-        "canonicalOptionOrder": ["app_shortcuts", "app_shortcuts_auto_switch", "app_shortcuts_tabs", "app_shortcut_preset", "large_numbers"],
+        "canonicalOptionOrder": ["app_shortcuts", "app_shortcuts_auto_switch", "app_shortcuts_tabs", "app_shortcut_preset", "large_numbers", "stat_labels_off"],
         "optionHook": "normalize_date_time_options"
       },
       "default": {

@@ -77,7 +77,7 @@ describe("browserless application contracts", () => {
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     assert.match(settings, /\["sensor", "Home Assistant"\]/);
-    assert.match(settings, /\["companion", "Companion App"\]/);
+    assert.match(settings, /\["companion", "App Connection"\]/);
     assert.match(settings, /sensorBtn\.hidden = !haAvailable/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
@@ -662,7 +662,6 @@ describe("browserless application contracts", () => {
     assert.match(card, /statsField[\s\S]*markCardPrimaryField\(statsField, "statistic"\)/);
     assert.match(card, /shortcutField[\s\S]*markCardPrimaryField\(shortcutField, "shortcut"\)/);
     assert.match(card, /urlField[\s\S]*markCardPrimaryField\(urlField, "url"\)/);
-    assert.match(card, /mediaField[\s\S]*markCardPrimaryField\(mediaField, "media"\)/);
     assert.match(card, /folderField[\s\S]*markCardPrimaryField\(folderField, "folder"\)/);
     assert.match(card, /windowField[\s\S]*markCardPrimaryField\(windowField, "window"\)/);
     assert.match(card, /folderPlaceholder\.disabled = true/);
@@ -674,7 +673,6 @@ describe("browserless application contracts", () => {
     assert.match(fields, /media: false/);
     assert.match(fields, /folder: false/);
     assert.match(fields, /window: false/);
-    assert.match(card, /sortCompanionLabels\(COMPANION_MEDIA_ACTIONS\)/);
     assert.match(card, /first\.group\.localeCompare\(second\.group/);
   });
 

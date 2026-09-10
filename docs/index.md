@@ -38,7 +38,6 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 | Open an approved Finder folder | **Companion → Open folder** | Add the folder in EspDesktop |
 | Run a keyboard shortcut | **Companion → Keyboard shortcut** | macOS Accessibility permission |
 | Control the active window | **Companion → Window control** | macOS Accessibility permission; macOS 15+ for tiling |
-| Play, pause, or skip | **Companion → Media control** | A usable macOS Now Playing session |
 | Show Mac usage | **Companion → Stats** | Turn on sharing in **Permissions** |
 | Change speaker or microphone volume | **Slider → Mac output/input volume** | A device with software volume control |
 | Show current Mac artwork | **Settings → Media Cover Art → Mac Companion** | A usable macOS Now Playing session |

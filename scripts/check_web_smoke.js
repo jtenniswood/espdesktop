@@ -1358,8 +1358,8 @@ const subpageCompanionStatPreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "subpage_kind=companion_stat",
 });
-assert(subpageCompanionStatPreview.iconHtml.includes("%"), "Companion Stat subpage preview shows the metric unit");
-assert(subpageCompanionStatPreview.labelHtml.includes("Mac RAM Free"), "Companion Stat subpage preview uses the custom title");
+assert(subpageCompanionStatPreview.iconHtml.includes("mdi-memory"), "Companion Stat subpage preview shows the memory icon");
+assert(subpageCompanionStatPreview.labelHtml.includes("% free"), "Companion Stat subpage preview labels free memory");
 assert(subpageCompanionStatPreview.labelHtml.includes("mdi-chevron-right"), "Companion Stat subpage preview shows the chevron badge");
 
 [
@@ -1772,3 +1772,18 @@ verifyLocalFirmwareProfileSelection()
     console.error(error);
     process.exitCode = 1;
   });
+
+for (const [entity, icon, suffix] of [
+  ["stat.battery", "battery-outline", "% left"],
+  ["stat.memory", "memory", "% used"],
+  ["stat.memory_free", "memory", "% free"],
+  ["stat.storage", "harddisk", "% used"],
+  ["stat.storage_free", "harddisk", "% free"],
+  ["stat.network_throughput", "lan", " MB/s"],
+  ["stat.cpu", "gauge", "% used"],
+]) {
+  const preview = hooks.buttonTypePreviewFor("companion", {type: "companion", entity, precision: "1"});
+  assert(preview.iconHtml.includes("mdi-" + icon), `${entity} displays its metric icon`);
+  assert(preview.labelHtml.includes(suffix), `${entity} displays a reading with accurate wording`);
+  assert(!preview.iconHtml.includes("sp-sensor-value"), `${entity} no longer displays a large number`);
+}

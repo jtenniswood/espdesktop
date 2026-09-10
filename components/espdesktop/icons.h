@@ -37,7 +37,6 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Repeat",                         "\U000F0456"},
     {"Repeat Once",                    "\U000F0458"},
     {"Image Card Unavailable",         "\U000F02ED"},
-    {"Shortcut Command",               "\U000F0633"},
     {"Shortcut Control",               "\U000F0634"},
     {"Shortcut Option",                "\U000F0635"},
     {"Shortcut Shift",                 "\U000F0636"},
@@ -48,6 +47,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Shield Link Variant",            "\U000F0D33"},
     {"LAN Pending",                    "\U000F031A"},
     {"LAN Disconnect",                 "\U000F0319"},
+    {"Shortcut Command",               "\U000F0633"},
     {"Chevron Left",                   "\U000F0141"},
     {"Chevron Right",                  "\U000F0142"},
     {"Account",                        "\U000F0004"},
@@ -158,6 +158,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Gate",                           "\U000F0299"},
     {"Gate Open",                      "\U000F116A"},
     {"Gesture Tap",                    "\U000F0741"},
+    {"Harddisk",                       "\U000F02CA"},
     {"Gauge",                          "\U000F029A"},
     {"Gauge Empty",                    "\U000F0873"},
     {"Gauge Full",                     "\U000F0874"},
@@ -385,6 +386,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Window Open",                    "\U000F05B1"},
     {"Window Shutter",                 "\U000F111C"},
     {"Window Shutter Open",            "\U000F111E"},
+    {"Laptop",                         "\U000F0322"},
     // --- GENERATED:ICONS END ---
 };
 

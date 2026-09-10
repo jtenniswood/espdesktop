@@ -76,7 +76,6 @@ export function runPreviewFeatureTests(): void {
       companion_shortcut: { label: "Keyboard shortcut", allowInSubpage: true },
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
-      companion_media: { label: "Media control", allowInSubpage: true },
       companion_stats: { label: "Stats", allowInSubpage: true },
       companion_subpage: { label: "Subpage", allowInSubpage: false },
       companion_window: { label: "Window control", allowInSubpage: true },
@@ -88,7 +87,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_shortcut", "companion_app", "companion_media", "companion_folder", "companion_url", "companion_stats", "companion_subpage", "webhook", "companion_window"],
+    ["companion_shortcut", "companion_app", "companion_folder", "companion_url", "companion_stats", "companion_subpage", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

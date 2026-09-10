@@ -23,7 +23,6 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 | **Keyboard shortcut** | Replays a shortcut such as Command-A in the active app | Allow Accessibility access |
 | **Open URL** | Opens an `http://` or `https://` address in an approved app | Choose an approved browser or other app |
 | **Open folder** | Opens an approved Finder folder | Add the folder in the Mac app's **Folders** page |
-| **Media control** | Plays, pauses, or skips the current macOS Now Playing session | The media app must publish a usable Now Playing session |
 | **Stats** | Shows live Mac processor, memory, storage, network, or battery information | Shared automatically while connected |
 | **Window control** | Controls or arranges the active Mac window | Allow Accessibility access; tiling needs macOS 15+ |
 
@@ -81,16 +80,9 @@ Window cards act on the active Mac window. Choose **Companion → Window control
 
 The Mac app must have Accessibility permission. Some applications or windows do not support every macOS window command; in that case the window stays where it is.
 
-## Media Controls and Cover Art
+## Cover Art
 
-Choose **Media control** for **Play / Pause**, **Previous**, or **Next**. These buttons control the application currently registered with macOS Now Playing.
-
-Play / Pause shows the state confirmed by the Mac:
-
-- **Playing** — the card lights in the display's active colour.
-- **Paused** — the card returns to its normal colour.
-- **Stopped** — no active track was reported, but Play / Pause remains available because the Mac may still accept the command.
-- **Unavailable** — the Mac cannot provide the required media command.
+Play / Pause, Previous, and Next are no longer offered as Mac cards. Existing saved playback cards are removed from layouts when loaded, including cards in subpages and imported backups.
 
 Apple Music, Spotify, and browser playback can work when the application publishes a usable session to macOS. Support depends on the application's macOS media integration.
 
@@ -118,9 +110,12 @@ Add **Companion → Stats** cards. The Mac app shares statistics automatically w
 | **Memory** | Used or free memory as a percentage |
 | **Storage** | Used or free storage as a percentage |
 | **Network** | Current combined network throughput in MB/s |
-| **Battery** | Battery charge percentage; unavailable on Macs without a battery |
+| **Battery** | Battery charge percentage, shown as left or used; unavailable on Macs without a battery |
+| **IP address** | Laptop icon and the IPv4 address of the selected Mac network device |
 
-These cards support the same label, unit, precision, and large-number display choices as numeric Sensor cards, but their values come directly from the paired Mac. Statistics are not shared until you turn the option on.
+For **IP address**, **Automatic (available network)** shows the first Mac network device with an IPv4 address. You can choose a specific **Network device**, such as Wi-Fi or Ethernet, instead. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
+
+Statistics show a metric icon above the live reading. Numeric labels include used or free as appropriate, and battery shows left, with configurable units and decimal precision. Numeric cards include a **Show capacity label** toggle, enabled by default, to control whether the used, free, or left word appears after the value. Statistics are shared only when enabled in the Mac app.
 
 You can also choose **Subpage → Companion Stat** to put one of these readings on a home-screen tile that opens a page of related Mac controls.
 
