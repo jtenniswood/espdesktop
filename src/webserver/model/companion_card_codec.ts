@@ -11,7 +11,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   const entity = config.entity || "";
   if (entity.startsWith("shortcut.")) return "shortcut";
   if (entity.startsWith("window.")) return "window";
-  if (entity === "com.apple.finder" || entity.startsWith("folder.")) return "folder";
+  if (entity.startsWith("folder.")) return "folder";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
   if (config.sensor?.startsWith("url.")) return "url";
   return "app";

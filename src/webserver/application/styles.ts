@@ -471,6 +471,12 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-disclosure-chevron svg{width:100%;height:100%}" +
         ".sp-disclosure-body{display:none;padding:30px 14px 28px}" +
         ".sp-media-card-settings .sp-disclosure-body{padding:14px}" +
+        ".sp-app-subpage-settings .sp-disclosure-body{padding:8px 14px 10px}" +
+        ".sp-app-subpage-settings .sp-disclosure-body>.sp-field{margin-bottom:12px}" +
+        ".sp-app-subpage-settings .sp-toggle-row{margin-bottom:0}" +
+        ".sp-app-subpage-settings .sp-light-tab-list{margin:0}" +
+        ".sp-app-subpage-settings .sp-app-subpage-options-divider{margin:4px 0 8px}" +
+        ".sp-app-subpage-folder-list{border-top:1px solid var(--border);padding-top:8px;margin-top:4px}" +
         ".sp-disclosure.sp-open .sp-disclosure-chevron{transform:rotate(180deg)}" +
         ".sp-disclosure.sp-open .sp-disclosure-body{display:block}" +
         ".sp-schedule-times.sp-hidden{display:none}" +

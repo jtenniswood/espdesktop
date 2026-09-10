@@ -1,3 +1,4 @@
+import { buildSubpageGrid } from "../../src/webserver/model/subpage";
 import { decodeCompanionCard, encodeCompanionCard } from "../../src/webserver/model/companion_card_codec";
 import {
   companionAppLabel,
@@ -52,6 +53,10 @@ import {
   SAFARI_BUNDLE_ID,
   CODEX_BUNDLE_ID,
   SLACK_BUNDLE_ID,
+  finderFolderTabs,
+  syncFinderFolderSelection,
+  addFinderFolderTiles,
+  createCompanionShortcutSubpage,
   createSafariShortcutSubpage,
   createCodexShortcutSubpage,
   codexShortcutPresetCards,
@@ -85,6 +90,49 @@ function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
 }
 
 export function runCompanionShortcutFeatureTests(): void {
+  const finder = { ...emptyCardConfig("companion"), entity: "com.apple.finder", options: "app_shortcuts,app_shortcuts_auto_switch" };
+  if (!companionAppShortcutFolderEnabled(finder) || !companionAppShortcutAutoSwitchEnabled(finder) ||
+      !cardTransferOwnsSubpage(finder)) throw new Error("Finder must own an optional app subpage");
+  const finderPage = createCompanionShortcutSubpage(finder.entity);
+  if (finderPage.buttons.length || finderPage.order.join() !== "B") {
+    throw new Error("Finder should start with an empty editable folder page");
+  }
+  finderPage.buttons.push({ ...emptyCardConfig("companion"), entity: "folder.projects", label: "Projects" });
+  finderPage.order.push("1");
+  const restoredPage = JSON.parse(JSON.stringify(finderPage));
+  syncCompanionShortcutSubpage(finder.entity, [], restoredPage);
+  if (restoredPage.buttons[0]?.entity !== "folder.projects" || restoredPage.order.join() !== "B,1") {
+    throw new Error("Saving Finder settings must preserve configured directory cards");
+  }
+  const folderTiles = [{ id: "folder.projects", label: "Projects renamed" }, { id: "folder.downloads", label: "Downloads" }];
+  addFinderFolderTiles(restoredPage, folderTiles, 4);
+  addFinderFolderTiles(restoredPage, folderTiles, 4);
+  if (restoredPage.buttons.length !== 2 || restoredPage.buttons[0].label !== "Projects" ||
+      restoredPage.buttons[1].entity !== "folder.downloads" || restoredPage.order.join() !== "B,1,2") {
+    throw new Error("Finder folder population must add missing folders once and preserve existing tiles");
+  }
+  const fullPage = createCompanionShortcutSubpage("com.apple.finder");
+  addFinderFolderTiles(fullPage, folderTiles, 2);
+  if (fullPage.buttons.length !== 1 || fullPage.order.length !== 2) {
+    throw new Error("Folder population must reserve Back and respect display capacity");
+  }
+  const buildFinderGrid = (page: any) => Object.assign(page, buildSubpageGrid(page, 9, 3));
+  const selectionSource = createCompanionShortcutSubpage("com.apple.finder");
+  addFinderFolderTiles(selectionSource, folderTiles, 9);
+  buildFinderGrid(selectionSource);
+  const toggled = syncFinderFolderSelection(selectionSource, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
+  if (!toggled || finderFolderTabs(toggled).join() !== "folder.downloads" || toggled.buttons.length !== 2) {
+    throw new Error("Disabled folders must remain saved but absent from the visible grid");
+  }
+  addFinderFolderTiles(toggled, folderTiles, 9);
+  buildFinderGrid(toggled);
+  if (finderFolderTabs(toggled).join() !== "folder.downloads") throw new Error("Auto population must respect disabled folders");
+  const reordered = syncFinderFolderSelection(toggled, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (finderFolderTabs(reordered).join() !== "folder.downloads,folder.projects") throw new Error("Folder toggles must apply their chosen order");
+  [reordered.grid[1], reordered.grid[2]] = [reordered.grid[2], reordered.grid[1]];
+  if (finderFolderTabs(reordered).join() !== "folder.projects,folder.downloads") throw new Error("Folder lists must follow tile moves");
+  const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
+  if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
   if (companionModes.length !== 6 || new Set(companionModes.map(([mode]) => mode)).size !== 6 ||
       !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
@@ -327,6 +375,16 @@ export function runCompanionShortcutFeatureTests(): void {
       companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, duplicatedPresetSubpage).includes("0")) {
     throw new Error("A duplicated preset must become a custom shortcut without re-enabling its source preset");
   }
+  const movedSafari = createSafariShortcutSubpage();
+  movedSafari.grid = [-2, 4, 3, 5, 0, 0, 0, 0, 0];
+  if (companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, movedSafari).join("|") !== "3|2|4") {
+    throw new Error("App options must follow visible tile order and leave unplaced cards disabled");
+  }
+  movedSafari.grid = [];
+  movedSafari.order = ["B", "5", "3"];
+  if (companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, movedSafari).join("|") !== "4|2") {
+    throw new Error("Saved subpage order must determine app option enablement after reload");
+  }
   const fullSafariSubpage = createSafariShortcutSubpage();
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3"], fullSafariSubpage);
   for (let index = 0; index < 4; index += 1) {
@@ -457,8 +515,8 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const folderAction = "folder.00000000-0000-0000-0000-000000000001";
   if (companionCardMode({ entity: folderAction, sensor: "" }) !== "folder" ||
-      companionCardMode({ entity: "com.apple.finder", sensor: "" }) !== "folder") {
-    throw new Error("Folder actions and legacy Finder cards must use the folder subtype");
+      companionCardMode({ entity: "com.apple.finder", sensor: "" }) !== "app") {
+    throw new Error("Folder actions must use the folder subtype and Finder must use the app subtype");
   }
   const catalogue = [
     { id: "com.apple.Safari", label: "Safari" },
@@ -468,11 +526,11 @@ export function runCompanionShortcutFeatureTests(): void {
     { id: "folder.00000000-0000-0000-0000-000000000002", label: "Archive" },
     { id: "media.play_pause", label: "Media Play/Pause" },
   ];
-  if (companionApplicationActions(catalogue).map((action) => action.id).join() !== "com.google.Chrome,com.apple.Safari") {
-    throw new Error("Finder and approved folders must not appear in the alphabetized application list");
+  if (companionApplicationActions(catalogue).map((action) => action.id).join() !== "com.apple.finder,com.google.Chrome,com.apple.Safari") {
+    throw new Error("Finder must appear in the alphabetized application list without folder actions");
   }
   if (!companionApplicationActionIdValid(catalogue, "com.apple.Safari") ||
-      companionApplicationActionIdValid(catalogue, "com.apple.finder") ||
+      !companionApplicationActionIdValid(catalogue, "com.apple.finder") ||
       companionApplicationActionIdValid([], "com.apple.Safari")) {
     throw new Error("Companion app selections require an available application action");
   }
@@ -546,6 +604,9 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!companionApplicationActionIdCanSave([], offlineSavedApp, offlineSavedApp)
       || companionApplicationActionIdCanSave([], "com.apple.TextEdit", offlineSavedApp)) {
     throw new Error("Offline app editing must preserve only the card's existing app identifier");
+  }
+  if (companionFolderActionIdCanSave([], "folder.", "folder.")) {
+    throw new Error("An empty folder placeholder must not be saved as an unavailable folder");
   }
   const offlineSavedFolder = "folder.approved-documents";
   if (!companionFolderActionIdCanSave([], offlineSavedFolder, offlineSavedFolder)

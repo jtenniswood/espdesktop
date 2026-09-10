@@ -333,7 +333,8 @@ final class CompanionStore: NSObject, ObservableObject {
     func folderActions() -> [ApprovedFolder] { approvedFolders }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
-              CompanionWindowDetector.hasVisibleWindow(for: application),
+              (application.bundleIdentifier == "com.apple.finder" ||
+               CompanionWindowDetector.hasVisibleWindow(for: application)),
               let identifier = application.bundleIdentifier,
               approvedApplicationIdentifiers.contains(identifier),
               availableApps.contains(where: { $0.bundleIdentifier == identifier }) else { return "" }
@@ -342,11 +343,12 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func focusedCompanionActionIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
-              let bundleIdentifier = application.bundleIdentifier,
-              CompanionWindowDetector.hasVisibleWindow(for: application) else { return "" }
+              let bundleIdentifier = application.bundleIdentifier else { return "" }
         if bundleIdentifier == "com.apple.finder" {
-            return focusedFinderFolderActionIdentifier()
+            let folder = focusedFinderFolderActionIdentifier()
+            return folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
         }
+        guard CompanionWindowDetector.hasVisibleWindow(for: application) else { return "" }
         return approvedApplicationIdentifiers.contains(bundleIdentifier) ? bundleIdentifier : ""
     }
 
@@ -359,9 +361,8 @@ final class CompanionStore: NSObject, ObservableObject {
     private func focusedFinderFolderPath() -> String? {
         let source = """
         tell application "Finder"
-            if (count of windows) is 0 then return ""
             try
-                set currentTarget to target of front window
+                set currentTarget to insertion location
                 return POSIX path of (currentTarget as alias)
             on error
                 return ""

@@ -44,6 +44,9 @@ import {
     companionShortcutTabs,
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
+    finderFolderTabs,
+    syncFinderFolderSelection,
+    addFinderFolderTiles,
     createCompanionShortcutSubpage,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
@@ -56,7 +59,6 @@ import {
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
-const COMPANION_FINDER_ID = "com.apple.finder";
 const COMPANION_WINDOW_PREFIX = "window.";
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
 export const COMPANION_SUBTYPE_DEFAULT_ICONS = {
@@ -288,7 +290,7 @@ export function companionEntityForMode(mode: string): string {
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
-        action.id !== COMPANION_FINDER_ID && !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
 
@@ -311,7 +313,7 @@ export function companionFolderActions(actions: readonly CompanionAction[]): rea
 export function companionFolderActionIdCanSave(
     actions: readonly CompanionAction[], actionId: string, savedActionId: string,
 ): boolean {
-    return actionId.startsWith(COMPANION_FOLDER_PREFIX) &&
+    return actionId.startsWith(COMPANION_FOLDER_PREFIX) && actionId.length > COMPANION_FOLDER_PREFIX.length &&
         (actionId === savedActionId || companionFolderActions(actions).some((action) => action.id === actionId));
 }
 
@@ -689,6 +691,7 @@ export function registerCompanionCardTypes(
                 helpers.idPrefix + "companion-app-subpage",
                 card._modalSettingsOpen === true,
             );
+            appSubpageDisclosure.panel.classList.add("sp-app-subpage-settings");
             appSubpageDisclosure.button.addEventListener("click", function () {
                 card._modalSettingsOpen = appSubpageDisclosure.panel.classList.contains("sp-open");
             });
@@ -713,13 +716,18 @@ export function registerCompanionCardTypes(
             const shortcutFolderNote = document.createElement("div");
             shortcutFolderNote.className = "sp-field-info-text";
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
-            shortcutFolderNote.textContent = "Launch " + shortcutFolderApp +
+            shortcutFolderNote.textContent = card.entity === "com.apple.finder"
+                ? "Enabling adds your configured Mac folders as tiles, as space allows. Existing tiles are kept."
+                : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
             shortcutFolderField.appendChild(shortcutFolderNote);
             appSubpageDisclosure.section.appendChild(shortcutFolderField);
             folderToggle.input.addEventListener("change", function () {
                 if (!folderToggle.input.checked) {
                     card._appShortcutDisabledTabs = companionShortcutTabs(card);
+                }
+                if (folderToggle.input.checked && card.entity === "com.apple.finder") {
+                    card._appShortcutSelectionChanged = true;
                 }
                 setCompanionAppShortcutFolderEnabled(card, folderToggle.input.checked);
                 if (folderToggle.input.checked && Array.isArray(card._appShortcutDisabledTabs)) {
@@ -750,7 +758,12 @@ export function registerCompanionCardTypes(
                 helpers.saveField("options", card.options);
             });
 
-            if (companionAppShortcutFolderEnabled(card)) {
+            const finderFolderList = document.createElement("div");
+            if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
+                finderFolderList.className = "sp-app-subpage-folder-list";
+                appSubpageDisclosure.section.appendChild(finderFolderList);
+            }
+            if (companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
                 const shortcutOptionsDivider = document.createElement("div");
                 shortcutOptionsDivider.className = "sp-app-subpage-options-divider";
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
@@ -846,6 +859,40 @@ export function registerCompanionCardTypes(
                 availableCompanionApps = applicationActions;
                 const folderActions = companionFolderActions(actions);
                 availableCompanionFolders = folderActions;
+                if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
+                    finderFolderList.replaceChildren();
+                    const page = savedShortcutSubpage || createCompanionShortcutSubpage(card.entity);
+                    const definitions = [...folderActions];
+                    for (const tile of page.buttons || []) {
+                        if (tile.type === "companion" && tile.entity.startsWith(COMPANION_FOLDER_PREFIX) &&
+                            !definitions.some(folder => folder.id === tile.entity)) {
+                            definitions.push({ id: tile.entity, label: tile.label || tile.entity });
+                        }
+                    }
+                    modalTabs.renderModalTabSettings(finderFolderList, card, helpers, {
+                        definitions: () => definitions.map(folder => ({ value: folder.id, label: folder.label })),
+                        tabs: (button: any) => button._finderFolderTabs ||
+                            (savedShortcutSubpage ? finderFolderTabs(page) : definitions.map(folder => folder.id)),
+                        normalizeOptions: (options: string) => options,
+                        setTabs: (button: any, tabs: string[]) => {
+                            if (!syncFinderFolderSelection(page, definitions, tabs, maxSlots, codec.buildSubpageGrid)) {
+                                button._appShortcutCapacityRejected = true;
+                                return false;
+                            }
+                            delete button._appShortcutCapacityRejected;
+                            button._finderFolderTabs = tabs;
+                            button._appShortcutSelectionChanged = true;
+                            return true;
+                        },
+                        idPrefix: "finder-folder-", hideHeading: true, allowEmpty: true,
+                    });
+                    if (card._appShortcutCapacityRejected) {
+                        const note = document.createElement("div");
+                        note.className = "sp-field-info-text sp-visible";
+                        note.textContent = "No free subpage space. Remove a tile or reduce its size before enabling another folder.";
+                        finderFolderList.appendChild(note);
+                    }
+                }
                 select.replaceChildren();
                 const placeholder = document.createElement("option");
                 placeholder.value = "";
@@ -884,7 +931,7 @@ export function registerCompanionCardTypes(
                     option.selected = action.id === card.entity;
                     folderSelect.appendChild(option);
                 });
-                if (initialMode === "folder" && card.entity &&
+                if (initialMode === "folder" && card.entity && card.entity !== COMPANION_FOLDER_PREFIX &&
                     !folderActions.some(function (action) { return action.id === card.entity; })) {
                     const unavailable = document.createElement("option");
                     unavailable.value = card.entity;
@@ -904,8 +951,9 @@ export function registerCompanionCardTypes(
                 select.appendChild(unavailable);
                 folderSelect.replaceChildren();
                 const folderUnavailable = document.createElement("option");
-                folderUnavailable.value = initialMode === "folder" ? card.entity || "" : "";
-                folderUnavailable.textContent = card.entity && initialMode === "folder"
+                folderUnavailable.value = initialMode === "folder" && card.entity !== COMPANION_FOLDER_PREFIX
+                    ? card.entity || "" : "";
+                folderUnavailable.textContent = folderUnavailable.value
                     ? "Unavailable (companion offline)" : "Mac companion unavailable";
                 folderUnavailable.selected = true;
                 folderSelect.appendChild(folderUnavailable);
@@ -1017,8 +1065,10 @@ export function registerCompanionCardTypes(
                 codec.enterSubpage(slot);
             });
         },
-        afterSave: function (card?: any, slot?: any, context?: any) {
+        afterSave: async function (card?: any, slot?: any, context?: any) {
             if (context?.isSub) return "saved";
+            const folderSelection = card._finderFolderTabs;
+            delete card._finderFolderTabs;
             const selectionChanged = card._appShortcutSelectionChanged === true;
             const appChanged = card._appShortcutAppChanged === true;
             delete card._appShortcutSelectionChanged;
@@ -1035,9 +1085,20 @@ export function registerCompanionCardTypes(
                 grid: (existing.grid || []).slice(),
                 sizes: { ...(existing.sizes || {}) },
             } : null;
-            const subpage = source && !appChanged
-                ? syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
+            let subpage = source && !appChanged
+                ? card.entity === "com.apple.finder" ? source : syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
                 : createCompanionShortcutSubpage(card.entity, companionShortcutTabs(card));
+            if (card.entity === "com.apple.finder") {
+                codec.buildSubpageGrid(subpage);
+                const folders = companionFolderActions(await loadCompanionActions(true));
+                if (Array.isArray(folderSelection)) {
+                    const updated = syncFinderFolderSelection(subpage, folders, folderSelection, maxSlots, codec.buildSubpageGrid);
+                    if (!updated) return "failed";
+                    subpage = updated;
+                } else {
+                    addFinderFolderTiles(subpage, folders, maxSlots);
+                }
+            }
             codec.buildSubpageGrid(subpage);
             state.subpages[slot] = subpage;
             return codec.saveSubpageConfig(slot);

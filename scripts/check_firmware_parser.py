@@ -139,6 +139,7 @@ constexpr int LV_ALIGN_BOTTOM_LEFT = 0;
 [[maybe_unused]] constexpr int LV_ALIGN_BOTTOM_RIGHT = 1;
 constexpr int LV_GRID_ALIGN_START = 0;
 constexpr int LV_GRID_ALIGN_STRETCH = 1;
+constexpr int LV_OPA_TRANSP = 0;
 constexpr int LV_OPA_COVER = 255;
 constexpr int LV_OPA_50 = 128;
 constexpr int LV_OBJ_FLAG_CLICKABLE = 1;
@@ -163,6 +164,9 @@ inline const lv_font_t *lv_obj_get_style_text_font(lv_obj_t *, lv_style_selector
   static const lv_font_t font;
   return &font;
 }
+inline const int lv_label_class = 0;
+inline bool lv_obj_check_type(lv_obj_t *, const int *) { return false; }
+inline void lv_obj_set_style_recolor_opa(lv_obj_t *, int, int) {}
 inline void lv_obj_set_style_opa(lv_obj_t *, int, int) {}
 inline void lv_obj_set_style_text_opa(lv_obj_t *, int, int) {}
 inline void lv_obj_add_state(lv_obj_t *, int) {}
@@ -407,8 +411,10 @@ int main() {
   assert(companion_metric.sensor == "");
   assert(companion_metric.unit == "%");
   assert(companion_metric.precision == "0");
-  assert(companion_metric.options == "large_numbers");
-  assert(card_large_numbers_enabled(companion_metric));
+  assert(companion_metric.options == "");
+  assert(!card_large_numbers_enabled(companion_metric));
+  auto companion_labels_off = parse_cfg("stat.cpu;Processor;Monitor;Auto;;;companion;;stat_labels_off,large_numbers");
+  assert(companion_labels_off.options == "stat_labels_off");
   auto companion_network = parse_cfg("stat.network_throughput;Network Throughput;Gauge;Auto;;;companion;;");
   assert(companion_system_metric_config(companion_network));
   assert(companion_network.unit == "MB/s");
@@ -1014,6 +1020,8 @@ def main() -> int:
         shutil.copy2(BACKLIGHT_FADE_HEADER, tmp_path / "backlight_fade.h")
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
+        shutil.copy2(LAYOUT_HEADER.with_name("card_availability.h"), tmp_path / "card_availability.h")
+        (tmp_path / "lvgl.h").write_text("", encoding="utf-8")
         shutil.copy2(LIMITS_HEADER, tmp_path / "button_grid_limits.h")
         shutil.copy2(STRING_HEADER, tmp_path / "button_grid_string.h")
         shutil.copy2(DISPLAY_TEXT_HEADER, tmp_path / "display_text.h")

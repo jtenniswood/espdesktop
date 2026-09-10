@@ -263,6 +263,7 @@ inline std::string navigation_active_subpage_label() {
   if (entry->kind != "app_shortcuts") return "";
   const ParsedCfg parent_config = parse_cfg(parent->config);
   if (!companion_app_shortcuts_enabled(parent_config)) return "";
+  if (parent_config.entity == "com.apple.finder") return "Finder";
   if (parent_config.entity == "com.apple.Safari") return "Safari";
   if (parent_config.entity == "com.openai.codex") return "Codex";
   if (parent_config.entity == "com.tinyspeck.slackmacgap") return "Slack";
