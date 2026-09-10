@@ -38,7 +38,7 @@ Your card configuration is stored separately and will be preserved unless you ch
 
 ## Can I Use This Without Home Assistant?
 
-Yes. On the **4-inch 4848S040**, the Mac Companion connector can complete setup and provide Mac controls without Home Assistant. Pair the EspDesktop Mac app to launch approved apps, open folders and websites, run shortcuts, arrange windows, control media and volume, and show optional Mac statistics.
+Yes. On the **4-inch 4848S040**, the Mac Companion connector can complete setup and provide Mac controls without Home Assistant. Pair the EspDesktop Mac app to launch approved apps, open folders and websites, run shortcuts, arrange windows, control media and volume, and show Mac statistics.
 
 Home Assistant is still required for smart-home entities such as lights, heating, sensors, and Home Assistant media players. You can connect it alongside Mac Companion to mix both types of cards on the 4848S040.
 

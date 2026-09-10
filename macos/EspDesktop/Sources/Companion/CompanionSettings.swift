@@ -116,19 +116,21 @@ private struct CompanionAccessibilityRow: View {
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Keyboard shortcuts")
-                Text(isGranted ? "Accessibility access is enabled." : "Enable EspDesktop in System Settings → Privacy & Security → Accessibility.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+            Text(isGranted ? "Shortcut Enabled" : "Enable Shortcuts")
+                .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
             Spacer()
-            Button("Open System Settings") {
+            Button {
                 // Leave the SwiftUI control transaction before opening another app.
                 DispatchQueue.main.async {
                     CompanionAccessibilityAuthorizer.shared.requestAccess()
                 }
+            } label: {
+                Text("Open Settings")
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
             }
+            .buttonStyle(.bordered)
+            .modifier(CompanionCapsuleButton())
         }
     }
 }
@@ -176,12 +178,6 @@ private struct CompanionOnboarding: View {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
                         CompanionAccessibilityRow(isGranted: accessibilityGranted)
-                        Divider()
-                        CompanionPermissionRow(
-                            title: "Share Mac stats",
-                            information: "Show your Mac’s performance. Stats are shared only with your paired display on your local network.",
-                            isEnabled: $store.shareSystemMetricsEnabled
-                        )
                         Divider()
                         CompanionPermissionRow(
                             title: "Launch at login",
@@ -382,7 +378,7 @@ struct CompanionSettings: View {
                                 Button {
                                     store.openPanelWebServer()
                                 } label: {
-                                    Label("Customize", systemImage: "slider.horizontal.3")
+                                    Label("Customize", systemImage: "rectangle.grid.2x2")
                                         .padding(.vertical, 4)
                                 }
                                     .help("Open the display’s configuration in your browser")
@@ -401,7 +397,7 @@ struct CompanionSettings: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
                     }
-                    permissionsSection
+                    accessibilityAndStartupSections
                 }
                 .formStyle(.grouped)
             } else {
@@ -824,10 +820,14 @@ struct CompanionSettings: View {
         .padding(.vertical, 24)
     }
 
-    private var permissionsSection: some View {
-        Section("Permissions") {
+    @ViewBuilder
+    private var accessibilityAndStartupSections: some View {
+        Section("Accessibility") {
+            CompanionAccessibilityRow(isGranted: accessibilityGranted)
+        }
+        Section("Startup") {
             CompanionPermissionRow(
-                title: "Open Companion at Launch",
+                title: "Open at Startup",
                 information: store.supportsLaunchAtLogin
                     ? (store.launchAtLoginMessage.isEmpty
                        ? "Open EspDesktop automatically after you sign in."
@@ -835,12 +835,6 @@ struct CompanionSettings: View {
                     : "Install EspDesktop in Applications to open it automatically at login.",
                 isEnabled: store.launchAtLoginBinding(),
                 isAvailable: store.supportsLaunchAtLogin
-            )
-            CompanionAccessibilityRow(isGranted: accessibilityGranted)
-            CompanionPermissionRow(
-                title: "Share Stats to Device",
-                information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
-                isEnabled: $store.shareSystemMetricsEnabled
             )
         }
     }
