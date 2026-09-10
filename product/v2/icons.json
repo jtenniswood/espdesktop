@@ -126,12 +126,6 @@
       "comment": "Image card unavailable state"
     },
     {
-      "name": "Shortcut Command",
-      "codepoint": "F0633",
-      "mdi": "apple-keyboard-command",
-      "comment": "Companion shortcut labels"
-    },
-    {
       "name": "Shortcut Control",
       "codepoint": "F0634",
       "mdi": "apple-keyboard-control",
@@ -193,6 +187,11 @@
     }
   ],
   "icons": [
+    {
+      "name": "Shortcut Command",
+      "codepoint": "F0633",
+      "mdi": "apple-keyboard-command"
+    },
     {
       "name": "Chevron Left",
       "codepoint": "F0141",

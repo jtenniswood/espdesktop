@@ -5200,7 +5200,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] =
-    "com.apple.Safari;Safari;Monitor;Auto;;;companion;;app_shortcuts";
+    "com.apple.Safari;Safari;Shortcut Command;Auto;;;companion;;app_shortcuts";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
@@ -5214,9 +5214,18 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await seedNativeDocument(page, nativeState);
+    const commandIcon = page.locator('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
+    await commandIcon.waitFor({ state: "visible" });
+    assert.strictEqual(
+      await commandIcon.evaluate((element) => getComputedStyle(element, "::before").content),
+      '"' + String.fromCodePoint(0xF0633) + '"',
+      "saved Command cards render the bundled MDI glyph",
+    );
     await page.locator('.sp-main [data-slot="1"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
+
+    await page.locator(".sp-settings-modal .sp-icon-picker-preview.mdi-apple-keyboard-command").first().waitFor({ state: "visible" });
 
     const panels = page.locator(".sp-settings-modal .sp-panel > .sp-disclosure");
     const panelLabels = await panels.locator(".sp-disclosure-button > span:first-child").allTextContents();
