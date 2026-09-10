@@ -297,6 +297,26 @@ export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: 
     };
 }
 
+// Add configured directories without replacing custom cards, labels, or layout.
+export function addFinderFolderTiles(
+    subpage: any, folders: readonly { id: string; label: string }[], maxSlots: number,
+): any {
+    const existing = new Set((subpage.buttons || []).map((card: any) => card.entity));
+    for (const folder of folders) {
+        if (!folder.id.startsWith("folder.") || folder.id.length <= 7 || existing.has(folder.id)) continue;
+        let position = -1;
+        for (let index = 0; index < maxSlots; index += 1) {
+            if (!subpage.order[index] && !subpage.grid?.[index]) { position = index; break; }
+        }
+        if (position < 0) break;
+        subpage.buttons.push(shortcutCard(folder.id, folder.label, "Folder Outline"));
+        while (subpage.order.length <= position) subpage.order.push("");
+        subpage.order[position] = String(subpage.buttons.length);
+        existing.add(folder.id);
+    }
+    return subpage;
+}
+
 function subpageOrderButtonIndex(token: unknown): number {
     const match = String(token || "").match(/^(\d+)/);
     return match ? Number.parseInt(match[1] || "0", 10) - 1 : -1;

@@ -54,6 +54,7 @@ import {
   SAFARI_BUNDLE_ID,
   CODEX_BUNDLE_ID,
   SLACK_BUNDLE_ID,
+  addFinderFolderTiles,
   createCompanionShortcutSubpage,
   createSafariShortcutSubpage,
   createCodexShortcutSubpage,
@@ -101,6 +102,18 @@ export function runCompanionShortcutFeatureTests(): void {
   syncCompanionShortcutSubpage(finder.entity, [], restoredPage);
   if (restoredPage.buttons[0]?.entity !== "folder.projects" || restoredPage.order.join() !== "B,1") {
     throw new Error("Saving Finder settings must preserve configured directory cards");
+  }
+  const folderTiles = [{ id: "folder.projects", label: "Projects renamed" }, { id: "folder.downloads", label: "Downloads" }];
+  addFinderFolderTiles(restoredPage, folderTiles, 4);
+  addFinderFolderTiles(restoredPage, folderTiles, 4);
+  if (restoredPage.buttons.length !== 2 || restoredPage.buttons[0].label !== "Projects" ||
+      restoredPage.buttons[1].entity !== "folder.downloads" || restoredPage.order.join() !== "B,1,2") {
+    throw new Error("Finder folder population must add missing folders once and preserve existing tiles");
+  }
+  const fullPage = createCompanionShortcutSubpage("com.apple.finder");
+  addFinderFolderTiles(fullPage, folderTiles, 2);
+  if (fullPage.buttons.length !== 1 || fullPage.order.length !== 2) {
+    throw new Error("Folder population must reserve Back and respect display capacity");
   }
   const companionModes = companionCardModeOptions();
   if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||

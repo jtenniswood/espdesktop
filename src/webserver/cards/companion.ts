@@ -46,6 +46,7 @@ import {
     companionShortcutTabs,
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
+    addFinderFolderTiles,
     createCompanionShortcutSubpage,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
@@ -683,7 +684,7 @@ export function registerCompanionCardTypes(
             shortcutFolderNote.className = "sp-field-info-text";
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
             shortcutFolderNote.textContent = card.entity === "com.apple.finder"
-                ? "Open Finder and an editable subpage. Add Open folder cards using folders configured in the Mac app."
+                ? "Enabling adds your configured Mac folders as tiles, as space allows. Existing tiles are kept."
                 : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
             shortcutFolderField.appendChild(shortcutFolderNote);
@@ -691,6 +692,9 @@ export function registerCompanionCardTypes(
             folderToggle.input.addEventListener("change", function () {
                 if (!folderToggle.input.checked) {
                     card._appShortcutDisabledTabs = companionShortcutTabs(card);
+                }
+                if (folderToggle.input.checked && card.entity === "com.apple.finder") {
+                    card._appShortcutSelectionChanged = true;
                 }
                 setCompanionAppShortcutFolderEnabled(card, folderToggle.input.checked);
                 if (folderToggle.input.checked && Array.isArray(card._appShortcutDisabledTabs)) {
@@ -1003,7 +1007,7 @@ export function registerCompanionCardTypes(
                 codec.enterSubpage(slot);
             });
         },
-        afterSave: function (card?: any, slot?: any, context?: any) {
+        afterSave: async function (card?: any, slot?: any, context?: any) {
             if (context?.isSub) return "saved";
             const selectionChanged = card._appShortcutSelectionChanged === true;
             const appChanged = card._appShortcutAppChanged === true;
@@ -1022,8 +1026,12 @@ export function registerCompanionCardTypes(
                 sizes: { ...(existing.sizes || {}) },
             } : null;
             const subpage = source && !appChanged
-                ? syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
+                ? card.entity === "com.apple.finder" ? source : syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
                 : createCompanionShortcutSubpage(card.entity, companionShortcutTabs(card));
+            if (card.entity === "com.apple.finder") {
+                codec.buildSubpageGrid(subpage);
+                addFinderFolderTiles(subpage, companionFolderActions(await loadCompanionActions(true)), maxSlots);
+            }
             codec.buildSubpageGrid(subpage);
             state.subpages[slot] = subpage;
             return codec.saveSubpageConfig(slot);
