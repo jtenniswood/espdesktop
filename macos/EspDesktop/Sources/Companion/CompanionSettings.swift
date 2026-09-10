@@ -91,6 +91,8 @@ private struct CompanionInfoButton: View {
     }
 }
 
+private let companionSettingsRowMinHeight: CGFloat = 32
+
 private struct CompanionPermissionRow: View {
     let title: String
     let information: String
@@ -109,6 +111,7 @@ private struct CompanionPermissionRow: View {
                 .disabled(!isAvailable)
                 .accessibilityHint(information)
         }
+        .frame(minHeight: companionSettingsRowMinHeight)
     }
 }
 
@@ -133,6 +136,7 @@ private struct CompanionAccessibilityRow: View {
             .buttonStyle(.bordered)
             .modifier(CompanionCapsuleButton())
         }
+        .frame(minHeight: companionSettingsRowMinHeight)
     }
 }
 
