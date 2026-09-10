@@ -718,11 +718,6 @@ export function registerCompanionCardTypes(
             catalogShortcut.value = savedCatalogShortcut?.options || "";
             catalogShortcutField.appendChild(catalogShortcut);
             catalogField.appendChild(catalogShortcutField);
-            const catalogNote = document.createElement("div");
-            catalogNote.className = "sp-field-info-text sp-visible";
-            catalogNote.textContent = "Bring " + (companionShortcutFolderAppLabel(catalogApp.value) || "the selected app") +
-                " to the front before using this shortcut. Shortcuts run in the active Mac app.";
-            catalogField.appendChild(catalogNote);
             shortcutField.appendChild(catalogField);
             helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "catalog";
