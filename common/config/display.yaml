@@ -416,7 +416,6 @@ select:
     - lambda: |-
         set_display_temperature_unit(id(temperature_unit_select).current_option(),
                                      id(timezone_select).current_option());
-        refresh_temperature_unit_labels();
         refresh_clock_bar_subpage_title(
           id(main_page)->obj,
           clock_bar_should_show(

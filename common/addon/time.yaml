@@ -180,7 +180,6 @@ select:
         set_display_temperature_unit(id(temperature_unit_select).current_option(),
                                      active_timezone);
         id(screen_active_timezone_sensor).publish_state(active_timezone);
-        refresh_temperature_unit_labels();
         refresh_clock_bar_subpage_title(
           id(main_page)->obj,
           clock_bar_should_show(
@@ -389,7 +388,6 @@ script:
       id(screen_active_timezone_sensor).publish_state(active_timezone);
       ESP_LOGI("timezone", "Configured timezone: %s; active timezone: %s",
                timezone_option.c_str(), active_timezone.c_str());
-      refresh_temperature_unit_labels();
       refresh_clock_bar_subpage_title(
         id(main_page)->obj,
         clock_bar_should_show(
