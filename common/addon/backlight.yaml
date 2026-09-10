@@ -320,6 +320,7 @@ script:
     generation: int
     previous_mode: int
   then:
+  - lvgl.resume:
   - lvgl.widget.hide: dim_screensaver_touch_guard
   - if:
       condition:

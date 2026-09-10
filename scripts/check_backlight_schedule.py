@@ -71,6 +71,16 @@ def check_clock_switches_without_fade() -> None:
     print("clock screensaver direct transition: ok")
 
 
+def check_wake_resumes_rendering() -> None:
+    source = FADE_SOURCE.read_text(encoding="utf-8")
+    active = source.split("- id: display_mode_effect_active\n", 1)[1].split("\n- id:", 1)[0]
+    actions = active.split("  then:\n", 1)[1].lstrip()
+    assert actions.startswith("- lvgl.resume:"), (
+        "waking must resume LVGL before widget updates or backlight restoration"
+    )
+    print("display-off wake resumes rendering: ok")
+
+
 def main() -> None:
     text = SOURCE.read_text(encoding="utf-8")
     handler = text.index("- id: display_backlight_handle_state")
@@ -103,6 +113,7 @@ def main() -> None:
     print("backlight schedule startup guard: ok")
     check_recovery(text)
     check_clock_switches_without_fade()
+    check_wake_resumes_rendering()
 
 
 if __name__ == "__main__":
