@@ -29,6 +29,7 @@
 #ifdef USE_LVGL
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
+#include "card_availability.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
