@@ -34,7 +34,7 @@ private enum CompanionPairingStep {
     case address, code, connecting, connected
 }
 
-private struct CompanionCapsuleButton: ViewModifier {
+struct CompanionCapsuleButton: ViewModifier {
     func body(content: Content) -> some View {
         if #available(macOS 14.0, *) {
             content.buttonBorderShape(.capsule)
