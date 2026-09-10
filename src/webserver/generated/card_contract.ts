@@ -3024,6 +3024,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "label": "Large Sensor Numbers",
         "kind": "flag",
         "omitDefault": true
+      },
+      {
+        "name": "stat_labels_off",
+        "label": "Show capacity label",
+        "kind": "flag",
+        "omitDefault": true
       }
     ],
     "normalization": {
@@ -3073,7 +3079,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "app_shortcuts_auto_switch",
         "app_shortcuts_tabs",
         "app_shortcut_preset",
-        "large_numbers"
+        "large_numbers",
+        "stat_labels_off"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -4849,6 +4856,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "security": "security",
   "speaker_group_entity": "speaker_group_entity",
   "ssid64": "ssid64",
+  "stat_labels_off": "stat_labels_off",
   "state_entity": "state_entity",
   "state_high_label": "state_high_label",
   "state_input": "state_input",

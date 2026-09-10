@@ -1,4 +1,6 @@
+import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { configOptionEnabled, setConfigOption } from "../model/config_primitives";
 import { createCompanionCatalogue } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
@@ -175,6 +177,7 @@ export function companionMediaIcon(
 }
 
 export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
+    if (mode === "ip_address") return "Laptop";
     if (mode === "media") {
         return COMPANION_MEDIA_ACTIONS.find((action) => action.id === entity)?.icon
             || COMPANION_MEDIA_ACTIONS[0].icon;
@@ -235,7 +238,7 @@ const COMPANION_CARD_METADATA = {
     largeNumbers: {
         label: "Large Sensor Numbers",
         idSuffix: "large-companion-numbers",
-        supported: companionCardIsMetric,
+        supported: (card: any) => companionCardIsMetric(card) && companionMetricForEntity(card?.entity)?.mode !== "ip_address",
     },
     preview: { badge: "monitor" },
 };
@@ -246,15 +249,42 @@ export function companionCardIsMetric(card: any): boolean {
 
 
 
-export function companionMetricDisplayMode(card: any): "used" | "free" {
+export function companionMetricDisplayMode(card: any): "used" | "free" | "remaining" {
     const metric = companionMetricForEntity(card?.entity);
-    return metric?.freeId === card?.entity ? "free" : "used";
+    if (metric?.mode === "battery") return metric.freeId === card?.entity?.split(":")[0] ? "free" : "used";
+    return metric?.freeId === card?.entity?.split(":")[0] ? "free" : "used";
 }
 
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
     if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
+}
+
+export function companionMetricIcon(entity: string): string {
+    if (entity === "stat.battery" || entity === "stat.battery_used") return "battery-outline";
+    if (entity.startsWith("stat.memory")) return "memory";
+    if (entity.startsWith("stat.storage")) return "harddisk";
+    if (entity === "stat.network_throughput") return "lan";
+    return "gauge";
+}
+
+export function companionMetricLabel(entity: string, value: string, unit: string): string {
+    entity = entity.split(":")[0] || entity;
+    const suffix = entity === "stat.battery_used" ? " used"
+        : entity === "stat.battery" ? " left"
+        : entity.endsWith("_free") ? " free"
+        : entity === "stat.network_throughput" ? "" : " used";
+    return value + (unit === "%" ? "" : " ") + unit + suffix;
+}
+
+export function companionMetricDescriptionEnabled(card: any): boolean {
+    return !configOptionEnabled(card?.options, "stat_labels_off");
+}
+
+export function companionMetricDisplayLabel(card: any, value: string, unit: string): string {
+    return companionMetricLabel(card.entity, value, unit).replace(
+        / (used|free|remaining)$/, companionMetricDescriptionEnabled(card) ? " $1" : "");
 }
 
 export function companionMetricPreviewValue(precision: unknown, sample = Math.random()): string {
@@ -347,11 +377,12 @@ export function normalizeCompanionCard(card: any): void {
         const model = decodeCompanionCard(card);
         if (model.mode !== "stats") return;
         Object.assign(card, encodeCompanionCard({ ...model,
-            unit: model.unit === "KB/s" ? metric.unit : (model.unit || metric.unit),
+            unit: metric.mode === "ip_address" ? "" : (model.unit === "KB/s" ? metric.unit : (model.unit || metric.unit)),
             precision: ["0", "1", "2"].includes(model.precision) ? model.precision : "0",
         }, card));
         card.options = String(card.options || "").split(",").filter((option) =>
-            option === "large_numbers" || option === "large_numbers=off").join(",");
+            option === "large_numbers" || option === "large_numbers=off" || option === "stat_labels_off").join(",");
+        if (metric.mode === "ip_address") card.options = "";
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon(metric.mode, card.entity);
@@ -437,10 +468,12 @@ export function registerCompanionCardTypes(
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
 
-            helpers.renderCardTextField(panel, card, helpers, {
-                label: "Label", idSuffix: "label", field: "label",
-                placeholder: companionLabelPlaceholder(card), rerender: true,
-            });
+            if (!companionCardIsMetric(card)) {
+                helpers.renderCardTextField(panel, card, helpers, {
+                    label: "Label", idSuffix: "label", field: "label",
+                    placeholder: companionLabelPlaceholder(card), rerender: true,
+                });
+            }
 
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
@@ -464,6 +497,8 @@ export function registerCompanionCardTypes(
                         card.unit = selected.unit;
                         helpers.saveField("unit", card.unit);
                     }
+                    card.icon = companionMediaIcon(card.icon, companionSubtypeDefaultIcon(metric?.mode || "stats"), companionSubtypeDefaultIcon(selected.mode));
+                    helpers.saveField("icon", card.icon);
                     card.entity = selected.id;
                     helpers.saveField("entity", card.entity);
                     renderButtonSettings();
@@ -471,15 +506,19 @@ export function registerCompanionCardTypes(
                 statsField.appendChild(statsSelect);
                 helpers.markCardPrimaryField(statsField, "statistic");
                 panel?.appendChild(statsField);
-                if (metric?.freeId) {
+                if (metric?.mode === "storage") {
+                    renderCompanionStorageSelector(panel, card, helpers, fetchImpl);
+                }
+                if (metric?.freeId || metric?.mode === "battery") {
                     const displayField = document.createElement("div");
-                    displayField.className = "sp-field";
-                    displayField.appendChild(fieldLabel("Show", helpers.idPrefix + "metric-display"));
+                    displayField.className = "sp-field sp-metric-capacity-field";
+                    displayField.appendChild(fieldLabel("Capacity", helpers.idPrefix + "metric-display"));
                     const displaySelect = document.createElement("select");
                     displaySelect.className = "sp-select";
                     displaySelect.id = helpers.idPrefix + "metric-display";
                     sortCompanionLabels([
-                        { value: "used", label: "Used" }, { value: "free", label: "Free" },
+                        ...(metric?.freeId ? [{ value: "used", label: "Used" }, { value: "free", label: metric?.mode === "battery" ? "Left" : "Free" }] :
+                            [{ value: "remaining", label: "Remaining" }]),
                     ]).forEach((item) => {
                         const option = document.createElement("option");
                         option.value = item.value;
@@ -488,13 +527,53 @@ export function registerCompanionCardTypes(
                     });
                     displaySelect.value = companionMetricDisplayMode(card);
                     displaySelect.addEventListener("change", function () {
-                        card.entity = this.value === "free" ? metric.freeId : metric.id;
+                        if (!metric?.freeId) return;
+                        const device = card.entity.split(":")[1];
+                        card.entity = (this.value === "free" ? metric.freeId : metric.id) + (device ? ":" + device : "");
                         helpers.saveField("entity", card.entity);
                         renderButtonSettings();
                     });
                     displayField.appendChild(displaySelect);
                     panel?.appendChild(displayField);
                 }
+                if (metric?.mode === "ip_address") {
+                    const field = document.createElement("div");
+                    field.className = "sp-field";
+                    field.appendChild(fieldLabel("Network device", helpers.idPrefix + "companion-network"));
+                    const select = document.createElement("select");
+                    select.id = helpers.idPrefix + "companion-network";
+                    select.className = "sp-select";
+                    const selectedId = String(card.entity).split(":")[1] || "";
+                    select.add(new Option(selectedId || "Select a network device", selectedId));
+                    select.value = selectedId;
+                    select.addEventListener("change", function () {
+                        card.entity = "stat.ip_address:" + this.value;
+                        helpers.saveField("entity", card.entity);
+                    });
+                    const status = document.createElement("p");
+                    status.textContent = "Loading Mac network devices…";
+                    field.append(select, status);
+                    panel?.appendChild(field);
+                    void fetch("/companion/networks", { cache: "no-store" }).then(async (response) => {
+                        if (!response.ok) throw new Error("unavailable");
+                        const networks: unknown = await response.json();
+                        if (!Array.isArray(networks)) throw new Error("unavailable");
+                        for (const network of networks) {
+                            if (typeof network?.id !== "string" || typeof network?.label !== "string") continue;
+                            if (network.id === selectedId) select.options[0]!.textContent = network.label;
+                            else select.add(new Option(network.label, network.id));
+                        }
+                        status.textContent = networks.length ? "Shows the selected device’s IPv4 address." :
+                            "Connect the Mac and enable Stats sharing to load network devices.";
+                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the Mac and enable Stats sharing."; });
+                    return;
+                }
+                const description = helpers.toggleRow("Show capacity label", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));
+                description.input.addEventListener("change", function (this: HTMLInputElement) {
+                    card.options = setConfigOption(card.options, "stat_labels_off", !this.checked);
+                    helpers.saveField("options", card.options);
+                });
+                panel?.appendChild(description.row);
                 helpers.renderCardTextField(panel, card, helpers, {
                     label: "Unit", idSuffix: "unit", field: "unit",
                     placeholder: "%", rerender: true,
@@ -505,7 +584,6 @@ export function registerCompanionCardTypes(
                         helpers.saveField("precision", card.precision);
                     });
                 panel?.appendChild(precision.field);
-                helpers.renderCardLargeNumbersToggle(panel, card, helpers, COMPANION_CARD_METADATA);
                 return;
             }
 
@@ -962,12 +1040,14 @@ export function registerCompanionCardTypes(
             const mode = companionCardMode(card);
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
+                if (metric?.mode === "ip_address") return {
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-laptop"></span>',
+                    labelHtml: cardBadgeLabelHtml(helpers, "192.168.1.100"),
+                };
                 return {
-                    iconHtml: cardSensorPreviewHtml(
-                        card, helpers, companionMetricPreviewValue(card.precision),
-                        card.unit || metric?.unit || "%",
-                    ),
-                    labelHtml: cardBadgeLabelHtml(helpers, card.label || metric?.label || "Mac"),
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-' + companionMetricIcon(card.entity) + '"></span>',
+                    labelHtml: cardBadgeLabelHtml(helpers, companionMetricDisplayLabel(card,
+                        companionMetricPreviewValue(card.precision), card.unit || metric?.unit || "%")),
                 };
             }
             if (mode === "stats") {

@@ -141,6 +141,7 @@
 - "\U000F0299"  # mdi-gate
 - "\U000F116A"  # mdi-gate-open
 - "\U000F0741"  # mdi-gesture-tap
+- "\U000F02CA"  # mdi-harddisk
 - "\U000F029A"  # mdi-gauge
 - "\U000F0873"  # mdi-gauge-empty
 - "\U000F0874"  # mdi-gauge-full
@@ -365,5 +366,6 @@
 - "\U000F05B1"  # mdi-window-open
 - "\U000F111C"  # mdi-window-shutter
 - "\U000F111E"  # mdi-window-shutter-open
+- "\U000F0322"  # mdi-laptop
 # --- GENERATED:ICONS END ---
 - "\U000F05A9"  # mdi-wifi (Settings quality)

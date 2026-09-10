@@ -85,7 +85,9 @@ inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {
   {"stat.storage", "Storage", "storage", "%"},
   {"stat.storage_free", "Storage", "storage", "%"},
   {"stat.battery", "Battery", "battery", "%"},
+  {"stat.battery_used", "Battery", "battery", "%"},
   {"stat.network_throughput", "Network", "network_throughput", "MB/s"},
+  {"stat.ip_address", "IP address", "ip_address", ""},
 };
 
 inline constexpr const char *COMPANION_MEDIA_ACTION_IDS[] = {
@@ -102,7 +104,8 @@ inline const CompanionWindowCapability *companion_window_capability(const std::s
 }
 
 inline const CompanionMetricCapability *companion_metric_capability(const std::string &id) {
-  for (const auto &item : COMPANION_METRIC_CAPABILITIES) if (id == item.id) return &item;
+  for (const auto &item : COMPANION_METRIC_CAPABILITIES)
+    if (id == item.id || (std::string(item.id) == "stat.ip_address" && id.size() > std::string("stat.ip_address:").size() && id.rfind("stat.ip_address:", 0) == 0) || (std::string(item.id) == "stat.storage" && id.size() > std::string("stat.storage:").size() && id.rfind("stat.storage:", 0) == 0) || (std::string(item.id) == "stat.storage_free" && id.size() > std::string("stat.storage_free:").size() && id.rfind("stat.storage_free:", 0) == 0)) return &item;
   return nullptr;
 }
 

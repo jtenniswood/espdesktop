@@ -467,6 +467,44 @@
             "minimum": 0,
             "maximum": 1000000000.0,
             "optional": true
+          },
+          "storageDevices": {
+            "type": "array",
+            "optional": true,
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "fields": {
+                "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+                "label": { "type": "string", "minLength": 1, "maxLength": 96 },
+                "usagePercent": { "type": "number", "minimum": 0, "maximum": 100 }
+              }
+            }
+          },
+          "networkInterfaces": {
+            "type": "array",
+            "maxItems": 32,
+            "optional": true,
+            "items": {
+              "type": "object",
+              "fields": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "address": {
+                  "type": "string",
+                  "maxLength": 45,
+                  "minLength": 0
+                }
+              }
+            }
           }
         },
         "states": [
@@ -928,6 +966,7 @@
     {
       "mode": "battery",
       "id": "stat.battery",
+      "freeId": "stat.battery_used",
       "label": "Battery",
       "labelKey": "battery",
       "unit": "%"
@@ -938,6 +977,13 @@
       "label": "Network",
       "labelKey": "network_throughput",
       "unit": "MB/s"
+    },
+    {
+      "mode": "ip_address",
+      "id": "stat.ip_address",
+      "label": "IP address",
+      "labelKey": "ip_address",
+      "unit": ""
     }
   ]
 }

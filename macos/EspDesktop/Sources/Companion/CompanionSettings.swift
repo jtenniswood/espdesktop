@@ -929,6 +929,8 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
 
     func updateNSView(_ nsView: WindowObserver, context: Context) {
         context.coordinator.selection = $selection
+        let selection = self.selection
+        context.coordinator.toolbar.selectedItemIdentifier = .init(selection.rawValue)
         context.coordinator.updateSelection()
     }
 

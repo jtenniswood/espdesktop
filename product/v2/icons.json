@@ -744,6 +744,11 @@
       "mdi": "gesture-tap"
     },
     {
+      "name": "Harddisk",
+      "codepoint": "F02CA",
+      "mdi": "harddisk"
+    },
+    {
       "name": "Gauge",
       "codepoint": "F029A",
       "mdi": "gauge"
@@ -1877,6 +1882,11 @@
       "name": "Window Shutter Open",
       "codepoint": "F111E",
       "mdi": "window-shutter-open"
+    },
+    {
+      "name": "Laptop",
+      "codepoint": "F0322",
+      "mdi": "laptop"
     }
   ],
   "domain_defaults": {
