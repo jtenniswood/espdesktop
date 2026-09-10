@@ -106,7 +106,7 @@ esphome:
                         screen_schedule_waiting_for_time(
                           id(screen_schedule_trigger).state,
                           id(schedule_enabled).state,
-                          panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now()).is_valid()));
+                          id(panel_time).now().is_valid()));
             then:
               # Expected on boot when schedule logic says the panel should
               # remain dark, or while time is not ready enough to decide.

@@ -37,7 +37,6 @@ import { createConfigImageOptionsFeature } from "./application/config_image_opti
 import { createConfigWeatherOptionsFeature } from "./application/config_weather_options";
 import { createConfigWebhookOptionsFeature } from "./application/config_webhook_options";
 import { createConfigInternalRelayOptionsFeature } from "./application/config_internal_relay_options";
-import { createConfigRobotCardOptionsFeature } from "./application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "./application/config_lock_options";
 import { createConfigDateTimeOptionsFeature } from "./application/config_date_time_options";
 import { createConfigModalTabOptionsFeature } from "./application/config_modal_tab_options";
@@ -315,7 +314,6 @@ function composeApplicationContext(): ApplicationContext {
   const weatherConfigurationOptions = createConfigWeatherOptionsFeature(layout.config);
   const webhookConfigurationOptions = createConfigWebhookOptionsFeature();
   const internalRelayConfigurationOptions = createConfigInternalRelayOptionsFeature(layout.config);
-  const robotConfigurationOptions = createConfigRobotCardOptionsFeature();
   const lockConfigurationOptions = createConfigLockOptionsFeature();
   let configurationCodec: ReturnType<typeof createConfigCodecFeature>;
   const core = createCoreFeature(
@@ -353,7 +351,6 @@ function composeApplicationContext(): ApplicationContext {
     imageConfigurationOptions,
     weatherConfigurationOptions,
     webhookConfigurationOptions,
-    robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,
     modalTabOptions,
@@ -852,7 +849,6 @@ function composeApplicationContext(): ApplicationContext {
     weatherConfigurationOptions,
     webhookConfigurationOptions,
     internalRelayConfigurationOptions,
-    robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,
     modalTabOptions,

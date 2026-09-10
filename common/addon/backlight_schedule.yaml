@@ -157,7 +157,7 @@ esphome:
                   call.set_value("time");
                   call.perform();
         - lambda: |-
-            auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+            auto now = id(panel_time).now();
             const bool waiting_for_time = screen_schedule_waiting_for_time(
                 id(screen_schedule_trigger).state, id(schedule_enabled).state, now.is_valid());
             const bool schedule_night = screen_schedule_night_active(
@@ -535,7 +535,7 @@ number:
               lambda: |-
                 if (!id(espdesktop_app).display().current_mode_is(
                       espdesktop::DisplayMode::ACTIVE)) return false;
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto now = id(panel_time).now();
                 return screen_schedule_night_active(
                          id(screen_schedule_trigger).state,
                          id(schedule_enabled).state,
@@ -745,7 +745,7 @@ script:
     mode: restart
     then:
       - lambda: |-
-          auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+          auto now = id(panel_time).now();
           const bool normal_active = screen_schedule_normal_active(
               id(screen_schedule_trigger).state,
               id(schedule_enabled).state,
@@ -790,7 +790,7 @@ script:
             return;
           }
 
-          auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+          auto now = id(panel_time).now();
           if (screen_schedule_normal_active(
                 id(screen_schedule_trigger).state,
                 id(schedule_enabled).state,
@@ -829,7 +829,7 @@ script:
                 espdesktop::DisplayMode::COVER_ART)) return;
           const bool onboarding = id(espdesktop_app).display().target_source_is(
               espdesktop::DisplayRequestSource::ONBOARDING);
-          auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+          auto now = id(panel_time).now();
           if (id(espdesktop_app).display().target_source_is(
                 espdesktop::DisplayRequestSource::SCREEN_SCHEDULE)) {
             if (id(espdesktop_app).display().target_mode_is(
@@ -925,7 +925,7 @@ script:
     mode: single
     then:
       - lambda: |-
-          auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+          auto now = id(panel_time).now();
           if (!now.is_valid()) return;
           bool use_12h = id(clock_format_12h);
           auto r = recalc_sunrise_sunset(now.year, now.month, now.day_of_month,
@@ -961,7 +961,7 @@ interval:
                      screen_schedule_waiting_for_time(
                        id(screen_schedule_trigger).state,
                        id(schedule_enabled).state,
-                       panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now()).is_valid()));
+                       id(panel_time).now().is_valid()));
           then:
             - script.execute: backlight_force_display_off
 
@@ -971,7 +971,7 @@ interval:
       - if:
           condition:
             lambda: |-
-              auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+              auto now = id(panel_time).now();
               if (!now.is_valid()) return false;
               std::string mode = normalize_brightness_mode(
                   id(brightness_mode).current_option());
@@ -1003,7 +1003,7 @@ interval:
       - if:
           condition:
             lambda: |-
-              auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+              auto now = id(panel_time).now();
               return now.is_valid() && now.hour == 0 && now.minute == 0;
           then:
             - script.execute: backlight_recalc_sunrise_sunset

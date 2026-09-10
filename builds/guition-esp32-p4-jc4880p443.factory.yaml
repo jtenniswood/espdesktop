@@ -5,7 +5,6 @@
 # =============================================================================
 
 substitutions:
-  cover_art_placeholder_file: "../common/assets/cover_art_placeholder.svg"
   firmware_version: "0.0.0"
   espdesktop_component_url: "file:///config"
   mdi_font_file: "/config/common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
@@ -13,7 +12,6 @@ substitutions:
 
 packages:
   core: !include guition-esp32-p4-jc4880p443.yaml
-  api_encryption: !include ../common/addon/api_encryption_dynamic.yaml
 
 esphome:
   project:

@@ -423,7 +423,7 @@ script:
             else controller.clear(source);
           };
 
-          auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+          auto now = id(panel_time).now();
           const bool setup_page_active =
               lv_scr_act() == id(ha_setup_page)->obj ||
               lv_scr_act() == id(ha_actions_page)->obj ||
@@ -660,7 +660,7 @@ script:
       - if:
           condition:
             lambda: |-
-              auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+              auto now = id(panel_time).now();
               if (screen_schedule_night_active(
                     id(screen_schedule_trigger).state,
                     id(schedule_enabled).state,
@@ -1039,7 +1039,7 @@ script:
                            screen_schedule_waiting_for_time(
                              id(screen_schedule_trigger).state,
                              id(schedule_enabled).state,
-                             panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now()).is_valid());
+                             id(panel_time).now().is_valid());
                 then:
                   - script.execute: display_mode_reconcile
                 else:
@@ -1168,7 +1168,7 @@ script:
           id(espdesktop_app).display().clear(
               espdesktop::DisplayRequestSource::MANUAL_SLEEP);
           if (id(schedule_enabled).state) {
-            auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+            auto now = id(panel_time).now();
             bool schedule_night = screen_schedule_night_active(
               id(screen_schedule_trigger).state,
               id(schedule_enabled).state,
@@ -1307,7 +1307,7 @@ script:
             if (night_pct < 1.0f) night_pct = 1.0f;
             if (night_pct > 100.0f) night_pct = 100.0f;
 
-            auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+            auto now = id(panel_time).now();
             bool is_day = id(last_is_daytime);
             int rise_h = id(sunrise_hour);
             int rise_m = id(sunrise_minute);
@@ -1387,7 +1387,7 @@ script:
     mode: restart
     then:
       - lambda: |-
-          auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+          auto now = id(panel_time).now();
 
           float pct = ${screen_saver_clock_default_brightness}.0f;
           if (id(espdesktop_app).display().target_source_is(
@@ -1479,7 +1479,7 @@ script:
             - lvgl.widget.hide: dim_screensaver_touch_guard
             - lambda: |-
                 apply_clock_screensaver_text_color(id(clock_label), id(schedule_clock_text_color).state);
-                auto time = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto time = id(panel_time).now();
                 if (time.is_valid()) {
                   char buf[8];
                   bool use_12h = id(clock_format_12h);
@@ -1575,7 +1575,7 @@ interval:
           if (!id(espdesktop_app).display().current_mode_is(
                 espdesktop::DisplayMode::CLOCK)) return;
           apply_clock_screensaver_text_color(id(clock_label), id(schedule_clock_text_color).state);
-          auto time = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+          auto time = id(panel_time).now();
           if (!time.is_valid()) return;
           char buf[8];
           bool use_12h = id(clock_format_12h);

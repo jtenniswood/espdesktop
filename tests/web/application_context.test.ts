@@ -6,7 +6,6 @@ import { createCardRegistry } from "../../src/webserver/application/card_registr
 import { createConfigWeatherOptionsFeature } from "../../src/webserver/application/config_weather_options";
 import { createConfigWebhookOptionsFeature } from "../../src/webserver/application/config_webhook_options";
 import { createConfigInternalRelayOptionsFeature } from "../../src/webserver/application/config_internal_relay_options";
-import { createConfigRobotCardOptionsFeature } from "../../src/webserver/application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "../../src/webserver/application/config_lock_options";
 import { createConfigDateTimeOptionsFeature } from "../../src/webserver/application/config_date_time_options";
 import type { DeviceConfig } from "../../src/webserver/state/types";
@@ -40,7 +39,6 @@ export function runApplicationContextTests(): void {
   const weatherConfigurationOptions = {} as any;
   const webhookConfigurationOptions = {} as any;
   const internalRelayConfigurationOptions = {} as any;
-  const robotConfigurationOptions = {} as any;
   const lockConfigurationOptions = {} as any;
   const dateTimeConfigurationOptions = {} as any;
   const modalTabOptions = {} as any;
@@ -122,7 +120,6 @@ export function runApplicationContextTests(): void {
     weatherConfigurationOptions,
     webhookConfigurationOptions,
     internalRelayConfigurationOptions,
-    robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,
     modalTabOptions,
@@ -224,7 +221,6 @@ export function runApplicationContextTests(): void {
   equal(context.configuration.weatherOptions, weatherConfigurationOptions, "context retains typed weather options");
   equal(context.configuration.webhookOptions, webhookConfigurationOptions, "context retains typed webhook options");
   equal(context.configuration.internalRelayOptions, internalRelayConfigurationOptions, "context retains typed internal-relay options");
-  equal(context.configuration.robotOptions, robotConfigurationOptions, "context retains typed robot-card options");
   equal(context.configuration.lockOptions, lockConfigurationOptions, "context retains typed lock options");
   equal(context.configuration.dateTimeOptions, dateTimeConfigurationOptions, "context retains typed date/time options");
   equal(context.configuration.modalTabs, modalTabOptions, "context retains typed modal-tab options");
@@ -293,11 +289,6 @@ export function runApplicationContextTests(): void {
   equal(internalRelayOptions.internalRelayLabelFor("relay_1"), "Relay One", "internal relay options use profile labels");
   equal(internalRelayOptions.internalRelayLabelFor("porch_light"), "Porch Light", "internal relay options format unknown relay keys");
 
-  const robotOptions = createConfigRobotCardOptionsFeature();
-  equal(robotOptions.normalizeLawnMowerMode("dock"), "dock", "robot options preserve lawn-mower modes");
-  equal(robotOptions.normalizeLawnMowerMode("invalid"), "start_mowing", "robot options normalize invalid lawn-mower modes");
-  equal(robotOptions.vacuumModeNeedsArea("clean_area"), true, "robot options retain area identifiers for clean-area mode");
-  equal(robotOptions.vacuumModeDefaultIcon("dock"), "Robot Vacuum Variant", "robot options provide vacuum mode icons");
 
   const lockOptions = createConfigLockOptionsFeature();
   equal(lockOptions.normalizeLockMode("unlock"), "unlock", "lock options preserve command modes");

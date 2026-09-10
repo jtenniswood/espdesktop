@@ -20,31 +20,7 @@ import {
     cardContractSubpageTypeCode,
     cardContractSubpageTypeFromCode,
 } from "../generated/card_contract";
-import {
-    migrateSavedConfigVacuumLegacy,
-    normalizeSavedConfigVacuumIconOn,
-    normalizeSavedConfigVacuumOptions,
-    normalizeSavedConfigVacuumPrecision,
-    normalizeSavedConfigVacuumSensor,
-} from "../generated/saved_config_vacuum";
-import { migrateSavedConfigSensorLegacy, normalizeSavedConfigSensor } from "../generated/saved_config_sensor";
-import { migrateSavedConfigActionLegacy, normalizeSavedConfigAction } from "../generated/saved_config_action";
-import { normalizeSavedConfigMedia } from "../generated/saved_config_media";
-import { normalizeSavedConfigStatic } from "../generated/saved_config_static";
-import { normalizeSavedConfigFan } from "../generated/saved_config_fan";
-import { normalizeSavedConfigDateTime } from "../generated/saved_config_date_time";
-import { normalizeSavedConfigMower } from "../generated/saved_config_mower";
-import { normalizeSavedConfigOccupancy } from "../generated/saved_config_occupancy";
-import { normalizeSavedConfigAccess } from "../generated/saved_config_access";
-import { normalizeSavedConfigSecurity } from "../generated/saved_config_security";
-import { migrateSavedConfigWeatherLegacy, normalizeSavedConfigWeather } from "../generated/saved_config_weather";
-import { normalizeSavedConfigImage } from "../generated/saved_config_image";
-import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
-import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
-import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
-import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
-import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
 import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
 import type { CardRegistry } from "./card_registry";
 import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
@@ -70,7 +46,6 @@ import {
 import { normalizeCoverMode } from "./config_cover_contract";
 import type { ConfigWeatherOptionsFeature } from "./config_weather_options";
 import type { ConfigWebhookOptionsFeature } from "./config_webhook_options";
-import type { ConfigRobotCardOptionsFeature } from "./config_robot_card_options";
 import type { ConfigLockOptionsFeature } from "./config_lock_options";
 import type { ConfigDateTimeOptionsFeature } from "./config_date_time_options";
 import type { ApplicationLayoutState } from "./application_context";
@@ -84,7 +59,6 @@ export function createConfigCodecFeature(
     imageOptions: ConfigImageOptionsFeature,
     weatherOptions: ConfigWeatherOptionsFeature,
     webhookOptions: ConfigWebhookOptionsFeature,
-    robotOptions: ConfigRobotCardOptionsFeature,
     lockOptions: ConfigLockOptionsFeature,
     dateTimeOptions: ConfigDateTimeOptionsFeature,
     modalTabs: ConfigModalTabOptionsFeature,
@@ -106,68 +80,11 @@ export function createConfigCodecFeature(
             throw new Error("Configuration codec used before the application API was connected");
         return requestApi;
     }
-    const {
-        sensorCardLocalSource: SENSOR_CARD_LOCAL_SENSOR,
-        sensorCardIsLocal,
-        cardLargeNumbersSupported,
-        normalizeDateTimeOptions,
-        normalizeDoorWindowSubtype,
-        doorWindowClosedIcon,
-        doorWindowOpenIcon,
-        normalizeDoorWindowOptions,
-        normalizePresenceOptions,
-        normalizeSensorOptions,
-    } = sensorOptions;
-    const {
-        mediaEditorMode,
-        mediaNowPlayingControls,
-        mediaStateDisplayModeSupported,
-        normalizeMediaOptions,
-    } = mediaOptions;
-    const {
-        imageLabelEnabled,
-        imageIconEnabled,
-        normalizeImageOptions,
-    } = imageOptions;
-    const { normalizeWeatherCardMode } = weatherOptions;
-    const { normalizeWebhookConfig, webhookMethod } = webhookOptions;
-    const {
-        lawnMowerModeDefaultIcon,
-        normalizeLawnMowerMode,
-        vacuumModeDefaultIcon,
-        vacuumModeNeedsArea,
-    } = robotOptions;
-    const { normalizeLockMode } = lockOptions;
-    const { normalizeDateTimeCardMode } = dateTimeOptions;
-    imageOptions.connectSubpageParser((value) => parseSubpageConfig(value));
-    const {
-        normalizeLightControlOptions,
-        normalizeCoverOptionsForMode,
-        normalizeFanControlOptions,
-    } = modalTabs;
-    const {
-        alarmActionSpecs,
-        alarmActionLegacyIcon,
-        normalizeGarageMode,
-        normalizeGarageOptions,
-        normalizeGateMode,
-        normalizeGateOptions,
-        normalizeClimateOptions,
-        alarmActionInfo,
-        normalizeAlarmOptions,
-        normalizeClimatePrecisionConfig,
-    } = accessOptions;
-    const {
-        actionCardIsOptionSelect,
-        normalizeSavedConfigActionFields,
-        normalizeActionOptions,
-        normalizeSwitchConfirmationOptions,
-    } = confirmationOptions;
+    const { normalizeDateTimeOptions } = sensorOptions;
+    const { normalizeWebhookConfig } = webhookOptions;
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
         if (!b)
-            return false;
-        if (b.type === "action" || b.type === "lawn_mower")
             return false;
         var typeDef: any = cardRegistry.definitions[b.type || ""];
         if (!typeDef || typeof typeDef.normalizeConfig !== "function")
@@ -176,7 +93,7 @@ export function createConfigCodecFeature(
         return true;
     }
     function cardRequiresSquareSize(this: any, b?: any) {
-        return !!(b && b.type === "media" && mediaEditorMode(b.sensor) === "cover_art");
+        return false;
     }
     function cardIsWifiSharing(this: any, b?: any) {
         return !!(b && (b.type === "wifi_qr" || b.type === "wifi_qr_card"));
@@ -230,282 +147,24 @@ export function createConfigCodecFeature(
             ? size
             : CARD_SIZE_SINGLE;
     }
-    function normalizeSavedConfigSensorFields(this: any, b?: any, wasLegacyTextSensor?: any) {
-        if (!b)
-            return;
-        if (wasLegacyTextSensor && !b.icon)
-            b.icon = "Auto";
-        if (!sensorCardIsLocal(b) && b.precision === "time") {
-            b.unit = "";
-            b.icon = "Auto";
-            b.icon_on = "Auto";
-        }
-        if (sensorCardIsLocal(b)) {
-            b.type = "sensor";
-            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
-            b.icon_on = "Auto";
-            b.options = "";
-            if (b.precision !== "text" && b.precision !== "1" && b.precision !== "2")
-                b.precision = "";
-            if (b.precision !== "text" && (!b.icon || b.icon === "Auto"))
-                b.icon = "Auto";
-        }
-    }
-    function normalizeSavedConfigMediaFields(this: any, b?: any) {
-        if (!b)
-            return;
-        var rawMediaMode: any = b.sensor;
-        if (rawMediaMode === "controls" && (!b.icon || b.icon === "Speaker"))
-            b.icon = "Auto";
-        var mediaConfig: any = EspDesktopModel.decodeMediaCardConfigV1(b);
-        b.sensor = mediaConfig ? mediaConfig.mode : mediaEditorMode(b.sensor);
-        if (b.sensor === "previous" && b.label === "Skip Previous")
-            b.label = "Previous";
-        if (b.sensor === "next" && b.label === "Skip Next")
-            b.label = "Next";
-        if (b.sensor === "volume") {
-            if (!b.label || b.label === "Media")
-                b.label = "Volume";
-            b.icon = "Auto";
-        }
-        if (b.sensor === "playlist") {
-            if (!b.label || b.label === "Media")
-                b.label = "Playlist";
-            if (!b.icon || b.icon === "Auto")
-                b.icon = "Music";
-        }
-        if (b.sensor === "position" && (!b.label || b.label === "Track"))
-            b.label = "Position";
-        if (b.sensor === "now_playing")
-            b.precision = mediaConfig && mediaConfig.nowPlayingControl !== "none"
-                ? mediaConfig.nowPlayingControl
-                : "";
-        else if (b.sensor === "cover_art")
-            b.precision = "";
-        else if (mediaStateDisplayModeSupported(b.sensor) && mediaConfig && mediaConfig.stateDisplay === "state")
-            b.precision = "state";
-        else
-            b.precision = "";
-    }
-    function normalizeSavedConfigFanFields(this: any, b?: any) {
-        if (!b)
-            return;
-        if (!b.icon || b.icon === "Auto")
-            b.icon = fanCardDefaultIcon(b.type);
-        if (b.type === "fan_switch") {
-            if (!b.icon_on || b.icon_on === "Auto")
-                b.icon_on = "Fan";
-        }
-        else {
-            b.icon_on = "Auto";
-        }
-    }
-    function normalizeSavedConfigDateTimeFields(this: any, b?: any) {
-        if (!b || b.entity)
-            return;
-        if (b.type === "calendar")
-            b.entity = cardContractDefaultConfig("calendar").entity;
-        else if (b.type === "timezone")
-            b.entity = cardContractDefaultConfig("timezone").entity;
-    }
-    function normalizeSavedConfigDateTimeOptions(this: any, options?: any, b?: any) {
-        return normalizeDateTimeOptions(b && b.type || "", options || "", b && b.precision || "");
-    }
-    function normalizeSavedConfigMowerFields(this: any, b?: any) {
-        if (!b)
-            return;
-        b.sensor = normalizeLawnMowerMode(b.sensor);
-        if (!b.icon || b.icon === "Auto")
-            b.icon = lawnMowerModeDefaultIcon(b.sensor);
-    }
-    function normalizeSavedConfigOccupancyFields(this: any, b?: any) {
-        if (!b)
-            return;
-        if (b.type === "door_window") {
-            b.precision = normalizeDoorWindowSubtype(b.precision);
-            if (!b.icon || b.icon === "Auto")
-                b.icon = doorWindowClosedIcon(b.precision);
-            if (!b.icon_on || b.icon_on === "Auto")
-                b.icon_on = doorWindowOpenIcon(b.precision);
-        }
-        else if (b.type === "presence") {
-            if (!b.icon || b.icon === "Auto")
-                b.icon = "Motion Sensor Off";
-            if (!b.icon_on || b.icon_on === "Auto")
-                b.icon_on = "Motion Sensor";
-        }
-    }
-    function normalizeSavedConfigOccupancyOptions(this: any, options?: any, b?: any) {
-        return b && b.type === "door_window"
-            ? normalizeDoorWindowOptions(options || "")
-            : normalizePresenceOptions(options || "");
-    }
-    function normalizeSavedConfigAccessFields(this: any, b?: any) {
-        if (!b)
-            return;
-        if (b.type === "garage") {
-            b.sensor = normalizeGarageMode(b.sensor);
-            if (b.sensor)
-                b.icon_on = "Auto";
-        }
-        else if (b.type === "gate") {
-            b.sensor = normalizeGateMode(b.sensor);
-            if (b.sensor)
-                b.icon_on = "Auto";
-        }
-        else if (b.type === "cover") {
-            b.sensor = normalizeCoverMode(b.sensor, true);
-            if (b.sensor !== "set_position")
-                b.unit = "";
-        }
-        else if (b.type === "lock") {
-            b.sensor = normalizeLockMode(b.sensor);
-            b.icon_on = b.sensor ? "Auto" : ((!b.icon_on || b.icon_on === "Auto") ? "Lock Open" : b.icon_on);
-        }
-    }
-    function normalizeSavedConfigAccessOptions(this: any, options?: any, b?: any) {
-        if (!b)
-            return "";
-        if (b.type === "garage")
-            return normalizeGarageOptions(options || "", b.sensor);
-        if (b.type === "gate")
-            return normalizeGateOptions(options || "", b.sensor);
-        return normalizeCoverOptionsForMode(options || "", b.sensor);
-    }
-    function normalizeSavedConfigSecurityFields(this: any, b?: any) {
-        if (!b)
-            return;
-        if (b.type === "alarm") {
-            if (!b.icon || b.icon === "Auto")
-                b.icon = "Security";
-            return;
-        }
-        b.sensor = alarmActionInfo(b.sensor) ? b.sensor : "away";
-        if (!b.label)
-            b.label = alarmActionInfo(b.sensor).label;
-        if (!b.icon || b.icon === "Auto" || b.icon === alarmActionLegacyIcon(b.sensor))
-            b.icon = alarmActionInfo(b.sensor).icon;
-    }
-    function normalizeSavedConfigSecurityOptions(this: any, options?: any, _b?: any) {
-        return normalizeAlarmOptions(options || "");
-    }
-    function normalizeSavedConfigWeatherFields(this: any, b?: any, wasLegacyForecast?: any) {
-        if (!b)
-            return;
-        if (wasLegacyForecast && b.label === "Weather")
-            b.label = "";
-        b.precision = normalizeWeatherCardMode(b.precision);
-    }
-    function normalizeSavedConfigWeatherOptions(this: any, options?: any, b?: any) {
-        return b && cardLargeNumbersSupported(b) ? copyLargeNumbersOption("", options || "") : "";
-    }
-    function normalizeSavedConfigImageFields(this: any, b?: any) {
-        if (!b)
-            return;
-        b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
-        if (!imageLabelEnabled(b))
-            b.label = "";
-    }
-    function normalizeSavedConfigImageOptions(this: any, options?: any, _b?: any) {
-        return normalizeImageOptions(options || "");
-    }
-    function normalizeSavedConfigClimateFields(this: any, b?: any) {
-        if (!b)
-            return;
-        if (!b.icon)
-            b.icon = "Thermostat";
-        if (!b.icon_on)
-            b.icon_on = "Auto";
-        b.precision = normalizeClimatePrecisionConfig(b.precision);
-    }
-    function normalizeSavedConfigClimateOptions(this: any, options?: any, _b?: any) {
-        return normalizeClimateOptions(options || "", true);
-    }
-    function normalizeSavedConfigLightControlOptions(this: any, options?: any, _b?: any) {
-        return normalizeLightControlOptions(options || "");
-    }
-    function normalizeSavedConfigWebhookFields(this: any, b?: any) {
-        if (!b)
-            return;
-        b.sensor = webhookMethod(b.sensor);
-        if (b.sensor === "GET" || b.sensor === "DELETE")
-            b.unit = "";
-        if (!b.icon)
-            b.icon = "Auto";
-    }
-    function normalizeSavedConfigWebhookOptions(this: any, options?: any, _b?: any) {
-        var headers: any = configOptionValue(options || "", "webhook_headers");
-        return headers ? setConfigOptionValue("", "webhook_headers", headers) : "";
-    }
-    function normalizeSavedConfigSubpageFields(this: any, b?: any) {
-        if (subpageKind(b) === "companion_stat") {
-            var metric: any = COMPANION_SYSTEM_METRICS.find(function (candidate) {
-                return candidate.id === b.entity || candidate.freeId === b.entity;
-            }) || COMPANION_SYSTEM_METRICS[0];
-            if (!metric)
-                return;
-            if (!metric.id && !metric.freeId)
-                b.entity = "";
-            else if (b.entity !== metric.id && b.entity !== metric.freeId)
-                b.entity = metric.id;
-            if (!b.label)
-                b.label = metric.label;
-            if (!b.icon || b.icon === "Auto")
-                b.icon = "Gauge";
-            b.icon_on = "Auto";
-            b.sensor = "indicator";
-            b.unit = metric.unit;
-            b.precision = "";
-            return;
-        }
-        applySubpagePresetConfig(b);
-    }
-    function normalizeSavedConfigSubpageOptions(this: any, options?: any, b?: any) {
-        return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
-    }
-    function normalizeButtonConfig(this: any, b?: any) {
-        if (b)
-            b.options = b.options || "";
-        if (b)
-            migrateSavedConfigActionLegacy(b);
-        var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
-        if (b)
-            migrateSavedConfigSensorLegacy(b);
-        if (b && migrateSavedConfigVacuumLegacy(b)) {
-            if (!b.icon || b.icon === "Auto")
-                b.icon = vacuumModeDefaultIcon(b.sensor);
-        }
-        var normalizedSavedFan: any = !!(b && normalizeSavedConfigFan(b, normalizeSavedConfigFanFields, normalizeFanControlOptions));
-        var normalizedSavedMower: any = !!(b && normalizeSavedConfigMower(b, normalizeSavedConfigMowerFields));
-        var wasLegacyWeatherForecast: any = !!(b && migrateSavedConfigWeatherLegacy(b));
-        if (b)
-            normalizeSavedConfigWeather(b, wasLegacyWeatherForecast, normalizeSavedConfigWeatherFields, normalizeSavedConfigWeatherOptions);
-        if (b)
-            normalizeSavedConfigMedia(b, normalizeSavedConfigMediaFields, normalizeMediaOptions);
-        if (b)
-            normalizeSavedConfigClimate(b, normalizeSavedConfigClimateFields, normalizeSavedConfigClimateOptions);
-        var normalizedSavedAccess: any = !!(b && normalizeSavedConfigAccess(b, normalizeSavedConfigAccessFields, normalizeSavedConfigAccessOptions));
-        if (b)
-            normalizeSavedConfigSecurity(b, normalizeSavedConfigSecurityFields, normalizeSavedConfigSecurityOptions);
-        if (b)
-            normalizeSavedConfigWebhook(b, normalizeSavedConfigWebhookFields, normalizeSavedConfigWebhookOptions);
+    function normalizeButtonConfig(this: any, value?: any) {
+        const b = value || EspDesktopModel.emptyCardConfig();
+        if (!b.type) return EspDesktopModel.emptyCardConfig();
+        if (!cardRegistry.definitions[b.type]) return EspDesktopModel.emptyCardConfig();
+        b.options = b.options || "";
+        b.icon_on = "Auto";
         normalizeWithRegisteredCardType(b);
-        var normalizedSavedStatic: any = !!(b && normalizeSavedConfigStatic(b));
-        if (b)
-            normalizeSavedConfigDateTime(b, normalizeSavedConfigDateTimeFields, normalizeSavedConfigDateTimeOptions);
-        if (b)
-            normalizeSavedConfigImage(b, normalizeSavedConfigImageFields, normalizeSavedConfigImageOptions);
-        if (b)
-            normalizeSavedConfigLightControl(b, normalizeSavedConfigLightControlOptions);
-        if (b)
-            normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
-        if (b)
-            normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
-        var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
-        var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
-        var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
-        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
-            b.options = "";
+        if (b.type === "webhook") normalizeWebhookConfig(b);
+        else if (b.type === "subpage") {
+            b.options = normalizeSubpageOptions(b.options, b.sensor, b.precision);
+        } else if (["calendar", "clock", "timezone"].includes(b.type)) {
+            b.label = "";
+            b.sensor = "";
+            if (b.type !== "timezone") b.entity = "";
+            b.options = normalizeDateTimeOptions(b.type, b.options, b.precision);
+        } else if (b.type === "screen_lock") {
+            b.entity = ""; b.label = ""; b.sensor = "";
+            b.unit = ""; b.precision = ""; b.options = "";
         }
         return b;
     }
@@ -532,262 +191,9 @@ export function createConfigCodecFeature(
     function trimConfigFields(this: any, fields?: any) {
         return EspDesktopModel.trimConfigFields(fields);
     }
-    function buttonConfigFields(this: any, b?: any) {
-        var type: any = b && b.type || "";
-        if (b && type === "subpage" && subpageKind(b)) {
-            b = EspDesktopModel.cloneCardConfig(b);
-            applySubpagePresetConfig(b);
-        }
-        var isActionOptionSelect: any = !!(b && (actionCardIsOptionSelect(b) || isOptionSelectType(type)));
-        if (isActionOptionSelect)
-            type = "action";
-        if (type === "local")
-            type = "action";
-        if (type === "local_sensor")
-            type = "sensor";
-        var label: any = b && b.label || "";
-        if (type === "calendar" || type === "clock" || type === "timezone")
-            label = "";
-        if (type === "screen_lock")
-            label = "";
-        var sensor: any = isActionOptionSelect ? ACTION_CARD_OPTION_SELECT_ACTION :
-            (isBrightnessSliderType(type) || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.sensor || "");
-        if (type === "lock" && sensor !== "lock" && sensor !== "unlock")
-            sensor = "";
-        if (b && b.type === "local")
-            sensor = ACTION_CARD_LOCAL_ACTION;
-        if (b && (b.type === "local_sensor" || sensorCardIsLocal(b)))
-            sensor = SENSOR_CARD_LOCAL_SENSOR;
-        var isLocalAction: any = type === "action" && sensor === ACTION_CARD_LOCAL_ACTION;
-        var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
-        if (isLocalAction)
-            unit = "";
-        var icon: any = b && b.icon || "Auto";
-        if (isActionOptionSelect && (!icon || icon === "Auto" || icon === "Chevron Down"))
-            icon = "Flash";
-        if (isLocalAction && (!icon || icon === "Auto" || icon === "Flash"))
-            icon = "Gesture Tap";
-        if (type === "alarm" && (!icon || icon === "Auto"))
-            icon = "Security";
-        if (type === "calendar" || type === "clock" || type === "timezone")
-            icon = "Auto";
-        if (type === "screen_lock")
-            icon = "Lock";
-        if (type === "alarm_action" && (!icon || icon === "Auto"))
-            icon = (alarmActionInfo(sensor) || alarmActionSpecs()[0]).icon;
-        if (isFanCardType(type) && (!icon || icon === "Auto"))
-            icon = fanCardDefaultIcon(type);
-        var iconOn: any = (isActionOptionSelect || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b && b.icon_on || "Auto");
-        if (type === "calendar" || type === "clock" || type === "timezone")
-            iconOn = "Auto";
-        if (isLocalAction)
-            iconOn = "Auto";
-        if (type === "fan_switch" && (!iconOn || iconOn === "Auto"))
-            iconOn = "Fan";
-        if (type === "lock")
-            iconOn = sensor ? "Auto" : ((!iconOn || iconOn === "Auto") ? "Lock Open" : iconOn);
-        if (type === "screen_lock")
-            iconOn = "Lock Open";
-        var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
-        if (isLocalAction)
-            precision = "";
-        if (sensor === SENSOR_CARD_LOCAL_SENSOR && precision !== "text" && precision !== "1" && precision !== "2")
-            precision = "";
-        if (type === "media") {
-            sensor = mediaEditorMode(sensor);
-            if (sensor === "now_playing" && configOptionEnabled(b && b.options, MEDIA_COVER_ART_OPTION))
-                sensor = "cover_art";
-            precision = sensor === "now_playing"
-                ? mediaNowPlayingControls({ sensor: sensor, precision: precision })
-                : (mediaStateDisplayModeSupported(sensor) && precision === "state" ? "state" : "");
-        }
-        if (type === "vacuum") {
-            sensor = normalizeSavedConfigVacuumSensor(sensor);
-            unit = vacuumModeNeedsArea(sensor) ? unit : "";
-            precision = normalizeSavedConfigVacuumPrecision(precision);
-            iconOn = normalizeSavedConfigVacuumIconOn(iconOn);
-            if (!icon || icon === "Auto")
-                icon = vacuumModeDefaultIcon(sensor);
-        }
-        if (type === "lawn_mower") {
-            sensor = normalizeLawnMowerMode(sensor);
-            unit = "";
-            precision = "";
-            iconOn = "Auto";
-            if (!icon || icon === "Auto")
-                icon = lawnMowerModeDefaultIcon(sensor);
-        }
-        if (isClimateCardType(type))
-            precision = normalizeClimatePrecisionConfig(precision);
-        if (type === "calendar" && precision !== "datetime")
-            precision = "";
-        if (type === "weather") {
-            sensor = "";
-            precision = normalizeWeatherCardMode(precision);
-        }
-        if (type === "image") {
-            iconOn = "Auto";
-            sensor = "";
-            unit = "";
-            precision = "";
-            if (!imageLabelEnabled(b))
-                label = "";
-        }
-        if (type === "door_window")
-            precision = normalizeDoorWindowSubtype(precision);
-        var options: any = b && b.options || "";
-        if (type === "") {
-            options = normalizeSwitchConfirmationOptions(options);
-        }
-        else if (type === "alarm" || type === "alarm_action") {
-            options = normalizeAlarmOptions(options);
-        }
-        else if (type === "garage") {
-            options = normalizeGarageOptions(options, sensor);
-        }
-        else if (type === "gate") {
-            options = normalizeGateOptions(options, sensor);
-        }
-        else if (type === "cover") {
-            sensor = normalizeCoverMode(sensor, true);
-            options = normalizeCoverOptionsForMode(options, sensor);
-        }
-        else if (isClimateCardType(type)) {
-            type = "climate_control";
-            options = normalizeClimateOptions(options, true);
-        }
-        else if (type === "media") {
-            options = normalizeMediaOptions(options, sensor);
-        }
-        else if (type === "weather") {
-            options = cardLargeNumbersSupported({ type: type, precision: precision }) ? copyLargeNumbersOption("", options) : "";
-        }
-        else if (type === "subpage") {
-            options = normalizeSubpageOptions(options, sensor, precision);
-        }
-        else if (type === "companion") {
-            const isCompanionMetric = COMPANION_SYSTEM_METRICS.some((metric) =>
-                metric.id === (b && b.entity) || metric.freeId === (b && b.entity));
-            options = isCompanionMetric ? copyLargeNumbersOption("", options) :
-                normalizeCompanionAppShortcutOptions({
-                    ...(b || {}),
-                    type,
-                    entity: b && b.entity,
-                    sensor,
-                    options,
-                });
-        }
-        else if (type === "webhook") {
-            var webhookButton: any = EspDesktopModel.cloneCardConfig(b || {});
-            normalizeWebhookConfig(webhookButton);
-            sensor = webhookButton.sensor;
-            unit = webhookButton.unit;
-            iconOn = webhookButton.icon_on || "Auto";
-            precision = webhookButton.precision || "";
-            options = webhookButton.options || "";
-        }
-        else if (type === "lock" || type === "screen_lock") {
-            options = "";
-        }
-        else if (type === "calendar" || type === "clock" || type === "timezone") {
-            options = normalizeDateTimeOptions(type, options, precision);
-        }
-        else if (type === "vacuum") {
-            options = normalizeSavedConfigVacuumOptions(options);
-        }
-        else if (type === "lawn_mower") {
-            options = "";
-        }
-        else if (type === "sensor") {
-            options = sensor === SENSOR_CARD_LOCAL_SENSOR ? "" : normalizeSensorOptions(options, precision);
-        }
-        else if (type === "door_window") {
-            options = normalizeDoorWindowOptions(options);
-        }
-        else if (type === "presence") {
-            options = normalizePresenceOptions(options);
-        }
-        else if (type === "image") {
-            options = normalizeImageOptions(options);
-        }
-        else if (type === "wifi_qr" || type === "wifi_qr_card") {
-            var wifiButton: any = EspDesktopModel.cloneCardConfig(b || {});
-            wifiButton.options = options;
-            wifiButton.label = label;
-            wifiButton.icon = icon;
-            normalizeWithRegisteredCardType(wifiButton);
-            label = wifiButton.label;
-            icon = wifiButton.icon;
-            options = wifiButton.options;
-        }
-        else if (type === "light_control") {
-            options = normalizeLightControlOptions(options);
-        }
-        else if (type === "fan_control") {
-            options = normalizeFanControlOptions(options);
-        }
-        else if (type === "action") {
-            options = sensor === ACTION_CARD_LOCAL_ACTION ? "" : normalizeActionOptions(options, sensor);
-        }
-        else if (isActionOptionSelect || isFanCardType(type)) {
-            options = "";
-        }
-        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "webhook" && type !== "screen_lock" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
-            options = "";
-        }
-        if (type === "image") {
-            icon = configOptionEnabled(options, IMAGE_ICON_OPTION)
-                ? (icon && icon !== "Auto" ? icon : "Camera")
-                : "Auto";
-        }
-        if (type === "door_window") {
-            b = b || {};
-            b.entity = "";
-            unit = "";
-            if (!icon || icon === "Auto")
-                icon = doorWindowClosedIcon(precision);
-            if (!iconOn || iconOn === "Auto")
-                iconOn = doorWindowOpenIcon(precision);
-        }
-        if (type === "presence") {
-            b = b || {};
-            b.entity = "";
-            unit = "";
-            precision = "";
-            if (!icon || icon === "Auto")
-                icon = "Motion Sensor Off";
-            if (!iconOn || iconOn === "Auto")
-                iconOn = "Motion Sensor";
-        }
-        if (type === "calendar") {
-            b = b || {};
-            if (!b.entity)
-                b.entity = cardContractDefaultConfig("calendar").entity;
-        }
-        if (type === "clock") {
-            b = b || {};
-            b.entity = "";
-        }
-        if (type === "timezone") {
-            b = b || {};
-            if (!b.entity)
-                b.entity = cardContractDefaultConfig("timezone").entity;
-        }
-        if (!type && !sensor) {
-            unit = "";
-            precision = "";
-        }
-        return trimConfigFields([
-            (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
-            label,
-            icon,
-            iconOn,
-            sensor,
-            unit,
-            type,
-            precision,
-            options,
-        ]);
+    function buttonConfigFields(this: any, value?: any) {
+        const b = normalizeButtonConfig(EspDesktopModel.cloneCardConfig(value || {}));
+        return trimConfigFields(EspDesktopModel.CARD_CONFIG_FIELDS.map(key => b[key] || ""));
     }
     function encodeConfigField(this: any, value?: any) {
         return EspDesktopModel.encodeConfigField(value);

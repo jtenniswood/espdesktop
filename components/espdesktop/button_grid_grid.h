@@ -54,12 +54,6 @@ struct GridConfig {
   std::string timezone;
   std::function<void(espdesktop::DisplayTakeoverKind)> begin_display_takeover;
   std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;
-  AlarmDelayAudioHooks alarm_delay_audio;
-  esphome::artwork_image::ArtworkImage **image_card_images = nullptr;
-  esphome::artwork_image::ArtworkImage *image_card_modal_image = nullptr;
-  int image_card_image_count = 0;
-  bool image_card_diagnostics = false;
-  std::function<std::string()> home_assistant_base_url;
 };
 
 
@@ -436,12 +430,8 @@ inline void grid_phase1(
   palette.sensor_val = sensor_val;
   set_current_button_primary_color(palette.on_val);
 
-  bump_ha_subscription_generation();
   reset_calendar_cards();
   reset_timezone_cards();
-  weather_forecast_cancel_pending_requests();
-  reset_weather_forecast_cards();
-  reset_climate_control_refs();
   screen_lock_reset_registry();
 
   for (int pos = 0; pos < NS; pos++) {

@@ -32,8 +32,6 @@ extern "C" void espdesktop_register_web_server_handlers(
     esphome::web_server_idf::AsyncWebServer *server) {
 #ifdef USE_WEBSERVER
   if (server == nullptr) return;
-  register_local_sensor_endpoint(*server);
-  register_local_action_endpoint(*server);
   register_companion_actions_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
   espdesktop::configuration::register_panel_config_capabilities_endpoint(*server);

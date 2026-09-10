@@ -6,13 +6,11 @@
 
 namespace esphome::companion {
 
-using CompanionTimezoneHomeAssistantConnectedProvider = bool (*)();
 
 struct CompanionTimezoneRuntime {
   std::mutex mutex;
   std::string identifier;
   std::atomic<bool> changed{false};
-  CompanionTimezoneHomeAssistantConnectedProvider home_assistant_connected = nullptr;
 };
 
 inline CompanionTimezoneRuntime &companion_timezone_runtime() {
@@ -45,16 +43,6 @@ inline bool companion_timezone_changed() {
 
 inline bool companion_take_timezone_changed() {
   return companion_timezone_runtime().changed.exchange(false, std::memory_order_acq_rel);
-}
-
-inline void register_companion_timezone_home_assistant_connected_provider(
-    CompanionTimezoneHomeAssistantConnectedProvider provider) {
-  companion_timezone_runtime().home_assistant_connected = provider;
-}
-
-inline bool companion_timezone_home_assistant_connected() {
-  const auto provider = companion_timezone_runtime().home_assistant_connected;
-  return provider && provider();
 }
 
 }  // namespace esphome::companion

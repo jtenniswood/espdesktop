@@ -29,7 +29,6 @@ import type { ConfigModalTabOptionsFeature } from "../application/config_modal_t
 import type { ConfigAccessClimateAlarmOptionsFeature } from "../application/config_access_climate_alarm_options";
 import type { ConfigConfirmationOptionsFeature } from "../application/config_confirmation_options";
 import type { ConfigCodecFeature } from "../application/config_codec";
-import type { LightCardRegistration } from "../cards/light_temperature";
 import type { CoreFeature } from "../application/core";
 import type { ApplicationLayoutState } from "../application/application_context";
 import type { ConfigPersistenceFeature } from "../application/config_post_api";
@@ -40,7 +39,6 @@ import type { ControlsFieldsFeature } from "../application/controls_fields";
 import { cardContractOptionSupportedFor } from "../application/config_option_core";
 import { subpageKind } from "../application/config_subpage_options";
 import { entityMatchesDomains } from "../application/button_settings";
-import { pushDefaultIcon, pushDefaultIconOn } from "../cards/push";
 import {
     coverModeOptionValues,
     coverModeOptionsForSettings,
@@ -61,7 +59,6 @@ export function installAppTestHooksConfig(
     accessOptions: ConfigAccessClimateAlarmOptionsFeature,
     confirmationOptions: ConfigConfirmationOptionsFeature,
     codec: ConfigCodecFeature,
-    lightCards: LightCardRegistration,
     core: Pick<CoreFeature, "subpageStateDisplayMode">,
     layout: ApplicationLayoutState,
     configPersistence: Pick<ConfigPersistenceFeature, "subpageEntityKeys" | "subpageChunkShouldPost">,
@@ -245,14 +242,6 @@ export function installAppTestHooksConfig(
         setActionScriptFields,
     } = confirmationOptions;
     const {
-        lightTempDefaultRange,
-        lightTempParseRange,
-        lightTempClampMin,
-        lightTempClampMax,
-        lightTempLegacySensorValues,
-        lightTempSensorNeedsCleanup,
-    } = lightCards;
-    const {
         cardRequiresSquareSize,
         cardIsWifiSharing,
         cardSupportsWifiPortraitSizes,
@@ -335,12 +324,6 @@ export function installAppTestHooksConfig(
             normalizeFanControlOptions: normalizeFanControlOptions,
             setFanControlTabs: setFanControlTabs,
             setFanLightEntity: setFanLightEntity,
-            lightTempDefaultRange: lightTempDefaultRange,
-            lightTempParseRange: lightTempParseRange,
-            lightTempClampMin: lightTempClampMin,
-            lightTempClampMax: lightTempClampMax,
-            lightTempLegacySensorValues: lightTempLegacySensorValues,
-            lightTempSensorNeedsCleanup: lightTempSensorNeedsCleanup,
             lightControlTabDefinitions: lightControlTabDefinitions,
             lightControlTabs: lightControlTabs,
             normalizeLightControlTabs: normalizeLightControlTabs,
@@ -364,8 +347,6 @@ export function installAppTestHooksConfig(
             gateLabelDisplayMode: gateLabelDisplayMode,
             lockModeOptionValues: lockModeOptionValues,
             normalizeLockMode: normalizeLockMode,
-            pushDefaultIcon: pushDefaultIcon,
-            pushDefaultIconOn: pushDefaultIconOn,
             webhookMethod: webhookMethod,
             webhookHeaders: webhookHeaders,
             internalRelayModeOptionValues: internalRelayModeOptionValues,

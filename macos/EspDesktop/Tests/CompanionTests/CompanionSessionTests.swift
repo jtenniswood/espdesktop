@@ -7,7 +7,6 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
     var panelHost = ""
     var pairingAccount = "test-account"
     var hasSavedPairing = false
-    var mediaActionsAvailable = false
     var values: [String: Any] = [:]
     var credentialReads = 0
     func stringPreference(forKey key: String) -> String? { values[key] as? String }

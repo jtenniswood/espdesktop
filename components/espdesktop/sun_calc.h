@@ -168,10 +168,10 @@ static const TzCoord TZ_COORDS[] = {
 
 static constexpr int TZ_COORDS_COUNT = sizeof(TZ_COORDS) / sizeof(TZ_COORDS[0]);
 
-static constexpr const char *ESPDESKTOP_AUTO_TIMEZONE_OPTION = "Auto (Home Assistant)";
+static constexpr const char *ESPDESKTOP_AUTO_TIMEZONE_OPTION = "Auto (Mac)";
 static constexpr const char *ESPDESKTOP_FALLBACK_TIMEZONE_OPTION = "UTC (GMT+0)";
 
-inline bool timezone_is_homeassistant_auto(const std::string &tz_option) {
+inline bool timezone_is_auto(const std::string &tz_option) {
   return tz_option == ESPDESKTOP_AUTO_TIMEZONE_OPTION;
 }
 
@@ -259,7 +259,7 @@ inline const char* apply_timezone(const std::string &tz_option) {
 }
 
 inline const char* apply_configured_timezone(const std::string &tz_option) {
-  if (timezone_is_homeassistant_auto(tz_option)) return nullptr;
+  if (timezone_is_auto(tz_option)) return nullptr;
   return apply_timezone(tz_option);
 }
 
@@ -290,30 +290,10 @@ inline bool posix_timezone_matches_global(const char *posix) {
 #endif
 
 inline std::string effective_timezone_option(const std::string &tz_option) {
-  if (!timezone_is_homeassistant_auto(tz_option)) return tz_option;
-
-  // Home Assistant remains authoritative when connected. If it is not
-  // available, use the paired Mac Companion timezone before falling back to
-  // UTC. The Mac sends an IANA identifier, so only use identifiers that the
-  // firmware can resolve to a DST-aware POSIX rule.
-  if (!esphome::companion::companion_timezone_home_assistant_connected()) {
-    const std::string companion_timezone = esphome::companion::companion_timezone_id();
-    float latitude = 0.0f;
-    float longitude = 0.0f;
-    if (lookup_tz_coords(companion_timezone, latitude, longitude))
-      return companion_timezone;
-  }
-
-#if defined(USE_TIME_TIMEZONE)
-  for (int i = 0; i < TZ_COORDS_COUNT; i++) {
-    const char *posix = current_posix_tz(TZ_COORDS[i].tz);
-    if (posix_timezone_matches_global(posix)) {
-      return TZ_COORDS[i].tz;
-    }
-  }
-#endif
-
-  return ESPDESKTOP_FALLBACK_TIMEZONE_OPTION;
+  if (!timezone_is_auto(tz_option)) return tz_option;
+  const auto timezone = esphome::companion::companion_timezone_id();
+  float latitude = 0.0f, longitude = 0.0f;
+  return lookup_tz_coords(timezone, latitude, longitude) ? timezone : ESPDESKTOP_FALLBACK_TIMEZONE_OPTION;
 }
 
 struct TzPosixTransitionRule {
