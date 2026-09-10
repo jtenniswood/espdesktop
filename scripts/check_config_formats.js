@@ -3883,3 +3883,18 @@ const largeEncoded = assertSubpageRoundTrip(hooks, "oversized subpage", largeSub
 assert(largeEncoded.length > 255, "oversized subpage should exceed one ESPHome text value");
 
 console.log("Config format current tests passed.");
+
+for (const action of ["media.play_pause", "media.previous", "media.next"]) {
+  const retired = hooks.parseButtonConfig(`${action};Old playback;Play Pause;;;;companion;;`);
+  assert.strictEqual(retired.entity, "", "retired Mac playback card becomes an empty slot");
+  assert.strictEqual(retired.type, "", "retired Mac playback card has no renderer");
+  assert.strictEqual(retired.label, "", "retired Mac playback card does not leave a label behind");
+}
+
+const retiredSubpage = hooks.parseSubpageConfig(hooks.serializeSubpageConfig({
+  order: ["B", "1", "2"],
+  buttons: [buttonShape({type: "companion", entity: "media.next", label: "Skip"}),
+            buttonShape({type: "companion", entity: "com.apple.Safari", label: "Safari"})],
+}));
+assert(!retiredSubpage.buttons.some(button => button.entity === "media.next"), "subpages remove retired playback cards");
+assert(retiredSubpage.buttons.some(button => button.entity === "com.apple.Safari"), "subpages preserve adjacent app cards");

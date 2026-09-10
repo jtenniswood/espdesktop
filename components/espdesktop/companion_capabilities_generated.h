@@ -49,7 +49,6 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"shortcut", "Keyboard shortcut", "keyboard_shortcuts", "Shortcut Command"},
   {"url", "Open URL", "applications", "Web"},
   {"folder", "Open folder", "folders", "Folder Outline"},
-  {"media", "Media control", "media_actions", "Play Pause"},
   {"stats", "Stats", "system_metrics", "Gauge"},
   {"window", "Window control", "window_actions", "Monitor"},
 };
@@ -90,14 +89,6 @@ inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {
   {"stat.ip_address", "IP address", "ip_address", ""},
 };
 
-inline constexpr const char *COMPANION_MEDIA_ACTION_IDS[] = {
-  "media.play_pause",
-  "media.previous",
-  "media.next",
-};
-
-constexpr const char *COMPANION_MEDIA_PLAY_PAUSE_ACTION = "media.play_pause";
-
 inline const CompanionWindowCapability *companion_window_capability(const std::string &id) {
   for (const auto &item : COMPANION_WINDOW_CAPABILITIES) if (id == item.id) return &item;
   return nullptr;
@@ -107,9 +98,4 @@ inline const CompanionMetricCapability *companion_metric_capability(const std::s
   for (const auto &item : COMPANION_METRIC_CAPABILITIES)
     if (id == item.id || (std::string(item.id) == "stat.ip_address" && id.size() > std::string("stat.ip_address:").size() && id.rfind("stat.ip_address:", 0) == 0) || (std::string(item.id) == "stat.storage" && id.size() > std::string("stat.storage:").size() && id.rfind("stat.storage:", 0) == 0) || (std::string(item.id) == "stat.storage_free" && id.size() > std::string("stat.storage_free:").size() && id.rfind("stat.storage_free:", 0) == 0)) return &item;
   return nullptr;
-}
-
-inline bool companion_generated_media_action_valid(const std::string &id) {
-  for (const auto *item : COMPANION_MEDIA_ACTION_IDS) if (id == item) return true;
-  return false;
 }

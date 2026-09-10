@@ -12,7 +12,6 @@ export type CompanionCardModel =
   | { readonly mode: "shortcut"; readonly shortcutId: string }
   | { readonly mode: "url"; readonly applicationId: string; readonly encodedUrl: string }
   | { readonly mode: "folder"; readonly folderId: string }
-  | { readonly mode: "media"; readonly actionId: string }
   | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string }
   | { readonly mode: "window"; readonly actionId: string };
 
@@ -24,10 +23,8 @@ export function companionCardModeValid(mode: unknown): mode is CompanionCardMode
   return companionCardModeContract(mode) !== undefined;
 }
 
-export function companionCardModeOptions(currentMode?: CompanionCardModeId): ReadonlyArray<readonly [CompanionCardModeId, string]> {
-  // Retain the current type when editing a saved playback card, but do not offer it for new cards.
+export function companionCardModeOptions(): ReadonlyArray<readonly [CompanionCardModeId, string]> {
   return COMPANION_CARD_MODES
-    .filter((mode) => mode.id !== "media" || currentMode === "media")
     .map((mode) => [mode.id, mode.label] as const);
 }
 

@@ -27,11 +27,6 @@ int main() {
   set_espdesktop_language("en");
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::PLAYING)) == "Playing");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::PAUSED)) == "Paused");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::STOPPED)) == "Stopped");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::UNAVAILABLE, false)) == "Unavailable");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::UNAVAILABLE)) == "Stopped");
   assert(companion_shortcut_action_valid("shortcut.command+a"));
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));
@@ -185,32 +180,6 @@ int main() {
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
   assert(!companion_consume_subpage_return_request());
-  assert(companion_media_action_valid("media.play_pause"));
-  assert(companion_media_action_valid("media.previous"));
-  assert(companion_media_action_valid("media.next"));
-  assert(!companion_media_action_valid("media.delete_everything"));
-  assert(!companion_action_available("media.play_pause"));
-  companion_set_media_actions_supported(true);
-  assert(companion_action_available("media.play_pause"));
-  CompanionNowPlayingSnapshot paused_snapshot;
-  paused_snapshot.playback_state = CompanionPlaybackState::PAUSED;
-  companion_set_now_playing(paused_snapshot);
-  assert(companion_action_available("media.play_pause"));
-  assert(!companion_action_active("media.play_pause"));
-  CompanionNowPlayingSnapshot playing_snapshot;
-  playing_snapshot.playback_state = CompanionPlaybackState::PLAYING;
-  companion_set_now_playing(playing_snapshot);
-  assert(companion_action_active("media.play_pause"));
-  companion_set_now_playing(paused_snapshot);
-  bool media_invoked = false;
-  register_companion_action_sender([&media_invoked](const std::string &action,
-                                                    const std::string &request) {
-    media_invoked = action == "media.play_pause" && request == "media-1";
-    return media_invoked;
-  });
-  assert(invoke_companion_action("media.play_pause", "media-1"));
-  assert(media_invoked);
-  assert(companion_runtime_snapshot().now_playing.playback_state == CompanionPlaybackState::PAUSED);
   assert(companion_volume_control_valid("media.output_volume"));
   assert(companion_volume_control_valid("media.input_volume"));
   assert(!companion_volume_control_valid("media.screen_brightness"));

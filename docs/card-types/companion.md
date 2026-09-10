@@ -76,7 +76,7 @@ The Mac app must have Accessibility permission. Some applications or windows do 
 
 ## Cover Art
 
-Play / Pause, Previous, and Next are no longer offered as Mac cards. Existing saved playback cards remain supported and can be edited or deleted.
+Play / Pause, Previous, and Next are no longer offered as Mac cards. Existing saved playback cards are removed from layouts when loaded, including cards in subpages and imported backups.
 
 Apple Music, Spotify, and browser playback can work when the application publishes a usable session to macOS. Support depends on the application's macOS media integration.
 

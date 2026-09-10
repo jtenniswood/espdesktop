@@ -618,7 +618,7 @@ final class CompanionConnection: NSObject {
         let supportedWindowActions = Self.supportedWindowActionIDs(
             for: ProcessInfo.processInfo.operatingSystemVersion
         )
-        var capabilities = (resources.mediaActionsAvailable ? ["media_actions"] : []) + supportedWindowActions
+        var capabilities = supportedWindowActions
         capabilities.append("keyboard_shortcuts")
         sendJSON(["type": "capabilities", "values": capabilities])
         // Bundle identifiers are stable and opaque to the browser layout editor;

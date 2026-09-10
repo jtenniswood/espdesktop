@@ -36,12 +36,6 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Folder Outline"
   },
   {
-    id: "media",
-    label: "Media control",
-    capability: "media_actions",
-    defaultIcon: "Play Pause"
-  },
-  {
     id: "stats",
     label: "Stats",
     capability: "system_metrics",
@@ -263,23 +257,6 @@ export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [
     group: "Arrange Windows"
   }
 ];
-export const COMPANION_MEDIA_ACTIONS = [
-  {
-    id: "media.play_pause",
-    label: "Play / Pause",
-    icon: "Play Pause"
-  },
-  {
-    id: "media.previous",
-    label: "Previous",
-    icon: "Skip Previous"
-  },
-  {
-    id: "media.next",
-    label: "Next",
-    icon: "Skip Next"
-  }
-] as const;
 export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [
   {
     mode: "processor",
@@ -321,4 +298,3 @@ export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [
     unit: ""
   }
 ];
-export const COMPANION_MEDIA_PLAY_PAUSE_ACTION = "media.play_pause" as const;

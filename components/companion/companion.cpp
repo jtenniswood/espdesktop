@@ -419,7 +419,6 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const int previous_socket = this->session_.authenticate(socket_fd);
       if (previous_socket != -1 && previous_socket != socket_fd)
         httpd_sess_trigger_close(this->server_, previous_socket);
-      companion_set_media_actions_supported(false);
       this->forget_unauthenticated_socket_(socket_fd);
       this->set_connected_(true);
       {
@@ -493,14 +492,11 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     }
 
     if (const auto *payload = std::get_if<companion_protocol::Capabilities>(&*decoded)) {
-      bool media_actions = false;
       bool keyboard_actions = false;
       bool keyboard_actions_capability_received = false;
       std::vector<std::string> window_actions;
       for (const auto &capability : payload->values) {
-        if (capability == "media_actions") {
-          media_actions = true;
-        } else if (capability == "keyboard_shortcuts") {
+        if (capability == "keyboard_shortcuts") {
           keyboard_actions = true;
           keyboard_actions_capability_received = true;
         } else if (capability == "keyboard_shortcuts_unavailable") {
@@ -510,9 +506,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           window_actions.push_back(capability);
         }
       }
-      this->defer_session_([media_actions, keyboard_actions, keyboard_actions_capability_received,
+      this->defer_session_([keyboard_actions, keyboard_actions_capability_received,
                             window_actions = std::move(window_actions)]() mutable {
-        companion_set_media_actions_supported(media_actions);
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         companion_set_window_actions(std::move(window_actions));
       });

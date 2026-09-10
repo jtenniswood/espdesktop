@@ -463,6 +463,9 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
+            for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
+        }
         if (b)
             b.options = b.options || "";
         if (b)
