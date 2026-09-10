@@ -827,10 +827,10 @@ struct CompanionSettings: View {
 
     @ViewBuilder
     private var accessibilityAndStartupSections: some View {
-        Section("Accessibility") {
+        Section {
             CompanionAccessibilityRow(isGranted: accessibilityGranted)
         }
-        Section("Startup") {
+        Section {
             CompanionPermissionRow(
                 title: "Open at Startup",
                 information: store.supportsLaunchAtLogin
