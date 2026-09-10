@@ -5233,7 +5233,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
-    await action.selectOption("shortcut.command+r");
+    await action.selectOption("app_shortcut_preset=com.apple.Safari%3A2");
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -5243,7 +5243,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await openCard();
     assert.strictEqual(await type.inputValue(), "catalog", "catalog type survives reload");
     assert.strictEqual(await app.inputValue(), "com.apple.Safari");
-    assert.strictEqual(await action.inputValue(), "shortcut.command+r");
+    assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
     await type.selectOption("custom");
     await page.locator('[id$="companion-shortcut"]').press("Meta+a");
     await saveCard();

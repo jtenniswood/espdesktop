@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "com.tinyspeck.slackmacgap",
+  "label": "Slack",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Compose",
+      "shortcut": "command+n",
+      "icon": "Message Video"
+    },
+    {
+      "id": "1",
+      "label": "Search",
+      "shortcut": "command+g",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "2",
+      "label": "DMs",
+      "shortcut": "command+shift+k",
+      "icon": "Account"
+    },
+    {
+      "id": "3",
+      "label": "Unread",
+      "shortcut": "command+j",
+      "icon": "Bell"
+    },
+    {
+      "id": "4",
+      "label": "All Unread",
+      "shortcut": "command+shift+a",
+      "icon": "View Headline"
+    }
+  ]
+}

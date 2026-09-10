@@ -64,6 +64,8 @@ Choose **Keyboard shortcut**, then choose a **Type**:
 - **Custom Shortcut** keeps the key recorder: select the shortcut field, then press the combination you want to capture. Existing recorded shortcuts use this type.
 - **Shortcut Catalog** lets you choose **Safari**, then **Back**, **Forward**, **Reload**, **New Tab**, or **Close Tab**. The card starts with the shortcut’s name and icon, which you can customise in Card Settings.
 
+Contributors can extend the catalog through [one JSON file per app](https://github.com/jtenniswood/espdesktop/tree/main/product/v2/app_shortcuts), shared with app subpage presets. New definitions are included when the project is rebuilt.
+
 Bring Safari to the front before using a Safari catalog shortcut. Choosing an app in the catalog does not launch it.
 
 Shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Modifier-only shortcuts and unsupported system keys are rejected.

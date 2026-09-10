@@ -36,7 +36,8 @@ import type { ConfigModalTabOptionsFeature } from "../application/config_modal_t
 import { state } from "../state/app_instance";
 import {
     COMPANION_SHORTCUT_PREFIX,
-    safariShortcutPresetCards,
+    companionShortcutPresetCards,
+    COMPANION_SHORTCUT_APPS,
     companionAppShortcutAutoSwitchEnabled,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
@@ -130,8 +131,12 @@ export function formatCompanionShortcutActionId(actionId: string): string {
 }
 
 export function companionShortcutCatalogSelection(card: any) {
-    return safariShortcutPresetCards().find((preset) =>
-        preset.entity === card?.entity && preset.options === card?.options);
+    for (const app of COMPANION_SHORTCUT_APPS.filter((app) => app.catalog)) {
+        const preset = companionShortcutPresetCards(app.appId).find((preset) =>
+            preset.entity === card?.entity && preset.options === card?.options);
+        if (preset) return { ...preset, appId: app.appId };
+    }
+    return undefined;
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -608,13 +613,13 @@ export function registerCompanionCardTypes(
             const catalogApp = document.createElement("select");
             catalogApp.className = "sp-select";
             catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
-            for (const [value, label] of [["", "Choose an app…"], ["com.apple.Safari", "Safari"]] as const) {
+            for (const [value, label] of [["", "Choose an app…"], ...COMPANION_SHORTCUT_APPS.filter((app) => app.catalog).map((app) => [app.appId, app.label] as const)] as const) {
                 const option = document.createElement("option");
                 option.value = value;
                 option.textContent = label;
                 catalogApp.appendChild(option);
             }
-            catalogApp.value = savedCatalogShortcut ? "com.apple.Safari" : card._shortcutCatalogApp || "";
+            catalogApp.value = savedCatalogShortcut?.appId || card._shortcutCatalogApp || "";
             catalogAppField.appendChild(catalogApp);
             catalogField.appendChild(catalogAppField);
             const catalogShortcutField = document.createElement("div");
@@ -627,27 +632,28 @@ export function registerCompanionCardTypes(
             catalogPlaceholder.value = "";
             catalogPlaceholder.textContent = "Choose a shortcut…";
             catalogShortcut.appendChild(catalogPlaceholder);
-            if (catalogApp.value === "com.apple.Safari") {
-                safariShortcutPresetCards().forEach((preset) => {
+            if (catalogApp.value) {
+                companionShortcutPresetCards(catalogApp.value).forEach((preset) => {
                     const option = document.createElement("option");
-                    option.value = preset.entity;
+                    option.value = preset.options;
                     option.textContent = preset.label + " (" + formatCompanionShortcutActionId(preset.entity) + ")";
                     catalogShortcut.appendChild(option);
                 });
             }
             catalogShortcut.disabled = !catalogApp.value;
-            catalogShortcut.value = savedCatalogShortcut?.entity || "";
+            catalogShortcut.value = savedCatalogShortcut?.options || "";
             catalogShortcutField.appendChild(catalogShortcut);
             catalogField.appendChild(catalogShortcutField);
             const catalogNote = document.createElement("div");
             catalogNote.className = "sp-field-info-text sp-visible";
-            catalogNote.textContent = "Bring Safari to the front before using this shortcut. Shortcuts run in the active Mac app.";
+            catalogNote.textContent = "Bring " + (companionShortcutFolderAppLabel(catalogApp.value) || "the selected app") +
+                " to the front before using this shortcut. Shortcuts run in the active Mac app.";
             catalogField.appendChild(catalogNote);
             shortcutField.appendChild(catalogField);
             helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "catalog";
             }, function () {
-                return catalogApp.value === "com.apple.Safari" && !!companionShortcutCatalogSelection(card);
+                return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
             });
             typeSelect.addEventListener("change", function () {
                 card._shortcutType = typeSelect.value;
@@ -668,7 +674,7 @@ export function registerCompanionCardTypes(
                 renderButtonSettings();
             });
             catalogShortcut.addEventListener("change", function () {
-                const preset = safariShortcutPresetCards().find((item) => item.entity === catalogShortcut.value);
+                const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
                 if (!preset) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
                     card.options = "";

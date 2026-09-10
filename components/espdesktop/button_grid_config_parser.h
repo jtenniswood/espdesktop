@@ -13,6 +13,7 @@
 #include "button_grid_card_runtime.h"
 #include "button_grid_string.h"
 #include "companion_capabilities_generated.h"
+#include "app_shortcuts_generated.h"
 #include "button_grid_saved_config_action_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
@@ -1317,8 +1318,7 @@ inline std::string normalize_saved_config_subpage_options(
 
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
   return p.type == "companion" &&
-         (p.entity == "com.apple.Safari" || p.entity == "com.openai.codex" ||
-          p.entity == "com.tinyspeck.slackmacgap") &&
+         companion_shortcut_catalog::app_label(p.entity)[0] != '\0' &&
          p.sensor.empty() &&
          cfg_option_token_present(p.options, "app_shortcuts");
 }
@@ -1332,10 +1332,9 @@ inline std::string companion_app_shortcut_tabs_normalized(const ParsedCfg &p) {
   const std::string value = cfg_option_value(p.options, "app_shortcuts_tabs");
   if (value.empty()) return "";
   if (value == "none") return value;
-  const size_t count = p.entity == "com.openai.codex" ? 7 : 5;
   std::vector<std::string> tabs;
   for (const auto &part : split_config_fields(value, '|')) {
-    if (part.size() != 1 || part[0] < '0' || static_cast<size_t>(part[0] - '0') >= count ||
+    if (!companion_shortcut_catalog::has_shortcut(p.entity, part) ||
         std::find(tabs.begin(), tabs.end(), part) != tabs.end()) {
       continue;
     }
@@ -1354,13 +1353,9 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
   const std::string value = cfg_option_value(p.options, "app_shortcut_preset");
   if (value == "custom") return value;
   const size_t separator = value.rfind(':');
-  if (separator == std::string::npos || separator + 2 != value.size() ||
-      value[separator + 1] < '0' || value[separator + 1] > '9') return "";
-  const std::string bundle = value.substr(0, separator);
-  const size_t index = static_cast<size_t>(value[separator + 1] - '0');
-  const size_t count = bundle == "com.openai.codex" ? 7 :
-    (bundle == "com.apple.Safari" || bundle == "com.tinyspeck.slackmacgap" ? 5 : 0);
-  return index < count ? value : "";
+  if (separator == std::string::npos) return "";
+  return companion_shortcut_catalog::has_shortcut(value.substr(0, separator), value.substr(separator + 1))
+    ? value : "";
 }
 
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {

@@ -98,7 +98,7 @@ export const GENERATED_ICON_NAMES: readonly string[] = [
     "Weather Sunny", "Weather Sunny Alert", "Weather Sunny Off", "Weather Sunset", "Weather Sunset Down", "Weather Sunset Up",
     "Weather Tornado", "Weather Windy", "Weather Windy Variant", "Web", "Wifi", "Wind Power",
     "Wind Turbine", "Wind Turbine Alert", "Wind Turbine Check", "Window Closed", "Window Open", "Window Shutter",
-    "Window Shutter Open",
+    "Window Shutter Open", "Tab",
   ];
 // --- GENERATED:ICONS END ---
 

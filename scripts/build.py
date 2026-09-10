@@ -907,6 +907,7 @@ def gen_companion_capabilities_swift(data):
 
 def sync_companion_capabilities(check_only=False):
     from companion_protocol_codegen import outputs as protocol_outputs
+    from app_shortcuts_codegen import outputs as shortcut_outputs
     from companion_release import compatibility
     data = load_companion_capabilities_data()
     outputs = [
@@ -915,6 +916,7 @@ def sync_companion_capabilities(check_only=False):
         (COMPANION_CAPABILITIES_SWIFT, gen_companion_capabilities_swift(data)),
     ]
     outputs.extend(protocol_outputs(ROOT, data))
+    outputs.extend(shortcut_outputs(ROOT))
     release_compatibility = compatibility(ROOT)
     outputs.append((ROOT / "product/generated/companion_compatibility.json", json.dumps(release_compatibility, indent=2) + "\n"))
     outputs.append((ROOT / "docs/generated/companion-compatibility.md",
@@ -929,6 +931,7 @@ def sync_companion_capabilities(check_only=False):
         "physical device validation. Independent Mac/firmware release delivery is not yet enabled.\n"))
     manifest = {
         "source": str(COMPANION_CAPABILITIES_JSON.relative_to(ROOT)),
+        "appShortcutSources": [str(path.relative_to(ROOT)) for path in sorted((ROOT / "product/v2/app_shortcuts").glob("*.json"))],
         "generator": "python3 scripts/build.py companion",
         "outputs": [str(path.relative_to(ROOT)) for path, _content in outputs],
     }
