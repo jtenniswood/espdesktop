@@ -3,6 +3,12 @@ import Foundation
 import IOKit.ps
 import SystemConfiguration
 
+struct CompanionStorageDevice: Equatable, Sendable {
+    let id: String
+    let label: String
+    let usagePercent: Double
+}
+
 struct CompanionNetworkInterface: Equatable, Sendable {
     let id: String
     let label: String
@@ -17,6 +23,7 @@ struct CompanionSystemMetricsSnapshot: Equatable, Sendable {
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
     var networkInterfaces: [CompanionNetworkInterface] = []
+    var storageDevices: [CompanionStorageDevice] = []
 }
 
 @MainActor
@@ -65,7 +72,8 @@ final class SystemMetricsProvider {
                 storageUsagePercent: sample.storageUsagePercent,
                 batteryPercent: sample.batteryPercent,
                 networkThroughputKBps: sample.networkThroughputKBps,
-                networkInterfaces: sample.networkInterfaces
+                networkInterfaces: sample.networkInterfaces,
+                storageDevices: sample.storageDevices
             )
             self.lastSnapshot = snapshot
             self.onSnapshot?(snapshot)
@@ -80,6 +88,7 @@ private struct SystemMetricsSample: Sendable {
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
     var networkInterfaces: [CompanionNetworkInterface] = []
+    var storageDevices: [CompanionStorageDevice] = []
 }
 
 private actor SystemMetricsSampler {
@@ -109,7 +118,8 @@ private actor SystemMetricsSampler {
             storageUsagePercent: storage,
             batteryPercent: Self.batteryPercent(),
             networkThroughputKBps: sampleNetworkThroughputKBps(),
-            networkInterfaces: Self.networkInterfaces()
+            networkInterfaces: Self.networkInterfaces(),
+            storageDevices: Self.storageDevices()
         )
     }
 
