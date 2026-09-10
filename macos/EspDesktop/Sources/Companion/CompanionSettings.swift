@@ -107,7 +107,7 @@ private struct CompanionPermissionRow: View {
             Toggle(title, isOn: $isEnabled)
                 .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                .controlSize(.large)
+                .controlSize(.regular)
                 .disabled(!isAvailable)
                 .accessibilityHint(information)
         }
