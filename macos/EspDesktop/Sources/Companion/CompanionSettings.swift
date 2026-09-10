@@ -127,8 +127,8 @@ private struct CompanionAccessibilityRow: View {
                 }
             } label: {
                 Text("Open Settings")
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 4)
             }
             .buttonStyle(.bordered)
             .modifier(CompanionCapsuleButton())
