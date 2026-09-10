@@ -204,8 +204,8 @@ def test_pages_excludes_draft_prereleases() -> None:
 def test_release_skill_creates_selected_tag_before_draft() -> None:
     skill = RELEASE_SKILL.read_text(encoding="utf-8")
     tag_creation = skill.index('git tag -a "$TAG"')
-    assert skill.index('TAG="vX.Y.Z"') < tag_creation
-    assert skill.index('TAG="vX.Y.Z-beta.N"') < tag_creation
+    assert skill.index("Set `TAG` to the selected full tag.") < tag_creation
+    assert skill.index("Preserve an explicitly requested prerelease") < tag_creation
     assert skill.index('gh release create "$TAG"', tag_creation) > tag_creation
 
 
