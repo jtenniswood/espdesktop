@@ -717,7 +717,7 @@ struct CompanionSettings: View {
                     ))
                     .labelsHidden()
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                    .controlSize(.regular)
+                    .controlSize(.small)
                     .disabled(store.availableApps.isEmpty)
                     .help("Select or deselect all apps")
                 }
