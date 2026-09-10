@@ -26,6 +26,7 @@
 #include "panel_config_write_endpoint.h"
 #include "panel_config_http_context.h"
 #include "button_grid.h"
+#include "finder_folder_sync.h"
 #include "connector_state.h"
 
 extern "C" void espdesktop_register_web_server_handlers(
@@ -78,6 +79,8 @@ class EspDesktopApp::NativeConfigurationRuntime {
   uint8_t *boot_buffer{nullptr};
   size_t slot_capacity{0};
   bool boot_configuration_pending{false};
+  uint32_t finder_poll_ms{0};
+  std::string finder_catalogue;
   configuration::EspHomePanelConfigTextValue button_order{};
   configuration::EspHomePanelConfigTextValue button_on_color{};
   std::array<LegacyButtonTextSources, configuration::PANEL_CONFIG_MAX_SLOT_COUNT>
@@ -359,9 +362,109 @@ void EspDesktopApp::initialize_native_configuration() {
   register_panel_config_endpoints();
 }
 
+void EspDesktopApp::sync_finder_folders() {
+  using namespace configuration;
+  auto *service = core_.configuration_service();
+  if (!native_configuration_initialized_ || !native_configuration_runtime_ || !service) return;
+  auto &runtime = *native_configuration_runtime_;
+  if (runtime.boot_configuration_pending || esphome::millis() - runtime.finder_poll_ms < 1000) return;
+  runtime.finder_poll_ms = esphome::millis();
+  const auto snapshot = companion_runtime_snapshot();
+  if (!snapshot.connected) return;
+  std::vector<CompanionAction> folders;
+  std::string catalogue;
+  for (const auto &action : snapshot.actions) {
+    if (action.id.rfind("folder.", 0) != 0) continue;
+    folders.push_back(action);
+    catalogue += action.id + "\n";
+  }
+  const auto &navigation = grid_navigation_service();
+  const int slots = navigation.layout_slots;
+  const int columns = navigation.layout_columns;
+  if (slots <= 0 || columns <= 0 || catalogue == runtime.finder_catalogue) return;
+  // Private buffers avoid racing the HTTP editor's shared buffer. Generation
+  // matching prevents a simultaneous browser save from being overwritten.
+  const size_t capacity = service->maximum_document_size();
+#ifdef USE_ESP32
+  auto *memory = static_cast<uint8_t *>(heap_caps_malloc(capacity * 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+#else
+  auto *memory = static_cast<uint8_t *>(std::malloc(capacity * 2));
+#endif
+  if (!memory) return;
+  std::unique_ptr<uint8_t, decltype(&std::free)> owned(memory, &std::free);
+  uint8_t *input = memory;
+  uint8_t *output = memory + capacity;
+  const auto loaded = service->load(input, capacity);
+  if (!loaded.ok()) return;
+  PanelConfigReader reader(input, loaded.document_size);
+  if (reader.begin() != PanelConfigStatus::OK) return;
+  std::vector<PanelConfigRecord> records;
+  PanelConfigRecord record;
+  while (reader.next(&record) == PanelConfigStatus::OK) records.push_back(record);
+  std::array<bool, PANEL_CONFIG_MAX_SLOT_COUNT + 1> finder_slots{};
+  for (const auto &item : records) {
+    if (item.type != PanelConfigRecordType::BUTTON) continue;
+    const auto card = parse_cfg(std::string(reinterpret_cast<const char *>(item.value), item.value_size));
+    finder_slots[item.slot] = card.entity == "com.apple.finder" && companion_app_shortcuts_enabled(card);
+  }
+  PanelConfigWriter writer(output, capacity);
+  if (writer.begin() != PanelConfigStatus::OK) return;
+  bool changed = false;
+  for (const auto &item : records) {
+    PanelConfigStatus status = PanelConfigStatus::INVALID_DOCUMENT;
+    if (item.type == PanelConfigRecordType::SUBPAGE && finder_slots[item.slot]) {
+      std::string config(reinterpret_cast<const char *>(item.value), item.value_size);
+      const auto buttons = parse_subpage_config(config);
+      SubpageOrder order;
+      parse_subpage_order(get_subpage_order(config), slots, buttons.size(), order);
+      // Older pages without an explicit Back token remain untouched until the
+      // editor normalizes them; guessing their positions could overwrite a tile.
+      if (order.has_back_token) {
+        normalize_subpage_order_spans(order, slots, columns);
+        std::vector<bool> occupied(slots, false);
+        auto occupy = [&](int position, int rows, int cols) {
+          for (int row = 0; row < rows; ++row)
+            for (int col = 0; col < cols; ++col) {
+              const int cell = position + row * columns + col;
+              if (cell >= 0 && cell < slots) occupied[cell] = true;
+            }
+        };
+        occupy(order.back_pos, order.back_row_span, order.back_col_span);
+        for (int position = 0; position < slots; ++position) {
+          const int index = order.positions[position];
+          if (index > 0 && index <= static_cast<int>(buttons.size()))
+            occupy(position, order.row_span[index - 1], order.col_span[index - 1]);
+        }
+        size_t capacity = 0;
+        for (auto *chunk : panel_config_button_texts_[item.slot - 1].subpages)
+          if (chunk) capacity += 255;
+        const auto updated = finder_append_folder_tiles(config, occupied, folders, capacity);
+        changed |= updated != config;
+        config = updated;
+      }
+      status = writer.append_subpage(item.slot, reinterpret_cast<const uint8_t *>(config.data()), config.size());
+    } else if (item.type == PanelConfigRecordType::SUBPAGE) {
+      status = writer.append_subpage(item.slot, item.value, item.value_size);
+    } else if (item.type == PanelConfigRecordType::BUTTON) {
+      status = writer.append_button(item.slot, item.value, item.value_size);
+    } else if (item.type == PanelConfigRecordType::SETTING) {
+      status = writer.append_setting(item.key, item.key_size, item.value, item.value_size);
+    } else if (item.type == PanelConfigRecordType::DEVICE_PROFILE) {
+      status = writer.append_device_profile(item.value, item.value_size);
+    }
+    if (status != PanelConfigStatus::OK) return;
+  }
+  size_t size = 0;
+  if (writer.finish(&size) != PanelConfigStatus::OK) return;
+  if (changed && !service->save_if_generation(loaded.generation, loaded.document_version,
+                                             output, size).ok()) return;
+  runtime.finder_catalogue = catalogue;
+}
+
 void EspDesktopApp::loop() {
   home_assistant_endpoint_.loop();
   core_.run_once();
+  sync_finder_folders();
   // The app core starts before WiFi so Home Assistant boot automations are
   // safe. The IDF web server starts later, so retry idempotent registrations.
   register_panel_config_endpoints();

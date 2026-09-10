@@ -59,7 +59,7 @@ With **Auto switch to subpage** enabled, tapping the app card asks the Mac to ac
 
 ## Finder Folder Subpage
 
-Choose **Finder** on a **Launch app** card and enable **Add app subpage**. Enabling the subpage automatically adds tiles for directories configured in the Mac app's **Folders** page, up to the available space. Existing tiles and their labels are preserved, without duplicates. Turn the subpage off and on again to add newly configured folders. You can still add, remove, or rearrange **Companion → Open folder** cards manually.
+Choose **Finder** on a **Launch app** card and enable **Add app subpage**. Enabling the subpage automatically adds tiles for directories configured in the Mac app's **Folders** page, up to the available space. Existing tiles and their labels are preserved, without duplicates. New folders added in the Mac app also appear automatically on enabled Finder subpages when space is available, even with the web editor closed. Existing tiles are never removed automatically. Refresh the web editor to see changes made by the display. You can still add, remove, or rearrange **Companion → Open folder** cards manually.
 
 Each folder card lights up when that directory is active in Finder. Switching between folders or the desktop keeps the Finder subpage open; switching to another application returns to the home screen. Enable **Auto switch to subpage** to open it whenever Finder becomes active. Folder highlighting needs macOS permission for EspDesktop to control Finder; allow the Automation prompt when shown.
 

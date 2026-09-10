@@ -18,6 +18,8 @@ inline bool grid_navigation_rebuild_should_return_home(
 template <typename HomeTarget, typename Subpage>
 class GridNavigationService {
  public:
+  int layout_slots{0};
+  int layout_columns{0};
   std::vector<HomeTarget> &home_targets() { return home_targets_; }
   const std::vector<HomeTarget> &home_targets() const { return home_targets_; }
 

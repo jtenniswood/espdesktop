@@ -7,10 +7,23 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "companion_controls.h"
 #include "companion_timezone.h"
 #include "button_grid_config_parser.h"
+#define ESPDESKTOP_SUBPAGE_PARSER_ONLY
+#include "button_grid_subpages.h"
+#include "finder_folder_sync.h"
 
 using namespace esphome::companion;
 
 int main() {
+  const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
+  const std::vector<CompanionAction> folders = {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}};
+  const auto added = finder_append_folder_tiles(page, {true, true, true, false}, folders);
+  const auto parsed = parse_subpage_config(added);
+  assert(parsed.size() == 2 && parsed[0].label == "My folder" && parsed[1].label == "A,B|C");
+  assert(added.rfind("~B,1,,2|", 0) == 0);
+  assert(finder_append_folder_tiles(added, {true, true, true, true}, folders) == added);
+  assert(finder_append_folder_tiles(page, {true, true, true, true}, folders) == page);
+  assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
+
   // Exercise the real translation tables at the device-label boundary.
   set_espdesktop_language("de");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Ausgabelautstärke");
