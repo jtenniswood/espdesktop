@@ -299,3 +299,5 @@ window_left_quarters=Gauche et quarts
 window_right_quarters=Droite et quarts
 window_top_quarters=Haut et quarts
 window_bottom_quarters=Bas et quarts
+paired=Jumelé
+unpaired=Non jumelé

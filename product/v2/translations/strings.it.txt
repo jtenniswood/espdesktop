@@ -299,3 +299,5 @@ window_left_quarters=Sinistra e quarti
 window_right_quarters=Destra e quarti
 window_top_quarters=Alto e quarti
 window_bottom_quarters=Basso e quarti
+paired=Abbinato
+unpaired=Non abbinato
