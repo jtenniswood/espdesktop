@@ -319,6 +319,21 @@ final class CompanionStore: NSObject, ObservableObject {
         approvedApplicationIdentifiers.contains(application.bundleIdentifier)
     }
 
+    var allApplicationsApproved: Bool {
+        !availableApps.isEmpty && availableApps.allSatisfy { applicationIsApproved($0) }
+    }
+
+    func setAllApplications(approved: Bool) {
+        let identifiers = Set(availableApps.map(\.bundleIdentifier))
+        if approved {
+            approvedApplicationIdentifiers.formUnion(identifiers)
+        } else {
+            approvedApplicationIdentifiers.subtract(identifiers)
+        }
+        defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
+        if isConnected { connection.publishCatalogue() }
+    }
+
     func setApplication(_ application: LaunchableApp, approved: Bool) {
         if approved {
             approvedApplicationIdentifiers.insert(application.bundleIdentifier)
