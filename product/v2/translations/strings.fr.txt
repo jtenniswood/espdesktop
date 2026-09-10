@@ -301,3 +301,6 @@ window_top_quarters=Haut et quarts
 window_bottom_quarters=Bas et quarts
 paired=Jumelé
 unpaired=Non jumelé
+stat_used=utilisé
+stat_free=libre
+stat_remaining=restant

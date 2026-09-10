@@ -301,3 +301,6 @@ window_top_quarters=Zgoraj in četrtine
 window_bottom_quarters=Spodaj in četrtine
 paired=Seznanjeno
 unpaired=Ni seznanjeno
+stat_used=porabljeno
+stat_free=prosto
+stat_remaining=preostalo

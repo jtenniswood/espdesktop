@@ -301,3 +301,6 @@ window_top_quarters=Top & Quarters
 window_bottom_quarters=Bottom & Quarters
 paired=Paired
 unpaired=Unpaired
+stat_used=used
+stat_free=free
+stat_remaining=left

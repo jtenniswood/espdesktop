@@ -107,7 +107,7 @@ Add **Companion → Stats** cards. The Mac app shares statistics automatically w
 | **Battery** | Battery charge percentage, shown as left or used; unavailable on Macs without a battery |
 | **IP address** | Laptop icon and the IPv4 address of the selected Mac network device |
 
-For **IP address**, choose a **Network device**, such as Wi-Fi or Ethernet. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
+For **IP address**, **Automatic (available network)** shows the first Mac network device with an IPv4 address. You can choose a specific **Network device**, such as Wi-Fi or Ethernet, instead. Each card keeps its own selection. The card shows `--` if that device has no IPv4 address or the Mac is disconnected. Update both the display firmware and Mac app to use this option.
 
 Statistics show a metric icon above the live reading. Numeric labels include used or free as appropriate, and battery shows left, with configurable units and decimal precision. Numeric cards include a **Show capacity label** toggle, enabled by default, to control whether the used, free, or left word appears after the value. Statistics are shared only when enabled in the Mac app.
 

@@ -295,6 +295,9 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Dole a čtvrtiny";
   if (std::strcmp(text, "Paired") == 0) return "Spárováno";
   if (std::strcmp(text, "Unpaired") == 0) return "Nespárováno";
+  if (std::strcmp(text, "used") == 0) return "využito";
+  if (std::strcmp(text, "free") == 0) return "volné";
+  if (std::strcmp(text, "left") == 0) return "zbývá";
   return text;
 }
 
@@ -570,6 +573,9 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Nederst og kvarte";
   if (std::strcmp(text, "Paired") == 0) return "Parret";
   if (std::strcmp(text, "Unpaired") == 0) return "Ikke parret";
+  if (std::strcmp(text, "used") == 0) return "brugt";
+  if (std::strcmp(text, "free") == 0) return "ledig";
+  if (std::strcmp(text, "left") == 0) return "tilbage";
   return text;
 }
 
@@ -843,6 +849,9 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Unten und Viertel";
   if (std::strcmp(text, "Paired") == 0) return "Gekoppelt";
   if (std::strcmp(text, "Unpaired") == 0) return "Nicht gekoppelt";
+  if (std::strcmp(text, "used") == 0) return "belegt";
+  if (std::strcmp(text, "free") == 0) return "frei";
+  if (std::strcmp(text, "left") == 0) return "übrig";
   return text;
 }
 
@@ -1125,6 +1134,9 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Abajo y cuartos";
   if (std::strcmp(text, "Paired") == 0) return "Emparejado";
   if (std::strcmp(text, "Unpaired") == 0) return "Sin emparejar";
+  if (std::strcmp(text, "used") == 0) return "usado";
+  if (std::strcmp(text, "free") == 0) return "libre";
+  if (std::strcmp(text, "left") == 0) return "restante";
   return text;
 }
 
@@ -1417,6 +1429,9 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Alaosa ja neljännekset";
   if (std::strcmp(text, "Paired") == 0) return "Paritettu";
   if (std::strcmp(text, "Unpaired") == 0) return "Ei paritettu";
+  if (std::strcmp(text, "used") == 0) return "käytössä";
+  if (std::strcmp(text, "free") == 0) return "vapaana";
+  if (std::strcmp(text, "left") == 0) return "jäljellä";
   return text;
 }
 
@@ -1693,6 +1708,9 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Bas et quarts";
   if (std::strcmp(text, "Paired") == 0) return "Jumelé";
   if (std::strcmp(text, "Unpaired") == 0) return "Non jumelé";
+  if (std::strcmp(text, "used") == 0) return "utilisé";
+  if (std::strcmp(text, "free") == 0) return "libre";
+  if (std::strcmp(text, "left") == 0) return "restant";
   return text;
 }
 
@@ -1991,6 +2009,9 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "למטה ורבעים";
   if (std::strcmp(text, "Paired") == 0) return "מותאם";
   if (std::strcmp(text, "Unpaired") == 0) return "לא מותאם";
+  if (std::strcmp(text, "used") == 0) return "בשימוש";
+  if (std::strcmp(text, "free") == 0) return "פנוי";
+  if (std::strcmp(text, "left") == 0) return "נותר";
   return text;
 }
 
@@ -2282,6 +2303,9 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Lent és negyedek";
   if (std::strcmp(text, "Paired") == 0) return "Párosítva";
   if (std::strcmp(text, "Unpaired") == 0) return "Nincs párosítva";
+  if (std::strcmp(text, "used") == 0) return "használt";
+  if (std::strcmp(text, "free") == 0) return "szabad";
+  if (std::strcmp(text, "left") == 0) return "maradt";
   return text;
 }
 
@@ -2564,6 +2588,9 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Basso e quarti";
   if (std::strcmp(text, "Paired") == 0) return "Abbinato";
   if (std::strcmp(text, "Unpaired") == 0) return "Non abbinato";
+  if (std::strcmp(text, "used") == 0) return "usato";
+  if (std::strcmp(text, "free") == 0) return "libero";
+  if (std::strcmp(text, "left") == 0) return "rimanente";
   return text;
 }
 
@@ -2844,6 +2871,9 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Nederst og fjerdedeler";
   if (std::strcmp(text, "Paired") == 0) return "Paret";
   if (std::strcmp(text, "Unpaired") == 0) return "Ikke paret";
+  if (std::strcmp(text, "used") == 0) return "brukt";
+  if (std::strcmp(text, "free") == 0) return "ledig";
+  if (std::strcmp(text, "left") == 0) return "igjen";
   return text;
 }
 
@@ -3119,6 +3149,9 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Onder en kwarten";
   if (std::strcmp(text, "Paired") == 0) return "Gekoppeld";
   if (std::strcmp(text, "Unpaired") == 0) return "Niet gekoppeld";
+  if (std::strcmp(text, "used") == 0) return "gebruikt";
+  if (std::strcmp(text, "free") == 0) return "vrij";
+  if (std::strcmp(text, "left") == 0) return "over";
   return text;
 }
 
@@ -3399,6 +3432,9 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Dół i ćwiartki";
   if (std::strcmp(text, "Paired") == 0) return "Sparowano";
   if (std::strcmp(text, "Unpaired") == 0) return "Niesparowano";
+  if (std::strcmp(text, "used") == 0) return "użyte";
+  if (std::strcmp(text, "free") == 0) return "wolne";
+  if (std::strcmp(text, "left") == 0) return "pozostało";
   return text;
 }
 
@@ -3679,6 +3715,9 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(text, "Paired") == 0) return "Pareado";
   if (std::strcmp(text, "Unpaired") == 0) return "Não pareado";
+  if (std::strcmp(text, "used") == 0) return "usado";
+  if (std::strcmp(text, "free") == 0) return "livre";
+  if (std::strcmp(text, "left") == 0) return "restante";
   return text;
 }
 
@@ -3960,6 +3999,9 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(text, "Paired") == 0) return "Emparelhado";
   if (std::strcmp(text, "Unpaired") == 0) return "Não emparelhado";
+  if (std::strcmp(text, "used") == 0) return "usado";
+  if (std::strcmp(text, "free") == 0) return "livre";
+  if (std::strcmp(text, "left") == 0) return "restante";
   return text;
 }
 
@@ -4251,6 +4293,9 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Jos și sferturi";
   if (std::strcmp(text, "Paired") == 0) return "Asociat";
   if (std::strcmp(text, "Unpaired") == 0) return "Neasociat";
+  if (std::strcmp(text, "used") == 0) return "utilizat";
+  if (std::strcmp(text, "free") == 0) return "liber";
+  if (std::strcmp(text, "left") == 0) return "rămas";
   return text;
 }
 
@@ -4549,6 +4594,9 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Снизу и четверти";
   if (std::strcmp(text, "Paired") == 0) return "Сопряжено";
   if (std::strcmp(text, "Unpaired") == 0) return "Не сопряжено";
+  if (std::strcmp(text, "used") == 0) return "использовано";
+  if (std::strcmp(text, "free") == 0) return "свободно";
+  if (std::strcmp(text, "left") == 0) return "осталось";
   return text;
 }
 
@@ -4833,6 +4881,9 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Dole a štvrtiny";
   if (std::strcmp(text, "Paired") == 0) return "Spárované";
   if (std::strcmp(text, "Unpaired") == 0) return "Nespárované";
+  if (std::strcmp(text, "used") == 0) return "využité";
+  if (std::strcmp(text, "free") == 0) return "voľné";
+  if (std::strcmp(text, "left") == 0) return "zostáva";
   return text;
 }
 
@@ -5121,6 +5172,9 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Spodaj in četrtine";
   if (std::strcmp(text, "Paired") == 0) return "Seznanjeno";
   if (std::strcmp(text, "Unpaired") == 0) return "Ni seznanjeno";
+  if (std::strcmp(text, "used") == 0) return "porabljeno";
+  if (std::strcmp(text, "free") == 0) return "prosto";
+  if (std::strcmp(text, "left") == 0) return "preostalo";
   return text;
 }
 
@@ -5400,6 +5454,9 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Nederst och fjärdedelar";
   if (std::strcmp(text, "Paired") == 0) return "Parkopplad";
   if (std::strcmp(text, "Unpaired") == 0) return "Inte parkopplad";
+  if (std::strcmp(text, "used") == 0) return "använt";
+  if (std::strcmp(text, "free") == 0) return "ledigt";
+  if (std::strcmp(text, "left") == 0) return "kvar";
   return text;
 }
 
@@ -5692,6 +5749,9 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Alt ve çeyrekler";
   if (std::strcmp(text, "Paired") == 0) return "Eşleştirildi";
   if (std::strcmp(text, "Unpaired") == 0) return "Eşleştirilmedi";
+  if (std::strcmp(text, "used") == 0) return "kullanılan";
+  if (std::strcmp(text, "free") == 0) return "boş";
+  if (std::strcmp(text, "left") == 0) return "kalan";
   return text;
 }
 
@@ -5985,6 +6045,9 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Bottom & Quarters") == 0) return "Унизу й чверті";
   if (std::strcmp(text, "Paired") == 0) return "Сполучено";
   if (std::strcmp(text, "Unpaired") == 0) return "Не сполучено";
+  if (std::strcmp(text, "used") == 0) return "використано";
+  if (std::strcmp(text, "free") == 0) return "вільно";
+  if (std::strcmp(text, "left") == 0) return "залишилось";
   return text;
 }
 
@@ -6290,6 +6353,9 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Bottom & Quarters";
   if (std::strcmp(key, "paired") == 0) return "Paired";
   if (std::strcmp(key, "unpaired") == 0) return "Unpaired";
+  if (std::strcmp(key, "stat_used") == 0) return "used";
+  if (std::strcmp(key, "stat_free") == 0) return "free";
+  if (std::strcmp(key, "stat_remaining") == 0) return "left";
   return key;
 }
 
@@ -6576,6 +6642,9 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Dole a čtvrtiny";
   if (std::strcmp(key, "paired") == 0) return "Spárováno";
   if (std::strcmp(key, "unpaired") == 0) return "Nespárováno";
+  if (std::strcmp(key, "stat_used") == 0) return "využito";
+  if (std::strcmp(key, "stat_free") == 0) return "volné";
+  if (std::strcmp(key, "stat_remaining") == 0) return "zbývá";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6854,6 +6923,9 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Nederst og kvarte";
   if (std::strcmp(key, "paired") == 0) return "Parret";
   if (std::strcmp(key, "unpaired") == 0) return "Ikke parret";
+  if (std::strcmp(key, "stat_used") == 0) return "brugt";
+  if (std::strcmp(key, "stat_free") == 0) return "ledig";
+  if (std::strcmp(key, "stat_remaining") == 0) return "tilbage";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7130,6 +7202,9 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Unten und Viertel";
   if (std::strcmp(key, "paired") == 0) return "Gekoppelt";
   if (std::strcmp(key, "unpaired") == 0) return "Nicht gekoppelt";
+  if (std::strcmp(key, "stat_used") == 0) return "belegt";
+  if (std::strcmp(key, "stat_free") == 0) return "frei";
+  if (std::strcmp(key, "stat_remaining") == 0) return "übrig";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7415,6 +7490,9 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Abajo y cuartos";
   if (std::strcmp(key, "paired") == 0) return "Emparejado";
   if (std::strcmp(key, "unpaired") == 0) return "Sin emparejar";
+  if (std::strcmp(key, "stat_used") == 0) return "usado";
+  if (std::strcmp(key, "stat_free") == 0) return "libre";
+  if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7710,6 +7788,9 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Alaosa ja neljännekset";
   if (std::strcmp(key, "paired") == 0) return "Paritettu";
   if (std::strcmp(key, "unpaired") == 0) return "Ei paritettu";
+  if (std::strcmp(key, "stat_used") == 0) return "käytössä";
+  if (std::strcmp(key, "stat_free") == 0) return "vapaana";
+  if (std::strcmp(key, "stat_remaining") == 0) return "jäljellä";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7989,6 +8070,9 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Bas et quarts";
   if (std::strcmp(key, "paired") == 0) return "Jumelé";
   if (std::strcmp(key, "unpaired") == 0) return "Non jumelé";
+  if (std::strcmp(key, "stat_used") == 0) return "utilisé";
+  if (std::strcmp(key, "stat_free") == 0) return "libre";
+  if (std::strcmp(key, "stat_remaining") == 0) return "restant";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8290,6 +8374,9 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "למטה ורבעים";
   if (std::strcmp(key, "paired") == 0) return "מותאם";
   if (std::strcmp(key, "unpaired") == 0) return "לא מותאם";
+  if (std::strcmp(key, "stat_used") == 0) return "בשימוש";
+  if (std::strcmp(key, "stat_free") == 0) return "פנוי";
+  if (std::strcmp(key, "stat_remaining") == 0) return "נותר";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8584,6 +8671,9 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Lent és negyedek";
   if (std::strcmp(key, "paired") == 0) return "Párosítva";
   if (std::strcmp(key, "unpaired") == 0) return "Nincs párosítva";
+  if (std::strcmp(key, "stat_used") == 0) return "használt";
+  if (std::strcmp(key, "stat_free") == 0) return "szabad";
+  if (std::strcmp(key, "stat_remaining") == 0) return "maradt";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8869,6 +8959,9 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Basso e quarti";
   if (std::strcmp(key, "paired") == 0) return "Abbinato";
   if (std::strcmp(key, "unpaired") == 0) return "Non abbinato";
+  if (std::strcmp(key, "stat_used") == 0) return "usato";
+  if (std::strcmp(key, "stat_free") == 0) return "libero";
+  if (std::strcmp(key, "stat_remaining") == 0) return "rimanente";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9152,6 +9245,9 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Nederst og fjerdedeler";
   if (std::strcmp(key, "paired") == 0) return "Paret";
   if (std::strcmp(key, "unpaired") == 0) return "Ikke paret";
+  if (std::strcmp(key, "stat_used") == 0) return "brukt";
+  if (std::strcmp(key, "stat_free") == 0) return "ledig";
+  if (std::strcmp(key, "stat_remaining") == 0) return "igjen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9429,6 +9525,9 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Onder en kwarten";
   if (std::strcmp(key, "paired") == 0) return "Gekoppeld";
   if (std::strcmp(key, "unpaired") == 0) return "Niet gekoppeld";
+  if (std::strcmp(key, "stat_used") == 0) return "gebruikt";
+  if (std::strcmp(key, "stat_free") == 0) return "vrij";
+  if (std::strcmp(key, "stat_remaining") == 0) return "over";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9712,6 +9811,9 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Dół i ćwiartki";
   if (std::strcmp(key, "paired") == 0) return "Sparowano";
   if (std::strcmp(key, "unpaired") == 0) return "Niesparowano";
+  if (std::strcmp(key, "stat_used") == 0) return "użyte";
+  if (std::strcmp(key, "stat_free") == 0) return "wolne";
+  if (std::strcmp(key, "stat_remaining") == 0) return "pozostało";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9995,6 +10097,9 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(key, "paired") == 0) return "Pareado";
   if (std::strcmp(key, "unpaired") == 0) return "Não pareado";
+  if (std::strcmp(key, "stat_used") == 0) return "usado";
+  if (std::strcmp(key, "stat_free") == 0) return "livre";
+  if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10279,6 +10384,9 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(key, "paired") == 0) return "Emparelhado";
   if (std::strcmp(key, "unpaired") == 0) return "Não emparelhado";
+  if (std::strcmp(key, "stat_used") == 0) return "usado";
+  if (std::strcmp(key, "stat_free") == 0) return "livre";
+  if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10573,6 +10681,9 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Jos și sferturi";
   if (std::strcmp(key, "paired") == 0) return "Asociat";
   if (std::strcmp(key, "unpaired") == 0) return "Neasociat";
+  if (std::strcmp(key, "stat_used") == 0) return "utilizat";
+  if (std::strcmp(key, "stat_free") == 0) return "liber";
+  if (std::strcmp(key, "stat_remaining") == 0) return "rămas";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10874,6 +10985,9 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Снизу и четверти";
   if (std::strcmp(key, "paired") == 0) return "Сопряжено";
   if (std::strcmp(key, "unpaired") == 0) return "Не сопряжено";
+  if (std::strcmp(key, "stat_used") == 0) return "использовано";
+  if (std::strcmp(key, "stat_free") == 0) return "свободно";
+  if (std::strcmp(key, "stat_remaining") == 0) return "осталось";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11161,6 +11275,9 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Dole a štvrtiny";
   if (std::strcmp(key, "paired") == 0) return "Spárované";
   if (std::strcmp(key, "unpaired") == 0) return "Nespárované";
+  if (std::strcmp(key, "stat_used") == 0) return "využité";
+  if (std::strcmp(key, "stat_free") == 0) return "voľné";
+  if (std::strcmp(key, "stat_remaining") == 0) return "zostáva";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11452,6 +11569,9 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Spodaj in četrtine";
   if (std::strcmp(key, "paired") == 0) return "Seznanjeno";
   if (std::strcmp(key, "unpaired") == 0) return "Ni seznanjeno";
+  if (std::strcmp(key, "stat_used") == 0) return "porabljeno";
+  if (std::strcmp(key, "stat_free") == 0) return "prosto";
+  if (std::strcmp(key, "stat_remaining") == 0) return "preostalo";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11734,6 +11854,9 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Nederst och fjärdedelar";
   if (std::strcmp(key, "paired") == 0) return "Parkopplad";
   if (std::strcmp(key, "unpaired") == 0) return "Inte parkopplad";
+  if (std::strcmp(key, "stat_used") == 0) return "använt";
+  if (std::strcmp(key, "stat_free") == 0) return "ledigt";
+  if (std::strcmp(key, "stat_remaining") == 0) return "kvar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12029,6 +12152,9 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Alt ve çeyrekler";
   if (std::strcmp(key, "paired") == 0) return "Eşleştirildi";
   if (std::strcmp(key, "unpaired") == 0) return "Eşleştirilmedi";
+  if (std::strcmp(key, "stat_used") == 0) return "kullanılan";
+  if (std::strcmp(key, "stat_free") == 0) return "boş";
+  if (std::strcmp(key, "stat_remaining") == 0) return "kalan";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12325,6 +12451,9 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "window_bottom_quarters") == 0) return "Унизу й чверті";
   if (std::strcmp(key, "paired") == 0) return "Сполучено";
   if (std::strcmp(key, "unpaired") == 0) return "Не сполучено";
+  if (std::strcmp(key, "stat_used") == 0) return "використано";
+  if (std::strcmp(key, "stat_free") == 0) return "вільно";
+  if (std::strcmp(key, "stat_remaining") == 0) return "залишилось";
   return espdesktop_i18n_key_en(key);
 }
 

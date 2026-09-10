@@ -301,3 +301,6 @@ window_top_quarters=Сверху и четверти
 window_bottom_quarters=Снизу и четверти
 paired=Сопряжено
 unpaired=Не сопряжено
+stat_used=использовано
+stat_free=свободно
+stat_remaining=осталось

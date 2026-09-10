@@ -301,3 +301,6 @@ window_top_quarters=Góra i ćwiartki
 window_bottom_quarters=Dół i ćwiartki
 paired=Sparowano
 unpaired=Niesparowano
+stat_used=użyte
+stat_free=wolne
+stat_remaining=pozostało

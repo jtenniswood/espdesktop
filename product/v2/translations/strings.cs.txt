@@ -301,3 +301,6 @@ window_top_quarters=Nahoře a čtvrtiny
 window_bottom_quarters=Dole a čtvrtiny
 paired=Spárováno
 unpaired=Nespárováno
+stat_used=využito
+stat_free=volné
+stat_remaining=zbývá
