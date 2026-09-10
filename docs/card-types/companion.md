@@ -24,7 +24,7 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 | **Open URL** | Opens an `http://` or `https://` address in an approved app | Choose an approved browser or other app |
 | **Open folder** | Opens an approved Finder folder | Add the folder in the Mac app's **Folders** page |
 | **Media control** | Plays, pauses, or skips the current macOS Now Playing session | The media app must publish a usable Now Playing session |
-| **Stats** | Shows live Mac processor, memory, storage, network, or battery information | Turn on **Share Mac system statistics** |
+| **Stats** | Shows live Mac processor, memory, storage, network, or battery information | Shared automatically while connected |
 | **Window control** | Controls or arranges the active Mac window | Allow Accessibility access; tiling needs macOS 15+ |
 
 Action cards are disabled when the Mac is offline or the selected application, folder, command, or URL is unavailable. Statistic cards show `--` until a reading is available.
@@ -104,7 +104,7 @@ The slider follows volume changes made on the Mac. It is disabled when the Compa
 
 ## Mac Statistics
 
-Turn on **Share Mac system statistics** in the Mac app's **Permissions** page, then add **Companion → Stats** cards.
+Add **Companion → Stats** cards. The Mac app shares statistics automatically while connected to the paired display.
 
 | Statistic | What is shown |
 |---|---|
@@ -128,7 +128,7 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 | Launching an app | The app must be selected in EspDesktop's **Applications** page |
 | Opening a folder | The folder must be added in EspDesktop's **Folders** page |
 | Keyboard and window controls | EspDesktop must be enabled in **System Settings → Privacy & Security → Accessibility** |
-| Mac statistics | **Share Mac system statistics** must be on in EspDesktop's **Permissions** page |
+| Mac statistics | Shared automatically while connected to the paired display |
 | Media and artwork | The playing application must publish a usable macOS Now Playing session |
 | Output or input volume | The selected audio device must expose software volume control |
 

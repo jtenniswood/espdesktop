@@ -31,7 +31,7 @@ The manual release workflow signs and notarizes this standalone app and its disk
 
 For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run. Installed applications are available to launch or to open validated `http://` and `https://` links. Finder folders are separate: add folders with the native picker in the app's **Folders** page, then select one for each Open folder card in the panel web editor. The app can replay keyboard shortcuts created in the panel's web editor; macOS Accessibility permission is required the first time a shortcut is used.
 
-On first launch, the setup guide walks through Accessibility for shortcut and window-control cards, optional Mac statistics sharing, and opening EspDesktop at login. Use **General → Run Setup Guide…** to review these choices later.
+On first launch, the setup guide walks through Accessibility for shortcut and window-control cards, and opening EspDesktop at login. Use **General → Run Setup Guide…** to review these choices later.
 
 Click the EspDesktop icon in the macOS menu bar to see the display address and connection status, connect or disconnect, open display settings in your browser, or open EspDesktop settings. About EspDesktop is in the application menu.
 When EspDesktop is installed as a packaged `.app`, its Display tab includes a Permissions section with an **Open EspDesktop at Login** switch. The local Swift launcher does not create an app bundle, so it shows the setting as unavailable with installation guidance. macOS may require approval under **System Settings → General → Login Items**.
@@ -48,7 +48,7 @@ locally on the Mac and can be changed at any time. Apps are enabled by default o
 
 In **Folders**, use **Choose Again…** if a folder has been moved or removed. Removing a folder asks for confirmation and does not delete any files. **Display → Permissions → Enable Keyboard Shortcuts** shows Accessibility access and requests the native macOS permission prompt when needed. It does not automatically open System Settings; follow the displayed instructions to grant permission. Simply viewing EspDesktop settings does not request permission.
 
-Enable **General → Share Mac system statistics** to share overall processor and memory usage, storage for the startup disk or a selected mounted local drive, combined network throughput on the primary interface, and battery level when the Mac has a battery. Memory and storage cards can show either used or free capacity. No additional macOS permission is required, and it does not collect application, file, browsing, or network-content details. Choose the corresponding type on a Companion card to show a reading.
+EspDesktop automatically shares overall processor and memory usage, startup-disk storage, combined network throughput on the primary interface, and battery level when the Mac has a battery, while connected to a paired display that supports statistics. Memory and storage cards can show either used or free capacity. No additional macOS permission is required, and it does not collect application, file, browsing, or network-content details. Choose the corresponding type on a Companion card to show a reading.
 
 The versioned protocol is intentionally narrow: a Mac publishes installed bundle identifiers, opaque identifiers for user-approved folders, supported media controls, a Now Playing snapshot, and system statistics when supported by the connected panel using typed JSON messages. Artwork bytes use bounded binary chunks. The panel can request one of those applications or folders, a validated keyboard shortcut, media control, or a web URL opened by one of those applications. Folder paths stay in the Mac app and are never sent to the display. It does not execute shell commands, accept app or folder paths from the panel, allow non-web URL schemes, or accept inbound network connections.
 
@@ -65,6 +65,10 @@ The updater uses an HTTPS feed published alongside each stable GitHub release. A
 Release setup: store the private Ed25519 seed in the repository secret `SPARKLE_PRIVATE_KEY`; the matching public key is in `Packaging/sparkle-public-key.txt`. Keep a backup of the private key in Keychain. The release workflow requires this secret in addition to the existing Apple signing/notarization credentials, generates and verifies a signed appcast with Sparkle's tools, and publishes it with the notarized ZIP and DMG. Never commit the private key. Do not replace the public key after shipping without following Sparkle's key-rotation procedure. Use increasing release build numbers; Sparkle compares `CFBundleVersion`.
 
 Ad-hoc local app builds embed Sparkle and disable library validation only for that local signature. Developer ID release builds retain library validation and sign Sparkle's nested helper components with the same signing identity as the app.
+
+### Keyboard shortcut permission
+
+Use **Open Settings** beside Enable Shortcuts or Shortcut Enabled, then enable **EspDesktop** under Privacy & Security → Accessibility. Return to EspDesktop to refresh the status. macOS owns this permission; the app cannot grant it itself.
 
 ### Preserve Accessibility approval across local builds
 
