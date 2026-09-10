@@ -5196,6 +5196,119 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function assertShortcutCatalogSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  async function openCard() {
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  }
+  async function saveCard() {
+    const before = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.puts.length > before, "shortcut card save");
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await seedNativeDocument(page, nativeState);
+    const commandIcon = page.locator('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
+    assert.strictEqual(await commandIcon.count(), 1, "saved Shortcut Command icon uses its actual MDI name");
+    assert((await commandIcon.evaluate((icon) => getComputedStyle(icon, "::before").content)).includes(String.fromCodePoint(0xF0633)), "shortcut icon has the expected browser glyph");
+    await openCard();
+    const type = page.locator('[id$="shortcut-type"]');
+    const app = page.locator('[id$="shortcut-catalog-app"]');
+    const action = page.locator('[id$="shortcut-catalog-action"]');
+    assert.strictEqual(await type.inputValue(), "custom", "existing shortcuts use Custom Shortcut");
+    assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
+    await type.selectOption("catalog");
+    const catalogPanel = page.locator(".sp-disclosure").filter({
+      has: page.getByRole("button", { name: "Shortcut", exact: true }),
+    });
+    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
+    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
+    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    assert.strictEqual(await app.isVisible(), false);
+    assert.strictEqual(await action.isVisible(), false);
+    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    assert.strictEqual(await action.isDisabled(), true, "choose an app first");
+    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
+    await app.selectOption("com.apple.Safari");
+    assert.strictEqual(await action.locator("option").count(), 6, "five Safari shortcuts plus placeholder");
+    const beforeInvalidSave = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
+    await action.selectOption("app_shortcut_preset=com.apple.Safari%3A2");
+    await saveCard();
+    assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await seedNativeDocument(page, nativeState);
+    await openCard();
+    assert.strictEqual(await type.inputValue(), "catalog", "catalog type survives reload");
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari");
+    assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
+    await type.selectOption("custom");
+    await page.locator('[id$="shortcut-key"]').selectOption("a");
+    await saveCard();
+    await openCard();
+    assert.strictEqual(await type.inputValue(), "custom", "custom type survives save");
+    assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
+    const shortcutPanel = page.locator(".sp-disclosure").filter({
+      has: page.getByRole("button", { name: "Shortcut", exact: true }),
+    });
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').count(), 1, "key is inside Shortcut panel");
+    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
+    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
+    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
+    const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
+    const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
+    const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
+    const key = page.locator('[id$="shortcut-key"]');
+    assert.strictEqual(await command.getAttribute("aria-pressed"), "true", "saved shortcut restores modifier buttons");
+    assert.strictEqual(await key.inputValue(), "a", "saved shortcut restores key selector");
+    await key.selectOption("w");
+    assert.strictEqual(await key.inputValue(), "w");
+    await saveCard();
+    await openCard();
+    assert.strictEqual(await key.inputValue(), "w", "click-built Command-W survives save");
+    assert.strictEqual(await command.getAttribute("aria-pressed"), "true");
+    await command.click();
+    await shift.click();
+    const beforeInvalidCustomSave = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeInvalidCustomSave, "Shift-only combinations cannot save");
+    await control.click();
+    await key.selectOption("tab");
+    assert.strictEqual(await key.inputValue(), "tab");
+    await key.selectOption("keybracketleft");
+    assert.strictEqual(await key.inputValue(), "keybracketleft");
+    await key.selectOption("f12");
+    await saveCard();
+    await openCard();
+    assert.strictEqual(await key.inputValue(), "f12");
+    assert.strictEqual(await control.getAttribute("aria-pressed"), "true");
+    assert.strictEqual(await shift.getAttribute("aria-pressed"), "true");
+    await key.selectOption("");
+    const beforeMissingKeySave = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeMissingKeySave, "a modifier without a key cannot save");
+
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertCompanionShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -5723,6 +5836,7 @@ async function runCase(browser, testCase) {
       if (!acceptanceOnly) await runCase(browser, testCase);
       await assertNativeProfileJourney(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertShortcutCatalogSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);
       await assertLegacyProfileFallback(browser, testCase);
       if (testCase.exerciseInteractions) await assertLegacyRestoreVerificationFailure(browser, testCase);

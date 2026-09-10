@@ -5,6 +5,15 @@ API, cards, and runtime. Its product contract is authored in
 `product/v2/companion_capabilities.json`; `python3 scripts/build.py companion`
 generates the matching C++, TypeScript, Swift, and output manifest.
 
+## App shortcut definitions
+
+App shortcut presets are authored in one JSON file per app under
+`product/v2/app_shortcuts/`. The [contributor guide](../product/v2/app_shortcuts/README.md)
+explains the format, permanent IDs, and build/test steps. `build.py companion`
+validates and discovers these files, generating shared browser definitions and
+firmware app names/shortcut IDs. The catalog and app subpages consume the same
+definitions; adding a file requires no app-specific code.
+
 ## Ownership boundaries
 
 - `components/companion/` owns TLS, pairing, authentication, protocol parsing,

@@ -46,7 +46,7 @@ def main() -> int:
     require(manifest["source"] == str(CONTRACT.relative_to(ROOT)), "generated manifest source is wrong")
     require(manifest["generator"] == "python3 scripts/build.py companion", "generated command is wrong")
     outputs = [ROOT / path for path in manifest["outputs"]]
-    require(len(outputs) == 7 and all(path.is_file() for path in outputs), "generated outputs are missing")
+    require(len(outputs) == 9 and all(path.is_file() for path in outputs), "generated outputs are missing")
 
     for output in outputs[:3]:
         text = output.read_text()

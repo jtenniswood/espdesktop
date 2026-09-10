@@ -57,9 +57,18 @@ The generated page is a normal editable subpage. You can rename or reorder its s
 
 With **Auto switch to subpage** enabled, tapping the app card asks the Mac to activate the application first. The display opens the subpage only after the Mac confirms success, so its shortcuts are not accidentally sent to a different app.
 
-## Custom Keyboard Shortcuts
+## Keyboard Shortcuts
 
-Choose **Keyboard shortcut**, select the shortcut field, then press the combination you want to capture. Shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Modifier-only shortcuts and unsupported system keys are rejected.
+Choose **Keyboard shortcut**, then choose a **Type**:
+
+- **Custom Shortcut** groups its modifier buttons and key selector in an expandable **Shortcut** panel. Click modifiers and choose a key without pressing the combination on your Mac. For Command-W, enable **⌘ Command**, choose **W**, then save. Existing saved shortcuts remain editable with these controls.
+- **Shortcut Catalog** groups its App and Shortcut selectors in the same expandable **Shortcut** panel. Choose **Safari**, then **Back**, **Forward**, **Reload**, **New Tab**, or **Close Tab**. The card starts with the shortcut’s name and icon, which you can customise in Card Settings.
+
+Contributors can extend the catalog through [one JSON file per app](https://github.com/jtenniswood/espdesktop/tree/main/product/v2/app_shortcuts), shared with app subpage presets. New definitions are included when the project is rebuilt.
+
+Bring Safari to the front before using a Safari catalog shortcut. Choosing an app in the catalog does not launch it.
+
+Shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Modifier-only shortcuts and unsupported system keys are rejected.
 
 Shortcuts are sent to whichever Mac application is active when you tap the card. macOS Accessibility permission is required because EspDesktop needs to replay the keyboard input.
 

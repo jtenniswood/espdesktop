@@ -1,5 +1,10 @@
 {
   "source": "product/v2/companion_capabilities.json",
+  "appShortcutSources": [
+    "product/v2/app_shortcuts/codex.json",
+    "product/v2/app_shortcuts/safari.json",
+    "product/v2/app_shortcuts/slack.json"
+  ],
   "generator": "python3 scripts/build.py companion",
   "outputs": [
     "src/webserver/generated/companion_capabilities.ts",
@@ -7,6 +12,8 @@
     "macos/EspDesktop/Sources/Companion/CompanionCapabilities.generated.swift",
     "components/espdesktop/companion_protocol_generated.h",
     "macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift",
+    "src/webserver/generated/app_shortcuts.ts",
+    "components/espdesktop/app_shortcuts_generated.h",
     "product/generated/companion_compatibility.json",
     "docs/generated/companion-compatibility.md"
   ]

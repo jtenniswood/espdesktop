@@ -1877,6 +1877,11 @@
       "name": "Window Shutter Open",
       "codepoint": "F111E",
       "mdi": "window-shutter-open"
+    },
+    {
+      "name": "Tab",
+      "codepoint": "F04E9",
+      "mdi": "tab"
     }
   ],
   "domain_defaults": {

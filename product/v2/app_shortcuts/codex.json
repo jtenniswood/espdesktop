@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.openai.codex",
+  "label": "Codex",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Command",
+      "shortcut": "command+k",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Approve",
+      "shortcut": "command+enter",
+      "icon": "Check"
+    },
+    {
+      "id": "2",
+      "label": "Browser",
+      "shortcut": "command+t",
+      "icon": "Web"
+    },
+    {
+      "id": "3",
+      "label": "Sidebar",
+      "shortcut": "command+b",
+      "icon": "View Headline"
+    },
+    {
+      "id": "4",
+      "label": "Side panel",
+      "shortcut": "option+command+b",
+      "icon": "Tab"
+    },
+    {
+      "id": "5",
+      "label": "Terminal",
+      "shortcut": "command+j",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Terminal",
+      "shortcut": "control+keybackquote",
+      "icon": "Application"
+    }
+  ]
+}

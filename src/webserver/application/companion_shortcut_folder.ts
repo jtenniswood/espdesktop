@@ -1,3 +1,5 @@
+import { COMPANION_SHORTCUT_APPS } from "../generated/app_shortcuts";
+export { COMPANION_SHORTCUT_APPS } from "../generated/app_shortcuts";
 import {
     configOptionEnabled,
     configOptionValue,
@@ -16,16 +18,6 @@ export const SAFARI_BUNDLE_ID = "com.apple.Safari";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const SLACK_BUNDLE_ID = "com.tinyspeck.slackmacgap";
 export const COMPANION_SHORTCUT_PREFIX = "shortcut.";
-const COMPANION_SHORTCUT_FOLDER_APPS: Readonly<Record<string, string>> = {
-    [SAFARI_BUNDLE_ID]: "Safari",
-    [CODEX_BUNDLE_ID]: "Codex",
-    [SLACK_BUNDLE_ID]: "Slack",
-};
-const COMPANION_SHORTCUT_PRESET_COUNTS: Readonly<Record<string, number>> = {
-    [SAFARI_BUNDLE_ID]: 5,
-    [CODEX_BUNDLE_ID]: 7,
-    [SLACK_BUNDLE_ID]: 5,
-};
 const COMPANION_SHORTCUT_MODIFIERS = new Set(["command", "control", "option", "shift"]);
 const COMPANION_SHORTCUT_KEYS = new Set([
     "space", "enter", "tab", "escape", "delete", "forwarddelete",
@@ -53,7 +45,7 @@ export interface CompanionShortcutTabDefinition {
 
 export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): string {
     return typeof bundleIdentifier === "string"
-        ? COMPANION_SHORTCUT_FOLDER_APPS[bundleIdentifier] || ""
+        ? COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.label || ""
         : "";
 }
 
@@ -124,9 +116,8 @@ export function setCompanionAppShortcutAutoSwitchEnabled(card: any, enabled: boo
 }
 
 export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
-    return companionShortcutPresetCards(bundleIdentifier).map(function (card, index) {
-        return { value: String(index), label: card.label };
-    });
+    const app = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier);
+    return (app?.shortcuts || []).map((item) => ({ value: item.id, label: item.label }));
 }
 
 export function companionShortcutDefaultTabs(bundleIdentifier: string): string[] {
@@ -211,7 +202,8 @@ function shortcutCard(entity: string, label: string, icon: string): CompanionSho
 }
 
 function companionShortcutPresetKey(bundleIdentifier: string, index: number): string {
-    return bundleIdentifier + ":" + String(index);
+    const id = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.shortcuts[index]?.id;
+    return id == null ? "" : bundleIdentifier + ":" + id;
 }
 
 function markCompanionShortcutPresets(
@@ -235,57 +227,34 @@ function companionShortcutPresetIdentity(card: any): string {
     const match = raw.match(/^(.*):(\d+)$/);
     if (!match) return "";
     const bundleIdentifier = match[1] || "";
-    const index = Number.parseInt(match[2] || "", 10);
-    const count = COMPANION_SHORTCUT_PRESET_COUNTS[bundleIdentifier] || 0;
-    return Number.isInteger(index) && index >= 0 && index < count
-        ? companionShortcutPresetKey(bundleIdentifier, index)
-        : "";
+    const id = match[2];
+    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.shortcuts.some((item) => item.id === id)
+        ? raw : "";
 }
 
 export function safariShortcutPresetCards(): CompanionShortcutPresetCard[] {
-    return markCompanionShortcutPresets(SAFARI_BUNDLE_ID, [
-        shortcutCard("shortcut.command+keybracketleft", "Back", "Chevron Left"),
-        shortcutCard("shortcut.command+keybracketright", "Forward", "Chevron Right"),
-        shortcutCard("shortcut.command+r", "Reload", "Repeat"),
-        shortcutCard("shortcut.command+t", "New Tab", "Plus"),
-        shortcutCard("shortcut.command+w", "Close Tab", "Close"),
-    ]);
+    return companionShortcutPresetCards(SAFARI_BUNDLE_ID);
 }
 
 export function codexShortcutPresetCards(): CompanionShortcutPresetCard[] {
-    return markCompanionShortcutPresets(CODEX_BUNDLE_ID, [
-        shortcutCard("shortcut.command+k", "Command", "Application"),
-        shortcutCard("shortcut.command+enter", "Approve", "Check"),
-        shortcutCard("shortcut.command+t", "Browser", "Web"),
-        shortcutCard("shortcut.command+b", "Sidebar", "View Headline"),
-        shortcutCard("shortcut.option+command+b", "Side panel", "Tab"),
-        shortcutCard("shortcut.command+j", "Terminal", "Application"),
-        shortcutCard("shortcut.control+keybackquote", "Terminal", "Application"),
-    ]);
+    return companionShortcutPresetCards(CODEX_BUNDLE_ID);
 }
 
 export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
-    return markCompanionShortcutPresets(SLACK_BUNDLE_ID, [
-        shortcutCard("shortcut.command+n", "Compose", "Message Video"),
-        shortcutCard("shortcut.command+g", "Search", "Spotlight"),
-        shortcutCard("shortcut.command+shift+k", "DMs", "Account"),
-        shortcutCard("shortcut.command+j", "Unread", "Bell"),
-        shortcutCard("shortcut.command+shift+a", "All Unread", "View Headline"),
-    ]);
+    return companionShortcutPresetCards(SLACK_BUNDLE_ID);
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {
-    if (bundleIdentifier === SAFARI_BUNDLE_ID) return safariShortcutPresetCards();
-    if (bundleIdentifier === CODEX_BUNDLE_ID) return codexShortcutPresetCards();
-    if (bundleIdentifier === SLACK_BUNDLE_ID) return slackShortcutPresetCards();
-    return [];
+    const app = COMPANION_SHORTCUT_APPS.find((candidate) => candidate.appId === bundleIdentifier);
+    return markCompanionShortcutPresets(bundleIdentifier, (app?.shortcuts || []).map((item) =>
+        shortcutCard(COMPANION_SHORTCUT_PREFIX + item.shortcut, item.label, item.icon)));
 }
 
 export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: readonly string[]): any {
     const presets = companionShortcutPresetCards(bundleIdentifier);
     const selected = tabs == null ? companionShortcutDefaultTabs(bundleIdentifier) : tabs;
     const buttons = selected.map(function (value) {
-        return presets[Number.parseInt(value, 10)];
+        return presets.find((preset) => companionShortcutPresetIdentity(preset) === bundleIdentifier + ":" + value);
     }).filter(Boolean);
     return {
         order: ["B"].concat(buttons.map((_button, index) => String(index + 1))),
@@ -318,10 +287,12 @@ export function companionShortcutTabsFromSubpage(
 ): string[] {
     const presets = companionShortcutPresetCards(bundleIdentifier);
     const presetIndex = new Map(presets.map(function (card, index) {
-        return [companionShortcutPresetKey(bundleIdentifier, index), String(index)] as const;
+        const key = companionShortcutPresetKey(bundleIdentifier, index);
+        return [key, key.slice(bundleIdentifier.length + 1)] as const;
     }));
     const legacyPresetIndex = new Map(presets.map(function (card, index) {
-        return [card.entity, String(index)] as const;
+        const key = companionShortcutPresetKey(bundleIdentifier, index);
+        return [card.entity, key.slice(bundleIdentifier.length + 1)] as const;
     }));
     const tabs: string[] = [];
     const visited = new Set<number>();
@@ -386,9 +357,8 @@ export function syncCompanionShortcutSubpage(
         return key && existingByKey.get(key) === card ? key : "";
     }
     const desired = tabs.map(function (value) {
-        const index = Number.parseInt(value, 10);
-        const preset = presets[index];
-        const key = companionShortcutPresetKey(bundleIdentifier, index);
+        const key = bundleIdentifier + ":" + value;
+        const preset = presets.find((card) => companionShortcutPresetIdentity(card) === key);
         return preset ? { key, card: existingByKey.get(key) || preset } : null;
     }).filter(Boolean);
     const suffixByKey = new Map<string, string>();
