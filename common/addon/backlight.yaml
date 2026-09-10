@@ -964,8 +964,7 @@ script:
           return (int)(val * 1000);
       - lambda: |-
           if (!id(connectivity_setup_display_active) &&
-              !id(button_order).state.empty() &&
-              !alarm_display_takeover_active()) {
+              !id(button_order).state.empty()) {
             navigation_return_home(id(main_page)->obj);
           }
 
@@ -982,9 +981,7 @@ script:
           return lv_disp_get_inactive_time(NULL) >= (uint32_t)(val * 1000);
       then:
       - lambda: |-
-          if (!alarm_display_takeover_active()) {
-            navigation_return_home(id(main_page)->obj);
-          }
+          navigation_return_home(id(main_page)->obj);
       else:
       - script.execute: home_screen_idle_check
 

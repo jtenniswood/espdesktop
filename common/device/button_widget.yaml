@@ -60,21 +60,13 @@ button:
         id: button_${num}_subpage_label
         text: $icon_chevron_right
         hidden: true
-  # Fire push event, navigate to subpage, or toggle the bound HA entity
+  # Suppress pressed feedback for the touch that wakes the display
   on_press:
     - if:
         condition:
           lambda: 'return id(screensaver_wake_touch_guard_active);'
         then:
           - lambda: 'lv_obj_clear_state(id(button_${num}), LV_STATE_PRESSED);'
-        else:
-          - if:
-              condition:
-                lambda: |-
-                  return id(espdesktop_app).display().target_mode_is(
-                      espdesktop::DisplayMode::ACTIVE);
-              then:
-                - lambda: 'handle_button_press(id(button_${num}_config).state, ${num}, id(button_${num}));'
   on_short_click:
     - if:
         condition:
