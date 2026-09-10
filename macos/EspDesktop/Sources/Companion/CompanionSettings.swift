@@ -91,6 +91,8 @@ private struct CompanionInfoButton: View {
     }
 }
 
+private let companionSettingsRowMinHeight: CGFloat = 32
+
 private struct CompanionPermissionRow: View {
     let title: String
     let information: String
@@ -105,9 +107,11 @@ private struct CompanionPermissionRow: View {
             Toggle(title, isOn: $isEnabled)
                 .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                .controlSize(.regular)
                 .disabled(!isAvailable)
                 .accessibilityHint(information)
         }
+        .frame(minHeight: companionSettingsRowMinHeight)
     }
 }
 
@@ -115,9 +119,12 @@ private struct CompanionAccessibilityRow: View {
     let isGranted: Bool
 
     var body: some View {
-        HStack {
+        HStack(spacing: 6) {
             Text(isGranted ? "Shortcut Enabled" : "Enable Shortcuts")
-                .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
+            CompanionInfoButton(
+                title: "Keyboard shortcuts",
+                information: "To use keyboard shortcuts, add EspDesktop to the apps enabled in System Settings → Privacy & Security → Accessibility."
+            )
             Spacer()
             Button {
                 // Leave the SwiftUI control transaction before opening another app.
@@ -125,13 +132,14 @@ private struct CompanionAccessibilityRow: View {
                     CompanionAccessibilityAuthorizer.shared.requestAccess()
                 }
             } label: {
-                Text("Open Settings")
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
+                Text("Setup")
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 4)
             }
             .buttonStyle(.bordered)
             .modifier(CompanionCapsuleButton())
         }
+        .frame(minHeight: companionSettingsRowMinHeight)
     }
 }
 
@@ -822,10 +830,10 @@ struct CompanionSettings: View {
 
     @ViewBuilder
     private var accessibilityAndStartupSections: some View {
-        Section("Accessibility") {
+        Section {
             CompanionAccessibilityRow(isGranted: accessibilityGranted)
         }
-        Section("Startup") {
+        Section {
             CompanionPermissionRow(
                 title: "Open at Startup",
                 information: store.supportsLaunchAtLogin
