@@ -708,8 +708,17 @@ struct CompanionSettings: View {
                     Text("Apps")
                     CompanionInfoButton(
                         title: "Apps",
-                        information: "Choose which Mac apps you can launch from your display. Enabled apps are available for app shortcuts; switch an app off to hide it from the display."
+                        information: "Choose which Mac apps you can launch from your display. Use the switch beside Apps to select or deselect all apps. Enabled apps are available for app shortcuts; switch an app off to hide it from the display."
                     )
+                    Spacer()
+                    Toggle("Select all apps", isOn: Binding(
+                        get: { store.allApplicationsApproved },
+                        set: { store.setAllApplications(approved: $0) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                    .disabled(store.availableApps.isEmpty)
+                    .help("Select or deselect all apps")
                 }
             }
         }
