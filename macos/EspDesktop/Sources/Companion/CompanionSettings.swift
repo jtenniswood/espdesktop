@@ -376,7 +376,7 @@ struct CompanionSettings: View {
                                 Button {
                                     store.openPanelWebServer()
                                 } label: {
-                                    Label("Customize", systemImage: "slider.horizontal.3")
+                                    Label("Customize", systemImage: "rectangle.grid.2x2")
                                         .padding(.vertical, 4)
                                 }
                                     .help("Open the display’s configuration in your browser")
