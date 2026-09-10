@@ -217,7 +217,7 @@
     },
     "direction": "mac_to_panel",
     "state": "connected",
-    "valid": true
+    "valid": false
   },
   {
     "name": "statistics",
@@ -259,7 +259,7 @@
     },
     "direction": "mac_to_panel",
     "state": "connected",
-    "valid": true
+    "valid": false
   },
   {
     "name": "artwork ack",
@@ -271,7 +271,7 @@
     },
     "direction": "panel_to_mac",
     "state": "connected",
-    "valid": true
+    "valid": false
   },
   {
     "name": "artwork end",
@@ -282,7 +282,7 @@
     },
     "direction": "mac_to_panel",
     "state": "connected",
-    "valid": true
+    "valid": false
   },
   {
     "name": "artwork abort",
@@ -293,7 +293,7 @@
     },
     "direction": "mac_to_panel",
     "state": "connected",
-    "valid": true
+    "valid": false
   },
   {
     "name": "artwork request",
@@ -304,7 +304,7 @@
     },
     "direction": "panel_to_mac",
     "state": "connected",
-    "valid": true
+    "valid": false
   },
   {
     "name": "error",
