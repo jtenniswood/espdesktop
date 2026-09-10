@@ -7,6 +7,13 @@ import tempfile
 
 root = Path(__file__).resolve().parents[2]
 text = (root / 'common/addon/backlight.yaml').read_text()
+# ESPHome merges packages before normalizing on_boot to a list. A mapping
+# here is silently replaced by the later loading-screen package's list.
+boot = text.split('  on_boot:\n', 1)[1].split('\nscript:', 1)[0]
+assert re.search(r'^    - priority: -240$', boot, re.M), 'Screensaver boot handler must survive package merging'
+assert 'register_companion_connection_changed_handler' in boot
+assert 'register_screen_lock_changed_handler' in boot
+
 script = text.split('  - id: screensaver_sleep_timer\n', 1)[1].split('\n  - id:', 1)[0]
 predicates = re.findall(r'condition:\n\s+lambda: \|-\n(.*?)(?=\n\s*then:)', script, re.S)
 assert len(predicates) == 2
