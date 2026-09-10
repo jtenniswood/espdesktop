@@ -411,8 +411,10 @@ int main() {
   assert(companion_metric.sensor == "");
   assert(companion_metric.unit == "%");
   assert(companion_metric.precision == "0");
-  assert(companion_metric.options == "large_numbers");
-  assert(card_large_numbers_enabled(companion_metric));
+  assert(companion_metric.options == "");
+  assert(!card_large_numbers_enabled(companion_metric));
+  auto companion_labels_off = parse_cfg("stat.cpu;Processor;Monitor;Auto;;;companion;;stat_labels_off,large_numbers");
+  assert(companion_labels_off.options == "stat_labels_off");
   auto companion_network = parse_cfg("stat.network_throughput;Network Throughput;Gauge;Auto;;;companion;;");
   assert(companion_system_metric_config(companion_network));
   assert(companion_network.unit == "MB/s");
