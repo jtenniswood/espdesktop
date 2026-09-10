@@ -5225,6 +5225,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
 
+    const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({
+      has: page.locator(".sp-disclosure-button", { hasText: "Card Settings" }),
+    }).first();
+    if (await cardSettings.locator(".sp-disclosure-button").first().getAttribute("aria-expanded") !== "true") {
+      await cardSettings.locator(".sp-disclosure-button").first().click();
+    }
     await page.locator(".sp-settings-modal .sp-icon-picker-preview.mdi-apple-keyboard-command").first().waitFor({ state: "visible" });
 
     const panels = page.locator(".sp-settings-modal .sp-panel > .sp-disclosure");
