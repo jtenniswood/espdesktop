@@ -707,11 +707,14 @@ script:
       - if:
           condition:
             lambda: |-
+              // A Companion disconnect is an explicit sleep signal. Retained
+              // media state must not defer it to the disabled idle timer.
               const std::string &state = id(cover_art_last_playback_state);
-              return id(espdesktop_app).display().target_mode_is(
-                         espdesktop::DisplayMode::COVER_ART) ||
-                     (id(cover_art_media_playing) &&
-                      state != "playing" && state != "buffering" && state != "paused");
+              return id(screensaver_mode).state != "companion" &&
+                     (id(espdesktop_app).display().target_mode_is(
+                          espdesktop::DisplayMode::COVER_ART) ||
+                      (id(cover_art_media_playing) &&
+                       state != "playing" && state != "buffering" && state != "paused"));
           then:
             - script.execute: screensaver_idle_check
           else:
@@ -725,7 +728,8 @@ script:
                 condition:
                   lambda: |-
                     bool voice_active = ${voice_interaction_active_condition};
-                    return id(cover_art_screensaver_enabled).state &&
+                    return id(screensaver_mode).state != "companion" &&
+                           id(cover_art_screensaver_enabled).state &&
                            id(cover_art_media_playing) &&
                            !voice_active &&
                            id(cover_art_attribute_conditions_match) &&
