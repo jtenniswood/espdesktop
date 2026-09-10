@@ -14,10 +14,10 @@ lvgl:
   # ---------------------------------------------------------------------------
   top_layer:
     widgets:
-      # Indoor/outdoor temperature (top-left)
+      # Companion subpage title (top-left)
       - label:
-          text: "-°C"
-          id: temperatures
+          text: ""
+          id: clock_bar_subpage_title
           text_font: font_text_body
           align: top_left
           x: 8

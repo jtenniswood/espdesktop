@@ -34,9 +34,9 @@ export interface PreviewContextMenuDependencies {
     readonly codec: ConfigCodecFeature;
     readonly clockBar: Pick<ClockBarFeature, "setItemVisible">;
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked">;
-    readonly statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "isClockBarTemperatureItem" | "updateClockBarItemUi">;
+    readonly statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "updateClockBarItemUi">;
     readonly grid: Pick<GridFeature, "ctx" | "scheduleMainGridSave">;
-    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "openClockBarTemperatureSettings">;
+    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay">;
     readonly preview: Pick<PreviewRenderFeature, "registryValue">;
     readonly clipboard: Pick<PreviewClipboardFeature, "copyButtons" | "copySlot" | "cutButtons" | "cutSlot" | "pasteButton" | "pasteSubpageButton" | "showCopyCode" | "showPasteCode">;
     readonly renderPreview: () => void;
@@ -66,9 +66,9 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     const window = dependencies.window;
     const { isConfigLocked } = dependencies.shell;
     const { setItemVisible: setClockBarItemVisible } = dependencies.clockBar;
-    const { clockBarItemActive, clockBarItemLabel, clockBarItems, isClockBarTemperatureItem, updateClockBarItemUi } = dependencies.statusPreview;
+    const { clockBarItemActive, clockBarItemLabel, clockBarItems, updateClockBarItemUi } = dependencies.statusPreview;
     const { ctx, scheduleMainGridSave } = dependencies.grid;
-    const { hideSettingsOverlay, openClockBarTemperatureSettings } = dependencies.selection;
+    const { hideSettingsOverlay } = dependencies.selection;
     const { registryValue: buttonTypeRegistryValue } = dependencies.preview;
     const { copyButtons, copySlot, cutButtons, cutSlot, pasteButton, pasteSubpageButton, showCopyCode: showCopyCardCode, showPasteCode: showPasteCardCode } = dependencies.clipboard;
     const { renderPreview, renderButtonSettings, openCardSettings, openVoiceServicesSettings, addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
@@ -255,11 +255,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("delete", "Delete", function (this: any) { deleteSlot(slot); }, true);
     }
     function addClockBarMenuItems(this: any, item?: any) {
-        if (isClockBarTemperatureItem(item)) {
-            addCtxItem("pencil", "Edit Temperature", function (this: any) { openClockBarTemperatureSettings(); });
-            addCtxDivider();
-        }
-        else if (item === "voice") {
+        if (item === "voice") {
             addCtxItem("pencil", "Edit Voice Services", function (this: any) { openVoiceServicesSettings(); });
             addCtxDivider();
         }

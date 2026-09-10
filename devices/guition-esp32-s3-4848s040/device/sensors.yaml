@@ -98,7 +98,7 @@ script:
           set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
           set_text_width_compensation_percent(cfg.text_width_compensation_percent);
           apply_text_width_compensation(id(display_time));
-          apply_text_width_compensation(id(temperatures));
+          apply_text_width_compensation(id(clock_bar_subpage_title));
           apply_text_width_compensation(id(clock_label));
           // END GENERATED REFRESH GRID WIRING
           #define SP_CFG(n) subpage_##n##_config
@@ -214,7 +214,7 @@ script:
           set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
           set_text_width_compensation_percent(cfg.text_width_compensation_percent);
           apply_text_width_compensation(id(display_time));
-          apply_text_width_compensation(id(temperatures));
+          apply_text_width_compensation(id(clock_bar_subpage_title));
           apply_text_width_compensation(id(clock_label));
           // END GENERATED SUBPAGE REFRESH WIRING
           #define SP_CFG(n) subpage_##n##_config
@@ -325,7 +325,7 @@ esphome:
             set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
             set_text_width_compensation_percent(cfg.text_width_compensation_percent);
             apply_text_width_compensation(id(display_time));
-            apply_text_width_compensation(id(temperatures));
+            apply_text_width_compensation(id(clock_bar_subpage_title));
             apply_text_width_compensation(id(clock_label));
             // END GENERATED PHASE 1 GRID WIRING
             grid_phase1(slots, cfg,
@@ -432,7 +432,7 @@ esphome:
             set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
             set_text_width_compensation_percent(cfg.text_width_compensation_percent);
             apply_text_width_compensation(id(display_time));
-            apply_text_width_compensation(id(temperatures));
+            apply_text_width_compensation(id(clock_bar_subpage_title));
             apply_text_width_compensation(id(clock_label));
             // END GENERATED PHASE 2 GRID WIRING
             grid_phase2(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3,

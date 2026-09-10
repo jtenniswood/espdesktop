@@ -283,56 +283,30 @@ int main() {
   assert(!screen_schedule_clock_bar.reserve_space);
   assert(!screen_schedule_clock_bar.visible);
 
-  auto clock_bar_entities = parse_clock_bar_temperature_entities(
-    " sensor.outdoor | sensor.indoor, sensor.outdoor\nsensor.loft,, ");
-  assert(clock_bar_entities.size() == 1);
-  assert(clock_bar_entities[0] == "sensor.outdoor");
-
-  set_clock_bar_temperature_value_count(1);
-  lv_obj_t temperature_1;
+  lv_obj_t subpage_title;
   lv_obj_t display_time;
   lv_obj_t network_status_button;
-  lv_obj_t *temperature_labels[] = {
-    &temperature_1,
-  };
-  lv_obj_move_background_calls = 0;
-  apply_clock_bar_fixed_layout(
-    &temperature_1,
-    &display_time,
-    &network_status_button,
-    true, true, true,
-    12, 17, 20, 10, 80);
-  assert(lv_obj_move_background_calls == 3);
-  assert(lv_obj_get_width(&temperature_1) == 72);
-  set_clock_bar_temperature_labels(temperature_labels, 1);
-  clock_bar_temperature_values()[0] = 17;
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
-  assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return true; };
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
-  assert(!lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return false; };
-  set_clock_bar_temperature_value_count(0);
-  refresh_clock_bar_temperature_label_values(&main_page, true, true, true, 21, 17);
-  assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
+  lv_obj_t *title_labels[] = { &subpage_title };
+  apply_clock_bar_fixed_layout(&subpage_title, &display_time,
+      &network_status_button, false, true, true, 12, 17, 20, 10, 80);
+  set_clock_bar_title_labels(title_labels, 1);
+  refresh_clock_bar_subpage_title(&main_page, true);
+  assert(lv_obj_has_flag(&subpage_title, LV_OBJ_FLAG_HIDDEN));
+  assert(subpage_title.text.empty());
   set_clock_bar_companion_subpage_label("Settings");
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
-  assert(!lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  assert(temperature_1.text == "Settings");
-  clock_bar_update_left_text_width(&temperature_1);
-  assert(lv_obj_get_width(&temperature_1) == 180);
+  refresh_clock_bar_subpage_title(&main_page, true);
+  assert(!lv_obj_has_flag(&subpage_title, LV_OBJ_FLAG_HIDDEN));
+  assert(subpage_title.text == "Settings");
+  assert(lv_obj_get_width(&subpage_title) == 180);
+  refresh_clock_bar_subpage_title(&main_page, false);
+  assert(lv_obj_has_flag(&subpage_title, LV_OBJ_FLAG_HIDDEN));
   set_clock_bar_companion_subpage_label("");
-  assert(temperature_1.text.empty());
-  assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_update_left_text_width(&temperature_1);
-  assert(lv_obj_get_width(&temperature_1) == 72);
-
-  hide_clock_bar_top_layer_widgets(
-    temperature_labels, 1, &display_time, &network_status_button);
-  assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
+  refresh_clock_bar_subpage_title(&main_page, true);
+  assert(subpage_title.text.empty());
+  assert(lv_obj_has_flag(&subpage_title, LV_OBJ_FLAG_HIDDEN));
+  hide_clock_bar_top_layer_widgets(title_labels, 1, &display_time, &network_status_button);
   assert(lv_obj_has_flag(&display_time, LV_OBJ_FLAG_HIDDEN));
   assert(lv_obj_has_flag(&network_status_button, LV_OBJ_FLAG_HIDDEN));
-  set_clock_bar_temperature_value_count(0);
 
   // Right-side icons pack leftwards by glyph edges, so each visible icon sits
   // one gap from its neighbour regardless of the surrounding tap-target width.

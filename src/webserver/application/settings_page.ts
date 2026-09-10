@@ -330,35 +330,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             rotationCard = makeCollapsibleCard("Rotation", rotationBody, true);
             els.setScreenRotation = rotSelect;
         }
-        var tempBody: any = document.createElement("div");
-        var unitField: any = document.createElement("div");
-        unitField.className = "sp-field";
-        unitField.appendChild(fieldLabel("Temperature Unit", "sp-set-temperature-unit"));
-        var unitSelect: any = document.createElement("select");
-        unitSelect.className = "sp-select";
-        unitSelect.id = "sp-set-temperature-unit";
-        [
-            ["Auto", "Auto (from timezone)"],
-            ["\u00B0C", "Centigrade (\u00B0C)"],
-            ["\u00B0F", "Fahrenheit (\u00B0F)"],
-        ].forEach(function (this: any, opt?: any) {
-            var o: any = document.createElement("option");
-            o.value = opt[0];
-            o.textContent = opt[1];
-            unitSelect.appendChild(o);
-        });
-        unitSelect.value = normalizeTemperatureUnit(state.temperatureUnit);
-        unitSelect.addEventListener("change", function (this: any) {
-            state.temperatureUnit = normalizeTemperatureUnit(this.value);
-            postSelect(entityName("screen_temperature_unit"), state.temperatureUnit);
-            updateTempPreview();
-            renderPreview();
-        });
-        unitField.appendChild(unitSelect);
-        tempBody.appendChild(unitField);
-        els.setTemperatureUnit = unitSelect;
-        syncTemperatureUi();
-        var temperatureCard: any = makeCollapsibleCard("Temperature", tempBody, true);
         var ssBody: any = document.createElement("div");
         var ssMode: any = getActiveScreensaverMode();
         ssBody.appendChild(fieldLabel("Mode"));
@@ -567,7 +538,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         appendSettingsSection(config, "Preferences", [
             languageCard,
             timeSettingsCard,
-            temperatureCard,
         ]);
         appendSettingsSection(config, "System", [
             systemSettingsCards.backupCard,
