@@ -112,11 +112,9 @@ private struct CompanionPermissionRow: View {
 }
 
 private struct CompanionAccessibilityRow: View {
-    let isGranted: Bool
-
     var body: some View {
         HStack {
-            Text(isGranted ? "Shortcut Enabled" : "Enable Shortcuts")
+            Text("Enable Shortcuts")
                 .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
             Spacer()
             Button {
@@ -177,8 +175,10 @@ private struct CompanionOnboarding: View {
 
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
-                        CompanionAccessibilityRow(isGranted: accessibilityGranted)
-                        Divider()
+                        if !accessibilityGranted {
+                            CompanionAccessibilityRow()
+                            Divider()
+                        }
                         CompanionPermissionRow(
                             title: "Launch at login",
                             information: "Open EspDesktop automatically when you sign in to your Mac.",
@@ -822,8 +822,10 @@ struct CompanionSettings: View {
 
     @ViewBuilder
     private var accessibilityAndStartupSections: some View {
-        Section("Accessibility") {
-            CompanionAccessibilityRow(isGranted: accessibilityGranted)
+        if !accessibilityGranted {
+            Section("Accessibility") {
+                CompanionAccessibilityRow()
+            }
         }
         Section("Startup") {
             CompanionPermissionRow(
