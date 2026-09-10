@@ -53,7 +53,7 @@ Launch cards for **Safari**, **Slack**, and **Codex** can create a ready-made su
 | **Slack** | Compose, Search, Direct Messages, Unread, All Unread |
 | **Codex** | Command, Approve, Browser, Sidebar, Side panel, and Terminal controls |
 
-The generated page is a normal editable subpage. You can rename or reorder its shortcut cards and add other card types. Turning the app subpage off keeps those edits so they return if you enable it again.
+The option list reflects the visible cards and their order when you reopen App subpage settings. The generated page is a normal editable subpage. You can rename or reorder its shortcut cards and add other card types. Turning the app subpage off keeps those edits so they return if you enable it again.
 
 With **Auto switch to subpage** enabled, tapping the app card asks the Mac to activate the application first. The display opens the subpage only after the Mac confirms success, so its shortcuts are not accidentally sent to a different app.
 

@@ -661,6 +661,7 @@ export function registerCompanionCardTypes(
                 helpers.idPrefix + "companion-app-subpage",
                 card._modalSettingsOpen === true,
             );
+            appSubpageDisclosure.panel.classList.add("sp-app-subpage-settings");
             appSubpageDisclosure.button.addEventListener("click", function () {
                 card._modalSettingsOpen = appSubpageDisclosure.panel.classList.contains("sp-open");
             });
@@ -729,7 +730,7 @@ export function registerCompanionCardTypes(
 
             const finderFolderList = document.createElement("div");
             if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
-                finderFolderList.className = "sp-app-subpage-options-divider";
+                finderFolderList.className = "sp-app-subpage-folder-list";
                 appSubpageDisclosure.section.appendChild(finderFolderList);
             }
             if (companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {

@@ -408,19 +408,11 @@ export function companionShortcutTabsFromSubpage(
     }));
     const tabs: string[] = [];
     const visited = new Set<number>();
-    (subpage?.order || []).forEach(function (token: unknown) {
+    (subpage?.grid?.length ? subpage.grid : subpage?.order || []).forEach(function (token: unknown) {
         const index = subpageOrderButtonIndex(token);
         if (index < 0 || visited.has(index)) return;
         visited.add(index);
         const card = subpage?.buttons?.[index];
-        const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
-        const identity = companionShortcutPresetIdentity(card);
-        const value = identity ? presetIndex.get(identity) :
-            marker ? undefined : legacyPresetIndex.get(card?.entity);
-        if (value != null && tabs.indexOf(value) < 0) tabs.push(value);
-    });
-    (subpage?.buttons || []).forEach(function (card: any, index: number) {
-        if (visited.has(index)) return;
         const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
         const identity = companionShortcutPresetIdentity(card);
         const value = identity ? presetIndex.get(identity) :

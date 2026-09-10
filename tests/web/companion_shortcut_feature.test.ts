@@ -372,6 +372,16 @@ export function runCompanionShortcutFeatureTests(): void {
       companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, duplicatedPresetSubpage).includes("0")) {
     throw new Error("A duplicated preset must become a custom shortcut without re-enabling its source preset");
   }
+  const movedSafari = createSafariShortcutSubpage();
+  movedSafari.grid = [-2, 4, 3, 5, 0, 0, 0, 0, 0];
+  if (companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, movedSafari).join("|") !== "3|2|4") {
+    throw new Error("App options must follow visible tile order and leave unplaced cards disabled");
+  }
+  movedSafari.grid = [];
+  movedSafari.order = ["B", "5", "3"];
+  if (companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, movedSafari).join("|") !== "4|2") {
+    throw new Error("Saved subpage order must determine app option enablement after reload");
+  }
   const fullSafariSubpage = createSafariShortcutSubpage();
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3"], fullSafariSubpage);
   for (let index = 0; index < 4; index += 1) {
