@@ -191,10 +191,10 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_display_text(s.icon_lbl, icon);
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl);
   if (available) {
-    lv_obj_clear_state(s.btn, LV_STATE_DISABLED);
+    set_card_disabled_state(s.btn, false);
     apply_push_button_transition(s.btn);
   } else {
-    lv_obj_add_state(s.btn, LV_STATE_DISABLED);
+    set_card_disabled_state(s.btn, true);
     clear_push_button_transition(s.btn);
   }
   companion_apply_card_focus(s.btn, p.entity, p.sensor);
