@@ -622,12 +622,12 @@ struct CompanionSettings: View {
         Toggle("Display connection", isOn: connectionToggleBinding)
             .labelsHidden()
             .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-            .controlSize(connectionSwitchSize)
+            .controlSize(largeSwitchSize)
             .disabled(store.connectionState.isBusy)
             .accessibilityLabel("Display connection")
     }
 
-    private var connectionSwitchSize: ControlSize {
+    private var largeSwitchSize: ControlSize {
         #if compiler(>=6.2)
         if #available(macOS 26.0, *) { return .extraLarge }
         #endif
@@ -827,7 +827,7 @@ struct CompanionSettings: View {
                 CompanionAccessibilityRow()
             }
         }
-        Section("Startup") {
+        Section {
             CompanionPermissionRow(
                 title: "Open at Startup",
                 information: store.supportsLaunchAtLogin
@@ -838,6 +838,7 @@ struct CompanionSettings: View {
                 isEnabled: store.launchAtLoginBinding(),
                 isAvailable: store.supportsLaunchAtLogin
             )
+            .controlSize(largeSwitchSize)
         }
     }
 
