@@ -749,6 +749,7 @@ struct CompanionSettings: View {
                                detail: "Keep a project, documents, or downloads one tap away on your display.") {
                         Button("Add Folder…") { store.chooseFolder() }
                             .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
                             .modifier(CompanionCapsuleButton())
                     }
                 } else {
@@ -777,6 +778,7 @@ struct CompanionSettings: View {
                     }
                     Button("Add Folder…") { store.chooseFolder() }
                         .buttonStyle(.bordered)
+                        .controlSize(.large)
                         .modifier(CompanionCapsuleButton())
                 }
                 if let message = store.folderMessage {
