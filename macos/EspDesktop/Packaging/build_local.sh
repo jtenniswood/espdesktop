@@ -35,7 +35,7 @@ fi
 CODE_SIGN_IDENTITY="${IDENTITY}" ALLOW_ADHOC=0 "${SCRIPT_DIR}/build_standalone.sh"
 APP="${OUTPUT_DIR:-${SCRIPT_DIR}/../.build/standalone}/EspDesktop.app"
 if [[ -n "${REQUIREMENT}" ]]; then
-    codesign --verify --strict -R "${REQUIREMENT}" "${APP}" || {
+    codesign --verify --strict -R "=${REQUIREMENT}" "${APP}" || {
         echo "Signing identity changed. Do not replace the installed app: Accessibility approval may be lost." >&2
         exit 2
     }
