@@ -5,7 +5,7 @@ description: Install EspDesktop on macOS, pair a 4848S040 display, approve apps 
 
 # Install and Pair the EspDesktop Mac App
 
-The EspDesktop menu-bar app connects one Mac to one supported display over your local network. It powers Mac cards for launching apps, opening folders and websites, replaying shortcuts, arranging windows, controlling media and volume, showing Now Playing artwork, and sharing optional Mac statistics.
+The EspDesktop menu-bar app connects one Mac to one supported display over your local network. It powers Mac cards for launching apps, opening folders and websites, replaying shortcuts, arranging windows, controlling media and volume, showing Now Playing artwork, and sharing Mac statistics.
 
 Mac Companion is currently a proof of concept for the **4-inch Guition ESP32-S3 4848S040** display. Home Assistant is optional and can be connected alongside it.
 
@@ -73,8 +73,9 @@ Then add the controls you want:
 The **Permissions** section sits below the connection panel in the **Display** tab:
 
 - **Open EspDesktop at Login** keeps the local connector available after you sign in.
-- **Share Mac system statistics** sends overall processor, memory, storage, network, and battery readings only to the paired display.
 - **Keyboard & Window Controls** opens the macOS Accessibility setting and shows whether permission is available.
+
+Mac statistics are shared automatically with the paired display while connected; there is no statistics-sharing switch.
 
 If shortcuts or window cards stop working after replacing the app, remove the old EspDesktop entry from Accessibility, add the installed app again, and retry the card.
 

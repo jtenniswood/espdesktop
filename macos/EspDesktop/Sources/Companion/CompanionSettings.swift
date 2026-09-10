@@ -178,12 +178,6 @@ private struct CompanionOnboarding: View {
                         CompanionAccessibilityRow(isGranted: accessibilityGranted)
                         Divider()
                         CompanionPermissionRow(
-                            title: "Share Mac stats",
-                            information: "Show your Mac’s performance. Stats are shared only with your paired display on your local network.",
-                            isEnabled: $store.shareSystemMetricsEnabled
-                        )
-                        Divider()
-                        CompanionPermissionRow(
                             title: "Launch at login",
                             information: "Open EspDesktop automatically when you sign in to your Mac.",
                             isEnabled: store.launchAtLoginBinding(),
@@ -837,11 +831,7 @@ struct CompanionSettings: View {
                 isAvailable: store.supportsLaunchAtLogin
             )
             CompanionAccessibilityRow(isGranted: accessibilityGranted)
-            CompanionPermissionRow(
-                title: "Share Stats to Device",
-                information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
-                isEnabled: $store.shareSystemMetricsEnabled
-            )
+
         }
     }
 

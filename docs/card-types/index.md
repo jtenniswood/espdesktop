@@ -97,7 +97,7 @@ Cards that control Home Assistant need the panel to be allowed to perform Home A
 
 Read-only display cards such as Sensor, Presence, Date & Time, and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
 
-Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and turn on statistic sharing only if you want Mac usage cards.
+Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and add statistics cards to show the readings shared automatically while connected.
 
 ## Current Capability Reference
 
