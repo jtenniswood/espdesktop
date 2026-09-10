@@ -26,6 +26,7 @@ import {
   companionWindowActionLabel,
   formatCompanionShortcutActionId,
   normalizeCompanionCard,
+  registerCompanionCardTypes,
   resetCompanionMediaPresentation,
   resetCompanionMetricPresentation,
 } from "../../src/webserver/cards/companion";
@@ -536,8 +537,25 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Leaving a generated statistic card must clear its generated presentation");
   }
 
-  if (COMPANION_WINDOW_ACTIONS.length !== 19) {
+  if (COMPANION_WINDOW_ACTIONS.length !== 28) {
     throw new Error("Companion window controls must expose the complete approved preset list");
+  }
+  const definitions: Record<string, any> = {};
+  registerCompanionCardTypes(
+    { register: (key: string, definition: any) => { definitions[key] = definition; } } as any,
+    true, {} as any, (() => { throw new Error("Picker must not fetch data"); }) as any,
+    {} as any, {} as any, {} as any, {} as any, {} as any, 16,
+  );
+  for (const action of COMPANION_WINDOW_ACTIONS) {
+    const definition = definitions["companion_" + action.id];
+    const card = { ...emptyCardConfig(), type: "companion" };
+    definition.onSelect(card);
+    definition.normalizeConfig(card);
+    const restored = encodeCompanionCard(decodeCompanionCard(card), card);
+    if (restored.entity !== action.id || restored.label !== action.label ||
+        restored.type !== "companion" || companionCardMode(restored) !== "window") {
+      throw new Error(`Window preset must survive picking, normalization and saving: ${action.id}`);
+    }
   }
   const windowIds = new Set(COMPANION_WINDOW_ACTIONS.map((action) => action.id));
   if (windowIds.size !== COMPANION_WINDOW_ACTIONS.length || !windowIds.has("window.close")

@@ -4,9 +4,10 @@
 import CoreGraphics
 
 struct CompanionWindowActionCapability {
-    let key: String
+    let key: String?
     let flags: CGEventFlags
     let minimumMacOS: Int
+    let menuPaths: [[String]]
 }
 
 enum CompanionCapabilities {
@@ -51,25 +52,34 @@ enum CompanionCapabilities {
         "window": "Window control",
     ]
     static let windowActions: [String: CompanionWindowActionCapability] = [
-        "window.close": .init(key: "w", flags: [.maskCommand], minimumMacOS: 13),
-        "window.minimize": .init(key: "m", flags: [.maskCommand], minimumMacOS: 13),
-        "window.hide": .init(key: "h", flags: [.maskCommand], minimumMacOS: 13),
-        "window.fullscreen": .init(key: "f", flags: [.maskControl, .maskCommand], minimumMacOS: 13),
-        "window.fill": .init(key: "f", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15),
-        "window.center": .init(key: "c", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15),
-        "window.left": .init(key: "left", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15),
-        "window.right": .init(key: "right", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15),
-        "window.top": .init(key: "up", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15),
-        "window.bottom": .init(key: "down", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15),
-        "window.restore": .init(key: "r", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15),
-        "window.arrange.left-right": .init(key: "left", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15),
-        "window.arrange.right-left": .init(key: "right", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15),
-        "window.arrange.top-bottom": .init(key: "up", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15),
-        "window.arrange.bottom-top": .init(key: "down", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15),
-        "window.arrange.left-quarters": .init(key: "left", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15),
-        "window.arrange.right-quarters": .init(key: "right", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15),
-        "window.arrange.top-quarters": .init(key: "up", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15),
-        "window.arrange.bottom-quarters": .init(key: "down", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15),
+        "window.close": .init(key: "w", flags: [.maskCommand], minimumMacOS: 13, menuPaths: []),
+        "window.minimize": .init(key: "m", flags: [.maskCommand], minimumMacOS: 13, menuPaths: []),
+        "window.hide": .init(key: "h", flags: [.maskCommand], minimumMacOS: 13, menuPaths: []),
+        "window.fullscreen": .init(key: "f", flags: [.maskControl, .maskCommand], minimumMacOS: 13, menuPaths: []),
+        "window.fill": .init(key: "f", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15, menuPaths: [["Window", "Fill"], ["Window", "Move & Resize", "Fill"]]),
+        "window.center": .init(key: "c", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15, menuPaths: [["Window", "Center"], ["Window", "Move & Resize", "Center"], ["Window", "Centre"], ["Window", "Move & Resize", "Centre"]]),
+        "window.left": .init(key: "left", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Left"]]),
+        "window.right": .init(key: "right", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Right"]]),
+        "window.top": .init(key: "up", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Top"]]),
+        "window.bottom": .init(key: "down", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Bottom"]]),
+        "window.restore": .init(key: "r", flags: [.maskSecondaryFn, .maskControl], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Return to Previous Size"]]),
+        "window.arrange.left-right": .init(key: "left", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Left & Right"]]),
+        "window.arrange.right-left": .init(key: "right", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Right & Left"]]),
+        "window.arrange.top-bottom": .init(key: "up", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Top & Bottom"]]),
+        "window.arrange.bottom-top": .init(key: "down", flags: [.maskSecondaryFn, .maskControl, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Bottom & Top"]]),
+        "window.arrange.left-quarters": .init(key: "left", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Left & Quarters"]]),
+        "window.arrange.right-quarters": .init(key: "right", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Right & Quarters"]]),
+        "window.arrange.top-quarters": .init(key: "up", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Top & Quarters"]]),
+        "window.arrange.bottom-quarters": .init(key: "down", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Bottom & Quarters"]]),
+        "window.top-left": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Top Left"]]),
+        "window.top-right": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Top Right"]]),
+        "window.bottom-left": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Bottom Left"]]),
+        "window.bottom-right": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Bottom Right"]]),
+        "window.arrange.quarters": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Move & Resize", "Quarters"]]),
+        "window.fullscreen.enter": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Enter Full Screen"], ["Window", "Full Screen Tile", "Entire Screen"]]),
+        "window.fullscreen.exit": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Exit Full Screen"], ["Window", "Full Screen Tile", "Exit Full Screen"]]),
+        "window.split.left": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Full Screen Tile", "Left of Screen"], ["Window", "Full-Screen Tile", "Left of Screen"]]),
+        "window.split.right": .init(key: nil, flags: [], minimumMacOS: 15, menuPaths: [["Window", "Full Screen Tile", "Right of Screen"], ["Window", "Full-Screen Tile", "Right of Screen"]]),
     ]
     static let mediaCommandByActionID: [String: String] = [
         "media.play_pause": "togglePlayPause",

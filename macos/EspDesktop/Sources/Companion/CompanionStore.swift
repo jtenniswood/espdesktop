@@ -654,8 +654,14 @@ final class CompanionStore: NSObject, ObservableObject {
         if mediaController.supports(actionIdentifier: actionIdentifier) {
             return mediaController.perform(actionIdentifier: actionIdentifier)
         }
-        guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) ||
-              actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) else {
+        if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) {
+            if let error = CompanionNativeWindowAction.perform(actionIdentifier) {
+                updateStatus(error)
+                return false
+            }
+            return true
+        }
+        guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) else {
             return await launch(bundleIdentifier: actionIdentifier)
         }
         guard let shortcut = CompanionKeyboardShortcut(actionIdentifier: actionIdentifier) else {

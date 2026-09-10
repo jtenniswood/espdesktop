@@ -606,7 +606,7 @@ export function registerCompanionCardTypes(
             windowField.appendChild(windowSelect);
             const windowNote = document.createElement("div");
             windowNote.className = "sp-field-info-text sp-visible";
-            windowNote.textContent = "Controls the active Mac window. Tiling actions require macOS 15 or later.";
+            windowNote.textContent = "Uses the active app’s native Window menu. Layouts need macOS 15+, Accessibility access and English menus. Split View asks you to choose another window on the Mac.";
             windowField.appendChild(windowNote);
             panel?.appendChild(windowField);
             helpers.markCardPrimaryField(windowField, "window");
@@ -1038,6 +1038,22 @@ export function registerCompanionCardTypes(
         ["companion_stats", "Stats", "stats"],
         ["companion_window", "Window control", "window"],
     ];
+    COMPANION_WINDOW_ACTIONS.forEach(function (action) {
+        registry.register("companion_" + action.id, {
+            ...companionDefinition,
+            label: "Window: " + action.label,
+            pickerKey: null,
+            runtimeSpec: CARD_RUNTIME_SPECS.companion,
+            onSelect: function (card?: any) {
+                companionDefinition.onSelect(card);
+                applyCompanionPickerPreset(card, "window");
+                if (card) {
+                    card.entity = action.id;
+                    card.label = action.label;
+                }
+            },
+        });
+    });
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
         const label = definition[1];

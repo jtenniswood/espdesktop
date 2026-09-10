@@ -65,15 +65,23 @@ Shortcuts are sent to whichever Mac application is active when you tap the card.
 
 ## Window Controls
 
-Window cards act on the active Mac window. Choose **Companion → Window control**, then select an action.
+Window cards act on the active Mac window. Choose a **Window: …** card in the **Mac Companion** card picker to add a ready-configured action, or choose **Window control** and select an action. Each card can be labelled and styled independently. Existing window cards keep their saved actions.
 
 | Group | Actions | macOS version |
 |---|---|---|
 | **Window** | Close, Minimise, Hide App, Full Screen | macOS 13+ |
-| **Move & Resize** | Fill Desktop, Centre, Left, Right, Top, Bottom, Return to Previous Size | macOS 15+ |
-| **Arrange Windows** | Left & Right, Right & Left, Top & Bottom, Bottom & Top, and four side-with-quarters layouts | macOS 15+ |
+| **Move & Resize** | Fill Desktop, Centre, Left, Right, Top, Bottom, all four corners, Return to Previous Size | macOS 15+ |
+| **Arrange Windows** | Left & Right, Right & Left, Top & Bottom, Bottom & Top, four side-with-quarters layouts, and Quarters | macOS 15+ |
 
-The Mac app must have Accessibility permission. Some applications or windows do not support every macOS window command; in that case the window stays where it is.
+| **Full Screen** | Enter Full Screen, Exit Full Screen, Left of Screen, Right of Screen | macOS 15+ |
+
+The Mac app must have Accessibility permission. Layouts invoke the native Window menu, so macOS controls sizing, margins, display placement and previous-size history. Basic close, minimise and full-screen controls use native Accessibility window controls. They no longer replay keyboard shortcuts.
+
+Layout menu lookup currently supports English menus (including Centre/Center and Full-Screen Tile/Full Screen Tile). Apps with translated or custom menus, fixed-size windows, or disabled commands can report an unavailable action in the Mac app. No replacement keystroke is sent. Update both the Mac app and display firmware to add the new cards.
+
+**Fill Desktop** keeps the window on the desktop; **Full Screen** toggles full-screen mode. The explicit Enter and Exit cards leave an already-correct state alone. **Left of Screen** and **Right of Screen** start native Split View, which asks you to choose the other window on your Mac. Arrange actions let macOS select the other eligible windows; they do not save a named workspace.
+
+See [Apple’s window layout reference](https://support.apple.com/en-ie/guide/mac-help/mchl9674d0b0/mac) for the native layouts.
 
 ## Media Controls and Cover Art
 
