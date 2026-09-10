@@ -27,6 +27,9 @@ button:
       - script.execute: screensaver_wake
 
 globals:
+  - id: screensaver_companion_ready
+    type: bool
+    initial_value: 'false'
   - id: manual_wake_ms
     type: uint32_t
     initial_value: '0'
@@ -112,6 +115,7 @@ esphome:
             register_screen_lock_changed_handler([](bool) {
               id(screensaver_companion_reconcile).execute();
             });
+            id(screensaver_companion_ready) = true;
 
             if (!id(screensaver_action_migrated)) {
               if (id(clock_screensaver_enabled).state) {
@@ -176,6 +180,7 @@ esphome:
               id(dimmed_brightness_migrated) = true;
               global_preferences->sync();
             }
+        - script.execute: screensaver_companion_reconcile
         - delay: 10s
         - lambda: 'id(clock_brightness_legacy_sync_ready) = true;'
 
@@ -783,7 +788,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(screensaver_mode).state == "companion";'
+            lambda: 'return id(screensaver_companion_ready) && id(screensaver_mode).state == "companion";'
           then:
             - if:
                 condition:

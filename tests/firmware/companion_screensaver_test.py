@@ -13,6 +13,11 @@ boot = text.split('  on_boot:\n', 1)[1].split('\nscript:', 1)[0]
 assert re.search(r'^    - priority: -240$', boot, re.M), 'Screensaver boot handler must survive package merging'
 assert 'register_companion_connection_changed_handler' in boot
 assert 'register_screen_lock_changed_handler' in boot
+assert 'id(screensaver_companion_ready) = true;' in boot
+assert '- script.execute: screensaver_companion_reconcile' in boot
+reconcile = text.split('  - id: screensaver_companion_reconcile\n', 1)[1].split('\n  - id:', 1)[0]
+ready_predicate = re.search(r"lambda: '(return .*?;)'", reconcile).group(1)
+
 
 script = text.split('  - id: screensaver_sleep_timer\n', 1)[1].split('\n  - id:', 1)[0]
 predicates = re.findall(r'condition:\n\s+lambda: \|-\n(.*?)(?=\n\s*then:)', script, re.S)
@@ -30,6 +35,10 @@ std::string cover_art_last_playback_state;
 bool cover_art_media_playing = false, cover_art_attribute_conditions_match = true;
 bool cover_art_external_input_active = false, cover_art_companion_source_active = true;
 #define id(x) x
+bool screensaver_companion_ready = false;
+bool can_reconcile() {
+''' + ready_predicate + r'''
+}
 bool defers_sleep() {
 ''' + predicates[0] + '\n}\nbool chooses_cover_art() {\n' + predicates[1].replace('${voice_interaction_active_condition}', 'false') + r'''
 }
@@ -38,6 +47,10 @@ int main() {
   for (const auto *mode : {"companion", "timer", "sensor"}) {
     screensaver_mode.state = mode;
     const bool companion = screensaver_mode.state == "companion";
+    screensaver_companion_ready = false;
+    assert(!can_reconcile());  // Restored text publishes before the app runtime exists.
+    screensaver_companion_ready = true;
+    assert(can_reconcile() == companion);
     for (bool visible : {false, true}) {
       if (visible) espdesktop_app.display().request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART);
       else espdesktop_app.display().clear(DisplayRequestSource::MEDIA_PLAYBACK);
