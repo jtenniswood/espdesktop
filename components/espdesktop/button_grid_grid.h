@@ -366,10 +366,7 @@ inline void grid_refresh_layout(
     int row_span = order.row_span[idx - 1] > 0 ? order.row_span[idx - 1] : 1;
     int col_span = order.col_span[idx - 1] > 0 ? order.col_span[idx - 1] : 1;
     refresh_card_layout(s, p, cfg, row_span, col_span);
-    espdesktop::cards::cleaning_driver_refresh_translated_text(
-      s, p, card_runtime_context(p));
   }
-  espdesktop::cards::cleaning_driver_refresh_subpage_translated_text();
   ESP_LOGI("sensors", "Grid refresh: layout done (%lu ms)", esphome::millis());
 }
 
@@ -603,11 +600,7 @@ inline bool grid_refresh_subpage_layouts(
       set_grid_card_cell(card->button, entry->screen, col, row, col_span, row_span, COLS, ROWS);
       const ParsedCfg button_config =
         parsed_cfg_from_subpage_btn(sp_btns[button_index - 1]);
-      const auto context = card_runtime_context(
-        button_config, espdesktop::cards::Surface::SUBPAGE);
       refresh_card_layout(card->slot, button_config, cfg, row_span, col_span);
-      espdesktop::cards::sensor_driver_refresh_layout(
-        card->slot, button_config, context, display, row_span, col_span);
     }
     lv_obj_update_layout(entry->screen);
     refreshed = true;
@@ -719,8 +712,6 @@ inline void grid_phase2(
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
-  set_switch_confirmation_message_font(display_switch_confirmation_message_font(display));
-  set_switch_confirmation_icon_font(display_icon_font(display));
   network_status_card_icon_font() = display_icon_font(display);
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
@@ -804,13 +795,6 @@ inline void grid_phase2(
   const lv_font_t *sp_icon_fnt = lv_obj_get_style_text_font(slots[0].icon_lbl, LV_PART_MAIN);
 
   lv_obj_t *ref_btn = slots[0].btn;
-  for (int i = 0; i < NS; i++) {
-    ParsedCfg pc = parse_cfg(slots[i].config->state);
-    if (!brightness_slider_type(pc.type) && pc.type != "cover") {
-      ref_btn = slots[i].btn;
-      break;
-    }
-  }
   lv_coord_t sp_radius = lv_obj_get_style_radius(ref_btn, LV_PART_MAIN);
   lv_coord_t sp_pad = lv_obj_get_style_pad_top(ref_btn, LV_PART_MAIN);
   const lv_font_t *sp_btn_fnt = lv_obj_get_style_text_font(ref_btn, LV_PART_MAIN);

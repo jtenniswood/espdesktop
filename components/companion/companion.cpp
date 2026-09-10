@@ -289,7 +289,7 @@ void CompanionService::disconnect_expiry_work_(void *context) {
   service->disconnect_expiry_queued_.store(false);
   uint32_t deadline = service->disconnect_grace_expires_at_.load();
   if (deadline == 0 || static_cast<int32_t>(millis() - deadline) < 0) return;
-  if (service->disconnect_grace_expires_at_.compare_exchange_strong(deadline, 0))
+  service->disconnect_grace_expires_at_.compare_exchange_strong(deadline, 0);
 }
 
 esp_err_t CompanionService::websocket_handler_(httpd_req_t *request) {

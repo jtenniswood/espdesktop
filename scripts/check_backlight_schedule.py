@@ -15,13 +15,13 @@ FADE_SOURCE = ROOT / "common" / "addon" / "backlight.yaml"
 def check_recovery(source: str) -> None:
     # Exercise the actual YAML write/skip logic with the real display controller
     # and fade sampler, while replacing ESPHome's light with a host test double.
-    script = source.index("  - id: backlight_apply_brightness")
-    start = source.index("          float target = pct / 100.0f;", script)
+    script = source.index("- id: backlight_apply_brightness")
+    start = source.index("      float target = pct / 100.0f;", script)
     end = source.index("\n\n", start)
     fade_source = FADE_SOURCE.read_text(encoding="utf-8")
-    fade_script = fade_source.index("  - id: backlight_fade_current_ui_to_black")
-    fade_start = fade_source.index("          float brightness =", fade_script)
-    fade_end = fade_source.index("      - while:", fade_start)
+    fade_script = fade_source.index("- id: backlight_fade_current_ui_to_black")
+    fade_start = fade_source.index("      float brightness =", fade_script)
+    fade_end = fade_source.index("  - while:", fade_start)
     with tempfile.TemporaryDirectory(prefix="backlight-recovery-") as directory:
         output = Path(directory)
         (output / "backlight_brightness_adapter.inc").write_text(
@@ -43,7 +43,7 @@ def check_recovery(source: str) -> None:
 
 def check_clock_switches_without_fade() -> None:
     source = FADE_SOURCE.read_text(encoding="utf-8")
-    start = source.index("  - id: clock_screensaver_refresh_brightness")
+    start = source.index("- id: clock_screensaver_refresh_brightness")
     end = source.index("\n  # Hide the clock screensaver overlay", start)
     clock_view = source[start:end]
     assert "backlight_fade_current_ui_to_black" not in clock_view, (
@@ -73,7 +73,7 @@ def check_clock_switches_without_fade() -> None:
 
 def main() -> None:
     text = SOURCE.read_text(encoding="utf-8")
-    handler = text.index("  - id: display_backlight_handle_state")
+    handler = text.index("- id: display_backlight_handle_state")
     handler_end = text.index("\n  # ---------------------------------------------------------------------------", handler)
     handler_text = text[handler:handler_end]
 
@@ -86,11 +86,11 @@ def main() -> None:
         "if (!id(display_backlight).remote_values.is_on()) return;"
     ), "startup guard must run before restored light-state handling"
 
-    assert "on_boot:\n" in text and "    - priority: -190" in text, (
+    assert "on_boot:\n" in text and "  - priority: -190" in text, (
         "schedule boot handler must be a list item so later packages preserve the brightness service"
     )
     boot = text.index("priority: -190")
-    boot_end = text.index("\n        - lambda: |-", text.index("id(brightness_mode_runtime_ready) = true;", boot)) + 1
+    boot_end = text.index("\n    - lambda: |-", text.index("id(brightness_mode_runtime_ready) = true;", boot)) + 1
     boot_text = text[boot:boot_end]
     assert "id(brightness_mode_runtime_ready) = true;" in boot_text, (
         "brightness mode must become runtime-ready during boot initialization"

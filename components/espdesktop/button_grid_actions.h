@@ -97,7 +97,7 @@ inline void send_webhook_action(const ParsedCfg &p) {
   }
   std::string method = normalize_webhook_method(p.sensor);
   std::string body = (method == "GET" || method == "DELETE") ? "" : p.unit;
-  WebhookHeaders headers = parse_webhook_headers(webhook_card_headers(p), body);
+  WebhookHeaders headers = parse_webhook_headers(cfg_option_value(p.options, "webhook_headers"), body);
   WebhookSender &sender = webhook_sender();
   if (!sender) {
     ESP_LOGW("webhook", "Webhook sender is not registered");

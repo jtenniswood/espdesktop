@@ -315,7 +315,6 @@ script:
     generation: int
     previous_mode: int
   then:
-  - {}
   - lvgl.widget.hide: dim_screensaver_touch_guard
   - if:
       condition:
@@ -766,11 +765,9 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(screen_rotation_select).current_option() == "90" ||
-                     id(screen_rotation_select).current_option() == "270";
+              return id(screen_rotation_select).current_option() != "90" &&
+                     id(screen_rotation_select).current_option() != "270";
           then:
-          - {}
-          else:
           - lvgl.pause:
               show_snow: true
       - script.execute: backlight_force_display_off
@@ -833,7 +830,6 @@ script:
       }
   - script.stop: screensaver_idle_check
   - script.stop: home_screen_idle_check
-  - {}
   - script.execute: clock_bar_hide
   - script.wait: clock_bar_hide
   - lambda: |-
@@ -1243,7 +1239,6 @@ script:
               id(espdesktop_app).display().transition_is_current(
                   static_cast<uint32_t>(generation), espdesktop::DisplayMode::DIMMED);
       then:
-      - {}
       - lambda: |-
           if (!id(espdesktop_app).display().transition_is_current(
                 static_cast<uint32_t>(generation), espdesktop::DisplayMode::DIMMED)) {
@@ -1383,10 +1378,10 @@ script:
             id(show_clock_view).stop();
           }
       - lambda: |-
-          lv_obj_t *temperature_labels[] = {
-            id(temperatures),
+          lv_obj_t *title_labels[] = {
+            id(clock_bar_subpage_title),
           };
-          hide_clock_bar_top_layer_widgets(temperature_labels, 1,
+          hide_clock_bar_top_layer_widgets(title_labels, 1,
                                            id(display_time),
                                            id(network_status_button));
           network_status_hide_modal();
@@ -1433,10 +1428,10 @@ script:
   - lambda: |-
       if (!id(espdesktop_app).display().current_mode_is(
             espdesktop::DisplayMode::CLOCK)) return;
-      lv_obj_t *temperature_labels[] = {
-        id(temperatures),
+      lv_obj_t *title_labels[] = {
+        id(clock_bar_subpage_title),
       };
-      hide_clock_bar_top_layer_widgets(temperature_labels, 1,
+      hide_clock_bar_top_layer_widgets(title_labels, 1,
                                        id(display_time),
                                        id(network_status_button));
       network_status_hide_modal();

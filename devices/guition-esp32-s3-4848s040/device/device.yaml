@@ -274,31 +274,7 @@ light:
     then:
     - script.execute: display_backlight_handle_state
 
-# ---------------------------------------------------------------------------
-# Built-in relays (4848S040C relay variant)
-# ---------------------------------------------------------------------------
 button:
-- platform: template
-  name: Relay 1 Push
-  icon: mdi:gesture-tap-button
-  on_press:
-    then:
-    - script.execute: relay_1_push
-
-- platform: template
-  name: Relay 2 Push
-  icon: mdi:gesture-tap-button
-  on_press:
-    then:
-    - script.execute: relay_2_push
-
-- platform: template
-  name: Relay 3 Push
-  icon: mdi:gesture-tap-button
-  on_press:
-    then:
-    - script.execute: relay_3_push
-
 - platform: template
   name: Backlight Sweep Test
   internal: true
