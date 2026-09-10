@@ -299,3 +299,5 @@ window_left_quarters=Levo in četrtine
 window_right_quarters=Desno in četrtine
 window_top_quarters=Zgoraj in četrtine
 window_bottom_quarters=Spodaj in četrtine
+paired=Seznanjeno
+unpaired=Ni seznanjeno

@@ -70,4 +70,16 @@ Ad-hoc local app builds embed Sparkle and disable library validation only for th
 
 Use **Open Settings** beside Enable Shortcuts or Shortcut Enabled, then enable **EspDesktop** under Privacy & Security → Accessibility. Return to EspDesktop to refresh the status. macOS owns this permission; the app cannot grant it itself.
 
-For local test builds, launch the copy installed in `/Applications/EspDesktop.app`. Ad-hoc signatures change when the app is rebuilt; if an existing Accessibility entry no longer works, remove that EspDesktop entry and add the installed copy again. Release builds should use the same Developer ID signing identity across updates.
+### Preserve Accessibility approval across local builds
+
+Use `Packaging/build_local.sh` for apps you install and use. Install an Apple signing certificate **and its private key** in Keychain first. List available fingerprints with `security find-identity -v -p codesigning`, then run:
+
+```sh
+CODE_SIGN_IDENTITY=<40-character-fingerprint> ./Packaging/build_local.sh
+```
+
+After a successful build, the helper saves only the certificate fingerprint in `~/.config/espdesktop/signing-identity`, shared by all worktrees. Later builds need only `./Packaging/build_local.sh`. It refuses missing identities and checks that a new build satisfies the installed certificate-signed app's designated requirement before reporting success. Install consistently at `/Applications/EspDesktop.app`; do not reset Accessibility during ordinary updates.
+
+Switching from the existing ad-hoc app requires one final Accessibility approval. Future compatible certificate-signed builds should retain it. Use the same Developer ID Application identity as the release pipeline to keep local builds and releases compatible. An Apple Development identity may preserve local-build approval but is not interchangeable with Developer ID releases. macOS still owns permission decisions; a bundle ID, signing team, or certificate-policy change can require approval again.
+
+`ALLOW_ADHOC=1 Packaging/build_standalone.sh` remains for disposable CI verification, not persistent local testing. The release workflow already uses Developer ID signing and notarization; keep its bundle identifier and signing identity consistent between releases.
