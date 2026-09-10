@@ -19,7 +19,7 @@ describe("browserless application contracts", () => {
   const { runClipboardFeatureTests } = loadTypescriptTest("tests/web/clipboard_feature.test.ts");
   const { runCompanionPairingFeatureTests, runCompanionCopyTests } = loadTypescriptTest("tests/web/companion_pairing_feature.test.ts");
   const { runCompanionShortcutFeatureTests } = loadTypescriptTest("tests/web/companion_shortcut_feature.test.ts");
-  const { runConnectorsFeatureTests } = loadTypescriptTest("tests/web/connectors_feature.test.ts");
+  const { runCompanionSetupTests } = loadTypescriptTest("tests/web/companion_setup.test.ts");
   const { runApplicationContextTests } = loadTypescriptTest("tests/web/application_context.test.ts");
   const { runDeviceApiTests } = loadTypescriptTest("tests/web/device_api.test.ts");
   const { runSettingsFeatureTests } = loadTypescriptTest("tests/web/settings_feature.test.ts");
@@ -43,31 +43,18 @@ describe("browserless application contracts", () => {
     runCompanionShortcutFeatureTests();
   });
 
-  test("models connector onboarding and card sources", () => {
-    runConnectorsFeatureTests();
+  test("updates Companion setup from pairing status", () => {
+    runCompanionSetupTests();
   });
 
-  test("renders connector badges and connection-specific setup guidance", () => {
-    const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
+  test("renders Companion pairing guidance", () => {
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    assert.match(connectors, /sp-card-badge sp-hidden/);
-    assert.match(connectors, /setHidden\(homeAssistantSteps, value\.home_assistant\.connected\)/);
-    assert.match(connectors, /setHidden\(homeAssistantActionInfo, value\.home_assistant\.actions_confirmed\)/);
-    assert.match(connectors, /sp-connector-info/);
-    assert.match(connectors, /cannot perform actions in Home Assistant/);
-    assert.match(connectors, /connectors\/home-assistant\/complete/);
-    assert.match(connectors, /connectors\/home-assistant\/forget/);
-    assert.match(connectors, /Forget Home Assistant/);
-    assert.match(connectors, /I enabled Home Assistant actions/);
-    assert.doesNotMatch(connectors, /Actions confirmed/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);
     assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{max-width:960px/);
-    assert.doesNotMatch(connectors, /sp-connectors-intro|Manage the services that provide data and actions/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
   });
 
@@ -75,7 +62,6 @@ describe("browserless application contracts", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const screensaver = fs.readFileSync(path.join(ROOT, "src/webserver/application/screensaver_state.ts"), "utf8");
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
-    const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     assert.match(settings, /\["sensor", "Home Assistant"\]/);
     assert.match(settings, /\["companion", "Companion App"\]/);
     assert.match(settings, /sensorBtn\.hidden = !haAvailable/);
@@ -83,8 +69,6 @@ describe("browserless application contracts", () => {
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
     assert.match(screensaver, /state\.screensaverMode === "companion"/);
     assert.match(eventHandlers, /val === "companion"/);
-    assert.match(connectors, /homeAssistantConfigured\(\)/);
-    assert.match(connectors, /companionConfigured\(\)/);
   });
 
   test("publishes and executes only approved Mac applications", () => {

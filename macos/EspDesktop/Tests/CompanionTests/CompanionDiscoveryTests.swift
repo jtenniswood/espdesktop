@@ -101,7 +101,7 @@ final class CompanionDiscoveryTests: XCTestCase {
 
     @MainActor
     func testManualAddressAndPairingPageUseWebPort() {
-        let url = CompanionStore.panelWebServerURL(from: display("desk.local").endpoint, tab: "connectors", connector: "mac_companion")
+        let url = CompanionStore.panelWebServerURL(from: display("desk.local").endpoint, tab: "settings", connector: "mac_companion")
         XCTAssertEqual(url?.host, "desk.local")
         XCTAssertNil(url?.port)
         XCTAssertEqual(url?.scheme, "http")

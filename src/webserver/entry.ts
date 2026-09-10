@@ -57,7 +57,7 @@ import { createSettingsScheduleSectionFeature } from "./application/settings_sch
 import { createSettingsCoverArtSectionFeature } from "./application/settings_cover_art_section";
 import { createSettingsSystemSectionFeature } from "./application/settings_system_section";
 import { createSettingsCompanionSectionFeature } from "./application/settings_companion_section";
-import { createConnectorsPageFeature, type ConnectorsPageFeature } from "./application/connectors_page";
+import { createCompanionSetupFeature, type CompanionSetupFeature } from "./application/companion_setup";
 import { createSettingsPageFeature, type SettingsPageFeature } from "./application/settings_page";
 import { createControlsFieldsFeature, type ControlsFieldsFeature } from "./application/controls_fields";
 import { createPreviewRenderFeature, type PreviewRenderFeature } from "./application/preview_render";
@@ -226,7 +226,7 @@ function composeApplicationContext(): ApplicationContext {
   let fields: ControlsFieldsFeature;
   let settingsHelpers: SettingsPageHelpersFeature;
   let settingsPage: SettingsPageFeature;
-  let connectorsPage: ConnectorsPageFeature;
+  let companionSetup: CompanionSetupFeature;
   let buttonSettings: ButtonSettingsFeature;
   let app: AppFeature;
   const shell = createControlsShellFeature(runtime, {
@@ -235,7 +235,6 @@ function composeApplicationContext(): ApplicationContext {
     schedule: dom.schedule,
     cancelSchedule: (handle) => { dom.window.clearTimeout(handle); },
     buildSettingsPage: (parent) => { settingsPage.buildSettingsPage(parent); },
-    buildConnectorsPage: (parent) => { connectorsPage.buildPage(parent); },
     closeSettings: () => { selection.closeSettings(); },
     postButtonPress: (name) => requestApi.postButtonPress(name),
     waitForReboot: () => { stateLoader.waitForReboot(); },
@@ -441,7 +440,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const clockBar = createClockBarController();
   clockBarState = createClockBarFeature(clockBar, runtime, core, environment, {
-    homeAssistantConfigured: () => !!connectorsPage?.homeAssistantConfigured(),
+    homeAssistantConfigured: () => false,
     hideSettingsOverlay: () => selection.hideSettingsOverlay(),
     timezoneId: (value) => statusPreview.getTzId(value),
     postTemperatureEntities: (value) => clockBarPostApi.postClockBarTemperatureEntities(value),
@@ -595,9 +594,7 @@ function composeApplicationContext(): ApplicationContext {
     confirmationOptions, configurationCodec, layout, runtime, entityState,
     shell, requestApi, grid, iconPicker, selection, preview, interactions, fields,
     {
-      homeAssistantEnabled: () => connectorsPage
-        ? connectorsPage.homeAssistantCardPickerEnabled()
-        : true,
+      homeAssistantEnabled: () => false,
     },
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
@@ -799,39 +796,25 @@ function composeApplicationContext(): ApplicationContext {
   stateLoader, firmwarePostApi, artworkPostApi, publicFirmwareInstall, fields,
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
-  connectorsPage = createConnectorsPageFeature(
-    dom, shell, fields, companionSection, !!layout.config.features?.companion,
+  companionSetup = createCompanionSetupFeature(
+    shell, companionSection, !!layout.config.features?.companion,
   );
-  let temperatureHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
-  connectorsPage.onStatusChange(() => {
-    const configured = connectorsPage.homeAssistantConfigured();
-    if (configured === temperatureHomeAssistantConfigured) return;
-    temperatureHomeAssistantConfigured = configured;
-    statusPreview.updateClockBarItemUi();
-  });
-  let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
-  connectorsPage.onStatusChange(() => {
-    const enabled = connectorsPage.homeAssistantCardPickerEnabled();
-    if (enabled === pickerHomeAssistantEnabled) return;
-    pickerHomeAssistantEnabled = enabled;
-    buttonSettings.render();
-  });
   settingsPage = createSettingsPageFeature(
     configurationCodec, runtime, core, layout, environment, screenScheduleState,
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
-    systemSection, preview, connectorsPage,
+    systemSection, preview, companionSetup,
   );
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
+    interactions, preview, buttonSettings,
   );
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
+    interactions, preview, buttonSettings,
   );
   requestApi.connectReconnect(appEvents.connect);
   return createApplicationContext({

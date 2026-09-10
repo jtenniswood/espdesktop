@@ -432,7 +432,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func openPanelPairing() -> Bool {
-        openPanelWebServer(tab: "connectors", connector: "mac_companion")
+        openPanelWebServer(tab: "settings", connector: "mac_companion")
     }
 
     private func openPanelWebServer(tab: String?, connector: String? = nil) -> Bool {
