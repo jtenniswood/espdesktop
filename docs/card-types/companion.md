@@ -61,7 +61,7 @@ With **Auto switch to subpage** enabled, tapping the app card asks the Mac to ac
 
 Choose **Keyboard shortcut**, then choose a **Type**:
 
-- **Custom Shortcut** keeps the key recorder: select the shortcut field, then press the combination you want to capture. Existing recorded shortcuts use this type.
+- **Custom Shortcut** lets you click modifier buttons and choose a key without pressing the combination on your Mac. For Command-W, enable **⌘ Command**, choose **W**, then save. You can also select the shortcut field and record a combination directly. Existing recorded shortcuts use this type.
 - **Shortcut Catalog** lets you choose **Safari**, then **Back**, **Forward**, **Reload**, **New Tab**, or **Close Tab**. The card starts with the shortcut’s name and icon, which you can customise in Card Settings.
 
 Contributors can extend the catalog through [one JSON file per app](https://github.com/jtenniswood/espdesktop/tree/main/product/v2/app_shortcuts), shared with app subpage presets. New definitions are included when the project is rebuilt.

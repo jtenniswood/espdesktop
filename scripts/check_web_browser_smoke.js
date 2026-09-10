@@ -5250,6 +5250,40 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await openCard();
     assert.strictEqual(await type.inputValue(), "custom", "custom type survives save");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').inputValue(), "⌘A");
+    const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
+    const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
+    const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
+    const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
+    const key = page.locator('[id$="shortcut-key"]');
+    assert.strictEqual(await command.getAttribute("aria-pressed"), "true", "recording synchronizes modifier buttons");
+    assert.strictEqual(await key.inputValue(), "a", "recording synchronizes key selector");
+    await key.selectOption("w");
+    assert.strictEqual(await page.locator('[id$="companion-shortcut"]').inputValue(), "⌘W");
+    await saveCard();
+    await openCard();
+    assert.strictEqual(await key.inputValue(), "w", "click-built Command-W survives save");
+    assert.strictEqual(await command.getAttribute("aria-pressed"), "true");
+    await command.click();
+    await shift.click();
+    const beforeInvalidCustomSave = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeInvalidCustomSave, "Shift-only combinations cannot save");
+    await control.click();
+    await key.selectOption("tab");
+    assert.strictEqual(await page.locator('[id$="companion-shortcut"]').inputValue(), "⌃⇧Tab");
+    await key.selectOption("keybracketleft");
+    assert.strictEqual(await page.locator('[id$="companion-shortcut"]').inputValue(), "⌃⇧[");
+    await key.selectOption("f12");
+    await saveCard();
+    await openCard();
+    assert.strictEqual(await key.inputValue(), "f12");
+    assert.strictEqual(await control.getAttribute("aria-pressed"), "true");
+    assert.strictEqual(await shift.getAttribute("aria-pressed"), "true");
+    await key.selectOption("");
+    const beforeMissingKeySave = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeMissingKeySave, "a modifier without a key cannot save");
+
   } finally {
     await context.close();
   }
