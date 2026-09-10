@@ -838,7 +838,7 @@ struct CompanionSettings: View {
                 isEnabled: store.launchAtLoginBinding(),
                 isAvailable: store.supportsLaunchAtLogin
             )
-            .controlSize(.large)
+            .controlSize(.regular)
         }
     }
 
