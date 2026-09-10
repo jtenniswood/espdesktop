@@ -126,9 +126,6 @@ inline CompanionRuntimeSnapshot companion_runtime_snapshot() {
   return companion_runtime_service().snapshot();
 }
 
-inline CompanionNowPlayingHandler &companion_now_playing_handler() {
-  return companion_runtime_service().now_playing_handler;
-}
 
 inline CompanionConnectionChangedHandler &companion_connection_changed_handler() {
   return companion_runtime_service().connection_changed_handler;
@@ -139,20 +136,8 @@ inline void register_companion_connection_changed_handler(
   companion_connection_changed_handler() = std::move(handler);
 }
 
-inline CompanionArtworkHandler &companion_artwork_handler() {
-  return companion_runtime_service().artwork_handler;
-}
 
-inline void register_companion_now_playing_handlers(CompanionNowPlayingHandler now_playing,
-                                                     CompanionArtworkHandler artwork) {
-  companion_now_playing_handler() = std::move(now_playing);
-  companion_artwork_handler() = std::move(artwork);
-}
 
-inline void companion_set_now_playing(CompanionNowPlayingSnapshot snapshot) {
-  companion_runtime_service().set_now_playing(snapshot);
-  if (companion_now_playing_handler()) companion_now_playing_handler()(snapshot);
-}
 
 inline bool companion_metric_key_valid(const std::string &key) {
   return companion_metric_capability(key) != nullptr;
@@ -189,9 +174,6 @@ inline void companion_set_system_metrics(CompanionSystemMetricsSnapshot snapshot
   companion_runtime_service().set_system_metrics(std::move(snapshot));
 }
 
-inline bool companion_deliver_artwork(uint32_t generation, uint8_t *data, size_t size) {
-  return companion_artwork_handler() && companion_artwork_handler()(generation, data, size);
-}
 
 inline bool companion_connected() {
   return companion_runtime_service().connected();
@@ -221,13 +203,7 @@ inline void companion_set_actions(std::vector<CompanionAction> actions) {
   companion_runtime_service().set_actions(std::move(actions));
 }
 
-inline bool companion_media_action_valid(const std::string &action_id) {
-  return companion_generated_media_action_valid(action_id);
-}
 
-inline void companion_set_media_actions_supported(bool supported) {
-  companion_runtime_service().set_media_actions_supported(supported);
-}
 
 inline void companion_set_window_actions(std::vector<std::string> actions) {
   companion_runtime_service().set_window_actions(std::move(actions));
@@ -321,11 +297,6 @@ inline bool companion_application_focused(const std::string &application_id) {
 }
 
 inline bool companion_action_active(const std::string &action_id) {
-  const auto snapshot = companion_runtime_snapshot();
-  if (action_id == "media.play_pause") {
-    return snapshot.connected && snapshot.media_actions_supported &&
-           snapshot.now_playing.playback_state == CompanionPlaybackState::PLAYING;
-  }
   return companion_action_focused(action_id);
 }
 
@@ -461,7 +432,6 @@ inline bool companion_action_available(const std::string &action_id) {
     return std::find(snapshot.window_actions.begin(), snapshot.window_actions.end(), action_id) !=
            snapshot.window_actions.end();
   }
-  if (companion_media_action_valid(action_id)) return snapshot.media_actions_supported;
   return std::any_of(snapshot.actions.begin(), snapshot.actions.end(), [&action_id](const CompanionAction &action) {
     return action.id == action_id;
   });
@@ -679,14 +649,6 @@ inline void companion_refresh_cards_if_requested() {
     const bool available = it->url_config.empty()
       ? companion_action_available(it->action_id)
       : companion_url_available(it->action_id, it->url_config);
-    if (it->action_id == "media.play_pause" && it->text_label &&
-        lv_obj_is_valid(it->text_label)) {
-      const auto snapshot = companion_runtime_snapshot();
-      const char *status = companion_play_pause_status(
-        snapshot.now_playing.playback_state, available);
-      const std::string translated_status = espdesktop_i18n(std::string(status));
-      lv_label_set_display_text(it->text_label, translated_status.c_str());
-    }
     if (available) {
       lv_obj_clear_state(it->button, LV_STATE_DISABLED);
     } else {

@@ -14,8 +14,6 @@ enum CompanionCapabilities {
     static let protocolVersion = 3
     static let protocolPath = "/companion/v3"
     static let maximumTextFrameBytes = 16384
-    static let maximumArtworkBytes = 262144
-    static let artworkChunkBytes = 12288
     static let pairingWindowSeconds = 900
     static let protocolMessages: Set<String> = [
         "hello",
@@ -32,13 +30,7 @@ enum CompanionCapabilities {
         "value.state",
         "focus.changed",
         "timezone.changed",
-        "now_playing",
         "system_metrics",
-        "artwork.begin",
-        "artwork.ack",
-        "artwork.end",
-        "artwork.abort",
-        "artwork.request",
         "error",
     ]
     static let cardModes: [String: String] = [
@@ -46,7 +38,6 @@ enum CompanionCapabilities {
         "shortcut": "Keyboard shortcut",
         "url": "Open URL",
         "folder": "Open folder",
-        "media": "Media control",
         "stats": "Stats",
         "window": "Window control",
     ]
@@ -71,10 +62,4 @@ enum CompanionCapabilities {
         "window.arrange.top-quarters": .init(key: "up", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15),
         "window.arrange.bottom-quarters": .init(key: "down", flags: [.maskSecondaryFn, .maskControl, .maskAlternate, .maskShift], minimumMacOS: 15),
     ]
-    static let mediaCommandByActionID: [String: String] = [
-        "media.play_pause": "togglePlayPause",
-        "media.previous": "previousTrack",
-        "media.next": "nextTrack",
-    ]
-    static let mediaPlayPauseID = "media.play_pause"
 }

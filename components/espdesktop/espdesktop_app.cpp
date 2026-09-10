@@ -225,7 +225,6 @@ void EspDesktopApp::apply_boot_configuration() {
 }
 
 void EspDesktopApp::setup() {
-  home_assistant_endpoint_.setup();
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
@@ -235,9 +234,6 @@ void EspDesktopApp::setup() {
       panel_config_button_order_ != nullptr &&
           !panel_config_button_order_->state.empty(),
       web_auth_username_, web_auth_password_);
-  clock_bar_home_assistant_configured_provider() = []() {
-    return connectors::connector_state_service().status().home_assistant_configured;
-  };
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.
   // Give the display and restored text entities time to come up before
@@ -363,7 +359,6 @@ void EspDesktopApp::initialize_native_configuration() {
 }
 
 void EspDesktopApp::loop() {
-  home_assistant_endpoint_.loop();
   core_.run_once();
   // The app core starts before WiFi so Home Assistant boot automations are
   // safe. The IDF web server starts later, so retry idempotent registrations.
@@ -371,7 +366,6 @@ void EspDesktopApp::loop() {
 }
 
 void EspDesktopApp::on_shutdown() {
-  home_assistant_endpoint_.shutdown();
   cards::set_card_runtime_registry_service(nullptr);
   core_.stop();
 }

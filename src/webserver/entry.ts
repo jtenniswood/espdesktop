@@ -97,35 +97,12 @@ import { createAppEventsFeature, type AppEventsFeature } from "./application/app
 import { createAppFeature, type AppFeature } from "./application/app";
 import { startApp } from "./application/app_start";
 import { createReconnectController } from "./features/reconnect";
-import { registerActionCardTypes } from "./cards/action";
-import { registerAlarmCardTypes } from "./cards/alarm";
 import { registerCalendarCardTypes } from "./cards/calendar";
 import { registerCompanionCardTypes } from "./cards/companion";
-import { registerClimateCardTypes } from "./cards/climate";
 import { registerClockCardTypes } from "./cards/clock";
-import { createCoverLikeCardRegistration } from "./cards/cover_like_card";
-import { registerDoorWindowCardTypes } from "./cards/door_window";
-import { registerFanCardTypes } from "./cards/fan";
-import { registerGarageCardTypes } from "./cards/garage";
-import { registerGateCardTypes } from "./cards/gate";
-import { registerImageCardTypes } from "./cards/image";
-import { registerWifiQrCardTypes } from "./cards/wifi_qr";
-import { registerInternalCardTypes } from "./cards/internal";
-import { registerLawnMowerCardTypes } from "./cards/lawn_mower";
-import { registerLightTemperatureCardTypes } from "./cards/light_temperature";
-import { registerLockCardTypes } from "./cards/lock";
-import { registerMediaCardTypes } from "./cards/media";
-import { registerPresenceCardTypes } from "./cards/presence";
-import { registerPushCardTypes } from "./cards/push";
 import { registerScreenLockCardTypes } from "./cards/screen_lock";
-import { registerSensorCardTypes } from "./cards/sensor";
-import { registerSliderCardTypes } from "./cards/slider";
 import { registerSubpageCardTypes } from "./cards/subpage";
-import { registerSwitchCardTypes } from "./cards/switch";
 import { registerTimezoneCardTypes } from "./cards/timezone";
-import { registerVacuumCardTypes } from "./cards/vacuum";
-import { registerWeatherCardTypes } from "./cards/weather";
-import { registerWeatherForecastCardTypes } from "./cards/weather_forecast";
 import { registerWebhookCardTypes } from "./cards/webhook";
 import { createAppTestHookRegistrar } from "./testing/app_test_hooks";
 import { installAppTestHooksConfig } from "./testing/app_test_hooks_config";
@@ -149,9 +126,6 @@ function registerCards(context: ApplicationContext) {
     renderPreview: () => context.controllers.preview.render(),
     renderButtonSettings: (force?: boolean) => context.controllers.buttonSettings.render(force),
   };
-  const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
-  registerActionCardTypes(registry, context.configuration.confirmationOptions, context.controllers.entityState, fields, cardUi);
-  registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields);
   registerCompanionCardTypes(
     registry,
@@ -165,67 +139,14 @@ function registerCards(context: ApplicationContext) {
     context.controllers.selection,
     context.layout.numSlots,
   );
-  registerClimateCardTypes(
-    registry,
-    context.configuration.modalTabs,
-    context.configuration.accessClimateAlarm,
-    context.controllers.clockBarState,
-    context.controllers.renderQueue,
-    fields,
-  );
   registerClockCardTypes(registry, context.configuration.dateTimeOptions, fields);
-  registerDoorWindowCardTypes(registry, context.configuration.options, fields);
-  registerFanCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
-  registerGarageCardTypes(
-    coverLikeCards.register,
-    context.configuration.accessClimateAlarm,
-    context.configuration.confirmationOptions,
-  );
-  registerGateCardTypes(
-    coverLikeCards.register,
-    context.configuration.accessClimateAlarm,
-  );
-  registerImageCardTypes(
-    registry,
-    context.configuration.imageOptions,
-    fields,
-    cardUi,
-  );
-  registerWifiQrCardTypes(registry, context.configuration.modalTabs, fields, cardUi, context.configuration.native);
-  registerInternalCardTypes(
-    registry,
-    context.configuration.internalRelayOptions,
-    context.dom.document,
-    fields,
-  );
-  registerLawnMowerCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
-  const lightCards = registerLightTemperatureCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
-  registerLockCardTypes(registry, context.configuration.lockOptions, fields, cardUi);
-  registerMediaCardTypes(registry, context.configuration.mediaOptions, context.device.id, fields, context.controllers.settingsUi, cardUi);
-  registerPresenceCardTypes(registry, context.configuration.options, fields);
-  registerPushCardTypes(registry, fields);
   registerScreenLockCardTypes(registry, fields);
-  registerSensorCardTypes(registry, context.configuration.options, fields, cardUi);
-  registerSliderCardTypes(
-    registry,
-    context.configuration.modalTabs,
-    lightCards,
-    fields,
-    context.controllers.settingsUi,
-    !!context.device.profile.features?.companion,
-    cardUi,
-  );
   registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
-  registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);
   registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields);
-  registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
-  const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, context.controllers.clockBarState, fields, cardUi);
-  registerWeatherForecastCardTypes(registry, weatherCards, context.controllers.clockBarState, fields);
   registerWebhookCardTypes(registry, context.configuration.webhookOptions, fields, cardUi);
-  return lightCards;
 }
 
-function installTestHooks(context: ApplicationContext, lightCards: ReturnType<typeof registerLightTemperatureCardTypes>): void {
+function installTestHooks(context: ApplicationContext): void {
   const register = createAppTestHookRegistrar();
   installAppTestHooksConfig(
     context.cards,
@@ -241,7 +162,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.configuration.accessClimateAlarm,
     context.configuration.confirmationOptions,
     context.configuration.codec,
-    lightCards,
     context.core,
     context.layout,
     context.configuration.persistence,
@@ -1005,9 +925,9 @@ function startEspDesktop(): void {
 
   const context = composeApplicationContext();
 
-  const lightCards = registerCards(context);
+  registerCards(context);
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {
-    installTestHooks(context, lightCards);
+    installTestHooks(context);
   }
   startApp(context.controllers.app);
 

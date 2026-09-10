@@ -16,7 +16,6 @@ protocol CompanionSessionPreferences: AnyObject {
 
 @MainActor
 protocol CompanionSessionResources: AnyObject {
-    var mediaActionsAvailable: Bool { get }
     func folderActions() -> [ApprovedFolder]
     func launchableApps() -> [LaunchableApp]
     func focusedCompanionActionIdentifier() -> String
@@ -45,5 +44,4 @@ enum CompanionSessionEvent {
     case status(String)
     case capabilities(systemMetrics: Bool)
     case publishCurrentState
-    case artworkRequested(UInt32)
 }

@@ -61,14 +61,7 @@ inline bool date_time_driver_attach_interaction(
   return true;
 }
 
-inline bool date_time_driver_bind_data(
-    BtnSlot &, const ParsedCfg &config, const Context &context) {
-  if (!date_time_driver_matches(context)) return false;
-  if (context.runtime.type == card_runtime::CardTypeId::CALENDAR) {
-    subscribe_calendar_date_source(config.entity);
-  }
-  // Local-time cards are registered during visual setup and receive updates
-  // from update_timezone_cards(). They do not own an HA subscription.
+inline bool date_time_driver_bind_data(BtnSlot &, const ParsedCfg &, const Context &context) {
   return date_time_driver_matches(context);
 }
 

@@ -36,12 +36,6 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Folder Outline"
   },
   {
-    id: "media",
-    label: "Media control",
-    capability: "media_actions",
-    defaultIcon: "Play Pause"
-  },
-  {
     id: "stats",
     label: "Stats",
     capability: "system_metrics",
@@ -126,38 +120,8 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
     authorization: "session"
   },
   {
-    id: "now_playing",
-    direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
     id: "system_metrics",
     direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
-    id: "artwork.begin",
-    direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
-    id: "artwork.ack",
-    direction: "panel_to_mac",
-    authorization: "session"
-  },
-  {
-    id: "artwork.end",
-    direction: "mac_to_panel",
-    authorization: "session"
-  },
-  {
-    id: "artwork.abort",
-    direction: "bidirectional",
-    authorization: "session"
-  },
-  {
-    id: "artwork.request",
-    direction: "panel_to_mac",
     authorization: "session"
   },
   {
@@ -263,23 +227,6 @@ export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [
     group: "Arrange Windows"
   }
 ];
-export const COMPANION_MEDIA_ACTIONS = [
-  {
-    id: "media.play_pause",
-    label: "Play / Pause",
-    icon: "Play Pause"
-  },
-  {
-    id: "media.previous",
-    label: "Previous",
-    icon: "Skip Previous"
-  },
-  {
-    id: "media.next",
-    label: "Next",
-    icon: "Skip Next"
-  }
-] as const;
 export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [
   {
     mode: "processor",
@@ -314,4 +261,3 @@ export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [
     unit: "MB/s"
   }
 ];
-export const COMPANION_MEDIA_PLAY_PAUSE_ACTION = "media.play_pause" as const;

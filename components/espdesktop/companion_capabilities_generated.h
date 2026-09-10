@@ -11,8 +11,6 @@ constexpr int COMPANION_CAPABILITY_VERSION = 2;
 constexpr int COMPANION_PROTOCOL_VERSION = 3;
 constexpr const char *COMPANION_PROTOCOL_PATH = "/companion/v3";
 constexpr size_t COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384;
-constexpr size_t COMPANION_MAXIMUM_ARTWORK_BYTES = 262144;
-constexpr size_t COMPANION_ARTWORK_CHUNK_BYTES = 12288;
 constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = 900;
 
 constexpr bool COMPANION_BROWSER_STARTS_PAIRING = true;
@@ -33,13 +31,7 @@ inline constexpr CompanionProtocolMessagePolicy COMPANION_PROTOCOL_MESSAGES[] = 
   {"value.state", "mac_to_panel", "session"},
   {"focus.changed", "mac_to_panel", "session"},
   {"timezone.changed", "mac_to_panel", "session"},
-  {"now_playing", "mac_to_panel", "session"},
   {"system_metrics", "mac_to_panel", "session"},
-  {"artwork.begin", "mac_to_panel", "session"},
-  {"artwork.ack", "panel_to_mac", "session"},
-  {"artwork.end", "mac_to_panel", "session"},
-  {"artwork.abort", "bidirectional", "session"},
-  {"artwork.request", "panel_to_mac", "session"},
   {"error", "bidirectional", "public"},
 };
 
@@ -49,7 +41,6 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"shortcut", "Keyboard shortcut", "keyboard_shortcuts", "Shortcut Command"},
   {"url", "Open URL", "applications", "Web"},
   {"folder", "Open folder", "folders", "Folder Outline"},
-  {"media", "Media control", "media_actions", "Play Pause"},
   {"stats", "Stats", "system_metrics", "Gauge"},
   {"window", "Window control", "window_actions", "Monitor"},
 };
@@ -88,14 +79,6 @@ inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {
   {"stat.network_throughput", "Network", "network_throughput", "MB/s"},
 };
 
-inline constexpr const char *COMPANION_MEDIA_ACTION_IDS[] = {
-  "media.play_pause",
-  "media.previous",
-  "media.next",
-};
-
-constexpr const char *COMPANION_MEDIA_PLAY_PAUSE_ACTION = "media.play_pause";
-
 inline const CompanionWindowCapability *companion_window_capability(const std::string &id) {
   for (const auto &item : COMPANION_WINDOW_CAPABILITIES) if (id == item.id) return &item;
   return nullptr;
@@ -106,7 +89,3 @@ inline const CompanionMetricCapability *companion_metric_capability(const std::s
   return nullptr;
 }
 
-inline bool companion_generated_media_action_valid(const std::string &id) {
-  for (const auto *item : COMPANION_MEDIA_ACTION_IDS) if (id == item) return true;
-  return false;
-}

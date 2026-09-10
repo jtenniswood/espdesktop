@@ -12,8 +12,6 @@ import {
 } from "../generated/card_contract";
 import {
     COMPANION_CARD_MODES,
-    COMPANION_MEDIA_ACTIONS,
-    COMPANION_MEDIA_PLAY_PAUSE_ACTION,
     COMPANION_SYSTEM_METRICS,
     COMPANION_WINDOW_ACTIONS,
 } from "../generated/companion_capabilities";
@@ -23,8 +21,6 @@ import {
     type CompanionCardModeId,
 } from "../model/companion_card";
 export {
-    COMPANION_MEDIA_ACTIONS,
-    COMPANION_MEDIA_PLAY_PAUSE_ACTION,
     COMPANION_SYSTEM_METRICS,
     COMPANION_WINDOW_ACTIONS,
 } from "../generated/companion_capabilities";
@@ -165,20 +161,8 @@ export function companionWindowActionLabel(actionId: string): string {
     return COMPANION_WINDOW_ACTIONS.find((action) => action.id === actionId)?.label || "";
 }
 
-export function companionMediaIcon(
-    currentIcon: string,
-    previousGeneratedIcon: string,
-    selectedGeneratedIcon: string,
-): string {
-    return !currentIcon || currentIcon === "Auto" || currentIcon === previousGeneratedIcon
-        ? selectedGeneratedIcon : currentIcon;
-}
 
 export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
-    if (mode === "media") {
-        return COMPANION_MEDIA_ACTIONS.find((action) => action.id === entity)?.icon
-            || COMPANION_MEDIA_ACTIONS[0].icon;
-    }
     if (COMPANION_STATS_MODES.includes(mode)) {
         return companionCardDefaultIcon("stats");
     }
@@ -201,14 +185,6 @@ export function companionSubtypeIcon(
         ? companionSubtypeDefaultIcon(nextMode, nextEntity) : currentIcon;
 }
 
-export function applyCompanionMediaPresentation(card: any, previousGeneratedLabel = ""): void {
-    if (!card) return;
-    const selected = COMPANION_MEDIA_ACTIONS[0];
-    const currentLabel = typeof card.label === "string" ? card.label : "";
-    const currentIcon = typeof card.icon === "string" ? card.icon : "";
-    card.label = companionAppLabel(currentLabel, previousGeneratedLabel, selected.label);
-    card.icon = companionMediaIcon(currentIcon, "Monitor", selected.icon);
-}
 
 export function companionPreviousAppLabel(
     actions: readonly Pick<CompanionAction, "id" | "label">[],
@@ -271,7 +247,6 @@ export function companionCardMode(card: any): CompanionCardModeId {
 export function companionEntityForMode(mode: string): string {
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
-    if (mode === "media") return COMPANION_MEDIA_ACTIONS[0].id;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     if (mode === "window") return COMPANION_WINDOW_ACTIONS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
@@ -279,8 +254,7 @@ export function companionEntityForMode(mode: string): string {
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
-        action.id !== COMPANION_FINDER_ID && !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
-        !COMPANION_MEDIA_ACTIONS.some((mediaAction) => mediaAction.id === action.id)));
+        action.id !== COMPANION_FINDER_ID && !action.id.startsWith(COMPANION_FOLDER_PREFIX)));
 }
 
 export function companionApplicationActionIdValid(
@@ -306,13 +280,6 @@ export function companionFolderActionIdCanSave(
         (actionId === savedActionId || companionFolderActions(actions).some((action) => action.id === actionId));
 }
 
-export function resetCompanionMediaPresentation(card: any, nextMode: string): void {
-    if (!card || nextMode === "media") return;
-    const previous = COMPANION_MEDIA_ACTIONS.find((action) => action.id === card.entity);
-    if (!previous) return;
-    if (card.label === previous.label) card.label = "";
-    if (card.icon === previous.icon) card.icon = "Monitor";
-}
 
 export function resetCompanionMetricPresentation(card: any, nextMode: string): void {
     if (!card) return;
@@ -368,7 +335,7 @@ export function normalizeCompanionCard(card: any): void {
     card.icon_on = "Auto";
     const mode = companionCardMode(card);
     if (!card.icon || card.icon === "Auto" ||
-        (card.icon === "Monitor" && mode !== "app" && mode !== "media") ||
+        (card.icon === "Monitor" && mode !== "app") ||
         (card.icon === "Folder" && mode === "folder")) {
         card.icon = companionSubtypeDefaultIcon(mode, card.entity);
     }
@@ -400,10 +367,6 @@ export function registerCompanionCardTypes(
         card.options = "";
         card.icon_on = "Auto";
         card.label = "";
-        if (mode === "media") {
-            applyCompanionMediaPresentation(card);
-            return;
-        }
         const metric = mode === "stats" ? COMPANION_SYSTEM_METRICS[0] : undefined;
         if (metric) {
             card.unit = metric.unit;
@@ -637,23 +600,6 @@ export function registerCompanionCardTypes(
                 return Boolean(companionUrlConfig(value));
             });
 
-            const mediaField = document.createElement("div");
-            mediaField.className = "sp-field";
-            mediaField.appendChild(fieldLabel("Media Control", helpers.idPrefix + "companion-media-action"));
-            const mediaSelect = document.createElement("select");
-            mediaSelect.className = "sp-select";
-            mediaSelect.id = helpers.idPrefix + "companion-media-action";
-            sortCompanionLabels(COMPANION_MEDIA_ACTIONS).forEach(function (action) {
-                const option = document.createElement("option");
-                option.value = action.id;
-                option.textContent = action.label;
-                option.selected = card.entity === action.id;
-                mediaSelect.appendChild(option);
-            });
-            mediaField.appendChild(mediaSelect);
-            panel?.appendChild(mediaField);
-            helpers.markCardPrimaryField(mediaField, "media");
-
             const appSubpageDisclosure = helpers.disclosureSection(
                 "App subpage",
                 helpers.idPrefix + "companion-app-subpage",
@@ -761,7 +707,6 @@ export function registerCompanionCardTypes(
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
-                mediaField.style.display = mode === "media" ? "" : "none";
                 appSubpageDisclosure.panel.style.display = !helpers.isSub && mode === "app" &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
                 autoSwitchField.style.display = !helpers.isSub && mode === "app" &&
@@ -810,21 +755,6 @@ export function registerCompanionCardTypes(
             }
             urlInput.addEventListener("input", saveUrl);
             urlInput.addEventListener("change", saveUrl);
-
-            mediaSelect.addEventListener("change", function () {
-                const previous = COMPANION_MEDIA_ACTIONS.find(function (action) { return action.id === card.entity; });
-                const selected = COMPANION_MEDIA_ACTIONS.find(function (action) { return action.id === mediaSelect.value; });
-                if (!selected) return;
-                const currentLabel = typeof card.label === "string" ? card.label : "";
-                const currentIcon = typeof card.icon === "string" ? card.icon : "";
-                card.entity = selected.id;
-                card.label = companionAppLabel(currentLabel, previous?.label || "", selected.label);
-                card.icon = companionMediaIcon(currentIcon, previous?.icon || "", selected.icon);
-                helpers.saveField("entity", card.entity);
-                helpers.saveField("label", card.label);
-                helpers.saveField("icon", card.icon);
-                renderButtonSettings();
-            });
 
             loadCompanionActions(true).then(function (actions) {
                 companionActions = actions;
@@ -1034,7 +964,6 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],
-        ["companion_media", "Media control", "media"],
         ["companion_stats", "Stats", "stats"],
         ["companion_window", "Window control", "window"],
     ];

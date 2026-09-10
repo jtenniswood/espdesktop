@@ -4,8 +4,6 @@
     "version": 3,
     "path": "/companion/v3",
     "maximumTextFrameBytes": 16384,
-    "maximumArtworkBytes": 262144,
-    "artworkChunkBytes": 12288,
     "messages": [
       {
         "id": "hello",
@@ -344,87 +342,6 @@
         ]
       },
       {
-        "id": "now_playing",
-        "direction": "mac_to_panel",
-        "authorization": "session",
-        "fields": {
-          "generation": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 4294967295
-          },
-          "applicationIdentifier": {
-            "type": "string",
-            "minLength": 0,
-            "maxLength": 256
-          },
-          "applicationName": {
-            "type": "string",
-            "minLength": 0,
-            "maxLength": 256
-          },
-          "contentIdentifier": {
-            "type": "string",
-            "minLength": 0,
-            "maxLength": 256
-          },
-          "title": {
-            "type": "string",
-            "minLength": 0,
-            "maxLength": 256
-          },
-          "artist": {
-            "type": "string",
-            "minLength": 0,
-            "maxLength": 256
-          },
-          "album": {
-            "type": "string",
-            "minLength": 0,
-            "maxLength": 256
-          },
-          "state": {
-            "type": "string",
-            "enum": [
-              "playing",
-              "paused",
-              "stopped",
-              "unavailable"
-            ],
-            "minLength": 1,
-            "maxLength": 11
-          },
-          "durationMs": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 86400000
-          },
-          "positionMs": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 86400000
-          },
-          "playbackRate": {
-            "type": "number",
-            "minimum": -16,
-            "maximum": 16
-          },
-          "hasArtwork": {
-            "type": "boolean"
-          },
-          "artworkSHA256": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "hex64",
-            "optional": true
-          }
-        },
-        "states": [
-          "connected"
-        ]
-      },
-      {
         "id": "system_metrics",
         "direction": "mac_to_panel",
         "authorization": "session",
@@ -485,105 +402,6 @@
         ]
       },
       {
-        "id": "artwork.begin",
-        "direction": "mac_to_panel",
-        "authorization": "session",
-        "fields": {
-          "generation": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 4294967295
-          },
-          "byteLength": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 262144
-          },
-          "sha256": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "hex64"
-          },
-          "mimeType": {
-            "type": "string",
-            "enum": [
-              "image/jpeg"
-            ],
-            "minLength": 1,
-            "maxLength": 10
-          }
-        },
-        "states": [
-          "connected"
-        ]
-      },
-      {
-        "id": "artwork.ack",
-        "direction": "panel_to_mac",
-        "authorization": "session",
-        "fields": {
-          "generation": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 4294967295
-          },
-          "nextOffset": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 262144
-          }
-        },
-        "states": [
-          "connected"
-        ]
-      },
-      {
-        "id": "artwork.end",
-        "direction": "mac_to_panel",
-        "authorization": "session",
-        "fields": {
-          "generation": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 4294967295
-          }
-        },
-        "states": [
-          "connected"
-        ]
-      },
-      {
-        "id": "artwork.abort",
-        "direction": "bidirectional",
-        "authorization": "session",
-        "fields": {
-          "generation": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 4294967295
-          }
-        },
-        "states": [
-          "connected"
-        ]
-      },
-      {
-        "id": "artwork.request",
-        "direction": "panel_to_mac",
-        "authorization": "session",
-        "fields": {
-          "generation": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 4294967295
-          }
-        },
-        "states": [
-          "connected"
-        ]
-      },
-      {
         "id": "error",
         "direction": "bidirectional",
         "authorization": "public",
@@ -641,12 +459,6 @@
       "label": "Open folder",
       "capability": "folders",
       "defaultIcon": "Folder Outline"
-    },
-    {
-      "id": "media",
-      "label": "Media control",
-      "capability": "media_actions",
-      "defaultIcon": "Play Pause"
     },
     {
       "id": "stats",
@@ -879,26 +691,6 @@
         "shift"
       ],
       "minimumMacOS": 15
-    }
-  ],
-  "mediaActions": [
-    {
-      "id": "media.play_pause",
-      "label": "Play / Pause",
-      "icon": "Play Pause",
-      "command": "togglePlayPause"
-    },
-    {
-      "id": "media.previous",
-      "label": "Previous",
-      "icon": "Skip Previous",
-      "command": "previousTrack"
-    },
-    {
-      "id": "media.next",
-      "label": "Next",
-      "icon": "Skip Next",
-      "command": "nextTrack"
     }
   ],
   "systemMetrics": [
