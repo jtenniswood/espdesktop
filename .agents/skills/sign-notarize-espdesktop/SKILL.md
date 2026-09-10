@@ -42,11 +42,15 @@ The repository's `notarize_standalone.sh` may require API-key environment variab
 
 - Installing/reopening may be authorized by the current task or established update workflow; notarization alone does not imply publishing a release.
 - If the installed app is the exact submitted build (compare its executable and signature identity), staple it in place and validate it; no app replacement or restart is necessary.
-- Otherwise verify the replacement satisfies the installed signed identity, preserve a uniquely named backup outside Applications, stop only the identified EspDesktop instance, install consistently at `/Applications/EspDesktop.app`, and reopen that exact path. Do not leave duplicate app backups in Applications.
+- Otherwise verify the replacement satisfies the installed signed identity, then stop only the identified EspDesktop instance and archive the old installed app before replacing it.
+- Default archive folder: `~/Library/Application Support/EspDesktop/Archives`, outside both Applications and temporary worktrees. Honour a user-specified archive location instead. Quote paths containing spaces.
+- Create a unique subfolder such as `2026-09-10_143025_<unique-suffix>` for each replacement. Move the old app into it as `EspDesktop.app`; never overwrite a previous archive. Record its bundle version/build, executable SHA-256, signing identity and original installation path in a small adjacent text file. Only record a source commit if known; do not guess it from the replacement build.
+- If archiving fails, stop without replacing the old app. Install the verified new app at `/Applications/EspDesktop.app` and reopen that exact path. If installation or launch fails, preserve the failed new copy separately and restore the archived app to the original path, reporting the failure.
+- Keep archived versions until the user requests cleanup. Do not create scattered backup apps in temporary folders or Applications. Updating this skill alone does not move existing historical backups; migrate them only when requested.
 - Verify the running executable path, signature, ticket, and Gatekeeper assessment. Use UI inspection when changed UI needs confirmation.
 - Signing continuity is not proof of Accessibility continuity. Only claim permission persisted after the user/runtime confirms it across a changed signed build. Notarization does not grant Accessibility permission.
 
-Report the source/build, installed path if changed, Apple acceptance and validation results, final artifact link, and any remaining user approval or pending state. Do not publish releases, upload credentials to GitHub, merge PRs, or flash devices unless separately requested.
+Report the source/build, installed path if changed, Apple acceptance and validation results, final artifact link, archive path when an app was replaced, and any remaining user approval or pending state. Do not publish releases, upload credentials to GitHub, merge PRs, or flash devices unless separately requested.
 
 ## References
 
