@@ -65,3 +65,17 @@ The updater uses an HTTPS feed published alongside each stable GitHub release. A
 Release setup: store the private Ed25519 seed in the repository secret `SPARKLE_PRIVATE_KEY`; the matching public key is in `Packaging/sparkle-public-key.txt`. Keep a backup of the private key in Keychain. The release workflow requires this secret in addition to the existing Apple signing/notarization credentials, generates and verifies a signed appcast with Sparkle's tools, and publishes it with the notarized ZIP and DMG. Never commit the private key. Do not replace the public key after shipping without following Sparkle's key-rotation procedure. Use increasing release build numbers; Sparkle compares `CFBundleVersion`.
 
 Ad-hoc local app builds embed Sparkle and disable library validation only for that local signature. Developer ID release builds retain library validation and sign Sparkle's nested helper components with the same signing identity as the app.
+
+### Preserve Accessibility approval across local builds
+
+Use `Packaging/build_local.sh` for apps you install and use. Install an Apple signing certificate **and its private key** in Keychain first. List available fingerprints with `security find-identity -v -p codesigning`, then run:
+
+```sh
+CODE_SIGN_IDENTITY=<40-character-fingerprint> ./Packaging/build_local.sh
+```
+
+After a successful build, the helper saves only the certificate fingerprint in `~/.config/espdesktop/signing-identity`, shared by all worktrees. Later builds need only `./Packaging/build_local.sh`. It refuses missing identities and checks that a new build satisfies the installed certificate-signed app's designated requirement before reporting success. Install consistently at `/Applications/EspDesktop.app`; do not reset Accessibility during ordinary updates.
+
+Switching from the existing ad-hoc app requires one final Accessibility approval. Future compatible certificate-signed builds should retain it. Use the same Developer ID Application identity as the release pipeline to keep local builds and releases compatible. An Apple Development identity may preserve local-build approval but is not interchangeable with Developer ID releases. macOS still owns permission decisions; a bundle ID, signing team, or certificate-policy change can require approval again.
+
+`ALLOW_ADHOC=1 Packaging/build_standalone.sh` remains for disposable CI verification, not persistent local testing. The release workflow already uses Developer ID signing and notarization; keep its bundle identifier and signing identity consistent between releases.
