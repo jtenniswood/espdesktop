@@ -299,3 +299,5 @@ window_left_quarters=שמאל ורבעים
 window_right_quarters=ימין ורבעים
 window_top_quarters=למעלה ורבעים
 window_bottom_quarters=למטה ורבעים
+paired=מותאם
+unpaired=לא מותאם

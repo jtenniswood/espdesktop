@@ -299,3 +299,5 @@ window_left_quarters=Esquerda e quartos
 window_right_quarters=Direita e quartos
 window_top_quarters=Superior e quartos
 window_bottom_quarters=Inferior e quartos
+paired=Emparelhado
+unpaired=Não emparelhado

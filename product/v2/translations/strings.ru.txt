@@ -299,3 +299,5 @@ window_left_quarters=Слева и четверти
 window_right_quarters=Справа и четверти
 window_top_quarters=Сверху и четверти
 window_bottom_quarters=Снизу и четверти
+paired=Сопряжено
+unpaired=Не сопряжено

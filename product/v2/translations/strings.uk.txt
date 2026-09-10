@@ -299,3 +299,5 @@ window_left_quarters=Ліворуч і чверті
 window_right_quarters=Праворуч і чверті
 window_top_quarters=Угорі й чверті
 window_bottom_quarters=Унизу й чверті
+paired=Сполучено
+unpaired=Не сполучено
