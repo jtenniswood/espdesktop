@@ -820,7 +820,7 @@ struct CompanionSettings: View {
         }
         Section("Startup") {
             CompanionPermissionRow(
-                title: "Open Companion at Launch",
+                title: "Open at Startup",
                 information: store.supportsLaunchAtLogin
                     ? (store.launchAtLoginMessage.isEmpty
                        ? "Open EspDesktop automatically after you sign in."
