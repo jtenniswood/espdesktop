@@ -12,8 +12,8 @@
     "deviceProfiles": 7,
     "cardTypes": 43,
     "entityNames": 102,
-    "icons": 339,
-    "structuralIcons": 31,
+    "icons": 340,
+    "structuralIcons": 30,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -7544,12 +7544,6 @@
         "comment": "Image card unavailable state"
       },
       {
-        "name": "Shortcut Command",
-        "codepoint": "F0633",
-        "mdi": "apple-keyboard-command",
-        "comment": "Companion shortcut labels"
-      },
-      {
         "name": "Shortcut Control",
         "codepoint": "F0634",
         "mdi": "apple-keyboard-control",
@@ -7611,6 +7605,11 @@
       }
     ],
     "icons": [
+      {
+        "name": "Shortcut Command",
+        "codepoint": "F0633",
+        "mdi": "apple-keyboard-command"
+      },
       {
         "name": "Chevron Left",
         "codepoint": "F0141",

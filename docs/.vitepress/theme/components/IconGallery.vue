@@ -281,6 +281,7 @@ const ICON_GROUPS = {
   'Microphone': 'Media & Entertainment',
   'Microphone Off': 'Media & Entertainment',
   'Microsoft Xbox': 'Media & Entertainment',
+  'Shortcut Command': 'Media & Entertainment',
   'Monitor': 'Media & Entertainment',
   'Laptop': 'Media & Entertainment',
   'Movie Roll': 'Media & Entertainment',
