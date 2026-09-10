@@ -461,3 +461,6 @@ add_executable(network_status_layout_test network_status_layout_test.cpp)
 target_compile_features(network_status_layout_test PRIVATE cxx_std_17)
 target_compile_options(network_status_layout_test PRIVATE -Wall -Wextra -Werror)
 add_test(NAME network_status_layout_test COMMAND network_status_layout_test)
+
+add_test(NAME companion_screensaver_test
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_screensaver_test.py)

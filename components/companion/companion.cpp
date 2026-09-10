@@ -241,6 +241,12 @@ bool CompanionService::ensure_identity_() {
 bool CompanionService::start_server_() {
   httpd_ssl_config_t config = HTTPD_SSL_CONFIG_DEFAULT();
   config.httpd.max_open_sockets = 2;
+  // Detect a Mac that disappears without closing its WebSocket (power or
+  // network loss), so connection-driven screensavers can still activate.
+  config.httpd.keep_alive_enable = true;
+  config.httpd.keep_alive_idle = 5;
+  config.httpd.keep_alive_interval = 5;
+  config.httpd.keep_alive_count = 3;
   // Never evict an authenticated Companion session just to admit an
   // unauthenticated socket. Excess connections are rejected instead.
   config.httpd.lru_purge_enable = false;
