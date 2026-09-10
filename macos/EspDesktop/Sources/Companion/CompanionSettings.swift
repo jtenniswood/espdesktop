@@ -117,6 +117,7 @@ private struct CompanionAccessibilityRow: View {
     var body: some View {
         HStack {
             Text(isGranted ? "Shortcut Enabled" : "Enable Shortcuts")
+                .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
             Spacer()
             Button("Open Settings") {
                 // Leave the SwiftUI control transaction before opening another app.
