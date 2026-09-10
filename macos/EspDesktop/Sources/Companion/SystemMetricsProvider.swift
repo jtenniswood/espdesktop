@@ -9,6 +9,12 @@ struct CompanionNetworkInterface: Equatable, Sendable {
     let address: String
 }
 
+struct CompanionStorageDevice: Equatable, Sendable {
+    let id: String
+    let label: String
+    let usagePercent: Double
+}
+
 struct CompanionSystemMetricsSnapshot: Equatable, Sendable {
     let generation: UInt32
     let cpuUsagePercent: Double
@@ -17,6 +23,7 @@ struct CompanionSystemMetricsSnapshot: Equatable, Sendable {
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
     var networkInterfaces: [CompanionNetworkInterface] = []
+    var storageDevices: [CompanionStorageDevice] = []
 }
 
 @MainActor
@@ -65,7 +72,8 @@ final class SystemMetricsProvider {
                 storageUsagePercent: sample.storageUsagePercent,
                 batteryPercent: sample.batteryPercent,
                 networkThroughputKBps: sample.networkThroughputKBps,
-                networkInterfaces: sample.networkInterfaces
+                networkInterfaces: sample.networkInterfaces,
+                storageDevices: sample.storageDevices
             )
             self.lastSnapshot = snapshot
             self.onSnapshot?(snapshot)
@@ -80,6 +88,7 @@ private struct SystemMetricsSample: Sendable {
     let batteryPercent: Double?
     let networkThroughputKBps: Double?
     var networkInterfaces: [CompanionNetworkInterface] = []
+    var storageDevices: [CompanionStorageDevice] = []
 }
 
 private actor SystemMetricsSampler {
@@ -109,7 +118,8 @@ private actor SystemMetricsSampler {
             storageUsagePercent: storage,
             batteryPercent: Self.batteryPercent(),
             networkThroughputKBps: sampleNetworkThroughputKBps(),
-            networkInterfaces: Self.networkInterfaces()
+            networkInterfaces: Self.networkInterfaces(),
+            storageDevices: Self.storageDevices()
         )
     }
 

@@ -34,7 +34,7 @@ private enum CompanionPairingStep {
     case address, code, connecting, connected
 }
 
-private struct CompanionCapsuleButton: ViewModifier {
+struct CompanionCapsuleButton: ViewModifier {
     func body(content: Content) -> some View {
         if #available(macOS 14.0, *) {
             content.buttonBorderShape(.capsule)
@@ -622,12 +622,12 @@ struct CompanionSettings: View {
         Toggle("Display connection", isOn: connectionToggleBinding)
             .labelsHidden()
             .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-            .controlSize(connectionSwitchSize)
+            .controlSize(largeSwitchSize)
             .disabled(store.connectionState.isBusy)
             .accessibilityLabel("Display connection")
     }
 
-    private var connectionSwitchSize: ControlSize {
+    private var largeSwitchSize: ControlSize {
         #if compiler(>=6.2)
         if #available(macOS 26.0, *) { return .extraLarge }
         #endif
@@ -749,6 +749,8 @@ struct CompanionSettings: View {
                                detail: "Keep a project, documents, or downloads one tap away on your display.") {
                         Button("Add Folder…") { store.chooseFolder() }
                             .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .modifier(CompanionCapsuleButton())
                     }
                 } else {
                     ForEach(store.approvedFolders) { folder in
@@ -776,6 +778,8 @@ struct CompanionSettings: View {
                     }
                     Button("Add Folder…") { store.chooseFolder() }
                         .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .modifier(CompanionCapsuleButton())
                 }
                 if let message = store.folderMessage {
                     Text(message).font(.callout).foregroundStyle(.secondary)
@@ -827,7 +831,7 @@ struct CompanionSettings: View {
                 CompanionAccessibilityRow()
             }
         }
-        Section("Startup") {
+        Section {
             CompanionPermissionRow(
                 title: "Open at Startup",
                 information: store.supportsLaunchAtLogin
@@ -838,6 +842,7 @@ struct CompanionSettings: View {
                 isEnabled: store.launchAtLoginBinding(),
                 isAvailable: store.supportsLaunchAtLogin
             )
+            .controlSize(.regular)
         }
     }
 
@@ -845,9 +850,12 @@ struct CompanionSettings: View {
         Form {
             Section {
                 Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
+                    .font(.title2)
                     .help("Contribute to ongoing support and new features")
                 Link("Give Feedback", destination: CompanionStore.issuesURL)
+                    .font(.title2)
                 Link("Get Help", destination: CompanionStore.supportURL)
+                    .font(.title2)
             } header: {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Help EspDesktop grow")
