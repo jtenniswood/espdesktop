@@ -654,19 +654,6 @@ export function registerCompanionCardTypes(
             });
             keyField.appendChild(keySelect);
             customField.appendChild(keyField);
-            customField.appendChild(fieldLabel("Shortcut", helpers.idPrefix + "companion-shortcut"));
-            const shortcutInput = document.createElement("input");
-            shortcutInput.className = "sp-input";
-            shortcutInput.id = helpers.idPrefix + "companion-shortcut";
-            shortcutInput.readOnly = true;
-            shortcutInput.placeholder = "Click, then press a shortcut such as ⌘A";
-            shortcutInput.value = formatCompanionShortcutActionId(card.entity);
-            shortcutInput.setAttribute("aria-label", "Keyboard shortcut");
-            customField.appendChild(shortcutInput);
-            const shortcutNote = document.createElement("div");
-            shortcutNote.className = "sp-field-info-text sp-visible";
-            shortcutNote.textContent = "Click modifier buttons and choose a key, or click the shortcut field to record. Include Command, Control, or Option. The shortcut runs in the active Mac app.";
-            customField.appendChild(shortcutNote);
             shortcutField.appendChild(customField);
             function syncShortcutBuilder(): void {
                 for (const [modifier, button] of modifierControls) {
@@ -680,8 +667,7 @@ export function registerCompanionCardTypes(
                 const modifiers = COMPANION_SHORTCUT_MODIFIERS.filter((modifier) => selectedModifiers.has(modifier));
                 card.entity = COMPANION_SHORTCUT_PREFIX + [...modifiers, selectedKey].join("+");
                 card.options = "app_shortcut_preset=custom";
-                shortcutInput.value = formatCompanionShortcutActionId(card.entity);
-                helpers.clearFieldError(shortcutInput);
+                helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 syncShortcutBuilder();
@@ -741,7 +727,7 @@ export function registerCompanionCardTypes(
             typeSelect.addEventListener("change", function () {
                 card._shortcutType = typeSelect.value;
                 card._shortcutCatalogApp = "";
-                // Keep a recorded combination when switching to Custom Shortcut.
+                // Keep the selected combination when switching to Custom Shortcut.
                 if (typeSelect.value === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
                 card.options = "app_shortcut_preset=custom";
                 helpers.saveField("entity", card.entity);
@@ -772,7 +758,7 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
-            helpers.requireField(shortcutInput, "Choose a key with Command, Control, or Option, or record a valid shortcut before saving.", function () {
+            helpers.requireField(keySelect, "Choose a key with Command, Control, or Option before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity);
@@ -966,30 +952,6 @@ export function registerCompanionCardTypes(
                     companionAppShortcutFolderEnabled(card) ? "" : "none";
             }
             syncMode(initialMode);
-
-            shortcutInput.addEventListener("keydown", function (event) {
-                if (event.code === "Tab" && !event.metaKey && !event.ctrlKey && !event.altKey) return;
-                event.preventDefault();
-                event.stopPropagation();
-                if (["MetaLeft", "MetaRight", "ControlLeft", "ControlRight", "AltLeft", "AltRight", "ShiftLeft", "ShiftRight"]
-                    .includes(event.code)) return;
-                const actionId = companionShortcutActionId(event);
-                if (!actionId) {
-                    shortcutInput.value = "Use ⌘, ⌃, or ⌥ with a supported key";
-                    return;
-                }
-                const recordedParts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
-                selectedKey = recordedParts.pop() || "";
-                selectedModifiers.clear();
-                recordedParts.forEach((modifier) => selectedModifiers.add(modifier));
-                syncShortcutBuilder();
-                card.entity = actionId;
-                card.options = "app_shortcut_preset=custom";
-                helpers.saveField("options", card.options);
-                shortcutInput.value = formatCompanionShortcutActionId(actionId);
-                helpers.clearFieldError(shortcutInput);
-                helpers.saveField("entity", card.entity);
-            });
 
             windowSelect.addEventListener("change", function () {
                 const currentLabel = typeof card.label === "string" ? card.label : "";
