@@ -106,8 +106,7 @@ connection preferences and approved-folder bookmarks locally on the Mac, and
 stores the pairing credential in macOS Keychain. Folder paths remain on the Mac;
 the display receives names and opaque identifiers for approved applications and
 folders. EspDesktop can also share the focused application and Now Playing
-metadata/artwork needed by its cards. System statistics are shared only after
-you enable **Share Mac system statistics**; they contain overall resource usage
+metadata/artwork needed by its cards. System statistics are shared automatically with your paired display while connected; they contain overall resource usage
 and network throughput, not network contents.
 
 Opening the display’s Companion setup page starts pairing on an unpaired
