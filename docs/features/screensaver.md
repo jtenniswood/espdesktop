@@ -37,9 +37,9 @@ When the screensaver activates, you can choose what happens:
 
 When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brightness**. Automatic and Timed brightness modes use separate **Daytime Dimmed Screen Brightness** and **Nighttime Dimmed Screen Brightness** values, changing at the same sunrise/sunset or dawn/dusk boundary as the main screen. When Clock is selected, set separate **Daytime Clock Brightness** and **Nighttime Clock Brightness** values.
 
-## Companion App
+## App Connection
 
-The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **Then** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout, and retained media playback does not replace that action with cover art. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
+The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout, and retained media playback does not replace that action with cover art. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
 
 ## Sensor
 
