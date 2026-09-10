@@ -587,9 +587,14 @@ export function registerCompanionCardTypes(
             typeSelect.value = shortcutType;
             typeField.appendChild(typeSelect);
             shortcutField.appendChild(typeField);
-            const customField = document.createElement("div");
-            customField.className = "sp-field";
-            customField.style.display = shortcutType === "custom" ? "" : "none";
+            const shortcutPanel = helpers.disclosureSection(
+                "Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
+            );
+            shortcutPanel.button.addEventListener("click", function () {
+                card._shortcutPanelOpen = shortcutPanel.panel.classList.contains("sp-open");
+            });
+            shortcutPanel.panel.style.display = shortcutType === "custom" ? "" : "none";
+            const customField = shortcutPanel.section;
             const modifierLabel = document.createElement("div");
             modifierLabel.className = "sp-field-label";
             modifierLabel.textContent = "Modifiers";
@@ -654,7 +659,7 @@ export function registerCompanionCardTypes(
             });
             keyField.appendChild(keySelect);
             customField.appendChild(keyField);
-            shortcutField.appendChild(customField);
+            shortcutField.appendChild(shortcutPanel.panel);
             function syncShortcutBuilder(): void {
                 for (const [modifier, button] of modifierControls) {
                     const selected = selectedModifiers.has(modifier);

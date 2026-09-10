@@ -5250,6 +5250,14 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await openCard();
     assert.strictEqual(await type.inputValue(), "custom", "custom type survives save");
     assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
+    const shortcutPanel = page.locator(".sp-disclosure").filter({
+      has: page.getByRole("button", { name: "Shortcut", exact: true }),
+    });
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').count(), 1, "key is inside Shortcut panel");
+    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
+    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
+    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
     const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
     const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
     const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
