@@ -16,7 +16,7 @@ int main() {
       occupied[slot] = true;
     }
   }
-  assert(NETWORK_STATUS_BACKLIGHT_CARD_INDEX == NETWORK_STATUS_CARD_COUNT - 1);
+  assert(NETWORK_STATUS_BUILD_CARD_INDEX == NETWORK_STATUS_CARD_COUNT - 1);
   assert(network_status_grid_rows(2, 3, 7) == 4);
   assert(network_status_grid_rows(3, 2, 7) == 3);
   assert(network_status_grid_rows(2, 3, 6) == 3);
