@@ -68,6 +68,6 @@ Ad-hoc local app builds embed Sparkle and disable library validation only for th
 
 ### Keyboard shortcut permission
 
-Use **Open System Settings** beside Keyboard shortcuts, then enable **EspDesktop** under Privacy & Security → Accessibility. Return to EspDesktop to refresh the status. macOS owns this permission; the app cannot grant it itself.
+Use **Open Settings** beside Enable Shortcuts or Shortcut Enabled, then enable **EspDesktop** under Privacy & Security → Accessibility. Return to EspDesktop to refresh the status. macOS owns this permission; the app cannot grant it itself.
 
 For local test builds, launch the copy installed in `/Applications/EspDesktop.app`. Ad-hoc signatures change when the app is rebuilt; if an existing Accessibility entry no longer works, remove that EspDesktop entry and add the installed copy again. Release builds should use the same Developer ID signing identity across updates.

@@ -116,14 +116,9 @@ private struct CompanionAccessibilityRow: View {
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Keyboard shortcuts")
-                Text(isGranted ? "Accessibility access is enabled." : "Enable EspDesktop in System Settings → Privacy & Security → Accessibility.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+            Text(isGranted ? "Shortcut Enabled" : "Enable Shortcuts")
             Spacer()
-            Button("Open System Settings") {
+            Button("Open Settings") {
                 // Leave the SwiftUI control transaction before opening another app.
                 DispatchQueue.main.async {
                     CompanionAccessibilityAuthorizer.shared.requestAccess()
