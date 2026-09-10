@@ -301,3 +301,6 @@ window_top_quarters=Sus și sferturi
 window_bottom_quarters=Jos și sferturi
 paired=Asociat
 unpaired=Neasociat
+stat_used=utilizat
+stat_free=liber
+stat_remaining=rămas

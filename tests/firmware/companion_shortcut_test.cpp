@@ -25,6 +25,9 @@ int main() {
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_label("shortcut.command+left") == "\U000F0633\U000F004D");
   set_espdesktop_language("en");
+  assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.battery"))) == "left");
+  assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.cpu"))) == "used");
+  assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.storage_free:external"))) == "free");
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
   assert(companion_shortcut_action_valid("shortcut.command+a"));
@@ -123,7 +126,15 @@ int main() {
   network_snapshot.system_metrics.network_interfaces = {{"en0", "Wi-Fi", "192.168.1.10"}, {"en1", "Ethernet", "10.0.0.2"}};
   assert(companion_network_address(network_snapshot, "stat.ip_address:en1") == "10.0.0.2");
   assert(companion_network_address(network_snapshot, "stat.ip_address:en2") == "--");
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "192.168.1.10");
+  network_snapshot.system_metrics.network_interfaces[0].address.clear();
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "10.0.0.2");
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en0") == "--");
+  assert(companion_network_address(network_snapshot, "stat.ip_address:") == "--");
+  network_snapshot.system_metrics.network_interfaces[1].address.clear();
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "--");
   network_snapshot.connected = false;
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "--");
   assert(companion_network_address(network_snapshot, "stat.ip_address:en0") == "--");
   assert(companion_metric_key_valid("stat.cpu"));
   assert(!companion_metric_key_valid("sensor.cpu"));

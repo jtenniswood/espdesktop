@@ -301,3 +301,6 @@ window_top_quarters=Superior e quartos
 window_bottom_quarters=Inferior e quartos
 paired=Pareado
 unpaired=Não pareado
+stat_used=usado
+stat_free=livre
+stat_remaining=restante

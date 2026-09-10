@@ -301,3 +301,6 @@ window_top_quarters=Øverst og kvarte
 window_bottom_quarters=Nederst og kvarte
 paired=Parret
 unpaired=Ikke parret
+stat_used=brugt
+stat_free=ledig
+stat_remaining=tilbage
