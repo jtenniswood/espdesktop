@@ -46,6 +46,8 @@ import {
     companionShortcutTabs,
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
+    finderFolderTabs,
+    syncFinderFolderSelection,
     addFinderFolderTiles,
     createCompanionShortcutSubpage,
     normalizeCompanionAppShortcutOptions,
@@ -725,7 +727,12 @@ export function registerCompanionCardTypes(
                 helpers.saveField("options", card.options);
             });
 
-            if (companionAppShortcutFolderEnabled(card)) {
+            const finderFolderList = document.createElement("div");
+            if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
+                finderFolderList.className = "sp-app-subpage-options-divider";
+                appSubpageDisclosure.section.appendChild(finderFolderList);
+            }
+            if (companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
                 const shortcutOptionsDivider = document.createElement("div");
                 shortcutOptionsDivider.className = "sp-app-subpage-options-divider";
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
@@ -837,6 +844,40 @@ export function registerCompanionCardTypes(
                 availableCompanionApps = applicationActions;
                 const folderActions = companionFolderActions(actions);
                 availableCompanionFolders = folderActions;
+                if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
+                    finderFolderList.replaceChildren();
+                    const page = savedShortcutSubpage || createCompanionShortcutSubpage(card.entity);
+                    const definitions = [...folderActions];
+                    for (const tile of page.buttons || []) {
+                        if (tile.type === "companion" && tile.entity.startsWith(COMPANION_FOLDER_PREFIX) &&
+                            !definitions.some(folder => folder.id === tile.entity)) {
+                            definitions.push({ id: tile.entity, label: tile.label || tile.entity });
+                        }
+                    }
+                    modalTabs.renderModalTabSettings(finderFolderList, card, helpers, {
+                        definitions: () => definitions.map(folder => ({ value: folder.id, label: folder.label })),
+                        tabs: (button: any) => button._finderFolderTabs ||
+                            (savedShortcutSubpage ? finderFolderTabs(page) : definitions.map(folder => folder.id)),
+                        normalizeOptions: (options: string) => options,
+                        setTabs: (button: any, tabs: string[]) => {
+                            if (!syncFinderFolderSelection(page, definitions, tabs, maxSlots, codec.buildSubpageGrid)) {
+                                button._appShortcutCapacityRejected = true;
+                                return false;
+                            }
+                            delete button._appShortcutCapacityRejected;
+                            button._finderFolderTabs = tabs;
+                            button._appShortcutSelectionChanged = true;
+                            return true;
+                        },
+                        idPrefix: "finder-folder-", hideHeading: true, allowEmpty: true,
+                    });
+                    if (card._appShortcutCapacityRejected) {
+                        const note = document.createElement("div");
+                        note.className = "sp-field-info-text sp-visible";
+                        note.textContent = "No free subpage space. Remove a tile or reduce its size before enabling another folder.";
+                        finderFolderList.appendChild(note);
+                    }
+                }
                 select.replaceChildren();
                 const placeholder = document.createElement("option");
                 placeholder.value = "";
@@ -1009,6 +1050,8 @@ export function registerCompanionCardTypes(
         },
         afterSave: async function (card?: any, slot?: any, context?: any) {
             if (context?.isSub) return "saved";
+            const folderSelection = card._finderFolderTabs;
+            delete card._finderFolderTabs;
             const selectionChanged = card._appShortcutSelectionChanged === true;
             const appChanged = card._appShortcutAppChanged === true;
             delete card._appShortcutSelectionChanged;
@@ -1025,12 +1068,19 @@ export function registerCompanionCardTypes(
                 grid: (existing.grid || []).slice(),
                 sizes: { ...(existing.sizes || {}) },
             } : null;
-            const subpage = source && !appChanged
+            let subpage = source && !appChanged
                 ? card.entity === "com.apple.finder" ? source : syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
                 : createCompanionShortcutSubpage(card.entity, companionShortcutTabs(card));
             if (card.entity === "com.apple.finder") {
                 codec.buildSubpageGrid(subpage);
-                addFinderFolderTiles(subpage, companionFolderActions(await loadCompanionActions(true)), maxSlots);
+                const folders = companionFolderActions(await loadCompanionActions(true));
+                if (Array.isArray(folderSelection)) {
+                    const updated = syncFinderFolderSelection(subpage, folders, folderSelection, maxSlots, codec.buildSubpageGrid);
+                    if (!updated) return "failed";
+                    subpage = updated;
+                } else {
+                    addFinderFolderTiles(subpage, folders, maxSlots);
+                }
             }
             codec.buildSubpageGrid(subpage);
             state.subpages[slot] = subpage;

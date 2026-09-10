@@ -1,3 +1,4 @@
+import { buildSubpageGrid } from "../../src/webserver/model/subpage";
 import { decodeCompanionCard, encodeCompanionCard } from "../../src/webserver/model/companion_card_codec";
 import {
   applyCompanionMediaPresentation,
@@ -54,6 +55,8 @@ import {
   SAFARI_BUNDLE_ID,
   CODEX_BUNDLE_ID,
   SLACK_BUNDLE_ID,
+  finderFolderTabs,
+  syncFinderFolderSelection,
   addFinderFolderTiles,
   createCompanionShortcutSubpage,
   createSafariShortcutSubpage,
@@ -115,6 +118,23 @@ export function runCompanionShortcutFeatureTests(): void {
   if (fullPage.buttons.length !== 1 || fullPage.order.length !== 2) {
     throw new Error("Folder population must reserve Back and respect display capacity");
   }
+  const buildFinderGrid = (page: any) => Object.assign(page, buildSubpageGrid(page, 9, 3));
+  const selectionSource = createCompanionShortcutSubpage("com.apple.finder");
+  addFinderFolderTiles(selectionSource, folderTiles, 9);
+  buildFinderGrid(selectionSource);
+  const toggled = syncFinderFolderSelection(selectionSource, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
+  if (!toggled || finderFolderTabs(toggled).join() !== "folder.downloads" || toggled.buttons.length !== 2) {
+    throw new Error("Disabled folders must remain saved but absent from the visible grid");
+  }
+  addFinderFolderTiles(toggled, folderTiles, 9);
+  buildFinderGrid(toggled);
+  if (finderFolderTabs(toggled).join() !== "folder.downloads") throw new Error("Auto population must respect disabled folders");
+  const reordered = syncFinderFolderSelection(toggled, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (finderFolderTabs(reordered).join() !== "folder.downloads,folder.projects") throw new Error("Folder toggles must apply their chosen order");
+  [reordered.grid[1], reordered.grid[2]] = [reordered.grid[2], reordered.grid[1]];
+  if (finderFolderTabs(reordered).join() !== "folder.projects,folder.downloads") throw new Error("Folder lists must follow tile moves");
+  const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
+  if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
   if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
       !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
