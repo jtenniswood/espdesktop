@@ -512,10 +512,11 @@ export function registerCompanionCardTypes(
                     select.id = helpers.idPrefix + "companion-network";
                     select.className = "sp-select";
                     const selectedId = String(card.entity).split(":")[1] || "";
-                    select.add(new Option(selectedId || "Select a network device", selectedId));
+                    select.add(new Option("Automatic (available network)", ""));
+                    if (selectedId) select.add(new Option(selectedId, selectedId));
                     select.value = selectedId;
                     select.addEventListener("change", function () {
-                        card.entity = "stat.ip_address:" + this.value;
+                        card.entity = "stat.ip_address" + (this.value ? ":" + this.value : "");
                         helpers.saveField("entity", card.entity);
                     });
                     const status = document.createElement("p");
@@ -528,7 +529,7 @@ export function registerCompanionCardTypes(
                         if (!Array.isArray(networks)) throw new Error("unavailable");
                         for (const network of networks) {
                             if (typeof network?.id !== "string" || typeof network?.label !== "string") continue;
-                            if (network.id === selectedId) select.options[0]!.textContent = network.label;
+                            if (network.id === selectedId) select.options[1]!.textContent = network.label;
                             else select.add(new Option(network.label, network.id));
                         }
                         status.textContent = networks.length ? "Shows the selected device’s IPv4 address." :

@@ -83,10 +83,12 @@ struct CompanionRuntimeSnapshot {
 
 inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
                                               const std::string &key) {
-  if (!snapshot.connected || key.rfind("stat.ip_address:", 0) != 0) return "--";
-  const auto id = key.substr(16);
+  if (!snapshot.connected) return "--";
+  const bool automatic = key == "stat.ip_address";
+  if (!automatic && key.rfind("stat.ip_address:", 0) != 0) return "--";
+  const auto id = automatic ? std::string() : key.substr(16);
   for (const auto &network : snapshot.system_metrics.network_interfaces)
-    if (network.id == id && !network.address.empty()) return network.address;
+    if ((automatic || network.id == id) && !network.address.empty()) return network.address;
   return "--";
 }
 

@@ -301,3 +301,6 @@ window_top_quarters=Boven en kwarten
 window_bottom_quarters=Onder en kwarten
 paired=Gekoppeld
 unpaired=Niet gekoppeld
+stat_used=gebruikt
+stat_free=vrij
+stat_remaining=over

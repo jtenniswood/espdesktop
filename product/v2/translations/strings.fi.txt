@@ -301,3 +301,6 @@ window_top_quarters=Yläosa ja neljännekset
 window_bottom_quarters=Alaosa ja neljännekset
 paired=Paritettu
 unpaired=Ei paritettu
+stat_used=käytössä
+stat_free=vapaana
+stat_remaining=jäljellä

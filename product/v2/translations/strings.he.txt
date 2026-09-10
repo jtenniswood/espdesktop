@@ -301,3 +301,6 @@ window_top_quarters=למעלה ורבעים
 window_bottom_quarters=למטה ורבעים
 paired=מותאם
 unpaired=לא מותאם
+stat_used=בשימוש
+stat_free=פנוי
+stat_remaining=נותר

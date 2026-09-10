@@ -301,3 +301,6 @@ window_top_quarters=Угорі й чверті
 window_bottom_quarters=Унизу й чверті
 paired=Сполучено
 unpaired=Не сполучено
+stat_used=використано
+stat_free=вільно
+stat_remaining=залишилось

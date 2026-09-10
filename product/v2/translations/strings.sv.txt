@@ -301,3 +301,6 @@ window_top_quarters=Överst och fjärdedelar
 window_bottom_quarters=Nederst och fjärdedelar
 paired=Parkopplad
 unpaired=Inte parkopplad
+stat_used=använt
+stat_free=ledigt
+stat_remaining=kvar

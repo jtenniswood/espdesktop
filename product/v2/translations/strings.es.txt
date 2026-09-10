@@ -301,3 +301,6 @@ window_top_quarters=Arriba y cuartos
 window_bottom_quarters=Abajo y cuartos
 paired=Emparejado
 unpaired=Sin emparejar
+stat_used=usado
+stat_free=libre
+stat_remaining=restante

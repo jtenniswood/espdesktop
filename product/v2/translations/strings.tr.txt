@@ -301,3 +301,6 @@ window_top_quarters=Üst ve çeyrekler
 window_bottom_quarters=Alt ve çeyrekler
 paired=Eşleştirildi
 unpaired=Eşleştirilmedi
+stat_used=kullanılan
+stat_free=boş
+stat_remaining=kalan
