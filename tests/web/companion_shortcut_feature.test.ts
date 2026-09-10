@@ -90,7 +90,7 @@ function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
 
 export function runCompanionShortcutFeatureTests(): void {
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
+  if (companionModes.length !== 6 || new Set(companionModes.map(([mode]) => mode)).size !== 6 ||
       !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
@@ -99,6 +99,11 @@ export function runCompanionShortcutFeatureTests(): void {
   normalizeCompanionCard(storageCard);
   if (decodeCompanionCard(storageCard).mode !== "stats" || companionMetricDisplayMode(storageCard) !== "free" ||
       storageCard.entity !== "stat.storage_free:external-volume") throw new Error("Selected storage device must survive normalization");
+  if (companionModes.some(([mode]) => mode === "media") ||
+      companionCardModeOptions("app").some(([mode]) => mode === "media") ||
+      !companionCardModeOptions("media").some(([mode]) => mode === "media")) {
+    throw new Error("Playback cards must only retain their type when editing an existing card");
+  }
   const typedCard = decodeCompanionCard(emptyCardConfig("companion"), "app");
   if (typedCard.mode !== "app" || typedCard.applicationId !== "") {
     throw new Error("Companion cards must have a typed in-memory model without changing saved config");

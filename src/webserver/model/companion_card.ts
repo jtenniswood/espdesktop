@@ -24,8 +24,11 @@ export function companionCardModeValid(mode: unknown): mode is CompanionCardMode
   return companionCardModeContract(mode) !== undefined;
 }
 
-export function companionCardModeOptions(): ReadonlyArray<readonly [CompanionCardModeId, string]> {
-  return COMPANION_CARD_MODES.map((mode) => [mode.id, mode.label] as const);
+export function companionCardModeOptions(currentMode?: CompanionCardModeId): ReadonlyArray<readonly [CompanionCardModeId, string]> {
+  // Retain the current type when editing a saved playback card, but do not offer it for new cards.
+  return COMPANION_CARD_MODES
+    .filter((mode) => mode.id !== "media" || currentMode === "media")
+    .map((mode) => [mode.id, mode.label] as const);
 }
 
 export function companionCardDefaultIcon(mode: CompanionCardModeId): string {

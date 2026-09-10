@@ -226,7 +226,7 @@ const COMPANION_CARD_METADATA = {
     mode: {
         label: "Type",
         idSuffix: "companion-mode",
-        options: companionCardModeOptions(),
+        options: (card: any) => companionCardModeOptions(companionCardMode(card)),
         value: companionCardMode,
     },
     icon: {
@@ -1114,7 +1114,6 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],
-        ["companion_media", "Media control", "media"],
         ["companion_stats", "Stats", "stats"],
         ["companion_window", "Window control", "window"],
     ];

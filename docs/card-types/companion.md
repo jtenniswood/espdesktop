@@ -23,7 +23,6 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 | **Keyboard shortcut** | Replays a shortcut such as Command-A in the active app | Allow Accessibility access |
 | **Open URL** | Opens an `http://` or `https://` address in an approved app | Choose an approved browser or other app |
 | **Open folder** | Opens an approved Finder folder | Add the folder in the Mac app's **Folders** page |
-| **Media control** | Plays, pauses, or skips the current macOS Now Playing session | The media app must publish a usable Now Playing session |
 | **Stats** | Shows live Mac processor, memory, storage, network, or battery information | Shared automatically while connected |
 | **Window control** | Controls or arranges the active Mac window | Allow Accessibility access; tiling needs macOS 15+ |
 
@@ -75,16 +74,9 @@ Window cards act on the active Mac window. Choose **Companion → Window control
 
 The Mac app must have Accessibility permission. Some applications or windows do not support every macOS window command; in that case the window stays where it is.
 
-## Media Controls and Cover Art
+## Cover Art
 
-Choose **Media control** for **Play / Pause**, **Previous**, or **Next**. These buttons control the application currently registered with macOS Now Playing.
-
-Play / Pause shows the state confirmed by the Mac:
-
-- **Playing** — the card lights in the display's active colour.
-- **Paused** — the card returns to its normal colour.
-- **Stopped** — no active track was reported, but Play / Pause remains available because the Mac may still accept the command.
-- **Unavailable** — the Mac cannot provide the required media command.
+Play / Pause, Previous, and Next are no longer offered as Mac cards. Existing saved playback cards remain supported and can be edited or deleted.
 
 Apple Music, Spotify, and browser playback can work when the application publishes a usable session to macOS. Support depends on the application's macOS media integration.
 
