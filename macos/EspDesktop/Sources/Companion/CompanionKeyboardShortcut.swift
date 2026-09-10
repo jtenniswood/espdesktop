@@ -43,7 +43,7 @@ struct CompanionKeyboardShortcut {
     let requiresMacOS15: Bool
 
     init?(actionIdentifier: String) {
-        if let action = CompanionCapabilities.windowActions[actionIdentifier], let keyCode = Self.keyCodes[action.key] {
+        if let action = CompanionCapabilities.windowActions[actionIdentifier], let key = action.key, let keyCode = Self.keyCodes[key] {
             self.keyCode = keyCode
             self.flags = action.flags
             self.requiresMacOS15 = action.minimumMacOS >= 15

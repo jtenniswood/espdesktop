@@ -75,6 +75,15 @@ inline constexpr CompanionWindowCapability COMPANION_WINDOW_CAPABILITIES[] = {
   {"window.arrange.right-quarters", "Right & Quarters"},
   {"window.arrange.top-quarters", "Top & Quarters"},
   {"window.arrange.bottom-quarters", "Bottom & Quarters"},
+  {"window.top-left", "Top Left"},
+  {"window.top-right", "Top Right"},
+  {"window.bottom-left", "Bottom Left"},
+  {"window.bottom-right", "Bottom Right"},
+  {"window.arrange.quarters", "Quarters"},
+  {"window.fullscreen.enter", "Enter Full Screen"},
+  {"window.fullscreen.exit", "Exit Full Screen"},
+  {"window.split.left", "Left of Screen"},
+  {"window.split.right", "Right of Screen"},
 };
 
 struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };

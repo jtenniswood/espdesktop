@@ -1,3 +1,4 @@
+import { COMPANION_WINDOW_ACTIONS } from "../../src/webserver/generated/companion_capabilities";
 import {
   cardPickerConnectors,
   cardTypeConnector,
@@ -26,6 +27,12 @@ export function runPreviewFeatureTests(): void {
   equal(previewValue(null, "iconHtml", "fallback"), "fallback", "missing preview values use fallback");
   equal(infoOnlyCardVisible("sensor", true), true, "sensors remain visible in info-only mode");
   equal(infoOnlyCardVisible("action", true), false, "actions are hidden in info-only mode");
+  for (const action of COMPANION_WINDOW_ACTIONS) {
+    const key = "companion_" + action.id;
+    equal(defaultCardTypeForPicker(key), "companion", "Window presets save as existing Companion cards");
+    equal(cardTypeVisibleForConnector(key, "mac_companion"), true, "Window presets appear under Mac Companion");
+    equal(cardTypeVisibleForConnector(key, "home_assistant"), false, "Window presets stay out of Home Assistant");
+  }
   equal(defaultCardTypeForPicker("climate"), "climate_control", "picker aliases retain their defaults");
   equal(defaultCardTypeForPicker("companion_stats"), "companion", "Companion subtype pickers use the Companion runtime card");
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");

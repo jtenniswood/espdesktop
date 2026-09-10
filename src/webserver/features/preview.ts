@@ -1,3 +1,5 @@
+import { COMPANION_WINDOW_ACTIONS } from "../generated/companion_capabilities";
+
 export interface Point {
   readonly x: number;
   readonly y: number;
@@ -176,10 +178,14 @@ export function infoOnlyCardVisible(key: string, infoOnly: boolean): boolean {
 }
 
 export function defaultCardTypeForPicker(key: string): string {
+  if (COMPANION_WINDOW_ACTIONS.some((action) => key === "companion_" + action.id)) return "companion";
   return CARD_TYPE_PICKER_DEFAULTS[key] || key;
 }
 
 export function cardTypePickerDetails(key: string, label: string): PickerDetails {
+  if (COMPANION_WINDOW_ACTIONS.some((action) => key === "companion_" + action.id)) {
+    return { icon: "window-open", description: "Use this native Mac window action." };
+  }
   return CARD_TYPE_PICKER_DETAILS[key || ""] || {
     icon: "card-outline",
     description: `Configure a ${label || "card"} card.`,

@@ -712,7 +712,18 @@
         "function",
         "control"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Fill"
+        ],
+        [
+          "Window",
+          "Move & Resize",
+          "Fill"
+        ]
+      ]
     },
     {
       "id": "window.center",
@@ -723,7 +734,27 @@
         "function",
         "control"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Center"
+        ],
+        [
+          "Window",
+          "Move & Resize",
+          "Center"
+        ],
+        [
+          "Window",
+          "Centre"
+        ],
+        [
+          "Window",
+          "Move & Resize",
+          "Centre"
+        ]
+      ]
     },
     {
       "id": "window.left",
@@ -734,7 +765,14 @@
         "function",
         "control"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Left"
+        ]
+      ]
     },
     {
       "id": "window.right",
@@ -745,7 +783,14 @@
         "function",
         "control"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Right"
+        ]
+      ]
     },
     {
       "id": "window.top",
@@ -756,7 +801,14 @@
         "function",
         "control"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Top"
+        ]
+      ]
     },
     {
       "id": "window.bottom",
@@ -767,7 +819,14 @@
         "function",
         "control"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Bottom"
+        ]
+      ]
     },
     {
       "id": "window.restore",
@@ -778,7 +837,14 @@
         "function",
         "control"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Return to Previous Size"
+        ]
+      ]
     },
     {
       "id": "window.arrange.left-right",
@@ -790,7 +856,14 @@
         "control",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Left & Right"
+        ]
+      ]
     },
     {
       "id": "window.arrange.right-left",
@@ -802,7 +875,14 @@
         "control",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Right & Left"
+        ]
+      ]
     },
     {
       "id": "window.arrange.top-bottom",
@@ -814,7 +894,14 @@
         "control",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Top & Bottom"
+        ]
+      ]
     },
     {
       "id": "window.arrange.bottom-top",
@@ -826,7 +913,14 @@
         "control",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Bottom & Top"
+        ]
+      ]
     },
     {
       "id": "window.arrange.left-quarters",
@@ -839,7 +933,14 @@
         "option",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Left & Quarters"
+        ]
+      ]
     },
     {
       "id": "window.arrange.right-quarters",
@@ -852,7 +953,14 @@
         "option",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Right & Quarters"
+        ]
+      ]
     },
     {
       "id": "window.arrange.top-quarters",
@@ -865,7 +973,14 @@
         "option",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Top & Quarters"
+        ]
+      ]
     },
     {
       "id": "window.arrange.bottom-quarters",
@@ -878,7 +993,149 @@
         "option",
         "shift"
       ],
-      "minimumMacOS": 15
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Bottom & Quarters"
+        ]
+      ]
+    },
+    {
+      "id": "window.top-left",
+      "label": "Top Left",
+      "group": "Move & Resize",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Top Left"
+        ]
+      ]
+    },
+    {
+      "id": "window.top-right",
+      "label": "Top Right",
+      "group": "Move & Resize",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Top Right"
+        ]
+      ]
+    },
+    {
+      "id": "window.bottom-left",
+      "label": "Bottom Left",
+      "group": "Move & Resize",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Bottom Left"
+        ]
+      ]
+    },
+    {
+      "id": "window.bottom-right",
+      "label": "Bottom Right",
+      "group": "Move & Resize",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Bottom Right"
+        ]
+      ]
+    },
+    {
+      "id": "window.arrange.quarters",
+      "label": "Quarters",
+      "group": "Arrange Windows",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Move & Resize",
+          "Quarters"
+        ]
+      ]
+    },
+    {
+      "id": "window.fullscreen.enter",
+      "label": "Enter Full Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Enter Full Screen"
+        ],
+        [
+          "Window",
+          "Full Screen Tile",
+          "Entire Screen"
+        ]
+      ]
+    },
+    {
+      "id": "window.fullscreen.exit",
+      "label": "Exit Full Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Exit Full Screen"
+        ],
+        [
+          "Window",
+          "Full Screen Tile",
+          "Exit Full Screen"
+        ]
+      ]
+    },
+    {
+      "id": "window.split.left",
+      "label": "Left of Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Full Screen Tile",
+          "Left of Screen"
+        ],
+        [
+          "Window",
+          "Full-Screen Tile",
+          "Left of Screen"
+        ]
+      ]
+    },
+    {
+      "id": "window.split.right",
+      "label": "Right of Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        [
+          "Window",
+          "Full Screen Tile",
+          "Right of Screen"
+        ],
+        [
+          "Window",
+          "Full-Screen Tile",
+          "Right of Screen"
+        ]
+      ]
     }
   ],
   "mediaActions": [
