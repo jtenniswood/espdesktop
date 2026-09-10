@@ -1,22 +1,16 @@
 ---
-title: EspDesktop Backup and Restore
-description:
-  How to export and import your EspDesktop panel configuration as a backup file.
+title: Backup
+description: "Export and restore cards, subpages and display preferences."
 ---
 
 # Backup
 
-You can save your entire panel configuration as a file and restore it later. You'll find these options in the **Settings** tab on the [Setup](/features/setup) page, under the **Backup** section.
+Use **Export** and **Import** in the web **Settings → Backup** section.
 
-- **Export** - saves your entire setup (cards, subpages, colours, brightness, screen schedule, display settings, Home Assistant artwork settings, and firmware update preferences) as a file you can keep as a backup.
-- **Import** - loads a previously saved file to restore your setup. If you're loading a backup from a different-sized panel, the cards are rearranged to fit automatically.
+**Export** saves cards, subpages, colours, brightness, schedule and other display preferences to a file. Keep a copy before changing a layout or installing test firmware.
 
-Backup files are versioned so newer EspDesktop releases can keep importing older backups safely. Older version 1 backups still import, and new exports use version 2 while keeping the same readable layout fields for compatibility.
+**Import** reads a saved configuration. Review the result in the web preview and apply it when ready. Use backups made with a matching build and panel profile during development; the current feature removal does not promise compatibility with older configurations.
 
-## Compatibility Notes
+Mac permissions and pairing credentials are separate from the layout. Pair the destination display and approve the apps and folders on its Mac before using imported controls.
 
-EspDesktop keeps old saved card strings readable during upgrades. That means cards created before newer card options or compact subpage storage were added should still load, display, and export correctly after an update.
-
-New backup exports continue to use `version: 2` with `format: "espdesktop.backup"`. The readable JSON file also includes a `native_config` section. It records the panel profile, document version, and an encoded copy of the configuration so a firmware version with the native configuration service can restore it exactly. Older panels continue to import the same file through the compatible JSON fields.
-
-When importing a backup from a different-sized panel, EspDesktop keeps the saved card order where it can and rearranges cards that no longer fit the target screen. Subpages are moved with their parent card when the parent card is kept.
+A backup can contain URLs and webhook credentials. Store it privately. To move selected cards rather than an entire configuration, use [Copy Code and Paste Code](/features/subpages#copying-cards-between-controllers).

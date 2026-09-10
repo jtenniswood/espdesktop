@@ -6,9 +6,9 @@ description:
 
 # Webhook
 
-A Webhook card is a one-tap HTTP request. It calls the URL directly from the panel, so it can trigger systems that expose simple web APIs without going through Home Assistant.
+A Webhook card is a one-tap HTTP request. It calls the URL directly from the panel, so it can trigger systems that expose simple web APIs directly.
 
-Use Webhook cards for local automation platforms such as Jeedom, openHAB, Fibaro, Node-RED, or Home Assistant webhook automations. They also work with cloud webhook services such as IFTTT and Zapier when the panel can reach the service URL.
+Use Webhook cards for local automation platforms such as Jeedom, openHAB, Fibaro, Node-RED. They also work with cloud webhook services such as IFTTT and Zapier when the panel can reach the service URL.
 
 ## Setting Up a Webhook Card
 
@@ -30,16 +30,6 @@ Example:
 
 ```text
 http://jeedom.local/core/api/jeeApi.php?apikey=YOUR_KEY&type=scenario&id=56&action=start
-```
-
-### Home Assistant Webhook
-
-Set the method to **POST** and use the webhook URL from your Home Assistant automation.
-
-If you send JSON in the body, add this header:
-
-```text
-Content-Type: application/json
 ```
 
 ### IFTTT or Zapier

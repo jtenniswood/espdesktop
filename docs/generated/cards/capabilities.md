@@ -9,10 +9,10 @@ This generated reference lists stable setup facts from the shared card contract.
 
 | Card | Type | Entity domains | Subpages | Picker grouping | Main modes and options | Status |
 |---|---|---|---|---|---|---|
-| Date & Time | calendar | sensor | Yes | Own picker item | Type: clock, datetime, default, timezone; Large Clock | Visible |
+| Date & Time | calendar | None | Yes | Own picker item | Type: clock, datetime, default, timezone; Large Clock | Visible |
 | Date & Time | clock | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Auto switch to subpage; Large Sensor Numbers | Visible |
 | Screen Lock | screen_lock | None | Yes | Own picker item | None | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
-| Subpage | subpage | None | No | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
+| Subpage | subpage | None | No | Own picker item | Subpage Type: default, companion_stat; Large State Numbers | Visible |
 | Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |

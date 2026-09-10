@@ -6,7 +6,7 @@ description:
 
 # Collect USB Logs
 
-If something is not working and you need help, USB logs are often the most useful information you can share. They show what the display is doing while it starts, connects to WiFi, talks to Home Assistant, or loads the web interface.
+If something is not working and you need help, USB logs are often the most useful information you can share. They show what the display is doing while it starts, connects to WiFi, connects to your Mac, or loads the web interface.
 
 You do not need to install developer tools. You can collect the logs from the same browser-based installer used to flash EspDesktop.
 
@@ -41,14 +41,14 @@ After the log window opens, restart the display so the log includes a full start
 3. Wait until the problem happens again.
 4. Copy the log text from the log window.
 
-For startup, WiFi, loading screen, and Home Assistant connection problems, try to capture at least the first **60 to 90 seconds** after the display restarts.
+For startup, WiFi, loading screen, and Mac connection problems, try to capture at least the first **60 to 90 seconds** after the display restarts.
 
 ## Check Before Sharing
 
 Before you paste logs into GitHub, quickly scan them for private information. Remove or replace anything you do not want public, such as:
 
 - WiFi names if you consider them private.
-- Home Assistant URLs, tokens, or long keys.
+- Private URLs, tokens or pairing keys.
 - Local IP addresses if you do not want to share your network range.
 
 Please keep the surrounding log lines if possible. Replacing a value with something like `[removed]` is better than deleting whole sections.

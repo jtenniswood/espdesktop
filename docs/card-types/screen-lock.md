@@ -1,34 +1,12 @@
 ---
-title: Screen Lock Cards
-description:
-  How to use screen lock cards on your EspDesktop panel to lock and unlock local touchscreen controls.
+title: Screen Lock
+description: "Prevent accidental touchscreen actions with a local screen lock."
 ---
 
 # Screen Lock
 
-A Screen Lock card locks and unlocks the panel's touchscreen controls locally. It does not need a Home Assistant entity and does not send a Home Assistant action.
+A Screen Lock card toggles the panel's touchscreen lock. Its label and icon show the current state.
 
-Use this when a panel is in a shared area and you want a quick way to prevent accidental taps.
+Add **Screen Lock** to the home screen or a subpage and apply the configuration. Other cards are protected while the screen is locked; use the lock card to unlock it.
 
-## Setting Up a Screen Lock Card
-
-1. Select a card and change its type to **Screen Lock**.
-2. Save the card and apply the configuration.
-
-Screen Lock does not need an entity or any additional card settings. Its label and icon change automatically to show whether the touchscreen is locked or unlocked.
-
-## How It Works on the Panel
-
-- Tapping the card switches the panel between locked and unlocked states.
-- The lock state is local to the panel.
-- Other cards are protected while the screen is locked.
-- The card can be used on the home screen or inside a subpage.
-- It does not depend on Home Assistant availability.
-
-Screen Lock is different from a [Lock](/card-types/locks) card. **Lock** controls a Home Assistant `lock` entity such as a door lock. **Screen Lock** controls the touchscreen's local interaction state.
-
-## When to Use It
-
-Screen Lock is useful for hallway panels, bedside panels, child-accessible panels, or any location where accidental control changes would be annoying.
-
-For security-sensitive actions such as unlocking a door, use the Home Assistant lock's own security features, a Home Assistant script, or card-level confirmation where available. Screen Lock is a local interaction guard, not a replacement for Home Assistant permissions.
+This is an interaction guard for accidental taps, not an authentication mechanism.

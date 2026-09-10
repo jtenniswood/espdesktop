@@ -18,9 +18,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "calendar": {
     "label": "Date & Time",
     "allowInSubpage": true,
-    "domains": [
-      "sensor"
-    ],
+    "domains": [],
     "options": [
       {
         "name": "date_time_mode",
@@ -90,7 +88,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "optionHook": "normalize_date_time_options"
     },
     "default": {
-      "entity": "sensor.date",
+      "entity": "",
       "label": "",
       "icon": "Auto",
       "icon_on": "Auto",
@@ -408,37 +406,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "domains": [],
     "options": [
       {
-        "name": "subpage_connector",
-        "label": "Subpage Connector",
-        "kind": "choice",
-        "values": [
-          "",
-          "mac_companion"
-        ],
-        "defaultValue": "",
-        "omitDefault": true
-      },
-      {
         "name": "subpage_kind",
         "label": "Subpage Type",
         "kind": "choice",
         "values": [
           "",
-          "switch",
-          "lights",
-          "climate",
-          "presence",
-          "media",
-          "alarm",
-          "cover",
-          "garage",
-          "gate",
-          "lock",
-          "vacuum",
-          "lawn_mower",
-          "weather",
-          "sensor",
-          "image",
           "companion_stat"
         ],
         "defaultValue": "",
@@ -491,7 +463,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       "unknownOptions": "drop",
       "canonicalOptionOrder": [
-        "subpage_connector",
         "subpage_kind",
         "large_numbers"
       ],
@@ -739,7 +710,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_shortcuts_tabs": "app_shortcuts_tabs",
   "date_time_mode": "date_time_mode",
   "large_numbers": "large_numbers",
-  "subpage_connector": "subpage_connector",
   "subpage_kind": "subpage_kind",
   "webhook_headers": "webhook_headers"
 };

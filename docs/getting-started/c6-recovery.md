@@ -11,7 +11,7 @@ recovery installer if your panel:
 
 - repeatedly disconnects or has an unreliable connection;
 - cannot complete its first Wifi setup;
-- disappears from Home Assistant after restarting; or
+- disappears from your network after restarting; or
 - reports ESP32-C6 firmware manifest timeouts in its USB log.
 
 The recovery download contains both the latest EspDesktop firmware and its matching
@@ -38,7 +38,7 @@ cannot be guaranteed after damaged or previously erased flash.
 <C6RecoverySelector />
 
 After the restart, reconnect the panel to Wifi if needed and confirm that it stays
-available in Home Assistant.
+reachable on your network.
 
 ## If Recovery Cannot Communicate with the C6
 

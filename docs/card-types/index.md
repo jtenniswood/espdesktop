@@ -1,104 +1,23 @@
 ---
 title: Card Types
-description:
-  Quick reference for choosing EspDesktop cards for Mac controls, Home Assistant devices, local panel actions, information, and subpages.
+description: "Choose cards for Mac controls, clocks, subpages, screen locking and webhooks."
 ---
 
 # Card Types
 
-Cards are the controls and information tiles shown on the EspDesktop screen. Each card type is built for a specific job: some control a paired Mac, some send Home Assistant actions, some display live state, and some open extra pages.
+Choose a card from an empty slot on the **Screen** tab.
 
-Use this page when you know what you want the panel to do but are not sure which card type to choose.
-
-## Choose a Card
-
-| Goal | Use this card | Entity or target |
-|---|---|---|
-| Launch a Mac app, open a folder or website, run a shortcut, arrange windows, control media, or show Mac statistics | [Companion](/card-types/companion) | Paired Mac action or statistic |
-| Adjust Mac speaker or microphone volume | [Slider](/card-types/sliders) | Mac output or input volume |
-| Open a page of Mac controls while showing one Mac statistic on its tile | [Subpage](/features/subpages) | Companion Stat |
-| Toggle a light, switch, fan, or helper | [Switch](/card-types/switches) | `light`, `switch`, `input_boolean`, or `fan` |
-| Control a light as on/off, brightness, colour temperature, or colour presets | [Lights](/card-types/lights) | `light` |
-| Run a scene, script, automation, helper action, button press, or local panel action | [Action](/card-types/actions) | Depends on the selected action |
-| Show or control a robot vacuum | [Vacuum](/card-types/vacuum) | `vacuum` |
-| Show or control a robotic lawn mower | [Lawn Mower](/card-types/lawn-mower) | `lawn_mower` |
-| Pick from a Home Assistant select list | [Option Select](/card-types/option-select) | `select` or `input_select` |
-| Fire a custom Home Assistant automation event | [Trigger](/card-types/buttons) | No entity required |
-| Call an HTTP URL directly from the panel | [Webhook](/card-types/webhooks) | URL |
-| Show a live number, readable duration, text state, or active/inactive icon | [Sensor](/card-types/sensors) | Home Assistant `sensor`, `binary_sensor`, or `text_sensor`; or a Local Sensor source |
-| Show a door or window contact sensor | [Doors & Windows](/card-types/doors-windows) | `binary_sensor` or `sensor` |
-| Show presence, motion, or occupancy state | [Presence](/card-types/presence) | `binary_sensor`, `sensor`, or `text_sensor` |
-| Drag to set light brightness, fan speed, or a number value | [Slider](/card-types/sliders) | `light`, `fan`, `number`, or `input_number` |
-| Use grouped fan controls | [Fans](/card-types/fans) | `fan` |
-| Control blinds, shutters, shades, gates, position, or tilt | [Cover](/card-types/covers) | `cover` |
-| Open or close a garage door | [Garage Door](/card-types/garage-doors) | `cover` |
-| Open, close, or stop a gate | [Gate](/card-types/gates) | `cover` |
-| Lock or unlock a door lock | [Lock](/card-types/locks) | `lock` |
-| Arm, disarm, or show an alarm panel | [Alarm](/card-types/alarms) | `alarm_control_panel` |
-| Show local date, time, or date and time | [Date & Time](/card-types/calendar) | No entity required for clock modes |
-| Show another city or timezone | [World Clock](/card-types/timezones) | No entity required |
-| Show current weather or daily high/low temperatures | [Weather](/card-types/weather) | `weather` |
-| Show a still image from Home Assistant | [Camera](/card-types/cameras) | `camera` or `image` |
-| Let visitors scan guest Wifi details | [Wifi Sharing](/card-types/wifi-share) | No entity required |
-| Control media playback, volume, progress, or now-playing display | [Media](/card-types/media) | `media_player` |
-| Control a thermostat or HVAC entity | [Climate](/card-types/climate) | `climate` |
-| Control a built-in relay on the panel itself | [Internal Switches](/card-types/internal-relays) | Built-in relay |
-| Lock or unlock the touchscreen controls locally | [Screen Lock](/card-types/screen-lock) | No entity required |
-| Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
-
-## Mac Cards
-
-Mac controls currently work on the 4-inch 4848S040 and need the [EspDesktop Mac app](/getting-started/mac-app). The Companion connector is enough to use them; Home Assistant is optional.
-
-- **Companion** includes Launch app, Keyboard shortcut, Open URL, Open folder, Media control, Stats, and Window control.
-- **Slider** includes Mac output and input volume alongside its Home Assistant modes.
-- **Subpage** includes Companion Stat for a processor, memory, storage, network, or battery reading on the folder tile.
-- **Media Cover Art** can use Mac Companion as its Now Playing source from the display Settings page.
-
-See [Mac Cards and Capabilities](/card-types/companion) for the complete list and its permissions.
-
-## Home Assistant and Local Cards
-
-Most cards use Home Assistant entities. The entity ID is the exact name Home Assistant uses, such as `light.kitchen`, `sensor.outdoor_temperature`, or `media_player.living_room`.
-
-Some cards do not need a Home Assistant entity:
-
-- **Trigger** sends a custom event that Home Assistant automations can listen for.
-- **Local Sensor** shows a value supplied by the panel firmware.
-- **Webhook** sends a direct HTTP request.
-- **Action > Local Action** runs a registered callback on the panel itself.
-- **Date & Time**, **World Clock**, **Screen Lock**, and **Subpage** can work from the panel itself.
-- **Internal Switches** controls built-in relay hardware on supported panels.
-- **Wifi Sharing** stores separately configured guest-network credentials on the panel.
-
-## Grouped Card Types
-
-Some names in the setup page group several related modes:
-
-| Setup page name | Modes |
+| Card | Available controls |
 |---|---|
-| **Lights** | All Controls, Switch, Brightness, Colour Temperature |
-| **Fans** | All Controls, Switch, Speed, Oscillation, Direction, Preset |
-| **Action** | Scene, Script, Automation, Button, Input Button, Toggle Helper, Set Number Helper, Option Select, Local Action |
-| **Vacuum** | Status, Start / Stop, Dock, Pause / Resume, Spot Clean, Locate, Clean Area |
-| **Lawn Mower** | Status, Start Mowing, Dock, Pause / Resume |
-| **Alarm** | All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, Disarm |
-| **Date & Time** | Clock, Date, Time & Date, World Clock |
-| **Media** | All Controls, Speaker Group, Play/Pause, Previous, Next, Volume, Track Position, Now Playing, Cover Art, Media Content |
-| **Companion** | Launch app, Keyboard shortcut, Open URL, Open folder, Media control, Stats, Window control |
-| **Cover** | All Controls, Position, Tilt, Toggle, Open, Close, Stop, Set Position |
-| **Subpage** | Generic, Switch, Lights, Climate, Presence, Media, Alarm, Cover, Garage Door, Gate, Lock, Vacuum, Lawn Mower, Weather, Sensor, Camera / Image, Companion Stat |
+| [Companion](/card-types/companion) | Launch app, keyboard shortcut, open URL, open folder, statistics and window control |
+| [Date & Time](/card-types/calendar) | Clock, date, date and time, or world clock |
+| [World Clock](/card-types/timezones) | Local time in a selected city |
+| [Subpage](/features/subpages) | Open a page of related cards |
+| [Screen Lock](/card-types/screen-lock) | Lock and unlock touchscreen controls |
+| [Webhook](/card-types/webhooks) | Send a direct HTTP request |
 
-Older configurations may also show **Weather Forecast**. It is kept for compatibility and is now set up as a **Weather** card with **Temperatures Tomorrow** selected.
+Mac cards require [pairing](/getting-started/mac-app), currently supported on the 4848S040. The other cards run on the display; webhooks require network access to their destination.
 
-## Permissions
+Approve applications and folders in the Mac app. Allow macOS Accessibility access for keyboard and window controls. Statistic cards show readings shared by the paired Mac while connected.
 
-Cards that control Home Assistant need the panel to be allowed to perform Home Assistant actions. If a control card displays correctly but tapping it does nothing, check [Enable Actions](/getting-started/home-assistant-actions).
-
-Read-only display cards such as Sensor, Presence, Date & Time, and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
-
-Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and add statistics cards to show the readings shared automatically while connected.
-
-## Current Capability Reference
-
-For a generated table of card type names, saved type values, supported entity domains, subpage support, picker grouping, options, and visibility status, see the [Card Capability Reference](/generated/cards/capabilities).
+See the generated [Card Capability Reference](/generated/cards/capabilities) for card names and options.

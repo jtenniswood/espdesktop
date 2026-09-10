@@ -265,7 +265,7 @@ TASKS = (
          generated_inputs=(
              "common/config/card_runtime_baseline_card_normalization_fixtures.json",
              "compatibility/fixtures/card_runtime_surface_baseline.json",
-             "docs/generated/cards/runtime-coverage.md",
+             "dev-docs/generated/card-runtime-coverage.md",
          ),
          cache_inputs=WEB_BUNDLE_BUILD_HELPERS, parallel_safe=True, cache_tools=("node",)),
     task("device-slots", ("python3", "scripts/generate_device_slots.py", "--check"), profiles=PRODUCT,

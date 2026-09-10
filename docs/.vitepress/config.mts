@@ -27,48 +27,13 @@ const pageImages: Record<string, typeof defaultImage> = {
     height: '1024',
     type: 'image/jpeg',
   },
-  'features/setup.md': {
-    url: `${hostname}images/screen-setup.png`,
-    width: '625',
-    height: '1024',
-    type: 'image/png',
-  },
-  'features/subpages.md': {
-    url: `${hostname}images/screen-subpage.png`,
-    width: '1024',
-    height: '606',
-    type: 'image/png',
-  },
-  'features/relays.md': {
-    url: `${hostname}images/relay-controls.svg`,
-    width: '646',
-    height: '786',
-    type: 'image/svg+xml',
-  },
-  'card-types/buttons.md': {
-    url: `${hostname}images/card-button.png`,
-    width: '370',
-    height: '336',
-    type: 'image/png',
-  },
-  'card-types/sensors.md': {
-    url: `${hostname}images/card-sensor.png`,
-    width: '368',
-    height: '340',
-    type: 'image/png',
-  },
-  'card-types/switches.md': {
-    url: `${hostname}images/card-toggle.png`,
-    width: '366',
-    height: '340',
-    type: 'image/png',
-  },
-  'getting-started/home-assistant-actions.md': {
-    url: `${hostname}images/ha-actions-step-1.png`,
-    width: '684',
-    height: '508',
-    type: 'image/png',
-  },
+
+
+
+
+
+
+
 }
 
 const screenProducts: Record<string, Record<string, string>> = {
@@ -129,96 +94,47 @@ const screenProducts: Record<string, Record<string, string>> = {
 
 const faqItems = [
   {
-    question: "How Do I Find My Device's IP Address?",
-    answer:
-      'Check the display when no cards are configured, your router connected devices list, or the ESPHome device page in Home Assistant.',
+    "question": "How Do I Find the Display's Address?",
+    "answer": "Check the physical display or your router's connected-device list. Open the address in a browser to configure the panel."
   },
   {
-    question: 'The Web Page Looks Broken or Unstyled',
-    answer:
-      'Make sure the panel has internet access, clear your browser cache, and try Chrome or Edge.',
+    "question": "How Do I Pair My Mac?",
+    "answer": "Open Settings on the display's web page. The Mac Companion box is first. Enter its temporary code in the Mac app. See Mac App."
   },
   {
-    question: "My Device Won't Connect to WiFi",
-    answer:
-      'Use a 2.4 GHz WiFi network, double-check the password, move closer to the router during setup, or reconnect through the espdesktop setup hotspot.',
+    "question": "Which Cards Are Available?",
+    "answer": "Companion, Date & Time, World Clock, Subpage, Screen Lock and Webhook. See Card Types."
   },
   {
-    question: 'How Do I Reset the Device?',
-    answer:
-      'Re-flash the firmware from the install guide with a USB-C data cable. WiFi settings reset, while card configuration is stored separately.',
+    "question": "Which Display Supports Mac Controls?",
+    "answer": "Mac Companion currently supports the 4-inch 4848S040. Hardware installation profiles also exist for the other listed panels; this does not imply Companion support on every profile."
   },
   {
-    question: 'Can I Use This Without Home Assistant?',
-    answer:
-      'Yes. The 4-inch 4848S040 can use the Mac Companion connector without Home Assistant. Home Assistant remains optional for smart-home controls and is still the main connector on the other panel profiles.',
+    "question": "Why Is a Mac Card Unavailable?",
+    "answer": "Check pairing, the local network, approved applications and folders, and Accessibility permission for keyboard or window controls. Use matching firmware and Mac app builds."
   },
   {
-    question: 'What Can I Control on My Mac?',
-    answer:
-      'A paired 4848S040 can launch approved apps, open approved folders and websites, run shortcuts, arrange windows, control media and volume, show Now Playing artwork, and display optional Mac statistics.',
+    "question": "Can I Back Up My Layout?",
+    "answer": "Yes. Use Export in Settings \u2192 Backup. Keep backups private because they can contain webhook credentials. See Backup."
   },
   {
-    question: 'Why Is a Mac Card Disabled?',
-    answer:
-      'Check that the Mac is connected, the app or folder is approved, required Accessibility or statistics permission is enabled, and the Mac app and display firmware versions match.',
+    "question": "How Do I Update or Reset the Panel?",
+    "answer": "Use Firmware Updates for updates or the Install guide for USB installation. A normal restart does not erase the layout. A full flash erase removes stored device data."
   },
   {
-    question: 'How Do I Update the Firmware?',
-    answer:
-      'Leave Auto Update enabled for automatic updates, or use Check for Update in the Firmware section of the setup page. Advanced Ethernet-only builds may need to be updated through ESPHome.',
+    "question": "What If WiFi or Setup Fails?",
+    "answer": "Use a 2.4 GHz network and a USB data cable. See Troubleshooting and Collect USB Logs."
   },
   {
-    question: "What If the Icon I Need Isn't Listed?",
-    answer:
-      'Open a GitHub issue with the Material Design Icons name and what you would use it for.',
-  },
-  {
-    question: 'What Card Types Are Available?',
-    answer:
-      'The setup page includes Switch, Lights, Action, Option Select, Webhook, Trigger, Sensor, Doors & Windows, Presence, Slider, Fans, Vacuum, Lawn Mower, Cover, Garage Door, Lock, Alarm, Date & Time, World Clock, Weather, Camera, Media, Climate, Internal Switches, Screen Lock, and Subpage cards.',
-  },
-  {
-    question: 'How Many Cards Can I Have?',
-    answer:
-      'The home screen supports 20 cards on both JC8012P4A1 rear-case revisions, 15 on both JC1060P470 panel revisions, 6 on JC4880P443, and 9 on 4848S040 or the ESP32-P4 86 Panel, with more available through subpages.',
-  },
-  {
-    question: 'What Is a Subpage?',
-    answer:
-      'A Subpage card works like a folder, opening another page of cards for grouping rooms or device types.',
-  },
-  {
-    question: 'Can I Back Up My Setup?',
-    answer:
-      'Yes. Use Export and Import in the Backup section of the setup page to save and restore cards, subpages, colours, and display settings.',
-  },
-  {
-    question: 'Which Panels Are Supported?',
-    answer:
-      'EspDesktop supports both Guition JC8012P4A1 rear-case revisions, both JC1060P470 panel revisions, JC4880P443, 4848S040, and ESP32-P4 86 Panel touchscreens.',
-  },
-  {
-    question: 'Does the Panel Work with Other Smart Home Platforms?',
-    answer:
-      'EspDesktop is built for Home Assistant. Other platforms only work indirectly if they are integrated into Home Assistant.',
-  },
-  {
-    question: 'The Display Is Stuck on the Loading Screen',
-    answer:
-      'Wait up to 60 seconds, power-cycle the panel, and if the setup hotspot appears, go through WiFi setup again.',
-  },
-  {
-    question: 'How Is My Data Handled?',
-    answer:
-      'Device control stays on your local network. Internet access is only used for firmware update checks and web page styling resources.',
-  },
+    "question": "How Is My Data Handled?",
+    "answer": "The Mac communicates with the display locally. Updates, website resources and configured webhooks may contact external services. See Privacy."
+  }
 ]
 
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Pair a small ESP32 touchscreen with your Mac to launch apps, run shortcuts, arrange windows, control media and volume, and show Mac status.',
+    'Pair a small ESP32 touchscreen with your Mac to launch apps, run shortcuts, arrange windows, and show Mac status.',
   base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
@@ -236,7 +152,7 @@ export default defineConfig({
       {
         name: 'keywords',
         content:
-          'EspDesktop, Mac controller, macOS Companion, ESP32-S3, 4848S040, touchscreen, keyboard shortcuts, window controls, media controls, Home Assistant',
+          'EspDesktop, Mac controller, macOS Companion, ESP32-S3, 4848S040, touchscreen, keyboard shortcuts, window controls, Mac statistics',
       },
     ],
     ['meta', { property: 'og:type', content: 'website' }],
@@ -265,7 +181,7 @@ export default defineConfig({
             url: hostname,
             name: 'EspDesktop',
             description:
-              'A local touchscreen controller for Mac apps, shortcuts, windows, media, volume, folders, websites, and system statistics, with optional Home Assistant controls.',
+              'A local touchscreen controller for Mac apps, shortcuts, windows, folders, websites and system statistics.',
             inLanguage: 'en-US',
           },
           {
@@ -327,8 +243,7 @@ export default defineConfig({
     ) {
       const isHowTo =
         pageData.relativePath === 'getting-started/install.md' ||
-        pageData.relativePath === 'getting-started/manual-esphome-setup.md' ||
-        pageData.relativePath === 'getting-started/migrate-esphome-media-player.md'
+        pageData.relativePath === 'getting-started/manual-esphome-setup.md'
       const articleSchema: Record<string, unknown> = {
         '@context': 'https://schema.org',
         '@type': isHowTo ? 'HowTo' : 'TechArticle',
@@ -339,30 +254,13 @@ export default defineConfig({
         author: { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' },
       }
       if (isHowTo) {
-        if (pageData.relativePath === 'getting-started/manual-esphome-setup.md') {
-          articleSchema.step = [
-            { '@type': 'HowToStep', name: 'Choose the correct ESPHome package file' },
-            { '@type': 'HowToStep', name: 'Create the device in ESPHome Device Builder' },
-            { '@type': 'HowToStep', name: 'Install by USB or OTA' },
-            { '@type': 'HowToStep', name: 'Add the display to Home Assistant' },
-          ]
-        } else if (
-          pageData.relativePath === 'getting-started/migrate-esphome-media-player.md'
-        ) {
-          articleSchema.step = [
-            { '@type': 'HowToStep', name: 'Install and connect EspDesktop' },
-            { '@type': 'HowToStep', name: 'Choose an automatic or card-based cover-art layout' },
-            { '@type': 'HowToStep', name: 'Configure media playback controls' },
-            { '@type': 'HowToStep', name: 'Configure the idle clock or display-off behaviour' },
-          ]
-        } else {
-          articleSchema.step = [
-            { '@type': 'HowToStep', name: 'Flash firmware from your browser' },
-            { '@type': 'HowToStep', name: 'Connect to WiFi' },
-            { '@type': 'HowToStep', name: 'Add to Home Assistant' },
-            { '@type': 'HowToStep', name: 'Configure buttons from the web page' },
-          ]
-        }
+        articleSchema.step = [
+          { '@type': 'HowToStep', name: 'Choose the correct display firmware' },
+          { '@type': 'HowToStep', name: 'Install a validated firmware build' },
+          { '@type': 'HowToStep', name: 'Connect to WiFi' },
+          { '@type': 'HowToStep', name: 'Open Settings to pair the Mac app' },
+          { '@type': 'HowToStep', name: 'Configure cards on the Screen tab' },
+        ]
       }
       if (pageData.relativePath === 'reference/faq.md') {
         articleSchema['@type'] = 'FAQPage'
@@ -422,8 +320,6 @@ export default defineConfig({
         text: 'Mac Control',
         items: [
           { text: 'Mac Cards & Capabilities', link: '/card-types/companion' },
-          { text: 'Volume Sliders', link: '/card-types/sliders' },
-          { text: 'Now Playing Cover Art', link: '/features/media-cover-art' },
           { text: 'App & Stat Subpages', link: '/features/subpages' },
         ],
       },
@@ -449,41 +345,11 @@ export default defineConfig({
         text: 'Card Types',
         items: [
           { text: 'Overview', link: '/card-types/' },
-          { text: 'Action', link: '/card-types/actions' },
-          { text: 'Alarm', link: '/card-types/alarms' },
-          { text: 'Camera', link: '/card-types/cameras' },
-          { text: 'Climate', link: '/card-types/climate' },
-          { text: 'Cover', link: '/card-types/covers' },
           { text: 'Date & Time', link: '/card-types/calendar' },
-          { text: 'Doors & Windows', link: '/card-types/doors-windows' },
-          { text: 'Fans', link: '/card-types/fans' },
-          { text: 'Garage Door', link: '/card-types/garage-doors' },
-          { text: 'Gate', link: '/card-types/gates' },
-          { text: 'Internal', link: '/card-types/internal-relays' },
-          { text: 'Lawn Mower', link: '/card-types/lawn-mower' },
-          { text: 'Lights', link: '/card-types/lights' },
-          { text: 'Local Action', link: '/card-types/local-actions' },
-          { text: 'Lock', link: '/card-types/locks' },
-          { text: 'Media', link: '/card-types/media' },
-          { text: 'Option Select', link: '/card-types/option-select' },
-          { text: 'Presence', link: '/card-types/presence' },
           { text: 'Screen Lock', link: '/card-types/screen-lock' },
-          { text: 'Sensor', link: '/card-types/sensors' },
-          { text: 'Local Sensor', link: '/card-types/local-sensors' },
-          { text: 'Slider', link: '/card-types/sliders' },
           { text: 'Subpage', link: '/features/subpages' },
-          { text: 'Switch', link: '/card-types/switches' },
-          { text: 'Trigger', link: '/card-types/buttons' },
-          { text: 'Weather', link: '/card-types/weather' },
           { text: 'Webhook', link: '/card-types/webhooks' },
-          { text: 'Wifi Share', link: '/card-types/wifi-share' },
           { text: 'World Clock', link: '/card-types/timezones' },
-        ],
-      },
-      {
-        text: 'Home Assistant',
-        items: [
-          { text: 'Enable Actions', link: '/getting-started/home-assistant-actions' },
         ],
       },
       {
@@ -493,21 +359,16 @@ export default defineConfig({
           { text: 'Appearance', link: '/features/appearance' },
           { text: 'Backlight', link: '/features/backlight' },
           { text: 'Clock Bar', link: '/features/clock-bar' },
-          { text: 'Battery', link: '/features/battery' },
           { text: 'Rotation', link: '/features/rotation' },
           { text: '<span class="sidebar-static-header">Sleep & Schedule</span>' },
           { text: 'Idle', link: '/features/idle' },
           { text: 'Screensaver', link: '/features/screensaver' },
-          { text: 'Media Cover Art', link: '/features/media-cover-art' },
           { text: 'Night Schedule', link: '/features/screen-schedule' },
           { text: '<span class="sidebar-static-header">System</span>' },
           { text: 'Language', link: '/features/language' },
           { text: 'Time Settings', link: '/features/clock' },
-          { text: 'Temperature Settings', link: '/features/temperature' },
           { text: 'Backup', link: '/features/backup' },
           { text: 'Firmware', link: '/features/firmware-updates' },
-          { text: 'Built-in Relays', link: '/features/relays' },
-          { text: 'Voice Control', link: '/features/voice-control' },
         ],
       },
       {
@@ -519,7 +380,7 @@ export default defineConfig({
           { text: 'Wifi Issues', link: '/getting-started/c6-recovery' },
           { text: 'Icon Reference', link: '/reference/icons' },
           { text: 'Language Support', link: '/reference/language-support' },
-          { text: 'Request Device Support', link: '/reference/request-device-support' },
+          { text: 'Request Device Support', link: '/reference/contributing' },
           { text: 'Privacy Policy', link: '/reference/privacy' },
           { text: 'FAQ', link: '/reference/faq' },
         ],

@@ -10,7 +10,7 @@ Your panel can update its firmware over the air — no USB cable or computer nee
 
 ## Update Settings
 
-These are configured from the **Settings** tab in the [Setup](/features/setup) under the **Firmware** section. They also appear as controls in Home Assistant.
+These are configured from the **Settings** tab in the [Setup](/features/setup) under the **Firmware** section.
 
 - **Current version** and **Available version** — compare the firmware running on your panel with the latest stable release.
 - **Auto updates** — open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
@@ -44,17 +44,9 @@ Backup imports remain compatible across firmware updates. If you move a backup b
 
 Some features, especially new card types, need both the web setup page and the panel firmware. If the setup page shows a new card type but the panel does not display it correctly after you apply the configuration, check for a firmware update and install the latest version.
 
-## Checking Updates from Home Assistant
-
-You can also manage updates from Home Assistant. The **Auto Update** toggle, **Update Frequency** selector, and **Check for Update** button all appear as entities that you can control from the Home Assistant dashboard or use in automations.
-
-The standard Home Assistant **Update** entity may also appear, depending on your Home Assistant version.
-
-Displays built with `disable_updates: "true"` do not expose EspDesktop's built-in GitHub update controls. They can still be updated manually through ESPHome.
-
 ## ESP32-C6 WiFi Co-processor Updates
 
-Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspDesktop exposes separate Home Assistant entities for that co-processor firmware on the supported P4 WiFi builds:
+Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. The web interface has separate WiFi firmware controls on these P4 builds:
 
 - **7-inch JC1060P470**
 - **7-inch JC1060P470 new panel**
@@ -63,13 +55,12 @@ Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspDesktop exposes
 - **4.3-inch JC4880P443**
 - **4-inch ESP32-P4-86**
 
-These entities are separate from the main EspDesktop display firmware controls. The normal **Firmware: Check for Update** and **Firmware: Install Update** controls update the panel firmware. The ESP32-C6 controls check and install compatible WiFi co-processor firmware from ESPHome's hosted firmware manifest.
+These controls are separate from the main EspDesktop display firmware controls. The normal **Firmware: Check for Update** and **Firmware: Install Update** controls update the panel firmware. The ESP32-C6 controls check and install compatible WiFi co-processor firmware from ESPHome's hosted firmware manifest.
 
 Supported displays check for compatible WiFi firmware once a day and install new versions automatically. Automatic WiFi firmware updates are on by default, helping displays receive connectivity fixes without requiring a separate manual update. The setting is remembered after restarts.
 
 On the panel's setup page, open the **WiFi firmware** panel under **Firmware** to turn **Auto Update** off or back on. You can still use **Check for Update** and **Update WiFi Firmware** manually while automatic updates are off.
 
-In Home Assistant, the **WiFi Firmware: Auto Update** switch provides the same opt-out. ESP32-C6 diagnostic entities show the current version, latest version, and whether an update is available. Continue using the regular EspDesktop firmware controls for normal panel updates.
 
 Advanced Ethernet-only builds keep the ESP32-C6 WiFi co-processor off, so they do not expose these ESP32-C6 update controls.
 

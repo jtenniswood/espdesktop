@@ -137,6 +137,5 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_AUTO_SWITCH = "app
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_TABS = "app_shortcuts_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_DATE_TIME_MODE = "date_time_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_LARGE_NUMBERS = "large_numbers";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_CONNECTOR = "subpage_connector";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_KIND = "subpage_kind";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBHOOK_HEADERS = "webhook_headers";
