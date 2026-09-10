@@ -299,3 +299,5 @@ window_left_quarters=Vasen ja neljännekset
 window_right_quarters=Oikea ja neljännekset
 window_top_quarters=Yläosa ja neljännekset
 window_bottom_quarters=Alaosa ja neljännekset
+paired=Paritettu
+unpaired=Ei paritettu

@@ -299,3 +299,5 @@ window_left_quarters=Links und Viertel
 window_right_quarters=Rechts und Viertel
 window_top_quarters=Oben und Viertel
 window_bottom_quarters=Unten und Viertel
+paired=Gekoppelt
+unpaired=Nicht gekoppelt

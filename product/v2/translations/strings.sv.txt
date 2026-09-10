@@ -299,3 +299,5 @@ window_left_quarters=Vänster och fjärdedelar
 window_right_quarters=Höger och fjärdedelar
 window_top_quarters=Överst och fjärdedelar
 window_bottom_quarters=Nederst och fjärdedelar
+paired=Parkopplad
+unpaired=Inte parkopplad

@@ -245,8 +245,15 @@ def test_companion_startup_order() -> None:
         "EspDesktop must start its runtime owner before connector setup reads Companion state"
     )
     connector = (ROOT / "components" / "espdesktop" / "connector_state.h").read_text(encoding="utf-8")
-    assert "if (!current_preference && existing_layout)" in connector, (
-        "legacy connector migration must not require Companion runtime during startup"
+    assert "#ifdef USE_COMPANION" in connector and "legacy_layout_migration_pending_ = true" in connector, (
+        "legacy connector migration must wait for restored Companion pairing state"
+    )
+    assert "result.home_assistant_connected || !companion.paired" in connector, (
+        "legacy connector migration must preserve Companion-only displays"
+    )
+    companion_codegen = (ROOT / "components" / "companion" / "__init__.py").read_text(encoding="utf-8")
+    assert 'cg.add_define("USE_COMPANION")' in companion_codegen, (
+        "Companion builds must identify themselves to connector migration"
     )
 
 

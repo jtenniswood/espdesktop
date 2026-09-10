@@ -83,11 +83,14 @@ export function createConnectorsPageFeature(
 ): ConnectorsPageFeature {
     const { document, window, fetch } = dom;
     let heading: HTMLElement | null = null;
+    let homeAssistantCard: HTMLElement | null = null;
+    let companionCard: HTMLElement | null = null;
     let homeAssistantStatus: HTMLElement | null = null;
     let homeAssistantInstructions: HTMLElement | null = null;
     let homeAssistantSteps: HTMLElement | null = null;
     let homeAssistantActionInfo: HTMLElement | null = null;
     let homeAssistantConfirmButton: HTMLButtonElement | null = null;
+    let homeAssistantForgetButton: HTMLButtonElement | null = null;
     let homeAssistantBadge: HTMLElement | null = null;
     let current: ConnectorsStatus | null = null;
     let statusEndpointAvailable = false;
@@ -131,6 +134,15 @@ export function createConnectorsPageFeature(
         const wasComplete = previous?.onboarding_complete === true;
         const announceCompletion = !!previous && !wasComplete && value.onboarding_complete;
         current = value;
+        if (homeAssistantCard && companionCard) {
+            // Use saved setup state so a temporary disconnect does not reorder cards.
+            const companionFirst = value.mac_companion.paired && !value.home_assistant.configured;
+            const first = companionFirst ? companionCard : homeAssistantCard;
+            const second = companionFirst ? homeAssistantCard : companionCard;
+            if (first.nextElementSibling !== second) {
+                second.parentElement?.insertBefore(first, second);
+            }
+        }
         if (homeAssistantStatus) {
             homeAssistantStatus.textContent = homeAssistantConnectorStatusText(value.home_assistant);
             homeAssistantStatus.classList.toggle(
@@ -144,6 +156,8 @@ export function createConnectorsPageFeature(
             homeAssistantConfirmButton.disabled = !value.home_assistant.connected ||
                 value.home_assistant.actions_confirmed;
         }
+        setHidden(homeAssistantForgetButton,
+            !value.home_assistant.configured || value.home_assistant.connected);
         setHidden(homeAssistantInstructions, value.home_assistant.connected &&
             value.home_assistant.actions_confirmed);
         setHidden(homeAssistantBadge, !value.home_assistant.connected);
@@ -227,6 +241,28 @@ export function createConnectorsPageFeature(
         actionInfo.appendChild(document.createElement("br"));
         actionInfo.appendChild(homeAssistantConfirmButton);
         homeAssistantInstructions.appendChild(actionInfo);
+
+        homeAssistantForgetButton = document.createElement("button");
+        homeAssistantForgetButton.type = "button";
+        homeAssistantForgetButton.className = "sp-button";
+        homeAssistantForgetButton.textContent = "Forget Home Assistant";
+        homeAssistantForgetButton.hidden = true;
+        homeAssistantForgetButton.addEventListener("click", async function () {
+            if (!current?.home_assistant.configured ||
+                current.home_assistant.connected || !homeAssistantForgetButton) return;
+            homeAssistantForgetButton.disabled = true;
+            try {
+                const response = await fetch("/connectors/home-assistant/forget", {
+                    method: "POST",
+                    headers: { Accept: "application/json" },
+                });
+                if (!response.ok) throw new Error("Home Assistant could not be forgotten");
+                applyStatus(await response.json() as ConnectorsStatus);
+            } catch {
+                if (homeAssistantForgetButton) homeAssistantForgetButton.disabled = false;
+            }
+        });
+        body.appendChild(homeAssistantForgetButton);
         body.insertBefore(homeAssistantInstructions, homeAssistantStatus);
 
         homeAssistantBadge = document.createElement("span");
@@ -261,13 +297,15 @@ export function createConnectorsPageFeature(
         heading.className = "sp-connectors-heading sp-settings-status-title";
         heading.textContent = "Connect EspDesktop";
         config.appendChild(heading);
-        config.appendChild(buildHomeAssistantCard());
+        homeAssistantCard = buildHomeAssistantCard();
+        config.appendChild(homeAssistantCard);
         if (companionSupported) {
             const openCompanion = requestedConnectorFromSearch(window.location.search) === "mac_companion";
-            config.appendChild(companionSection.buildCompanionSettingsCard(
+            companionCard = companionSection.buildCompanionSettingsCard(
                 applyCompanionStatus,
                 !openCompanion,
-            ));
+            );
+            config.appendChild(companionCard);
         }
         page.appendChild(config);
         parent.appendChild(page);

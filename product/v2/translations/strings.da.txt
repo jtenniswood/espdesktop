@@ -299,3 +299,5 @@ window_left_quarters=Venstre og kvarte
 window_right_quarters=Højre og kvarte
 window_top_quarters=Øverst og kvarte
 window_bottom_quarters=Nederst og kvarte
+paired=Parret
+unpaired=Ikke parret

@@ -299,3 +299,5 @@ window_left_quarters=Links en kwarten
 window_right_quarters=Rechts en kwarten
 window_top_quarters=Boven en kwarten
 window_bottom_quarters=Onder en kwarten
+paired=Gekoppeld
+unpaired=Niet gekoppeld

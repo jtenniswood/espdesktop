@@ -299,3 +299,5 @@ window_left_quarters=Sol ve çeyrekler
 window_right_quarters=Sağ ve çeyrekler
 window_top_quarters=Üst ve çeyrekler
 window_bottom_quarters=Alt ve çeyrekler
+paired=Eşleştirildi
+unpaired=Eşleştirilmedi

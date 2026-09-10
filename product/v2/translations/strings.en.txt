@@ -299,3 +299,5 @@ window_left_quarters=Left & Quarters
 window_right_quarters=Right & Quarters
 window_top_quarters=Top & Quarters
 window_bottom_quarters=Bottom & Quarters
+paired=Paired
+unpaired=Unpaired

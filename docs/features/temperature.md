@@ -15,3 +15,5 @@ The top bar of your panel can show one temperature sensor from Home Assistant.
 Older configurations that saved more than one clock-bar temperature are still accepted, but current firmware only displays the first one.
 
 If you hide the temperature item in the preview, the device screen hides it but keeps the chosen sensor so you can show it again later. If you turn off **Show Clock Bar** in the **Clock Bar** settings, the temperature display is hidden along with the top bar.
+
+The clock bar temperature is hidden on the display and web preview until Home Assistant is set up. Once configured, temporary Home Assistant disconnections do not hide it.
