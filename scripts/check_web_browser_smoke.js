@@ -5196,6 +5196,65 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function assertShortcutCatalogSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  async function openCard() {
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  }
+  async function saveCard() {
+    const before = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.puts.length > before, "shortcut card save");
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await seedNativeDocument(page, nativeState);
+    await openCard();
+    const type = page.locator('[id$="shortcut-type"]');
+    const app = page.locator('[id$="shortcut-catalog-app"]');
+    const action = page.locator('[id$="shortcut-catalog-action"]');
+    assert.strictEqual(await type.inputValue(), "custom", "existing shortcuts use Custom Shortcut");
+    assert.strictEqual(await page.locator('[id$="companion-shortcut"]').inputValue(), "⌘A");
+    await type.selectOption("catalog");
+    assert.strictEqual(await action.isDisabled(), true, "choose an app first");
+    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
+    await app.selectOption("com.apple.Safari");
+    assert.strictEqual(await action.locator("option").count(), 6, "five Safari shortcuts plus placeholder");
+    const beforeInvalidSave = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
+    await action.selectOption("shortcut.command+r");
+    await saveCard();
+    assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await seedNativeDocument(page, nativeState);
+    await openCard();
+    assert.strictEqual(await type.inputValue(), "catalog", "catalog type survives reload");
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari");
+    assert.strictEqual(await action.inputValue(), "shortcut.command+r");
+    await type.selectOption("custom");
+    await page.locator('[id$="companion-shortcut"]').press("Meta+a");
+    await saveCard();
+    await openCard();
+    assert.strictEqual(await type.inputValue(), "custom", "custom type survives save");
+    assert.strictEqual(await page.locator('[id$="companion-shortcut"]').inputValue(), "⌘A");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertCompanionShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -5723,6 +5782,7 @@ async function runCase(browser, testCase) {
       if (!acceptanceOnly) await runCase(browser, testCase);
       await assertNativeProfileJourney(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertShortcutCatalogSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);
       await assertLegacyProfileFallback(browser, testCase);
       if (testCase.exerciseInteractions) await assertLegacyRestoreVerificationFailure(browser, testCase);
