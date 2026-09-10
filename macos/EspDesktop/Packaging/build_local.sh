@@ -22,7 +22,7 @@ fi
 # Check the new app against the identity macOS has already approved.
 REQUIREMENT=""
 if [[ -d "${INSTALLED_APP}" ]]; then
-    REQUIREMENT="$(codesign -d -r- "${INSTALLED_APP}" 2>&1 | sed -n 's/^designated => //p')"
+    REQUIREMENT="$(codesign -d -r- "${INSTALLED_APP}" 2>&1 | sed -n -E 's/^(# )?designated => //p')"
     if [[ -z "${REQUIREMENT}" ]]; then
         echo "Could not read the installed app identity; refusing an unchecked update." >&2
         exit 2
