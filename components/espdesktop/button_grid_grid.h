@@ -1863,7 +1863,7 @@ inline void grid_phase2(
   navigation_clear_home_targets();
   // Image-card contexts may still point at widgets inside subpage screens.
   espdesktop::cards::image_driver_reset_pool(cfg);
-  navigation_clear_subpages();
+  navigation_clear_subpages(main_page_obj);
   clear_subpage_vacuum_card_text_refs();
 
   bool has_on;

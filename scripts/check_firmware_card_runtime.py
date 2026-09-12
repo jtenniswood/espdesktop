@@ -335,7 +335,7 @@ def check_root(root: Path) -> list[str]:
                 f"components/espdesktop/{GRID_HEADER}: include full fan controls in generic subpage parent indicators"
             )
         image_reset_pos = text.find("image_driver_reset_pool(cfg);")
-        subpage_clear_pos = text.find("navigation_clear_subpages();")
+        subpage_clear_pos = text.find("navigation_clear_subpages(main_page_obj);")
         if image_reset_pos < 0 or subpage_clear_pos < 0 or image_reset_pos > subpage_clear_pos:
             failures.append(
                 f"components/espdesktop/{GRID_HEADER}: reset image-card contexts before deleting subpage screens"
@@ -1248,7 +1248,7 @@ inline void setup_light_temp_visual() {
                     '  subscribe_light_control_state(ctx);\n'
                     '  add_parent_indicator(sb_cfg.entity);\n'
                     '}\n'
-                    'navigation_clear_subpages();\n'
+                    'navigation_clear_subpages(main_page_obj);\n'
                     'reset_image_card_pool(cfg);\n'
                 )
             },

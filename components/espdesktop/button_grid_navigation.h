@@ -108,10 +108,17 @@ inline void navigation_clear_home_targets() {
   grid_navigation_service().clear_home_targets();
 }
 
-inline void navigation_clear_subpages() {
+inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   lv_obj_t *active = lv_scr_act();
+  for (const auto &entry : navigation_subpages()) {
+    if (entry.screen != nullptr && entry.screen == active) {
+      // Move off the page before destroying its labels and live card contexts.
+      if (!navigation_return_home(main_page_obj)) return;
+      break;
+    }
+  }
   for (auto &entry : navigation_subpages()) {
-    if (entry.screen != nullptr && entry.screen != active) {
+    if (entry.screen != nullptr) {
       navigation_release_subpage_runtime(entry);
       lv_obj_del(entry.screen);
     }
