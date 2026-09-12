@@ -470,7 +470,6 @@ add_test(NAME network_status_layout_test COMMAND network_status_layout_test)
 
 add_test(NAME companion_screensaver_test
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_screensaver_test.py)
-
 add_executable(timer_card_test timer_card_test.cpp)
 target_compile_features(timer_card_test PRIVATE cxx_std_17)
 target_compile_options(timer_card_test PRIVATE -Wall -Wextra -Werror)
@@ -498,3 +497,14 @@ add_executable(clock_bar_title_test ${CLOCK_BAR_TITLE_TEST_SOURCE})
 target_compile_features(clock_bar_title_test PRIVATE cxx_std_17)
 target_compile_options(clock_bar_title_test PRIVATE -Wall -Wextra -Werror)
 add_test(NAME clock_bar_title_test COMMAND clock_bar_title_test)
+add_executable(panel_identity_test panel_identity_test.cpp)
+target_compile_features(panel_identity_test PRIVATE cxx_std_17)
+target_compile_options(panel_identity_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(panel_identity_test PRIVATE ../../components/espdesktop)
+add_test(NAME panel_identity_test COMMAND panel_identity_test)
+
+add_executable(panel_identity_runtime_test panel_identity_runtime_test.cpp ../../components/espdesktop/panel_identity.cpp)
+target_compile_features(panel_identity_runtime_test PRIVATE cxx_std_17)
+target_compile_options(panel_identity_runtime_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(panel_identity_runtime_test PRIVATE panel_identity_stubs ../../components/espdesktop)
+add_test(NAME panel_identity_runtime_test COMMAND panel_identity_runtime_test)
