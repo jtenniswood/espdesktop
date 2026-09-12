@@ -238,8 +238,10 @@ void EspDesktopApp::setup() {
       panel_config_button_order_ != nullptr &&
           !panel_config_button_order_->state.empty(),
       web_auth_username_, web_auth_password_);
-  clock_bar_home_assistant_configured_provider() = []() {
-    return connectors::connector_state_service().status().home_assistant_configured;
+  clock_bar_home_assistant_available_provider() = []() {
+    // Do not use the persisted setup flag here: HA-only clock-bar data is
+    // available only while the Home Assistant API is connected.
+    return connectors::connector_state_service().status().home_assistant_connected;
   };
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.

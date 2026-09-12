@@ -79,11 +79,12 @@ describe("browserless application contracts", () => {
     assert.match(settings, /\["sensor", "Home Assistant"\]/);
     assert.match(settings, /\["companion", "App Connection"\]/);
     assert.match(settings, /sensorBtn\.hidden = !haAvailable/);
+    assert.match(settings, /homeAssistantAvailable\(\)/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
     assert.match(screensaver, /state\.screensaverMode === "companion"/);
     assert.match(eventHandlers, /val === "companion"/);
-    assert.match(connectors, /homeAssistantConfigured\(\)/);
+    assert.match(connectors, /homeAssistantAvailable\(\)/);
     assert.match(connectors, /companionConfigured\(\)/);
   });
 
