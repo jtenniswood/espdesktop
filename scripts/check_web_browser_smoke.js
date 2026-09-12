@@ -5874,7 +5874,7 @@ async function assertPanelNaming(browser) {
     if (process.env.ESPDESKTOP_NAMING_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_NAMING_SCREENSHOT, fullPage: true });
     identityState.failSave = true;
     await save.click();
-    await page.waitForFunction(() => document.querySelector('[role="status"]')?.textContent?.includes("Could not save"));
+    await card.getByRole("status").filter({ hasText: "Could not save" }).waitFor();
     assert.strictEqual(restartRequests.length, 0, "failed save must not restart");
     assert.strictEqual(await page.title(), "EspDesktop — Kitchen");
     identityState.failSave = false;
