@@ -3200,6 +3200,7 @@ async function assertNumberActionRequiresValue(page, posts, label) {
   await chooseCardType(page, "Action");
   await page.locator("#sp-inp-action").selectOption("number.set_value");
   await page.locator("#sp-inp-entity").fill("number.target_level");
+  await page.locator("#sp-inp-entity").press("Tab");
   await page
     .locator(".sp-settings-modal .sp-disclosure")
     .filter({ hasText: "Card Settings" })
@@ -5706,8 +5707,8 @@ async function runCase(browser, testCase) {
       `${testCase.name}: the local icon stylesheet should use a CSS codepoint escape`,
     );
     assert(
-      iconStyle.includes("@font-face{font-family:'Inter'"),
-      `${testCase.name}: the local stylesheet should embed the interface font`,
+      !iconStyle.includes("@font-face{font-family:'Inter'"),
+      `${testCase.name}: the local stylesheet should omit the unused interface font`,
     );
     assert.strictEqual(
       await page.locator(".sp-support-link").textContent(),
@@ -5773,10 +5774,53 @@ async function runCase(browser, testCase) {
   }
 }
 
+async function assertEditorRefresh(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await installRoutes(context, "esp32-p4-86");
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto("http://espdesktop.test/esp32-p4-86?events=1", { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), seededEvents());
+    await page.getByRole("tab", { name: "Settings" }).click();
+    for (const [title, selector] of [["Voice Services", "#sp-set-voice-services"], ["Alarm Audio", "#sp-set-alarm-delay-audio"]]) {
+      const card = page.locator("#sp-settings .card").filter({ has: page.locator(".card-header h3", { hasText: new RegExp("^" + title + "$") }) });
+      await card.locator(".card-header").click();
+      const toggle = page.locator(selector);
+      const badge = card.locator(".card-header .sp-card-badge");
+      await toggle.evaluate(el => { el.checked = true; el.dispatchEvent(new Event("change", { bubbles: true })); });
+      await card.locator(".card-header").click();
+      assert(await badge.isVisible(), title + " ON badge follows enable");
+      await card.locator(".card-header").click();
+      await toggle.evaluate(el => { el.checked = false; el.dispatchEvent(new Event("change", { bubbles: true })); });
+      await card.locator(".card-header").click();
+      assert(!(await badge.isVisible()), title + " ON badge follows disable");
+    }
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      const metrics = await page.evaluate(() => {
+        const app = getComputedStyle(document.querySelector("#sp-app"));
+        const section = getComputedStyle(document.querySelectorAll(".sp-settings-status-header")[1]);
+        return { maxWidth: app.maxWidth, font: app.fontFamily, gap: section.marginTop,
+          overflow: document.documentElement.scrollWidth > innerWidth };
+      });
+      assert.strictEqual(metrics.maxWidth, width > 600 ? "1080px" : "100%");
+      assert(!metrics.font.includes("Inter"));
+      assert.strictEqual(metrics.gap, width > 600 ? "48px" : "40px");
+      assert(!metrics.overflow, "editor must fit the viewport");
+    }
+    await page.screenshot({ path: "/tmp/espdesktop-editor-mobile.png", fullPage: true });
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await chromium.launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    await assertEditorRefresh(browser);
+    if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }
     if (!acceptanceOnly) {
       await assertPageTitleEvents(browser);
       await assertRotationStartupOrdering(browser);
