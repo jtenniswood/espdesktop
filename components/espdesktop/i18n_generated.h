@@ -186,6 +186,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nepodporováno";
   if (std::strcmp(text, "Vacuum") == 0) return "Vysavač";
   if (std::strcmp(text, "Version unknown") == 0) return "Verze neznámá";
+  if (std::strcmp(text, "Voice") == 0) return "Hlas";
   if (std::strcmp(text, "Volume") == 0) return "Hlasitost";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čekání na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Připojování k \nHome Assistant";
@@ -466,6 +467,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Ikke understøttet";
   if (std::strcmp(text, "Vacuum") == 0) return "Støvsuger";
   if (std::strcmp(text, "Version unknown") == 0) return "Version ukendt";
+  if (std::strcmp(text, "Voice") == 0) return "Stemme";
   if (std::strcmp(text, "Volume") == 0) return "Lydstyrke";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Opretter forbindelse til \nHome Assistant";
@@ -742,6 +744,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nicht unterstützt";
   if (std::strcmp(text, "Vacuum") == 0) return "Staubsauger";
   if (std::strcmp(text, "Version unknown") == 0) return "Version unbekannt";
+  if (std::strcmp(text, "Voice") == 0) return "Sprache";
   if (std::strcmp(text, "Volume") == 0) return "Lautstärke";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Warten auf Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Verbindung mit \nHome Assistant wird hergestellt";
@@ -1025,6 +1028,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "No compatible";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspiradora";
   if (std::strcmp(text, "Version unknown") == 0) return "Versión desconocida";
+  if (std::strcmp(text, "Voice") == 0) return "Voz";
   if (std::strcmp(text, "Volume") == 0) return "Volumen";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Esperando a Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Conectando a \nHome Assistant";
@@ -1320,6 +1324,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Lomapito";
   if (std::strcmp(text, "Vacuum") == 0) return "Imuri";
   if (std::strcmp(text, "Version unknown") == 0) return "Versio tuntematon";
+  if (std::strcmp(text, "Voice") == 0) return "Puhe";
   if (std::strcmp(text, "Volume") == 0) return "Äänenvoimakkuus";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Odotetaan Home Assistantia";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Yhdistetään \nHome Assistantiin";
@@ -1599,6 +1604,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Non pris en charge";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirateur";
   if (std::strcmp(text, "Version unknown") == 0) return "Version inconnue";
+  if (std::strcmp(text, "Voice") == 0) return "Voix";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "En attente de Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Connexion à \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Météo";
@@ -1901,6 +1907,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "החזקת חופשה";
   if (std::strcmp(text, "Vacuum") == 0) return "שואב אבק";
   if (std::strcmp(text, "Version unknown") == 0) return "גרסה לא ידועה";
+  if (std::strcmp(text, "Voice") == 0) return "קול";
   if (std::strcmp(text, "Volume") == 0) return "עוצמה";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "ממתין ל-Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "מתחבר אל\nHome Assistant";
@@ -2195,6 +2202,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Vakációs tartás";
   if (std::strcmp(text, "Vacuum") == 0) return "Porszívó";
   if (std::strcmp(text, "Version unknown") == 0) return "Ismeretlen verzió";
+  if (std::strcmp(text, "Voice") == 0) return "Hang";
   if (std::strcmp(text, "Volume") == 0) return "Hangerő";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Várakozás a Home Assistantra";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Csatlakozás a \nHome Assistanthez";
@@ -2482,6 +2490,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Vacanza";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirapolvere";
   if (std::strcmp(text, "Version unknown") == 0) return "Versione sconosciuta";
+  if (std::strcmp(text, "Voice") == 0) return "Voce";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "In attesa di Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Connessione a \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Meteo";
@@ -2762,6 +2771,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Støttes ikke";
   if (std::strcmp(text, "Vacuum") == 0) return "Støvsuger";
   if (std::strcmp(text, "Version unknown") == 0) return "Ukjent versjon";
+  if (std::strcmp(text, "Voice") == 0) return "Stemme";
   if (std::strcmp(text, "Volume") == 0) return "Volum";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Kobler til \nHome Assistant";
@@ -3048,6 +3058,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Niet ondersteund";
   if (std::strcmp(text, "Vacuum") == 0) return "Stofzuiger";
   if (std::strcmp(text, "Version unknown") == 0) return "Versie onbekend";
+  if (std::strcmp(text, "Voice") == 0) return "Spraak";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Wachten op Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Verbinden met \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Weer";
@@ -3323,6 +3334,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nieobsługiwane";
   if (std::strcmp(text, "Vacuum") == 0) return "Odkurzacz";
   if (std::strcmp(text, "Version unknown") == 0) return "Wersja nieznana";
+  if (std::strcmp(text, "Voice") == 0) return "Głos";
   if (std::strcmp(text, "Volume") == 0) return "Głośność";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Oczekiwanie na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Łączenie z \nHome Assistant";
@@ -3609,6 +3621,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Não suportado";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirador";
   if (std::strcmp(text, "Version unknown") == 0) return "Versão desconhecida";
+  if (std::strcmp(text, "Voice") == 0) return "Voz";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Aguardando o Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Conectando ao \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Tempo";
@@ -3893,6 +3906,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Não suportado";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirador";
   if (std::strcmp(text, "Version unknown") == 0) return "Versão desconhecida";
+  if (std::strcmp(text, "Voice") == 0) return "Voz";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "À espera do Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "A ligar ao \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Meteorologia";
@@ -4185,6 +4199,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Menținere vacanță";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirator";
   if (std::strcmp(text, "Version unknown") == 0) return "Versiune necunoscută";
+  if (std::strcmp(text, "Voice") == 0) return "Voce";
   if (std::strcmp(text, "Volume") == 0) return "Volum";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Se așteaptă Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Se conectează la \nHome Assistant";
@@ -4485,6 +4500,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Удержание на отпуск";
   if (std::strcmp(text, "Vacuum") == 0) return "Пылесос";
   if (std::strcmp(text, "Version unknown") == 0) return "Версия неизвестна";
+  if (std::strcmp(text, "Voice") == 0) return "Голос";
   if (std::strcmp(text, "Volume") == 0) return "Громкость";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Ожидание Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Подключение к \nHome Assistant";
@@ -4772,6 +4788,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nepodporované";
   if (std::strcmp(text, "Vacuum") == 0) return "Vysávač";
   if (std::strcmp(text, "Version unknown") == 0) return "Verzia neznáma";
+  if (std::strcmp(text, "Voice") == 0) return "Hlas";
   if (std::strcmp(text, "Volume") == 0) return "Hlasitosť";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čakanie na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Pripája sa k \nHome Assistant";
@@ -5063,6 +5080,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Počitniško zadržanje";
   if (std::strcmp(text, "Vacuum") == 0) return "Sesalnik";
   if (std::strcmp(text, "Version unknown") == 0) return "Različica neznana";
+  if (std::strcmp(text, "Voice") == 0) return "Glas";
   if (std::strcmp(text, "Volume") == 0) return "Glasnost";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čakanje na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Povezovanje s \nHome Assistant";
@@ -5346,6 +5364,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Stöds inte";
   if (std::strcmp(text, "Vacuum") == 0) return "Dammsugare";
   if (std::strcmp(text, "Version unknown") == 0) return "Version okänd";
+  if (std::strcmp(text, "Voice") == 0) return "Röst";
   if (std::strcmp(text, "Volume") == 0) return "Volym";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Väntar på Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Ansluter till \nHome Assistant";
@@ -5640,6 +5659,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Tatil tutması";
   if (std::strcmp(text, "Vacuum") == 0) return "Süpürge";
   if (std::strcmp(text, "Version unknown") == 0) return "Sürüm bilinmiyor";
+  if (std::strcmp(text, "Voice") == 0) return "Ses";
   if (std::strcmp(text, "Volume") == 0) return "Ses";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Home Assistant bekleniyor";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "\nHome Assistant'a bağlanılıyor";
@@ -5937,6 +5957,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Утримання на відпустку";
   if (std::strcmp(text, "Vacuum") == 0) return "Пилосос";
   if (std::strcmp(text, "Version unknown") == 0) return "Версія невідома";
+  if (std::strcmp(text, "Voice") == 0) return "Голос";
   if (std::strcmp(text, "Volume") == 0) return "Гучність";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Очікування Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Підключення до \nHome Assistant";
@@ -6239,6 +6260,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Vacationhold";
   if (std::strcmp(key, "vacuum") == 0) return "Vacuum";
   if (std::strcmp(key, "version_unknown") == 0) return "Version unknown";
+  if (std::strcmp(key, "voice") == 0) return "Voice";
   if (std::strcmp(key, "volume") == 0) return "Volume";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Waiting for Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connecting to \nHome Assistant";
@@ -6531,6 +6553,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nepodporováno";
   if (std::strcmp(key, "vacuum") == 0) return "Vysavač";
   if (std::strcmp(key, "version_unknown") == 0) return "Verze neznámá";
+  if (std::strcmp(key, "voice") == 0) return "Hlas";
   if (std::strcmp(key, "volume") == 0) return "Hlasitost";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čekání na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Připojování k \nHome Assistant";
@@ -6814,6 +6837,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Ikke understøttet";
   if (std::strcmp(key, "vacuum") == 0) return "Støvsuger";
   if (std::strcmp(key, "version_unknown") == 0) return "Version ukendt";
+  if (std::strcmp(key, "voice") == 0) return "Stemme";
   if (std::strcmp(key, "volume") == 0) return "Lydstyrke";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Opretter forbindelse til \nHome Assistant";
@@ -7093,6 +7117,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nicht unterstützt";
   if (std::strcmp(key, "vacuum") == 0) return "Staubsauger";
   if (std::strcmp(key, "version_unknown") == 0) return "Version unbekannt";
+  if (std::strcmp(key, "voice") == 0) return "Sprache";
   if (std::strcmp(key, "volume") == 0) return "Lautstärke";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Warten auf Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbindung mit \nHome Assistant wird hergestellt";
@@ -7379,6 +7404,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "No compatible";
   if (std::strcmp(key, "vacuum") == 0) return "Aspiradora";
   if (std::strcmp(key, "version_unknown") == 0) return "Versión desconocida";
+  if (std::strcmp(key, "voice") == 0) return "Voz";
   if (std::strcmp(key, "volume") == 0) return "Volumen";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Esperando a Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando a \nHome Assistant";
@@ -7677,6 +7703,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Lomapito";
   if (std::strcmp(key, "vacuum") == 0) return "Imuri";
   if (std::strcmp(key, "version_unknown") == 0) return "Versio tuntematon";
+  if (std::strcmp(key, "voice") == 0) return "Puhe";
   if (std::strcmp(key, "volume") == 0) return "Äänenvoimakkuus";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Odotetaan Home Assistantia";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Yhdistetään \nHome Assistantiin";
@@ -7959,6 +7986,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Non pris en charge";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirateur";
   if (std::strcmp(key, "version_unknown") == 0) return "Version inconnue";
+  if (std::strcmp(key, "voice") == 0) return "Voix";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "En attente de Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connexion à \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Météo";
@@ -8264,6 +8292,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "החזקת חופשה";
   if (std::strcmp(key, "vacuum") == 0) return "שואב אבק";
   if (std::strcmp(key, "version_unknown") == 0) return "גרסה לא ידועה";
+  if (std::strcmp(key, "voice") == 0) return "קול";
   if (std::strcmp(key, "volume") == 0) return "עוצמה";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "ממתין ל-Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "מתחבר אל\nHome Assistant";
@@ -8561,6 +8590,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Vakációs tartás";
   if (std::strcmp(key, "vacuum") == 0) return "Porszívó";
   if (std::strcmp(key, "version_unknown") == 0) return "Ismeretlen verzió";
+  if (std::strcmp(key, "voice") == 0) return "Hang";
   if (std::strcmp(key, "volume") == 0) return "Hangerő";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Várakozás a Home Assistantra";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Csatlakozás a \nHome Assistanthez";
@@ -8851,6 +8881,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Vacanza";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirapolvere";
   if (std::strcmp(key, "version_unknown") == 0) return "Versione sconosciuta";
+  if (std::strcmp(key, "voice") == 0) return "Voce";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "In attesa di Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connessione a \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Meteo";
@@ -9134,6 +9165,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Støttes ikke";
   if (std::strcmp(key, "vacuum") == 0) return "Støvsuger";
   if (std::strcmp(key, "version_unknown") == 0) return "Ukjent versjon";
+  if (std::strcmp(key, "voice") == 0) return "Stemme";
   if (std::strcmp(key, "volume") == 0) return "Volum";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Kobler til \nHome Assistant";
@@ -9422,6 +9454,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Niet ondersteund";
   if (std::strcmp(key, "vacuum") == 0) return "Stofzuiger";
   if (std::strcmp(key, "version_unknown") == 0) return "Versie onbekend";
+  if (std::strcmp(key, "voice") == 0) return "Spraak";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Wachten op Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbinden met \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Weer";
@@ -9700,6 +9733,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nieobsługiwane";
   if (std::strcmp(key, "vacuum") == 0) return "Odkurzacz";
   if (std::strcmp(key, "version_unknown") == 0) return "Wersja nieznana";
+  if (std::strcmp(key, "voice") == 0) return "Głos";
   if (std::strcmp(key, "volume") == 0) return "Głośność";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Oczekiwanie na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Łączenie z \nHome Assistant";
@@ -9989,6 +10023,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Não suportado";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirador";
   if (std::strcmp(key, "version_unknown") == 0) return "Versão desconhecida";
+  if (std::strcmp(key, "voice") == 0) return "Voz";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Aguardando o Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando ao \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Tempo";
@@ -10276,6 +10311,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Não suportado";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirador";
   if (std::strcmp(key, "version_unknown") == 0) return "Versão desconhecida";
+  if (std::strcmp(key, "voice") == 0) return "Voz";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "À espera do Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "A ligar ao \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Meteorologia";
@@ -10571,6 +10607,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Menținere vacanță";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirator";
   if (std::strcmp(key, "version_unknown") == 0) return "Versiune necunoscută";
+  if (std::strcmp(key, "voice") == 0) return "Voce";
   if (std::strcmp(key, "volume") == 0) return "Volum";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Se așteaptă Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Se conectează la \nHome Assistant";
@@ -10874,6 +10911,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Удержание на отпуск";
   if (std::strcmp(key, "vacuum") == 0) return "Пылесос";
   if (std::strcmp(key, "version_unknown") == 0) return "Версия неизвестна";
+  if (std::strcmp(key, "voice") == 0) return "Голос";
   if (std::strcmp(key, "volume") == 0) return "Громкость";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Ожидание Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Подключение к \nHome Assistant";
@@ -11164,6 +11202,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nepodporované";
   if (std::strcmp(key, "vacuum") == 0) return "Vysávač";
   if (std::strcmp(key, "version_unknown") == 0) return "Verzia neznáma";
+  if (std::strcmp(key, "voice") == 0) return "Hlas";
   if (std::strcmp(key, "volume") == 0) return "Hlasitosť";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čakanie na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Pripája sa k \nHome Assistant";
@@ -11458,6 +11497,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Počitniško zadržanje";
   if (std::strcmp(key, "vacuum") == 0) return "Sesalnik";
   if (std::strcmp(key, "version_unknown") == 0) return "Različica neznana";
+  if (std::strcmp(key, "voice") == 0) return "Glas";
   if (std::strcmp(key, "volume") == 0) return "Glasnost";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čakanje na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Povezovanje s \nHome Assistant";
@@ -11744,6 +11784,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Stöds inte";
   if (std::strcmp(key, "vacuum") == 0) return "Dammsugare";
   if (std::strcmp(key, "version_unknown") == 0) return "Version okänd";
+  if (std::strcmp(key, "voice") == 0) return "Röst";
   if (std::strcmp(key, "volume") == 0) return "Volym";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Väntar på Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Ansluter till \nHome Assistant";
@@ -12041,6 +12082,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Tatil tutması";
   if (std::strcmp(key, "vacuum") == 0) return "Süpürge";
   if (std::strcmp(key, "version_unknown") == 0) return "Sürüm bilinmiyor";
+  if (std::strcmp(key, "voice") == 0) return "Ses";
   if (std::strcmp(key, "volume") == 0) return "Ses";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Home Assistant bekleniyor";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "\nHome Assistant'a bağlanılıyor";
@@ -12341,6 +12383,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Утримання на відпустку";
   if (std::strcmp(key, "vacuum") == 0) return "Пилосос";
   if (std::strcmp(key, "version_unknown") == 0) return "Версія невідома";
+  if (std::strcmp(key, "voice") == 0) return "Голос";
   if (std::strcmp(key, "volume") == 0) return "Гучність";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Очікування Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Підключення до \nHome Assistant";

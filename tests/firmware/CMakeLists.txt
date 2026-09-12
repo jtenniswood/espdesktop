@@ -464,3 +464,22 @@ add_test(NAME network_status_layout_test COMMAND network_status_layout_test)
 
 add_test(NAME companion_screensaver_test
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_screensaver_test.py)
+
+set(CLOCK_BAR_TITLE_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/clock_bar_title_test.cpp)
+add_custom_command(
+  OUTPUT ${CLOCK_BAR_TITLE_TEST_SOURCE}
+  COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/generate_clock_bar_title_test.py
+    --header ${CMAKE_CURRENT_SOURCE_DIR}/../../components/espdesktop/clock_bar.h
+    --output ${CLOCK_BAR_TITLE_TEST_SOURCE}
+  DEPENDS
+    generate_clock_bar_title_test.py
+    clock_bar_title_test.cpp.in
+    ../../components/espdesktop/clock_bar.h
+    ../../components/espdesktop/button_grid_modal.h
+  VERBATIM
+)
+add_executable(clock_bar_title_test ${CLOCK_BAR_TITLE_TEST_SOURCE})
+target_compile_features(clock_bar_title_test PRIVATE cxx_std_17)
+target_compile_options(clock_bar_title_test PRIVATE -Wall -Wextra -Werror)
+add_test(NAME clock_bar_title_test COMMAND clock_bar_title_test)
