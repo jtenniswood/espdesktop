@@ -20,7 +20,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-header{display:flex;align-items:center;background:var(--bg);" +
         "border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;height:56px;padding:0 20px}" +
         ".sp-brand{font-size:var(--text-lg);font-weight:600;color:var(--text);margin-right:auto;" +
-        "white-space:nowrap;letter-spacing:-.01em}" +
+        "min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.01em}" +
+        ".sp-identity-dialog{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:.875rem;line-height:1.5;max-width:32rem;width:calc(100% - 3rem);box-sizing:border-box;border:1px solid var(--border);border-radius:12px;padding:1.5rem;background:var(--bg);color:var(--text)}.sp-identity-dialog::backdrop{background:#0008}.sp-identity-dialog a{color:var(--accent);overflow-wrap:anywhere}.sp-identity-dialog button{margin:1rem .5rem 0 0}[hidden]{display:none!important}" +
+        ".sp-brand-name{font-weight:400;color:var(--text2);margin-inline-start:.25em}" +
         ".sp-nav{display:flex;align-items:center;height:100%}" +
         ".sp-tab{padding:0 16px;height:100%;display:flex;align-items:center;color:var(--text2);cursor:pointer;" +
         "font-size:var(--text-md);font-weight:500;border-bottom:2px solid transparent;text-decoration:none;transition:color .2s}" +
@@ -238,12 +240,18 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-transfer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:260;" +
         "display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;" +
         "backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
-        ".sp-transfer-dialog{position:relative;width:min(620px,100%);max-height:90vh;overflow:auto;" +
+        ".sp-transfer-dialog,.sp-reset-dialog{position:relative;width:min(620px,100%);max-height:90vh;overflow:auto;" +
         "box-sizing:border-box;padding:24px;background:var(--bg);border:1px solid var(--border);" +
         "border-radius:var(--radius);box-shadow:var(--shadow-3);color:var(--text);" +
         "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}" +
-        ".sp-transfer-dialog h2{margin:0 44px 12px 0;font-size:var(--text-xl);font-weight:600}" +
-        ".sp-transfer-dialog p{margin:0 0 14px;color:var(--text2);line-height:1.45}" +
+        ".sp-transfer-dialog h2,.sp-reset-dialog h2{margin:0 44px 12px 0;font-size:var(--text-xl);font-weight:600}" +
+        ".sp-transfer-dialog p,.sp-reset-dialog p{margin:0 0 14px;color:var(--text2);line-height:1.45}" +
+        ".sp-reset-dialog{position:fixed;inset:0;margin:auto;width:min(480px,calc(100% - 32px));" +
+        "max-height:calc(100dvh - 32px);font-size:.875rem;font-weight:400;outline:none}" +
+        ".sp-reset-dialog h2{margin-right:0}.sp-reset-dialog p{margin-bottom:0}" +
+        ".sp-reset-dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
+        ".sp-backup-btn.sp-reset-danger{background:var(--danger);border-color:var(--danger);color:#fff}" +
+        ".sp-backup-btn.sp-reset-danger:hover{filter:brightness(.9)}" +
         ".sp-transfer-close{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:999px;" +
         "border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;" +
         "display:flex;align-items:center;justify-content:center;padding:0;z-index:1;line-height:1;" +
@@ -490,6 +498,23 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-info-panel .mdi{font-size:18px;color:var(--accent);line-height:1.1;flex:0 0 auto;margin-top:1px}" +
         ".sp-info-panel a{color:var(--accent);font-weight:600;text-decoration:none}" +
         ".sp-info-panel a:hover{text-decoration:underline}" +
+        ".sp-reset-backup-info{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center}" +
+        ".sp-reset-backup-info .sp-action-btn{white-space:nowrap}" +
+        "@media(max-width:480px){.sp-reset-backup-info{grid-template-columns:auto minmax(0,1fr)}" +
+        ".sp-reset-backup-info .sp-action-btn{grid-column:2;justify-self:end}}" +
+        ".sp-reset-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}" +
+        ".sp-reset-option{display:flex;flex-direction:column;gap:6px;min-width:0;margin:0;padding:20px;background:var(--bg)}" +
+        ".sp-reset-option h4{margin:0;color:var(--text);font-size:.95rem;font-weight:600}" +
+        ".sp-reset-option p{margin:0 0 6px;color:var(--text2);font-size:.875rem;line-height:1.5}" +
+        ".sp-reset-option .sp-backup-btn{flex:0 0 auto;align-self:flex-start;margin-top:auto}" +
+        "@media(max-width:600px){.sp-reset-options{grid-template-columns:minmax(0,1fr)}}" +
+        ".sp-panel-name-row{display:flex;align-items:center;gap:12px}" +
+        ".sp-panel-name-row .sp-input{flex:1;min-width:0;margin:0}" +
+        ".sp-panel-name-row .sp-fw-btn{flex:none;white-space:nowrap;margin:0}" +
+        "#sp-panel-name-info{margin:16px 0 0;overflow-wrap:anywhere;min-width:0;align-items:center}" +
+        "#sp-panel-name-info .mdi{margin-top:0}" +
+        "#sp-panel-name-info>span:last-child{min-width:0}" +
+        "#sp-panel-name-info code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:1em}" +
         ".sp-range-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}" +
         ".sp-range-row:last-child{margin-bottom:0}" +
         ".sp-range{flex:1;height:4px;-webkit-appearance:none;appearance:none;background:var(--surface2);" +
