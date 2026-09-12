@@ -10,6 +10,12 @@ target_compile_features(foundation_test PRIVATE cxx_std_17)
 target_compile_options(foundation_test PRIVATE -Wall -Wextra -Werror)
 add_test(NAME foundation_test COMMAND foundation_test)
 
+add_executable(digest_auth_policy_test digest_auth_policy_test.cpp)
+target_compile_features(digest_auth_policy_test PRIVATE cxx_std_17)
+target_compile_options(digest_auth_policy_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(digest_auth_policy_test PRIVATE ../../components/web_server_idf)
+add_test(NAME digest_auth_policy_test COMMAND digest_auth_policy_test)
+
 add_executable(companion_shortcut_test companion_shortcut_test.cpp)
 target_compile_features(companion_shortcut_test PRIVATE cxx_std_17)
 target_compile_options(companion_shortcut_test PRIVATE -Wall -Wextra -Werror)
@@ -475,4 +481,3 @@ target_compile_features(panel_identity_runtime_test PRIVATE cxx_std_17)
 target_compile_options(panel_identity_runtime_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(panel_identity_runtime_test PRIVATE panel_identity_stubs ../../components/espdesktop)
 add_test(NAME panel_identity_runtime_test COMMAND panel_identity_runtime_test)
-
