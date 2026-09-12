@@ -39,7 +39,6 @@ ROOT = Path(__file__).resolve().parent.parent
 MDI_VERSION = "7.4.47"
 MDI_CSS_URL = f"https://cdn.jsdelivr.net/npm/@mdi/font@{MDI_VERSION}/css/materialdesignicons.css"
 MDI_WEB_FONT = ROOT / "common" / "assets" / "fonts" / f"materialdesignicons-webfont-{MDI_VERSION}.ttf"
-INTER_WEB_FONT = ROOT / "node_modules" / "vitepress" / "dist" / "client" / "theme-default" / "fonts" / "inter-roman-latin.woff2"
 ROBOTO_WEB_FONT = ROOT / "common" / "assets" / "fonts" / "roboto-latin.woff2"
 SUPPORT_BUTTON_IMAGE = ROOT / "common" / "assets" / "images" / "buy-me-a-coffee-button.png"
 WEB_SOURCE_DIR = ROOT / "src" / "webserver"
@@ -3912,7 +3911,7 @@ def web_mdi_icon_names(data, codepoints):
 
 
 def embedded_web_mdi_styles():
-    """Build the local interface and icon font CSS used by the browser bundle.
+    """Build the local preview and icon font CSS used by the browser bundle.
 
     Browsers receive this as part of www.js, rather than requesting a CDN
     stylesheet or font after the editor has started. This matters when a display
@@ -3920,8 +3919,6 @@ def embedded_web_mdi_styles():
     """
     if not MDI_WEB_FONT.exists():
         raise BuildError(f"Missing bundled web icon font: {MDI_WEB_FONT.relative_to(ROOT)}")
-    if not INTER_WEB_FONT.exists():
-        raise BuildError(f"Missing bundled web interface font: {INTER_WEB_FONT.relative_to(ROOT)}")
     if not ROBOTO_WEB_FONT.exists():
         raise BuildError(f"Missing bundled web preview font: {ROBOTO_WEB_FONT.relative_to(ROOT)}")
     if not SUPPORT_BUTTON_IMAGE.exists():
@@ -3934,7 +3931,6 @@ def embedded_web_mdi_styles():
     if missing:
         raise BuildError("Missing MDI codepoints for browser icons: " + ", ".join(missing))
 
-    interface_font_data = base64.b64encode(INTER_WEB_FONT.read_bytes()).decode("ascii")
     preview_font_data = base64.b64encode(ROBOTO_WEB_FONT.read_bytes()).decode("ascii")
     support_button_image_data = base64.b64encode(SUPPORT_BUTTON_IMAGE.read_bytes()).decode("ascii")
     icon_font_data = base64.b64encode(MDI_WEB_FONT.read_bytes()).decode("ascii")
@@ -3945,9 +3941,6 @@ def embedded_web_mdi_styles():
         ".sp-support-link{background:center/contain no-repeat url(data:image/png;base64,",
         support_button_image_data,
         ")}",
-        "@font-face{font-family:'Inter';src:url(data:font/woff2;base64,",
-        interface_font_data,
-        ") format('woff2');font-weight:100 900;font-style:normal;font-display:swap}",
         "@font-face{font-family:'Material Design Icons';src:url(data:font/ttf;base64,",
         icon_font_data,
         ") format('truetype');font-weight:normal;font-style:normal;font-display:block}",

@@ -10,6 +10,12 @@ target_compile_features(foundation_test PRIVATE cxx_std_17)
 target_compile_options(foundation_test PRIVATE -Wall -Wextra -Werror)
 add_test(NAME foundation_test COMMAND foundation_test)
 
+add_executable(digest_auth_policy_test digest_auth_policy_test.cpp)
+target_compile_features(digest_auth_policy_test PRIVATE cxx_std_17)
+target_compile_options(digest_auth_policy_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(digest_auth_policy_test PRIVATE ../../components/web_server_idf)
+add_test(NAME digest_auth_policy_test COMMAND digest_auth_policy_test)
+
 add_executable(companion_shortcut_test companion_shortcut_test.cpp)
 target_compile_features(companion_shortcut_test PRIVATE cxx_std_17)
 target_compile_options(companion_shortcut_test PRIVATE -Wall -Wextra -Werror)
@@ -473,3 +479,22 @@ add_test(NAME timer_card_test COMMAND timer_card_test)
 
 add_test(NAME timer_subpage_cleanup_test
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/timer_subpage_cleanup_test.py)
+
+set(CLOCK_BAR_TITLE_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/clock_bar_title_test.cpp)
+add_custom_command(
+  OUTPUT ${CLOCK_BAR_TITLE_TEST_SOURCE}
+  COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/generate_clock_bar_title_test.py
+    --header ${CMAKE_CURRENT_SOURCE_DIR}/../../components/espdesktop/clock_bar.h
+    --output ${CLOCK_BAR_TITLE_TEST_SOURCE}
+  DEPENDS
+    generate_clock_bar_title_test.py
+    clock_bar_title_test.cpp.in
+    ../../components/espdesktop/clock_bar.h
+    ../../components/espdesktop/button_grid_modal.h
+  VERBATIM
+)
+add_executable(clock_bar_title_test ${CLOCK_BAR_TITLE_TEST_SOURCE})
+target_compile_features(clock_bar_title_test PRIVATE cxx_std_17)
+target_compile_options(clock_bar_title_test PRIVATE -Wall -Wextra -Werror)
+add_test(NAME clock_bar_title_test COMMAND clock_bar_title_test)

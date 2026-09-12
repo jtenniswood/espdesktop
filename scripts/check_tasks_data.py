@@ -95,6 +95,8 @@ TASKS = (
              "components/espdesktop/espdesktop_app.*",
              "components/espdesktop/configuration_store.*",
              "components/espdesktop/panel_config_document.h",
+             "components/espdesktop/clock_bar.h",
+             "components/espdesktop/button_grid_modal.h",
              "components/espdesktop/button_grid_limits.h",
              "components/espdesktop/button_grid_slider_geometry.h",
              "components/espdesktop/button_grid_string.h",
