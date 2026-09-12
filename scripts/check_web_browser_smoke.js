@@ -5442,7 +5442,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
     assert.strictEqual(await haMode.isVisible(), false,
       "Selecting Timer preserves Home Assistant mode visibility");
-    assert(await screensaverCard.getByRole("button", { name: "Companion App", exact: true }).isVisible(),
+    assert(await screensaverCard.getByRole("button", { name: "App Connection", exact: true }).isVisible(),
       "Configured Companion screensaver mode remains available");
 
     await page.getByRole("tab", { name: "Screen" }).click();
