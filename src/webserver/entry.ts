@@ -1,3 +1,4 @@
+import { resetAwareFetch } from "./api/reset_session";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
 import { createDeviceApi } from "./api/device_api";
@@ -52,7 +53,7 @@ import { createGridMigrationFeature } from "./application/grid_migration";
 import { createArtworkPostApiFeature } from "./application/artwork_post_api";
 import { createScreenSchedulePostApiFeature } from "./application/screen_schedule_post_api";
 import { createClockBarPostApiFeature } from "./application/clock_bar_post_api";
-import { createControlsShellFeature } from "./application/controls_shell";
+import { createControlsShellFeature, renderPanelBrand } from "./application/controls_shell";
 import { createSettingsPageHelpersFeature, type SettingsPageHelpersFeature } from "./application/settings_page_helpers";
 import { createSettingsScheduleSectionFeature } from "./application/settings_schedule_section";
 import { createSettingsCoverArtSectionFeature } from "./application/settings_cover_art_section";
@@ -90,6 +91,7 @@ import { createBackupFeature } from "./features/backup";
 import { createBackupContractFeature } from "./application/backup_contract";
 import { createAppBackupFeature } from "./application/app_backup";
 import { createAppStatusPreviewFeature, type AppStatusPreviewFeature } from "./application/app_status_preview";
+import { createPanelIdentityFeature } from "./application/panel_identity";
 import { createAppTitleFeature } from "./application/app_title";
 import { createAppConfigEventsFeature } from "./application/app_config_events";
 import { createAppStateEventHandlersFeature } from "./application/app_state_event_handlers";
@@ -274,7 +276,7 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
 
 function composeApplicationContext(): ApplicationContext {
   const fetchService: typeof fetch = typeof fetch === "function"
-    ? fetch.bind(globalThis)
+    ? resetAwareFetch
     : (() => Promise.reject(new Error("Fetch is not available"))) as typeof fetch;
   const dom: ApplicationDomServices = {
     document,
@@ -285,7 +287,27 @@ function composeApplicationContext(): ApplicationContext {
   };
   const deviceApi = createDeviceApi((url, init) =>
     dom.fetch(url, init as RequestInit));
+  const identity = createPanelIdentityFeature({
+    document: dom.document, fetch: dom.fetch,
+    changed: () => {
+      pageTitle.applyPageTitle(identity.current()?.friendly_name);
+      const brand = dom.document.querySelector(".sp-brand");
+      if (brand) renderPanelBrand(brand, dom.document, identity.current()?.name);
+    },
+    restart: async () => {
+      const response = await requestApi.postButtonPress("Apply Configuration");
+      if (!response?.ok) throw new Error("Name saved, but the panel could not restart. Try again.");
+    },
+    beforeSave: async () => {
+      if (shell.isConfigLocked()) throw new Error("Wait for the current panel operation to finish before renaming.");
+      await requestApi.postQueue;
+      if (requestApi.postQueueError) throw new Error("Some configuration changes failed. Reload the page before renaming.");
+    },
+    makeCard: (title, body) => fields.makeCollapsibleCard(title, body, true),
+    infoPanel: (id, text) => settingsUi.infoPanel(id, text),
+  });
   const pageTitle = createAppTitleFeature({
+    panelName: () => identity.current()?.name,
     document: dom.document,
     eventStreamEnabled: () => {
       try { return new URLSearchParams(dom.window.location.search).get("events") === "1"; }
@@ -314,6 +336,7 @@ function composeApplicationContext(): ApplicationContext {
   let app: AppFeature;
   const shell = createControlsShellFeature(runtime, {
     document: dom.document,
+    panelName: () => identity.current()?.name,
     state: AppInstance.state,
     schedule: dom.schedule,
     cancelSchedule: (handle) => { dom.window.clearTimeout(handle); },
@@ -368,6 +391,10 @@ function composeApplicationContext(): ApplicationContext {
     () => defaultTimezoneOptionsForDevice(layout.config),
     layout,
   );
+  dom.document.addEventListener("espdesktop-reset-stale", () => {
+    shell.setConfigLocked(true, "Device reset — reload this page before editing.");
+    shell.showBanner("The device was reset. Reload this page before making changes.", "error");
+  });
   const nativePanelConfig = createNativePanelConfigMigrationController({
     deviceProfile: () => layout.deviceId,
     slotCount: () => layout.numSlots,
@@ -376,7 +403,7 @@ function composeApplicationContext(): ApplicationContext {
     normalizeHexColor: (value, fallback) => Model.normalizeHexColor(value, fallback),
     showBanner: shell.showBanner,
     delay: (callback, milliseconds) => dom.schedule(callback, milliseconds),
-  });
+  }, dom.fetch);
   const configurationPersistence = createConfigPersistenceFeature(nativePanelConfig, runtime, layout, entityState, shell);
   const cards = createCardRegistry();
   const iconPicker = createButtonSettingsIconPickerFeature(dom.document, () => preview.render());
@@ -809,6 +836,7 @@ function composeApplicationContext(): ApplicationContext {
     showBanner: shell.showBanner,
   });
   const backupApplication = createAppBackupFeature({
+    identity,
     layout,
     backupExport,
     backupImport,
@@ -878,6 +906,7 @@ function composeApplicationContext(): ApplicationContext {
     fields, settingsHelpers, coverArtScreensaver, mediaPlayback,
   );
   const systemSection = createSettingsSystemSectionFeature({
+    buildIdentityCard: identity.buildCard,
     exportBackup: backupApplication.exportConfig,
     importBackup: backupApplication.importConfig,
   }, runtime, firmwareVersion, firmwareUpdate, c6Firmware, shell, requestApi,
@@ -919,6 +948,7 @@ function composeApplicationContext(): ApplicationContext {
     interactions, preview, buttonSettings, connectorsPage,
   );
   requestApi.connectReconnect(appEvents.connect);
+  dom.schedule(() => { void identity.load().catch(() => {}); }, 0);
   return createApplicationContext({
     layout,
     model: Model,
