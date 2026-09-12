@@ -98,6 +98,7 @@ import { createAppFeature, type AppFeature } from "./application/app";
 import { startApp } from "./application/app_start";
 import { createReconnectController } from "./features/reconnect";
 import { registerActionCardTypes } from "./cards/action";
+import { registerTimerCardTypes } from "./cards/timer";
 import { registerAlarmCardTypes } from "./cards/alarm";
 import { registerCalendarCardTypes } from "./cards/calendar";
 import { registerCompanionCardTypes } from "./cards/companion";
@@ -152,6 +153,7 @@ function registerCards(context: ApplicationContext) {
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
   registerActionCardTypes(registry, context.configuration.confirmationOptions, context.controllers.entityState, fields, cardUi);
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
+  registerTimerCardTypes(registry);
   registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields);
   registerCompanionCardTypes(
     registry,

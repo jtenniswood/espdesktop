@@ -304,3 +304,6 @@ unpaired=Niet gekoppeld
 stat_used=gebruikt
 stat_free=vrij
 stat_remaining=over
+
+timer=Timer
+timer_confirm=Bevestigen

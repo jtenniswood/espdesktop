@@ -304,3 +304,6 @@ unpaired=Neasociat
 stat_used=utilizat
 stat_free=liber
 stat_remaining=rămas
+
+timer=Temporizator
+timer_confirm=Confirmați

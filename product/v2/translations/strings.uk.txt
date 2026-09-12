@@ -304,3 +304,6 @@ unpaired=Не сполучено
 stat_used=використано
 stat_free=вільно
 stat_remaining=залишилось
+
+timer=Таймер
+timer_confirm=Підтвердити

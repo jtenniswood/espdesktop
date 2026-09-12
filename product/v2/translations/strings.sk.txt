@@ -304,3 +304,6 @@ unpaired=Nespárované
 stat_used=využité
 stat_free=voľné
 stat_remaining=zostáva
+
+timer=Časovač
+timer_confirm=Potvrdiť

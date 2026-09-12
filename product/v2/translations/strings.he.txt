@@ -304,3 +304,6 @@ unpaired=לא מותאם
 stat_used=בשימוש
 stat_free=פנוי
 stat_remaining=נותר
+
+timer=טיימר
+timer_confirm=לאשר

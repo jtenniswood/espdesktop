@@ -304,3 +304,6 @@ unpaired=Inte parkopplad
 stat_used=använt
 stat_free=ledigt
 stat_remaining=kvar
+
+timer=Timer
+timer_confirm=Bekräfta

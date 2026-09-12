@@ -304,3 +304,6 @@ unpaired=Non abbinato
 stat_used=usato
 stat_free=libero
 stat_remaining=rimanente
+
+timer=Timer
+timer_confirm=Confermare

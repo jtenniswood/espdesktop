@@ -464,3 +464,12 @@ add_test(NAME network_status_layout_test COMMAND network_status_layout_test)
 
 add_test(NAME companion_screensaver_test
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_screensaver_test.py)
+
+add_executable(timer_card_test timer_card_test.cpp)
+target_compile_features(timer_card_test PRIVATE cxx_std_17)
+target_compile_options(timer_card_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(timer_card_test PRIVATE ../../components/espdesktop)
+add_test(NAME timer_card_test COMMAND timer_card_test)
+
+add_test(NAME timer_subpage_cleanup_test
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/timer_subpage_cleanup_test.py)

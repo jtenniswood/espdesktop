@@ -304,3 +304,6 @@ unpaired=Ikke paret
 stat_used=brukt
 stat_free=ledig
 stat_remaining=igjen
+
+timer=Tidtaker
+timer_confirm=Bekreft
