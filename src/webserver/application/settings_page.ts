@@ -564,6 +564,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             temperatureCard,
         ]);
         appendSettingsSection(config, "System", [
+            systemSettingsCards.identityCard,
             systemSettingsCards.backupCard,
             systemSettingsCards.firmwareCard,
             systemSettingsCards.homeAssistantSettingsCard,
