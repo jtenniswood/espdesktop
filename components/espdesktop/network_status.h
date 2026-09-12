@@ -285,7 +285,6 @@ inline void network_status_open_modal(const std::string &device_name,
                                       const lv_font_t *text_font,
                                       const lv_font_t *icon_font,
                                       float (*wifi_quality)() = nullptr) {
-  (void) device_name;
   (void) ip_address;
   control_modal_close_nested_menu();
   control_modal_force_close_active();
@@ -331,8 +330,8 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", ""};
-  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B"};
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", "", device_name.c_str()};
+  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B", "\U000F0200"};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   int visible_index = 0;
@@ -373,7 +372,7 @@ inline void network_status_open_modal(const std::string &device_name,
     } else if (i == NETWORK_STATUS_BUILD_CARD_INDEX) {
       const std::string build_label = network_status_firmware_label(firmware_version);
       lv_label_set_display_text(slot.text_lbl, build_label.c_str());
-    } else {
+    } else if (i == NETWORK_STATUS_IP_CARD_INDEX) {
       ui.ip_lbl = slot.text_lbl;
     }
   }

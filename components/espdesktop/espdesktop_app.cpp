@@ -25,6 +25,7 @@
 #include "panel_config_storage_selection.h"
 #include "panel_config_write_endpoint.h"
 #include "panel_config_http_context.h"
+#include "panel_identity_endpoint.h"
 #include "button_grid.h"
 #include "finder_folder_sync.h"
 #include "connector_state.h"
@@ -33,6 +34,7 @@ extern "C" void espdesktop_register_web_server_handlers(
     esphome::web_server_idf::AsyncWebServer *server) {
 #ifdef USE_WEBSERVER
   if (server == nullptr) return;
+  espdesktop::register_panel_identity_endpoint(*server);
   register_local_sensor_endpoint(*server);
   register_local_action_endpoint(*server);
   register_companion_actions_endpoint(*server);
