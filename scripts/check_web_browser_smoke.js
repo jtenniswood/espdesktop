@@ -5707,8 +5707,8 @@ async function runCase(browser, testCase) {
       `${testCase.name}: the local icon stylesheet should use a CSS codepoint escape`,
     );
     assert(
-      iconStyle.includes("@font-face{font-family:'Inter'"),
-      `${testCase.name}: the local stylesheet should embed the interface font`,
+      !iconStyle.includes("@font-face{font-family:'Inter'"),
+      `${testCase.name}: the local stylesheet should omit the unused interface font`,
     );
     assert.strictEqual(
       await page.locator(".sp-support-link").textContent(),
