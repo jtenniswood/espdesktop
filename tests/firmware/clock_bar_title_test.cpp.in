@@ -52,7 +52,7 @@ int main() {
   assert(control_modal_card_label(&card).empty());
   assert(control_modal_card_labels().empty());
 
-  clock_bar_home_assistant_configured_provider() = []() { return true; };
+  clock_bar_home_assistant_available_provider() = []() { return true; };
   lv_obj_t left;
   lv_obj_t *labels[] = {&left};
   set_clock_bar_temperature_labels(labels, 1);
