@@ -305,3 +305,7 @@ unpaired=Unpaired
 stat_used=used
 stat_free=free
 stat_remaining=left
+
+# Timer card
+timer=Timer
+timer_confirm=Confirm

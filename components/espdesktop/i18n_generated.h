@@ -299,6 +299,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "used") == 0) return "využito";
   if (std::strcmp(text, "free") == 0) return "volné";
   if (std::strcmp(text, "left") == 0) return "zbývá";
+  if (std::strcmp(text, "Timer") == 0) return "Časovač";
+  if (std::strcmp(text, "Confirm") == 0) return "Potvrdit";
   return text;
 }
 
@@ -578,6 +580,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "used") == 0) return "brugt";
   if (std::strcmp(text, "free") == 0) return "ledig";
   if (std::strcmp(text, "left") == 0) return "tilbage";
+  if (std::strcmp(text, "Confirm") == 0) return "Bekræft";
   return text;
 }
 
@@ -855,6 +858,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "used") == 0) return "belegt";
   if (std::strcmp(text, "free") == 0) return "frei";
   if (std::strcmp(text, "left") == 0) return "übrig";
+  if (std::strcmp(text, "Confirm") == 0) return "Bestätigen";
   return text;
 }
 
@@ -1141,6 +1145,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "used") == 0) return "usado";
   if (std::strcmp(text, "free") == 0) return "libre";
   if (std::strcmp(text, "left") == 0) return "restante";
+  if (std::strcmp(text, "Timer") == 0) return "Temporizador";
+  if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
   return text;
 }
 
@@ -1437,6 +1443,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "used") == 0) return "käytössä";
   if (std::strcmp(text, "free") == 0) return "vapaana";
   if (std::strcmp(text, "left") == 0) return "jäljellä";
+  if (std::strcmp(text, "Timer") == 0) return "Ajastin";
+  if (std::strcmp(text, "Confirm") == 0) return "Vahvista";
   return text;
 }
 
@@ -1717,6 +1725,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "used") == 0) return "utilisé";
   if (std::strcmp(text, "free") == 0) return "libre";
   if (std::strcmp(text, "left") == 0) return "restant";
+  if (std::strcmp(text, "Timer") == 0) return "Minuteur";
+  if (std::strcmp(text, "Confirm") == 0) return "Confirmer";
   return text;
 }
 
@@ -2019,6 +2029,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "used") == 0) return "בשימוש";
   if (std::strcmp(text, "free") == 0) return "פנוי";
   if (std::strcmp(text, "left") == 0) return "נותר";
+  if (std::strcmp(text, "Timer") == 0) return "טיימר";
+  if (std::strcmp(text, "Confirm") == 0) return "לאשר";
   return text;
 }
 
@@ -2314,6 +2326,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "used") == 0) return "használt";
   if (std::strcmp(text, "free") == 0) return "szabad";
   if (std::strcmp(text, "left") == 0) return "maradt";
+  if (std::strcmp(text, "Timer") == 0) return "Időzítő";
+  if (std::strcmp(text, "Confirm") == 0) return "Megerősítés";
   return text;
 }
 
@@ -2600,6 +2614,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "used") == 0) return "usato";
   if (std::strcmp(text, "free") == 0) return "libero";
   if (std::strcmp(text, "left") == 0) return "rimanente";
+  if (std::strcmp(text, "Confirm") == 0) return "Confermare";
   return text;
 }
 
@@ -2884,6 +2899,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "used") == 0) return "brukt";
   if (std::strcmp(text, "free") == 0) return "ledig";
   if (std::strcmp(text, "left") == 0) return "igjen";
+  if (std::strcmp(text, "Timer") == 0) return "Tidtaker";
+  if (std::strcmp(text, "Confirm") == 0) return "Bekreft";
   return text;
 }
 
@@ -3163,6 +3180,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "used") == 0) return "gebruikt";
   if (std::strcmp(text, "free") == 0) return "vrij";
   if (std::strcmp(text, "left") == 0) return "over";
+  if (std::strcmp(text, "Confirm") == 0) return "Bevestigen";
   return text;
 }
 
@@ -3447,6 +3465,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "used") == 0) return "użyte";
   if (std::strcmp(text, "free") == 0) return "wolne";
   if (std::strcmp(text, "left") == 0) return "pozostało";
+  if (std::strcmp(text, "Timer") == 0) return "Minutnik";
+  if (std::strcmp(text, "Confirm") == 0) return "Potwierdzić";
   return text;
 }
 
@@ -3731,6 +3751,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "used") == 0) return "usado";
   if (std::strcmp(text, "free") == 0) return "livre";
   if (std::strcmp(text, "left") == 0) return "restante";
+  if (std::strcmp(text, "Timer") == 0) return "Temporizador";
+  if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
   return text;
 }
 
@@ -4016,6 +4038,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "used") == 0) return "usado";
   if (std::strcmp(text, "free") == 0) return "livre";
   if (std::strcmp(text, "left") == 0) return "restante";
+  if (std::strcmp(text, "Timer") == 0) return "Temporizador";
+  if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
   return text;
 }
 
@@ -4311,6 +4335,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "used") == 0) return "utilizat";
   if (std::strcmp(text, "free") == 0) return "liber";
   if (std::strcmp(text, "left") == 0) return "rămas";
+  if (std::strcmp(text, "Timer") == 0) return "Temporizator";
+  if (std::strcmp(text, "Confirm") == 0) return "Confirmați";
   return text;
 }
 
@@ -4613,6 +4639,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "used") == 0) return "использовано";
   if (std::strcmp(text, "free") == 0) return "свободно";
   if (std::strcmp(text, "left") == 0) return "осталось";
+  if (std::strcmp(text, "Timer") == 0) return "Таймер";
+  if (std::strcmp(text, "Confirm") == 0) return "Подтвердить";
   return text;
 }
 
@@ -4901,6 +4929,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "used") == 0) return "využité";
   if (std::strcmp(text, "free") == 0) return "voľné";
   if (std::strcmp(text, "left") == 0) return "zostáva";
+  if (std::strcmp(text, "Timer") == 0) return "Časovač";
+  if (std::strcmp(text, "Confirm") == 0) return "Potvrdiť";
   return text;
 }
 
@@ -5193,6 +5223,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "used") == 0) return "porabljeno";
   if (std::strcmp(text, "free") == 0) return "prosto";
   if (std::strcmp(text, "left") == 0) return "preostalo";
+  if (std::strcmp(text, "Timer") == 0) return "Časovnik";
+  if (std::strcmp(text, "Confirm") == 0) return "Potrdi";
   return text;
 }
 
@@ -5476,6 +5508,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "used") == 0) return "använt";
   if (std::strcmp(text, "free") == 0) return "ledigt";
   if (std::strcmp(text, "left") == 0) return "kvar";
+  if (std::strcmp(text, "Confirm") == 0) return "Bekräfta";
   return text;
 }
 
@@ -5772,6 +5805,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "used") == 0) return "kullanılan";
   if (std::strcmp(text, "free") == 0) return "boş";
   if (std::strcmp(text, "left") == 0) return "kalan";
+  if (std::strcmp(text, "Timer") == 0) return "Zamanlayıcı";
+  if (std::strcmp(text, "Confirm") == 0) return "Onayla";
   return text;
 }
 
@@ -6069,6 +6104,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "used") == 0) return "використано";
   if (std::strcmp(text, "free") == 0) return "вільно";
   if (std::strcmp(text, "left") == 0) return "залишилось";
+  if (std::strcmp(text, "Timer") == 0) return "Таймер";
+  if (std::strcmp(text, "Confirm") == 0) return "Підтвердити";
   return text;
 }
 
@@ -6378,6 +6415,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "used";
   if (std::strcmp(key, "stat_free") == 0) return "free";
   if (std::strcmp(key, "stat_remaining") == 0) return "left";
+  if (std::strcmp(key, "timer") == 0) return "Timer";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Confirm";
   return key;
 }
 
@@ -6668,6 +6707,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "využito";
   if (std::strcmp(key, "stat_free") == 0) return "volné";
   if (std::strcmp(key, "stat_remaining") == 0) return "zbývá";
+  if (std::strcmp(key, "timer") == 0) return "Časovač";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdit";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6950,6 +6991,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "brugt";
   if (std::strcmp(key, "stat_free") == 0) return "ledig";
   if (std::strcmp(key, "stat_remaining") == 0) return "tilbage";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Bekræft";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7230,6 +7272,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "belegt";
   if (std::strcmp(key, "stat_free") == 0) return "frei";
   if (std::strcmp(key, "stat_remaining") == 0) return "übrig";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Bestätigen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7519,6 +7562,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "usado";
   if (std::strcmp(key, "stat_free") == 0) return "libre";
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
+  if (std::strcmp(key, "timer") == 0) return "Temporizador";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7818,6 +7863,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "käytössä";
   if (std::strcmp(key, "stat_free") == 0) return "vapaana";
   if (std::strcmp(key, "stat_remaining") == 0) return "jäljellä";
+  if (std::strcmp(key, "timer") == 0) return "Ajastin";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Vahvista";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8101,6 +8148,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "utilisé";
   if (std::strcmp(key, "stat_free") == 0) return "libre";
   if (std::strcmp(key, "stat_remaining") == 0) return "restant";
+  if (std::strcmp(key, "timer") == 0) return "Minuteur";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Confirmer";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8406,6 +8455,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "בשימוש";
   if (std::strcmp(key, "stat_free") == 0) return "פנוי";
   if (std::strcmp(key, "stat_remaining") == 0) return "נותר";
+  if (std::strcmp(key, "timer") == 0) return "טיימר";
+  if (std::strcmp(key, "timer_confirm") == 0) return "לאשר";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8704,6 +8755,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "használt";
   if (std::strcmp(key, "stat_free") == 0) return "szabad";
   if (std::strcmp(key, "stat_remaining") == 0) return "maradt";
+  if (std::strcmp(key, "timer") == 0) return "Időzítő";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Megerősítés";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8993,6 +9046,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "usato";
   if (std::strcmp(key, "stat_free") == 0) return "libero";
   if (std::strcmp(key, "stat_remaining") == 0) return "rimanente";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Confermare";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9280,6 +9334,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "brukt";
   if (std::strcmp(key, "stat_free") == 0) return "ledig";
   if (std::strcmp(key, "stat_remaining") == 0) return "igjen";
+  if (std::strcmp(key, "timer") == 0) return "Tidtaker";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Bekreft";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9561,6 +9617,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "gebruikt";
   if (std::strcmp(key, "stat_free") == 0) return "vrij";
   if (std::strcmp(key, "stat_remaining") == 0) return "over";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Bevestigen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9848,6 +9905,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "użyte";
   if (std::strcmp(key, "stat_free") == 0) return "wolne";
   if (std::strcmp(key, "stat_remaining") == 0) return "pozostało";
+  if (std::strcmp(key, "timer") == 0) return "Minutnik";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Potwierdzić";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10135,6 +10194,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "usado";
   if (std::strcmp(key, "stat_free") == 0) return "livre";
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
+  if (std::strcmp(key, "timer") == 0) return "Temporizador";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10423,6 +10484,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "usado";
   if (std::strcmp(key, "stat_free") == 0) return "livre";
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
+  if (std::strcmp(key, "timer") == 0) return "Temporizador";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10721,6 +10784,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "utilizat";
   if (std::strcmp(key, "stat_free") == 0) return "liber";
   if (std::strcmp(key, "stat_remaining") == 0) return "rămas";
+  if (std::strcmp(key, "timer") == 0) return "Temporizator";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Confirmați";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11026,6 +11091,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "использовано";
   if (std::strcmp(key, "stat_free") == 0) return "свободно";
   if (std::strcmp(key, "stat_remaining") == 0) return "осталось";
+  if (std::strcmp(key, "timer") == 0) return "Таймер";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Подтвердить";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11317,6 +11384,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "využité";
   if (std::strcmp(key, "stat_free") == 0) return "voľné";
   if (std::strcmp(key, "stat_remaining") == 0) return "zostáva";
+  if (std::strcmp(key, "timer") == 0) return "Časovač";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdiť";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11612,6 +11681,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "porabljeno";
   if (std::strcmp(key, "stat_free") == 0) return "prosto";
   if (std::strcmp(key, "stat_remaining") == 0) return "preostalo";
+  if (std::strcmp(key, "timer") == 0) return "Časovnik";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Potrdi";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11898,6 +11969,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "använt";
   if (std::strcmp(key, "stat_free") == 0) return "ledigt";
   if (std::strcmp(key, "stat_remaining") == 0) return "kvar";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Bekräfta";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12197,6 +12269,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "kullanılan";
   if (std::strcmp(key, "stat_free") == 0) return "boş";
   if (std::strcmp(key, "stat_remaining") == 0) return "kalan";
+  if (std::strcmp(key, "timer") == 0) return "Zamanlayıcı";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Onayla";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12497,6 +12571,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "stat_used") == 0) return "використано";
   if (std::strcmp(key, "stat_free") == 0) return "вільно";
   if (std::strcmp(key, "stat_remaining") == 0) return "залишилось";
+  if (std::strcmp(key, "timer") == 0) return "Таймер";
+  if (std::strcmp(key, "timer_confirm") == 0) return "Підтвердити";
   return espdesktop_i18n_key_en(key);
 }
 

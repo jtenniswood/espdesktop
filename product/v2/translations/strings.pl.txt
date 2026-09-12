@@ -305,3 +305,6 @@ unpaired=Niesparowano
 stat_used=użyte
 stat_free=wolne
 stat_remaining=pozostało
+
+timer=Minutnik
+timer_confirm=Potwierdzić

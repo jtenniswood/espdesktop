@@ -305,3 +305,6 @@ unpaired=Не сопряжено
 stat_used=использовано
 stat_free=свободно
 stat_remaining=осталось
+
+timer=Таймер
+timer_confirm=Подтвердить

@@ -305,3 +305,6 @@ unpaired=Eşleştirilmedi
 stat_used=kullanılan
 stat_free=boş
 stat_remaining=kalan
+
+timer=Zamanlayıcı
+timer_confirm=Onayla

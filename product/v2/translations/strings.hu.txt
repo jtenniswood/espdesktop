@@ -305,3 +305,6 @@ unpaired=Nincs párosítva
 stat_used=használt
 stat_free=szabad
 stat_remaining=maradt
+
+timer=Időzítő
+timer_confirm=Megerősítés

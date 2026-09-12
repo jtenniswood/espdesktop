@@ -305,3 +305,6 @@ unpaired=Ei paritettu
 stat_used=käytössä
 stat_free=vapaana
 stat_remaining=jäljellä
+
+timer=Ajastin
+timer_confirm=Vahvista

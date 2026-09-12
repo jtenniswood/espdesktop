@@ -305,3 +305,6 @@ unpaired=Ni seznanjeno
 stat_used=porabljeno
 stat_free=prosto
 stat_remaining=preostalo
+
+timer=Časovnik
+timer_confirm=Potrdi

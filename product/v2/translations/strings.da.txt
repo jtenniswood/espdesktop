@@ -305,3 +305,6 @@ unpaired=Ikke parret
 stat_used=brugt
 stat_free=ledig
 stat_remaining=tilbage
+
+timer=Timer
+timer_confirm=Bekræft
