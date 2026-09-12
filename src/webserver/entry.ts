@@ -526,7 +526,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const clockBar = createClockBarController();
   clockBarState = createClockBarFeature(clockBar, runtime, core, environment, {
-    homeAssistantConfigured: () => !!connectorsPage?.homeAssistantConfigured(),
+    homeAssistantAvailable: () => !!connectorsPage?.homeAssistantAvailable(),
     hideSettingsOverlay: () => selection.hideSettingsOverlay(),
     timezoneId: (value) => statusPreview.getTzId(value),
     postTemperatureEntities: (value) => clockBarPostApi.postClockBarTemperatureEntities(value),
@@ -887,11 +887,11 @@ function composeApplicationContext(): ApplicationContext {
   connectorsPage = createConnectorsPageFeature(
     dom, shell, fields, companionSection, !!layout.config.features?.companion,
   );
-  let temperatureHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
+  let temperatureHomeAssistantAvailable = connectorsPage.homeAssistantAvailable();
   connectorsPage.onStatusChange(() => {
-    const configured = connectorsPage.homeAssistantConfigured();
-    if (configured === temperatureHomeAssistantConfigured) return;
-    temperatureHomeAssistantConfigured = configured;
+    const available = connectorsPage.homeAssistantAvailable();
+    if (available === temperatureHomeAssistantAvailable) return;
+    temperatureHomeAssistantAvailable = available;
     statusPreview.updateClockBarItemUi();
   });
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();

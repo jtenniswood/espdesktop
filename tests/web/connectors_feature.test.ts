@@ -75,6 +75,12 @@ export function runConnectorsFeatureTests(): void {
       connected: false,
       actions_confirmed: true,
     },
+    mac_companion: {
+      available: true,
+      configured: true,
+      paired: true,
+      connected: true,
+    },
   });
   if (!homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
     throw new Error("Older firmware without connector status must retain Home Assistant cards");

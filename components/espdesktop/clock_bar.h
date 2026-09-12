@@ -490,10 +490,10 @@ inline void format_clock_bar_temperature_list(char *buf, size_t size,
   }
 }
 
-using ClockBarHomeAssistantConfiguredProvider = bool (*)();
+using ClockBarHomeAssistantAvailableProvider = bool (*)();
 
-inline ClockBarHomeAssistantConfiguredProvider &clock_bar_home_assistant_configured_provider() {
-  static ClockBarHomeAssistantConfiguredProvider provider = nullptr;
+inline ClockBarHomeAssistantAvailableProvider &clock_bar_home_assistant_available_provider() {
+  static ClockBarHomeAssistantAvailableProvider provider = nullptr;
   return provider;
 }
 
@@ -524,8 +524,10 @@ inline void refresh_clock_bar_temperature_label_values(
   }
 
   // The left label also holds subpage titles, which do not require Home Assistant.
-  const auto configured = clock_bar_home_assistant_configured_provider();
-  if (!configured || !configured()) {
+  // Saved connector setup can outlive an outage; temperature data requires a
+  // live Home Assistant connection instead.
+  const auto available = clock_bar_home_assistant_available_provider();
+  if (!available || !available()) {
     for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
     return;
   }

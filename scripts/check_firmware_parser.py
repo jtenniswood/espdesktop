@@ -348,10 +348,10 @@ int main() {
   clock_bar_temperature_values()[0] = 17;
   refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
   assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return true; };
+  clock_bar_home_assistant_available_provider() = []() { return true; };
   refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
   assert(!lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return false; };
+  clock_bar_home_assistant_available_provider() = []() { return false; };
   set_clock_bar_temperature_value_count(0);
   refresh_clock_bar_temperature_label_values(&main_page, true, true, true, 21, 17);
   assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
