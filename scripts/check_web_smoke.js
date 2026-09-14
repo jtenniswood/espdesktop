@@ -1759,7 +1759,7 @@ async function verifyLocalFirmwareProfileSelection() {
   vm.runInContext(productionBundle, sandbox, { filename: "shared-local-www.js" });
   sandbox.__ESPDESKTOP_START_EMBEDDED__();
   await new Promise((resolve) => setImmediate(resolve));
-  assert.deepStrictEqual(requested, ["/espdesktop/version.json", "/api/v1/capabilities"]);
+  assert.deepStrictEqual(requested, ["/espdesktop/version.json", "/api/v1/capabilities", "/api/v1/capabilities"]);
   assert(
     sandbox.__domEvents.some((event) => event.type === "DOMContentLoaded"),
     "shared local bundle starts after resolving the firmware device profile",

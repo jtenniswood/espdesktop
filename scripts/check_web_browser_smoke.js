@@ -218,6 +218,21 @@ async function installRoutes(context, slug, options = {}) {
 
   await context.route("**/*", async (route) => {
     const requestUrl = new URL(route.request().url());
+    if (requestUrl.hostname === "espdesktop.test" && requestUrl.pathname === "/api/v1/reset") {
+      const reset = options.resetState;
+      if (!reset) { await route.abort("connectionclosed"); throw new Error("Legacy firmware must never receive a reset status request"); }
+      if (route.request().method() === "POST") {
+        assert.strictEqual(route.request().headers()["x-espdesktop-request"], "reset");
+        assert.strictEqual(route.request().headers()["x-espdesktop-epoch"], String(reset.epoch));
+        reset.requests.push(JSON.parse(route.request().postData()));
+        reset.pending = true;
+        reset.epoch++;
+        await route.fulfill({ status: 202, contentType: "application/json", body: '{"status":"restarting"}' });
+      } else {
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ modes: ["customization", "factory"], epoch: reset.epoch, pending: reset.pending }) });
+      }
+      return;
+    }
     if (
       connectorsStatus &&
       requestUrl.hostname === "espdesktop.test" &&
@@ -255,6 +270,34 @@ async function installRoutes(context, slug, options = {}) {
         return;
       }
     }
+    if (requestUrl.hostname === "espdesktop.test" && requestUrl.pathname === "/api/v1/identity") {
+      const identity = options.identityState;
+      if (!identity) {
+        // Old firmware does not implement this endpoint. A plain 204 is not a
+        // valid discovery response for a JSON endpoint.
+        await route.fulfill({ status: 404, body: "Not found" });
+        return;
+      }
+      if (route.request().method() === "GET" && identity.failLoad) {
+        await route.fulfill({ status: 503, body: "Starting up" });
+        return;
+      }
+      if (route.request().method() === "POST") {
+        identity.posts.push(route.request().postDataJSON());
+        if (identity.failSave) {
+          await route.fulfill({ status: 500, body: "Save failed" });
+          return;
+        }
+        identity.info.name = route.request().postDataJSON().name;
+        identity.info.friendly_name = identity.info.name || "Original panel";
+        identity.info.hostname = require("./load_typescript_module").loadTypeScriptModule(
+          path.join(ROOT, "src/webserver/model/panel_identity.ts")
+        ).panelHostname(identity.info.name, identity.info.mac_suffix);
+        identity.info.restart_required = true;
+      }
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(identity.info) });
+      return;
+    }
     if (nativeState && requestUrl.pathname.startsWith("/api/v1/")) {
       const suppliedGeneration = route.request().headers()["if-match"];
       nativeState.requests.push(
@@ -271,6 +314,9 @@ async function installRoutes(context, slug, options = {}) {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
+          api: { version: 1 },
+          reset: options.resetState ? { modes: ["customization", "factory"], status: "/api/v1/reset" } : undefined,
+          identity: options.identityState ? { version: 1 } : undefined,
           configuration: { read: true, write: true, document_versions: [1] },
           web_assets: { versions: [1] },
         }),
@@ -286,6 +332,9 @@ async function installRoutes(context, slug, options = {}) {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
+          api: { version: 1 },
+          reset: options.resetState ? { modes: ["customization", "factory"], status: "/api/v1/reset" } : undefined,
+          identity: options.identityState ? { version: 1 } : undefined,
           configuration: { read: false, write: false, document_versions: [] },
         }),
       });
@@ -393,6 +442,7 @@ async function installRoutes(context, slug, options = {}) {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
+          headers: { "Access-Control-Allow-Origin": "*" },
           body: JSON.stringify(publicFirmwareManifest(slug)),
         });
         return;
@@ -401,6 +451,7 @@ async function installRoutes(context, slug, options = {}) {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
+          headers: { "Access-Control-Allow-Origin": "*" },
           body: JSON.stringify(publicFirmwareVersions(slug)),
         });
         return;
@@ -5836,16 +5887,230 @@ async function assertEditorRefresh(browser) {
   } finally { await context.close(); }
 }
 
+async function assertHostedCompatibility(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-p4-jc8012p4a1-v2");
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: nativeConfigState(testCase.slug) });
+  await context.addInitScript(() => {
+    const transport = window.fetch.bind(window);
+    window.__compatRequests = [];
+    window.fetch = async (input, init) => {
+      const request = new Request(new URL(String(input), location.href), init);
+      const record = { url: request.url, credentials: request.credentials, status: 0 };
+      window.__compatRequests.push(record);
+      const response = await transport(input, init);
+      record.status = response.status;
+      return response;
+    };
+  });
+  const page = await context.newPage();
+  const unhandled = [];
+  page.on("console", message => { if (message.text().includes("[state] unhandled:")) unhandled.push(message.text()); });
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), seededEvents());
+    await page.waitForFunction(() => ["manifest.json", "versions.json"].every(name =>
+      window.__compatRequests.some(item => item.url.startsWith("https://jtenniswood.github.io/espdesktop/firmware/") && item.url.endsWith(name) && item.status === 200)));
+    const requests = await page.evaluate(() => window.__compatRequests);
+    for (const request of requests.filter(item => item.url.startsWith("https://jtenniswood.github.io/espdesktop/firmware/"))) {
+      assert.equal(request.credentials, "omit", "public metadata must not include browser credentials");
+    }
+    assert(requests.some(item => item.url.endsWith("/espdesktop/version") && item.credentials === "include"), "device state requests retain authentication");
+    await page.getByRole("tab", { name: "Settings" }).click();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "select/Home Assistant Artwork Connection", state: "Manual" },
+      { id: "text_sensor/Home Assistant Artwork Endpoint", state: "Manual — http://ha.test:8123" },
+    ]));
+    assert.equal(await page.locator("#sp-set-ha-artwork-endpoint-mode").inputValue(), "Manual");
+    assert.equal(await page.locator("#sp-ha-artwork-endpoint-status").textContent(), "Manual — http://ha.test:8123");
+    assert(!unhandled.some(message => message.includes("Home Assistant Artwork")), "display-name artwork events are handled");
+  } finally { await context.close(); }
+}
+
+async function assertResetControls(browser) {
+  for (const mode of ["customization", "factory", "unsupported"]) {
+    const testCase = CASES[0];
+    const resetState = { epoch: 3, pending: false, requests: [] };
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: nativeConfigState(testCase.slug), resetState: mode === "unsupported" ? null : resetState });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeConfigState(testCase.slug));
+      await page.getByRole("tab", { name: "Settings" }).click();
+      const card = page.locator(".card").filter({ has: page.locator("h3", { hasText: /^Factory Reset$/ }) });
+      if (mode === "unsupported") { assert(!(await card.isVisible())); continue; }
+      await card.waitFor({ state: "visible" });
+      await card.locator(".card-header").click();
+      assert(await card.getByRole("button", { name: "Save backup", exact: true }).isVisible());
+      const download = page.waitForEvent("download");
+      await card.getByRole("button", { name: "Save backup", exact: true }).click();
+      await download;
+      const label = mode === "factory" ? "Complete reset" : "Partial reset";
+      if (mode === "factory") {
+        page.on("dialog", async dialog => {
+          await dialog.dismiss();
+          assert.fail("Complete reset must not open a browser prompt");
+        });
+        const confirmation = page.getByRole("dialog", { name: "Complete reset?", exact: true });
+        await card.getByRole("button", { name: label, exact: true }).click();
+        assert(await confirmation.isVisible());
+        assert.strictEqual(await confirmation.locator("input").count(), 0);
+        assert.strictEqual(resetState.requests.length, 0, "opening confirmation must not reset");
+        assert(await confirmation.getByRole("button", { name: "Cancel", exact: true }).evaluate(el => el === document.activeElement));
+        await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
+        await confirmation.waitFor({ state: "detached" });
+        assert.strictEqual(resetState.requests.length, 0, "cancel must not reset");
+        await card.getByRole("button", { name: label, exact: true }).click();
+        await page.keyboard.press("Escape");
+        await confirmation.waitFor({ state: "detached" });
+        assert.strictEqual(resetState.requests.length, 0, "Escape must not reset");
+        await card.getByRole("button", { name: label, exact: true }).click();
+        await confirmation.getByRole("button", { name: label, exact: true }).click();
+      } else {
+        page.once("dialog", dialog => dialog.dismiss());
+        await card.getByRole("button", { name: label, exact: true }).click();
+        assert.strictEqual(resetState.requests.length, 0, "cancel must not reset");
+        page.once("dialog", dialog => dialog.accept());
+        await card.getByRole("button", { name: label, exact: true }).click();
+      }
+      await page.waitForFunction(() => document.querySelector(".sp-reset-dialog")?.textContent?.includes("restarting") || document.querySelector(".sp-reset-dialog")?.textContent?.includes("Restarting"));
+      assert.deepStrictEqual(resetState.requests, [{ mode }]);
+      assert(await page.locator(".sp-reset-dialog").isVisible());
+    } finally { await context.close(); }
+  }
+}
+
+async function assertNamingOfflineBackups(browser) {
+  const testCase = ACTIVE_CASES[0];
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  const identityState = { posts: [], failLoad: true, info: {} };
+  await installRoutes(context, testCase.slug, { identityState });
+  const page = await context.newPage();
+  const restartRequests = [];
+  page.on("request", request => {
+    if (request.method() === "POST" && request.url().includes("/button/")) restartRequests.push(request.url());
+  });
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), seededEvents());
+    await openBackupControls(page);
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export", exact: true }).click();
+    const download = await downloadPromise;
+    const exported = JSON.parse(fs.readFileSync(await download.path(), "utf8"));
+    assert(!Object.hasOwn(exported, "identity"), "naming outage omits optional metadata");
+    assert(exported.native_config, "naming outage still exports configuration");
+    await page.getByText("Backup exported without the panel name because naming is unavailable.").waitFor();
+    const offlineBackup = backupFixture(testCase.slug, testCase.slots);
+    offlineBackup.identity = { version: 1, name: "Other panel", hostname: "other-panel-ffffff", mac_suffix: "ffffff" };
+    await importBackup(page, offlineBackup, "identity-offline-restore");
+    await page.waitForSelector(".sp-banner.sp-success");
+    assert.strictEqual(identityState.posts.length, 0, "offline restore cannot rename the destination");
+    assert.strictEqual(restartRequests.length, 0, "offline restore cannot restart for naming");
+    assert.strictEqual(await page.locator("dialog[open]").count(), 0, "offline restore skips the optional name dialog");
+  } finally { await context.close(); }
+}
+
+async function assertPanelNaming(browser) {
+  const testCase = ACTIVE_CASES[0];
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  const identityState = { posts: [], failLoad: true, failSave: false, info: {
+    name: "Kitchen", friendly_name: "Kitchen", hostname: "kitchen-b2c3",
+    mac_suffix: "b2c3", ip_address: "192.168.1.25", restart_required: false,
+  } };
+  await installRoutes(context, testCase.slug, { identityState });
+  const page = await context.newPage();
+  const errors = [];
+  const restartRequests = [];
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("request", request => {
+    if (request.method() === "POST" && request.url().includes("/button/")) restartRequests.push(request.url());
+  });
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), seededEvents());
+    await page.getByRole("tab", { name: "Settings" }).click();
+    const card = page.locator(".card").filter({ has: page.locator(".card-header", { hasText: "Device Name" }) });
+    await card.locator(".card-header").click();
+    await card.getByText("Could not read the panel name. Check the connection and try again.").waitFor();
+    identityState.failLoad = false;
+    await card.getByRole("button", { name: "Try again", exact: true }).click();
+    await page.waitForFunction(() => document.title === "EspDesktop — Kitchen");
+    assert.strictEqual(await page.locator(".sp-brand").textContent(), "EspDesktop Kitchen");
+    const save = card.getByRole("button", { name: "Save & Restart", exact: true });
+    assert(await save.isDisabled(), "unchanged names cannot be saved");
+    await page.locator("#sp-panel-name").fill("Office");
+    assert((await card.textContent()).includes("office-b2c3.local"));
+    if (process.env.ESPDESKTOP_NAMING_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_NAMING_SCREENSHOT, fullPage: true });
+    identityState.failSave = true;
+    await save.click();
+    await card.getByRole("status").filter({ hasText: "Could not save" }).waitFor();
+    assert.strictEqual(restartRequests.length, 0, "failed save must not restart");
+    assert.strictEqual(await page.title(), "EspDesktop — Kitchen");
+    identityState.failSave = false;
+    await save.click();
+    await page.waitForSelector("dialog[open]");
+    await page.waitForFunction(() => document.title === "EspDesktop — Office");
+    assert.strictEqual(await page.locator("dialog a").first().getAttribute("href"), "http://office-b2c3.local/");
+    await page.waitForTimeout(500);
+    assert.strictEqual(restartRequests.length, 1, "successful save requests one restart");
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    const backup = backupFixture(testCase.slug, testCase.slots);
+    backup.identity = { version: 1, name: "Bedroom", hostname: "espdesktop-bedroom-ffffff", mac_suffix: "ffffff" };
+    // Inspect the optional import before doing any configuration writes.
+    await importBackup(page, backup, "named-backup");
+    await page.waitForSelector("dialog[open]");
+    const choice = page.getByRole("checkbox", { name: "Also restore panel name" });
+    assert(!await choice.isChecked(), "name restore defaults off");
+    assert((await page.locator("dialog").textContent()).includes("bedroom-b2c3.local"), "restore uses destination MAC");
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.strictEqual(identityState.posts.length, 2, "cancel import cannot rename");
+    await importBackup(page, backup, "keep-destination-name");
+    await page.getByRole("button", { name: "Restore", exact: true }).click();
+    await page.waitForSelector(".sp-banner.sp-success");
+    assert.strictEqual(identityState.posts.length, 2, "unchecked name restore preserves identity");
+    await importBackup(page, backup, "restore-source-name");
+    await page.getByRole("checkbox", { name: "Also restore panel name" }).check();
+    await page.getByRole("button", { name: "Restore", exact: true }).click();
+    await page.waitForFunction(() => document.title === "EspDesktop — Bedroom");
+    assert.strictEqual(identityState.info.hostname, "bedroom-b2c3", "selected name restore keeps destination suffix");
+    assert.strictEqual(identityState.posts.length, 3, "name written once after successful restore");
+    assert.deepStrictEqual(errors, [], "naming journey has no browser errors");
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await chromium.launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
+      await assertNamingOfflineBackups(browser);
+      await assertPanelNaming(browser);
+      console.log("Panel naming browser checks passed.");
+      return;
+    }
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }
+    await assertNamingOfflineBackups(browser);
+    await assertPanelNaming(browser);
     if (!acceptanceOnly) {
       await assertPageTitleEvents(browser);
       await assertRotationStartupOrdering(browser);
     }
+    await assertHostedCompatibility(browser);
+    await assertResetControls(browser);
     for (const testCase of ACTIVE_CASES) {
       if (!acceptanceOnly) await runCase(browser, testCase);
       await assertNativeProfileJourney(browser, testCase);

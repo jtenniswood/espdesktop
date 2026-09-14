@@ -2401,8 +2401,30 @@ inline void grid_phase3(
     std::function<void()> sleep_callback,
     std::function<void()> schedule_presence_changed_callback,
     std::function<bool()> clock_bar_temperature_visible_callback = nullptr) {
+  // Grid redraws also run this path. Preserve live sensor values when their
+  // configuration is unchanged, including while Home Assistant is offline.
+  const std::vector<std::string> sensor_config = {
+      indoor_on ? "1" : "0", outdoor_on ? "1" : "0", indoor_entity, outdoor_entity,
+      temperature_entities, presence_entity, schedule_presence_entity, media_player_entity};
+  const std::vector<const void *> sensor_targets = {
+      indoor_temp_ptr, outdoor_temp_ptr, main_page_obj, presence_detected_ptr,
+      schedule_presence_detected_ptr, media_player_playing_ptr,
+      temperature_labels && temperature_label_count ? temperature_labels[0] : nullptr};
+  static std::vector<std::string> bound_config;
+  static std::vector<const void *> bound_targets;
+  if (sensor_config == bound_config && sensor_targets == bound_targets) return;
+  bound_config = sensor_config;
+  bound_targets = sensor_targets;
   ESP_LOGI("sensors", "Phase 3: temp/presence/media subscriptions start (%lu ms)", esphome::millis());
   ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3);
+  // Rebinding can remove an entity or wait for a new state. Values from the
+  // previous subscriptions must not keep controlling the screen meanwhile.
+  const bool schedule_presence_was_detected = schedule_presence_detected_ptr && *schedule_presence_detected_ptr;
+  if (indoor_temp_ptr) *indoor_temp_ptr = NAN;
+  if (outdoor_temp_ptr) *outdoor_temp_ptr = NAN;
+  if (presence_detected_ptr) *presence_detected_ptr = false;
+  if (schedule_presence_detected_ptr) *schedule_presence_detected_ptr = false;
+  if (media_player_playing_ptr) *media_player_playing_ptr = false;
   bool has_clock_bar_entities = configure_clock_bar_temperature_entities(
       temperature_entities, temperature_labels, temperature_label_count,
       main_page_obj, clock_bar_visible_callback,
@@ -2501,6 +2523,9 @@ inline void grid_phase3(
         }),
       HA_SUBSCRIPTION_SCOPE_PHASE3
     );
+  }
+  if (schedule_presence_was_detected && !*schedule_presence_detected_ptr && schedule_presence_changed_callback) {
+    schedule_presence_changed_callback();
   }
   ESP_LOGI("sensors", "Phase 3: done (%lu ms)", esphome::millis());
 }

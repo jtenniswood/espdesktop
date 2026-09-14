@@ -288,7 +288,10 @@ void AsyncWebServer::begin() {
   }
 }
 
+extern "C" bool espdesktop_allow_web_write(httpd_req_t *request) __attribute__((weak));
+
 esp_err_t AsyncWebServer::request_post_handler(httpd_req_t *r) {
+  if (espdesktop_allow_web_write != nullptr && !espdesktop_allow_web_write(r)) return ESP_OK;
   ESP_LOGVV(TAG, "Enter AsyncWebServer::request_post_handler. uri=%s", r->uri);
   auto content_type = request_get_header(r, "Content-Type");
 

@@ -83,6 +83,9 @@ TASKS = (
          domains=("firmware",),
          inputs=(
              "tests/firmware/**",
+             "components/espdesktop/device_reset.*",
+             "components/espdesktop/reset_policy.h",
+             "components/espdesktop/reset_interlock.h",
              "components/espdesktop/configuration_service.*",
              "components/espdesktop/panel_config_service_validator.h",
              "components/espdesktop/panel_config_capabilities.h",
