@@ -98,6 +98,52 @@ jobs:
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
 
+      - name: Prepare release web assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          python3 scripts/prepare_release_web_assets.py "${RELEASE_TAG}"
+
+          LEGACY_WEB_DIR="${RUNNER_TEMP}/espdesktop-published-web"
+          LEGACY_WEB_MANIFEST="${LEGACY_WEB_DIR}/web-assets.json"
+          LEGACY_WEB_ARGS=()
+          LEGACY_STABLE_TAG=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 \
+            --json tagName --jq '.[0].tagName // ""')
+          mkdir -p "${LEGACY_WEB_DIR}"
+          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/web-assets.json" \
+            -o "${LEGACY_WEB_MANIFEST}"; then
+            BUNDLE_PATH=$(jq -er --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path' \
+              "${LEGACY_WEB_MANIFEST}")
+            if [[ ! "${BUNDLE_PATH}" =~ ^bundles/[0-9a-f]{64}/www\.js$ ]]; then
+              echo "::error::Published web asset manifest has an invalid bundle path"
+              exit 1
+            fi
+            mkdir -p "docs/public/webserver/$(dirname "${BUNDLE_PATH}")"
+            curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
+              -o "docs/public/webserver/${BUNDLE_PATH}"
+            export ESPDESKTOP_LEGACY_WEB_MANIFEST="${LEGACY_WEB_MANIFEST}"
+            export ESPDESKTOP_LEGACY_FIRMWARE_VERSION="${LEGACY_STABLE_TAG}"
+            echo "ESPDESKTOP_LEGACY_WEB_MANIFEST=${LEGACY_WEB_MANIFEST}" >> "$GITHUB_ENV"
+            echo "ESPDESKTOP_LEGACY_FIRMWARE_VERSION=${LEGACY_STABLE_TAG}" >> "$GITHUB_ENV"
+            LEGACY_WEB_ARGS=(--legacy-web-manifest "${LEGACY_WEB_MANIFEST}")
+          else
+            echo "::warning::Could not download the published web asset manifest; using the checked-in fallback bundle."
+          fi
+          python3 scripts/build.py www --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
+          python3 scripts/build.py www --check --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
+
+          # Ship every verified bundle referenced by either compatibility alias,
+          # together with retained release bundles, loaders and the offline editor.
+          mkdir -p dist/release-web-assets
+          cp -a docs/public/webserver/. dist/release-web-assets/
+
+      - name: Upload release web assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-web-assets
+          path: dist/release-web-assets/
+
       - name: Run release preflight
         env:
           GH_TOKEN: ${{ github.token }}
@@ -387,6 +433,18 @@ jobs:
           merge-multiple: true
           path: dist/firmware
 
+      - name: Download release web assets
+        uses: actions/download-artifact@v8
+        with:
+          name: release-web-assets
+          path: release-web-assets
+
+      - name: Use release web assets
+        run: cp -a release-web-assets/. docs/public/webserver/
+
+      - name: Include release web assets in distribution
+        run: cp -a release-web-assets dist/release-web-assets
+
       - name: Generate release notes
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
@@ -561,6 +619,9 @@ jobs:
         with:
           name: espdesktop-app-release
           path: dist/companion
+
+      - name: Use release web assets
+        run: cp -a dist/release-web-assets/. docs/public/webserver/
 
       - name: Upload, verify, and publish draft release
         env:

@@ -1,5 +1,5 @@
 ---
-title: Local Action Cards
+title: "Run Local Panel Actions"
 description:
   How to trigger custom on-device callbacks directly from EspDesktop cards without Home Assistant.
 ---

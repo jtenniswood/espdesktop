@@ -636,6 +636,13 @@ inline bool image_card_icon_enabled(const ParsedCfg &p) {
   return cfg_option_token_present(p.options, IMAGE_ICON_OPTION);
 }
 
+inline void normalize_image_card_overlay_fields(std::string &icon,
+                                                const std::string &options) {
+  icon = cfg_option_token_present(options, IMAGE_ICON_OPTION)
+    ? (icon.empty() || icon == "Auto" ? "Camera" : icon)
+    : "Auto";
+}
+
 inline bool image_card_modal_fit_enabled(const ParsedCfg &p) {
   return normalize_image_modal_mode(
     cfg_option_value(p.options, IMAGE_MODAL_MODE_OPTION)) == "fit";
@@ -1217,10 +1224,7 @@ inline std::string normalize_saved_config_weather_options(
 }
 
 inline void normalize_saved_config_image_fields(ParsedCfg &p) {
-  p.icon = image_card_icon_enabled(p)
-    ? (p.icon.empty() || p.icon == "Auto" ? "Camera" : p.icon)
-    : "Auto";
-  if (!image_card_label_enabled(p)) p.label.clear();
+  normalize_image_card_overlay_fields(p.icon, p.options);
 }
 
 inline std::string normalize_saved_config_image_options(
@@ -1454,6 +1458,9 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
       normalize_saved_config_occupancy_options);
   if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "webhook" && p.type != "sensor" && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "wifi_qr" && p.type != "wifi_qr_card" && p.type != "light_control" && p.type != "vacuum" && !card_large_numbers_supported(p)) {
     p.options.clear();
+  }
+  if ((p.type == "wifi_qr" || p.type == "wifi_qr_card") && p.label.empty()) {
+    p.label = "Connect";
   }
   normalize_saved_config_sensor(p, was_legacy_text_sensor,
                                 normalize_saved_config_sensor_fields,
@@ -2102,7 +2109,9 @@ inline bool ha_state_unavailable_ref(esphome::StringRef state) {
 
 inline bool ha_entity_accepts_unknown_state(const std::string &entity_id) {
   return (entity_id.size() > 7 && entity_id.compare(0, 7, "button.") == 0) ||
-         (entity_id.size() > 13 && entity_id.compare(0, 13, "input_button.") == 0);
+         (entity_id.size() > 13 && entity_id.compare(0, 13, "input_button.") == 0) ||
+         (entity_id.size() > 7 && entity_id.compare(0, 7, "select.") == 0) ||
+         (entity_id.size() > 13 && entity_id.compare(0, 13, "input_select.") == 0);
 }
 
 inline bool ha_entity_state_unavailable_ref(const std::string &entity_id,

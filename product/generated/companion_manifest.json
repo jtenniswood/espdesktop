@@ -8,6 +8,6 @@
     "components/espdesktop/companion_protocol_generated.h",
     "macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift",
     "product/generated/companion_compatibility.json",
-    "docs/generated/companion-compatibility.md"
+    "docs/reference/companion-compatibility.md"
   ]
 }

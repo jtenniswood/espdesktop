@@ -89,7 +89,7 @@ export function buildResetSettings(exportBackup: () => void, makeCard: (title: s
         await session.reset(mode);
         heading.textContent = "Restarting…";
         if (mode === "factory") {
-          message.textContent = "Follow the display's Wifi setup instructions to reconnect, or use its network address over Ethernet. You may need to set up its Home Assistant connection and pair the Mac app again.";
+          message.textContent = "Follow the display's Wifi setup instructions to reconnect. You may need to set up its Home Assistant connection and pair the Mac app again.";
         } else {
           message.textContent = "Your Wifi, Home Assistant connection and Mac pairing will be retained. This page will reload when the display is ready.";
           const started = Date.now();

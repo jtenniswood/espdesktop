@@ -126,7 +126,6 @@ export function createConfigCodecFeature(
         normalizeMediaOptions,
     } = mediaOptions;
     const {
-        imageLabelEnabled,
         imageIconEnabled,
         normalizeImageOptions,
     } = imageOptions;
@@ -185,7 +184,8 @@ export function createConfigCodecFeature(
     function cardSupportsWifiPortraitSizes(this: any, b?: any) {
         return cardIsWifiSharing(b) && (
             layout.deviceId === "guition-esp32-p4-jc8012p4a1" ||
-            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v2"
+            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v2" ||
+            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v3"
         );
     }
     function cardSupportsExtraLargeSize(this: any, b?: any) {
@@ -404,8 +404,6 @@ export function createConfigCodecFeature(
         if (!b)
             return;
         b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
-        if (!imageLabelEnabled(b))
-            b.label = "";
     }
     function normalizeSavedConfigImageOptions(this: any, options?: any, _b?: any) {
         return normalizeImageOptions(options || "");
@@ -506,7 +504,7 @@ export function createConfigCodecFeature(
         var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
         var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
-        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
+        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         return b;
@@ -632,8 +630,6 @@ export function createConfigCodecFeature(
             sensor = "";
             unit = "";
             precision = "";
-            if (!imageLabelEnabled(b))
-                label = "";
         }
         if (type === "door_window")
             precision = normalizeDoorWindowSubtype(precision);

@@ -165,13 +165,12 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
     b.options = webhook_card_options_normalized(b.options);
   }
   if (b.type == "image") {
-    b.label.clear();
-    b.icon = "Auto";
-    b.icon_on = "Auto";
     b.sensor.clear();
     b.unit.clear();
     b.precision.clear();
     b.options = image_card_options_normalized(b.options);
+    normalize_image_card_overlay_fields(b.icon, b.options);
+    b.icon_on = "Auto";
   }
   if (b.type == "light_switch") {
     b.sensor.clear();
@@ -219,9 +218,10 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (!b.type.empty() && b.type != "action" && b.type != "alarm" &&
       b.type != "alarm_action" &&
       !climate_card_type(b.type) && b.type != "cover" && b.type != "garage" && b.type != "gate" &&
-      b.type != "webhook" &&
+      b.type != "webhook" && b.type != "wifi_qr" && b.type != "wifi_qr_card" &&
       b.type != "sensor" && b.type != "door_window" && b.type != "presence" &&
       b.type != "subpage" && b.type != "light_control" && b.type != "media" &&
+      b.type != "image" &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
   }

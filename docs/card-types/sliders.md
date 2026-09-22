@@ -1,5 +1,5 @@
 ---
-title: Slider Cards
+title: "Home Assistant Slider Cards"
 description:
   How to use slider cards to control Home Assistant lights, fans, number entities, or Mac input and output volume.
 ---
