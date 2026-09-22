@@ -42,6 +42,8 @@ CONFIG_SCHEMA = cv.All(
 
 async def to_code(config):
     cg.add_define("USE_COMPANION")
+    # Native ESP-IDF builds require the TLS server in the component dependency set.
+    esp32.include_builtin_idf_component("esp_https_server")
     esp32.add_idf_sdkconfig_option("CONFIG_HTTPD_WS_SUPPORT", True)
     esp32.add_idf_sdkconfig_option("CONFIG_ESP_HTTPS_SERVER_ENABLE", True)
     esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_X509_CRT_WRITE_C", True)

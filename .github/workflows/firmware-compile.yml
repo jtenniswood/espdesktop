@@ -2,6 +2,12 @@ name: Firmware Compile
 
 on:
   workflow_dispatch:
+    inputs:
+      device:
+        description: "Optional device slug; leave blank to compile all devices"
+        required: false
+        type: string
+        default: ""
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -78,8 +84,18 @@ jobs:
 
       - name: Generate device matrix
         id: matrix
+        env:
+          REQUESTED_DEVICE: ${{ inputs.device }}
         run: |
           MATRIX=$(python3 scripts/device_matrix.py pr)
+          if [ -n "$REQUESTED_DEVICE" ]; then
+            MATRIX=$(jq -ce --arg slug "$REQUESTED_DEVICE" \
+              '.include |= map(select(.slug == $slug)) | select(.include | length == 1)' \
+              <<< "$MATRIX") || {
+              echo "::error::Requested device is not in the supported firmware matrix."
+              exit 1
+            }
+          fi
           echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
 
   compile:
