@@ -51,6 +51,10 @@ usage documentation lives in the root `README.md` and under `docs/`.
 - [Cover Art Mode](cover-art-mode.md)
 - [Font Guidelines](font-guidelines.md)
 
+## Upstream Ports
+
+- [EspControl sync: 1–22 September 2026](upstream-sync/2026-09-22.md) — complete source PR accounting and destination adaptations.
+
 ## Historical Records
 
 - [Historical Records Index](history/README.md) - dated investigations and

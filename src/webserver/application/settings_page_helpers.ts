@@ -358,7 +358,7 @@ export function createSettingsPageHelpersFeature(
         var dimDisplay: any = controlState.dimVisible ? "" : "none";
         var cameraSupported = !!controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported;
         var cameraDisplay: any = cameraSupported && controlState.cameraVisible ? "" : "none";
-        for (const select of [els.setClockSelect, els.setSensorClockSelect]) {
+        for (const select of [els.setClockSelect, els.setSensorClockSelect, els.setCompanionClockSelect]) {
             if (!select) continue;
             const option = select.querySelector('option[value="camera"]');
             if (cameraSupported && !option) select.add(new Option("Camera", "camera"));

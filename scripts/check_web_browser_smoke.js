@@ -1518,7 +1518,7 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     assert.strictEqual(await metadataInput.isVisible(), false, `${label}: disabling metadata hides the field`);
     await metadataRow.locator(".sp-toggle").click();
     assert.strictEqual(await metadataInput.inputValue(), "sensor.current_photo_caption", `${label}: disabling metadata preserves the entity`);
-    await screensaverCard.getByRole("button", { name: "Sensor", exact: true }).click();
+    await screensaverCard.getByRole("button", { name: "Home Assistant", exact: true }).click();
     const sensorCamera = cameraPanel.locator("#sp-set-sensor-screensaver-camera");
     assert.strictEqual(await sensorCamera.inputValue(), "camera.front_door", `${label}: camera input stays synchronized without a server echo`);
     await sensorCamera.fill("image.garden");
@@ -1527,6 +1527,11 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     assert(await cameraPanel.locator("#sp-set-sensor-screensaver-camera").isVisible(), `${label}: Sensor camera entity is visible in the panel`);
     assert.strictEqual(await cameraPanel.locator("#sp-set-screensaver-camera").isVisible(), false, `${label}: Timer camera entity hides in Sensor mode`);
     assert(await metadataInput.isVisible(), `${label}: Sensor mode preserves enabled metadata`);
+    await screensaverCard.getByRole("button", { name: "App Connection", exact: true }).click();
+    assert(await cameraPanel.isVisible(), `${label}: App Connection keeps camera settings available`);
+    assert.strictEqual(await timerCamera.inputValue(), "image.garden", `${label}: App Connection shares the selected camera`);
+    assert.strictEqual(await screensaverCard.locator('#sp-set-companion-clock-mode option[value="camera"]').count(), 1,
+      `${label}: App Connection offers Camera when firmware support appears`);
     await screensaverCard.getByRole("button", { name: "Disabled", exact: true }).click();
     assert.strictEqual(await cameraPanel.isVisible(), false, `${label}: disabled screensaver hides the entire camera panel`);
     await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();

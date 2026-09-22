@@ -529,10 +529,10 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             timerPanel.style.display = mode === "timer" ? "" : "none";
             sensorPanel.style.display = mode === "sensor" ? "" : "none";
             companionPanel.style.display = mode === "companion" ? "" : "none";
-            timerCameraFields.style.display = mode === "timer" ? "" : "none";
+            timerCameraFields.style.display = mode === "timer" || mode === "companion" ? "" : "none";
             sensorCameraFields.style.display = mode === "sensor" ? "" : "none";
             if (layout.config.features?.cameraScreensaver)
-                (mode === "sensor" ? sensorPanel : timerPanel).appendChild(cameraPanel);
+                (mode === "sensor" ? sensorPanel : mode === "companion" ? companionPanel : timerPanel).appendChild(cameraPanel);
             if (els.setScreensaverBadge) {
                 els.setScreensaverBadge.className = "sp-card-badge" + (mode === "disabled" ? " sp-hidden" : "");
             }
