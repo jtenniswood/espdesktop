@@ -30,6 +30,7 @@ export interface ConnectorsPageFeature {
     buildPage(parent: HTMLElement): void;
     start(): void;
     homeAssistantConfigured(): boolean;
+    homeAssistantSettingsAvailable(): boolean;
     homeAssistantCardPickerEnabled(): boolean;
     companionConfigured(): boolean;
     onStatusChange(callback: () => void): void;
@@ -321,6 +322,14 @@ export function createConnectorsPageFeature(
         return !!current?.home_assistant.configured;
     }
 
+    function homeAssistantSettingsAvailable(): boolean {
+        // Settings require a live connection, including after a previous setup.
+        // Keep them hidden during loading, but retain legacy firmware support
+        // once the connector endpoint has been found to be unavailable.
+        return current !== null &&
+            (!statusEndpointAvailable || current.home_assistant.connected);
+    }
+
     function homeAssistantCardPickerEnabled(): boolean {
         // Preserve the established picker while connector status is loading
         // or when older firmware falls back to Home Assistant support. The
@@ -341,6 +350,7 @@ export function createConnectorsPageFeature(
         buildPage,
         start,
         homeAssistantConfigured,
+        homeAssistantSettingsAvailable,
         homeAssistantCardPickerEnabled,
         companionConfigured,
         onStatusChange,

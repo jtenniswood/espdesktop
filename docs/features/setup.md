@@ -16,6 +16,8 @@ Your EspDesktop panel has a built-in web page where you can set everything up. O
 The address is shown on the display screen when no cards are configured yet. You can also find it in your router's connected devices list or, when connected, in Home Assistant under **Settings > Devices & Services > ESPHome**.
 :::
 
+Home Assistant settings appear only while the Home Assistant connector is connected. When it disconnects, **Cover Art Screen Saver**, the **Home Assistant** modes in **Screensaver** and **Night Schedule**, and **Home Assistant Settings** are hidden. Saved settings return when Home Assistant reconnects. Use the **Connectors** tab to check or restore the connection.
+
 ### Adding a Card
 
 Tap any empty space in the grid (shown as a dashed outline with a **+** icon). A settings panel appears below the preview where you configure the card:

@@ -5642,42 +5642,70 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     const coverArtCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Cover Art Screen Saver$/ }),
     }).first();
-    assert(await coverArtCard.isVisible(), "Configured but offline HA keeps cover art settings available");
+    assert(!(await coverArtCard.isVisible()), "Offline HA hides cover art settings even after setup");
     const haSettingsCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Home Assistant Settings$/ }),
     }).first();
-    assert(await haSettingsCard.isVisible(), "Configured but offline HA keeps connection settings available");
+    assert(!(await haSettingsCard.isVisible()), "Offline HA hides Home Assistant settings even after setup");
     assert.strictEqual(await page.locator("#sp-set-ss-cover-art-source").count(), 0,
       "Home Assistant cover art has no source selector");
     const scheduleCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Night Schedule$/ }),
     }).first();
     await scheduleCard.locator(".card-header").click();
-    const scheduleHaMode = scheduleCard.getByRole("button", { name: "Home Assistant", exact: true });
-    assert(await scheduleHaMode.isVisible(), "Configured but offline HA keeps Night Schedule mode available");
-    await scheduleHaMode.click();
-    assert(await page.locator("#sp-set-schedule-presence").isVisible(), "HA schedule exposes its sensor");
-    await context.route("**/connectors/status", (route) => route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        onboarding_complete: true,
-        home_assistant: { available: true, configured: false, connected: false, actions_confirmed: false },
-        mac_companion: { available: true, configured: true, paired: true, connected: true },
-      }),
-    }));
-    await coverArtCard.waitFor({ state: "hidden" });
-    await haSettingsCard.waitFor({ state: "hidden" });
-    assert(!(await scheduleHaMode.isVisible()), "Unconfigured HA hides Night Schedule mode");
-    assert(!(await page.locator("#sp-set-schedule-presence").isVisible()), "Unconfigured HA hides saved sensor controls");
-    await scheduleCard.getByRole("button", { name: "Time", exact: true }).click();
-    assert(await page.locator("#sp-set-schedule-on-hour").isVisible(), "Time schedule remains available without HA");
-    assert(!(await scheduleHaMode.isVisible()), "Schedule updates keep unavailable HA mode hidden");
+    const scheduleHaMode = scheduleCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
+    assert(!(await scheduleHaMode.isVisible()), "Offline HA hides Night Schedule mode");
     const screensaverCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Screensaver$/ }),
     }).first();
     await screensaverCard.locator(".card-header").click();
     const haMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
+    assert(!(await haMode.isVisible()), "Offline HA hides Screensaver mode");
+    const status = {
+      onboarding_complete: true,
+      home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    };
+    await context.route("**/connectors/status", route => route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify(status),
+    }));
+    await coverArtCard.waitFor({ state: "visible" });
+    assert(await haSettingsCard.isVisible(), "Reconnecting restores Home Assistant settings");
+    assert(await haMode.isVisible(), "Reconnecting restores Screensaver mode");
+    assert(await scheduleHaMode.isVisible(), "Reconnecting restores Night Schedule mode");
+    await haMode.click();
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("/switch/screen__schedule_enabled/turn_on")),
+      scheduleHaMode.click(),
+    ]);
+    assert(await page.locator("#sp-set-schedule-presence").isVisible(), "HA schedule exposes its sensor");
+    const posts = [];
+    page.on("request", request => { if (request.method() === "POST") posts.push(request.url()); });
+    status.home_assistant.connected = false;
+    await coverArtCard.waitFor({ state: "hidden" });
+    await haSettingsCard.waitFor({ state: "hidden" });
+    assert(!(await haMode.isVisible()), "Disconnecting hides Screensaver mode");
+    assert(!(await scheduleHaMode.isVisible()), "Disconnecting hides Night Schedule mode");
+    assert(!(await page.locator("#sp-set-schedule-presence").isVisible()), "Disconnecting hides saved schedule sensor controls");
+    await page.evaluate(() => window.__seedEspState([
+      { id: "text-screensaver_mode", state: "sensor", value: "sensor" },
+    ]));
+    assert(!(await page.locator("#sp-set-presence").isVisible()), "Device updates cannot reveal the offline screensaver sensor");
+    assert(await screensaverCard.getByRole("button", { name: "Disabled", exact: true }).evaluate(el => el.classList.contains("active")),
+      "Offline saved HA mode displays the available Disabled tab");
+    status.home_assistant.connected = true;
+    await coverArtCard.waitFor({ state: "visible" });
+    assert(await haMode.evaluate(el => el.classList.contains("active")), "Reconnecting restores the saved screensaver selection");
+    assert(await scheduleHaMode.evaluate(el => el.classList.contains("active")), "Reconnecting restores the saved schedule selection");
+    assert(await page.locator("#sp-set-schedule-presence").isVisible(), "Reconnecting restores schedule sensor controls");
+    assert.deepStrictEqual(posts, [], "Disconnecting and reconnecting must not write settings");
+    status.home_assistant.connected = false;
+    status.home_assistant.configured = false;
+    await coverArtCard.waitFor({ state: "hidden" });
+    assert(!(await haSettingsCard.isVisible()), "Unconfigured HA hides its settings");
+    await scheduleCard.getByRole("button", { name: "Time", exact: true }).click();
+    assert(await page.locator("#sp-set-schedule-on-hour").isVisible(), "Time schedule remains available without HA");
+    assert(!(await scheduleHaMode.isVisible()), "Schedule updates keep unavailable HA mode hidden");
     assert.strictEqual(await haMode.isVisible(), false,
       "Unconfigured Home Assistant screensaver mode stays hidden after mode synchronization");
     await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
@@ -6333,6 +6361,12 @@ async function assertPanelNaming(browser) {
       await assertNamingOfflineBackups(browser);
       await assertPanelNaming(browser);
       console.log("Panel naming browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_HA_VISIBILITY_ONLY === "1") {
+      const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+      await assertCompanionOnlyCardPicker(browser, testCase);
+      console.log("Home Assistant visibility browser checks passed.");
       return;
     }
     await assertEditorRefresh(browser);
