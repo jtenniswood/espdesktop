@@ -5642,6 +5642,10 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     const coverArtCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Cover Art Screen Saver$/ }),
     }).first();
+    const temperatureControl = page.locator('[data-clockbar-item="temperature"]');
+    assert.strictEqual(await temperatureControl.count(), 0, "Offline HA removes the temperature clock-bar control");
+    assert.strictEqual(await page.locator('[data-clockbar-item="time"]').count(), 1, "Offline HA keeps the clock control");
+    assert.strictEqual(await page.locator('[data-clockbar-item="network"]').count(), 1, "Offline HA keeps the connectivity control");
     assert(!(await coverArtCard.isVisible()), "Offline HA hides cover art settings even after setup");
     const haSettingsCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Home Assistant Settings$/ }),
@@ -5670,6 +5674,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       status: 200, contentType: "application/json", body: JSON.stringify(status),
     }));
     await coverArtCard.waitFor({ state: "visible" });
+    assert.strictEqual(await temperatureControl.count(), 1, "Reconnecting restores the temperature control");
     assert(await haSettingsCard.isVisible(), "Reconnecting restores Home Assistant settings");
     assert(await haMode.isVisible(), "Reconnecting restores Screensaver mode");
     assert(await scheduleHaMode.isVisible(), "Reconnecting restores Night Schedule mode");
@@ -5684,6 +5689,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     status.home_assistant.connected = false;
     await coverArtCard.waitFor({ state: "hidden" });
     await haSettingsCard.waitFor({ state: "hidden" });
+    assert.strictEqual(await temperatureControl.count(), 0, "Disconnecting removes the temperature control");
     assert(!(await haMode.isVisible()), "Disconnecting hides Screensaver mode");
     assert(!(await scheduleHaMode.isVisible()), "Disconnecting hides Night Schedule mode");
     assert(!(await page.locator("#sp-set-schedule-presence").isVisible()), "Disconnecting hides saved schedule sensor controls");
@@ -5699,8 +5705,18 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     assert(await scheduleHaMode.evaluate(el => el.classList.contains("active")), "Reconnecting restores the saved schedule selection");
     assert(await page.locator("#sp-set-schedule-presence").isVisible(), "Reconnecting restores schedule sensor controls");
     assert.deepStrictEqual(posts, [], "Disconnecting and reconnecting must not write settings");
+    await page.getByRole("tab", { name: "Screen" }).click();
+    await temperatureControl.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "visible" });
     status.home_assistant.connected = false;
     status.home_assistant.configured = false;
+    await temperatureControl.waitFor({ state: "detached" });
+    await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "hidden" });
+    assert(!(await page.locator(".sp-selection-bar").textContent()).includes("Temperature selected"),
+      "Disconnecting clears the unavailable temperature selection");
+    assert.deepStrictEqual(posts, [], "Hiding the temperature editor must not change saved settings");
+    await page.getByRole("tab", { name: "Settings" }).click();
     await coverArtCard.waitFor({ state: "hidden" });
     assert(!(await haSettingsCard.isVisible()), "Unconfigured HA hides its settings");
     await scheduleCard.getByRole("button", { name: "Time", exact: true }).click();
