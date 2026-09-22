@@ -14,6 +14,7 @@ export interface DeviceConfigFeatures {
   battery?: boolean;
   alarmDelayAudio?: boolean;
   companion?: boolean;
+  cameraScreensaver?: boolean;
 }
 
 export interface DeviceConfig {
@@ -142,10 +143,17 @@ export interface AppState {
   temperatureDegreeSymbolOn: boolean;
   subpageChevronsOn: boolean;
   presenceEntity: string;
+  screensaverCameraEntity: string;
+  screensaverCameraSupported: boolean;
+  clockOverlaySupported: boolean;
+  screensaverMetadataEntity: string;
+  metadataOverlayOn: boolean;
+  screensaverCameraImageMode: string;
   mediaPlayerSleepPreventionOn: boolean;
   mediaPlayerSleepPreventionEntity: string;
   coverArtScreensaverOn: boolean;
   coverArtSource: string;
+  clockOverlayOn: boolean;
   coverArtMediaPlayerEntity: string;
   coverArtSecondaryMediaPlayerEntity: string;
   coverArtAttributeConditions: string;

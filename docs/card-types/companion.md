@@ -141,4 +141,4 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 
 If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. You can also tap the display’s network icon and choose **Pairing**. The popup shows the pairing code and the display’s IP address.
 
-For version details, see [Companion Compatibility](/generated/companion-compatibility).
+For version details, see [Companion Compatibility](/reference/companion-compatibility).

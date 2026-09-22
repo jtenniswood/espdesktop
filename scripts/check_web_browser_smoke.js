@@ -61,6 +61,11 @@ function casesFromManifest() {
       slots: device.slots,
       viewport: viewportFor(aspect.ratio),
       coverArtSquareOverlay: !!(device.web && device.web.coverArtSquareOverlay),
+      mediaCoverArtSupported: !(
+        device.web &&
+        Array.isArray(device.web.disabledCardTypes) &&
+        device.web.disabledCardTypes.includes("media_cover_art")
+      ),
       minVisibleCards: device.web && device.web.infoOnly ? 1 : 4,
       exerciseInteractions: slug === "guition-esp32-p4-jc8012p4a1",
       exerciseDeviceMocks: sharedFourInchSquareSlugs.has(slug),
@@ -1447,7 +1452,90 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   await screensaverCard.locator(".card-header").click();
   await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
   const dimmedAction = screensaverCard.locator("#sp-set-clock-mode");
+  const clockOverlayToggle = screensaverCard.locator("#sp-set-ss-clock-overlay");
+  const clockOverlayRow = clockOverlayToggle.locator("..").locator("..");
+  assert.strictEqual(await dimmedAction.locator('option[value="camera"]').count(), 0,
+    `${label}: older firmware without camera entities does not offer Camera`);
+  assert.strictEqual(await clockOverlayRow.isVisible(), false,
+    `${label}: older firmware without the overlay entity hides Display Clock`);
+  await page.evaluate(() => window.__seedEspState([
+    { id: "text-screen_saver__camera_entity", state: "" },
+    { id: "switch-screen_saver__clock_overlay", state: "OFF", value: false },
+  ]));
+  const hasCameraScreensaver = await dimmedAction.locator('option[value="camera"]').count() > 0;
   await dimmedAction.selectOption("dim");
+  assert.strictEqual(
+    await clockOverlayRow.isVisible(),
+    false,
+    `${label}: image clock overlay toggle hides unless Camera is selected`,
+  );
+  if (hasCameraScreensaver) {
+    const cameraPanel = screensaverCard.locator("#sp-set-screensaver-camera-panel");
+    assert.strictEqual(await cameraPanel.isVisible(), false, `${label}: camera panel hides for other screensavers`);
+    const metadataInput = screensaverCard.locator("#sp-set-screensaver-metadata");
+    const metadataToggle = screensaverCard.locator("#sp-set-ss-metadata-overlay");
+    const metadataRow = metadataToggle.locator("..").locator("..");
+    assert.strictEqual(await metadataRow.isVisible(), false, `${label}: metadata toggle hides outside Camera mode`);
+    assert.strictEqual(await metadataInput.isVisible(), false, `${label}: metadata hides outside Camera mode`);
+    await dimmedAction.selectOption("camera");
+    const timerCamera = cameraPanel.locator("#sp-set-screensaver-camera");
+    await timerCamera.fill("camera.front_door");
+    await timerCamera.blur();
+    assert(await cameraPanel.isVisible(), `${label}: Camera settings are grouped in a panel`);
+    assert(await cameraPanel.evaluate(panel => parseFloat(getComputedStyle(panel).borderTopWidth) > 0 && parseFloat(getComputedStyle(panel).paddingLeft) > 0), `${label}: camera panel has a visible border and inset padding`);
+    for (const id of ["sp-set-screensaver-camera", "sp-set-screensaver-camera-image-mode", "sp-set-ss-clock-overlay", "sp-set-ss-metadata-overlay", "sp-set-screensaver-metadata"])
+      assert.strictEqual(await cameraPanel.locator(`#${id}`).count(), 1, `${label}: ${id} belongs to the camera panel`);
+    assert(await metadataRow.isVisible(), `${label}: Camera mode offers Display Metadata`);
+    assert.strictEqual(await metadataInput.isVisible(), false, `${label}: disabled metadata hides its entity field`);
+    const metadataPostStart = posts.length;
+    await metadataRow.locator(".sp-toggle").click();
+    await waitForPost(posts,
+      { domain: "switch", name: "screen_saver__metadata_overlay", action: "turn_on" },
+      `${label}: metadata toggle enables the firmware overlay`, metadataPostStart);
+    assert(await metadataInput.isVisible(), `${label}: enabling metadata reveals its entity field`);
+    await metadataInput.fill("sensor.current_photo_caption");
+    await metadataInput.blur();
+    await waitForPost(posts,
+      { domain: "text", name: "Screen Saver: Photo Metadata Entity", action: "set", value: "sensor.current_photo_caption" },
+      `${label}: photo metadata sensor is saved`, metadataPostStart);
+    assert(
+      await clockOverlayRow.isVisible(),
+      `${label}: image clock overlay toggle shows for Camera screensavers`,
+    );
+    assert(
+      await page.evaluate(() => {
+        const clock = document.querySelector("#sp-set-ss-clock-overlay")?.closest(".sp-toggle-row");
+        const metadata = document.querySelector("#sp-set-ss-metadata-overlay")?.closest(".sp-toggle-row");
+        const entity = document.querySelector("#sp-set-screensaver-metadata")?.closest(".sp-field");
+        return !!clock && !!metadata && !!entity && clock.nextElementSibling === metadata && metadata.nextElementSibling === entity;
+      }),
+      `${label}: Display Metadata follows Display Clock, with its entity field underneath`,
+    );
+    await metadataRow.locator(".sp-toggle").click();
+    await waitForPost(posts,
+      { domain: "switch", name: "screen_saver__metadata_overlay", action: "turn_off" },
+      `${label}: metadata toggle disables the firmware overlay`, metadataPostStart);
+    assert.strictEqual(await metadataInput.isVisible(), false, `${label}: disabling metadata hides the field`);
+    await metadataRow.locator(".sp-toggle").click();
+    assert.strictEqual(await metadataInput.inputValue(), "sensor.current_photo_caption", `${label}: disabling metadata preserves the entity`);
+    await screensaverCard.getByRole("button", { name: "Sensor", exact: true }).click();
+    const sensorCamera = cameraPanel.locator("#sp-set-sensor-screensaver-camera");
+    assert.strictEqual(await sensorCamera.inputValue(), "camera.front_door", `${label}: camera input stays synchronized without a server echo`);
+    await sensorCamera.fill("image.garden");
+    await sensorCamera.blur();
+    assert(await cameraPanel.isVisible(), `${label}: Sensor mode keeps camera settings grouped`);
+    assert(await cameraPanel.locator("#sp-set-sensor-screensaver-camera").isVisible(), `${label}: Sensor camera entity is visible in the panel`);
+    assert.strictEqual(await cameraPanel.locator("#sp-set-screensaver-camera").isVisible(), false, `${label}: Timer camera entity hides in Sensor mode`);
+    assert(await metadataInput.isVisible(), `${label}: Sensor mode preserves enabled metadata`);
+    await screensaverCard.getByRole("button", { name: "Disabled", exact: true }).click();
+    assert.strictEqual(await cameraPanel.isVisible(), false, `${label}: disabled screensaver hides the entire camera panel`);
+    await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
+    assert.strictEqual(await timerCamera.inputValue(), "image.garden", `${label}: Sensor camera changes also reach Timer mode`);
+    assert(await cameraPanel.locator("#sp-set-screensaver-camera").isVisible(), `${label}: Timer mode restores its camera fields`);
+    await dimmedAction.selectOption("dim");
+    assert.strictEqual(await cameraPanel.isVisible(), false, `${label}: switching away from Camera hides the panel`);
+    assert.strictEqual(await metadataInput.isVisible(), false, `${label}: enabled metadata also hides outside Camera mode`);
+  }
   const manualDimmedBrightness = screensaverCard.locator("#sp-set-dimmed-brightness");
   const daytimeDimmedBrightness = screensaverCard.locator("#sp-set-daytime-dimmed-brightness");
   const nighttimeDimmedBrightness = screensaverCard.locator("#sp-set-nighttime-dimmed-brightness");
@@ -1593,6 +1681,8 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: cover art secondary entity should begin inside its collapsed panel`,
   );
   await screensaverSettings.locator("> .sp-disclosure-button").click();
+  assert.strictEqual(await coverArtCard.locator("#sp-set-cover-art-clock-overlay").count(), 0,
+    `${label}: media Cover Art must not offer the camera clock overlay`);
   assert(
     await coverArtCard.locator("#sp-set-ss-cover-art-delay").isVisible(),
     `${label}: cover art show-after field should render inside screensaver settings`,
@@ -1767,11 +1857,15 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: Home Assistant settings card should be collapsed by default`,
   );
   await homeAssistantSettingsCard.locator(".card-header").click();
-  assert(
-    await homeAssistantSettingsCard
-      .locator("#sp-set-ha-artwork-port")
-      .isVisible(),
-    `${label}: Home Assistant port field should render in Home Assistant settings`,
+  assert.strictEqual(
+    await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-protocol").isVisible(),
+    false,
+    `${label}: Home Assistant protocol should be hidden in Automatic mode`,
+  );
+  assert.strictEqual(
+    await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-port").isVisible(),
+    false,
+    `${label}: Home Assistant port should be hidden in Automatic mode`,
   );
   assert.strictEqual(
     await homeAssistantSettingsCard
@@ -1787,16 +1881,8 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   );
   assert.strictEqual(
     await homeAssistantSettingsCard.locator("#sp-ha-artwork-endpoint-status").textContent(),
-    "Automatic — http://192.0.2.10",
+    "The current Home Assistant artwork endpoint is http://192.0.2.10.",
     `${label}: Home Assistant artwork endpoint status should render`,
-  );
-  assert(
-    await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-protocol").isDisabled(),
-    `${label}: Home Assistant protocol should be disabled in Automatic mode`,
-  );
-  assert(
-    await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-port").isDisabled(),
-    `${label}: Home Assistant port should be disabled in Automatic mode`,
   );
   const endpointModePostsBefore = posts.length;
   await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-endpoint-mode").selectOption("Manual");
@@ -1811,8 +1897,16 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: Home Assistant protocol should be editable in Manual mode`,
   );
   assert(
+    await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-protocol").isVisible(),
+    `${label}: Home Assistant protocol should render in Manual mode`,
+  );
+  assert(
     await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-port").isEnabled(),
     `${label}: Home Assistant port should be editable in Manual mode`,
+  );
+  assert(
+    await homeAssistantSettingsCard.locator("#sp-set-ha-artwork-port").isVisible(),
+    `${label}: Home Assistant port should render in Manual mode`,
   );
   assert(
     (await homeAssistantSettingsCard
@@ -2570,7 +2664,7 @@ async function chooseCardType(page, label) {
   );
 }
 
-async function assertNewMediaCardDefaults(page, posts, label) {
+async function assertNewMediaCardDefaults(page, posts, label, mediaCoverArtSupported) {
   const emptyCell = page
     .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
     .first();
@@ -2585,15 +2679,17 @@ async function assertNewMediaCardDefaults(page, posts, label) {
 
   assert.strictEqual(
     await page.locator("#sp-inp-media-mode").inputValue(),
-    "cover_art",
-    `${label}: a new Media card should default to Cover Art`,
+    mediaCoverArtSupported ? "cover_art" : "play_pause",
+    `${label}: a new Media card should default to an available mode`,
   );
-  await page.locator("#sp-inp-media-mode").selectOption("play_pause");
-  assert.strictEqual(
-    await page.locator("#sp-inp-label").inputValue(),
-    "Play/Pause",
-    `${label}: leaving Cover Art should refresh the generated label`,
-  );
+  if (mediaCoverArtSupported) {
+    await page.locator("#sp-inp-media-mode").selectOption("play_pause");
+    assert.strictEqual(
+      await page.locator("#sp-inp-label").inputValue(),
+      "Play/Pause",
+      `${label}: leaving Cover Art should refresh the generated label`,
+    );
+  }
 
   await page.locator(".sp-settings-close").click();
   await page.waitForFunction(() => {
@@ -2666,9 +2762,9 @@ async function assertAllCardSettingsGrouped(page, posts, label) {
     );
     assert(
       result.primaryKinds.every((kind) =>
-        ["type", "entity"].includes(kind),
+        ["type", "name", "entity"].includes(kind),
       ),
-      `${label}: ${context} should only expose Type and Entity primary fields`,
+      `${label}: ${context} should only expose Type, Name, and Entity primary fields`,
     );
     for (const kind of ["type", "entity"]) {
       assert(
@@ -3022,6 +3118,11 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
     `${label}: Media action types should use their concise names`,
   );
 
+  assert(await page.getByLabel("Name", { exact: true }).isVisible(), `${label}: Cover Art should expose Name`);
+  assert(await page.locator("#sp-inp-label").evaluate((input) =>
+    input.closest(".sp-field").previousElementSibling.contains(document.querySelector("#sp-inp-entity")) &&
+    !input.closest(".sp-disclosure")), `${label}: Name should sit directly below Entity outside Card Settings`);
+
   const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({
     has: page.locator("#sp-inp-media-cover-art-card-settings"),
   });
@@ -3296,6 +3397,28 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
   await page.locator("#sp-inp-media-mode").selectOption("control_modal");
+  assert(await page.getByLabel("Name", { exact: true }).isVisible(), `${label}: All Controls should expose Name`);
+  await page.getByLabel("Name", { exact: true }).fill("Office speakers");
+  await page.getByLabel("Name", { exact: true }).dispatchEvent("change");
+  await page.locator("#sp-inp-media-mode").selectOption("cover_art");
+  assert.strictEqual(await page.getByLabel("Name", { exact: true }).inputValue(), "Office speakers", `${label}: Cover Art should retain the custom modal name`);
+  await page.locator("#sp-inp-media-mode").selectOption("control_modal");
+  assert.strictEqual(await page.getByLabel("Name", { exact: true }).inputValue(), "Office speakers", `${label}: All Controls should retain the custom modal name`);
+  for (const name of ["Media", "Now Playing", "Cover Art", "Speaker Group", "All Controls"]) {
+    await page.getByLabel("Name", { exact: true }).fill(name);
+    await page.getByLabel("Name", { exact: true }).dispatchEvent("change");
+    assert.strictEqual(await page.getByLabel("Name", { exact: true }).inputValue(), name, `${label}: editing Name must preserve ${name}`);
+    for (const mode of ["cover_art", "control_modal"]) {
+      await page.locator("#sp-inp-media-mode").selectOption(mode);
+      assert.strictEqual(await page.getByLabel("Name", { exact: true }).inputValue(), name, `${label}: ${mode} must preserve the explicit name ${name}`);
+    }
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay").classList.contains("sp-visible"));
+    await page.locator('.sp-main [data-slot="4"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.waitForSelector(".sp-settings-overlay.sp-visible");
+    assert.strictEqual(await page.getByLabel("Name", { exact: true }).inputValue(), name, `${label}: reopening All Controls must preserve ${name}`);
+  }
   const advanced = page.locator(".sp-settings-modal .sp-disclosure").filter({
     has: page.locator("#sp-inp-media-advanced"),
   });
@@ -4192,15 +4315,20 @@ async function assertCardTransferSmoke(page, posts, label) {
     1,
     `${label}: copy dialog uses concise guidance`,
   );
-  assert.strictEqual(
-    await copyDialog.getByRole("button", { name: "Copy Code" }).count(),
-    0,
-    `${label}: copy dialog does not show a non-functional copy button`,
+  const copyButton = copyDialog.getByRole("button", { name: "Copy", exact: true });
+  assert.strictEqual(await copyButton.count(), 1, `${label}: copy dialog exposes a clipboard copy button`);
+  assert(
+    await copyButton.evaluate((button) =>
+      button.classList.contains("sp-action-btn") &&
+      button.classList.contains("sp-transfer-copy-btn") &&
+      button.querySelector(".mdi-content-copy"),
+    ),
+    `${label}: copy button uses the copy icon and transfer button style`,
   );
   assert.strictEqual(
     await copyDialog.locator(".sp-transfer-actions").count(),
-    0,
-    `${label}: copy dialog does not show footer actions`,
+    1,
+    `${label}: copy dialog shows footer actions`,
   );
   assert.strictEqual(
     await copyDialog.getByText(/Press (Command|Ctrl)\+C to copy\./).count(),
@@ -4217,6 +4345,54 @@ async function assertCardTransferSmoke(page, posts, label) {
     { start: 0, end: copySelection.length, length: copySelection.length },
     `${label}: card code is selected for manual copying`,
   );
+  for (const mode of ["modern", "http", "denied", "blocked"]) {
+    await page.evaluate((mode) => {
+      window.__copyTestOriginalClipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+      window.__copyTestOriginalExec = document.execCommand;
+      window.__copiedCode = null;
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: mode === "http" ? undefined : {
+        writeText: async (value) => {
+          if (mode !== "modern") throw new Error("Clipboard permission denied");
+          window.__copiedCode = value;
+        },
+      } });
+      document.execCommand = (command) => {
+        if (command !== "copy" || mode === "blocked") return false;
+        const textarea = document.querySelector(".sp-transfer-code");
+        window.__copiedCode = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
+        return true;
+      };
+    }, mode);
+    await copyDialog.getByRole("button", { name: "Copy", exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector(".sp-transfer-actions .sp-transfer-copy-btn").disabled);
+    assert.strictEqual(await copyDialog.getByRole("status").textContent(), mode === "blocked"
+      ? "Could not copy automatically. Copy the selected code manually."
+      : "", `${label}: copying only shows a message when it fails`);
+    assert.strictEqual(await page.evaluate(() => window.__copiedCode), mode === "blocked" ? null : code,
+      `${label}: ${mode} clipboard path copies the exact code or reports failure`);
+    if (mode === "blocked") {
+      assert.strictEqual(await copyDialog.getByRole("button", { name: "Copy", exact: true }).count(), 1,
+        `${label}: failed copying keeps the default button state`);
+    } else {
+      const copiedButton = copyDialog.getByRole("button", { name: "Copied", exact: true });
+      assert.strictEqual(await copiedButton.count(), 1, `${label}: successful copying shows the copied state`);
+      assert(
+        await copiedButton.evaluate((button) =>
+          button.classList.contains("sp-copied") && button.querySelector(".mdi-check"),
+        ),
+        `${label}: successful copying uses the check icon and accent state`,
+      );
+      await copyDialog.getByRole("button", { name: "Copy", exact: true }).waitFor({ state: "visible" });
+    }
+    await page.evaluate(() => {
+      if (window.__copyTestOriginalClipboard) Object.defineProperty(navigator, "clipboard", window.__copyTestOriginalClipboard);
+      else delete navigator.clipboard;
+      document.execCommand = window.__copyTestOriginalExec;
+      delete window.__copyTestOriginalClipboard;
+      delete window.__copyTestOriginalExec;
+      delete window.__copiedCode;
+    });
+  }
   const dialogFont = await copyDialog.evaluate((element) => getComputedStyle(element).fontFamily);
   assert(/Inter|Segoe UI|Roboto|sans-serif/i.test(dialogFont), `${label}: copy dialog uses the web UI font stack`);
   const codeFont = await copyDialog.locator("textarea").evaluate((element) => getComputedStyle(element).fontFamily);
@@ -5109,6 +5285,41 @@ async function seedNativeDocument(page, nativeState) {
   await page.waitForSelector('.sp-main [data-slot="2"]');
 }
 
+async function assertGuestWifiSettings(page, label) {
+  await page.getByRole("tab", { name: "Screen" }).click();
+  const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
+  assert(await emptyCell.count(), `${label}: guest Wi-Fi test needs an empty slot`);
+  await emptyCell.click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  await page.getByRole("button", { name: "Switch card type" }).click();
+  await page.locator("#sp-inp-type").selectOption("wifi_qr");
+  const guestTab = page.locator("#sp-inp-wifi-tab-guest");
+  assert.strictEqual(await guestTab.isChecked(), false, `${label}: Guest Wi-Fi defaults off`);
+  assert.strictEqual(await page.locator("#sp-inp-wifi-guest-entity").count(), 0);
+  await page.locator("#sp-inp-wifi-modal-tabs").click();
+  await page.locator("#sp-inp-wifi-tab-guest + .sp-toggle-track").click();
+  const guestEntity = page.locator("#sp-inp-wifi-guest-entity");
+  assert(await guestEntity.isVisible(), `${label}: enabling Guest Wi-Fi reveals its switch picker`);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  assert.strictEqual(await guestEntity.getAttribute("aria-invalid"), "true", `${label}: an enabled guest tab requires a switch`);
+  await guestEntity.fill("light.guest_wifi");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  assert.strictEqual(await guestEntity.getAttribute("aria-invalid"), "true", `${label}: Guest Wi-Fi rejects non-switch entities`);
+  await guestEntity.fill("switch.guest_wifi");
+  await guestEntity.blur();
+  await page.locator("#sp-inp-wifi-card-type").selectOption("wifi_qr_card");
+  assert.strictEqual(await guestEntity.inputValue(), "switch.guest_wifi");
+  assert.strictEqual(await guestTab.isChecked(), true);
+  await page.locator("#sp-inp-wifi-card-type").selectOption("wifi_qr");
+  await page.locator("#sp-inp-wifi-tab-guest + .sp-toggle-track").click();
+  assert.strictEqual(await guestEntity.count(), 0, `${label}: disabling Guest Wi-Fi hides the picker`);
+  await page.locator("#sp-inp-wifi-tab-guest + .sp-toggle-track").click();
+  assert.strictEqual(await guestEntity.inputValue(), "switch.guest_wifi", `${label}: disabled tabs retain their switch`);
+  await page.locator("#sp-inp-wifi-tab-guest + .sp-toggle-track").click();
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay.sp-visible"));
+}
+
 async function assertNativeProfileJourney(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -5126,6 +5337,7 @@ async function assertNativeProfileJourney(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await seedNativeDocument(page, nativeState);
+    if (testCase.exerciseInteractions) await assertGuestWifiSettings(page, testCase.name);
 
     await assertSubpageTitleTypography(page, testCase.name);
 
@@ -5791,7 +6003,9 @@ async function runCase(browser, testCase) {
     );
     await assertCardIconsTopLeft(page, testCase.name);
     await assertClockBarTypographyAndIconLayout(page, testCase.name);
-    await assertMediaCoverArtCompactPreview(page, testCase.name);
+    if (testCase.mediaCoverArtSupported) {
+      await assertMediaCoverArtCompactPreview(page, testCase.name);
+    }
     await assertConnectorsManagement(page, testCase.name);
     await assertSettingsPage(page, testCase.name, testCase, posts);
     if (testCase.exerciseInteractions) {
@@ -5803,7 +6017,9 @@ async function runCase(browser, testCase) {
       testCase,
     );
     await assertCoverSettingsPanels(page, testCase.name);
-    await assertMediaCoverArtSettingsPanels(page, testCase.name);
+    if (testCase.mediaCoverArtSupported) {
+      await assertMediaCoverArtSettingsPanels(page, testCase.name);
+    }
     await assertAlarmSettingsPanels(page, testCase.name);
     await assertPlaylistValidationOpensSourcePanel(page, testCase.name);
     await assertSpeakerGroupEditorAndPreview(page, posts, testCase.name);
@@ -5816,7 +6032,12 @@ async function runCase(browser, testCase) {
     }
     await assertInternalControlsPanel(page, posts, testCase.name);
     await assertEmptyCellSettings(page, posts, testCase.name);
-    await assertNewMediaCardDefaults(page, posts, testCase.name);
+    await assertNewMediaCardDefaults(
+      page,
+      posts,
+      testCase.name,
+      testCase.mediaCoverArtSupported,
+    );
     if (testCase.exerciseInteractions) {
       await assertClockBarEditorSmoke(page, posts, testCase.name);
       await assertBackupImportSmoke(page, posts, testCase);
@@ -5925,7 +6146,7 @@ async function assertHostedCompatibility(browser) {
       { id: "text_sensor/Home Assistant Artwork Endpoint", state: "Manual — http://ha.test:8123" },
     ]));
     assert.equal(await page.locator("#sp-set-ha-artwork-endpoint-mode").inputValue(), "Manual");
-    assert.equal(await page.locator("#sp-ha-artwork-endpoint-status").textContent(), "Manual — http://ha.test:8123");
+    assert.equal(await page.locator("#sp-ha-artwork-endpoint-status").textContent(), "The current Home Assistant artwork endpoint is http://ha.test:8123.");
     assert(!unhandled.some(message => message.includes("Home Assistant Artwork")), "display-name artwork events are handled");
   } finally { await context.close(); }
 }

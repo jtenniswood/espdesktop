@@ -1,5 +1,5 @@
 ---
-title: EspDesktop Rotation
+title: "Rotation"
 description:
   How to change the screen rotation on supported EspDesktop panels.
 ---

@@ -1,12 +1,22 @@
 ---
-title: Install EspDesktop Firmware
+title: Install EspDesktop on a Home Assistant Touchscreen
+titleTemplate: :title
 description:
   How to flash EspDesktop firmware to a supported ESP32 touchscreen, connect it to WiFi, and choose Mac Companion or Home Assistant.
 ---
 
-# Install
+# Install EspDesktop on a Home Assistant Touchscreen
 
 Flash the EspDesktop firmware to your supported ESP32 display directly from your browser — no special software or technical knowledge required.
+
+## Before You Start
+
+- Identify your exact [supported screen and hardware revision](/screens/).
+- Use Chrome or Edge on a desktop computer and a USB-C **data** cable.
+- Have your 2.4 GHz WiFi name and password ready, with Home Assistant reachable on the same local network.
+- Add at least one light, switch, or sensor to Home Assistant so you can test the panel after pairing.
+
+Normal browser installation does not require ESPHome Device Builder or writing YAML. You will install firmware, connect WiFi, pair with Home Assistant, enable actions, and test your first card.
 
 ::: tip Prefer ESPHome?
 If you want to compile and install the firmware yourself, use the [Manual Setup guide](/getting-started/manual-esphome-setup).
@@ -14,7 +24,7 @@ If you want to compile and install the firmware yourself, use the [Manual Setup 
 
 ## Flash the Firmware
 
-Connect the display to your computer with the USB-C cable, choose your panel, then click the install button.
+Connect the display to your computer with the USB-C cable, choose your device and hardware version, then click the install button. The newest listed hardware version is selected by default; check the identification note matches your panel before installing.
 
 <EspInstallSelector />
 
@@ -34,7 +44,7 @@ If the install button doesn't detect your device, try a different USB-C cable. C
 ### Step by Step
 
 1. **Plug in the display** using the USB-C cable. If your computer asks to install drivers, allow it.
-2. **Choose your panel** above, then click **Install EspDesktop**. A dialog will ask you to choose a serial port — select the one that appeared when you plugged in the display.
+2. **Choose your device and hardware version** above, then click **Install EspDesktop**. A dialog will ask you to choose a serial port — select the one that appeared when you plugged in the display.
 3. **Wait for the flash to complete.** This takes a few minutes. You'll see a progress bar. Don't disconnect the cable until it finishes.
 4. **The display restarts** and shows a loading screen.
 
@@ -69,9 +79,9 @@ Once the display is on your WiFi network, Home Assistant should discover it auto
 2. **Look for a notification** in the bottom left — it should say a new device was discovered. If you don't see one, go to **Settings > Devices & Services** and look for a new **ESPHome** entry.
 3. **Click "Configure"** and follow the prompts to add the device.
 
-This connection supplies smart-home entities and lets the display control your devices. After adding it, [allow Home Assistant actions](/getting-started/home-assistant-actions) so the touchscreen can send commands.
+This connection provides device states and controls. The clock normally uses network time, with Home Assistant as a fallback. After adding the device, you need to [allow it to perform Home Assistant actions](/getting-started/home-assistant-actions) so the touchscreen can control your devices.
 
-You can connect Home Assistant alongside Mac Companion on the 4848S040. The other supported panel profiles currently use Home Assistant and do not offer Companion cards.
+You can connect Home Assistant alongside Mac Companion on the 4848S040. Other panel profiles currently use Home Assistant and do not offer Companion cards.
 
 ## Configure Your Panel
 
@@ -85,4 +95,8 @@ With the display connected to WiFi and at least one connector configured, you're
 
 That's it — your panel is ready to use. See [Mac Cards and Capabilities](/card-types/companion) for Mac controls or [Setup](/features/setup) for a full walkthrough of the editor.
 
-Next: [Troubleshooting](/getting-started/troubleshooting)
+## Confirm It Works
+
+Add one Switch or Light card using an entity that already works in Home Assistant. Tap it on the panel and confirm the real device changes. Change it in Home Assistant and confirm the panel follows. If the state displays but tapping does nothing, check [actions permission](/getting-started/home-assistant-actions).
+
+Next: [Build your panel](/guides/), or use [Troubleshooting](/getting-started/troubleshooting) if setup fails.

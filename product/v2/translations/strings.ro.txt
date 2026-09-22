@@ -158,6 +158,7 @@ snowy=Ninsoare
 snowy_and_rain=Ninsoare și ploaie
 spot_clean=Curățare locală
 start=Pornire
+start_dock=Start / Dock
 still=Nemișcat
 subpage=Subpagină
 stop=Oprire
@@ -308,3 +309,5 @@ stat_remaining=rămas
 
 timer=Temporizator
 timer_confirm=Confirmați
+guest_wifi=Wi-Fi pentru oaspeți
+wifi_did_not_change=Starea Wi-Fi nu s-a schimbat

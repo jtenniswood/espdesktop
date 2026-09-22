@@ -1,10 +1,11 @@
 ---
-title: Enable Actions
+title: "Allow EspDesktop to Control Home Assistant Devices"
+titleTemplate: :title
 description:
   How to allow your EspDesktop touchscreen to perform Home Assistant actions so it can control lights, switches, and other devices.
 ---
 
-# Enable Actions
+# Allow EspDesktop to Control Home Assistant Devices
 
 EspDesktop needs permission to call Home Assistant actions (like toggling lights, running scripts, changing media volume, or adjusting climate targets) on your behalf. Without this, the touchscreen can display read-only information but **cards won't be able to control your devices or request forecast data**.
 
@@ -40,4 +41,4 @@ You won't be able to control any devices, it will be in a read-only state, and e
 
 ## Device Not Showing Up?
 
-If you don't see your EspDesktop device in the ESPHome integration, it may not have been added to Home Assistant yet. Head back to the [Install](/getting-started/install#add-to-home-assistant) guide to add it first.
+If you don't see your EspDesktop device in the ESPHome integration, it may not have been added to Home Assistant yet. Head back to the [Install](/getting-started/install#add-home-assistant) guide to add it first.

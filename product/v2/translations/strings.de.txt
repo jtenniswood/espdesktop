@@ -158,6 +158,7 @@ snowy=Schneereich
 snowy_and_rain=Schnee und Regen
 spot_clean=Punktreinigung
 start=Start
+start_dock=Start / Dock
 still=Still
 subpage=Unterseite
 stop=Stopp
@@ -308,3 +309,5 @@ stat_remaining=übrig
 
 timer=Timer
 timer_confirm=Bestätigen
+guest_wifi=Gast-WLAN
+wifi_did_not_change=WLAN wurde nicht geändert

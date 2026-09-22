@@ -1,5 +1,5 @@
 ---
-title: Webhook Cards
+title: "Home Assistant Webhook Cards"
 description:
   How to use webhook cards on your EspDesktop panel to call HTTP URLs directly from the device.
 ---

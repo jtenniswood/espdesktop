@@ -6,6 +6,12 @@
   },
   "structural": [
     {
+      "name": "Wifi Off",
+      "codepoint": "F05AA",
+      "mdi": "wifi-off",
+      "comment": "Guest Wi-Fi disabled"
+    },
+    {
       "name": "Close",
       "codepoint": "F0156",
       "mdi": "close",
@@ -238,6 +244,16 @@
       "mdi": "bell-ring"
     },
     {
+      "name": "Alarm Bell",
+      "codepoint": "F078E",
+      "mdi": "alarm-bell"
+    },
+    {
+      "name": "Alarm Clock",
+      "codepoint": "F0020",
+      "mdi": "alarm"
+    },
+    {
       "name": "Alarm Light",
       "codepoint": "F078F",
       "mdi": "alarm-light"
@@ -458,6 +474,11 @@
       "mdi": "ceiling-fan"
     },
     {
+      "name": "Ceiling Fan Light",
+      "codepoint": "F1798",
+      "mdi": "ceiling-fan-light"
+    },
+    {
       "name": "Ceiling Light",
       "codepoint": "F0769",
       "mdi": "ceiling-light"
@@ -488,6 +509,11 @@
       "mdi": "chair-rolling"
     },
     {
+      "name": "Chef Hat",
+      "codepoint": "F0B7C",
+      "mdi": "chef-hat"
+    },
+    {
       "name": "Chevron Down",
       "codepoint": "F0140",
       "mdi": "chevron-down"
@@ -496,6 +522,16 @@
       "name": "Chevron Up",
       "codepoint": "F0143",
       "mdi": "chevron-up"
+    },
+    {
+      "name": "Coach Lamp",
+      "codepoint": "F1020",
+      "mdi": "coach-lamp"
+    },
+    {
+      "name": "Coach Lamp Variant",
+      "codepoint": "F1A37",
+      "mdi": "coach-lamp-variant"
     },
     {
       "name": "Clock",
@@ -511,6 +547,11 @@
       "name": "Coffee Maker",
       "codepoint": "F109F",
       "mdi": "coffee-maker"
+    },
+    {
+      "name": "Countertop",
+      "codepoint": "F181C",
+      "mdi": "countertop"
     },
     {
       "name": "Current AC",
@@ -546,6 +587,11 @@
       "name": "Delete Outline",
       "codepoint": "F09E7",
       "mdi": "delete-outline"
+    },
+    {
+      "name": "Delete Variant",
+      "codepoint": "F01B3",
+      "mdi": "delete-variant"
     },
     {
       "name": "Desk",
@@ -878,6 +924,11 @@
       "mdi": "lamp-outline"
     },
     {
+      "name": "Lava Lamp",
+      "codepoint": "F07D5",
+      "mdi": "lava-lamp"
+    },
+    {
       "name": "LAN",
       "codepoint": "F0317",
       "mdi": "lan"
@@ -943,6 +994,11 @@
       "mdi": "lightbulb-auto-outline"
     },
     {
+      "name": "Lightbulb Fluorescent Tube Outline",
+      "codepoint": "F1805",
+      "mdi": "lightbulb-fluorescent-tube-outline"
+    },
+    {
       "name": "Lightbulb Group",
       "codepoint": "F1253",
       "mdi": "lightbulb-group"
@@ -966,6 +1022,11 @@
       "name": "Lightbulb Off",
       "codepoint": "F0E4F",
       "mdi": "lightbulb-off"
+    },
+    {
+      "name": "Lightbulb On 50",
+      "codepoint": "F1A52",
+      "mdi": "lightbulb-on-50"
     },
     {
       "name": "Lightbulb On Outline",
@@ -1016,6 +1077,11 @@
       "name": "Lock Open Outline",
       "codepoint": "F0340",
       "mdi": "lock-open-outline"
+    },
+    {
+      "name": "Lock Open Variant",
+      "codepoint": "F0FC6",
+      "mdi": "lock-open-variant"
     },
     {
       "name": "Lock Outline",
@@ -1188,6 +1254,11 @@
       "mdi": "pool"
     },
     {
+      "name": "Post Lamp",
+      "codepoint": "F1A60",
+      "mdi": "post-lamp"
+    },
+    {
       "name": "Power",
       "codepoint": "F0425",
       "mdi": "power"
@@ -1233,6 +1304,11 @@
       "mdi": "keyboard-backspace"
     },
     {
+      "name": "Remote Desktop",
+      "codepoint": "F08B9",
+      "mdi": "remote-desktop"
+    },
+    {
       "name": "Remote Down",
       "codepoint": "F0047",
       "mdi": "arrow-down-bold-circle"
@@ -1261,6 +1337,11 @@
       "name": "Remote Up",
       "codepoint": "F005F",
       "mdi": "arrow-up-bold-circle"
+    },
+    {
+      "name": "Remote TV",
+      "codepoint": "F0EC5",
+      "mdi": "remote-tv"
     },
     {
       "name": "Robot Vacuum",
@@ -1386,6 +1467,11 @@
       "name": "Sofa Outline",
       "codepoint": "F156D",
       "mdi": "sofa-outline"
+    },
+    {
+      "name": "Sofa Single Outline",
+      "codepoint": "F156F",
+      "mdi": "sofa-single-outline"
     },
     {
       "name": "Solar Panel",
@@ -1588,6 +1674,11 @@
       "mdi": "toilet"
     },
     {
+      "name": "Toy Brick",
+      "codepoint": "F1288",
+      "mdi": "toy-brick"
+    },
+    {
       "name": "Track Light",
       "codepoint": "F0914",
       "mdi": "track-light"
@@ -1623,9 +1714,24 @@
       "mdi": "vacuum-outline"
     },
     {
+      "name": "Vanity Light",
+      "codepoint": "F11E1",
+      "mdi": "vanity-light"
+    },
+    {
       "name": "View Headline",
       "codepoint": "F0571",
       "mdi": "view-headline"
+    },
+    {
+      "name": "Video",
+      "codepoint": "F0567",
+      "mdi": "video"
+    },
+    {
+      "name": "Video Outline",
+      "codepoint": "F0BDC",
+      "mdi": "video-outline"
     },
     {
       "name": "Volume High",
@@ -1676,6 +1782,16 @@
       "name": "Water Percent",
       "codepoint": "F058E",
       "mdi": "water-percent"
+    },
+    {
+      "name": "Water Pump",
+      "codepoint": "F058F",
+      "mdi": "water-pump"
+    },
+    {
+      "name": "Water Pump Off",
+      "codepoint": "F0F93",
+      "mdi": "water-pump-off"
     },
     {
       "name": "Water Alert",

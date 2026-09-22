@@ -1,5 +1,5 @@
 ---
-title: EspDesktop Temperature Display
+title: "Temperature Display"
 description:
   How to show temperature sensors on your EspDesktop panel's top bar.
 ---

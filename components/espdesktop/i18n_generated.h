@@ -301,6 +301,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "left") == 0) return "zbývá";
   if (std::strcmp(text, "Timer") == 0) return "Časovač";
   if (std::strcmp(text, "Confirm") == 0) return "Potvrdit";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pro hosty";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stav Wi-Fi se nezměnil";
   return text;
 }
 
@@ -581,6 +583,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "free") == 0) return "ledig";
   if (std::strcmp(text, "left") == 0) return "tilbage";
   if (std::strcmp(text, "Confirm") == 0) return "Bekræft";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gæste-Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi blev ikke ændret";
   return text;
 }
 
@@ -859,6 +863,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "free") == 0) return "frei";
   if (std::strcmp(text, "left") == 0) return "übrig";
   if (std::strcmp(text, "Confirm") == 0) return "Bestätigen";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gast-WLAN";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "WLAN wurde nicht geändert";
   return text;
 }
 
@@ -1147,6 +1153,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restante";
   if (std::strcmp(text, "Timer") == 0) return "Temporizador";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de invitados";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "El Wi-Fi no ha cambiado";
   return text;
 }
 
@@ -1445,6 +1453,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "left") == 0) return "jäljellä";
   if (std::strcmp(text, "Timer") == 0) return "Ajastin";
   if (std::strcmp(text, "Confirm") == 0) return "Vahvista";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Vieras-Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ei muuttunut";
   return text;
 }
 
@@ -1727,6 +1737,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restant";
   if (std::strcmp(text, "Timer") == 0) return "Minuteur";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmer";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi invité";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Le Wi-Fi n’a pas changé";
   return text;
 }
 
@@ -2031,6 +2043,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "left") == 0) return "נותר";
   if (std::strcmp(text, "Timer") == 0) return "טיימר";
   if (std::strcmp(text, "Confirm") == 0) return "לאשר";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "רשת Wi-Fi לאורחים";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "מצב ה-Wi-Fi לא השתנה";
   return text;
 }
 
@@ -2328,6 +2342,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "left") == 0) return "maradt";
   if (std::strcmp(text, "Timer") == 0) return "Időzítő";
   if (std::strcmp(text, "Confirm") == 0) return "Megerősítés";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Vendég Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "A Wi-Fi állapota nem változott";
   return text;
 }
 
@@ -2615,6 +2631,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "free") == 0) return "libero";
   if (std::strcmp(text, "left") == 0) return "rimanente";
   if (std::strcmp(text, "Confirm") == 0) return "Confermare";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi ospiti";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Il Wi-Fi non è cambiato";
   return text;
 }
 
@@ -2901,6 +2919,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "left") == 0) return "igjen";
   if (std::strcmp(text, "Timer") == 0) return "Tidtaker";
   if (std::strcmp(text, "Confirm") == 0) return "Bekreft";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gjeste-Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ble ikke endret";
   return text;
 }
 
@@ -3181,6 +3201,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "free") == 0) return "vrij";
   if (std::strcmp(text, "left") == 0) return "over";
   if (std::strcmp(text, "Confirm") == 0) return "Bevestigen";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gastwifi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wifi is niet gewijzigd";
   return text;
 }
 
@@ -3467,6 +3489,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "left") == 0) return "pozostało";
   if (std::strcmp(text, "Timer") == 0) return "Minutnik";
   if (std::strcmp(text, "Confirm") == 0) return "Potwierdzić";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi dla gości";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stan Wi-Fi nie zmienił się";
   return text;
 }
 
@@ -3753,6 +3777,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restante";
   if (std::strcmp(text, "Timer") == 0) return "Temporizador";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de convidados";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "O Wi-Fi não mudou";
   return text;
 }
 
@@ -4040,6 +4066,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restante";
   if (std::strcmp(text, "Timer") == 0) return "Temporizador";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de convidados";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "O Wi-Fi não mudou";
   return text;
 }
 
@@ -4337,6 +4365,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "left") == 0) return "rămas";
   if (std::strcmp(text, "Timer") == 0) return "Temporizator";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmați";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pentru oaspeți";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Starea Wi-Fi nu s-a schimbat";
   return text;
 }
 
@@ -4641,6 +4671,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "left") == 0) return "осталось";
   if (std::strcmp(text, "Timer") == 0) return "Таймер";
   if (std::strcmp(text, "Confirm") == 0) return "Подтвердить";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Гостевой Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Состояние Wi-Fi не изменилось";
   return text;
 }
 
@@ -4931,6 +4963,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "left") == 0) return "zostáva";
   if (std::strcmp(text, "Timer") == 0) return "Časovač";
   if (std::strcmp(text, "Confirm") == 0) return "Potvrdiť";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pre hostí";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stav Wi-Fi sa nezmenil";
   return text;
 }
 
@@ -5225,6 +5259,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "left") == 0) return "preostalo";
   if (std::strcmp(text, "Timer") == 0) return "Časovnik";
   if (std::strcmp(text, "Confirm") == 0) return "Potrdi";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi za goste";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stanje Wi-Fi se ni spremenilo";
   return text;
 }
 
@@ -5509,6 +5545,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "free") == 0) return "ledigt";
   if (std::strcmp(text, "left") == 0) return "kvar";
   if (std::strcmp(text, "Confirm") == 0) return "Bekräfta";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gäst-Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ändrades inte";
   return text;
 }
 
@@ -5807,6 +5845,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "left") == 0) return "kalan";
   if (std::strcmp(text, "Timer") == 0) return "Zamanlayıcı";
   if (std::strcmp(text, "Confirm") == 0) return "Onayla";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Misafir Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi durumu değişmedi";
   return text;
 }
 
@@ -6106,6 +6146,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "left") == 0) return "залишилось";
   if (std::strcmp(text, "Timer") == 0) return "Таймер";
   if (std::strcmp(text, "Confirm") == 0) return "Підтвердити";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Гостьовий Wi-Fi";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Стан Wi-Fi не змінився";
   return text;
 }
 
@@ -6268,6 +6310,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "snowy_and_rain") == 0) return "Snowy And Rain";
   if (std::strcmp(key, "spot_clean") == 0) return "Spot Clean";
   if (std::strcmp(key, "start") == 0) return "Start";
+  if (std::strcmp(key, "start_dock") == 0) return "Start / Dock";
   if (std::strcmp(key, "still") == 0) return "Still";
   if (std::strcmp(key, "subpage") == 0) return "Subpage";
   if (std::strcmp(key, "stop") == 0) return "Stop";
@@ -6417,6 +6460,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "left";
   if (std::strcmp(key, "timer") == 0) return "Timer";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirm";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Guest Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi did not change";
   return key;
 }
 
@@ -6709,6 +6754,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "zbývá";
   if (std::strcmp(key, "timer") == 0) return "Časovač";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdit";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pro hosty";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stav Wi-Fi se nezměnil";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6992,6 +7039,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "ledig";
   if (std::strcmp(key, "stat_remaining") == 0) return "tilbage";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekræft";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Gæste-Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi blev ikke ændret";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7273,6 +7322,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "frei";
   if (std::strcmp(key, "stat_remaining") == 0) return "übrig";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bestätigen";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Gast-WLAN";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "WLAN wurde nicht geändert";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7564,6 +7615,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   if (std::strcmp(key, "timer") == 0) return "Temporizador";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de invitados";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "El Wi-Fi no ha cambiado";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7865,6 +7918,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "jäljellä";
   if (std::strcmp(key, "timer") == 0) return "Ajastin";
   if (std::strcmp(key, "timer_confirm") == 0) return "Vahvista";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Vieras-Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ei muuttunut";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8150,6 +8205,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restant";
   if (std::strcmp(key, "timer") == 0) return "Minuteur";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmer";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi invité";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Le Wi-Fi n’a pas changé";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8457,6 +8514,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "נותר";
   if (std::strcmp(key, "timer") == 0) return "טיימר";
   if (std::strcmp(key, "timer_confirm") == 0) return "לאשר";
+  if (std::strcmp(key, "guest_wifi") == 0) return "רשת Wi-Fi לאורחים";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "מצב ה-Wi-Fi לא השתנה";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8757,6 +8816,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "maradt";
   if (std::strcmp(key, "timer") == 0) return "Időzítő";
   if (std::strcmp(key, "timer_confirm") == 0) return "Megerősítés";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Vendég Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "A Wi-Fi állapota nem változott";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9047,6 +9108,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "libero";
   if (std::strcmp(key, "stat_remaining") == 0) return "rimanente";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confermare";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi ospiti";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Il Wi-Fi non è cambiato";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9336,6 +9399,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "igjen";
   if (std::strcmp(key, "timer") == 0) return "Tidtaker";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekreft";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Gjeste-Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ble ikke endret";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9618,6 +9683,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "vrij";
   if (std::strcmp(key, "stat_remaining") == 0) return "over";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bevestigen";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Gastwifi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wifi is niet gewijzigd";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9907,6 +9974,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "pozostało";
   if (std::strcmp(key, "timer") == 0) return "Minutnik";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potwierdzić";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi dla gości";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stan Wi-Fi nie zmienił się";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10196,6 +10265,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   if (std::strcmp(key, "timer") == 0) return "Temporizador";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de convidados";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "O Wi-Fi não mudou";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10486,6 +10557,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   if (std::strcmp(key, "timer") == 0) return "Temporizador";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de convidados";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "O Wi-Fi não mudou";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10786,6 +10859,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "rămas";
   if (std::strcmp(key, "timer") == 0) return "Temporizator";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmați";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pentru oaspeți";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Starea Wi-Fi nu s-a schimbat";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11093,6 +11168,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "осталось";
   if (std::strcmp(key, "timer") == 0) return "Таймер";
   if (std::strcmp(key, "timer_confirm") == 0) return "Подтвердить";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Гостевой Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Состояние Wi-Fi не изменилось";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11386,6 +11463,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "zostáva";
   if (std::strcmp(key, "timer") == 0) return "Časovač";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdiť";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pre hostí";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stav Wi-Fi sa nezmenil";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11683,6 +11762,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "preostalo";
   if (std::strcmp(key, "timer") == 0) return "Časovnik";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potrdi";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi za goste";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stanje Wi-Fi se ni spremenilo";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11970,6 +12051,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "ledigt";
   if (std::strcmp(key, "stat_remaining") == 0) return "kvar";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekräfta";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Gäst-Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ändrades inte";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12271,6 +12354,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "kalan";
   if (std::strcmp(key, "timer") == 0) return "Zamanlayıcı";
   if (std::strcmp(key, "timer_confirm") == 0) return "Onayla";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Misafir Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi durumu değişmedi";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12573,6 +12658,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "залишилось";
   if (std::strcmp(key, "timer") == 0) return "Таймер";
   if (std::strcmp(key, "timer_confirm") == 0) return "Підтвердити";
+  if (std::strcmp(key, "guest_wifi") == 0) return "Гостьовий Wi-Fi";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Стан Wi-Fi не змінився";
   return espdesktop_i18n_key_en(key);
 }
 

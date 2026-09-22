@@ -11,6 +11,8 @@ Usage:
     python scripts/build.py i18n          # sync firmware translations only
     python scripts/build.py companion     # sync shared Companion capabilities
     python scripts/build.py www           # build www.js only
+    python scripts/build.py www --retain-current-bundle  # retain a release bundle
+    python scripts/build.py www --legacy-web-manifest PATH  # use the published bundle as the legacy bundle
     python scripts/build.py www --temporary-output DIR  # isolated fresh bundles
     python scripts/build.py icons --check # check icons only
     python scripts/build.py --self-test    # verify transactional publishing
@@ -42,10 +44,13 @@ MDI_WEB_FONT = ROOT / "common" / "assets" / "fonts" / f"materialdesignicons-webf
 ROBOTO_WEB_FONT = ROOT / "common" / "assets" / "fonts" / "roboto-latin.woff2"
 SUPPORT_BUTTON_IMAGE = ROOT / "common" / "assets" / "images" / "buy-me-a-coffee-button.png"
 WEB_SOURCE_DIR = ROOT / "src" / "webserver"
+WEB_BUNDLE_RETENTION = ROOT / "docs" / "public" / "webserver" / "bundle-retention.json"
 
-# The hosted editor remains available to the development firmware plus the
-# current stable release and its four supported rollback releases. Keep this
-# list aligned with the GitHub Pages release catalogue in pages.yml.
+# Keep this list aligned with the GitHub Pages release catalogue in pages.yml.
+# The current source bundle is intentionally restricted to development firmware
+# (and the release being prepared). Stable firmware keeps using the retained
+# bundle from the latest published source until that firmware contains the
+# matching generated icon glyphs.
 WEB_ASSET_SUPPORTED_FIRMWARE_VERSIONS = (
     "dev",
     "v2.8.5",
@@ -54,6 +59,12 @@ WEB_ASSET_SUPPORTED_FIRMWARE_VERSIONS = (
     "v2.8.2",
     "v2.8.1",
 )
+WEB_ASSET_CURRENT_FIRMWARE_VERSION = None
+# Local fallback for builds that do not have the currently published manifest.
+# Release and Pages workflows pass --legacy-web-manifest so this rotates with
+# the published release instead of remaining pinned here.
+WEB_ASSET_LEGACY_BUNDLE_ID = "c4662cf1cf9963ad07a462f4793d070941bc7e986d357dd3d903da0f6071389b"
+WEB_ASSET_LEGACY_BUNDLE_PATH = f"bundles/{WEB_ASSET_LEGACY_BUNDLE_ID}/www.js"
 
 # Fixed editor controls use a few MDI glyphs that are not selectable Product
 # Model icons. Keep their pinned codepoints here so rebuilding www.js remains
@@ -156,8 +167,11 @@ class GeneratedOutputTransaction:
     def stage_text(self, path, content):
         self._staged[Path(path).resolve()] = content
 
+    def stage_delete(self, path):
+        self._staged[Path(path).resolve()] = None
+
     def overlays(self):
-        return {str(path): content for path, content in self._staged.items()}
+        return {str(path): content for path, content in self._staged.items() if content is not None}
 
     def commit(self):
         if not self._staged:
@@ -171,6 +185,9 @@ class GeneratedOutputTransaction:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 target_mode = path.stat().st_mode & 0o777 if path.exists() else 0o644
                 originals[path] = (path.read_bytes(), target_mode) if path.exists() else None
+                if content is None:
+                    prepared[path] = None
+                    continue
                 with tempfile.NamedTemporaryFile(
                     mode="w",
                     encoding="utf-8",
@@ -186,7 +203,10 @@ class GeneratedOutputTransaction:
                     prepared[path] = Path(handle.name)
 
             for path, staged_path in prepared.items():
-                self._replace_file(staged_path, path)
+                if staged_path is None:
+                    path.unlink(missing_ok=True)
+                else:
+                    self._replace_file(staged_path, path)
                 replaced.append(path)
         except Exception as exc:
             for path in reversed(replaced):
@@ -211,7 +231,8 @@ class GeneratedOutputTransaction:
             raise BuildError(f"Unable to publish generated outputs; restored the previous set: {exc}") from exc
         finally:
             for staged_path in prepared.values():
-                staged_path.unlink(missing_ok=True)
+                if staged_path is not None:
+                    staged_path.unlink(missing_ok=True)
 
 
 GENERATED_TRANSACTION = None
@@ -260,6 +281,7 @@ def run_generated_transaction_self_test():
             os.replace(source, destination)
 
         transaction = GeneratedOutputTransaction(replace_file=fail_second_replace)
+        transaction.stage_delete(third)
         transaction.stage_text(first, "first-broken")
         transaction.stage_text(second, "second-broken")
         try:
@@ -272,6 +294,14 @@ def run_generated_transaction_self_test():
             raise BuildError("Generated transaction did not restore the previous set")
         if first.stat().st_mode & 0o777 != 0o640:
             raise BuildError("Generated transaction rollback did not restore file permissions")
+
+        if third.read_text() != "third-new":
+            raise BuildError("Generated transaction did not restore a deleted output")
+        transaction = GeneratedOutputTransaction()
+        transaction.stage_delete(third)
+        transaction.commit()
+        if third.exists():
+            raise BuildError("Generated transaction did not delete a stale output")
 
         marker = "espdesktop-generated-overlay-self-test"
         entry_path = ROOT / "src" / "webserver" / "entry.ts"
@@ -893,8 +923,8 @@ def sync_companion_capabilities(check_only=False):
     outputs.extend(protocol_outputs(ROOT, data))
     release_compatibility = compatibility(ROOT)
     outputs.append((ROOT / "product/generated/companion_compatibility.json", json.dumps(release_compatibility, indent=2) + "\n"))
-    outputs.append((ROOT / "docs/generated/companion-compatibility.md",
-        "<!-- Generated by scripts/build.py companion. -->\n# Companion compatibility\n\n"
+    outputs.append((ROOT / "docs/reference/companion-compatibility.md",
+        "---\ntitle: Companion Compatibility\ndescription: Matching EspDesktop Mac app and firmware protocol versions and release artifacts.\n---\n\n<!-- Generated by scripts/build.py companion. -->\n# Companion Compatibility\n\n"
         f"Companion and firmware currently use protocol {release_compatibility['protocolVersion']} "
         f"and capability version {release_compatibility['capabilityVersion']}.\n\n"
         "Supported display: " + ", ".join(release_compatibility['supportedDevices']) + ".\n\n"
@@ -4227,7 +4257,55 @@ def load_timezone_options():
     return options
 
 
-def build_www(check_only=False, output_dir=None, test_hooks=False):
+def load_legacy_web_bundle(manifest_path):
+    selected_version = os.environ.get("ESPDESKTOP_LEGACY_FIRMWARE_VERSION")
+    path = Path(manifest_path)
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise BuildError(f"Could not read legacy web asset manifest {path}") from exc
+    bundles = manifest.get("bundles") if isinstance(manifest, dict) else None
+    if not isinstance(bundles, list):
+        raise BuildError(f"Legacy web asset manifest {path} has no bundle entries")
+    bundle = next(
+        (
+            candidate
+            for candidate in bundles
+            if isinstance(candidate, dict)
+            and isinstance(candidate.get("firmwareVersions"), list)
+            and any(
+                isinstance(version, str) and (
+                    version == selected_version if selected_version
+                    else re.fullmatch(r"v\d+\.\d+\.\d+", version) is not None
+                )
+                for version in candidate["firmwareVersions"]
+            )
+        ),
+        None,
+    )
+    if bundle is None:
+        raise BuildError(
+            f"Legacy web asset manifest {path} has no published firmware bundle"
+        )
+    bundle_id = bundle.get("id")
+    bundle_path = bundle.get("path")
+    if (
+        not isinstance(bundle_id, str)
+        or not re.fullmatch(r"[0-9a-f]{64}", bundle_id)
+        or bundle.get("sha256") != bundle_id
+        or bundle_path != f"bundles/{bundle_id}/www.js"
+    ):
+        raise BuildError(f"Legacy web asset manifest {path} has an invalid current bundle")
+    return bundle_id, bundle_path
+
+
+def build_www(
+    check_only=False,
+    output_dir=None,
+    test_hooks=False,
+    retain_current_bundle=False,
+    legacy_web_manifest=None,
+):
     """Build one shared www.js containing the validated device profiles."""
     devices = build_web_devices()
     embedded_mdi_styles = embedded_web_mdi_styles()
@@ -4262,16 +4340,44 @@ def build_www(check_only=False, output_dir=None, test_hooks=False):
     bridge_text = (build_root / "www.js").read_text()
     bundle_sha256 = hashlib.sha256(bundle_text.encode("utf-8")).hexdigest()
     bundle_relative_path = Path("bundles") / bundle_sha256 / "www.js"
+    legacy_bundle_id = WEB_ASSET_LEGACY_BUNDLE_ID
+    legacy_bundle_path = WEB_ASSET_LEGACY_BUNDLE_PATH
+    if legacy_web_manifest is not None:
+        legacy_bundle_id, legacy_bundle_path = load_legacy_web_bundle(legacy_web_manifest)
+    current_firmware_versions = ["dev"]
+    if WEB_ASSET_CURRENT_FIRMWARE_VERSION is not None:
+        if WEB_ASSET_CURRENT_FIRMWARE_VERSION not in WEB_ASSET_SUPPORTED_FIRMWARE_VERSIONS:
+            raise BuildError(
+                "current web asset firmware version is missing from the supported version list"
+            )
+        current_firmware_versions.append(WEB_ASSET_CURRENT_FIRMWARE_VERSION)
+    legacy_firmware_versions = [
+        firmware_version
+        for firmware_version in WEB_ASSET_SUPPORTED_FIRMWARE_VERSIONS
+        if firmware_version not in current_firmware_versions
+    ]
+    current_bundle = {
+        "id": bundle_sha256,
+        "sha256": bundle_sha256,
+        "path": bundle_relative_path.as_posix(),
+        "deviceProfiles": list(devices),
+        "firmwareVersions": current_firmware_versions,
+    }
+    legacy_bundle = {
+        "id": legacy_bundle_id,
+        "sha256": legacy_bundle_id,
+        "path": legacy_bundle_path,
+        "deviceProfiles": list(devices),
+        "firmwareVersions": legacy_firmware_versions,
+    }
     manifest_text = json.dumps({
         "schemaVersion": 1,
-        "bundles": [{
-            "id": bundle_sha256,
-            "sha256": bundle_sha256,
-            "path": bundle_relative_path.as_posix(),
-            "deviceProfiles": list(devices),
-            "firmwareVersions": list(WEB_ASSET_SUPPORTED_FIRMWARE_VERSIONS),
-            "webAssetVersion": version,
-        } for version in (2, 1)],
+        "bundles": [
+            {**current_bundle, "webAssetVersion": 2},
+            {**current_bundle, "webAssetVersion": 1},
+            {**legacy_bundle, "webAssetVersion": 2},
+            {**legacy_bundle, "webAssetVersion": 1},
+        ],
     }, indent=2) + "\n"
 
     outputs = [(build_root / "www.js", bridge_text)]
@@ -4285,11 +4391,33 @@ def build_www(check_only=False, output_dir=None, test_hooks=False):
         (build_root / "web-assets.json", manifest_text),
     ])
 
+    output_root = build_root if output_dir is not None else WWW_OUTPUT_DIR
+    if retain_current_bundle and output_dir is None:
+        retention = {"schemaVersion": 1, "paths": []}
+        if WEB_BUNDLE_RETENTION.exists():
+            retention = json.loads(WEB_BUNDLE_RETENTION.read_text(encoding="utf-8"))
+        paths = list(dict.fromkeys([*retention.get("paths", []), bundle_relative_path.as_posix()]))
+        outputs.append((
+            build_root / "bundle-retention.json",
+            json.dumps({"schemaVersion": 1, "paths": sorted(paths)}, indent=2) + "\n",
+        ))
+
+    retained = {entry["path"] for entry in json.loads(manifest_text)["bundles"]}
+    if output_dir is None and WEB_BUNDLE_RETENTION.exists():
+        retention = json.loads(WEB_BUNDLE_RETENTION.read_text(encoding="utf-8"))
+        retained.update(retention.get("paths", []))
+    stale = sorted(
+        path for path in (output_root / "bundles").glob("*/www.js")
+        if path.relative_to(output_root).as_posix() not in retained
+    )
+
     if output_dir is not None:
         for path, generated in outputs:
             if not path.exists() or path.read_text() != generated:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(generated, encoding="utf-8")
+        for path in stale:
+            path.unlink()
         print(f"Built shared www.js bundle, immutable asset, and {len(devices)} compatibility loader(s) in {build_root}")
         return []
 
@@ -4303,10 +4431,19 @@ def build_www(check_only=False, output_dir=None, test_hooks=False):
         if not path.exists() or path.read_text() != generated
     ]
 
+    dirty.extend(str(path.relative_to(WWW_OUTPUT_DIR)) for path in stale)
+
     if not check_only:
         for path, generated in outputs:
             if not path.exists() or path.read_text() != generated:
                 write_generated_text(path, generated)
+
+        # Publish the replacement manifest before removing its obsolete assets.
+        for path in stale:
+            if GENERATED_TRANSACTION is None:
+                path.unlink()
+            else:
+                GENERATED_TRANSACTION.stage_delete(path)
 
     if check_only and dirty:
         print("www.js outputs are out of date. Run 'python scripts/build.py www' to fix:")
@@ -4334,6 +4471,15 @@ def main():
     check_only = "--check" in args
     test_hooks = "--test-hooks" in args
     args = [arg for arg in args if arg != "--test-hooks"]
+    retain_current_bundle = "--retain-current-bundle" in args
+    args = [arg for arg in args if arg != "--retain-current-bundle"]
+    legacy_web_manifest = os.environ.get("ESPDESKTOP_LEGACY_WEB_MANIFEST")
+    if "--legacy-web-manifest" in args:
+        index = args.index("--legacy-web-manifest")
+        if index + 1 >= len(args):
+            raise BuildError("--legacy-web-manifest requires a manifest path")
+        legacy_web_manifest = args[index + 1]
+        del args[index:index + 2]
     temporary_output = None
     if "--temporary-output" in args:
         index = args.index("--temporary-output")
@@ -4361,7 +4507,11 @@ def main():
                 companion_dirty = sync_companion_capabilities(check_only=check_only)
                 device_dirty = sync_device_capabilities(check_only=check_only)
                 icon_dirty = sync_icons(check_only=check_only)
-                www_dirty = build_www(check_only=check_only)
+                www_dirty = build_www(
+                    check_only=check_only,
+                    retain_current_bundle=retain_current_bundle,
+                    legacy_web_manifest=legacy_web_manifest,
+                )
                 if check_only and (entity_dirty or i18n_dirty or contract_dirty or companion_dirty or device_dirty or icon_dirty or www_dirty):
                     exit_code = 1
                 elif not entity_dirty and not i18n_dirty and not contract_dirty and not device_dirty and not icon_dirty and not www_dirty:
@@ -4421,7 +4571,13 @@ def main():
                 else:
                     print(f"Synced {len(dirty)} device capability output(s).")
             elif cmd == "www":
-                dirty = build_www(check_only=check_only, output_dir=temporary_output, test_hooks=test_hooks)
+                dirty = build_www(
+                    check_only=check_only,
+                    output_dir=temporary_output,
+                    test_hooks=test_hooks,
+                    retain_current_bundle=retain_current_bundle,
+                    legacy_web_manifest=legacy_web_manifest,
+                )
                 if check_only and dirty:
                     exit_code = 1
                 elif not dirty:
@@ -4430,7 +4586,11 @@ def main():
                     print(f"Built {len(dirty)} file(s).")
             else:
                 print(f"Unknown command: {cmd}")
-                print("Usage: python scripts/build.py [all|entities|contract|devices|icons|i18n|www] [--check]")
+                print(
+                    "Usage: python scripts/build.py "
+                    "[all|entities|contract|devices|icons|i18n|www] [--check] "
+                    "[--retain-current-bundle] [--legacy-web-manifest PATH]"
+                )
                 exit_code = 1
         if exit_code == 0 and transaction is not None:
             transaction.commit()

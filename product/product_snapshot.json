@@ -9,11 +9,11 @@
     "compatibilityFixtures": "product/v2/product_compatibility.json"
   },
   "summary": {
-    "deviceProfiles": 7,
+    "deviceProfiles": 8,
     "cardTypes": 44,
-    "entityNames": 102,
-    "icons": 340,
-    "structuralIcons": 30,
+    "entityNames": 107,
+    "icons": 362,
+    "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -195,7 +195,7 @@
             "main_page_compact_pad_top": "\"5\"",
             "clock_bar_item_gap": "\"80\"",
             "clock_bar_visual_gap": "\"10\"",
-            "clock_font_size": "\"200\"",
+            "clock_font_size": "\"140\"",
             "clock_cx": "\"512\"",
             "clock_cy": "\"300\"",
             "screen_saver_clock_min_brightness": "\"1\"",
@@ -593,7 +593,7 @@
             "main_page_compact_pad_top": "\"5\"",
             "clock_bar_item_gap": "\"96\"",
             "clock_bar_visual_gap": "\"12\"",
-            "clock_font_size": "\"160\"",
+            "clock_font_size": "\"140\"",
             "clock_cx": "\"240\"",
             "clock_cy": "\"400\"",
             "screen_saver_clock_min_brightness": "\"1\"",
@@ -784,7 +784,7 @@
             "main_page_compact_pad_top": "\"5\"",
             "clock_bar_item_gap": "\"78\"",
             "clock_bar_visual_gap": "\"10\"",
-            "clock_font_size": "\"220\"",
+            "clock_font_size": "\"160\"",
             "clock_cx": "\"640\"",
             "clock_cy": "\"400\"",
             "screen_saver_clock_min_brightness": "\"1\"",
@@ -978,7 +978,198 @@
             "main_page_compact_pad_top": "\"5\"",
             "clock_bar_item_gap": "\"78\"",
             "clock_bar_visual_gap": "\"10\"",
-            "clock_font_size": "\"220\"",
+            "clock_font_size": "\"200\"",
+            "clock_cx": "\"640\"",
+            "clock_cy": "\"400\"",
+            "screen_saver_clock_min_brightness": "\"1\"",
+            "screen_saver_clock_default_brightness": "\"35\"",
+            "screen_schedule_clock_min_brightness": "\"1\"",
+            "screen_schedule_clock_default_brightness": "\"10\""
+          },
+          "deviceFontPackageKey": "fonts_device",
+          "esp32C6FirmwareUpdate": true
+        }
+      },
+      "settings": {
+        "largeSensorUnitOffsetPercent": -10
+      }
+    },
+    "guition-esp32-p4-jc8012p4a1-v3": {
+      "slug": "guition-esp32-p4-jc8012p4a1-v3",
+      "slots": 20,
+      "capabilities": {
+        "imageSlots": 6
+      },
+      "public": {
+        "name": "Guition JC8012P4A1 V3 (production silicon)",
+        "docsPath": "/screens/jc8012p4a1-v3",
+        "screenSize": "10.1 inches",
+        "resolution": "1280 x 800",
+        "orientation": "Landscape"
+      },
+      "layout": {
+        "cols": 5,
+        "rows": 4,
+        "firmwareGrid": "5x4",
+        "portraitCols": 4
+      },
+      "rotation": {
+        "enabled": true,
+        "options": [
+          "0",
+          "90",
+          "180",
+          "270"
+        ],
+        "displayOffset": 180
+      },
+      "internalRelays": [],
+      "web": {
+        "dragMode": "swap",
+        "dragAnimation": true,
+        "screen": {
+          "width": "100%",
+          "aspect": "1280/800"
+        },
+        "portrait": {
+          "cols": 4,
+          "rows": 5,
+          "screen": {
+            "width": "63%",
+            "aspect": "800/1280"
+          }
+        },
+        "topbar": {
+          "height": 3.59,
+          "padding": "0.47cqw",
+          "fontSize": 1.72
+        },
+        "grid": {
+          "top": 4.7,
+          "compactTop": 0.39,
+          "left": 0.39,
+          "right": 0.39,
+          "bottom": 0.39,
+          "gap": 0.76,
+          "fr": "1fr"
+        },
+        "btn": {
+          "radius": 0.86,
+          "padding": 1.41,
+          "iconSize": 4.1,
+          "labelSize": 1.88,
+          "coverArtTitleSize": 6.875,
+          "coverArtArtistSize": 3.125,
+          "labelLines": 2,
+          "labelLinesDouble": 3
+        },
+        "emptyCell": {
+          "radius": 0.86
+        },
+        "sensorBadge": {
+          "top": 0.86,
+          "right": 0.86,
+          "fontSize": 1.41
+        },
+        "subpageBadge": {
+          "bottom": 0.86,
+          "right": 0.86,
+          "fontSize": 1.56
+        }
+      },
+      "firmware": {
+        "build": {
+          "chip": "ESP32-P4"
+        },
+        "fonts": {
+          "icon": "font_icon_main",
+          "sensor": "font_number_value",
+          "largeSensor": "font_number_value_large",
+          "mediaTitle": "font_text_title",
+          "mediaControlTitle": "font_cover_art_title",
+          "mediaCoverArtTitle": "font_cover_art_title",
+          "mediaCoverArtArtist": "font_cover_art_artist",
+          "volumeNumber": "font_number_value_large",
+          "volumeLabel": "font_text_large",
+          "climateCardIcon": "font_icon_card",
+          "subpageChevron": "font_icon_status",
+          "climateOptionTitle": "font_text_body",
+          "climateOptionValue": "font_text_body"
+        },
+        "display": {
+          "wrapTallLabels": true,
+          "subpageChevronX": 4,
+          "subpageChevronY": -2,
+          "refreshRebuildsSubpages": true,
+          "modal": {
+            "layoutFamily": "large-landscape",
+            "density": "spacious",
+            "memoryTier": "standard",
+            "baseTouchTarget": 76
+          },
+          "coverArt": {
+            "cover_art_size": "800",
+            "cover_art_decode_size": "800",
+            "cover_art_x": "0",
+            "cover_art_y": "0",
+            "cover_art_accent_x": "800",
+            "cover_art_accent_y": "0",
+            "cover_art_accent_width": "480",
+            "cover_art_accent_height": "800",
+            "cover_art_accent_bg_opa": "100%",
+            "cover_art_accent_opa": "100%",
+            "cover_art_panel_x": "840",
+            "cover_art_panel_y": "40",
+            "cover_art_panel_width": "400",
+            "cover_art_panel_height": "720",
+            "cover_art_panel_pad_top": "0",
+            "cover_art_panel_pad_bottom": "0",
+            "cover_art_panel_pad_left": "0",
+            "cover_art_panel_pad_right": "0",
+            "cover_art_panel_pad_row": "0",
+            "cover_art_title_font": "font_cover_art_title",
+            "cover_art_title_max_height": "506",
+            "cover_art_title_line_space": "0",
+            "cover_art_artist_font": "font_cover_art_artist",
+            "cover_art_artist_pad_top": "4",
+            "cover_art_artist_long_mode": "wrap",
+            "cover_art_time_font": "font_cover_art_time",
+            "cover_art_time_pad_top": "12",
+            "cover_art_progress_width": "1280",
+            "cover_art_progress_height": "4",
+            "cover_art_text_color": "0xFFF5E0",
+            "cover_art_square_overlay": "false",
+            "cover_art_live_image_updates": "false"
+          }
+        },
+        "package": {
+          "firmwareVersion": "dev",
+          "substitutions": {
+            "screen_width": "\"1280\"",
+            "screen_height": "\"800\"",
+            "content_width": "\"760\"",
+            "setup_icon_font_id": "font_icon_main",
+            "setup_title_font_id": "font_text_title",
+            "setup_body_font_id": "font_text_body",
+            "setup_pad_row": "\"20\"",
+            "setup_loading_pad_row": "\"40\"",
+            "setup_action_button_width": "\"200\"",
+            "setup_action_button_height": "\"56\"",
+            "setup_action_button_radius": "\"12\"",
+            "icon_font": "font_icon_main",
+            "subpage_chevron_font": "font_icon_status",
+            "label_font": "font_text_body",
+            "media_title_font": "font_text_title",
+            "unit_font": "font_text_body",
+            "sensor_value_font": "font_number_value",
+            "padding": "18px",
+            "radius": "11px",
+            "main_page_card_gap": "\"10\"",
+            "main_page_pad_top": "\"46\"",
+            "main_page_compact_pad_top": "\"5\"",
+            "clock_bar_item_gap": "\"78\"",
+            "clock_bar_visual_gap": "\"10\"",
+            "clock_font_size": "\"200\"",
             "clock_cx": "\"640\"",
             "clock_cy": "\"400\"",
             "screen_saver_clock_min_brightness": "\"1\"",
@@ -1167,7 +1358,7 @@
             "main_page_compact_pad_top": "\"6\"",
             "clock_bar_item_gap": "\"96\"",
             "clock_bar_visual_gap": "\"12\"",
-            "clock_font_size": "\"224\"",
+            "clock_font_size": "\"170\"",
             "clock_cx": "\"360\"",
             "clock_cy": "\"360\"",
             "screen_saver_clock_min_brightness": "\"1\"",
@@ -1205,7 +1396,7 @@
       "slug": "guition-esp32-s3-4848s040",
       "slots": 9,
       "capabilities": {
-        "imageSlots": 1,
+        "imageSlots": 2,
         "companion": true
       },
       "public": {
@@ -1250,8 +1441,7 @@
         "dragMode": "displace",
         "dragAnimation": true,
         "disabledCardTypes": [
-          "weather_forecast",
-          "image"
+          "weather_forecast"
         ],
         "screen": {
           "width": "55%",
@@ -1390,7 +1580,7 @@
             "main_page_compact_pad_top": "\"4\"",
             "clock_bar_item_gap": "\"60\"",
             "clock_bar_visual_gap": "\"8\"",
-            "clock_font_size": "\"160\"",
+            "clock_font_size": "\"120\"",
             "clock_cx": "\"240\"",
             "clock_cy": "\"240\"",
             "screen_saver_clock_min_brightness": "\"1\"",
@@ -2031,7 +2221,7 @@
           "driver": "wifi_qr",
           "capabilities": {
             "informationOnly": false,
-            "subscriptions": false,
+            "subscriptions": true,
             "actions": true,
             "numericControl": false,
             "modal": true,
@@ -2043,7 +2233,7 @@
           "driver": "wifi_qr",
           "capabilities": {
             "informationOnly": false,
-            "subscriptions": false,
+            "subscriptions": true,
             "actions": true,
             "numericControl": false,
             "modal": true,
@@ -2474,6 +2664,7 @@
             "values": [
               "status",
               "start_stop",
+              "start_dock",
               "dock",
               "pause_resume",
               "clean_spot",
@@ -2506,6 +2697,7 @@
               "values": [
                 "status",
                 "start_stop",
+                "start_dock",
                 "dock",
                 "pause_resume",
                 "clean_spot",
@@ -5827,7 +6019,9 @@
       "wifi_qr": {
         "label": "Wifi Sharing",
         "allowInSubpage": true,
-        "domains": [],
+        "domains": [
+          "switch"
+        ],
         "options": [
           {
             "name": "ssid64",
@@ -5864,7 +6058,8 @@
             "kind": "text",
             "values": [
               "qr",
-              "credentials"
+              "credentials",
+              "guest"
             ],
             "defaultValue": "qr|credentials",
             "omitDefault": true
@@ -5873,7 +6068,7 @@
         "normalization": {
           "fields": {
             "entity": {
-              "policy": "clear"
+              "policy": "keep"
             },
             "label": {
               "policy": "default_if_empty",
@@ -5929,7 +6124,9 @@
         "label": "QR Card",
         "allowInSubpage": true,
         "pickerKey": "wifi_qr",
-        "domains": [],
+        "domains": [
+          "switch"
+        ],
         "options": [
           {
             "name": "ssid64",
@@ -5966,7 +6163,8 @@
             "kind": "text",
             "values": [
               "qr",
-              "credentials"
+              "credentials",
+              "guest"
             ],
             "defaultValue": "qr|credentials",
             "omitDefault": true
@@ -5975,7 +6173,7 @@
         "normalization": {
           "fields": {
             "entity": {
-              "policy": "clear"
+              "policy": "keep"
             },
             "label": {
               "policy": "clear"
@@ -6698,6 +6896,58 @@
         ]
       },
       {
+        "key": "screen_saver_camera_entity",
+        "domain": "text",
+        "name": "Screen Saver: Camera Entity",
+        "objectIds": [
+          "screen_saver__camera_entity",
+          "screen_saver_camera_entity",
+          "screensaver_camera_entity"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_saver_metadata_entity",
+        "domain": "text",
+        "name": "Screen Saver: Photo Metadata Entity",
+        "objectIds": [
+          "screen_saver__photo_metadata_entity",
+          "screen_saver_photo_metadata_entity",
+          "screensaver_metadata_entity"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_saver_metadata_overlay",
+        "domain": "switch",
+        "name": "Screen Saver: Metadata Overlay",
+        "objectIds": [
+          "screen_saver__metadata_overlay",
+          "screen_saver_metadata_overlay",
+          "metadata_overlay_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_saver_camera_image_mode",
+        "domain": "select",
+        "name": "Screen Saver: Camera Image Mode",
+        "objectIds": [
+          "screen_saver__camera_image_mode",
+          "screen_saver_camera_image_mode",
+          "screensaver_camera_image_mode"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
         "key": "presence_sensor_entity",
         "domain": "text",
         "name": "Presence Sensor Entity",
@@ -6990,6 +7240,19 @@
           "screen_saver__clock",
           "screen_saver_clock",
           "clock_screensaver_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_saver_clock_overlay",
+        "domain": "switch",
+        "name": "Screen Saver: Clock Overlay",
+        "objectIds": [
+          "screen_saver__clock_overlay",
+          "screen_saver_clock_overlay",
+          "clock_overlay_enabled"
         ],
         "groups": [
           "settings"
@@ -7457,6 +7720,12 @@
     },
     "structural": [
       {
+        "name": "Wifi Off",
+        "codepoint": "F05AA",
+        "mdi": "wifi-off",
+        "comment": "Guest Wi-Fi disabled"
+      },
+      {
         "name": "Close",
         "codepoint": "F0156",
         "mdi": "close",
@@ -7689,6 +7958,16 @@
         "mdi": "bell-ring"
       },
       {
+        "name": "Alarm Bell",
+        "codepoint": "F078E",
+        "mdi": "alarm-bell"
+      },
+      {
+        "name": "Alarm Clock",
+        "codepoint": "F0020",
+        "mdi": "alarm"
+      },
+      {
         "name": "Alarm Light",
         "codepoint": "F078F",
         "mdi": "alarm-light"
@@ -7909,6 +8188,11 @@
         "mdi": "ceiling-fan"
       },
       {
+        "name": "Ceiling Fan Light",
+        "codepoint": "F1798",
+        "mdi": "ceiling-fan-light"
+      },
+      {
         "name": "Ceiling Light",
         "codepoint": "F0769",
         "mdi": "ceiling-light"
@@ -7939,6 +8223,11 @@
         "mdi": "chair-rolling"
       },
       {
+        "name": "Chef Hat",
+        "codepoint": "F0B7C",
+        "mdi": "chef-hat"
+      },
+      {
         "name": "Chevron Down",
         "codepoint": "F0140",
         "mdi": "chevron-down"
@@ -7947,6 +8236,16 @@
         "name": "Chevron Up",
         "codepoint": "F0143",
         "mdi": "chevron-up"
+      },
+      {
+        "name": "Coach Lamp",
+        "codepoint": "F1020",
+        "mdi": "coach-lamp"
+      },
+      {
+        "name": "Coach Lamp Variant",
+        "codepoint": "F1A37",
+        "mdi": "coach-lamp-variant"
       },
       {
         "name": "Clock",
@@ -7962,6 +8261,11 @@
         "name": "Coffee Maker",
         "codepoint": "F109F",
         "mdi": "coffee-maker"
+      },
+      {
+        "name": "Countertop",
+        "codepoint": "F181C",
+        "mdi": "countertop"
       },
       {
         "name": "Current AC",
@@ -7997,6 +8301,11 @@
         "name": "Delete Outline",
         "codepoint": "F09E7",
         "mdi": "delete-outline"
+      },
+      {
+        "name": "Delete Variant",
+        "codepoint": "F01B3",
+        "mdi": "delete-variant"
       },
       {
         "name": "Desk",
@@ -8329,6 +8638,11 @@
         "mdi": "lamp-outline"
       },
       {
+        "name": "Lava Lamp",
+        "codepoint": "F07D5",
+        "mdi": "lava-lamp"
+      },
+      {
         "name": "LAN",
         "codepoint": "F0317",
         "mdi": "lan"
@@ -8394,6 +8708,11 @@
         "mdi": "lightbulb-auto-outline"
       },
       {
+        "name": "Lightbulb Fluorescent Tube Outline",
+        "codepoint": "F1805",
+        "mdi": "lightbulb-fluorescent-tube-outline"
+      },
+      {
         "name": "Lightbulb Group",
         "codepoint": "F1253",
         "mdi": "lightbulb-group"
@@ -8417,6 +8736,11 @@
         "name": "Lightbulb Off",
         "codepoint": "F0E4F",
         "mdi": "lightbulb-off"
+      },
+      {
+        "name": "Lightbulb On 50",
+        "codepoint": "F1A52",
+        "mdi": "lightbulb-on-50"
       },
       {
         "name": "Lightbulb On Outline",
@@ -8467,6 +8791,11 @@
         "name": "Lock Open Outline",
         "codepoint": "F0340",
         "mdi": "lock-open-outline"
+      },
+      {
+        "name": "Lock Open Variant",
+        "codepoint": "F0FC6",
+        "mdi": "lock-open-variant"
       },
       {
         "name": "Lock Outline",
@@ -8639,6 +8968,11 @@
         "mdi": "pool"
       },
       {
+        "name": "Post Lamp",
+        "codepoint": "F1A60",
+        "mdi": "post-lamp"
+      },
+      {
         "name": "Power",
         "codepoint": "F0425",
         "mdi": "power"
@@ -8684,6 +9018,11 @@
         "mdi": "keyboard-backspace"
       },
       {
+        "name": "Remote Desktop",
+        "codepoint": "F08B9",
+        "mdi": "remote-desktop"
+      },
+      {
         "name": "Remote Down",
         "codepoint": "F0047",
         "mdi": "arrow-down-bold-circle"
@@ -8712,6 +9051,11 @@
         "name": "Remote Up",
         "codepoint": "F005F",
         "mdi": "arrow-up-bold-circle"
+      },
+      {
+        "name": "Remote TV",
+        "codepoint": "F0EC5",
+        "mdi": "remote-tv"
       },
       {
         "name": "Robot Vacuum",
@@ -8837,6 +9181,11 @@
         "name": "Sofa Outline",
         "codepoint": "F156D",
         "mdi": "sofa-outline"
+      },
+      {
+        "name": "Sofa Single Outline",
+        "codepoint": "F156F",
+        "mdi": "sofa-single-outline"
       },
       {
         "name": "Solar Panel",
@@ -9039,6 +9388,11 @@
         "mdi": "toilet"
       },
       {
+        "name": "Toy Brick",
+        "codepoint": "F1288",
+        "mdi": "toy-brick"
+      },
+      {
         "name": "Track Light",
         "codepoint": "F0914",
         "mdi": "track-light"
@@ -9074,9 +9428,24 @@
         "mdi": "vacuum-outline"
       },
       {
+        "name": "Vanity Light",
+        "codepoint": "F11E1",
+        "mdi": "vanity-light"
+      },
+      {
         "name": "View Headline",
         "codepoint": "F0571",
         "mdi": "view-headline"
+      },
+      {
+        "name": "Video",
+        "codepoint": "F0567",
+        "mdi": "video"
+      },
+      {
+        "name": "Video Outline",
+        "codepoint": "F0BDC",
+        "mdi": "video-outline"
       },
       {
         "name": "Volume High",
@@ -9127,6 +9496,16 @@
         "name": "Water Percent",
         "codepoint": "F058E",
         "mdi": "water-percent"
+      },
+      {
+        "name": "Water Pump",
+        "codepoint": "F058F",
+        "mdi": "water-pump"
+      },
+      {
+        "name": "Water Pump Off",
+        "codepoint": "F0F93",
+        "mdi": "water-pump-off"
       },
       {
         "name": "Water Alert",
@@ -9536,6 +9915,7 @@
           "guition-esp32-p4-jc4880p443",
           "guition-esp32-p4-jc8012p4a1",
           "guition-esp32-p4-jc8012p4a1-v2",
+          "guition-esp32-p4-jc8012p4a1-v3",
           "esp32-p4-86",
           "guition-esp32-s3-4848s040"
         ]

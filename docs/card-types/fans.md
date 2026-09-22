@@ -1,5 +1,5 @@
 ---
-title: Fan Cards
+title: "Home Assistant Fan Cards"
 description:
   How to use fan cards on your EspDesktop panel to control Home Assistant fan entities.
 ---

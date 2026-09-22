@@ -483,29 +483,26 @@ assert.strictEqual(
   false,
   "card transfer downgrades unsupported 3x4 sizes inside subpages",
 );
-assert.throws(
-  () => s3Hooks.cardTransferEntriesFromEnvelopeForTest({
-    cards: [{ type: "image", entity: "camera.front_door", label: "Front Door", size: 1 }],
-  }, false),
-  (error) => String(error.cardTransferMessage || error.message).includes("does not support the image card type"),
-  "S3 card transfer rejects disabled image cards",
+const transferredS3Camera = s3Hooks.cardTransferEntriesFromEnvelopeForTest({
+  cards: [{ type: "image", entity: "camera.front_door", label: "Front Door", size: 1 }],
+}, false);
+assert.strictEqual(transferredS3Camera.entries[0].type, "image", "S3 card transfer accepts Camera Cards");
+const transferredS3CameraSubpage = s3Hooks.cardTransferEntriesFromEnvelopeForTest({
+  cards: [{
+    type: "subpage",
+    label: "Cameras",
+    size: 1,
+    subpage: {
+      order: ["1", "B"],
+      back_label: "Back",
+      buttons: [{ type: "image", entity: "camera.front_door", label: "Front Door" }],
+    },
+  }],
+}, false);
+const transferredS3Subpage = s3Hooks.parseSubpageConfig(
+  transferredS3CameraSubpage.entries[0].subpageConfig,
 );
-assert.throws(
-  () => s3Hooks.cardTransferEntriesFromEnvelopeForTest({
-    cards: [{
-      type: "subpage",
-      label: "Cameras",
-      size: 1,
-      subpage: {
-        order: ["1", "B"],
-        back_label: "Back",
-        buttons: [{ type: "image", entity: "camera.front_door", label: "Front Door" }],
-      },
-    }],
-  }, false),
-  (error) => String(error.cardTransferMessage || error.message).includes("does not support the image card type"),
-  "S3 card transfer rejects disabled image cards inside subpages",
-);
+assert.strictEqual(transferredS3Subpage.buttons[0].type, "image", "S3 subpage transfer accepts Camera Cards");
 const coverArtActionButton = { type: "media", sensor: "cover_art", options: "cover_art_action=play_pause" };
 hooks.setMediaCoverArtDetailsEnabled(coverArtActionButton, true);
 assert.strictEqual(coverArtActionButton.options, "cover_art_details", "cover art removes its retired press action while preserving track details");
@@ -2626,9 +2623,9 @@ assertButtonRoundTrip(hooks, "image card label and icon options", {
   precision: "",
   options: "image_label,image_icon",
 }, false);
-assertButtonMigration(hooks, "image card clears label without overlay option", "camera.front_door;Front Door;Auto;Auto;;;image;;", {
+assertButtonRoundTrip(hooks, "image card preserves name without overlay option", {
   entity: "camera.front_door",
-  label: "",
+  label: "Front Door",
   icon: "Auto",
   icon_on: "Auto",
   sensor: "",
@@ -2636,7 +2633,7 @@ assertButtonMigration(hooks, "image card clears label without overlay option", "
   type: "image",
   precision: "",
   options: "",
-});
+}, false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_switch", false), false, "fan subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", false), false, "fan modal subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", true), false, "fan modal subtype hidden from subpage picker");
@@ -3023,6 +3020,7 @@ assertButtonMigration(hooks, "legacy vacuum return to base action card", "vacuum
 [
   ["status", ""],
   ["start_stop", ""],
+  ["start_dock", ""],
   ["dock", ""],
   ["pause_resume", ""],
   ["clean_spot", ""],

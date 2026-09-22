@@ -90,33 +90,19 @@ marketing version to its numeric portion and uses the release workflow run
 number for `CFBundleVersion`; verify that it increases relative to the previous
 shipped Mac build. Do not copy a build number from an independent test workflow.
 
-## 3. Prepare web compatibility before tagging
+Set `TAG` to the selected full tag.
 
-Set `TAG` to the selected full tag. In a separate worktree based on the selected
-remote source, create a short preparation branch, for example:
+## 3. Verify release source readiness
 
-```bash
-RELEASE_WORKTREE="$(mktemp -d "${TMPDIR:-/tmp}/espdesktop-release.XXXXXX")"
-git worktree add -b "prepare-release-${TAG#v}" "$RELEASE_WORKTREE" origin/main
-cd "$RELEASE_WORKTREE"
-python3 scripts/prepare_release_web_assets.py "$TAG"
-python3 scripts/build.py
-python3 scripts/build.py --check
-npm run check:release-preflight
-```
+No preparation PR is required. The Build Release workflow prepares the selected
+tag's web compatibility privately, verifies its bundles, and passes the same web
+assets through firmware compilation and publication. Pages uses the published
+EspDesktop release catalogue and deploys the verified release artifacts.
 
-Substitute the explicitly selected remote source for `origin/main` if applicable.
-Inspect the diff and commit/push only release preparation changes. Open a ready
-PR with the repository's testing/documentation fields. Use a body file for a
-multiline PR description. If compatibility is already declared and nothing
-changes, do not create an empty preparation commit or PR.
-
-The helper preserves `dev`, the five current stable releases and latest
-prerelease. The tag must point at source that already declares the compatible
-web bundle. Have the preparation PR reviewed and merged under the repository's
-normal merge policy; a release request alone does not bypass that policy. Fetch
-the merged source and record its full SHA as `SOURCE_SHA` before tagging. Recheck
-CI and required features on that exact revision.
+Keep the selected source checkout clean and generated outputs current before
+tagging. Run `npm run check:release-preflight`. The compatibility helper retains
+`dev`, the five current stable releases and the latest prerelease. Preserve the
+coordinated firmware and signed, notarized Mac app release checks below.
 
 ## 4. Create the immutable tag and draft
 
