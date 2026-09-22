@@ -1527,11 +1527,13 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     assert(await cameraPanel.locator("#sp-set-sensor-screensaver-camera").isVisible(), `${label}: Sensor camera entity is visible in the panel`);
     assert.strictEqual(await cameraPanel.locator("#sp-set-screensaver-camera").isVisible(), false, `${label}: Timer camera entity hides in Sensor mode`);
     assert(await metadataInput.isVisible(), `${label}: Sensor mode preserves enabled metadata`);
-    await screensaverCard.getByRole("button", { name: "App Connection", exact: true }).click();
-    assert(await cameraPanel.isVisible(), `${label}: App Connection keeps camera settings available`);
-    assert.strictEqual(await timerCamera.inputValue(), "image.garden", `${label}: App Connection shares the selected camera`);
-    assert.strictEqual(await screensaverCard.locator('#sp-set-companion-clock-mode option[value="camera"]').count(), 1,
-      `${label}: App Connection offers Camera when firmware support appears`);
+    if (options.slug === "guition-esp32-s3-4848s040") {
+      await screensaverCard.getByRole("button", { name: "App Connection", exact: true }).click();
+      assert(await cameraPanel.isVisible(), `${label}: App Connection keeps camera settings available`);
+      assert.strictEqual(await timerCamera.inputValue(), "image.garden", `${label}: App Connection shares the selected camera`);
+      assert.strictEqual(await screensaverCard.locator('#sp-set-companion-clock-mode option[value="camera"]').count(), 1,
+        `${label}: App Connection offers Camera when firmware support appears`);
+    }
     await screensaverCard.getByRole("button", { name: "Disabled", exact: true }).click();
     assert.strictEqual(await cameraPanel.isVisible(), false, `${label}: disabled screensaver hides the entire camera panel`);
     await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
@@ -5296,8 +5298,8 @@ async function assertGuestWifiSettings(page, label) {
   assert(await emptyCell.count(), `${label}: guest Wi-Fi test needs an empty slot`);
   await emptyCell.click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page.getByRole("button", { name: "Switch card type" }).click();
-  await page.locator("#sp-inp-type").selectOption("wifi_qr");
+  await page.locator('[data-card-type="wifi_qr"]').click();
+  await page.waitForSelector(".sp-settings-modal");
   const guestTab = page.locator("#sp-inp-wifi-tab-guest");
   assert.strictEqual(await guestTab.isChecked(), false, `${label}: Guest Wi-Fi defaults off`);
   assert.strictEqual(await page.locator("#sp-inp-wifi-guest-entity").count(), 0);
@@ -5930,7 +5932,13 @@ async function assertTimerEntityValidation(page) {
 
 async function runCase(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug);
+  await installRoutes(context, testCase.slug, testCase.slug === "guition-esp32-s3-4848s040" ? {
+    connectorsStatus: {
+      onboarding_complete: true,
+      home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    },
+  } : {});
   const page = await context.newPage();
   const errors = [];
   const posts = [];
