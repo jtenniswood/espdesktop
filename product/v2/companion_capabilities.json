@@ -821,6 +821,30 @@
       "minimumMacOS": 15
     },
     {
+      "id": "window.top-left",
+      "label": "Top Left",
+      "group": "Move & Resize",
+      "minimumMacOS": 15
+    },
+    {
+      "id": "window.top-right",
+      "label": "Top Right",
+      "group": "Move & Resize",
+      "minimumMacOS": 15
+    },
+    {
+      "id": "window.bottom-left",
+      "label": "Bottom Left",
+      "group": "Move & Resize",
+      "minimumMacOS": 15
+    },
+    {
+      "id": "window.bottom-right",
+      "label": "Bottom Right",
+      "group": "Move & Resize",
+      "minimumMacOS": 15
+    },
+    {
       "id": "window.restore",
       "label": "Return to Previous Size",
       "group": "Move & Resize",
@@ -930,6 +954,44 @@
         "shift"
       ],
       "minimumMacOS": 15
+    },
+    {
+      "id": "window.arrange.quarters",
+      "label": "Quarters",
+      "group": "Arrange Windows",
+      "minimumMacOS": 15
+    },
+    {
+      "id": "window.fullscreen.enter",
+      "label": "Enter Full Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15
+    },
+    {
+      "id": "window.fullscreen.exit",
+      "label": "Exit Full Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15
+    },
+    {
+      "id": "window.split.left",
+      "label": "Left of Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        ["Window", "Full Screen Tile", "Left of Screen"],
+        ["Window", "Full-Screen Tile", "Left of Screen"]
+      ]
+    },
+    {
+      "id": "window.split.right",
+      "label": "Right of Screen",
+      "group": "Full Screen",
+      "minimumMacOS": 15,
+      "menuPaths": [
+        ["Window", "Full Screen Tile", "Right of Screen"],
+        ["Window", "Full-Screen Tile", "Right of Screen"]
+      ]
     }
   ],
   "systemMetrics": [

@@ -685,6 +685,12 @@ final class CompanionStore: NSObject, ObservableObject {
             return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }
 
+        if CompanionNativeWindowAction.supports(actionIdentifier) {
+            guard let error = CompanionNativeWindowAction.perform(actionIdentifier) else { return true }
+            updateStatus(error)
+            return false
+        }
+
         if let performed = CompanionWindowArrangement.perform(identifier: actionIdentifier) {
             if !performed {
                 updateStatus("Select an available app window and allow Accessibility access")
