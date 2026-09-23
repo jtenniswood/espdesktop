@@ -925,6 +925,9 @@ function composeApplicationContext(): ApplicationContext {
     const connected = connectorsPage.homeAssistantConnected();
     if (connected === temperatureHomeAssistantConnected) return;
     temperatureHomeAssistantConnected = connected;
+    if (!connected && statusPreview.isClockBarTemperatureItem(state.clockBarSelectedItem)) {
+      selection.clearCardSelection();
+    }
     statusPreview.updateClockBarItemUi();
   });
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
