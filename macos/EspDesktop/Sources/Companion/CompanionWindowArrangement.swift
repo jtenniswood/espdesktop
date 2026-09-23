@@ -57,18 +57,37 @@ enum CompanionWindowArrangement {
         let y: Double
         let width: Double
         let height: Double
+        let arrangedFrame: StoredRect?
         let bundleIdentifier: String?
         let windowIdentifier: String?
         let savedAt: Date?
 
-        init(_ frame: CGRect, bundleIdentifier: String?, windowIdentifier: String?) {
+        init(_ frame: CGRect, arrangedFrame: CGRect, bundleIdentifier: String, windowIdentifier: String) {
             x = frame.minX
             y = frame.minY
             width = frame.width
             height = frame.height
+            self.arrangedFrame = StoredRect(arrangedFrame)
             self.bundleIdentifier = bundleIdentifier
             self.windowIdentifier = windowIdentifier
             savedAt = Date()
+        }
+
+        var rect: CGRect { CGRect(x: x, y: y, width: width, height: height) }
+        var lastArrangedRect: CGRect? { arrangedFrame?.rect }
+    }
+
+    private struct StoredRect: Codable {
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+
+        init(_ frame: CGRect) {
+            x = frame.minX
+            y = frame.minY
+            width = frame.width
+            height = frame.height
         }
 
         var rect: CGRect { CGRect(x: x, y: y, width: width, height: height) }
@@ -101,9 +120,9 @@ enum CompanionWindowArrangement {
             // window, so only report success for frames saved by our own tiling.
             guard let storedFrame = previousFrames[active.restoreKey] else { return false }
             guard let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier),
+                  let identifier = windowIdentifier(for: active.element),
                   storedFrame.bundleIdentifier == bundleIdentifier,
-                  storedFrame.windowIdentifier == nil
-                    || storedFrame.windowIdentifier == windowIdentifier(for: active.element) else {
+                  storedFrame.windowIdentifier == identifier else {
                 previousFrames.removeValue(forKey: active.restoreKey)
                 savePreviousFrames()
                 return false
@@ -158,16 +177,28 @@ enum CompanionWindowArrangement {
             }
         }
 
-        for window in selected {
-            guard let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier) else { continue }
-            let identifier = windowIdentifier(for: window.element)
-            if let previousFrame = previousFrames[window.restoreKey],
-               previousFrame.bundleIdentifier == bundleIdentifier,
-               previousFrame.windowIdentifier == identifier {
+        for (index, window) in selected.enumerated() {
+            guard let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier),
+                  let identifier = windowIdentifier(for: window.element) else {
+                previousFrames.removeValue(forKey: window.restoreKey)
                 continue
             }
+            let restoreFrame: CGRect
+            if let previousFrame = previousFrames[window.restoreKey],
+               previousFrame.bundleIdentifier == bundleIdentifier,
+               previousFrame.windowIdentifier == identifier,
+               let arrangedFrame = previousFrame.lastArrangedRect,
+               framesMatch(window.frame, arrangedFrame) {
+                // Preserve the original frame only while the window remains
+                // in the position created by our previous arrangement.
+                restoreFrame = previousFrame.rect
+            } else {
+                // A manual move or resize becomes the new previous size.
+                restoreFrame = window.frame
+            }
             previousFrames[window.restoreKey] = StoredFrame(
-                window.frame,
+                restoreFrame,
+                arrangedFrame: frames[index],
                 bundleIdentifier: bundleIdentifier,
                 windowIdentifier: identifier
             )
@@ -183,6 +214,8 @@ enum CompanionWindowArrangement {
         let expiryDate = Date().addingTimeInterval(-14 * 24 * 60 * 60)
         return storedFrames.compactMapValues { storedFrame in
             guard storedFrame.bundleIdentifier != nil,
+                  storedFrame.windowIdentifier != nil,
+                  storedFrame.lastArrangedRect != nil,
                   let savedAt = storedFrame.savedAt,
                   savedAt >= expiryDate else { return nil }
             return storedFrame
@@ -364,17 +397,31 @@ enum CompanionWindowArrangement {
         return CGRect(x: frame.minX, y: mainScreenHeight - frame.maxY, width: frame.width, height: frame.height)
     }
 
+    private static var tiledWindowMarginsEnabled: Bool {
+        guard let setting = UserDefaults(suiteName: "com.apple.WindowManager")?
+            .object(forKey: "EnableTiledWindowMargins") as? NSNumber else { return true }
+        return setting.boolValue
+    }
+
     private static func frames(for action: Action, in desktop: CGRect, currentFrame: CGRect) -> [CGRect] {
-        let halfWidth = desktop.width / 2
-        let halfHeight = desktop.height / 2
-        let left = CGRect(x: desktop.minX, y: desktop.minY, width: halfWidth, height: desktop.height)
-        let right = CGRect(x: desktop.minX + halfWidth, y: desktop.minY, width: halfWidth, height: desktop.height)
-        let top = CGRect(x: desktop.minX, y: desktop.minY, width: desktop.width, height: halfHeight)
-        let bottom = CGRect(x: desktop.minX, y: desktop.minY + halfHeight, width: desktop.width, height: halfHeight)
-        let topLeft = CGRect(x: desktop.minX, y: desktop.minY, width: halfWidth, height: halfHeight)
-        let topRight = CGRect(x: desktop.minX + halfWidth, y: desktop.minY, width: halfWidth, height: halfHeight)
-        let bottomLeft = CGRect(x: desktop.minX, y: desktop.minY + halfHeight, width: halfWidth, height: halfHeight)
-        let bottomRight = CGRect(x: desktop.minX + halfWidth, y: desktop.minY + halfHeight, width: halfWidth, height: halfHeight)
+        let margin: CGFloat = tiledWindowMarginsEnabled ? 8 : 0
+        let gap = margin
+        let usableWidth = desktop.width - 2 * margin
+        let usableHeight = desktop.height - 2 * margin
+        let halfWidth = (usableWidth - gap) / 2
+        let halfHeight = (usableHeight - gap) / 2
+        let leftX = desktop.minX + margin
+        let rightX = leftX + halfWidth + gap
+        let topY = desktop.minY + margin
+        let bottomY = topY + halfHeight + gap
+        let left = CGRect(x: leftX, y: topY, width: halfWidth, height: usableHeight)
+        let right = CGRect(x: rightX, y: topY, width: halfWidth, height: usableHeight)
+        let top = CGRect(x: leftX, y: topY, width: usableWidth, height: halfHeight)
+        let bottom = CGRect(x: leftX, y: bottomY, width: usableWidth, height: halfHeight)
+        let topLeft = CGRect(x: leftX, y: topY, width: halfWidth, height: halfHeight)
+        let topRight = CGRect(x: rightX, y: topY, width: halfWidth, height: halfHeight)
+        let bottomLeft = CGRect(x: leftX, y: bottomY, width: halfWidth, height: halfHeight)
+        let bottomRight = CGRect(x: rightX, y: bottomY, width: halfWidth, height: halfHeight)
 
         switch action {
         case .fill: return [desktop]
