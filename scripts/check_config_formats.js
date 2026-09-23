@@ -1616,8 +1616,8 @@ assertButtonRoundTrip(hooks, "alarm vacation action button", {
   options: "pin_arm=0",
 }, false);
 
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), true, "alarm modal picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), true, "alarm card family visible in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), false, "alarm modal is hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), false, "alarm cards are hidden in subpages");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", false), false, "alarm actions hidden as a separate picker item");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", true), false, "alarm actions hidden as a separate subpage picker item");
 assert.strictEqual(
@@ -2298,8 +2298,8 @@ assert.strictEqual(
   hooks.normalizeLightControlOptions("light_tabs=bad%7Cpower%7Cpower"),
   "light_tabs=power",
   "invalid and duplicate light control tabs are removed");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", false), true, "lights picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", true), true, "lights picker visible in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", false), false, "lights are hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", true), false, "lights are hidden in subpages");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_switch", false), false, "light switch subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_switch", true), false, "light switch subtype hidden from subpage picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_temperature", false), false, "light temperature subtype hidden from top-level picker");
@@ -2307,7 +2307,7 @@ assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_temperature", true)
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_control", false), false, "full light control subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("light_control").hidden, true, "full light control is grouped under Lights");
 assert.strictEqual(hooks.defaultButtonTypeForPicker("light_brightness"), "light_control", "lights picker defaults to all controls");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate", false), true, "climate picker visible on parent page");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate", false), false, "climate controls are hidden from the picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate_control", false), false, "all controls climate subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("climate_control").label, "All Controls", "all controls climate subtype has its own label");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("climate_control").pickerKey, "climate", "all controls climate subtype is grouped under Climate");
@@ -2478,10 +2478,10 @@ assertButtonMigration(hooks, "fan card clears ignored fields", "fan.bedroom;Bedr
   type: "fan_direction",
 });
 
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), true, "fan picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), true, "fan picker visible in subpages");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", false), true, "image picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", true), true, "image picker visible in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), false, "fan controls are hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), false, "fan controls are hidden in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", false), false, "Home Assistant image cards are hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", true), false, "Home Assistant image cards are hidden in subpages");
 assert.deepStrictEqual(Array.from(hooks.imageModalModeValues()), ["fill", "fit"], "image modal mode values are contract-backed");
 assert.deepStrictEqual(Array.from(hooks.cardContractDomains("image")), ["camera", "image"], "image cards accept camera and image entities");
 assert.strictEqual(hooks.normalizeImageOptions("image_refresh=30,image_refresh_mode=timer,unknown=1"), "", "legacy image refresh options are dropped");
