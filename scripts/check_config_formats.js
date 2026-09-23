@@ -453,17 +453,21 @@ assert.deepStrictEqual(
   "10-inch Wifi card size menu adds 2x3 and 3x4 portrait sizes",
 );
 const transferredSensor = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
-  cards: [{ type: "sensor", entity: "sensor.office", label: "Office", size: 10 }],
-}, false);
+  cards: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office", size: 10 }],
+}, false, true);
 assert.strictEqual(transferredSensor.entries[0].size, 1, "card transfer downgrades unsupported 3x4 sensor size");
 assert.strictEqual(transferredSensor.warnings.cardResized, true, "card transfer reports normalized card sizes");
+assert.throws(() => tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
+  cards: [{ type: "sensor", entity: "sensor.office", label: "Office" }],
+}, false, false), /Home Assistant-backed cards are no longer available/,
+"Home Assistant card transfer remains blocked unless firmware opts in");
 const transferredCoverArt = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "media", sensor: "cover_art", entity: "media_player.office", label: "Cover Art", size: 10 }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredCoverArt.entries[0].size, 10, "card transfer keeps supported 3x4 cover art size");
 const transferredLandscapeCamera = hooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "image", entity: "camera.office", label: "Office", size: 11 }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredLandscapeCamera.entries[0].size, 11, "landscape 7-inch card transfer keeps supported Massive Wide camera size");
 const transferredSubpage = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{
@@ -473,10 +477,10 @@ const transferredSubpage = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
     subpage: {
       order: ["1p", "B"],
       back_label: "Back",
-      buttons: [{ type: "sensor", entity: "sensor.office", label: "Office" }],
+      buttons: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office" }],
     },
   }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredSubpage.warnings.subpageResized, true, "card transfer reports normalized subpage sizes");
 assert.strictEqual(
   Array.from(tenInchHooks.parseSubpageConfig(transferredSubpage.entries[0].subpageConfig).order).includes("1p"),
@@ -485,7 +489,7 @@ assert.strictEqual(
 );
 const transferredS3Camera = s3Hooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "image", entity: "camera.front_door", label: "Front Door", size: 1 }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredS3Camera.entries[0].type, "image", "S3 card transfer accepts Camera Cards");
 const transferredS3CameraSubpage = s3Hooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{
@@ -498,7 +502,7 @@ const transferredS3CameraSubpage = s3Hooks.cardTransferEntriesFromEnvelopeForTes
       buttons: [{ type: "image", entity: "camera.front_door", label: "Front Door" }],
     },
   }],
-}, false);
+}, false, true);
 const transferredS3Subpage = s3Hooks.parseSubpageConfig(
   transferredS3CameraSubpage.entries[0].subpageConfig,
 );

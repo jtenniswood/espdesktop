@@ -16,6 +16,7 @@ import type { PreviewGridPlacementFeature } from "./preview_grid_placement";
 import type { PreviewContextMenuFeature } from "./preview_context_menu";
 import { cardRequiresHomeAssistant } from "../features/preview";
 export interface PreviewInteractionsDependencies {
+    readonly homeAssistantSupported: () => boolean;
     readonly cardEditorDraft: CardEditorDraftController;
     readonly configPersistence: ConfigPersistenceFeature;
     readonly layout: ApplicationLayoutState;
@@ -49,6 +50,7 @@ export function createPreviewInteractionsFeature(
     dependencies: PreviewInteractionsDependencies,
 ): PreviewInteractionsFeature {
     const cardEditorDraftController = dependencies.cardEditorDraft;
+    const homeAssistantSupported = dependencies.homeAssistantSupported;
     const configPersistence = dependencies.configPersistence;
     const window = dependencies.window;
     const runtime = dependencies.runtime;
@@ -67,6 +69,7 @@ export function createPreviewInteractionsFeature(
         showImageCardLimitBanner,
     } = dependencies.imageOptions;
     function duplicateRequiresHomeAssistant(this: any, button?: any, subpage?: any): boolean {
+        if (homeAssistantSupported()) return false;
         if (button && button.type && cardRequiresHomeAssistant(button.type, button)) return true;
         var nestedButtons: any = subpage && Array.isArray(subpage.buttons) ? subpage.buttons : [];
         return nestedButtons.some(function (this: any, nested?: any) {

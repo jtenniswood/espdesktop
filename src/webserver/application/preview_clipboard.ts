@@ -18,6 +18,7 @@ import type { GridFeature } from "./grid";
 import { cardOwnsSubpage } from "./companion_shortcut_folder";
 import { cardRequiresHomeAssistant } from "../features/preview";
 export interface PreviewClipboardDependencies {
+    readonly homeAssistantSupported: () => boolean;
     readonly configPersistence: ConfigPersistenceFeature;
     readonly document: Document;
     readonly layout: ApplicationLayoutState;
@@ -39,7 +40,7 @@ export interface PreviewClipboardFeature {
     buildEntry(slot?: any): any;
     copySlot(slot?: any): void;
     copyButtons(slots?: any): void;
-    entriesFromTransfer(envelope?: any, targetIsSubpage?: any): any;
+    entriesFromTransfer(envelope?: any, targetIsSubpage?: any, homeAssistantEnabled?: boolean): any;
     cutSlot(slot?: any): void;
     cutButtons(slots?: any): void;
     showCopyCode(slots?: any): void;
@@ -52,6 +53,7 @@ export function createPreviewClipboardFeature(
     dependencies: PreviewClipboardDependencies,
 ): PreviewClipboardFeature {
     const configPersistence = dependencies.configPersistence;
+    const homeAssistantSupported = dependencies.homeAssistantSupported;
     const { configDisabled: buttonConfigDisabledForDevice, registryValue: buttonTypeRegistryValue, render: renderPreview } = dependencies.preview;
     const { findDuplicatePlacement, placeOrderedGridEntries, placeSlotAt } = dependencies.placement;
     const { deleteSlot, deleteButtons, emptyButtonConfig } = dependencies;
@@ -146,7 +148,7 @@ export function createPreviewClipboardFeature(
     function cardTransferTypeLabel(type: any) {
         return type ? type.replace(/_/g, " ") : "switch";
     }
-    function validateCardTransferButton(button: any, inSubpage: any, warnings: any) {
+    function validateCardTransferButton(button: any, inSubpage: any, warnings: any, homeAssistantEnabled = homeAssistantSupported()) {
         var normalized: any = normalizeButtonConfig(EspDesktopModel.cloneCardConfig(button));
         var type: any = normalized.type || "";
         var typeDef: any = dependencies.cards.definitions[type];
@@ -158,7 +160,7 @@ export function createPreviewClipboardFeature(
             throw cardTransferError("This controller does not support the " +
                 cardTransferTypeLabel(type) + " card type.");
         }
-        if (cardRequiresHomeAssistant(type, normalized)) {
+        if (!homeAssistantEnabled && cardRequiresHomeAssistant(type, normalized)) {
             throw cardTransferError("Home Assistant-backed cards are no longer available in this configurator.");
         }
         if (inSubpage && cardOwnsSubpage(normalized)) {
@@ -271,11 +273,11 @@ export function createPreviewClipboardFeature(
         subpage.order = serializeSubpageGrid(subpage);
         return { subpage: subpage, resized: resized };
     }
-    function clipboardEntriesFromCardTransfer(envelope: any, targetIsSubpage: any) {
+    function clipboardEntriesFromCardTransfer(envelope: any, targetIsSubpage: any, homeAssistantEnabled = homeAssistantSupported()) {
         var entries: any = [];
         var warnings: any = { local: false, cardResized: false, subpageResized: false };
         envelope.cards.forEach(function (transfer: any) {
-            var button: any = validateCardTransferButton(transfer, targetIsSubpage, warnings);
+            var button: any = validateCardTransferButton(transfer, targetIsSubpage, warnings, homeAssistantEnabled);
             var requestedSize: any = transfer.size || 1;
             var normalizedSize: any = normalizeCardSizeForConfig(button, requestedSize);
             if (normalizedSize !== requestedSize)
@@ -302,7 +304,7 @@ export function createPreviewClipboardFeature(
                 }
                 var parsed: any = EspDesktopModel.parseStructuredSubpageConfig(transfer.subpage);
                 parsed.buttons = parsed.buttons.map(function (subpageButton: any) {
-                    return validateCardTransferButton(subpageButton, true, warnings);
+                    return validateCardTransferButton(subpageButton, true, warnings, homeAssistantEnabled);
                 });
                 var prepared: any = prepareTransferredSubpage(parsed);
                 entry.subpageConfig = serializeSubpageConfig(prepared.subpage);
@@ -340,6 +342,7 @@ export function createPreviewClipboardFeature(
         return normalizeButtonConfig(EspDesktopModel.cloneCardConfig(entry));
     }
     function clipboardEntryRequiresHomeAssistant(entry: any): boolean {
+        if (homeAssistantSupported()) return false;
         var button: any = clipboardButtonConfig(entry);
         if (button.type && cardRequiresHomeAssistant(button.type, button))
             return true;
@@ -479,7 +482,7 @@ export function createPreviewClipboardFeature(
         if (!entries || !entries.length)
             return { ok: false, error: "No copied cards are available." };
         for (var entryIndex: any = 0; entryIndex < entries.length; entryIndex++) {
-            if (clipboardEntryRequiresHomeAssistant(entries[entryIndex])) {
+            if (!homeAssistantSupported() && clipboardEntryRequiresHomeAssistant(entries[entryIndex])) {
                 var unavailableMessage: any = "Home Assistant-backed cards are no longer available in this configurator.";
                 showBanner(unavailableMessage, "error");
                 return { ok: false, error: unavailableMessage };

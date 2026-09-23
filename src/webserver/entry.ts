@@ -646,6 +646,7 @@ function composeApplicationContext(): ApplicationContext {
     selection,
   });
   const clipboard = createPreviewClipboardFeature({
+    homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
     configPersistence: configurationPersistence,
     document: dom.document,
     layout,
@@ -688,6 +689,7 @@ function composeApplicationContext(): ApplicationContext {
     deleteButtons: (slots) => interactions.deleteButtons(slots),
   });
   interactions = createPreviewInteractionsFeature({
+    homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
     cardEditorDraft,
     configPersistence: configurationPersistence,
     layout,
