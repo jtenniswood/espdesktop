@@ -35,8 +35,8 @@ export function runConnectorsFeatureTests(): void {
   if (requestedConnectorFromSearch("?tab=settings") !== null) {
     throw new Error("Unrelated deep links must not select a connector");
   }
-  if (connectorOnboardingComplete(status())) {
-    throw new Error("An unconfigured display must remain in onboarding");
+  if (!connectorOnboardingComplete(status())) {
+    throw new Error("An unconfigured display must remain usable without an external connector");
   }
   if (!connectorOnboardingComplete(status({
     home_assistant: {
@@ -46,7 +46,7 @@ export function runConnectorsFeatureTests(): void {
       actions_confirmed: true,
     },
   }))) {
-    throw new Error("A configured Home Assistant connector must complete onboarding while offline");
+    throw new Error("A configured Home Assistant connector must not be required for onboarding");
   }
   if (!connectorOnboardingComplete(status({
     mac_companion: {
@@ -85,8 +85,8 @@ export function runConnectorsFeatureTests(): void {
       actions_confirmed: true,
     },
   });
-  if (!homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
-    throw new Error("Older firmware without connector status must retain Home Assistant cards");
+  if (homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
+    throw new Error("Home Assistant cards must stay unavailable when connector status is missing");
   }
   if (homeAssistantPickerAvailable(offlineHomeAssistant, true)) {
     throw new Error("New firmware must hide Home Assistant cards while its connector is offline");
@@ -99,7 +99,7 @@ export function runConnectorsFeatureTests(): void {
       actions_confirmed: true,
     },
   });
-  if (!homeAssistantPickerAvailable(connectedHomeAssistant, true)) {
-    throw new Error("New firmware must show Home Assistant cards while its connector is connected");
+  if (homeAssistantPickerAvailable(connectedHomeAssistant, true)) {
+    throw new Error("Home Assistant cards must stay unavailable while its connector is connected");
   }
 }

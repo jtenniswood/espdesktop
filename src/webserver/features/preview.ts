@@ -123,8 +123,9 @@ export function cardPickerConnectors(
   homeAssistantEnabled: boolean,
   companionSupported: boolean,
 ): Array<[CardPickerConnector, string]> {
+  // Home Assistant is intentionally unavailable in the configuration UI.
+  void homeAssistantEnabled;
   const connectors: Array<[CardPickerConnector, string]> = [];
-  if (homeAssistantEnabled) connectors.push(["home_assistant", "Home Assistant"]);
   if (companionSupported) connectors.push(["mac_companion", "Mac Companion"]);
   return connectors;
 }
@@ -200,6 +201,14 @@ export function cardTypePickerOptions(
     const pickerKey = registryValue(rawDefinition, "pickerKey", "");
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
     const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
+    const source = cardTypeConnector(typeKey);
+    const requiresHomeAssistant = source === "home_assistant" || source === "home_assistant_or_local";
+    if (requiresHomeAssistant) {
+      if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {
+        selectedUnsupported = { key: selectedTypeKey, label };
+      }
+      continue;
+    }
     if (disabledCardTypes.includes(typeKey) || disabledCardTypes.includes(pickerKey)) continue;
     if (!infoOnlyCardVisible(typeKey, infoOnly) || (pickerKey && !infoOnlyCardVisible(pickerKey, infoOnly))) {
       if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {

@@ -31,8 +31,8 @@ export function runPreviewFeatureTests(): void {
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
   deepEqual(
     cardPickerConnectors(true, true),
-    [["home_assistant", "Home Assistant"], ["mac_companion", "Mac Companion"]],
-    "enabled Home Assistant and supported Companion expose both picker tabs",
+    [["mac_companion", "Mac Companion"]],
+    "Home Assistant stays hidden even when configured and Companion is supported",
   );
   deepEqual(
     cardPickerConnectors(false, true),
@@ -65,8 +65,8 @@ export function runPreviewFeatureTests(): void {
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    ["action", "sensor", "wifi_qr"],
-    "subpage picker filters unsupported and aliased entries",
+    [],
+    "subpage picker omits Home Assistant and mixed-source cards",
   );
   const companionOptions = cardTypePickerOptions({
       ...definitions,
@@ -96,9 +96,8 @@ export function runPreviewFeatureTests(): void {
     "Companion keyboard shortcut cards use the Apple Command icon",
   );
   const infoOnlyOptions = cardTypePickerOptions(definitions, [], true, false, "action");
-  equal(infoOnlyOptions[0]?.key, "action", "selected hidden type remains visible for editing");
-  equal(infoOnlyOptions[0]?.disabled, true, "selected hidden type is labelled unavailable");
-  equal(infoOnlyOptions[1]?.key, "sensor", "supported info-only card remains selectable");
+  equal(infoOnlyOptions[0]?.key, "action", "selected Home Assistant type remains visible for editing");
+  equal(infoOnlyOptions[0]?.disabled, true, "selected Home Assistant type is labelled unavailable");
 
   equal(
     swapGridCell({ x: 99, y: 75 }, { left: 0, top: 0, right: 100, bottom: 100 }, 2, 2),

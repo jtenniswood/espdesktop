@@ -47,23 +47,15 @@ describe("browserless application contracts", () => {
     runConnectorsFeatureTests();
   });
 
-  test("renders connector badges and connection-specific setup guidance", () => {
+  test("hides Home Assistant connector setup and keeps Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    assert.match(connectors, /sp-card-badge sp-hidden/);
-    assert.match(connectors, /setHidden\(homeAssistantSteps, statusEndpointAvailable && \(ha\.connected \|\| ha\.configured\)\)/);
-    assert.match(connectors, /setHidden\(homeAssistantActionInfo, !ha\.connected \|\| ha\.actions_confirmed\)/);
-    assert.match(connectors, /sp-connector-info/);
-    assert.match(connectors, /This lets the display control your devices/);
-    assert.match(connectors, /connectors\/home-assistant\/complete/);
-    assert.match(connectors, /connectors\/home-assistant\/forget/);
-    assert.match(connectors, /Forget Home Assistant/);
-    assert.doesNotMatch(connectors, /Only forget this connection/);
-    assert.match(connectors, /sp-action-btn sp-delete-btn sp-destructive-btn/);
+    assert.doesNotMatch(connectors, /buildHomeAssistantCard|Home Assistant actions|Forget Home Assistant/);
+    assert.match(connectors, /function homeAssistantConnected\(\): boolean \{\s*return false;/);
+    assert.match(connectors, /function homeAssistantCardPickerEnabled\(\): boolean \{\s*return false;/);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
-    assert.match(connectors, /I’ve enabled actions/);
-    assert.doesNotMatch(connectors, /Actions confirmed/);
+    assert.doesNotMatch(connectors, /connectors\/home-assistant\/complete|connectors\/home-assistant\/forget/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);
