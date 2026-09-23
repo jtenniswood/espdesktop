@@ -499,7 +499,7 @@ assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("local_sensor", false), fa
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("local_sensor", true), false);
 const infoOnlyPickerKeys = Array.from(hooks.buttonTypePickerKeysForInfoOnly(true));
 assert(infoOnlyPickerKeys.includes("sensor"), "info-only displays can still add sensor cards");
-assert(infoOnlyPickerKeys.includes("weather"), "info-only displays can still add weather cards");
+assert(!infoOnlyPickerKeys.includes("weather"), "Home Assistant weather cards stay hidden");
 assert(!infoOnlyPickerKeys.includes(""), "info-only displays hide switch controls");
 assert(!infoOnlyPickerKeys.includes("subpage"), "info-only displays hide subpage cards");
 assert(!infoOnlyPickerKeys.includes("media"), "info-only displays hide media controls");
