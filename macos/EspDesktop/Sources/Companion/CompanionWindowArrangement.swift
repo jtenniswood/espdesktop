@@ -96,13 +96,23 @@ enum CompanionWindowArrangement {
                 // is no frame from one of our own arrangement actions.
                 return CompanionKeyboardShortcut(actionIdentifier: identifier)?.replay() ?? false
             }
-            guard setFrame(frame, for: active.element) else { return false }
+            let restoreScreen = NSScreen.screens.max(by: {
+                intersectionArea(accessibilityFrame(for: $0.frame), frame)
+                    < intersectionArea(accessibilityFrame(for: $1.frame), frame)
+            }).flatMap {
+                intersectionArea(accessibilityFrame(for: $0.frame), frame) > 0 ? $0 : nil
+            } ?? screen
+            let restoreDesktop = accessibilityFrame(for: restoreScreen.visibleFrame)
+            guard let safeFrame = clampedFrame(frame, to: restoreDesktop),
+                  canSetFrame(for: active.element), setFrame(safeFrame, for: active.element) else { return false }
             previousFrames.removeValue(forKey: active.restoreKey)
             savePreviousFrames()
             return true
         }
 
-        let selected = Array(windows.prefix(action.requiredWindowCount))
+        let displayFrame = accessibilityFrame(for: screen.frame)
+        let windowsOnScreen = windows.filter { intersectionArea(displayFrame, $0.frame) > 0 }
+        let selected = Array(windowsOnScreen.prefix(action.requiredWindowCount))
         guard selected.count == action.requiredWindowCount else { return false }
         let frames = frames(for: action, in: desktop, currentFrame: active.frame)
         guard frames.count == selected.count else { return false }
@@ -259,6 +269,18 @@ enum CompanionWindowArrangement {
         let intersection = first.intersection(second)
         guard !intersection.isNull, !intersection.isEmpty else { return 0 }
         return intersection.width * intersection.height
+    }
+
+    private static func clampedFrame(_ frame: CGRect, to desktop: CGRect) -> CGRect? {
+        guard desktop.width > 0, desktop.height > 0,
+              frame.minX.isFinite, frame.minY.isFinite,
+              frame.width.isFinite, frame.height.isFinite,
+              frame.width > 0, frame.height > 0 else { return nil }
+        let width = min(frame.width, desktop.width)
+        let height = min(frame.height, desktop.height)
+        let x = min(max(frame.minX, desktop.minX), desktop.maxX - width)
+        let y = min(max(frame.minY, desktop.minY), desktop.maxY - height)
+        return CGRect(x: x, y: y, width: width, height: height)
     }
 
     /// AppKit screen coordinates use a bottom-left origin; Accessibility uses
