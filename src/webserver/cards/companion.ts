@@ -241,6 +241,7 @@ export function companionMetricDisplayMode(card: any): "used" | "free" | "remain
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
     if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
+    if (!metric && companionCardMode(card) === "url") return "Website Name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
 }
 
@@ -442,7 +443,7 @@ export function registerCompanionCardTypes(
 
             if (!companionCardIsMetric(card)) {
                 helpers.renderCardTextField(panel, card, helpers, {
-                    label: initialMode === "url" ? "Website Name" : "Label",
+                    label: "Label",
                     idSuffix: "label", field: "label",
                     placeholder: companionLabelPlaceholder(card), rerender: true,
                 });
