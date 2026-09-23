@@ -701,6 +701,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool {
+        _ = bundleIdentifier  // Older firmware sends the previously selected app; URLs now use the system default.
         guard encodedURL.utf8.count <= 128,
               let value = encodedURL.removingPercentEncoding,
               let components = URLComponents(string: value),
@@ -709,18 +710,13 @@ final class CompanionStore: NSObject, ObservableObject {
               components.host != nil,
               components.user == nil,
               components.password == nil,
-              let url = components.url,
-              let app = launchableApps().first(where: { $0.bundleIdentifier == bundleIdentifier }) else {
-            updateStatus("Blocked an invalid URL or unavailable app")
+              let url = components.url else {
+            updateStatus("Blocked an invalid URL")
             return false
         }
-        let opened: Bool = await withCheckedContinuation { continuation in
-            NSWorkspace.shared.open([url], withApplicationAt: app.url, configuration: .init()) { application, error in
-                continuation.resume(returning: application != nil && error == nil)
-            }
-        }
+        let opened = NSWorkspace.shared.open(url)
         if !opened {
-            updateStatus("macOS could not open this URL in \(app.name)")
+            updateStatus("macOS could not open this URL in the default browser")
         }
         return opened
     }

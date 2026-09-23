@@ -1,11 +1,11 @@
 ---
 title: Launch Mac Apps and Open Websites
-description: Set up EspDesktop Companion cards to launch approved Mac apps and open safe web addresses in an approved browser.
+description: Set up EspDesktop Companion cards to launch approved Mac apps and open safe web addresses in the default browser.
 ---
 
 # Launch Mac Apps and Open Websites
 
-Companion cards can bring an approved application to the front or open a website in an app you choose.
+Companion cards can bring an approved application to the front or open a website in the Mac's default browser.
 
 ## Launch an App
 
@@ -17,9 +17,8 @@ Approve **Finder** in the Mac app to use its launch card. An app card lights up 
 
 ## Open a Website
 
-1. Approve a browser or other web-capable app in the Mac app's **Apps** page.
-2. Add a **Companion → Open URL** card.
-3. Enter an `http://` or `https://` address and choose the app that should open it.
+1. Add a **Companion → Open URL** card.
+2. Enter an `http://` or `https://` address. macOS opens it in the default browser configured on the Mac.
 
 Addresses containing an embedded username or password are rejected. Other URL types, including `file://`, are not accepted.
 

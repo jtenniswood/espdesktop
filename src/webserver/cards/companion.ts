@@ -57,6 +57,7 @@ import {
 } from "../application/companion_shortcut_folder";
 
 const COMPANION_URL_PREFIX = "url.";
+const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
 const COMPANION_WINDOW_PREFIX = "window.";
@@ -240,6 +241,7 @@ export function companionMetricDisplayMode(card: any): "used" | "free" | "remain
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
     if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
+    if (!metric && companionCardMode(card) === "url") return "e.g. Website name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
 }
 
@@ -281,6 +283,7 @@ export function companionCardMode(card: any): CompanionCardModeId {
 }
 
 export function companionEntityForMode(mode: string): string {
+    if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
@@ -440,7 +443,8 @@ export function registerCompanionCardTypes(
 
             if (!companionCardIsMetric(card)) {
                 helpers.renderCardTextField(panel, card, helpers, {
-                    label: "Label", idSuffix: "label", field: "label",
+                    label: "Label",
+                    idSuffix: "label", field: "label",
                     placeholder: companionLabelPlaceholder(card), rerender: true,
                 });
             }
@@ -573,11 +577,11 @@ export function registerCompanionCardTypes(
             select.appendChild(loading);
             appField.appendChild(select);
             panel?.appendChild(appField);
-            if (initialMode === "app" || initialMode === "url") {
+            if (initialMode === "app") {
                 helpers.markCardPrimaryField(appField, "entity");
             }
             helpers.requireField(select, "Choose a Mac app before saving.", function () {
-                return initialMode === "app" || initialMode === "url";
+                return initialMode === "app";
             }, function (value: string) {
                 return companionApplicationActionIdCanSave(availableCompanionApps, value, currentEntity);
             });
@@ -845,8 +849,8 @@ export function registerCompanionCardTypes(
             }
 
             function syncMode(mode: string): void {
-                appField.style.display = mode === "app" || mode === "url" ? "" : "none";
-                appFieldLabel.textContent = mode === "url" ? "Open with" : "Application";
+                appField.style.display = mode === "app" ? "" : "none";
+                appFieldLabel.textContent = "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
