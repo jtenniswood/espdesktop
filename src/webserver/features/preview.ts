@@ -106,8 +106,12 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
 };
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
-  "action", "companion", "push", "sensor",
+  "companion", "push",
 ]);
+
+// These card types can operate without Home Assistant, and their editors are
+// restricted to those local modes while Home Assistant is disabled.
+const LOCAL_ONLY_CARD_TYPES = new Set(["action", "sensor"]);
 
 const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
   "calendar", "internal", "screen_lock", "slider", "wifi_qr", "wifi_qr_card",
@@ -202,7 +206,8 @@ export function cardTypePickerOptions(
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
     const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
     const source = cardTypeConnector(typeKey);
-    const requiresHomeAssistant = source === "home_assistant" || source === "home_assistant_or_local";
+    const requiresHomeAssistant = source === "home_assistant" ||
+      (source === "home_assistant_or_local" && !LOCAL_ONLY_CARD_TYPES.has(typeKey));
     if (requiresHomeAssistant) {
       if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {
         selectedUnsupported = { key: selectedTypeKey, label };

@@ -47,7 +47,9 @@ export function registerActionCardTypes(
         mode: {
             label: "Type",
             idSuffix: "action",
-            options: ACTION_CARD_ACTIONS,
+            options: ACTION_CARD_ACTIONS.filter(function (this: any, action?: any) {
+                return actionCardIsLocal(action.value);
+            }),
             value: function (this: any, b?: any) {
                 return b.sensor || "scene.turn_on";
             },
@@ -123,7 +125,9 @@ export function registerActionCardTypes(
         cardMetadata: ACTION_CARD_METADATA,
         onSelect: function (this: any, b?: any) {
             b.entity = "";
-            b.sensor = "scene.turn_on";
+            b.sensor = ACTION_CARD_ACTIONS.find(function (this: any, action?: any) {
+                return actionCardIsLocal(action.value);
+            })?.value || "local";
             b.unit = "";
             b.icon = "Flash";
             b.icon_on = "Auto";

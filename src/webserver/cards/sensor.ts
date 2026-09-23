@@ -42,7 +42,6 @@ export function registerSensorCardTypes(
         source: {
             label: "Source",
             options: [
-                ["ha", "Home Assistant"],
                 [SENSOR_CARD_LOCAL_SENSOR, "Local Sensor"],
             ],
             value: function (this: any, b?: any) {
@@ -103,6 +102,7 @@ export function registerSensorCardTypes(
         cardMetadata: SENSOR_CARD_METADATA,
         onSelect: function (this: any, b?: any) {
             b.entity = "";
+            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
             b.icon_on = "Auto";
             if (!b.precision)
                 b.precision = "";
@@ -119,7 +119,8 @@ export function registerSensorCardTypes(
                 }),
             });
             var sourceButtons: any = sourceControl.buttons;
-            sourceButtons.ha.classList.toggle("active", !sensorCardIsLocal(b));
+            if (sourceButtons.ha)
+                sourceButtons.ha.classList.remove("active");
             sourceButtons[SENSOR_CARD_LOCAL_SENSOR].classList.toggle("active", sensorCardIsLocal(b));
             function setSource(this: any, value?: any) {
                 var fields: any = sensorCardModeController().selectSource(b, value);

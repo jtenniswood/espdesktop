@@ -107,8 +107,8 @@
       "web": {
         "registration": "action",
         "picker": {
-          "main": false,
-          "subpage": false,
+          "main": true,
+          "subpage": true,
           "infoOnly": false
         },
         "preview": {
@@ -138,8 +138,8 @@
       "web": {
         "registration": "action",
         "picker": {
-          "main": false,
-          "subpage": false,
+          "main": true,
+          "subpage": true,
           "infoOnly": false
         },
         "preview": {
@@ -2341,9 +2341,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
         },
         "preview": {
           "available": true,
@@ -2372,9 +2372,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
         },
         "preview": {
           "available": true,
@@ -2404,9 +2404,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
         },
         "preview": {
           "available": true,
@@ -2435,9 +2435,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
         },
         "preview": {
           "available": true,
@@ -2466,9 +2466,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
         },
         "preview": {
           "available": true,

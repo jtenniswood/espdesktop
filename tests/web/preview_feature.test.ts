@@ -48,9 +48,9 @@ export function runPreviewFeatureTests(): void {
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
   }
-  equal(cardTypeVisibleForConnector("action", "mac_companion"), false, "actions are hidden from Companion");
+  equal(cardTypeVisibleForConnector("action", "mac_companion"), true, "local actions remain available with Companion");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
-  equal(cardTypeVisibleForConnector("sensor", "mac_companion"), false, "sensors are hidden from Companion");
+  equal(cardTypeVisibleForConnector("sensor", "mac_companion"), true, "local sensors remain available with Companion");
   equal(cardTypeVisibleForConnector("companion_stats", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
   equal(cardTypeVisibleForConnector("webhook", "home_assistant"), true, "shared webhook cards appear for Home Assistant");
   equal(cardTypeVisibleForConnector("webhook", "mac_companion"), true, "shared webhook cards appear for Companion");
@@ -65,8 +65,8 @@ export function runPreviewFeatureTests(): void {
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    [],
-    "subpage picker omits Home Assistant and mixed-source cards",
+    ["action", "sensor"],
+    "subpage picker retains local-only action and sensor cards",
   );
   const companionOptions = cardTypePickerOptions({
       ...definitions,
@@ -87,8 +87,8 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "companion_subpage", "webhook", "companion_window"],
-    "Companion picker excludes Home Assistant-only controls",
+    ["action", "companion_shortcut", "companion_app", "companion_folder", "companion_url", "sensor", "companion_stats", "companion_subpage", "webhook", "companion_window"],
+    "Companion picker includes local cards and excludes Home Assistant-only controls",
   );
   equal(
     companionOptions.find((option) => option.key === "companion_shortcut")?.icon,
@@ -98,6 +98,7 @@ export function runPreviewFeatureTests(): void {
   const infoOnlyOptions = cardTypePickerOptions(definitions, [], true, false, "action");
   equal(infoOnlyOptions[0]?.key, "action", "selected Home Assistant type remains visible for editing");
   equal(infoOnlyOptions[0]?.disabled, true, "selected Home Assistant type is labelled unavailable");
+  equal(infoOnlyOptions[1]?.key, "sensor", "local-only info sensor remains selectable");
 
   equal(
     swapGridCell({ x: 99, y: 75 }, { left: 0, top: 0, right: 100, bottom: 100 }, 2, 2),
