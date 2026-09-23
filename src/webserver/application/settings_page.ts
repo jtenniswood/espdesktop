@@ -40,7 +40,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConfigured" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { appendSettingsSection, buildAlarmDelayAudioSettingsCard, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -53,8 +53,8 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { bindTextPost } = codec;
     const { appendTimezoneOption, syncInput, updateClock, updateSunInfo, updateTempPreview } = statusPreview;
     const { syncPreviewOrientation } = core;
-    const { homeAssistantConfigured, companionConfigured, onStatusChange } = connectorState;
-    const { postPresenceSensorEntity } = artworkPostApi;
+    const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
+    const { postPresenceSensorEntity, postClockOverlay } = artworkPostApi;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
     const { postClockBar, postBatteryStatus, postVoiceServices } = clockBarPostApi;
     const els = runtime.els;
@@ -283,7 +283,10 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
                 syncClockBarUi();
                 postVoiceServices(state.voiceServicesOn);
             });
-            voiceServicesCard = makeCollapsibleCard("Voice Services", voiceServicesBody, true);
+            var voiceServicesBadge: any = statusBadge("Voice services on");
+            els.setVoiceServicesBadge = voiceServicesBadge;
+            syncClockBarUi();
+            voiceServicesCard = makeCollapsibleCard("Voice Services", voiceServicesBody, true, voiceServicesBadge);
             els.voiceServicesCard = voiceServicesCard;
         }
         var batteryStatusCard: any = null;
@@ -364,7 +367,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             ["disabled", "Disabled"],
             ["timer", "Timer"],
             ["sensor", "Home Assistant"],
-            ["companion", "Companion App"],
+            ["companion", "App Connection"],
         ], ssMode, function (this: any, mode?: any) {
             setSsMode(mode);
             state.screensaverMode = mode;
@@ -390,6 +393,10 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         timerPanel.appendChild(timerClockControls.brightnessField);
         els.setClockSelect = timerClockControls.clockSelect;
         els.setClockField = timerClockControls.clockField;
+        els.setScreensaverCameraField = timerClockControls.cameraField;
+        els.setScreensaverCamera = timerClockControls.cameraInput;
+        els.setScreensaverCameraImageModeField = timerClockControls.cameraImageModeField;
+        els.setScreensaverCameraImageMode = timerClockControls.cameraImageModeSelect;
         els.setDimBrightnessField = timerClockControls.dimBrightnessField;
         els.setManualDimBrightnessField = timerClockControls.manualDimBrightnessField;
         els.setAutomaticDimBrightnessField = timerClockControls.automaticDimBrightnessField;
@@ -423,9 +430,55 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         sensorPanel.appendChild(sensorClockControls.dimBrightnessField);
         sensorPanel.appendChild(sensorClockControls.brightnessField);
         ssBody.appendChild(sensorPanel);
+        var cameraPanel: any = document.createElement("section");
+        cameraPanel.id = "sp-set-screensaver-camera-panel";
+        cameraPanel.className = "sp-panel sp-camera-settings";
+        cameraPanel.setAttribute("aria-label", "Camera screensaver settings");
+        var timerCameraFields: any = document.createElement("div");
+        timerCameraFields.append(timerClockControls.cameraField, timerClockControls.cameraImageModeField);
+        var sensorCameraFields: any = document.createElement("div");
+        sensorCameraFields.append(sensorClockControls.cameraField, sensorClockControls.cameraImageModeField);
+        cameraPanel.append(timerCameraFields, sensorCameraFields);
+        els.setScreensaverCameraPanel = cameraPanel;
+        var metadataField: any = document.createElement("div");
+        metadataField.className = "sp-field";
+        metadataField.appendChild(fieldLabel("Photo Metadata Entity", "sp-set-screensaver-metadata"));
+        var metadataInput: any = entityInput("sp-set-screensaver-metadata", state.screensaverMetadataEntity,
+            "Optional sensor entity (leave empty to hide)", ["sensor"]);
+        metadataField.appendChild(metadataInput);
+        bindTextPost(metadataInput, entityName("screen_saver_metadata_entity"), {
+            onBlur: function (value: any) { state.screensaverMetadataEntity = value; },
+        });
+        els.setScreensaverMetadataField = metadataField;
+        els.setScreensaverMetadata = metadataInput;
+        var clockOverlayToggle: any = toggleRow("Display Clock", "sp-set-ss-clock-overlay", state.clockOverlayOn);
+        cameraPanel.appendChild(clockOverlayToggle.row);
+        clockOverlayToggle.input.addEventListener("change", function (this: any) {
+            state.clockOverlayOn = this.checked;
+            syncCoverArtScreensaverUi();
+            postClockOverlay(state.clockOverlayOn);
+        });
+        els.setClockOverlayToggle = clockOverlayToggle.input;
+        els.setClockOverlayRow = clockOverlayToggle.row;
+        var metadataToggle: any = toggleRow("Display Metadata", "sp-set-ss-metadata-overlay", state.metadataOverlayOn);
+        if (layout.config.features?.cameraScreensaver) {
+            cameraPanel.appendChild(metadataToggle.row);
+            cameraPanel.appendChild(metadataField);
+        }
+        metadataToggle.input.addEventListener("change", function (this: any) {
+            state.metadataOverlayOn = this.checked;
+            syncClockScreensaverControls();
+            artworkPostApi.postMetadataOverlay(state.metadataOverlayOn);
+        });
+        els.setMetadataOverlayToggle = metadataToggle.input;
+        els.setMetadataOverlayRow = metadataToggle.row;
         els.setPresence = presInp;
         els.setSensorClockSelect = sensorClockControls.clockSelect;
         els.setSensorClockField = sensorClockControls.clockField;
+        els.setSensorScreensaverCameraField = sensorClockControls.cameraField;
+        els.setSensorScreensaverCamera = sensorClockControls.cameraInput;
+        els.setSensorScreensaverCameraImageModeField = sensorClockControls.cameraImageModeField;
+        els.setSensorScreensaverCameraImageMode = sensorClockControls.cameraImageModeSelect;
         els.setSensorDimBrightnessField = sensorClockControls.dimBrightnessField;
         els.setSensorManualDimBrightnessField = sensorClockControls.manualDimBrightnessField;
         els.setSensorAutomaticDimBrightnessField = sensorClockControls.automaticDimBrightnessField;
@@ -441,11 +494,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setSensorClockBrightnessNightVal = sensorClockControls.clockBrightnessNightVal;
         els.setSensorClockBrightnessField = sensorClockControls.brightnessField;
         var companionPanel: any = document.createElement("div");
-        var companionNote: any = document.createElement("p");
-        companionNote.className = "sp-setting-note";
-        companionNote.textContent = "Keep the display visible while EspDesktop is connected and the screen is unlocked. Start the screensaver when the Mac app disconnects or the screen is locked.";
-        companionPanel.appendChild(companionNote);
-        var companionClockControls: any = createScreensaverThenControls("sp-set-companion-clock-mode");
+        var companionClockControls: any = createScreensaverThenControls("sp-set-companion-clock-mode", "When disconnected");
         companionPanel.appendChild(companionClockControls.clockField);
         companionPanel.appendChild(companionClockControls.dimBrightnessField);
         companionPanel.appendChild(companionClockControls.brightnessField);
@@ -472,6 +521,12 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var ssBadge: any = statusBadge("Screensaver on");
         els.setScreensaverBadge = ssBadge;
         function setSsMode(this: any, mode?: any) {
+            // Device events can reapply a saved HA mode while its connector is
+            // offline. Hide its controls without overwriting the saved mode.
+            if ((mode === "sensor" && !homeAssistantConnected()) ||
+                (mode === "companion" && !companionConfigured())) {
+                mode = "disabled";
+            }
             ssMode = mode;
             disabledBtn.classList.toggle("active", mode === "disabled");
             timerBtn.classList.toggle("active", mode === "timer");
@@ -480,6 +535,10 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             timerPanel.style.display = mode === "timer" ? "" : "none";
             sensorPanel.style.display = mode === "sensor" ? "" : "none";
             companionPanel.style.display = mode === "companion" ? "" : "none";
+            timerCameraFields.style.display = mode === "timer" || mode === "companion" ? "" : "none";
+            sensorCameraFields.style.display = mode === "sensor" ? "" : "none";
+            if (layout.config.features?.cameraScreensaver)
+                (mode === "sensor" ? sensorPanel : mode === "companion" ? companionPanel : timerPanel).appendChild(cameraPanel);
             if (els.setScreensaverBadge) {
                 els.setScreensaverBadge.className = "sp-card-badge" + (mode === "disabled" ? " sp-hidden" : "");
             }
@@ -487,17 +546,17 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setSsMode = setSsMode;
         var screensaverCard: any = makeCollapsibleCard("Screensaver", ssBody, true, ssBadge);
         function syncScreensaverModeOptions(this: any) {
-            var haAvailable = homeAssistantConfigured();
-            schedule.setHomeAssistantConfigured(haAvailable);
-            coverArtCard.hidden = !haAvailable;
-            coverArtCard.classList.toggle("sp-hidden", !haAvailable);
+            var haConnected = homeAssistantConnected();
+            schedule.setHomeAssistantConnected(haConnected);
+            coverArtCard.hidden = !haConnected;
+            coverArtCard.classList.toggle("sp-hidden", !haConnected);
             var companionAvailable = companionConfigured();
-            sensorBtn.hidden = !haAvailable;
-            sensorBtn.classList.toggle("sp-hidden", !haAvailable);
+            sensorBtn.hidden = !haConnected;
+            sensorBtn.classList.toggle("sp-hidden", !haConnected);
             companionBtn.hidden = !companionAvailable;
             companionBtn.classList.toggle("sp-hidden", !companionAvailable);
             var activeMode = getActiveScreensaverMode();
-            if ((activeMode === "sensor" && !haAvailable) ||
+            if ((activeMode === "sensor" && !haConnected) ||
                 (activeMode === "companion" && !companionAvailable)) {
                 activeMode = "disabled";
             }
@@ -540,7 +599,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var idleCard: any = makeCollapsibleCard("Idle", idleBody, true, idleBadge);
         var systemSettingsCards: any = buildSystemSettingsCards();
         function syncHomeAssistantSettingsVisibility() {
-            var hidden = !homeAssistantConfigured();
+            var hidden = !homeAssistantConnected();
             systemSettingsCards.homeAssistantSettingsCard.hidden = hidden;
             systemSettingsCards.homeAssistantSettingsCard.classList.toggle("sp-hidden", hidden);
         }
@@ -568,10 +627,12 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             temperatureCard,
         ]);
         appendSettingsSection(config, "System", [
+            systemSettingsCards.identityCard,
             systemSettingsCards.backupCard,
             systemSettingsCards.firmwareCard,
             systemSettingsCards.homeAssistantSettingsCard,
             batteryStatusCard,
+            systemSettingsCards.resetCard,
         ]);
         page.appendChild(config);
         page.appendChild(buildApplyBar());

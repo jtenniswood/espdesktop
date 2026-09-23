@@ -22,9 +22,6 @@ protocol SystemMetricsProviding: AnyObject {
 
 @MainActor
 protocol MediaControlling: AnyObject {
-    var actionsAvailable: Bool { get }
-    func supports(actionIdentifier: String) -> Bool
-    func perform(actionIdentifier: String) -> Bool
     func values() -> [String: Int]
     func setValue(_ value: Int, controlIdentifier: String) -> Bool
     func unavailableVolumeIDs(
@@ -38,11 +35,6 @@ extension SystemNowPlayingProvider: NowPlayingProviding {}
 extension SystemMetricsProvider: SystemMetricsProviding {}
 
 extension SystemMediaController: MediaControlling {
-    var actionsAvailable: Bool { Self.mediaActionsAvailable }
-
-    func supports(actionIdentifier: String) -> Bool {
-        Self.supports(actionIdentifier: actionIdentifier)
-    }
 
     func unavailableVolumeIDs(
         values: [String: Int],

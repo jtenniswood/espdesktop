@@ -7,10 +7,23 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "companion_controls.h"
 #include "companion_timezone.h"
 #include "button_grid_config_parser.h"
+#define ESPDESKTOP_SUBPAGE_PARSER_ONLY
+#include "button_grid_subpages.h"
+#include "finder_folder_sync.h"
 
 using namespace esphome::companion;
 
 int main() {
+  const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
+  const std::vector<CompanionAction> folders = {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}};
+  const auto added = finder_append_folder_tiles(page, {true, true, true, false}, folders);
+  const auto parsed = parse_subpage_config(added);
+  assert(parsed.size() == 2 && parsed[0].label == "My folder" && parsed[1].label == "A,B|C");
+  assert(added.rfind("~B,1,,2|", 0) == 0);
+  assert(finder_append_folder_tiles(added, {true, true, true, true}, folders) == added);
+  assert(finder_append_folder_tiles(page, {true, true, true, true}, folders) == page);
+  assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
+
   // Exercise the real translation tables at the device-label boundary.
   set_espdesktop_language("de");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Ausgabelautstärke");
@@ -25,13 +38,11 @@ int main() {
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_label("shortcut.command+left") == "\U000F0633\U000F004D");
   set_espdesktop_language("en");
+  assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.battery"))) == "left");
+  assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.cpu"))) == "used");
+  assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.storage_free:external"))) == "free");
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::PLAYING)) == "Playing");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::PAUSED)) == "Paused");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::STOPPED)) == "Stopped");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::UNAVAILABLE, false)) == "Unavailable");
-  assert(std::string(companion_play_pause_status(CompanionPlaybackState::UNAVAILABLE)) == "Stopped");
   assert(companion_shortcut_action_valid("shortcut.command+a"));
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));
@@ -45,6 +56,14 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.command+volumeup"));
   assert(!companion_shortcut_action_valid("shortcut.command+f21"));
   assert(!companion_shortcut_action_valid("com.apple.Safari"));
+
+  ParsedCfg finder_launch;
+  finder_launch.type = "companion";
+  finder_launch.entity = "com.apple.finder";
+  finder_launch.options = "app_shortcuts,app_shortcuts_auto_switch";
+  assert(companion_app_shortcuts_enabled(finder_launch));
+  assert(companion_app_subpage_auto_switch_enabled(finder_launch));
+  assert(companion_card_options_normalized(finder_launch) == finder_launch.options);
 
   ParsedCfg safari_launch;
   safari_launch.type = "companion";
@@ -122,6 +141,22 @@ int main() {
   assert(!companion_action_available("shortcut.command+a"));
   assert(!companion_action_available("window.close"));
   assert(!companion_action_available("window.not-real"));
+  assert(companion_metric_key_valid("stat.ip_address:en0"));
+  CompanionRuntimeSnapshot network_snapshot;
+  network_snapshot.connected = true;
+  network_snapshot.system_metrics.network_interfaces = {{"en0", "Wi-Fi", "192.168.1.10"}, {"en1", "Ethernet", "10.0.0.2"}};
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en1") == "10.0.0.2");
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en2") == "--");
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "192.168.1.10");
+  network_snapshot.system_metrics.network_interfaces[0].address.clear();
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "10.0.0.2");
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en0") == "--");
+  assert(companion_network_address(network_snapshot, "stat.ip_address:") == "--");
+  network_snapshot.system_metrics.network_interfaces[1].address.clear();
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "--");
+  network_snapshot.connected = false;
+  assert(companion_network_address(network_snapshot, "stat.ip_address") == "--");
+  assert(companion_network_address(network_snapshot, "stat.ip_address:en0") == "--");
   assert(companion_metric_key_valid("stat.cpu"));
   assert(!companion_metric_key_valid("sensor.cpu"));
   assert(std::string(companion_metric_label_key("stat.memory")) == "memory");
@@ -132,6 +167,7 @@ int main() {
   metrics.memory_usage_percent = 61.0f;
   metrics.storage_usage_percent = 73.0f;
   metrics.network_throughput_kbps = 512.5f;
+  metrics.storage_devices.push_back({"external-volume", "External drive", 42.0f});
   companion_set_system_metrics(metrics);
   float metric_value = 0.0f;
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.cpu", metric_value));
@@ -140,6 +176,17 @@ int main() {
   assert(metric_value == 39.0f);
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.storage_free", metric_value));
   assert(metric_value == 27.0f);
+  assert(companion_metric_key_valid("stat.storage:external-volume"));
+  assert(!companion_metric_key_valid("stat.cpu:external-volume"));
+  assert(!companion_metric_key_valid("stat.storage:"));
+  assert(companion_metric_value(companion_runtime_snapshot(), "stat.storage:external-volume", metric_value));
+  assert(metric_value == 42.0f);
+  assert(companion_metric_value(companion_runtime_snapshot(), "stat.storage_free:external-volume", metric_value));
+  assert(metric_value == 58.0f);
+  assert(!companion_metric_value(companion_runtime_snapshot(), "stat.storage:missing-volume", metric_value));
+  metrics.storage_devices.clear();
+  companion_set_system_metrics(metrics);
+  assert(!companion_metric_value(companion_runtime_snapshot(), "stat.storage:external-volume", metric_value));
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.network_throughput", metric_value));
   assert(metric_value == 512.5f / 1024.0f);
   assert(!companion_metric_value(companion_runtime_snapshot(), "stat.battery", metric_value));
@@ -154,43 +201,27 @@ int main() {
   assert(companion_action_focused(folder_action));
   assert(!companion_action_focused("com.apple.Safari"));
   assert(companion_consume_subpage_return_request());
-  assert(companion_pending_auto_subpage_action() == folder_action);
+  assert(companion_pending_auto_subpage_action() == "com.apple.finder");
   assert(!companion_consume_auto_subpage_action("com.apple.Safari"));
-  assert(companion_consume_auto_subpage_action(folder_action));
+  assert(companion_consume_auto_subpage_action("com.apple.finder"));
   companion_set_focused_action(folder_action);
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
+  companion_set_focused_action("folder.second");
+  assert(companion_action_focused("com.apple.finder"));
+  assert(!companion_action_focused(folder_action));
+  assert(!companion_consume_subpage_return_request());
+  assert(companion_pending_auto_subpage_action().empty());
+  companion_set_focused_action("com.apple.finder");
+  assert(companion_action_focused("com.apple.finder"));
+  assert(!companion_action_focused("folder.second"));
+  assert(!companion_consume_subpage_return_request());
   companion_set_focused_action("com.apple.Safari");
+  assert(!companion_action_focused("com.apple.finder"));
   assert(companion_consume_subpage_return_request());
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
   assert(!companion_consume_subpage_return_request());
-  assert(companion_media_action_valid("media.play_pause"));
-  assert(companion_media_action_valid("media.previous"));
-  assert(companion_media_action_valid("media.next"));
-  assert(!companion_media_action_valid("media.delete_everything"));
-  assert(!companion_action_available("media.play_pause"));
-  companion_set_media_actions_supported(true);
-  assert(companion_action_available("media.play_pause"));
-  CompanionNowPlayingSnapshot paused_snapshot;
-  paused_snapshot.playback_state = CompanionPlaybackState::PAUSED;
-  companion_set_now_playing(paused_snapshot);
-  assert(companion_action_available("media.play_pause"));
-  assert(!companion_action_active("media.play_pause"));
-  CompanionNowPlayingSnapshot playing_snapshot;
-  playing_snapshot.playback_state = CompanionPlaybackState::PLAYING;
-  companion_set_now_playing(playing_snapshot);
-  assert(companion_action_active("media.play_pause"));
-  companion_set_now_playing(paused_snapshot);
-  bool media_invoked = false;
-  register_companion_action_sender([&media_invoked](const std::string &action,
-                                                    const std::string &request) {
-    media_invoked = action == "media.play_pause" && request == "media-1";
-    return media_invoked;
-  });
-  assert(invoke_companion_action("media.play_pause", "media-1"));
-  assert(media_invoked);
-  assert(companion_runtime_snapshot().now_playing.playback_state == CompanionPlaybackState::PAUSED);
   assert(companion_volume_control_valid("media.output_volume"));
   assert(companion_volume_control_valid("media.input_volume"));
   assert(!companion_volume_control_valid("media.screen_brightness"));
@@ -212,7 +243,8 @@ int main() {
   assert(invoke_companion_value("media.output_volume", 64, "volume-1"));
   assert(volume_invoked);
   assert(companion_url_available("com.apple.Safari", url_config));
-  assert(!companion_url_available("com.google.Chrome", url_config));
+  assert(companion_url_available("com.google.Chrome", url_config));
+  assert(companion_url_available("system.default_browser", url_config));
   // Companion reports the focused app, not the page it currently shows, so a
   // URL card must never inherit the app-launch card's checked state.
   companion_set_focused_application("com.apple.Safari");
@@ -223,10 +255,10 @@ int main() {
   bool invoked = false;
   register_companion_url_sender([&invoked](const std::string &app, const std::string &url,
                                            const std::string &request) {
-    invoked = app == "com.apple.Safari" && url.rfind("https%3A%2F%2F", 0) == 0 && request == "test-1";
+    invoked = app == "system.default_browser" && url.rfind("https%3A%2F%2F", 0) == 0 && request == "test-1";
     return invoked;
   });
-  assert(invoke_companion_url("com.apple.Safari", url_config, "test-1"));
+  assert(invoke_companion_url("com.google.Chrome", url_config, "test-1"));
   assert(invoked);
   bool navigated = false;
   companion_expect_action_result("launch-1", [&navigated]() { navigated = true; });
@@ -283,6 +315,8 @@ int main() {
   assert(companion_take_timezone_changed());
   assert(!companion_timezone_changed());
   companion_set_connected(false);
+  assert(!companion_url_available("system.default_browser", url_config));
+  assert(!invoke_companion_url("system.default_browser", url_config, "offline-url"));
   assert(companion_consume_subpage_return_request());
   companion_set_timezone_id("");
   assert(companion_timezone_id().empty());

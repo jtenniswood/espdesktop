@@ -9,7 +9,13 @@ from pathlib import Path
 
 import device_matrix
 import generate_device_slots
-from device_profiles import ROOT, load_device_profiles, public_device_capabilities, web_config
+from device_profiles import (
+    ROOT,
+    load_device_profiles,
+    public_device_capabilities,
+    public_device_capability,
+    web_config,
+)
 import check_public_firmware
 
 
@@ -33,8 +39,10 @@ LEGACY_OTA_PARTITION_LAYOUTS = {
     "guition-esp32-p4-jc4880p443": "partitions_16mb_card_images.csv",
     "guition-esp32-p4-jc8012p4a1": "partitions_16mb_card_images.csv",
     "guition-esp32-p4-jc8012p4a1-v2": "partitions_16mb_card_images.csv",
+    "guition-esp32-p4-jc8012p4a1-v3": "partitions_16mb_card_images.csv",
     "guition-esp32-s3-4848s040": "partitions_16mb_card_images.csv",
 }
+V3_SLUG = "guition-esp32-p4-jc8012p4a1-v3"
 LEGACY_OTA_PARTITION_ROWS = {
     "partitions_16mb_card_images.csv": (
         "nvs,           data, nvs,     0x9000,    0xd000,",
@@ -104,12 +112,17 @@ def test_zero_image_capacity_disables_all_image_card_pickers(profiles: dict[str,
         )
 
 
-def test_constrained_s3_supports_one_cover_art_card(profiles: dict[str, dict]) -> None:
-    profile = profiles["guition-esp32-s3-4848s040"]
+def test_s3_exposes_camera_and_media_cover_art(profiles: dict[str, dict]) -> None:
+    slug = "guition-esp32-s3-4848s040"
+    profile = profiles[slug]
     disabled = set(web_config(profile).get("disabledCardTypes", []))
-    assert image_slot_capacity(profile) == 1, "S3 must provide one low-memory artwork slot"
-    assert "image" in disabled, "S3 must keep general Image cards unavailable"
-    assert "media_cover_art" not in disabled, "S3 must expose Media Cover Art cards"
+    assert image_slot_capacity(profile) == 2, f"{slug}: S3 must expose exactly two shared image slots"
+    assert "image" not in disabled, f"{slug}: S3 Camera Cards must be available"
+    assert "media_cover_art" not in disabled, f"{slug}: S3 Media Cover Art must be available"
+    capability = public_device_capability(profile)
+    assert capability["imageCardTypes"] == ["image", "media_cover_art"], (
+        f"{slug}: public capability must expose Camera and Media Cover Art cards"
+    )
 
 
 def test_public_device_capabilities(profile_slugs: list[str]) -> None:
@@ -199,7 +212,7 @@ def test_web_server_request_limits() -> None:
 
 
 def test_s3_low_heap_policy() -> None:
-    """Keep the S3 artwork path and web server within its internal-heap budget."""
+    """Keep the S3 runtime tasks within its internal-heap and stack budget."""
     device = S3_DEVICE_YAML.read_text(encoding="utf-8")
     artwork = S3_ARTWORK_TRANSFER_CPP.read_text(encoding="utf-8")
     server = WEB_SERVER_IDF_CPP.read_text(encoding="utf-8")
@@ -211,6 +224,9 @@ def test_s3_low_heap_policy() -> None:
         'CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"',
     ):
         assert option in device, f"S3 device profile is missing {option}"
+    assert "loop_task_stack_size: 16384" in device, (
+        "S3 loop task must retain enough stack for display transitions"
+    )
     assert "HTTP_CLIENT_BUFFER_SIZE = 4 * 1024" in artwork, (
         "S3 artwork HTTP buffer must stay at 4 KiB"
     )
@@ -331,8 +347,34 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
             assert "cfg.image_card_image_count" not in sensors, (
                 f"{slug}: zero image-card profile should not wire image-card downloaders"
             )
+        assert f'image_card_slot_capacity: "{capacity}"' in package, (
+            f"{slug}: compile-time image pool must come from the product profile"
+        )
+        assert '-DESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS=${image_card_slot_capacity}' in package, (
+            f"{slug}: compile-time image pool must use the generated capacity"
+        )
         if profile["firmware"].get("display", {}).get("infoOnly"):
             assert "cfg.info_only = true;" in sensors, f"{slug}: sensors.yaml missing info-only grid flag"
+
+
+def test_v3_release_configuration() -> None:
+    """Keep the production V3 build contract outside generated package sections."""
+    package = (ROOT / "devices" / V3_SLUG / "packages.yaml").read_text(encoding="utf-8")
+    device = (ROOT / "devices" / V3_SLUG / "device" / "device.yaml").read_text(encoding="utf-8")
+    factory = (ROOT / "builds" / f"{V3_SLUG}.factory.yaml").read_text(encoding="utf-8")
+    recovery = (ROOT / "builds" / f"{V3_SLUG}.recovery.yaml").read_text(encoding="utf-8")
+
+    assert "engineering_sample: false" in device, "V3 must target production P4 silicon"
+    assert "url: ${espdesktop_component_url}" in package, "V3 MIPI source must use the configured component URL"
+    assert "ref: ${espdesktop_component_ref}" in package, "V3 MIPI source must use the configured component ref"
+    assert "components: [mipi_dsi]" in package, "V3 must retain the patched MIPI component"
+    assert "web_server:\n  ota: false" in package, "V3 browser firmware uploads must be disabled"
+    assert package.count("restore_mode: ALWAYS_OFF") >= 2, "V3 update switches must default off"
+    assert "espdesktop_component_url: \"file:///config\"" in factory
+    assert "espdesktop_component_ref: \"HEAD\"" in factory
+    assert 'js_include: "../docs/public/webserver/embedded/www.js"' in factory
+    assert f"!include {V3_SLUG}.factory.yaml" in recovery
+    assert "esp32_c6_recovery.yaml" in recovery
 
 
 def test_public_api_encryption_policy(profile_slugs: list[str]) -> None:
@@ -509,6 +551,41 @@ def test_rotation_refresh_rebuilds_subpages() -> None:
         assert "grid_rebuild_all(slots, cfg," in refresh_script, (
             f"{slug}: rotation refresh must rebuild secondary cards safely"
         )
+
+
+def test_restored_display_sensors_bind_without_reboot() -> None:
+    for device in generate_device_slots.slot_devices():
+        slug = device["slug"]
+        sensors = (ROOT / "devices" / slug / "device" / "sensors.yaml").read_text(encoding="utf-8")
+        scripts, boot = sensors.split("\nesphome:", 1)
+        binding = scripts.split("  - id: refresh_display_sensor_subscriptions\n", 1)[1]
+        assert "script.execute: refresh_display_sensor_subscriptions" in boot
+        assert sensors.count("grid_phase3(") == 1, f"{slug}: boot and restore must share sensor binding"
+        for entity in ("presence_sensor_entity", "screen_schedule_sensor_entity", "media_player_sleep_prevention_entity"):
+            assert f"id({entity}).state" in binding, f"{slug}: rebind the current {entity}"
+        assert binding.index("grid_phase3(") < binding.index("ha_reannounce_state_subscriptions();"), (
+            f"{slug}: advertise restored sensors to the existing Home Assistant connection"
+        )
+
+    # The restore writes these settings; their handlers must invoke the same
+    # subscription binding used at boot.
+    for filename, entities in (
+        ("common/config/display.yaml", (
+            "indoor_temp_enable", "outdoor_temp_enable", "clock_bar_temperature_entities",
+            "indoor_temp_entity", "outdoor_temp_entity", "presence_sensor_entity",
+            "media_player_sleep_prevention_entity",
+        )),
+        ("common/addon/backlight_schedule.yaml", ("screen_schedule_sensor_entity",)),
+    ):
+        source = (ROOT / filename).read_text(encoding="utf-8")
+        for entity in entities:
+            handler = source.split(f"    id: {entity}\n", 1)[1].split("\n  - platform:", 1)[0]
+            assert "script.execute: refresh_display_sensor_subscriptions" in handler, (
+                f"{entity}: subscription settings must rebind immediately"
+            )
+        for entity in ("presence_sensor_entity",) if filename.endswith("display.yaml") else ("screen_schedule_sensor_entity",):
+            handler = source.split(f"    id: {entity}\n", 1)[1].split("\n  - platform:", 1)[0]
+            assert "script.execute: refresh_button_grid" in handler, f"{entity}: refresh on restore"
 
 
 def test_seven_inch_width_compensation_rotates_with_screen() -> None:
@@ -708,7 +785,7 @@ def test_weather_card_visual_matches_preview() -> None:
         and "lv_obj_del(child);" in grid
         and "lv_obj_set_user_data(s.sensor_container, nullptr);" in grid
         and "lv_obj_clear_state(s.btn, LV_STATE_CHECKED);" in grid
-        and "lv_obj_clear_state(s.btn, LV_STATE_DISABLED);" in grid
+        and "set_card_disabled_state(s.btn, false);" in grid
         and "lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);" in grid
         and "reset_card_slot_dynamic_children(s);" in setup_visual
     ), "weather cards must clear stale widget children, active states, and opacity before rendering"
@@ -740,6 +817,12 @@ def test_weather_card_visual_matches_preview() -> None:
     )
     assert 'normalized == "unknown"' in weather_forecast and 'return "unavailable";' in weather_forecast, (
         "current weather device cards should render unknown states with the unavailable weather icon"
+    )
+    assert "inline bool weather_state_has_localized_label" in weather_forecast, (
+        "current weather device cards should distinguish localized states from provider-specific text"
+    )
+    assert "return sentence_cap_text(trim_display_unit(state));" in weather_forecast, (
+        "current weather device cards should retain provider-specific condition text in their labels"
     )
     assert 'if (b.type == "weather" && !card_runtime_weather_forecast_precision(b.precision))' in subpages, (
         "subpage weather cards must normalize invalid weather modes like main grid cards"
@@ -950,8 +1033,9 @@ def main() -> int:
     test_s3_low_heap_policy()
     test_companion_startup_order()
     test_zero_image_capacity_disables_all_image_card_pickers(profiles)
-    test_constrained_s3_supports_one_cover_art_card(profiles)
+    test_s3_exposes_camera_and_media_cover_art(profiles)
     test_generated_yaml(profiles)
+    test_v3_release_configuration()
     test_public_api_encryption_policy(profile_slugs)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
@@ -959,6 +1043,7 @@ def main() -> int:
     test_local_voice_generation_uses_capability()
     test_square_s3_reapplies_clock_bar_after_screen_changes()
     test_rotation_refresh_rebuilds_subpages()
+    test_restored_display_sensors_bind_without_reboot()
     test_seven_inch_width_compensation_rotates_with_screen()
     test_subpage_config_changes_schedule_live_refresh()
     test_web_screen_aspect_matches_public_resolution()

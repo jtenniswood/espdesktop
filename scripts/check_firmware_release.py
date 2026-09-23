@@ -8,6 +8,8 @@ from functools import partial
 import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import io
+import os
+from unittest.mock import patch
 import json
 from pathlib import Path
 import re
@@ -175,6 +177,17 @@ def test_release_workflow_uses_current_ota_output() -> None:
     assert "npx playwright install --with-deps chromium" in workflow
     assert str(prepare_c6_firmware.C6_RELATIVE_PATH) in workflow
     assert "path: dist/firmware/" in workflow, "publishable firmware must use the dist boundary"
+    assert "name: Prepare release web assets" in workflow
+    assert "scripts/prepare_release_web_assets.py" in workflow
+    assert "--legacy-web-manifest" in workflow
+    assert '--exclude-pre-releases' in workflow
+    assert 'index($tag)' in workflow
+    assert 'ESPDESKTOP_LEGACY_WEB_MANIFEST' in workflow
+    assert 'cp -a docs/public/webserver/. dist/release-web-assets/' in workflow
+    assert "name: Upload release web assets" in workflow
+    assert "name: Download release web assets" in workflow
+    assert "dist/release-web-assets" in workflow
+    assert "Include release web assets in distribution" in workflow
 
 
 def test_device_matrix_sparse_checkouts_include_product_model() -> None:
@@ -199,26 +212,40 @@ def test_pages_excludes_draft_prereleases() -> None:
     workflow = PAGES_WORKFLOW.read_text(encoding="utf-8")
     assert "select((.draft | not) and .prerelease)" in workflow
     assert "select(.prerelease)" not in workflow
+    assert "actions: read" in workflow
+    assert "name: Download verified release web assets" in workflow
+    assert "run-id: ${{ github.event.workflow_run.id }}" in workflow
+    assert "name: Use verified release web assets" in workflow
+    assert "if: github.event_name != 'workflow_run'" in workflow
 
 
 def test_release_skill_creates_selected_tag_before_draft() -> None:
     skill = RELEASE_SKILL.read_text(encoding="utf-8")
     tag_creation = skill.index('git tag -a "$TAG"')
-    assert skill.index('TAG="vX.Y.Z"') < tag_creation
-    assert skill.index('TAG="vX.Y.Z-beta.N"') < tag_creation
+    assert skill.index("Set `TAG` to the selected full tag.") < tag_creation
+    assert skill.index("Preserve an explicitly requested prerelease") < tag_creation
     assert skill.index('gh release create "$TAG"', tag_creation) > tag_creation
 
 
-def test_release_preparation_adds_the_tag_before_tagging() -> None:
+def test_release_preparation_is_workflow_owned() -> None:
     skill = RELEASE_SKILL.read_text(encoding="utf-8")
-    assert skill.index("prepare_release_web_assets.py") < skill.index('git tag -a "$TAG"')
-    assert skill.index("python3 scripts/build.py\n") < skill.index("python3 scripts/build.py --check")
-    assert "gh pr create --base main" in skill
+    workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+    pages_workflow = PAGES_WORKFLOW.read_text(encoding="utf-8")
+    assert "No preparation PR is required." in skill
+    assert "gh pr create --base main" not in skill
+    assert "name: Prepare release web assets" in workflow
+    assert "name: Prepare published release web assets" in pages_workflow
+    assert "--legacy-only" in pages_workflow
+    assert "--legacy-web-manifest" in pages_workflow
+    assert '--exclude-pre-releases' in pages_workflow
+    assert 'index($tag)' in pages_workflow
+    assert 'ESPDESKTOP_LEGACY_WEB_MANIFEST' in pages_workflow
     assert "git push origin main" not in skill
     with TemporaryDirectory() as tmp:
         build_script = Path(tmp) / "build.py"
         build_script.write_text(
-            'WEB_ASSET_SUPPORTED_FIRMWARE_VERSIONS = (\n    "dev",\n    "v1.0.0",\n)\n',
+            'WEB_ASSET_SUPPORTED_FIRMWARE_VERSIONS = (\n    "dev",\n    "v1.0.0",\n)\n'
+            'WEB_ASSET_CURRENT_FIRMWARE_VERSION = None\n',
             encoding="utf-8",
         )
         releases = [
@@ -236,6 +263,10 @@ def test_release_preparation_adds_the_tag_before_tagging() -> None:
         assert prepare_release_web_assets.prepare(build_script, "v1.2.0-beta.1", releases) is True
         assert '    "v1.2.0-beta.1",' in build_script.read_text(encoding="utf-8")
         assert '    "v1.1.0-beta.1",' not in build_script.read_text(encoding="utf-8")
+        assert prepare_release_web_assets.prepare(
+            build_script, "v1.2.0-beta.1", releases, set_current_version=False
+        ) is True
+        assert "WEB_ASSET_CURRENT_FIRMWARE_VERSION = None" in build_script.read_text(encoding="utf-8")
 
 
 def make_release_files(base: Path, slug: str = SLUG, version: str = VERSION) -> tuple[Path, Path, Path]:
@@ -280,11 +311,59 @@ def make_recovery_files(
 
 def web_manifest_for(base: Path, device_profiles: list[str]) -> Path:
     data = json.loads(WEB_MANIFEST.read_text(encoding="utf-8"))
-    data["bundles"][0]["deviceProfiles"] = device_profiles
-    data["bundles"][0]["firmwareVersions"] = [VERSION]
+    for bundle in data["bundles"]:
+        bundle["deviceProfiles"] = device_profiles
+        bundle["firmwareVersions"] = [VERSION]
     path = base.parent / "web-assets.json"
     path.write_text(json.dumps(data), encoding="utf-8")
     return path
+
+
+def test_legacy_web_bundle_selection() -> None:
+    import build as web_build
+
+    stable = "a" * 64
+    prerelease = "b" * 64
+    development = "c" * 64
+    def entry(digest, versions):
+        return {"id": digest, "sha256": digest,
+                "path": f"bundles/{digest}/www.js", "firmwareVersions": versions}
+    with TemporaryDirectory() as tmp:
+        manifest = Path(tmp) / "web-assets.json"
+        manifest.write_text(json.dumps({"bundles": [
+            entry(development, ["dev"]),
+            entry(prerelease, ["v2.0.0-beta.1"]),
+            entry(stable, ["v1.0.0"]),
+        ]}))
+        with patch.dict(os.environ, {"ESPDESKTOP_LEGACY_FIRMWARE_VERSION": ""}):
+            assert web_build.load_legacy_web_bundle(manifest)[0] == stable
+        with patch.dict(os.environ, {"ESPDESKTOP_LEGACY_FIRMWARE_VERSION": "v1.0.0"}):
+            assert web_build.load_legacy_web_bundle(manifest)[0] == stable
+        with patch.dict(os.environ, {"ESPDESKTOP_LEGACY_FIRMWARE_VERSION": "v9.0.0"}):
+            try:
+                web_build.load_legacy_web_bundle(manifest)
+            except web_build.BuildError:
+                pass
+            else:
+                raise AssertionError("Missing selected release must not choose a different editor")
+
+
+def test_web_bundle_compatibility_aliases() -> None:
+    with TemporaryDirectory() as tmp:
+        path = web_manifest_for(Path(tmp) / "release", [SLUG])
+        original = json.loads(path.read_text())
+        bundle = firmware_release.current_web_bundle(path, WEB_ROOT)
+        assert bundle["webAssetVersion"] == 2
+        for field, value in [("webAssetVersion", 2), ("sha256", "0" * 64), ("deviceProfiles", [])]:
+            data = json.loads(json.dumps(original))
+            data["bundles"][1][field] = value
+            path.write_text(json.dumps(data))
+            try:
+                firmware_release.current_web_bundle(path, WEB_ROOT)
+            except firmware_release.FirmwareReleaseError:
+                pass
+            else:
+                raise AssertionError(f"web manifest accepted an inconsistent alias: {field}")
 
 
 def record_release_provenance(
@@ -460,13 +539,16 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         assert "esp32_c6_recovery" not in normal_factory.read_text(encoding="utf-8")
 
     install = (ROOT / "docs/getting-started/install.md").read_text(encoding="utf-8")
-    assert "/getting-started/c6-recovery" in install
+    assert "https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery" in install
+    firmware_updates = (ROOT / "docs/features/firmware-updates.md").read_text(encoding="utf-8")
+    assert "/getting-started/c6-recovery" in firmware_updates
     screen_docs = {
-        "guition-esp32-p4-jc1060p470": ROOT / "docs/screens/jc1060p470.md",
+        "guition-esp32-p4-jc1060p470": ROOT / "docs/screens/jc1060p470-v1.md",
         "guition-esp32-p4-jc1060p470-v2": ROOT / "docs/screens/jc1060p470-v2.md",
         "guition-esp32-p4-jc4880p443": ROOT / "docs/screens/jc4880p443.md",
-        "guition-esp32-p4-jc8012p4a1": ROOT / "docs/screens/jc8012p4a1.md",
+        "guition-esp32-p4-jc8012p4a1": ROOT / "docs/screens/jc8012p4a1-v1.md",
         "guition-esp32-p4-jc8012p4a1-v2": ROOT / "docs/screens/jc8012p4a1-v2.md",
+        "guition-esp32-p4-jc8012p4a1-v3": ROOT / "docs/screens/jc8012p4a1-v3.md",
         "esp32-p4-86": ROOT / "docs/screens/p4-86.md",
     }
     for slug, path in screen_docs.items():
@@ -804,6 +886,8 @@ def main() -> int:
     test_pages_excludes_draft_prereleases()
     test_release_skill_creates_selected_tag_before_draft()
     test_valid_files_and_directory()
+    test_legacy_web_bundle_selection()
+    test_web_bundle_compatibility_aliases()
     test_placeholder_fails()
     test_unrelated_placeholder_strings_pass()
     test_wrong_manifest_version_fails()

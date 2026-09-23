@@ -29,6 +29,7 @@
 #ifdef USE_LVGL
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
+#include "card_availability.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
@@ -168,15 +169,46 @@ inline const char *companion_metric_default_unit(const std::string &key) {
   return capability ? capability->unit : "";
 }
 
+inline const char *companion_metric_icon(const std::string &entity) {
+  const std::string key = entity.substr(0, entity.find(':'));
+  if (key == "stat.ip_address") return "Laptop";
+  if (key == "stat.battery" || key == "stat.battery_used") return "Battery Outline";
+  if (key == "stat.memory" || key == "stat.memory_free") return "Memory";
+  if (key == "stat.storage" || key == "stat.storage_free") return "Harddisk";
+  if (key == "stat.network_throughput") return "LAN";
+  return "Gauge";
+}
+
+inline const char *companion_metric_suffix_key(const std::string &entity) {
+  const std::string key = entity.substr(0, entity.find(':'));
+  if (key == "stat.battery_used") return "stat_used";
+  if (key == "stat.battery") return "stat_remaining";
+  if (key == "stat.memory_free" || key == "stat.storage_free") return "stat_free";
+  if (key == "stat.network_throughput") return "";
+  return "stat_used";
+}
+
 inline bool companion_metric_value(const CompanionRuntimeSnapshot &snapshot,
                                    const std::string &key, float &value) {
   if (!snapshot.connected) return false;
+  const auto separator = key.find(':');
+  if (separator != std::string::npos) {
+    if (!companion_metric_key_valid(key)) return false;
+    const auto id = key.substr(separator + 1);
+    for (const auto &device : snapshot.system_metrics.storage_devices) {
+      if (device.id != id) continue;
+      value = key.substr(0, separator) == "stat.storage_free" ? 100.0f - device.usage_percent : device.usage_percent;
+      return std::isfinite(value);
+    }
+    return false;
+  }
   if (key == "stat.cpu") value = snapshot.system_metrics.cpu_usage_percent;
   else if (key == "stat.memory") value = snapshot.system_metrics.memory_usage_percent;
   else if (key == "stat.memory_free") value = 100.0f - snapshot.system_metrics.memory_usage_percent;
   else if (key == "stat.storage") value = snapshot.system_metrics.storage_usage_percent;
   else if (key == "stat.storage_free") value = 100.0f - snapshot.system_metrics.storage_usage_percent;
   else if (key == "stat.battery") value = snapshot.system_metrics.battery_percent;
+  else if (key == "stat.battery_used") value = 100.0f - snapshot.system_metrics.battery_percent;
   else if (key == "stat.network_throughput") {
     // The Companion protocol remains in KB/s; cards display megabytes per second.
     value = snapshot.system_metrics.network_throughput_kbps / 1024.0f;
@@ -219,14 +251,6 @@ inline void companion_set_actions(std::vector<CompanionAction> actions) {
       return action.id.empty() || action.id.size() > 96 || action.label.size() > 96;
     }), actions.end());
   companion_runtime_service().set_actions(std::move(actions));
-}
-
-inline bool companion_media_action_valid(const std::string &action_id) {
-  return companion_generated_media_action_valid(action_id);
-}
-
-inline void companion_set_media_actions_supported(bool supported) {
-  companion_runtime_service().set_media_actions_supported(supported);
 }
 
 inline void companion_set_window_actions(std::vector<std::string> actions) {
@@ -291,12 +315,14 @@ inline bool companion_action_focused(const std::string &action_id) {
   if (action_id.empty() ||
       action_id.rfind("shortcut.", 0) == 0 || action_id.rfind("media.", 0) == 0) return false;
   const auto snapshot = companion_runtime_snapshot();
-  return snapshot.connected && snapshot.focused_action_id == action_id;
+  return snapshot.connected && (snapshot.focused_action_id == action_id ||
+    (action_id == "com.apple.finder" &&
+     companion_focus_application_id(snapshot.focused_action_id) == action_id));
 }
 
 inline void companion_set_focused_application(std::string application_id) {
   if (application_id.size() > 96) application_id.clear();
-  const std::string focused_application_id = application_id;
+  const std::string focused_application_id = companion_focus_application_id(application_id);
   companion_set_focused_action(std::move(application_id));
   std::vector<CompanionActionResultHandler> successes;
   {
@@ -322,10 +348,7 @@ inline bool companion_application_focused(const std::string &application_id) {
 
 inline bool companion_action_active(const std::string &action_id) {
   const auto snapshot = companion_runtime_snapshot();
-  if (action_id == "media.play_pause") {
-    return snapshot.connected && snapshot.media_actions_supported &&
-           snapshot.now_playing.playback_state == CompanionPlaybackState::PLAYING;
-  }
+
   return companion_action_focused(action_id);
 }
 
@@ -461,7 +484,6 @@ inline bool companion_action_available(const std::string &action_id) {
     return std::find(snapshot.window_actions.begin(), snapshot.window_actions.end(), action_id) !=
            snapshot.window_actions.end();
   }
-  if (companion_media_action_valid(action_id)) return snapshot.media_actions_supported;
   return std::any_of(snapshot.actions.begin(), snapshot.actions.end(), [&action_id](const CompanionAction &action) {
     return action.id == action_id;
   });
@@ -494,7 +516,8 @@ inline bool companion_metric_card_should_disable(bool connected, bool preserve_n
 }
 
 inline bool companion_url_available(const std::string &app_id, const std::string &url_config) {
-  return !companion_encoded_url(url_config).empty() && companion_action_available(app_id);
+  (void) app_id;  // URL cards use the system default and do not need an approved app.
+  return companion_connected() && !companion_encoded_url(url_config).empty();
 }
 
 inline bool companion_card_focus_allowed(const std::string &url_config) {
@@ -512,6 +535,7 @@ struct CompanionCardRef {
   std::string metric_key;
   std::string metric_unit;
   int precision{0};
+  bool metric_description{true};
   bool preserve_navigation{false};
 };
 
@@ -625,14 +649,15 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
 inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
                                         lv_obj_t *unit_label, const std::string &metric_key,
                                         const std::string &unit, int precision,
-                                        bool preserve_navigation = false) {
+                                        bool preserve_navigation = false,
+                                        bool metric_description = true) {
   if (!button || !companion_metric_key_valid(metric_key)) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
     return ref.button == button;
   });
   CompanionCardRef value{button, nullptr, "", "", value_label, unit_label, metric_key, unit,
-                         std::max(0, std::min(2, precision)), preserve_navigation};
+                         std::max(0, std::min(2, precision)), metric_description, preserve_navigation};
   if (existing != refs.end()) {
     *existing = std::move(value);
   } else {
@@ -660,7 +685,14 @@ inline void companion_refresh_cards_if_requested() {
         else if (it->precision == 2) snprintf(buffer, sizeof(buffer), "%.2f", value);
         else if (it->precision == 1) snprintf(buffer, sizeof(buffer), "%.1f", value);
         else snprintf(buffer, sizeof(buffer), "%.0f", value);
-        lv_label_set_display_text(it->value_label, buffer);
+        std::string label = it->metric_key.rfind("stat.ip_address", 0) == 0
+          ? companion_network_address(snapshot, it->metric_key) : buffer;
+        if (available && !it->unit_label) {
+          label += (it->metric_unit == "%" ? "" : " ") + it->metric_unit;
+          const char *suffix = it->metric_description ? companion_metric_suffix_key(it->metric_key) : "";
+          if (*suffix) label += " " + std::string(espdesktop_i18n_key(suffix));
+        }
+        lv_label_set_display_text(it->value_label, label.c_str());
       }
       if (it->unit_label) {
         lv_label_set_display_text(it->unit_label, available ? it->metric_unit.c_str() : "");
@@ -669,9 +701,9 @@ inline void companion_refresh_cards_if_requested() {
       // connection is offline. A missing optional metric (for example,
       // battery on a desktop Mac) remains enabled while Companion is online.
       if (companion_metric_card_should_disable(snapshot.connected, it->preserve_navigation)) {
-        lv_obj_add_state(it->button, LV_STATE_DISABLED);
+        set_card_disabled_state(it->button, true);
       } else {
-        lv_obj_clear_state(it->button, LV_STATE_DISABLED);
+        set_card_disabled_state(it->button, false);
       }
       ++it;
       continue;
@@ -679,18 +711,11 @@ inline void companion_refresh_cards_if_requested() {
     const bool available = it->url_config.empty()
       ? companion_action_available(it->action_id)
       : companion_url_available(it->action_id, it->url_config);
-    if (it->action_id == "media.play_pause" && it->text_label &&
-        lv_obj_is_valid(it->text_label)) {
-      const auto snapshot = companion_runtime_snapshot();
-      const char *status = companion_play_pause_status(
-        snapshot.now_playing.playback_state, available);
-      const std::string translated_status = espdesktop_i18n(std::string(status));
-      lv_label_set_display_text(it->text_label, translated_status.c_str());
-    }
+
     if (available) {
-      lv_obj_clear_state(it->button, LV_STATE_DISABLED);
+      set_card_disabled_state(it->button, false);
     } else {
-      lv_obj_add_state(it->button, LV_STATE_DISABLED);
+      set_card_disabled_state(it->button, true);
     }
     companion_apply_card_focus(it->button, it->action_id, it->url_config);
     ++it;
@@ -729,17 +754,19 @@ inline void companion_refresh_cards_if_requested() {}
 #endif
 
 inline bool invoke_companion_action(const std::string &action_id,
-                                    const std::string &request_id) {
+                                    const std::string &request_id,
+                                    const std::string &folder_open_behavior = "new_window") {
   if (!companion_action_available(action_id) || !companion_action_sender()) return false;
-  return companion_action_sender()(action_id, request_id);
+  return companion_action_sender()(action_id, request_id, folder_open_behavior);
 }
 
 inline bool invoke_companion_url(const std::string &app_id,
                                  const std::string &url_config,
                                  const std::string &request_id) {
   const std::string encoded_url = companion_encoded_url(url_config);
-  if (encoded_url.empty() || !companion_action_available(app_id) || !companion_url_sender()) return false;
-  return companion_url_sender()(app_id, encoded_url, request_id);
+  (void) app_id;  // Older cards store a browser ID; URL actions no longer use it.
+  if (encoded_url.empty() || !companion_connected() || !companion_url_sender()) return false;
+  return companion_url_sender()("system.default_browser", encoded_url, request_id);
 }
 
 inline bool invoke_companion_value(const std::string &control_id, int value,
@@ -792,7 +819,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
   bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
     if (request->method() != HTTP_GET) return false;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
-    return request->url_to(url_buf) == "/companion/actions";
+    const auto url = request->url_to(url_buf);
+    return url == "/companion/actions" || url == "/companion/networks";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -800,7 +828,17 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     std::string json = "[";
     bool first = true;
     const auto snapshot = companion_runtime_snapshot();
-    if (snapshot.connected) {
+    char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    const bool networks = request->url_to(url_buf) == "/companion/networks";
+    if (snapshot.connected && networks) {
+      for (const auto &network : snapshot.system_metrics.network_interfaces) {
+        if (!first) json += ",";
+        first = false;
+        json += "{\"id\":\"" + companion_json_escape(network.id) +
+          "\",\"label\":\"" + companion_json_escape(network.label) + "\"}";
+      }
+    }
+    if (snapshot.connected && !networks) {
       for (const auto &action : snapshot.actions) {
         if (!first) json += ",";
         first = false;

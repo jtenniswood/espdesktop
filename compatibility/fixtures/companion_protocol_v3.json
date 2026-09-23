@@ -960,5 +960,72 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": false
+  },
+  {
+    "name": "statistics-network-devices",
+    "message": {
+      "protocol": 3,
+      "type": "system_metrics",
+      "generation": 1,
+      "cpuUsagePercent": 20.2,
+      "memoryUsagePercent": 33,
+      "storageUsagePercent": 80,
+      "batteryPercent": 50,
+      "networkThroughputKBps": 1024,
+      "networkInterfaces": [
+        {
+          "id": "en0",
+          "label": "Wi-Fi (en0)",
+          "address": "192.168.1.10"
+        },
+        {
+          "id": "en1",
+          "label": "Ethernet (en1)",
+          "address": ""
+        }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "statistics-network-devices-null",
+    "message": {
+      "protocol": 3,
+      "type": "system_metrics",
+      "generation": 1,
+      "cpuUsagePercent": 20.2,
+      "memoryUsagePercent": 33,
+      "storageUsagePercent": 80,
+      "batteryPercent": 50,
+      "networkThroughputKBps": 1024,
+      "networkInterfaces": null
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "statistics-network-device-missing-address",
+    "message": {
+      "protocol": 3,
+      "type": "system_metrics",
+      "generation": 1,
+      "cpuUsagePercent": 20.2,
+      "memoryUsagePercent": 33,
+      "storageUsagePercent": 80,
+      "batteryPercent": 50,
+      "networkThroughputKBps": 1024,
+      "networkInterfaces": [
+        {
+          "id": "en0",
+          "label": "Wi-Fi"
+        }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
   }
 ]

@@ -161,7 +161,7 @@ export function createSettingsCompanionSectionFeature(
         body.appendChild(status);
 
         const resetButton = createActionButton(
-            "sp-action-btn sp-delete-btn",
+            "sp-action-btn sp-delete-btn sp-destructive-btn",
             "Reset pairing",
             "restore",
             "Reset Mac Companion pairing",

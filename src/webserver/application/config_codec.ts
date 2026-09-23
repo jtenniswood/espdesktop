@@ -1,3 +1,5 @@
+import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+import { companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "../model/config_primitives";
@@ -43,7 +45,6 @@ import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
 import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
 import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
 import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
-import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
 import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
 import type { CardRegistry } from "./card_registry";
@@ -125,7 +126,6 @@ export function createConfigCodecFeature(
         normalizeMediaOptions,
     } = mediaOptions;
     const {
-        imageLabelEnabled,
         imageIconEnabled,
         normalizeImageOptions,
     } = imageOptions;
@@ -184,7 +184,8 @@ export function createConfigCodecFeature(
     function cardSupportsWifiPortraitSizes(this: any, b?: any) {
         return cardIsWifiSharing(b) && (
             layout.deviceId === "guition-esp32-p4-jc8012p4a1" ||
-            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v2"
+            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v2" ||
+            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v3"
         );
     }
     function cardSupportsExtraLargeSize(this: any, b?: any) {
@@ -403,8 +404,6 @@ export function createConfigCodecFeature(
         if (!b)
             return;
         b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
-        if (!imageLabelEnabled(b))
-            b.label = "";
     }
     function normalizeSavedConfigImageOptions(this: any, options?: any, _b?: any) {
         return normalizeImageOptions(options || "");
@@ -439,14 +438,12 @@ export function createConfigCodecFeature(
     }
     function normalizeSavedConfigSubpageFields(this: any, b?: any) {
         if (subpageKind(b) === "companion_stat") {
-            var metric: any = COMPANION_SYSTEM_METRICS.find(function (candidate) {
-                return candidate.id === b.entity || candidate.freeId === b.entity;
-            }) || COMPANION_SYSTEM_METRICS[0];
+            var metric: any = companionMetricForEntity(b.entity) || COMPANION_SYSTEM_METRICS[0];
             if (!metric)
                 return;
             if (!metric.id && !metric.freeId)
                 b.entity = "";
-            else if (b.entity !== metric.id && b.entity !== metric.freeId)
+            else if (!companionMetricForEntity(b.entity))
                 b.entity = metric.id;
             if (!b.label)
                 b.label = metric.label;
@@ -464,6 +461,9 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
+            for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
+        }
         if (b)
             b.options = b.options || "";
         if (b)
@@ -504,7 +504,7 @@ export function createConfigCodecFeature(
         var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
         var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
-        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
+        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         return b;
@@ -630,8 +630,6 @@ export function createConfigCodecFeature(
             sensor = "";
             unit = "";
             precision = "";
-            if (!imageLabelEnabled(b))
-                label = "";
         }
         if (type === "door_window")
             precision = normalizeDoorWindowSubtype(precision);
@@ -666,10 +664,12 @@ export function createConfigCodecFeature(
             options = normalizeSubpageOptions(options, sensor, precision);
         }
         else if (type === "companion") {
-            const isCompanionMetric = COMPANION_SYSTEM_METRICS.some((metric) =>
-                metric.id === (b && b.entity) || metric.freeId === (b && b.entity));
-            options = isCompanionMetric ? copyLargeNumbersOption("", options) :
-                normalizeCompanionAppShortcutOptions({
+            const isCompanionMetric = !!companionMetricForEntity(b?.entity);
+            if (isCompanionMetric) {
+                options = copyLargeNumbersOption("", options);
+                if (configOptionEnabled(b?.options, "stat_labels_off"))
+                    options = options ? options + ",stat_labels_off" : "stat_labels_off";
+            } else options = normalizeCompanionAppShortcutOptions({
                     ...(b || {}),
                     type,
                     entity: b && b.entity,

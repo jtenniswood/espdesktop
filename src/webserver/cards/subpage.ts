@@ -1,3 +1,5 @@
+import { companionMetricForEntity } from "../model/companion_card_codec";
+import { renderCompanionStorageSelector } from "./companion_storage";
 import { state } from "../state/app_instance";
 import { setConfigOptionValue } from "../model/config_primitives";
 import { escHtml, iconSlug } from "../application/ui_primitives";
@@ -5,6 +7,8 @@ import {
     COMPANION_STATS_OPTIONS,
     COMPANION_SYSTEM_METRICS,
     companionMetricPreviewValue,
+    companionMetricIcon,
+    companionMetricLabel,
 } from "./companion";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ConfigCodecFeature } from "../application/config_codec";
@@ -23,14 +27,12 @@ import {
 } from "../application/config_subpage_options";
 
 function companionStatMetric(entity: any): any {
-    return COMPANION_SYSTEM_METRICS.find(function (metric) {
-        return metric.id === entity || metric.freeId === entity;
-    });
+    return companionMetricForEntity(entity);
 }
 
 function companionStatMode(entity: any): string {
     var metric: any = companionStatMetric(entity);
-    return metric && metric.freeId === entity ? "free" : "used";
+    return metric && metric.freeId === entity?.split(":")[0] ? "free" : "used";
 }
 
 function companionStatEntity(metric: any, mode: string): string {
@@ -58,11 +60,11 @@ export function registerSubpageCardTypes(
         },
         labelField: {
             label: "Label",
-            placeholder: "e.g. Lighting",
+            placeholder: "e.g. Folder Name",
         },
         icon: {
             field: "icon",
-            fallback: "Auto",
+            fallback: "Folder Outline",
             label: "Icon",
         },
         showState: {
@@ -146,13 +148,13 @@ export function registerSubpageCardTypes(
         label: "Subpage",
         allowInSubpage: false,
         hideLabel: true,
-        labelPlaceholder: "e.g. Lighting",
+        labelPlaceholder: "e.g. Folder Name",
         cardMetadata: SUBPAGE_CARD_METADATA,
         onSelect: function (this: any, b?: any) {
             b.entity = "";
             b.sensor = "";
             b.unit = "";
-            b.icon = "Auto";
+            b.icon = "Folder Outline";
             b.icon_on = "Auto";
             b.options = "";
         },
@@ -205,7 +207,7 @@ export function registerSubpageCardTypes(
                 var statSelect: any = document.createElement("select");
                 statSelect.className = "sp-select";
                 statSelect.id = helpers.idPrefix + "companion-stat";
-                var statOptions: any = COMPANION_STATS_OPTIONS;
+                var statOptions: any = COMPANION_STATS_OPTIONS.filter(([mode]) => mode !== "ip_address");
                 statOptions.forEach(function (item: any) {
                     var option: any = document.createElement("option");
                     option.value = item[0];
@@ -216,6 +218,7 @@ export function registerSubpageCardTypes(
                 statField.appendChild(statSelect);
                 panel.appendChild(statField);
 
+                if (initialMetric.mode === "storage") renderCompanionStorageSelector(panel, b, helpers);
                 var displaySelect: any = null;
                 if (initialMetric.freeId) {
                     var displayField: any = document.createElement("div");
@@ -243,7 +246,8 @@ export function registerSubpageCardTypes(
                         b.label = metric.label;
                         helpers.saveField("label", b.label);
                     }
-                    b.entity = companionStatEntity(metric, mode);
+                    const device = metric.mode === "storage" && previousMetric?.mode === "storage" ? b.entity.split(":")[1] : "";
+                    b.entity = companionStatEntity(metric, mode) + (device ? ":" + device : "");
                     b.sensor = "indicator";
                     b.unit = metric.unit;
                     b.precision = "";
@@ -280,12 +284,15 @@ export function registerSubpageCardTypes(
                 return;
             }
             var mode: any = subpageStateDisplayMode(b);
-            var showState: any = mode !== "off";
+            var showStateAvailable: any = helpers.homeAssistantEnabled() && subpageConnector(b) === "home_assistant";
+            var showState: any = showStateAvailable && mode !== "off";
             var sensorEntity: any = b.sensor && b.sensor !== "indicator" ? b.sensor : "";
             var iconStateEntity: any = mode === "icon" ? (b.entity || "") : "";
             helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
             var iconSectionMain: any = helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
-            var showStateToggle: any = helpers.renderCardOptionToggle(panel, b, helpers, SUBPAGE_CARD_METADATA.showState);
+            var showStateToggle: any = showStateAvailable
+                ? helpers.renderCardOptionToggle(panel, b, helpers, SUBPAGE_CARD_METADATA.showState)
+                : null;
             var stateCond: any = condField();
             if (showState)
                 stateCond.classList.add("sp-visible");
@@ -360,8 +367,9 @@ export function registerSubpageCardTypes(
             panel.appendChild(stateCond);
             function setMode(this: any, nextMode?: any, persist?: any) {
                 mode = nextMode;
-                showState = mode !== "off";
-                showStateToggle.input.checked = showState;
+                showState = showStateAvailable && mode !== "off";
+                if (showStateToggle)
+                    showStateToggle.input.checked = showState;
                 var iconLabel: any = iconSectionMain.querySelector(".sp-field-label");
                 if (iconLabel)
                     iconLabel.textContent = mode === "icon" ? "Off Icon" : "Icon";
@@ -429,9 +437,11 @@ export function registerSubpageCardTypes(
                     helpers.saveField("icon_on", "Auto");
                 }
             }
-            showStateToggle.input.addEventListener("change", function (this: any) {
-                setMode(this.checked ? (mode === "off" ? "icon" : mode) : "off", true);
-            });
+            if (showStateToggle) {
+                showStateToggle.input.addEventListener("change", function (this: any) {
+                    setMode(this.checked ? (mode === "off" ? "icon" : mode) : "off", true);
+                });
+            }
             setMode(mode, false);
             appendEditSubpageButton(panel, slot);
         },
@@ -440,8 +450,9 @@ export function registerSubpageCardTypes(
             var companionMetric: any = subpageKind(b) === "companion_stat" ? companionStatMetric(b.entity) : null;
             if (companionMetric) {
                 return {
-                    iconHtml: cardSensorPreviewHtml(b, helpers, companionMetricPreviewValue("0"), companionMetric.unit),
-                    labelHtml: subpageBadgeLabelHtml(helpers, b.label || companionMetric.label),
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-' + companionMetricIcon(b.entity) + '"></span>',
+                    labelHtml: subpageBadgeLabelHtml(helpers, companionMetricLabel(
+                        b.entity, companionMetricPreviewValue(b.precision), b.unit || companionMetric.unit)),
                 };
             }
             var label: any = b.label || (defaults && defaults.label) || b.entity || "Configure";

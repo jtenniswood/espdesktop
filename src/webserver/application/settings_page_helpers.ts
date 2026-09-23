@@ -6,6 +6,7 @@ import {
     normalizeHomeAssistantArtworkPort,
     normalizeHomeAssistantArtworkProtocol,
     normalizeHour,
+    normalizeScreensaverCameraImageMode,
     normalizeTimeOfDay,
 } from "../model/settings";
 import { setSelectValue } from "./ui_primitives";
@@ -25,6 +26,7 @@ import type { ApplicationApiFeature } from "./api";
 import type { AppStatusPreviewFeature } from "./app_status_preview";
 import type { ClockBarPostApiFeature } from "./clock_bar_post_api";
 import type { ControlsFieldsFeature } from "./controls_fields";
+import type { ArtworkPostApiFeature } from "./artwork_post_api";
 
 export interface SettingsPageHelpersControllers {
     readonly settingsUiFeature: SettingsUiFeature;
@@ -37,12 +39,13 @@ export interface SettingsPageHelpersControllers {
     readonly layout: ApplicationLayoutState;
     readonly screenScheduleState: ScreenScheduleStateFeature;
     readonly clockBar: Pick<ClockBarFeature, "syncUi">;
-    readonly entityState: Pick<EntityStateFeature, "entityInput">;
+    readonly entityState: Pick<EntityStateFeature, "entityInput" | "entityName">;
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "switchTab">;
     readonly requestApi: Pick<ApplicationApiFeature, "postScreensaverAction" | "postScreensaverDimmedBrightness" | "postScreensaverDimmedBrightnessDay" | "postScreensaverDimmedBrightnessNight" | "postSwitch">;
     readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
     readonly clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBrightnessDay" | "postClockBrightnessNight" | "postClockScreensaver" | "postAlarmDelayAudio" | "postAlarmDelayTts" | "postAlarmDelayEntryAnnouncement" | "postAlarmDelayExitAnnouncement" | "postAlarmDelayBeepVolume" | "postAlarmDelayFinalCountdown">;
     readonly fields: Pick<ControlsFieldsFeature, "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "toggleRow">;
+    readonly artworkPostApi: Pick<ArtworkPostApiFeature, "postScreensaverCameraEntity" | "postScreensaverCameraImageMode">;
 }
 
 export interface SettingsPageHelpersFeature {
@@ -70,10 +73,15 @@ export interface SettingsPageHelpersFeature {
     createEntityToggleSection(...args: any[]): any;
 }
 
+export function formatHomeAssistantArtworkEndpointStatus(status: string): string {
+    const normalized = String(status || "").trim();
+    return normalized.replace(/^(?:Automatic|Fallback|Manual)\s*[—-]\s*/i, "").trim() || "Discovering";
+}
+
 export function createSettingsPageHelpersFeature(
     controllers: SettingsPageHelpersControllers,
 ): SettingsPageHelpersFeature {
-    const { entityInput } = controllers.entityState;
+    const { entityInput, entityName } = controllers.entityState;
     const { isConfigLocked, switchTab } = controllers.shell;
     const { bindTextPost } = controllers.codec;
     const { syncInput } = controllers.statusPreview;
@@ -99,6 +107,7 @@ export function createSettingsPageHelpersFeature(
     const els = controllers.runtime.els;
     const { formatDuration, formatHour } = controllers.screenScheduleState;
     const { syncUi: syncClockBarUi } = controllers.clockBar;
+    const { postScreensaverCameraEntity, postScreensaverCameraImageMode } = controllers.artworkPostApi;
     // ── Settings Page Helpers ──────────────────────────────────────────
     // ── Settings UI helpers ─────────────────────────────────────────────
     const _settingsUiFeature: SettingsUiFeature = controllers.settingsUiFeature;
@@ -194,6 +203,8 @@ export function createSettingsPageHelpersFeature(
         var uiState: any = _alarmDelayAudioController.uiState(audioState);
         if (els.setAlarmDelayAudioToggle)
             els.setAlarmDelayAudioToggle.checked = !!state.alarmDelayAudioOn;
+        if (els.setAlarmDelayAudioBadge)
+            els.setAlarmDelayAudioBadge.className = "sp-card-badge" + (state.alarmDelayAudioOn ? "" : " sp-hidden");
         if (els.setAlarmDelayTtsToggle)
             els.setAlarmDelayTtsToggle.checked = !!state.alarmDelayTtsOn;
         if (els.alarmDelayAudioOptions)
@@ -319,8 +330,10 @@ export function createSettingsPageHelpersFeature(
         body.appendChild(infoPanel(
             "sp-alarm-delay-audio-info",
             "Entry and exit beeps use the panel speaker. TTS is sent as a Home Assistant announcement event only while Voice Services are enabled."));
+        var badge: any = statusBadge("Alarm audio on");
+        els.setAlarmDelayAudioBadge = badge;
         syncAlarmDelayAudioUi();
-        return makeCollapsibleCard("Alarm Audio", body, true);
+        return makeCollapsibleCard("Alarm Audio", body, true, badge);
     }
     function coverArtTrackOverlayDurationSupported(this: any) {
         return !!controllers.layout.config.coverArtSquareOverlay;
@@ -343,6 +356,16 @@ export function createSettingsPageHelpersFeature(
         var mode: any = controlState.mode;
         var clockDisplay: any = controlState.clockVisible ? "" : "none";
         var dimDisplay: any = controlState.dimVisible ? "" : "none";
+        var cameraSupported = !!controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported;
+        var cameraDisplay: any = cameraSupported && controlState.cameraVisible ? "" : "none";
+        for (const select of [els.setClockSelect, els.setSensorClockSelect, els.setCompanionClockSelect]) {
+            if (!select) continue;
+            const option = select.querySelector('option[value="camera"]');
+            if (cameraSupported && !option) select.add(new Option("Camera", "camera"));
+            if (!cameraSupported && option) option.remove();
+        }
+        if (els.setScreensaverCameraPanel)
+            els.setScreensaverCameraPanel.style.display = cameraDisplay;
         var automaticBrightness: any = normalizeBrightnessMode(state.brightnessMode) !== "manual";
         state.clockScreensaverOn = mode === "clock";
         syncClockBarUi();
@@ -358,6 +381,29 @@ export function createSettingsPageHelpersFeature(
         syncOptionalClockBrightness(els.setDimBrightnessField, els.setClockField, dimDisplay);
         syncOptionalClockBrightness(els.setSensorDimBrightnessField, els.setSensorClockField, dimDisplay);
         syncOptionalClockBrightness(els.setCompanionDimBrightnessField, els.setCompanionClockField, dimDisplay);
+        if (els.setScreensaverCameraField)
+            els.setScreensaverCameraField.style.display = cameraDisplay;
+        if (els.setSensorScreensaverCameraField)
+            els.setSensorScreensaverCameraField.style.display = cameraDisplay;
+        if (els.setScreensaverCameraImageModeField)
+            els.setScreensaverCameraImageModeField.style.display = cameraDisplay;
+        if (els.setSensorScreensaverCameraImageModeField)
+            els.setSensorScreensaverCameraImageModeField.style.display = cameraDisplay;
+        if (els.setClockOverlayRow)
+            els.setClockOverlayRow.style.display = state.clockOverlaySupported ? cameraDisplay : "none";
+        if (els.setScreensaverMetadataField)
+            els.setScreensaverMetadataField.style.display = controlState.cameraVisible && state.metadataOverlayOn ? "" : "none";
+        if (els.setMetadataOverlayRow)
+            els.setMetadataOverlayRow.style.display = cameraDisplay;
+        if (els.setMetadataOverlayToggle)
+            els.setMetadataOverlayToggle.checked = state.metadataOverlayOn;
+        syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
+        syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
+        syncInput(els.setSensorScreensaverCamera, state.screensaverCameraEntity);
+        if (els.setScreensaverCameraImageMode)
+            els.setScreensaverCameraImageMode.value = normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode);
+        if (els.setSensorScreensaverCameraImageMode)
+            els.setSensorScreensaverCameraImageMode.value = normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode);
         if (els.setManualDimBrightnessField)
             els.setManualDimBrightnessField.style.display = automaticBrightness ? "none" : "";
         if (els.setAutomaticDimBrightnessField)
@@ -446,6 +492,9 @@ export function createSettingsPageHelpersFeature(
         if (els.setCoverArtToggle) {
             els.setCoverArtToggle.checked = !!state.coverArtScreensaverOn;
         }
+        if (els.setClockOverlayToggle) {
+            els.setClockOverlayToggle.checked = !!state.clockOverlayOn;
+        }
         if (els.setCoverArtOptions) {
             els.setCoverArtOptions.classList.toggle("sp-visible", uiState.contentVisible);
         }
@@ -480,10 +529,21 @@ export function createSettingsPageHelpersFeature(
             els.setHomeAssistantArtworkEndpointMode.value = state.homeAssistantArtworkEndpointMode;
         }
         var manualEndpoint: any = state.homeAssistantArtworkEndpointMode === "Manual";
+        if (els.setHomeAssistantArtworkProtocolField) {
+            els.setHomeAssistantArtworkProtocolField.classList.toggle("sp-hidden", !manualEndpoint);
+        }
+        if (els.setCoverArtHomeAssistantPortField) {
+            els.setCoverArtHomeAssistantPortField.classList.toggle("sp-hidden", !manualEndpoint);
+        }
         if (els.setHomeAssistantArtworkProtocol) els.setHomeAssistantArtworkProtocol.disabled = !manualEndpoint;
         if (els.setCoverArtHomeAssistantPort) els.setCoverArtHomeAssistantPort.disabled = !manualEndpoint;
         if (els.homeAssistantArtworkEndpointStatus) {
-            els.homeAssistantArtworkEndpointStatus.textContent = state.homeAssistantArtworkEndpointStatus || "Discovering";
+            var endpointStatus: any = formatHomeAssistantArtworkEndpointStatus(state.homeAssistantArtworkEndpointStatus);
+            if (els.homeAssistantArtworkEndpointStatusOutput) {
+                els.homeAssistantArtworkEndpointStatusOutput.textContent = endpointStatus;
+            } else {
+                els.homeAssistantArtworkEndpointStatus.textContent = endpointStatus;
+            }
         }
         if (els.setCoverArtFilterToggle) {
             els.setCoverArtFilterToggle.checked = !!state.coverArtFilteringEnabled;
@@ -499,7 +559,7 @@ export function createSettingsPageHelpersFeature(
         if (previousField)
             previousField.style.marginBottom = display === "none" ? "20px" : "";
     }
-    function createScreensaverThenControls(this: any, selectId?: any) {
+    function createScreensaverThenControls(this: any, selectId?: any, actionLabel: string = "Then") {
         var fieldPrefix: any = selectId === "sp-set-sensor-clock-mode"
             ? "sp-set-sensor-"
             : selectId === "sp-set-companion-clock-mode"
@@ -507,7 +567,7 @@ export function createSettingsPageHelpersFeature(
                 : "sp-set-";
         var clockField: any = document.createElement("div");
         clockField.className = "sp-field";
-        clockField.appendChild(fieldLabel("Then", selectId));
+        clockField.appendChild(fieldLabel(actionLabel, selectId));
         var clockSelect: any = document.createElement("select");
         clockSelect.className = "sp-select";
         clockSelect.id = selectId;
@@ -515,6 +575,7 @@ export function createSettingsPageHelpersFeature(
             { value: "off", label: "Display Off" },
             { value: "dim", label: "Screen Dimmed" },
             { value: "clock", label: "Clock" },
+            ...(controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported ? [{ value: "camera", label: "Camera" }] : []),
         ].forEach(function (this: any, opt?: any) {
             var o: any = document.createElement("option");
             o.value = opt.value;
@@ -529,6 +590,49 @@ export function createSettingsPageHelpersFeature(
             postClockScreensaver(state.clockScreensaverOn);
         });
         clockField.appendChild(clockSelect);
+        var cameraField: any = document.createElement("div");
+        cameraField.className = "sp-field";
+        cameraField.style.display = _screensaverController.uiState(screensaverState()).cameraVisible ? "" : "none";
+        var cameraId: any = selectId === "sp-set-sensor-clock-mode"
+            ? "sp-set-sensor-screensaver-camera"
+            : "sp-set-screensaver-camera";
+        cameraField.appendChild(fieldLabel("Camera Entity", cameraId));
+        var cameraInput: any = entityInput(cameraId, state.screensaverCameraEntity,
+            "Camera or image entity", ["camera", "image"]);
+        cameraField.appendChild(cameraInput);
+        bindTextPost(cameraInput, entityName("screen_saver_camera_entity"), {
+            post: postScreensaverCameraEntity,
+            onBlur: function (value: any) {
+                state.screensaverCameraEntity = value;
+                syncClockScreensaverControls();
+            },
+        });
+        var cameraImageModeField: any = document.createElement("div");
+        cameraImageModeField.className = "sp-field";
+        cameraImageModeField.style.display = _screensaverController.uiState(screensaverState()).cameraVisible ? "" : "none";
+        var cameraImageModeId: any = selectId === "sp-set-sensor-clock-mode"
+            ? "sp-set-sensor-screensaver-camera-image-mode"
+            : "sp-set-screensaver-camera-image-mode";
+        cameraImageModeField.appendChild(fieldLabel("Expanded Image", cameraImageModeId));
+        var cameraImageModeSelect: any = document.createElement("select");
+        cameraImageModeSelect.className = "sp-select";
+        cameraImageModeSelect.id = cameraImageModeId;
+        [
+            { value: "Fill", label: "Crop to fit" },
+            { value: "Fit", label: "Show full image" },
+        ].forEach(function (this: any, option?: any) {
+            var item: any = document.createElement("option");
+            item.value = option.value;
+            item.textContent = option.label;
+            cameraImageModeSelect.appendChild(item);
+        });
+        cameraImageModeSelect.value = normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode);
+        cameraImageModeSelect.addEventListener("change", function (this: any) {
+            state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(this.value);
+            postScreensaverCameraImageMode(state.screensaverCameraImageMode);
+            syncClockScreensaverControls();
+        });
+        cameraImageModeField.appendChild(cameraImageModeSelect);
         var dimBrightnessField: any = document.createElement("div");
         dimBrightnessField.style.display = _screensaverController.uiState(screensaverState()).dimVisible ? "" : "none";
         var manualDimBrightnessField: any = document.createElement("div");
@@ -584,6 +688,10 @@ export function createSettingsPageHelpersFeature(
         return {
             clockField: clockField,
             clockSelect: clockSelect,
+            cameraField: cameraField,
+            cameraInput: cameraInput,
+            cameraImageModeField: cameraImageModeField,
+            cameraImageModeSelect: cameraImageModeSelect,
             dimBrightnessField: dimBrightnessField,
             manualDimBrightnessField: manualDimBrightnessField,
             automaticDimBrightnessField: automaticDimBrightnessField,

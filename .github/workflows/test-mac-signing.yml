@@ -1,0 +1,130 @@
+name: Test Mac Signing
+
+on:
+  workflow_dispatch:
+  # Bootstrap this test before the workflow is merged into main.
+  push:
+    branches: [test-mac-signing]
+    paths: [.github/workflows/test-mac-signing.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-mac-signing
+  cancel-in-progress: false
+
+jobs:
+  signing-test:
+    name: Sign and notarize EspDesktop
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify Companion contract and shared protocol fixtures
+        run: |
+          python3 scripts/build.py companion --check
+          swift test --package-path macos/EspDesktop -Xswiftc -warnings-as-errors
+
+      - name: Sign, notarize, staple, and verify EspDesktop
+        env:
+          RELEASE_TAG: v0.0.0-signing-test
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_P12_PASSWORD }}
+          DEVELOPER_ID_APPLICATION: ${{ secrets.MACOS_DEVELOPER_ID_APPLICATION }}
+          NOTARY_KEY_BASE64: ${{ secrets.APPLE_NOTARY_KEY_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          for required in \
+            DEVELOPER_ID_P12_BASE64 \
+            DEVELOPER_ID_P12_PASSWORD \
+            DEVELOPER_ID_APPLICATION \
+            NOTARY_KEY_BASE64 \
+            NOTARY_KEY_ID \
+            NOTARY_ISSUER_ID \
+            SPARKLE_PRIVATE_KEY; do
+            if [[ -z "${!required}" ]]; then
+              echo "Missing required repository secret for EspDesktop notarization: ${required}" >&2
+              exit 2
+            fi
+          done
+
+          COMPANION_VERSION="${RELEASE_TAG#v}"
+          if [[ ! "${COMPANION_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "Release tag must be a semantic version for the EspDesktop bundle: ${RELEASE_TAG}" >&2
+            exit 2
+          fi
+          BUNDLE_VERSION="${COMPANION_VERSION%%-*}"
+
+          KEYCHAIN_PATH="${RUNNER_TEMP}/espdesktop-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          echo "::add-mask::${KEYCHAIN_PASSWORD}"
+          CERT_PATH="${RUNNER_TEMP}/espdesktop-developer-id.p12"
+          NOTARY_KEY_PATH="${RUNNER_TEMP}/AuthKey_${NOTARY_KEY_ID}.p8"
+          OUTPUT_DIR="${RUNNER_TEMP}/espdesktop-app"
+          cleanup() {
+            security delete-keychain "${KEYCHAIN_PATH}" >/dev/null 2>&1 || true
+            rm -f "${CERT_PATH}" "${NOTARY_KEY_PATH}"
+          }
+          trap cleanup EXIT
+
+          security create-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+          security set-keychain-settings -lut 21600 "${KEYCHAIN_PATH}"
+          security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+          printf '%s' "${DEVELOPER_ID_P12_BASE64}" | base64 -D > "${CERT_PATH}"
+          security import "${CERT_PATH}" \
+            -k "${KEYCHAIN_PATH}" \
+            -P "${DEVELOPER_ID_P12_PASSWORD}" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+          security list-keychains -d user -s "${KEYCHAIN_PATH}"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+
+          MARKETING_VERSION="${BUNDLE_VERSION}" \
+          CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
+          CODE_SIGN_IDENTITY="${DEVELOPER_ID_APPLICATION}" \
+          OUTPUT_DIR="${OUTPUT_DIR}" \
+          ./macos/EspDesktop/Packaging/build_standalone.sh
+
+          printf '%s' "${NOTARY_KEY_BASE64}" | base64 -D > "${NOTARY_KEY_PATH}"
+          chmod 600 "${NOTARY_KEY_PATH}"
+          NOTARY_KEY_PATH="${NOTARY_KEY_PATH}" \
+          NOTARY_KEY_ID="${NOTARY_KEY_ID}" \
+          NOTARY_ISSUER_ID="${NOTARY_ISSUER_ID}" \
+          RELEASE_ASSET_VERSION="${COMPANION_VERSION}" \
+          ./macos/EspDesktop/Packaging/notarize_standalone.sh \
+            "${OUTPUT_DIR}/EspDesktop.app"
+          ./macos/EspDesktop/Packaging/build_appcast.sh \
+            "${OUTPUT_DIR}/EspDesktop-${COMPANION_VERSION}.zip" \
+            "${RELEASE_TAG}" "${OUTPUT_DIR}"
+
+      - name: Upload verified test download
+        uses: actions/upload-artifact@v7
+        with:
+          name: espdesktop-signing-test-${{ github.run_id }}
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/espdesktop-app/EspDesktop-0.0.0-signing-test.*
+            ${{ runner.temp }}/espdesktop-app/companion-appcast-v*.xml
+          if-no-files-found: error
+
+      - name: Record successful verification
+        run: |
+          {
+            echo '## EspDesktop signing test passed'
+            echo 'Source: `${{ github.sha }}`'
+            echo '- Developer ID signing and signature verification passed.'
+            echo '- Apple accepted the app and disk image; both tickets were stapled and validated.'
+            echo '- Gatekeeper accepted the notarized app.'
+            echo '- Sparkle update feed signing and verification passed.'
+            echo '- Test downloads are retained for seven days. No release was published.'
+          } >> "$GITHUB_STEP_SUMMARY"

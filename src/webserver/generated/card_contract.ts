@@ -180,6 +180,25 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
 export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = [] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
+  "timer": {
+    "label": "Timer",
+    "allowInSubpage": true,
+    "domains": [
+      "timer"
+    ],
+    "options": [],
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "3",
+      "type": "timer",
+      "precision": "",
+      "options": ""
+    }
+  },
   "": {
     "label": "Switch",
     "allowInSubpage": true,
@@ -564,6 +583,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "values": [
           "status",
           "start_stop",
+          "start_dock",
           "dock",
           "pause_resume",
           "clean_spot",
@@ -596,6 +616,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "values": [
             "status",
             "start_stop",
+            "start_dock",
             "dock",
             "pause_resume",
             "clean_spot",
@@ -3004,6 +3025,27 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": true
       },
       {
+        "name": "finder_open_behavior",
+        "label": "Finder Folder Open Behavior",
+        "kind": "choice",
+        "values": [
+          "new_window",
+          "same_window"
+        ],
+        "defaultValue": "new_window",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "finder_open_override",
+        "label": "Finder Folder Open Override",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "app_shortcuts_tabs",
         "label": "App Subpage Shortcuts",
         "kind": "text",
@@ -3022,6 +3064,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       {
         "name": "large_numbers",
         "label": "Large Sensor Numbers",
+        "kind": "flag",
+        "omitDefault": true
+      },
+      {
+        "name": "stat_labels_off",
+        "label": "Show capacity label",
         "kind": "flag",
         "omitDefault": true
       }
@@ -3071,9 +3119,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "canonicalOptionOrder": [
         "app_shortcuts",
         "app_shortcuts_auto_switch",
+        "finder_open_behavior",
+        "finder_open_override",
         "app_shortcuts_tabs",
         "app_shortcut_preset",
-        "large_numbers"
+        "large_numbers",
+        "stat_labels_off"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -3896,7 +3947,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "wifi_qr": {
     "label": "Wifi Sharing",
     "allowInSubpage": true,
-    "domains": [],
+    "domains": [
+      "switch"
+    ],
     "options": [
       {
         "name": "ssid64",
@@ -3933,7 +3986,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "kind": "text",
         "values": [
           "qr",
-          "credentials"
+          "credentials",
+          "guest"
         ],
         "defaultValue": "qr|credentials",
         "omitDefault": true
@@ -3942,7 +3996,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "normalization": {
       "fields": {
         "entity": {
-          "policy": "clear"
+          "policy": "keep"
         },
         "label": {
           "policy": "default_if_empty",
@@ -3998,7 +4052,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "label": "QR Card",
     "allowInSubpage": true,
     "pickerKey": "wifi_qr",
-    "domains": [],
+    "domains": [
+      "switch"
+    ],
     "options": [
       {
         "name": "ssid64",
@@ -4035,7 +4091,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "kind": "text",
         "values": [
           "qr",
-          "credentials"
+          "credentials",
+          "guest"
         ],
         "defaultValue": "qr|credentials",
         "omitDefault": true
@@ -4044,7 +4101,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "normalization": {
       "fields": {
         "entity": {
-          "policy": "clear"
+          "policy": "keep"
         },
         "label": {
           "policy": "clear"
@@ -4116,6 +4173,18 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   }
 };
 export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
+  "timer": {
+    "driver": "timer",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": true,
+      "subpage": true
+    }
+  },
   "": {
     "driver": "toggle",
     "capabilities": {
@@ -4626,7 +4695,7 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
     "driver": "wifi_qr",
     "capabilities": {
       "informationOnly": false,
-      "subscriptions": false,
+      "subscriptions": true,
       "actions": true,
       "numericControl": false,
       "modal": true,
@@ -4638,7 +4707,7 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
     "driver": "wifi_qr",
     "capabilities": {
       "informationOnly": false,
-      "subscriptions": false,
+      "subscriptions": true,
       "actions": true,
       "numericControl": false,
       "modal": true,
@@ -4692,6 +4761,7 @@ export const CARD_CONTRACT_FAN_DEFAULT_ICON_ON: Readonly<Record<string, string>>
 export const CARD_CONTRACT_OPTION_SELECT_ACTION = "input_select.select_option";
 export const CARD_CONTRACT_OPTION_SELECT_ACTIONS = ["input_select.select_option", "select.select_option"] as const;
 export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> = {
+  "timer": "TM",
   "action": "A",
   "calendar": "D",
   "clock": "CK",
@@ -4733,6 +4803,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "subpage": "G"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
+  "TM": "timer",
   "A": "action",
   "D": "calendar",
   "CK": "clock",
@@ -4820,6 +4891,8 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "date_time_mode": "date_time_mode",
   "fan_light_entity": "fan_light_entity",
   "fan_tabs": "fan_tabs",
+  "finder_open_behavior": "finder_open_behavior",
+  "finder_open_override": "finder_open_override",
   "garage_mode": "garage_mode",
   "gate_mode": "gate_mode",
   "hidden": "hidden",
@@ -4849,6 +4922,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "security": "security",
   "speaker_group_entity": "speaker_group_entity",
   "ssid64": "ssid64",
+  "stat_labels_off": "stat_labels_off",
   "state_entity": "state_entity",
   "state_high_label": "state_high_label",
   "state_input": "state_input",

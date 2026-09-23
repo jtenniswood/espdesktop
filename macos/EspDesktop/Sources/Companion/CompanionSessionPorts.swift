@@ -16,11 +16,10 @@ protocol CompanionSessionPreferences: AnyObject {
 
 @MainActor
 protocol CompanionSessionResources: AnyObject {
-    var mediaActionsAvailable: Bool { get }
     func folderActions() -> [ApprovedFolder]
     func launchableApps() -> [LaunchableApp]
     func focusedCompanionActionIdentifier() -> String
-    func performResultStatus(actionIdentifier: String) async -> String
+    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
 }

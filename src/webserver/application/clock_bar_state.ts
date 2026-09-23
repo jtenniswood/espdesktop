@@ -34,7 +34,7 @@ export function createClockBarFeature(
     core: Pick<CoreFeature, "syncPreviewGridTop">,
     environment: EnvironmentStateFeature,
     dependencies: {
-        homeAssistantConfigured(): boolean;
+        homeAssistantConnected(): boolean;
         hideSettingsOverlay(): void;
         timezoneId(value?: any): string;
         postTemperatureEntities(value: string): void;
@@ -167,7 +167,7 @@ export function createClockBarFeature(
         return clockBarTemperatureEntities()[0] || state.outdoorEntity || "";
     }
     function clockBarTemperatureVisible(this: any) {
-        return dependencies.homeAssistantConfigured() && !!(state._outdoorOn && primaryClockBarTemperatureEntity());
+        return dependencies.homeAssistantConnected() && !!(state._outdoorOn && primaryClockBarTemperatureEntity());
     }
     function applyClockBarTemperatureEntities(this: any, list?: any, postDevice?: any) {
         state.clockBarTemperatureEntities = normalizeClockBarTemperatureEntries(list);
@@ -276,6 +276,9 @@ export function createClockBarFeature(
         if (els.setVoiceServicesToggle) {
             els.setVoiceServicesToggle.checked = voiceServicesUiState().iconVisible;
         }
+        if (els.setVoiceServicesBadge) {
+            els.setVoiceServicesBadge.className = "sp-card-badge" + (voiceServicesUiState().iconVisible ? "" : " sp-hidden");
+        }
         if (els.setBatteryStatusToggle) {
             els.setBatteryStatusToggle.checked = !!state.batteryStatusOn;
         }
@@ -311,7 +314,7 @@ export function createClockBarFeature(
         serializeTemperatureEntities: serializeClockBarTemperatureEntities,
         temperatureEntities: clockBarTemperatureEntities,
         primaryTemperatureEntity: primaryClockBarTemperatureEntity,
-        temperatureAvailable: dependencies.homeAssistantConfigured,
+        temperatureAvailable: dependencies.homeAssistantConnected,
         temperatureVisible: clockBarTemperatureVisible,
         applyTemperatureEntities: applyClockBarTemperatureEntities,
         saveTemperatureSettings: saveClockBarTemperatureSettings,

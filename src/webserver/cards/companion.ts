@@ -1,4 +1,6 @@
+import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
 import { createCompanionCatalogue } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
@@ -12,8 +14,6 @@ import {
 } from "../generated/card_contract";
 import {
     COMPANION_CARD_MODES,
-    COMPANION_MEDIA_ACTIONS,
-    COMPANION_MEDIA_PLAY_PAUSE_ACTION,
     COMPANION_SYSTEM_METRICS,
     COMPANION_WINDOW_ACTIONS,
 } from "../generated/companion_capabilities";
@@ -23,8 +23,6 @@ import {
     type CompanionCardModeId,
 } from "../model/companion_card";
 export {
-    COMPANION_MEDIA_ACTIONS,
-    COMPANION_MEDIA_PLAY_PAUSE_ACTION,
     COMPANION_SYSTEM_METRICS,
     COMPANION_WINDOW_ACTIONS,
 } from "../generated/companion_capabilities";
@@ -48,21 +46,29 @@ import {
     companionShortcutTabs,
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
+    finderFolderTabs,
+    syncFinderFolderSelection,
+    addFinderFolderTiles,
     createCompanionShortcutSubpage,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
     setCompanionAppShortcutFolderEnabled,
     setCompanionAppShortcutAutoSwitchEnabled,
+    finderOpenBehavior,
+    inheritFinderOpenBehaviorForCard,
+    setFinderOpenBehavior,
+    syncInheritedFinderOpenBehavior,
+    FINDER_OPEN_BEHAVIOR_OPTION,
+    FINDER_OPEN_OVERRIDE_OPTION,
+    type FinderOpenBehavior,
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
 
-
-
 const COMPANION_URL_PREFIX = "url.";
+const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
-const COMPANION_FINDER_ID = "com.apple.finder";
 const COMPANION_WINDOW_PREFIX = "window.";
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
 export const COMPANION_SUBTYPE_DEFAULT_ICONS = {
@@ -176,7 +182,7 @@ export function companionWindowActionLabel(actionId: string): string {
     return COMPANION_WINDOW_ACTIONS.find((action) => action.id === actionId)?.label || "";
 }
 
-export function companionMediaIcon(
+export function companionGeneratedIcon(
     currentIcon: string,
     previousGeneratedIcon: string,
     selectedGeneratedIcon: string,
@@ -186,10 +192,8 @@ export function companionMediaIcon(
 }
 
 export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
-    if (mode === "media") {
-        return COMPANION_MEDIA_ACTIONS.find((action) => action.id === entity)?.icon
-            || COMPANION_MEDIA_ACTIONS[0].icon;
-    }
+    if (mode === "ip_address") return "Laptop";
+
     if (COMPANION_STATS_MODES.includes(mode)) {
         return companionCardDefaultIcon("stats");
     }
@@ -210,15 +214,6 @@ export function companionSubtypeIcon(
     return !currentIcon || currentIcon === "Auto" || currentIcon === "Monitor" ||
         currentIcon === previousGeneratedIcon || legacyFolderIcon
         ? companionSubtypeDefaultIcon(nextMode, nextEntity) : currentIcon;
-}
-
-export function applyCompanionMediaPresentation(card: any, previousGeneratedLabel = ""): void {
-    if (!card) return;
-    const selected = COMPANION_MEDIA_ACTIONS[0];
-    const currentLabel = typeof card.label === "string" ? card.label : "";
-    const currentIcon = typeof card.icon === "string" ? card.icon : "";
-    card.label = companionAppLabel(currentLabel, previousGeneratedLabel, selected.label);
-    card.icon = companionMediaIcon(currentIcon, "Monitor", selected.icon);
 }
 
 export function companionPreviousAppLabel(
@@ -246,7 +241,7 @@ const COMPANION_CARD_METADATA = {
     largeNumbers: {
         label: "Large Sensor Numbers",
         idSuffix: "large-companion-numbers",
-        supported: companionCardIsMetric,
+        supported: (card: any) => companionCardIsMetric(card) && companionMetricForEntity(card?.entity)?.mode !== "ip_address",
     },
     preview: { badge: "monitor" },
 };
@@ -255,17 +250,43 @@ export function companionCardIsMetric(card: any): boolean {
     return !!companionMetricForEntity(card?.entity);
 }
 
-
-
-export function companionMetricDisplayMode(card: any): "used" | "free" {
+export function companionMetricDisplayMode(card: any): "used" | "free" | "remaining" {
     const metric = companionMetricForEntity(card?.entity);
-    return metric?.freeId === card?.entity ? "free" : "used";
+    if (metric?.mode === "battery") return metric.freeId === card?.entity?.split(":")[0] ? "free" : "used";
+    return metric?.freeId === card?.entity?.split(":")[0] ? "free" : "used";
 }
 
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
     if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
+    if (!metric && companionCardMode(card) === "url") return "e.g. Website name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
+}
+
+export function companionMetricIcon(entity: string): string {
+    if (entity === "stat.battery" || entity === "stat.battery_used") return "battery-outline";
+    if (entity.startsWith("stat.memory")) return "memory";
+    if (entity.startsWith("stat.storage")) return "harddisk";
+    if (entity === "stat.network_throughput") return "lan";
+    return "gauge";
+}
+
+export function companionMetricLabel(entity: string, value: string, unit: string): string {
+    entity = entity.split(":")[0] || entity;
+    const suffix = entity === "stat.battery_used" ? " used"
+        : entity === "stat.battery" ? " left"
+        : entity.endsWith("_free") ? " free"
+        : entity === "stat.network_throughput" ? "" : " used";
+    return value + (unit === "%" ? "" : " ") + unit + suffix;
+}
+
+export function companionMetricDescriptionEnabled(card: any): boolean {
+    return !configOptionEnabled(card?.options, "stat_labels_off");
+}
+
+export function companionMetricDisplayLabel(card: any, value: string, unit: string): string {
+    return companionMetricLabel(card.entity, value, unit).replace(
+        / (used|free|remaining)$/, companionMetricDescriptionEnabled(card) ? " $1" : "");
 }
 
 export function companionMetricPreviewValue(precision: unknown, sample = Math.random()): string {
@@ -280,9 +301,9 @@ export function companionCardMode(card: any): CompanionCardModeId {
 }
 
 export function companionEntityForMode(mode: string): string {
+    if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
-    if (mode === "media") return COMPANION_MEDIA_ACTIONS[0].id;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     if (mode === "window") return COMPANION_WINDOW_ACTIONS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
@@ -290,8 +311,8 @@ export function companionEntityForMode(mode: string): string {
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
-        action.id !== COMPANION_FINDER_ID && !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
-        !COMPANION_MEDIA_ACTIONS.some((mediaAction) => mediaAction.id === action.id)));
+        !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
 
 export function companionApplicationActionIdValid(
@@ -313,16 +334,8 @@ export function companionFolderActions(actions: readonly CompanionAction[]): rea
 export function companionFolderActionIdCanSave(
     actions: readonly CompanionAction[], actionId: string, savedActionId: string,
 ): boolean {
-    return actionId.startsWith(COMPANION_FOLDER_PREFIX) &&
+    return actionId.startsWith(COMPANION_FOLDER_PREFIX) && actionId.length > COMPANION_FOLDER_PREFIX.length &&
         (actionId === savedActionId || companionFolderActions(actions).some((action) => action.id === actionId));
-}
-
-export function resetCompanionMediaPresentation(card: any, nextMode: string): void {
-    if (!card || nextMode === "media") return;
-    const previous = COMPANION_MEDIA_ACTIONS.find((action) => action.id === card.entity);
-    if (!previous) return;
-    if (card.label === previous.label) card.label = "";
-    if (card.icon === previous.icon) card.icon = "Monitor";
 }
 
 export function resetCompanionMetricPresentation(card: any, nextMode: string): void {
@@ -358,11 +371,12 @@ export function normalizeCompanionCard(card: any): void {
         const model = decodeCompanionCard(card);
         if (model.mode !== "stats") return;
         Object.assign(card, encodeCompanionCard({ ...model,
-            unit: model.unit === "KB/s" ? metric.unit : (model.unit || metric.unit),
+            unit: metric.mode === "ip_address" ? "" : (model.unit === "KB/s" ? metric.unit : (model.unit || metric.unit)),
             precision: ["0", "1", "2"].includes(model.precision) ? model.precision : "0",
         }, card));
         card.options = String(card.options || "").split(",").filter((option) =>
-            option === "large_numbers" || option === "large_numbers=off").join(",");
+            option === "large_numbers" || option === "large_numbers=off" || option === "stat_labels_off").join(",");
+        if (metric.mode === "ip_address") card.options = "";
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon(metric.mode, card.entity);
@@ -375,11 +389,24 @@ export function normalizeCompanionCard(card: any): void {
     card.sensor = urlConfig;
     card.unit = "";
     card.precision = "";
+    if (!urlConfig && typeof card.entity === "string" && card.entity.startsWith(COMPANION_FOLDER_PREFIX)) {
+        const behavior = configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION);
+        let options = behavior === "same_window" || behavior === "new_window"
+            ? setConfigOptionValue("", FINDER_OPEN_BEHAVIOR_OPTION, behavior) : "";
+        options = setConfigOption(options, FINDER_OPEN_OVERRIDE_OPTION,
+            configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION));
+        card.options = options;
+        card.icon_on = "Auto";
+        if (!card.icon || card.icon === "Auto" || card.icon === "Monitor" || card.icon === "Folder") {
+            card.icon = companionSubtypeDefaultIcon("folder", card.entity);
+        }
+        return;
+    }
     card.options = normalizeCompanionAppShortcutOptions(card);
     card.icon_on = "Auto";
     const mode = companionCardMode(card);
     if (!card.icon || card.icon === "Auto" ||
-        (card.icon === "Monitor" && mode !== "app" && mode !== "media") ||
+        (card.icon === "Monitor" && mode !== "app") ||
         (card.icon === "Folder" && mode === "folder")) {
         card.icon = companionSubtypeDefaultIcon(mode, card.entity);
     }
@@ -411,10 +438,7 @@ export function registerCompanionCardTypes(
         card.options = "";
         card.icon_on = "Auto";
         card.label = "";
-        if (mode === "media") {
-            applyCompanionMediaPresentation(card);
-            return;
-        }
+
         const metric = mode === "stats" ? COMPANION_SYSTEM_METRICS[0] : undefined;
         if (metric) {
             card.unit = metric.unit;
@@ -448,10 +472,13 @@ export function registerCompanionCardTypes(
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
 
-            helpers.renderCardTextField(panel, card, helpers, {
-                label: "Label", idSuffix: "label", field: "label",
-                placeholder: companionLabelPlaceholder(card), rerender: true,
-            });
+            if (!companionCardIsMetric(card)) {
+                helpers.renderCardTextField(panel, card, helpers, {
+                    label: "Label",
+                    idSuffix: "label", field: "label",
+                    placeholder: companionLabelPlaceholder(card), rerender: true,
+                });
+            }
 
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
@@ -475,6 +502,8 @@ export function registerCompanionCardTypes(
                         card.unit = selected.unit;
                         helpers.saveField("unit", card.unit);
                     }
+                    card.icon = companionGeneratedIcon(card.icon, companionSubtypeDefaultIcon(metric?.mode || "stats"), companionSubtypeDefaultIcon(selected.mode));
+                    helpers.saveField("icon", card.icon);
                     card.entity = selected.id;
                     helpers.saveField("entity", card.entity);
                     renderButtonSettings();
@@ -482,15 +511,19 @@ export function registerCompanionCardTypes(
                 statsField.appendChild(statsSelect);
                 helpers.markCardPrimaryField(statsField, "statistic");
                 panel?.appendChild(statsField);
-                if (metric?.freeId) {
+                if (metric?.mode === "storage") {
+                    renderCompanionStorageSelector(panel, card, helpers, fetchImpl);
+                }
+                if (metric?.freeId || metric?.mode === "battery") {
                     const displayField = document.createElement("div");
-                    displayField.className = "sp-field";
-                    displayField.appendChild(fieldLabel("Show", helpers.idPrefix + "metric-display"));
+                    displayField.className = "sp-field sp-metric-capacity-field";
+                    displayField.appendChild(fieldLabel("Capacity", helpers.idPrefix + "metric-display"));
                     const displaySelect = document.createElement("select");
                     displaySelect.className = "sp-select";
                     displaySelect.id = helpers.idPrefix + "metric-display";
                     sortCompanionLabels([
-                        { value: "used", label: "Used" }, { value: "free", label: "Free" },
+                        ...(metric?.freeId ? [{ value: "used", label: "Used" }, { value: "free", label: metric?.mode === "battery" ? "Left" : "Free" }] :
+                            [{ value: "remaining", label: "Remaining" }]),
                     ]).forEach((item) => {
                         const option = document.createElement("option");
                         option.value = item.value;
@@ -499,13 +532,54 @@ export function registerCompanionCardTypes(
                     });
                     displaySelect.value = companionMetricDisplayMode(card);
                     displaySelect.addEventListener("change", function () {
-                        card.entity = this.value === "free" ? metric.freeId : metric.id;
+                        if (!metric?.freeId) return;
+                        const device = card.entity.split(":")[1];
+                        card.entity = (this.value === "free" ? metric.freeId : metric.id) + (device ? ":" + device : "");
                         helpers.saveField("entity", card.entity);
                         renderButtonSettings();
                     });
                     displayField.appendChild(displaySelect);
                     panel?.appendChild(displayField);
                 }
+                if (metric?.mode === "ip_address") {
+                    const field = document.createElement("div");
+                    field.className = "sp-field";
+                    field.appendChild(fieldLabel("Network device", helpers.idPrefix + "companion-network"));
+                    const select = document.createElement("select");
+                    select.id = helpers.idPrefix + "companion-network";
+                    select.className = "sp-select";
+                    const selectedId = String(card.entity).split(":")[1] || "";
+                    select.add(new Option("Automatic (available network)", ""));
+                    if (selectedId) select.add(new Option(selectedId, selectedId));
+                    select.value = selectedId;
+                    select.addEventListener("change", function () {
+                        card.entity = "stat.ip_address" + (this.value ? ":" + this.value : "");
+                        helpers.saveField("entity", card.entity);
+                    });
+                    const status = document.createElement("p");
+                    status.textContent = "Loading Mac network devices…";
+                    field.append(select, status);
+                    panel?.appendChild(field);
+                    void fetch("/companion/networks", { cache: "no-store" }).then(async (response) => {
+                        if (!response.ok) throw new Error("unavailable");
+                        const networks: unknown = await response.json();
+                        if (!Array.isArray(networks)) throw new Error("unavailable");
+                        for (const network of networks) {
+                            if (typeof network?.id !== "string" || typeof network?.label !== "string") continue;
+                            if (network.id === selectedId) select.options[1]!.textContent = network.label;
+                            else select.add(new Option(network.label, network.id));
+                        }
+                        status.textContent = networks.length ? "Shows the selected device’s IPv4 address." :
+                            "Connect the Mac and enable Stats sharing to load network devices.";
+                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the Mac and enable Stats sharing."; });
+                    return;
+                }
+                const description = helpers.toggleRow("Show capacity label", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));
+                description.input.addEventListener("change", function (this: HTMLInputElement) {
+                    card.options = setConfigOption(card.options, "stat_labels_off", !this.checked);
+                    helpers.saveField("options", card.options);
+                });
+                panel?.appendChild(description.row);
                 helpers.renderCardTextField(panel, card, helpers, {
                     label: "Unit", idSuffix: "unit", field: "unit",
                     placeholder: "%", rerender: true,
@@ -516,13 +590,12 @@ export function registerCompanionCardTypes(
                         helpers.saveField("precision", card.precision);
                     });
                 panel?.appendChild(precision.field);
-                helpers.renderCardLargeNumbersToggle(panel, card, helpers, COMPANION_CARD_METADATA);
                 return;
             }
 
             const appField = document.createElement("div");
             appField.className = "sp-field";
-            const appFieldLabel = fieldLabel("Mac App", helpers.idPrefix + "companion-action");
+            const appFieldLabel = fieldLabel("Application", helpers.idPrefix + "companion-action");
             appField.appendChild(appFieldLabel);
 
             const select = document.createElement("select");
@@ -535,11 +608,11 @@ export function registerCompanionCardTypes(
             select.appendChild(loading);
             appField.appendChild(select);
             panel?.appendChild(appField);
-            if (initialMode === "app" || initialMode === "url") {
+            if (initialMode === "app") {
                 helpers.markCardPrimaryField(appField, "entity");
             }
             helpers.requireField(select, "Choose a Mac app before saving.", function () {
-                return initialMode === "app" || initialMode === "url";
+                return initialMode === "app";
             }, function (value: string) {
                 return companionApplicationActionIdCanSave(availableCompanionApps, value, currentEntity);
             });
@@ -750,7 +823,7 @@ export function registerCompanionCardTypes(
                     card.options = "";
                 } else {
                     card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
-                    card.icon = companionMediaIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
+                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
                     card.entity = preset.entity;
                     card.options = preset.options;
                 }
@@ -762,7 +835,9 @@ export function registerCompanionCardTypes(
             helpers.requireField(keySelect, "Choose a key with Command, Control, or Option before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
-                return companionShortcutActionIdValid(card.entity);
+                return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
+                    COMPANION_SHORTCUT_MODIFIERS.some((modifier) =>
+                        modifier !== "shift" && selectedModifiers.has(modifier));
             });
 
             const windowField = document.createElement("div");
@@ -822,28 +897,12 @@ export function registerCompanionCardTypes(
                 return Boolean(companionUrlConfig(value));
             });
 
-            const mediaField = document.createElement("div");
-            mediaField.className = "sp-field";
-            mediaField.appendChild(fieldLabel("Media Control", helpers.idPrefix + "companion-media-action"));
-            const mediaSelect = document.createElement("select");
-            mediaSelect.className = "sp-select";
-            mediaSelect.id = helpers.idPrefix + "companion-media-action";
-            sortCompanionLabels(COMPANION_MEDIA_ACTIONS).forEach(function (action) {
-                const option = document.createElement("option");
-                option.value = action.id;
-                option.textContent = action.label;
-                option.selected = card.entity === action.id;
-                mediaSelect.appendChild(option);
-            });
-            mediaField.appendChild(mediaSelect);
-            panel?.appendChild(mediaField);
-            helpers.markCardPrimaryField(mediaField, "media");
-
             const appSubpageDisclosure = helpers.disclosureSection(
-                "App subpage",
+                "App Subpage",
                 helpers.idPrefix + "companion-app-subpage",
                 card._modalSettingsOpen === true,
             );
+            appSubpageDisclosure.panel.classList.add("sp-app-subpage-settings");
             appSubpageDisclosure.button.addEventListener("click", function () {
                 card._modalSettingsOpen = appSubpageDisclosure.panel.classList.contains("sp-open");
             });
@@ -868,13 +927,18 @@ export function registerCompanionCardTypes(
             const shortcutFolderNote = document.createElement("div");
             shortcutFolderNote.className = "sp-field-info-text";
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
-            shortcutFolderNote.textContent = "Launch " + shortcutFolderApp +
+            shortcutFolderNote.textContent = card.entity === "com.apple.finder"
+                ? "Enabling adds your configured Mac folders as tiles, as space allows. Existing tiles are kept."
+                : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
             shortcutFolderField.appendChild(shortcutFolderNote);
             appSubpageDisclosure.section.appendChild(shortcutFolderField);
             folderToggle.input.addEventListener("change", function () {
                 if (!folderToggle.input.checked) {
                     card._appShortcutDisabledTabs = companionShortcutTabs(card);
+                }
+                if (folderToggle.input.checked && card.entity === "com.apple.finder") {
+                    card._appShortcutSelectionChanged = true;
                 }
                 setCompanionAppShortcutFolderEnabled(card, folderToggle.input.checked);
                 if (folderToggle.input.checked && Array.isArray(card._appShortcutDisabledTabs)) {
@@ -905,7 +969,85 @@ export function registerCompanionCardTypes(
                 helpers.saveField("options", card.options);
             });
 
-            if (companionAppShortcutFolderEnabled(card)) {
+            const finderOpenBehaviorField = document.createElement("div");
+            finderOpenBehaviorField.className = "sp-field";
+            finderOpenBehaviorField.appendChild(fieldLabel("Folder shortcuts open in", helpers.idPrefix + "finder-open-behavior"));
+            const finderOpenBehaviorSelect = document.createElement("select");
+            finderOpenBehaviorSelect.className = "sp-select";
+            finderOpenBehaviorSelect.id = helpers.idPrefix + "finder-open-behavior";
+            const globalBehaviorChoices: readonly [FinderOpenBehavior, string][] = [
+                ["new_window", "A new window"],
+                ["same_window", "The same window"],
+            ];
+            for (const [value, label] of globalBehaviorChoices) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                option.selected = value === finderOpenBehavior(card);
+                finderOpenBehaviorSelect.appendChild(option);
+            }
+            finderOpenBehaviorField.appendChild(finderOpenBehaviorSelect);
+            const finderOpenBehaviorNote = document.createElement("div");
+            finderOpenBehaviorNote.className = "sp-field-info-text";
+            finderOpenBehaviorNote.textContent = "Default for Finder folder shortcuts. Individual folder cards can override this in Advanced.";
+            finderOpenBehaviorField.appendChild(finderOpenBehaviorNote);
+            appSubpageDisclosure.section.appendChild(finderOpenBehaviorField);
+            finderOpenBehaviorSelect.addEventListener("change", function () {
+                const behavior: FinderOpenBehavior = finderOpenBehaviorSelect.value === "same_window"
+                    ? "same_window" : "new_window";
+                card.options = setConfigOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION, behavior);
+                card._finderOpenBehaviorChanged = true;
+                helpers.saveField("options", card.options);
+            });
+
+            const advancedFolderSettings = helpers.disclosureSection(
+                "Advanced", helpers.idPrefix + "finder-folder-advanced", false,
+            );
+            const advancedFolderBehaviorField = document.createElement("div");
+            advancedFolderBehaviorField.className = "sp-field";
+            advancedFolderBehaviorField.appendChild(fieldLabel("Open folder in", helpers.idPrefix + "finder-folder-open-behavior"));
+            const advancedFolderBehaviorSelect = document.createElement("select");
+            advancedFolderBehaviorSelect.className = "sp-select";
+            advancedFolderBehaviorSelect.id = helpers.idPrefix + "finder-folder-open-behavior";
+            const parentSlot = Number(state.editingSubpage || slot || 0);
+            const parentCard = parentSlot > 0 ? state.buttons[parentSlot - 1] : null;
+            const canInheritFinderBehavior = helpers.isSub && parentCard?.entity === "com.apple.finder";
+            if (canInheritFinderBehavior &&
+                inheritFinderOpenBehaviorForCard(card, finderOpenBehavior(parentCard))) {
+                helpers.saveField("options", card.options);
+            }
+            const folderBehaviorChoices: readonly [string, string][] = helpers.isSub
+                && canInheritFinderBehavior
+                ? [["inherit", "Use Finder subpage setting"], ["new_window", "A new window"], ["same_window", "The same window"]]
+                : [["new_window", "A new window"], ["same_window", "The same window"]];
+            const hasFinderOverride = configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION);
+            const selectedFolderBehavior = canInheritFinderBehavior && !hasFinderOverride
+                ? "inherit" : finderOpenBehavior(card);
+            for (const [value, label] of folderBehaviorChoices) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                option.selected = value === selectedFolderBehavior;
+                advancedFolderBehaviorSelect.appendChild(option);
+            }
+            advancedFolderBehaviorField.appendChild(advancedFolderBehaviorSelect);
+            advancedFolderSettings.section.appendChild(advancedFolderBehaviorField);
+            advancedFolderBehaviorSelect.addEventListener("change", function () {
+                const inherited = canInheritFinderBehavior && advancedFolderBehaviorSelect.value === "inherit";
+                const behavior: FinderOpenBehavior = inherited
+                    ? finderOpenBehavior(parentCard)
+                    : advancedFolderBehaviorSelect.value === "same_window" ? "same_window" : "new_window";
+                setFinderOpenBehavior(card, behavior, !inherited);
+                helpers.saveField("options", card.options);
+            });
+            panel?.appendChild(advancedFolderSettings.panel);
+
+            const finderFolderList = document.createElement("div");
+            if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
+                finderFolderList.className = "sp-app-subpage-folder-list";
+                appSubpageDisclosure.section.appendChild(finderFolderList);
+            }
+            if (companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
                 const shortcutOptionsDivider = document.createElement("div");
                 shortcutOptionsDivider.className = "sp-app-subpage-options-divider";
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
@@ -940,17 +1082,19 @@ export function registerCompanionCardTypes(
             }
 
             function syncMode(mode: string): void {
-                appField.style.display = mode === "app" || mode === "url" ? "" : "none";
-                appFieldLabel.textContent = mode === "url" ? "Open with" : "Mac App";
+                appField.style.display = mode === "app" ? "" : "none";
+                appFieldLabel.textContent = "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
-                mediaField.style.display = mode === "media" ? "" : "none";
                 appSubpageDisclosure.panel.style.display = !helpers.isSub && mode === "app" &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
                 autoSwitchField.style.display = !helpers.isSub && mode === "app" &&
                     companionAppShortcutFolderEnabled(card) ? "" : "none";
+                finderOpenBehaviorField.style.display = !helpers.isSub && mode === "app" &&
+                    card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
+                advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
             }
             syncMode(initialMode);
 
@@ -980,27 +1124,46 @@ export function registerCompanionCardTypes(
             urlInput.addEventListener("input", saveUrl);
             urlInput.addEventListener("change", saveUrl);
 
-            mediaSelect.addEventListener("change", function () {
-                const previous = COMPANION_MEDIA_ACTIONS.find(function (action) { return action.id === card.entity; });
-                const selected = COMPANION_MEDIA_ACTIONS.find(function (action) { return action.id === mediaSelect.value; });
-                if (!selected) return;
-                const currentLabel = typeof card.label === "string" ? card.label : "";
-                const currentIcon = typeof card.icon === "string" ? card.icon : "";
-                card.entity = selected.id;
-                card.label = companionAppLabel(currentLabel, previous?.label || "", selected.label);
-                card.icon = companionMediaIcon(currentIcon, previous?.icon || "", selected.icon);
-                helpers.saveField("entity", card.entity);
-                helpers.saveField("label", card.label);
-                helpers.saveField("icon", card.icon);
-                renderButtonSettings();
-            });
-
             loadCompanionActions(true).then(function (actions) {
                 companionActions = actions;
                 const applicationActions = companionApplicationActions(actions);
                 availableCompanionApps = applicationActions;
                 const folderActions = companionFolderActions(actions);
                 availableCompanionFolders = folderActions;
+                if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
+                    finderFolderList.replaceChildren();
+                    const page = savedShortcutSubpage || createCompanionShortcutSubpage(card.entity);
+                    const definitions = [...folderActions];
+                    for (const tile of page.buttons || []) {
+                        if (tile.type === "companion" && tile.entity.startsWith(COMPANION_FOLDER_PREFIX) &&
+                            !definitions.some(folder => folder.id === tile.entity)) {
+                            definitions.push({ id: tile.entity, label: tile.label || tile.entity });
+                        }
+                    }
+                    modalTabs.renderModalTabSettings(finderFolderList, card, helpers, {
+                        definitions: () => definitions.map(folder => ({ value: folder.id, label: folder.label })),
+                        tabs: (button: any) => button._finderFolderTabs ||
+                            (savedShortcutSubpage ? finderFolderTabs(page) : definitions.map(folder => folder.id)),
+                        normalizeOptions: (options: string) => options,
+                        setTabs: (button: any, tabs: string[]) => {
+                            if (!syncFinderFolderSelection(page, definitions, tabs, maxSlots, codec.buildSubpageGrid)) {
+                                button._appShortcutCapacityRejected = true;
+                                return false;
+                            }
+                            delete button._appShortcutCapacityRejected;
+                            button._finderFolderTabs = tabs;
+                            button._appShortcutSelectionChanged = true;
+                            return true;
+                        },
+                        idPrefix: "finder-folder-", hideHeading: true, allowEmpty: true,
+                    });
+                    if (card._appShortcutCapacityRejected) {
+                        const note = document.createElement("div");
+                        note.className = "sp-field-info-text sp-visible";
+                        note.textContent = "No free subpage space. Remove a tile or reduce its size before enabling another folder.";
+                        finderFolderList.appendChild(note);
+                    }
+                }
                 select.replaceChildren();
                 const placeholder = document.createElement("option");
                 placeholder.value = "";
@@ -1039,7 +1202,7 @@ export function registerCompanionCardTypes(
                     option.selected = action.id === card.entity;
                     folderSelect.appendChild(option);
                 });
-                if (initialMode === "folder" && card.entity &&
+                if (initialMode === "folder" && card.entity && card.entity !== COMPANION_FOLDER_PREFIX &&
                     !folderActions.some(function (action) { return action.id === card.entity; })) {
                     const unavailable = document.createElement("option");
                     unavailable.value = card.entity;
@@ -1059,8 +1222,9 @@ export function registerCompanionCardTypes(
                 select.appendChild(unavailable);
                 folderSelect.replaceChildren();
                 const folderUnavailable = document.createElement("option");
-                folderUnavailable.value = initialMode === "folder" ? card.entity || "" : "";
-                folderUnavailable.textContent = card.entity && initialMode === "folder"
+                folderUnavailable.value = initialMode === "folder" && card.entity !== COMPANION_FOLDER_PREFIX
+                    ? card.entity || "" : "";
+                folderUnavailable.textContent = folderUnavailable.value
                     ? "Unavailable (companion offline)" : "Mac companion unavailable";
                 folderUnavailable.selected = true;
                 folderSelect.appendChild(folderUnavailable);
@@ -1131,12 +1295,14 @@ export function registerCompanionCardTypes(
             const mode = companionCardMode(card);
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
+                if (metric?.mode === "ip_address") return {
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-laptop"></span>',
+                    labelHtml: cardBadgeLabelHtml(helpers, "192.168.1.100"),
+                };
                 return {
-                    iconHtml: cardSensorPreviewHtml(
-                        card, helpers, companionMetricPreviewValue(card.precision),
-                        card.unit || metric?.unit || "%",
-                    ),
-                    labelHtml: cardBadgeLabelHtml(helpers, card.label || metric?.label || "Mac"),
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-' + companionMetricIcon(card.entity) + '"></span>',
+                    labelHtml: cardBadgeLabelHtml(helpers, companionMetricDisplayLabel(card,
+                        companionMetricPreviewValue(card.precision), card.unit || metric?.unit || "%")),
                 };
             }
             if (mode === "stats") {
@@ -1170,17 +1336,21 @@ export function registerCompanionCardTypes(
                 codec.enterSubpage(slot);
             });
         },
-        afterSave: function (card?: any, slot?: any, context?: any) {
+        afterSave: async function (card?: any, slot?: any, context?: any) {
             if (context?.isSub) return "saved";
+            const folderSelection = card._finderFolderTabs;
+            delete card._finderFolderTabs;
             const selectionChanged = card._appShortcutSelectionChanged === true;
             const appChanged = card._appShortcutAppChanged === true;
+            const openBehaviorChanged = card._finderOpenBehaviorChanged === true;
             delete card._appShortcutSelectionChanged;
             delete card._appShortcutAppChanged;
+            delete card._finderOpenBehaviorChanged;
             delete card._appShortcutDisabledTabs;
             delete card._appShortcutCapacityRejected;
             if (!companionAppShortcutFolderEnabled(card)) return "saved";
             const existing = state.subpages[slot];
-            if (existing && !selectionChanged && !appChanged) return "saved";
+            if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             const source = existing ? {
                 ...existing,
                 order: (existing.order || []).slice(),
@@ -1188,9 +1358,21 @@ export function registerCompanionCardTypes(
                 grid: (existing.grid || []).slice(),
                 sizes: { ...(existing.sizes || {}) },
             } : null;
-            const subpage = source && !appChanged
-                ? syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
+            let subpage = source && !appChanged
+                ? card.entity === "com.apple.finder" ? source : syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
                 : createCompanionShortcutSubpage(card.entity, companionShortcutTabs(card));
+            if (card.entity === "com.apple.finder") {
+                codec.buildSubpageGrid(subpage);
+                const folders = companionFolderActions(await loadCompanionActions(true));
+                if (Array.isArray(folderSelection)) {
+                    const updated = syncFinderFolderSelection(subpage, folders, folderSelection, maxSlots, codec.buildSubpageGrid);
+                    if (!updated) return "failed";
+                    subpage = updated;
+                } else {
+                    addFinderFolderTiles(subpage, folders, maxSlots);
+                }
+                syncInheritedFinderOpenBehavior(subpage, finderOpenBehavior(card));
+            }
             codec.buildSubpageGrid(subpage);
             state.subpages[slot] = subpage;
             return codec.saveSubpageConfig(slot);
@@ -1203,7 +1385,6 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],
-        ["companion_media", "Media control", "media"],
         ["companion_stats", "Stats", "stats"],
         ["companion_window", "Window control", "window"],
     ];

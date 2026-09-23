@@ -18,7 +18,6 @@ actor ApplicationCatalogue {
 
         func appendApplication(at url: URL) {
             guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else { return }
-            guard id != "com.apple.finder" else { return }
             let name = (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
                 ?? (bundle.object(forInfoDictionaryKey: "CFBundleName") as? String)
                 ?? url.deletingPathExtension().lastPathComponent
@@ -37,6 +36,7 @@ actor ApplicationCatalogue {
                 }
             }
         }
+        appendApplication(at: URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app"))
         scanApplicationRoots(standardRoots)
         scanApplicationRoots(cryptexRoots)
         return Dictionary(grouping: found, by: \.bundleIdentifier).compactMap { $0.value.first }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }

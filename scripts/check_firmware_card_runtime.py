@@ -335,7 +335,7 @@ def check_root(root: Path) -> list[str]:
                 f"components/espdesktop/{GRID_HEADER}: include full fan controls in generic subpage parent indicators"
             )
         image_reset_pos = text.find("image_driver_reset_pool(cfg);")
-        subpage_clear_pos = text.find("navigation_clear_subpages();")
+        subpage_clear_pos = text.find("navigation_clear_subpages(main_page_obj);")
         if image_reset_pos < 0 or subpage_clear_pos < 0 or image_reset_pos > subpage_clear_pos:
             failures.append(
                 f"components/espdesktop/{GRID_HEADER}: reset image-card contexts before deleting subpage screens"
@@ -471,6 +471,14 @@ def check_root(root: Path) -> list[str]:
         if reset_body is None or "for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++)" not in reset_body:
             failures.append(
                 f"components/espdesktop/{IMAGE_HEADER}: reset every image-card context, including disabled slots"
+            )
+        if reset_body is None or "image_card_release_modal_cache" not in reset_body:
+            failures.append(
+                f"components/espdesktop/{IMAGE_HEADER}: release the constrained modal cache when resetting the image-card pool"
+            )
+        if reset_body is None or "image_card_schedule_modal_cache_expiry" not in reset_body:
+            failures.append(
+                f"components/espdesktop/{IMAGE_HEADER}: reschedule constrained modal cache expiry when retaining it during pool resets"
             )
         callback_body = function_body(text, "image_card_bind_callbacks")
         callback_guards = (
@@ -1248,7 +1256,7 @@ inline void setup_light_temp_visual() {
                     '  subscribe_light_control_state(ctx);\n'
                     '  add_parent_indicator(sb_cfg.entity);\n'
                     '}\n'
-                    'navigation_clear_subpages();\n'
+                    'navigation_clear_subpages(main_page_obj);\n'
                     'reset_image_card_pool(cfg);\n'
                 )
             },
@@ -1426,6 +1434,7 @@ inline void setup_light_temp_visual() {
             {
                 "button_grid_image.h": (
                     "inline void reset_image_card_pool(const GridConfig &cfg) {\n"
+                    "  image_card_release_modal_cache(cfg.image_card_modal_image);\n"
                     "  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++) {}\n"
                     "}\n"
                 )
@@ -1444,6 +1453,27 @@ inline void setup_light_temp_visual() {
                     "  if (changed || !bound_image->has_on_error_callbacks()) {}\n"
                     "}\n"
                     "inline void reset_image_card_pool(const GridConfig &cfg) {\n"
+                    "  image_card_release_modal_cache(cfg.image_card_modal_image);\n"
+                    "  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++) {}\n"
+                    "}\n"
+                )
+            },
+            ("reschedule constrained modal cache expiry when retaining it during pool resets",),
+        ),
+        (
+            {
+                "button_grid_image.h": (
+                    "inline void image_card_bind_callbacks(ImageCardCtx *ctx) {\n"
+                    "  auto *bound_image = ctx->image;\n"
+                    "  bool changed = ctx->callbacks_bound_image != bound_image;\n"
+                    "  if (changed || !bound_image->has_on_finished_callbacks()) {\n"
+                    "    if (ctx->image == bound_image) {}\n"
+                    "  }\n"
+                    "  if (changed || !bound_image->has_on_error_callbacks()) {}\n"
+                    "}\n"
+                    "inline void reset_image_card_pool(const GridConfig &cfg) {\n"
+                    "  image_card_schedule_modal_cache_expiry(cfg.image_card_modal_image);\n"
+                    "  image_card_release_modal_cache(cfg.image_card_modal_image);\n"
                     "  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++) {}\n"
                     "}\n"
                 )

@@ -2,22 +2,17 @@
 
 **Turn a small touchscreen into a dedicated controller for your Mac.**
 
-EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders, run keyboard shortcuts, arrange windows, control media and volume, open websites, and keep an eye on your Mac without reaching for the keyboard.
+EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders and websites, run keyboard shortcuts, arrange windows, and view Mac statistics.
 
-Set up the display from a normal web browser. There is no YAML to write, no project to compile, and Home Assistant is not required for Mac controls.
+Set up the display from a normal web browser. There is no YAML to write or Home Assistant account needed for Mac controls.
 
-> [!IMPORTANT]
-> Mac Companion controls are currently a proof of concept for the **4-inch Guition ESP32-S3 4848S040** display and one paired Mac. Use matching display firmware and Mac app versions from the same release.
-
-**Documentation:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
+**Documentation and setup guides:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
 
 ## What You Can Control
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
 - **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
 - **Windows** — close, minimise, hide, enter full screen, or use the move-and-resize controls available on your version of macOS.
-- **Media** — play or pause the current Now Playing session, skip tracks, and see the playback state confirmed by the Mac.
-- **Volume** — adjust Mac output and input volume from Slider cards.
 - **Folders and websites** — open approved Finder folders or safe `http://` and `https://` links in an approved app.
 - **Mac statistics** — optionally show processor, memory, storage, network throughput, and battery readings.
 
@@ -27,12 +22,12 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 
 1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
 2. **Connect the display to 2.4 GHz WiFi.**
-3. **Install the EspDesktop Mac app** from the matching release and open it from Applications.
+3. **Install the EspDesktop Mac app** using the current steps on the [documentation site](https://jtenniswood.github.io/espdesktop/getting-started/mac-app).
 4. **Pair the Mac and display.** Open the display's web settings, choose **Connectors → Mac Companion**, and enter the temporary code in the Mac app.
 5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed only for keyboard shortcuts and window controls.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
-Start with the [firmware install guide](https://jtenniswood.github.io/espdesktop/getting-started/install), then follow the [Mac app and pairing guide](https://jtenniswood.github.io/espdesktop/getting-started/mac-app).
+Start with the [firmware install guide](https://jtenniswood.github.io/espdesktop/getting-started/install), then follow the [Mac app and pairing guide](https://jtenniswood.github.io/espdesktop/getting-started/mac-app). Install matching firmware and app builds.
 
 ## Designed to Stay Narrow
 
@@ -57,16 +52,17 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 
 The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv), with a compatible [3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301).
 
-## Home Assistant Is Optional
+## Home Assistant and Other Displays
 
-The Mac Companion connector is enough to complete setup and use Mac controls. If you also use Home Assistant, it can be connected alongside the Mac so the same display can mix Mac actions with smart-home controls and sensor information.
+You do not need Home Assistant to use Mac controls on the 4848S040. For Home Assistant panels and smart-home controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
 ## Project Links
 
 - [Install EspDesktop firmware](https://jtenniswood.github.io/espdesktop/getting-started/install)
 - [Install and pair the Mac app](https://jtenniswood.github.io/espdesktop/getting-started/mac-app)
-- [Configure Companion cards](https://jtenniswood.github.io/espdesktop/card-types/companion)
-- [Companion compatibility](https://jtenniswood.github.io/espdesktop/generated/companion-compatibility)
+- [Supported display](https://jtenniswood.github.io/espdesktop/screens/4848s040)
+- [Mac controls](https://jtenniswood.github.io/espdesktop/card-types/companion)
+- [Companion compatibility](https://jtenniswood.github.io/espdesktop/reference/companion-compatibility)
 - [Report a bug or request a feature](https://github.com/jtenniswood/espdesktop/issues)
 
 ## Development

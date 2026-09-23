@@ -15,6 +15,11 @@
 #include <utility>
 #include <vector>
 
+// Folder focus belongs to Finder; switching directories must keep its subpage open.
+inline std::string companion_focus_application_id(const std::string &action_id) {
+  return action_id.rfind("folder.", 0) == 0 ? "com.apple.finder" : action_id;
+}
+
 struct CompanionAction {
   std::string id;
   std::string label;
@@ -32,14 +37,6 @@ enum class CompanionPlaybackState : uint8_t {
   PLAYING,
 };
 
-inline const char *companion_play_pause_status(CompanionPlaybackState state,
-                                                bool available = true) {
-  if (!available) return "Unavailable";
-  if (state == CompanionPlaybackState::PLAYING) return "Playing";
-  if (state == CompanionPlaybackState::PAUSED) return "Paused";
-  return "Stopped";
-}
-
 struct CompanionNowPlayingSnapshot {
   uint32_t generation{0};
   CompanionPlaybackState playback_state{CompanionPlaybackState::UNAVAILABLE};
@@ -55,6 +52,18 @@ struct CompanionNowPlayingSnapshot {
   bool artwork_follows{false};
 };
 
+struct CompanionStorageDevice {
+  std::string id;
+  std::string label;
+  float usage_percent{NAN};
+};
+
+struct CompanionNetworkInterface {
+  std::string id;
+  std::string label;
+  std::string address;
+};
+
 struct CompanionSystemMetricsSnapshot {
   uint32_t generation{0};
   float cpu_usage_percent{NAN};
@@ -62,13 +71,14 @@ struct CompanionSystemMetricsSnapshot {
   float storage_usage_percent{NAN};
   float battery_percent{NAN};
   float network_throughput_kbps{NAN};
+  std::vector<CompanionStorageDevice> storage_devices;
+  std::vector<CompanionNetworkInterface> network_interfaces;
 };
 
 struct CompanionRuntimeSnapshot {
   std::vector<CompanionAction> actions;
   std::vector<CompanionValue> values;
   std::string focused_action_id;
-  bool media_actions_supported{false};
   bool keyboard_actions_supported{false};
   std::vector<std::string> window_actions;
   bool connected{false};
@@ -76,7 +86,18 @@ struct CompanionRuntimeSnapshot {
   CompanionSystemMetricsSnapshot system_metrics;
 };
 
-using CompanionActionSender = std::function<bool(const std::string &, const std::string &)>;
+inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
+                                              const std::string &key) {
+  if (!snapshot.connected) return "--";
+  const bool automatic = key == "stat.ip_address";
+  if (!automatic && key.rfind("stat.ip_address:", 0) != 0) return "--";
+  const auto id = automatic ? std::string() : key.substr(16);
+  for (const auto &network : snapshot.system_metrics.network_interfaces)
+    if ((automatic || network.id == id) && !network.address.empty()) return network.address;
+  return "--";
+}
+
+using CompanionActionSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
 using CompanionUrlSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
 using CompanionValueSender = std::function<bool(const std::string &, int, const std::string &)>;
 using CompanionActionResultHandler = std::function<void()>;
@@ -95,7 +116,6 @@ struct CompanionPendingActions {
   std::array<CompanionPendingAction, MAX_PENDING> entries{};
 };
 
-
 struct CompanionPairingSnapshot {
   bool available{false};
   bool active{false};
@@ -113,7 +133,6 @@ using CompanionPairingProvider = std::function<CompanionPairingSnapshot()>;
 using CompanionNowPlayingHandler = std::function<void(const CompanionNowPlayingSnapshot &)>;
 // Ownership of data transfers to the handler only when it returns true.
 using CompanionArtworkHandler = std::function<bool(uint32_t generation, uint8_t *data, size_t size)>;
-
 
 class CompanionRuntimeService {
  public:
@@ -152,19 +171,13 @@ class CompanionRuntimeService {
 
   CompanionRuntimeSnapshot snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return {actions_, values_, focused_action_id_, media_actions_supported_, keyboard_actions_supported_, window_actions_,
+    return {actions_, values_, focused_action_id_, keyboard_actions_supported_, window_actions_,
             connected_, now_playing_, system_metrics_};
   }
 
   void set_actions(std::vector<CompanionAction> actions) {
     std::lock_guard<std::mutex> lock(mutex_);
     actions_ = std::move(actions);
-    request_refresh_();
-  }
-
-  void set_media_actions_supported(bool supported) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    media_actions_supported_ = supported;
     request_refresh_();
   }
 
@@ -211,12 +224,14 @@ class CompanionRuntimeService {
 
   bool set_focused_action(std::string action_id) {
     std::lock_guard<std::mutex> lock(mutex_);
-    const bool should_return = connected_ && !focused_action_id_.empty() &&
-      action_id != focused_action_id_;
+    const std::string application_id = companion_focus_application_id(action_id);
+    const std::string previous_application_id = companion_focus_application_id(focused_action_id_);
+    const bool should_return = connected_ && !previous_application_id.empty() &&
+      application_id != previous_application_id;
     if (action_id.empty() || !connected_) {
       pending_auto_subpage_action_id_.clear();
-    } else if (focused_action_id_ != action_id) {
-      pending_auto_subpage_action_id_ = action_id;
+    } else if (previous_application_id != application_id) {
+      pending_auto_subpage_action_id_ = application_id;
     }
     focused_action_id_ = std::move(action_id);
     request_refresh_();
@@ -244,7 +259,6 @@ class CompanionRuntimeService {
       values_.clear();
       focused_action_id_.clear();
       pending_auto_subpage_action_id_.clear();
-      media_actions_supported_ = false;
       keyboard_actions_supported_ = false;
       window_actions_.clear();
       now_playing_ = {};
@@ -265,7 +279,6 @@ class CompanionRuntimeService {
   std::vector<CompanionValue> values_;
   std::string focused_action_id_;
   std::string pending_auto_subpage_action_id_;
-  bool media_actions_supported_{false};
   bool keyboard_actions_supported_{false};
   std::vector<std::string> window_actions_;
   bool connected_{false};

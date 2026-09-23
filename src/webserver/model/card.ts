@@ -8,6 +8,7 @@ import {
 export type DraftCardConfig = CardConfig & {
   _whenOnActive?: unknown;
   _whenOnMode?: unknown;
+  _finderFolderTabs?: string[] | undefined;
   _appShortcutSelectionChanged?: unknown;
   _appShortcutAppChanged?: unknown;
 };
@@ -62,6 +63,7 @@ export function cloneCardConfig(src?: Partial<CardConfig> & Partial<DraftCardCon
   if (src && Object.prototype.hasOwnProperty.call(src, "_appShortcutAppChanged")) {
     button._appShortcutAppChanged = src._appShortcutAppChanged;
   }
+  if (Array.isArray(src?._finderFolderTabs)) button._finderFolderTabs = [...src._finderFolderTabs];
   return button;
 }
 
@@ -75,6 +77,7 @@ export function copyCardConfig(
   }
   target._whenOnActive = button._whenOnActive;
   target._whenOnMode = button._whenOnMode;
+  target._finderFolderTabs = button._finderFolderTabs;
   target._appShortcutSelectionChanged = button._appShortcutSelectionChanged;
   target._appShortcutAppChanged = button._appShortcutAppChanged;
   return target as DraftCardConfig;

@@ -444,6 +444,10 @@ script:
               ESP_LOGI("cover_art", "Rebuilding full-screen artwork URLs after Home Assistant base URL change");
               id(cover_art_process_cached_artwork).execute();
             }
+            if (id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::CAMERA)) {
+              id(camera_screensaver_cancel_request).execute();
+              id(camera_screensaver_request_image).execute();
+            }
           }
           refresh_image_cards();
 
@@ -1740,6 +1744,7 @@ script:
                 else:
                   - script.execute: cover_art_show_black_screen
       - script.execute: cover_art_refresh_progress
+      - script.execute: clock_overlay_hide
 
   - id: cover_art_prepare_activation
     mode: restart
@@ -1791,8 +1796,11 @@ script:
       - script.stop: cover_art_prepare_activation
       - script.stop: cover_art_delay_timer
       - script.stop: cover_art_show_track_overlay
+      - script.stop: cover_art_download
       - script.stop: cover_art_deferred_request_artwork
       - script.stop: cover_art_deferred_download
+      - script.stop: cover_art_request_artwork
+      - script.stop: cover_art_schedule_paired_artwork
       - script.stop: cover_art_prepare_download
       - script.stop: cover_art_retry_download
       - globals.set: { id: cover_art_transition_generation, value: '0' }
@@ -1807,9 +1815,11 @@ script:
       - if:
           condition:
             lambda: |-
-              return std::string("${device_slug}") == "guition-esp32-s3-4848s040" &&
-                     !id(cover_art_companion_source_active);
+              return target_mode == static_cast<int>(espdesktop::DisplayMode::CAMERA) ||
+                     (std::string("${device_slug}") == "guition-esp32-s3-4848s040" &&
+                      !id(cover_art_companion_source_active));
           then:
+            - lambda: 'id(cover_art_downloaded_image)->cancel_update();'
             - script.execute: cover_art_clear_image_source
             - script.wait: cover_art_clear_image_source
             - lambda: |-
@@ -1824,6 +1834,8 @@ script:
                 id(cover_art_runtime).loaded_url.clear();
                 id(cover_art_runtime).effective_download_url.clear();
                 id(cover_art_runtime).active_download_source_url.clear();
+                ESP_LOGD("display_mode", "Cover art cleanup complete for generation %u",
+                         static_cast<unsigned>(generation));
       - script.execute: clock_bar_apply
 
   - id: cover_art_start_delay

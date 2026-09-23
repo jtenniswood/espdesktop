@@ -1,5 +1,5 @@
 ---
-title: Card Types
+title: "Home Assistant Card Types"
 description:
   Quick reference for choosing EspDesktop cards for Mac controls, Home Assistant devices, local panel actions, information, and subpages.
 ---
@@ -14,8 +14,7 @@ Use this page when you know what you want the panel to do but are not sure which
 
 | Goal | Use this card | Entity or target |
 |---|---|---|
-| Launch a Mac app, open a folder or website, run a shortcut, arrange windows, control media, or show Mac statistics | [Companion](/card-types/companion) | Paired Mac action or statistic |
-| Adjust Mac speaker or microphone volume | [Slider](/card-types/sliders) | Mac output or input volume |
+| Launch a Mac app, open a folder or website, run a shortcut, arrange windows, or show Mac statistics | [Companion](/card-types/companion) | Paired Mac action or statistic |
 | Open a page of Mac controls while showing one Mac statistic on its tile | [Subpage](/features/subpages) | Companion Stat |
 | Toggle a light, switch, fan, or helper | [Switch](/card-types/switches) | `light`, `switch`, `input_boolean`, or `fan` |
 | Control a light as on/off, brightness, colour temperature, or colour presets | [Lights](/card-types/lights) | `light` |
@@ -35,6 +34,7 @@ Use this page when you know what you want the panel to do but are not sure which
 | Open, close, or stop a gate | [Gate](/card-types/gates) | `cover` |
 | Lock or unlock a door lock | [Lock](/card-types/locks) | `lock` |
 | Arm, disarm, or show an alarm panel | [Alarm](/card-types/alarms) | `alarm_control_panel` |
+| Start, cancel, or resume a countdown | [Timer](/card-types/timers) | `timer` |
 | Show local date, time, or date and time | [Date & Time](/card-types/calendar) | No entity required for clock modes |
 | Show another city or timezone | [World Clock](/card-types/timezones) | No entity required |
 | Show current weather or daily high/low temperatures | [Weather](/card-types/weather) | `weather` |
@@ -50,10 +50,8 @@ Use this page when you know what you want the panel to do but are not sure which
 
 Mac controls currently work on the 4-inch 4848S040 and need the [EspDesktop Mac app](/getting-started/mac-app). The Companion connector is enough to use them; Home Assistant is optional.
 
-- **Companion** includes Launch app, Keyboard shortcut, Open URL, Open folder, Media control, Stats, and Window control.
-- **Slider** includes Mac output and input volume alongside its Home Assistant modes.
+- **Companion** includes Launch app, Keyboard shortcut, Open URL, Open folder, Stats, and Window control.
 - **Subpage** includes Companion Stat for a processor, memory, storage, network, or battery reading on the folder tile.
-- **Media Cover Art** can use Mac Companion as its Now Playing source from the display Settings page.
 
 See [Mac Cards and Capabilities](/card-types/companion) for the complete list and its permissions.
 
@@ -85,7 +83,7 @@ Some names in the setup page group several related modes:
 | **Alarm** | All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, Disarm |
 | **Date & Time** | Clock, Date, Time & Date, World Clock |
 | **Media** | All Controls, Speaker Group, Play/Pause, Previous, Next, Volume, Track Position, Now Playing, Cover Art, Media Content |
-| **Companion** | Launch app, Keyboard shortcut, Open URL, Open folder, Media control, Stats, Window control |
+| **Companion** | Launch app, Keyboard shortcut, Open URL, Open folder, Stats, Window control |
 | **Cover** | All Controls, Position, Tilt, Toggle, Open, Close, Stop, Set Position |
 | **Subpage** | Generic, Switch, Lights, Climate, Presence, Media, Alarm, Cover, Garage Door, Gate, Lock, Vacuum, Lawn Mower, Weather, Sensor, Camera / Image, Companion Stat |
 
@@ -97,8 +95,8 @@ Cards that control Home Assistant need the panel to be allowed to perform Home A
 
 Read-only display cards such as Sensor, Presence, Date & Time, and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
 
-Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and turn on statistic sharing only if you want Mac usage cards.
+Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and add statistics cards to show the readings shared automatically while connected.
 
 ## Current Capability Reference
 
-For a generated table of card type names, saved type values, supported entity domains, subpage support, picker grouping, options, and visibility status, see the [Card Capability Reference](/generated/cards/capabilities).
+For a generated table of card type names, saved type values, supported entity domains, subpage support, picker grouping, options, and visibility status, see the [Card Capability Reference](/reference/card-capabilities).

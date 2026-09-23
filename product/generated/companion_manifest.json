@@ -15,6 +15,6 @@
     "src/webserver/generated/app_shortcuts.ts",
     "components/espdesktop/app_shortcuts_generated.h",
     "product/generated/companion_compatibility.json",
-    "docs/generated/companion-compatibility.md"
+    "docs/reference/companion-compatibility.md"
   ]
 }

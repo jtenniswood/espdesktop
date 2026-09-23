@@ -1,3 +1,5 @@
+import type { PanelIdentityBackup } from "../model/panel_identity";
+import type { PanelIdentityFeature } from "./panel_identity";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import {
@@ -16,6 +18,7 @@ import {
     normalizeScheduleWakeBrightness,
     normalizeScheduleWakeTimeout,
     normalizeScreensaverAction,
+    normalizeScreensaverCameraImageMode,
     normalizeScreensaverDimmedBrightness,
     normalizeTemperatureUnit,
     normalizeTimeOfDay,
@@ -55,6 +58,7 @@ import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../fea
 import { panelConfigDocumentContainsWifiSharing } from "../features/wifi_sharing_config";
 
 export interface AppBackupControllers {
+    readonly identity?: PanelIdentityFeature;
     readonly layout: ApplicationLayoutState;
     readonly backupExport: BackupExportController;
     readonly backupImport: BackupImportController<any, any, any>;
@@ -73,7 +77,7 @@ export interface AppBackupControllers {
     readonly firmwareUpdate: FirmwareUpdateFeature;
     readonly clockBar: ClockBarFeature;
     readonly entityState: Pick<EntityStateFeature, "entityName" | "entityNameForSlot">;
-    readonly shell: Pick<ControlsShellFeature, "switchTab">;
+    readonly shell: Pick<ControlsShellFeature, "switchTab"> & Partial<Pick<ControlsShellFeature, "showBanner">>;
     readonly requestApi: ApplicationApiFeature;
     readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput" | "updateTempPreview">;
     readonly grid: Pick<GridFeature, "applyImportedButtonOrder" | "cancelMainGridSave" | "serializeGrid">;
@@ -106,10 +110,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
     const {
         postPresenceSensorEntity,
+        postScreensaverCameraImageMode,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
         postCoverArtScreensaver,
         postCoverArtSource,
+        postClockOverlay,
         postCoverArtMediaPlayerEntity,
         postCoverArtSecondaryMediaPlayerEntity,
         postCoverArtConditions,
@@ -199,7 +205,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         return backupExportController.fileDate(value);
     }
     function backupExportFileName(this: any, value?: any) {
-        return backupExportController.fileName(controllers.layout.config.screenSize, value);
+        return backupExportController.fileName(controllers.layout.config.screenSize, value, controllers.identity?.backup());
     }
     function normalizeImportedPanelSettings(this: any, settings?: any) {
         return controllers.normalizeImportedPanelSettings(settings);
@@ -210,8 +216,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     var backupImportController: BackupImportController<any, any, any> = controllers.backupImport;
     var backupRestoreController: BackupRestoreController<any, any> = controllers.backupRestore;
     var backupFileController: BackupFileController = controllers.backupFile;
-    function downloadBackupConfig(this: any, data?: any) {
-        backupFileController.download(data, backupExportFileName());
+    function downloadBackupConfig(this: any, data: any, identity?: PanelIdentityBackup) {
+        if (identity) data.identity = identity;
+        backupFileController.download(data, backupExportController.fileName(controllers.layout.config.screenSize, undefined, identity));
     }
     function addNativeConfigToBackup(this: any, data?: any) {
         return backupExportController.addNativeConfig(data, {
@@ -222,7 +229,13 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             "buttonOnColor": data.button_on_color,
         });
     }
-    function exportConfig(this: any) {
+    async function exportConfig(this: any) {
+        let identity: PanelIdentityBackup | undefined;
+        let identityUnavailable = false;
+        try {
+            await controllers.identity?.load();
+            identity = controllers.identity?.backup();
+        } catch { identityUnavailable = true; }
         var data: any = createBackupConfig({
             device: controllers.layout.deviceId,
             slots: controllers.layout.numSlots,
@@ -261,10 +274,15 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
                 presence_sensor_entity: state.presenceEntity,
+                screensaver_camera_entity: state.screensaverCameraEntity,
+                screensaver_metadata_entity: state.screensaverMetadataEntity,
+                metadata_overlay: state.metadataOverlayOn,
+                screensaver_camera_image_mode: normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode),
                 media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
                 media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity || state.coverArtMediaPlayerEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
+                clock_overlay: state.clockOverlayOn,
                 cover_art_media_player_entity: state.coverArtMediaPlayerEntity,
                 cover_art_secondary_media_player_entity: state.coverArtSecondaryMediaPlayerEntity,
                 cover_art_attribute_conditions: state.coverArtAttributeConditions,
@@ -312,10 +330,17 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 schedule_clock_text_color: normalizeHexColor(state.scheduleClockTextColor, "FFFFFF"),
             },
         } as any);
-        downloadBackupConfig(addNativeConfigToBackup(data));
+        downloadBackupConfig(addNativeConfigToBackup(data), identity);
+        if (identityUnavailable) controllers.shell.showBanner?.(
+            "Backup exported without the panel name because naming is unavailable.", "warning");
     }
     function importConfig(this: any) {
         backupFileController.import(function (data: any) {
+            void (async () => {
+                // Validate the complete backup before offering identity changes.
+                backupImportController.plan(data, { device: controllers.layout.deviceId, slots: controllers.layout.numSlots });
+                const restoredName = await controllers.identity?.chooseRestoreName(data);
+                if (restoredName === null) return;
                 async function applyBackupRestorePlan(this: any, plannedImport: any) {
                 var importedSettings: any = plannedImport.importedSettings;
                 var importedGridCols: any = plannedImport.importedGridCols;
@@ -495,10 +520,19 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var importedScreensaverMode: any = importedSettings.screensaverMode;
                     postScreensaverMode(importedScreensaverMode);
                     postPresenceSensorEntity(importedSettings.presenceSensorEntity);
+                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
+                        postText(entityName("screen_saver_camera_entity"), importedSettings.screensaverCameraEntity);
+                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
+                        postText(entityName("screen_saver_metadata_entity"), importedSettings.screensaverMetadataEntity);
+                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
+                        postScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
                     postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
                     postCoverArtSource(importedSettings.coverArtSource);
+                    if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
+                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
+                        controllers.artworkPostApi.postMetadataOverlay(importedSettings.metadataOverlay);
                     postCoverArtMediaPlayerEntity(importedSettings.coverArtMediaPlayerEntity);
                     postCoverArtSecondaryMediaPlayerEntity(importedSettings.coverArtSecondaryMediaPlayerEntity);
                     postCoverArtConditions(importedSettings.coverArtAttributeConditions);
@@ -513,6 +547,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postFirmwareUpdateFrequency(importedSettings.updateFrequency);
                     }
                     var importedScreensaverAction: any = importedSettings.screensaverAction;
+                    if (importedScreensaverAction === "camera" &&
+                        (!controllers.layout.config.features?.cameraScreensaver || !state.screensaverCameraSupported))
+                        importedScreensaverAction = "off";
                     var importedScreensaverDimmedBrightness: any = importedSettings.screensaverDimmedBrightness;
                     var importedScreensaverDimmedBrightnessDay: any = importedSettings.screensaverDimmedBrightnessDay;
                     var importedScreensaverDimmedBrightnessNight: any = importedSettings.screensaverDimmedBrightnessNight;
@@ -560,10 +597,15 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverMode = importedScreensaverMode;
                     state._screensaverModeReceived = true;
                     state.presenceEntity = importedSettings.presenceSensorEntity;
+                    state.screensaverCameraEntity = importedSettings.screensaverCameraEntity;
+                    state.screensaverMetadataEntity = importedSettings.screensaverMetadataEntity;
+                    state.metadataOverlayOn = importedSettings.metadataOverlay;
+                    state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
                     state.mediaPlayerSleepPreventionOn = importedSettings.mediaPlayerSleepPrevention;
                     state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
                     state.coverArtScreensaverOn = importedSettings.coverArtScreensaver;
                     state.coverArtSource = importedSettings.coverArtSource;
+                    state.clockOverlayOn = importedSettings.clockOverlay;
                     state.coverArtMediaPlayerEntity = importedSettings.coverArtMediaPlayerEntity;
                     state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
                     state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
@@ -592,6 +634,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     if (els.setTemperatureUnit)
                         els.setTemperatureUnit.value = state.temperatureUnit;
                     syncInput(els.setPresence, state.presenceEntity);
+                    syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
+                    syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
                     syncInput(els.setSchedulePresence, state.scheduleSensorEntity);
                     syncMediaPlayerSleepPreventionUi();
                     syncInput(els.setCoverArtMediaPlayer, state.coverArtMediaPlayerEntity);
@@ -681,12 +725,24 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 renderPreview();
                 renderButtonSettings();
                 switchTab("screen");
+                await requestApi.postQueue;
+                if (typeof restoredName === "string" && !requestApi.postQueueError) {
+                    try { await controllers.identity?.saveAndRestart(restoredName); }
+                    catch (error) {
+                        throw Object.assign(new Error("Configuration restored, but panel naming or restart failed: " + (error as Error).message), {
+                            backupMessage: "Configuration restored, but panel naming or restart failed: " + (error as Error).message,
+                        });
+                    }
+                }
                 return layoutRestoreResult;
                 }
                 backupRestoreController.restore(data, {
                     device: controllers.layout.deviceId,
                     slots: controllers.layout.numSlots,
                 }, applyBackupRestorePlan);
+            })().catch((error) => {
+                controllers.shell.showBanner?.((error as Error).message || "Could not restore backup", "error");
+            });
         });
     }
     return {

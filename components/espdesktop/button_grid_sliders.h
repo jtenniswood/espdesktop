@@ -1,6 +1,7 @@
 #pragma once
 
 #include "button_grid_slider_geometry.h"
+#include "clock_bar.h"
 #include "media_volume_capability.h"
 #include "number_slider_policy.h"
 
@@ -186,6 +187,7 @@ constexpr int MEDIA_VOLUME_MIC_ICON_ZOOM = 210;
 struct MediaVolumeCtx {
   std::string entity_id;
   std::string label;
+  std::string clock_bar_title;
   int current_pct = 0;
   int max_pct = 100;
   int pending_pct = -1;
@@ -3682,6 +3684,7 @@ inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
   ui.overlay = shell.overlay;
   ui.panel = shell.panel;
   ui.back_btn = shell.close_btn;
+  if (!ctx->clock_bar_title.empty()) set_clock_bar_modal_label(ctx->clock_bar_title);
   lv_obj_t *back_label = lv_obj_get_child(ui.back_btn, 0);
   if (back_label) lv_obj_set_style_text_color(back_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
 

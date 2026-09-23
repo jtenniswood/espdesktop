@@ -52,9 +52,7 @@ inline void apply_sensor_active_color(lv_obj_t *btn, bool active_color,
 inline void apply_control_availability(lv_obj_t *visual_obj, lv_obj_t *input_obj,
                                        bool available) {
   if (visual_obj) {
-    lv_obj_set_style_opa(visual_obj, available ? LV_OPA_COVER : LV_OPA_50, LV_PART_MAIN);
-    if (available) lv_obj_clear_state(visual_obj, LV_STATE_DISABLED);
-    else lv_obj_add_state(visual_obj, LV_STATE_DISABLED);
+    set_card_disabled_state(visual_obj, !available);
   }
   if (input_obj && input_obj != visual_obj) {
     if (available) lv_obj_clear_state(input_obj, LV_STATE_DISABLED);

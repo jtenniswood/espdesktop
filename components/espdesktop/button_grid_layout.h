@@ -1,5 +1,7 @@
 #pragma once
 
+#include "card_availability.h"
+
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 // Parse a 6-char hex color string (no # prefix) into a uint32_t RGB value

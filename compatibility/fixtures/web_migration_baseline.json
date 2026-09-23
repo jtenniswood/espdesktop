@@ -5,6 +5,7 @@
     "guition-esp32-p4-jc4880p443",
     "guition-esp32-p4-jc8012p4a1",
     "guition-esp32-p4-jc8012p4a1-v2",
+    "guition-esp32-p4-jc8012p4a1-v3",
     "esp32-p4-86",
     "guition-esp32-s3-4848s040"
   ],
@@ -58,7 +59,7 @@
       "temperatureDegreeSymbol": true,
       "subpageChevron": true,
       "timezone": "Europe/London (GMT+0)",
-      "temperatureUnit": "°F",
+      "temperatureUnit": "\u00b0F",
       "language": "en",
       "clockFormat": "12h",
       "hasNtpServer1": false,
@@ -93,7 +94,12 @@
       "screensaverDimmedBrightnessNight": 10,
       "screensaverTimeout": 300,
       "homeScreenTimeout": 60,
-      "screenRotation": "90"
+      "screenRotation": "90",
+      "screensaverCameraEntity": "",
+      "screensaverMetadataEntity": "",
+      "metadataOverlay": false,
+      "screensaverCameraImageMode": "Fit",
+      "clockOverlay": false
     },
     "screenInput": {
       "brightness_day": 80,
@@ -184,8 +190,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2647020,
-    "gzip": 1108791,
+    "minified": 2614023,
+    "gzip": 1054419,
     "gzipTolerance": 9216
   }
 }

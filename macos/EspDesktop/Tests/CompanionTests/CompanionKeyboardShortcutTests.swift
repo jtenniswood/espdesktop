@@ -5,6 +5,27 @@ import XCTest
 final class CompanionKeyboardShortcutTests: XCTestCase {
 
     @MainActor
+    func testExplicitAccessRequestsAlwaysOpenSettings() {
+        var prompts = 0
+        var opens = 0
+        var trusted = false
+        let authorizer = CompanionAccessibilityAuthorizer(
+            isProcessTrusted: { trusted },
+            openSettings: { opens += 1 },
+            requestPrompt: { prompts += 1 }
+        )
+        authorizer.requestAccess()
+        authorizer.requestAccess()
+        XCTAssertEqual(prompts, 1)
+        XCTAssertEqual(opens, 2)
+        trusted = true
+        authorizer.requestAccess()
+        XCTAssertEqual(prompts, 1)
+        XCTAssertEqual(opens, 3)
+        XCTAssertTrue(authorizer.hasAccess)
+    }
+
+    @MainActor
     func testWindowActionsAreFilteredByMacOSVersion() {
         let macOS13 = OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0)
         let macOS15 = OperatingSystemVersion(majorVersion: 15, minorVersion: 0, patchVersion: 0)

@@ -11,6 +11,7 @@ struct CompanionApp: App {
         Settings {
             CompanionSettings(store: appDelegate.store)
                 .frame(minWidth: 500, minHeight: 500)
+                .background(WindowRestorationDisabler().frame(width: 0, height: 0))
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -23,6 +24,24 @@ struct CompanionApp: App {
                     .keyboardShortcut(",", modifiers: .command)
             }
         }
+    }
+}
+
+private struct WindowRestorationDisabler: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        WindowRestorationMarkerView(frame: .zero)
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+private final class WindowRestorationMarkerView: NSView {
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let window else { return }
+        window.isRestorable = false
+        // The app presents its own AppKit settings window; this scene window is redundant.
+        DispatchQueue.main.async { [weak window] in window?.close() }
     }
 }
 
@@ -94,11 +113,24 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         return true
     }
 
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let menu = NSMenu()
+        addContextualControlMenuItems(to: menu)
+        return menu
+    }
+
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         menu.addItem(connectionStatusItem())
         menu.addItem(.separator())
 
+        addContextualControlMenuItems(to: menu)
+        addMenuItem(
+            "Quit", action: #selector(quit), key: "q",
+            image: menuSymbol("power", description: "Quit"), to: menu)
+    }
+
+    private func addContextualControlMenuItems(to menu: NSMenu) {
         let panelWebpageItem = NSMenuItem(
             title: "Customize Display",
             action: #selector(openDisplaySettings),
@@ -106,21 +138,18 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         )
         panelWebpageItem.target = self
         panelWebpageItem.keyEquivalentModifierMask = [.command]
-        panelWebpageItem.image = NSImage(
-            systemSymbolName: "display", accessibilityDescription: "Configure")
+        panelWebpageItem.image = menuSymbol("display", description: "Customize Display")
         panelWebpageItem.isEnabled = !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         menu.addItem(panelWebpageItem)
 
-        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",", to: menu)
+        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",",
+                    image: menuSymbol("gearshape", description: "Mac Settings"), to: menu)
         addMenuItem("Updates",
                     action: #selector(checkForUpdates), key: "u",
-                    image: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates"), to: menu)
+                    image: menuSymbol("arrow.triangle.2.circlepath", description: "Updates"), to: menu)
         menu.items.last?.isEnabled = !store.updater.isChecking
         addMenuItem("Support", action: #selector(openHelp), key: "?",
-                    image: NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Support"), to: menu)
-        addMenuItem(
-            "Quit", action: #selector(quit), key: "q",
-            image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
+                    image: menuSymbol("questionmark.circle", description: "Support"), to: menu)
     }
 
     private func connectionStatusItem() -> NSMenuItem {
@@ -165,6 +194,12 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         item.target = self
         item.image = image
         menu.addItem(item)
+    }
+
+    private func menuSymbol(_ name: String, description: String) -> NSImage? {
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: description)
+        image?.isTemplate = true
+        return image
     }
 
     @objc private func openDisplaySettings() { store.openPanelWebServer() }
@@ -226,6 +261,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         window.title = "Settings"
         window.backgroundColor = .windowBackgroundColor
         window.delegate = self
+        window.isRestorable = false
         window.minSize = NSSize(width: 500, height: 500)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(

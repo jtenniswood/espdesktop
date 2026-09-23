@@ -40,6 +40,10 @@ def package_substitution_lines(device: dict) -> list[str]:
     ]
     if package.get("firmwareVersion"):
         lines.append(f'  firmware_version: "{package["firmwareVersion"]}"')
+    camera_screensaver_supported = bool(device.get("camera_screensaver_supported"))
+    lines.append(
+        f'  screensaver_camera_supported: "{str(camera_screensaver_supported).lower()}"'
+    )
     added_voice_substitutions = False
     for key, value in package["substitutions"].items():
         lines.append(f"  {key}: {value}")
@@ -109,13 +113,30 @@ def voice_substitution_lines(device: dict) -> list[str]:
             '    ESP_LOGW("navigation", "Voice volume target is not available on this device");',
             '  voice_interaction_active_condition: "false"',
         ]
+    icon_offset_lines = clock_bar_icon_offset_lines(
+        "voice_clock_bar_icon_x", "voice_clock_bar_mute_button",
+        "voice_clock_bar_mute_icon_label",
+    )
+    if device["slug"] == "esp32-p4-86":
+        icon_offset_lines = [
+            "      // These controls open different modals: space their full touch targets,",
+            "      // not just the narrower glyphs, with an 18px gap inside the 60px bar.",
+            "      clock_bar_right_icons = clock_bar_right_icons_begin(clock_bar_right_x, 18);",
+            "      if (show_network) {",
+            "        const int network_box = lv_obj_get_width(id(network_status_button));",
+            "        clock_bar_right_icons_seed(clock_bar_right_icons, network_box, network_box);",
+            "      }",
+            "      const int voice_clock_bar_icon_x_box = lv_obj_get_width(id(voice_clock_bar_mute_button));",
+            "      const int voice_clock_bar_icon_x = clock_bar_right_icons_next_x(",
+            "          clock_bar_right_icons, voice_clock_bar_icon_x_box,",
+            "          voice_clock_bar_icon_x_box);",
+        ]
     return [
         "  voice_clock_bar_hide_code: |-",
         "    lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
         "  voice_clock_bar_apply_code: |-",
         "    if (id(voice_services_enabled).state) {",
-        *clock_bar_icon_offset_lines("voice_clock_bar_icon_x", "voice_clock_bar_mute_button",
-                                     "voice_clock_bar_mute_icon_label"),
+        *icon_offset_lines,
         "      lv_obj_align(id(voice_clock_bar_mute_button), LV_ALIGN_TOP_RIGHT,",
         "                   voice_clock_bar_icon_x, clock_bar_icon_y);",
         "      lv_obj_clear_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
@@ -186,6 +207,11 @@ def package_file_text(device: dict) -> str:
         [
             "substitutions:",
             *package_substitution_lines(device),
+            f'  image_card_slot_capacity: "{int(device["image_slot_capacity"])}"',
+            "",
+            "esphome:",
+            "  build_flags:",
+            '    - "-DESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS=${image_card_slot_capacity}"',
             "",
             "packages:",
             "  # ---------------------------------------------------------------------------",
@@ -268,6 +294,12 @@ def package_file_text(device: dict) -> str:
             include_line("screen_setup", "!include ../../common/device/screen_button_setup.yaml"),
             include_line("screen_clock", "!include ../../common/device/screen_clock.yaml"),
             include_line("screen_art", "!include ../../common/device/screen_cover_art.yaml"),
+            include_line(
+                "screen_camera",
+                "!include ../../common/device/screen_camera_screensaver.yaml"
+                if device.get("camera_screensaver_supported")
+                else "!include ../../common/device/screen_camera_screensaver_disabled.yaml",
+            ),
             *(
                 [
                     include_line(
@@ -288,6 +320,31 @@ def package_file_text(device: dict) -> str:
             "",
         ]
     )
+    if device["slug"] == "guition-esp32-p4-jc8012p4a1-v3":
+        lines.extend(
+            [
+                "# V3 production-silicon settings. Keep these outside the generated",
+                "# button package section so device-slot regeneration retains them.",
+                "external_components:",
+                "  - source:",
+                "      type: git",
+                "      url: ${espdesktop_component_url}",
+                "      ref: ${espdesktop_component_ref}",
+                "      path: components",
+                "    components: [mipi_dsi]",
+                "    refresh: 1s",
+                "",
+                "switch:",
+                "  - id: !extend auto_update_switch",
+                "    restore_mode: ALWAYS_OFF",
+                "  - id: !extend c6_auto_update_switch",
+                "    restore_mode: ALWAYS_OFF",
+                "",
+                "web_server:",
+                "  ota: false",
+                "",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -681,8 +738,58 @@ def phase2_block(device: dict) -> str:
     return "\n".join(lines)
 
 
+def display_sensor_subscription_script() -> str:
+    """Use the current sensor settings at boot and after live configuration changes."""
+    return """  - id: refresh_display_sensor_subscriptions
+    mode: single
+    then:
+      - lambda: |-
+          lv_obj_t *temperature_labels[] = {
+            id(temperatures),
+          };
+          grid_phase3(
+            id(indoor_temp_enable).state,
+            id(outdoor_temp_enable).state,
+            id(indoor_temp_entity).state,
+            id(outdoor_temp_entity).state,
+            id(clock_bar_temperature_entities).state,
+            &id(indoor_temp), &id(outdoor_temp),
+            temperature_labels,
+            1,
+            id(main_page)->obj,
+            id(presence_sensor_entity).state,
+            &id(presence_detected),
+            id(screen_schedule_sensor_entity).state,
+            &id(schedule_presence_detected),
+            id(media_player_sleep_prevention_entity).state,
+            &id(media_player_playing),
+            []() {
+              return clock_bar_should_show(
+                  id(clock_bar_enabled).state,
+                  id(main_page)->obj,
+                  id(espdesktop_app).display().current_mode(),
+                  id(espdesktop_app).display().target_schedule_inactive());
+            },
+            []() {
+              id(screensaver_presence_wake).execute();
+            },
+            []() {
+              id(screensaver_presence_sleep).execute();
+            },
+            []() {
+              id(screen_schedule_check).execute();
+            },
+            []() {
+              return id(outdoor_temp_enable).state;
+            });
+          ha_reannounce_state_subscriptions();
+"""
+
+
 def script_block(device: dict) -> str:
-    after_refresh = ["      - script.execute: clock_bar_apply"]
+    after_refresh = [
+        "      - script.execute: clock_bar_apply",
+    ]
     package = device.get("package") or {}
     subpage_chunks = int(package.get("subpageConfigChunks") or 8)
     subpage_rebuild_call = [
@@ -722,6 +829,7 @@ def script_block(device: dict) -> str:
                 *subpage_rebuild_call,
                 *after_refresh,
                 *subpage_refresh,
+                display_sensor_subscription_script(),
                 "",
             ]
         )
@@ -743,6 +851,7 @@ def script_block(device: dict) -> str:
             "            id(main_page)->obj);",
             *after_refresh,
             *subpage_refresh,
+            display_sensor_subscription_script(),
             "",
         ]
     )
@@ -778,6 +887,13 @@ def replace_script_block(text: str, device: dict) -> str:
 
 def replace_sensor_blocks(text: str, device: dict) -> str:
     text = replace_script_block(text, device)
+    text = re.sub(
+        r"(?ms)^        # Phase 3: Temperature \+ presence subscriptions\n"
+        r"        - lambda: \|-\n.*?(?=^        - delay: 500ms)",
+        "        # Bind display sensors after the initial grid is ready.\n"
+        "        - script.execute: refresh_display_sensor_subscriptions\n",
+        text,
+    )
     text = replace_phase(text, 1, phase1_block(device), "grid_phase1", device["slug"])
     text = replace_phase(text, 2, phase2_block(device), "grid_phase2", device["slug"])
     text = re.sub(

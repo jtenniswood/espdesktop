@@ -34,7 +34,7 @@ private enum CompanionPairingStep {
     case address, code, connecting, connected
 }
 
-private struct CompanionCapsuleButton: ViewModifier {
+struct CompanionCapsuleButton: ViewModifier {
     func body(content: Content) -> some View {
         if #available(macOS 14.0, *) {
             content.buttonBorderShape(.capsule)
@@ -111,6 +111,28 @@ private struct CompanionPermissionRow: View {
     }
 }
 
+private struct CompanionAccessibilityRow: View {
+    var body: some View {
+        HStack {
+            Text("Enable Shortcuts")
+                .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
+            Spacer()
+            Button {
+                // Leave the SwiftUI control transaction before opening another app.
+                DispatchQueue.main.async {
+                    CompanionAccessibilityAuthorizer.shared.requestAccess()
+                }
+            } label: {
+                Text("Open Settings")
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.bordered)
+            .modifier(CompanionCapsuleButton())
+        }
+    }
+}
+
 private struct OnboardingWindowTitle: NSViewRepresentable {
     let hidden: Bool
 
@@ -121,11 +143,18 @@ private struct OnboardingWindowTitle: NSViewRepresentable {
 
     final class TitleView: NSView {
         var hideTitle = false {
-            didSet { window?.titleVisibility = hideTitle ? .hidden : .visible }
+            didSet { updateTitle() }
         }
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
-            window?.titleVisibility = hideTitle ? .hidden : .visible
+            updateTitle()
+        }
+        private func updateTitle() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self, let window = self.window else { return }
+                let visibility: NSWindow.TitleVisibility = self.hideTitle ? .hidden : .visible
+                if window.titleVisibility != visibility { window.titleVisibility = visibility }
+            }
         }
     }
 }
@@ -146,21 +175,10 @@ private struct CompanionOnboarding: View {
 
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
-                        CompanionPermissionRow(
-                            title: "Keyboard shortcuts",
-                            information: "Allow Accessibility access in System Settings to use keyboard shortcuts and window controls.",
-                            isEnabled: Binding(
-                                get: { accessibilityGranted },
-                                set: { _ in enableAccessibility() }
-                            )
-                        )
-                        Divider()
-                        CompanionPermissionRow(
-                            title: "Share Mac stats",
-                            information: "Show your Mac’s performance. Stats are shared only with your paired display on your local network.",
-                            isEnabled: $store.shareSystemMetricsEnabled
-                        )
-                        Divider()
+                        if !accessibilityGranted {
+                            CompanionAccessibilityRow()
+                            Divider()
+                        }
                         CompanionPermissionRow(
                             title: "Launch at login",
                             information: "Open EspDesktop automatically when you sign in to your Mac.",
@@ -198,9 +216,6 @@ private struct CompanionOnboarding: View {
         accessibilityGranted = CompanionAccessibilityAuthorizer.shared.hasAccess
     }
 
-    private func enableAccessibility() {
-        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
-    }
 }
 
 struct CompanionSettings: View {
@@ -363,7 +378,7 @@ struct CompanionSettings: View {
                                 Button {
                                     store.openPanelWebServer()
                                 } label: {
-                                    Label("Customize", systemImage: "slider.horizontal.3")
+                                    Label("Customize", systemImage: "rectangle.grid.2x2")
                                         .padding(.vertical, 4)
                                 }
                                     .help("Open the display’s configuration in your browser")
@@ -382,7 +397,7 @@ struct CompanionSettings: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
                     }
-                    permissionsSection
+                    accessibilityAndStartupSections
                 }
                 .formStyle(.grouped)
             } else {
@@ -500,6 +515,7 @@ struct CompanionSettings: View {
             Button {
                 manualAddress = true
                 selectedDisplayID = nil
+                store.panelDisplayName = ""
                 focusedField = .panelHost
             } label: {
                 displayOption(
@@ -588,7 +604,7 @@ struct CompanionSettings: View {
                     .font(.title.weight(.semibold))
             }
             .accessibilityElement(children: .combine)
-            Text(store.panelHost)
+            Text(store.panelDisplayName.isEmpty ? store.panelHost : store.panelDisplayName)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
@@ -607,12 +623,12 @@ struct CompanionSettings: View {
         Toggle("Display connection", isOn: connectionToggleBinding)
             .labelsHidden()
             .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-            .controlSize(connectionSwitchSize)
+            .controlSize(largeSwitchSize)
             .disabled(store.connectionState.isBusy)
             .accessibilityLabel("Display connection")
     }
 
-    private var connectionSwitchSize: ControlSize {
+    private var largeSwitchSize: ControlSize {
         #if compiler(>=6.2)
         if #available(macOS 26.0, *) { return .extraLarge }
         #endif
@@ -653,6 +669,7 @@ struct CompanionSettings: View {
         if !manualAddress {
             guard let display = discovery.displays.first(where: { $0.id == selectedDisplayID }) else { return }
             store.panelHost = display.endpoint
+            store.panelDisplayName = display.name
         }
         guard canOpenPairingPage else {
             pairingFlowError = "Enter a valid local IP address or name.local."
@@ -708,8 +725,18 @@ struct CompanionSettings: View {
                     Text("Apps")
                     CompanionInfoButton(
                         title: "Apps",
-                        information: "Choose which Mac apps you can launch from your display. Enabled apps are available for app shortcuts; switch an app off to hide it from the display."
+                        information: "Choose which Mac apps you can launch from your display. Use the switch beside Apps to select or deselect all apps. Enabled apps are available for app shortcuts; switch an app off to hide it from the display."
                     )
+                    Spacer()
+                    Toggle("Select all apps", isOn: Binding(
+                        get: { store.allApplicationsApproved },
+                        set: { store.setAllApplications(approved: $0) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                    .controlSize(.mini)
+                    .disabled(store.availableApps.isEmpty)
+                    .help("Select or deselect all apps")
                 }
             }
         }
@@ -724,6 +751,8 @@ struct CompanionSettings: View {
                                detail: "Keep a project, documents, or downloads one tap away on your display.") {
                         Button("Add Folder…") { store.chooseFolder() }
                             .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .modifier(CompanionCapsuleButton())
                     }
                 } else {
                     ForEach(store.approvedFolders) { folder in
@@ -751,6 +780,8 @@ struct CompanionSettings: View {
                     }
                     Button("Add Folder…") { store.chooseFolder() }
                         .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .modifier(CompanionCapsuleButton())
                 }
                 if let message = store.folderMessage {
                     Text(message).font(.callout).foregroundStyle(.secondary)
@@ -795,10 +826,16 @@ struct CompanionSettings: View {
         .padding(.vertical, 24)
     }
 
-    private var permissionsSection: some View {
-        Section("Permissions") {
+    @ViewBuilder
+    private var accessibilityAndStartupSections: some View {
+        if !accessibilityGranted {
+            Section("Accessibility") {
+                CompanionAccessibilityRow()
+            }
+        }
+        Section {
             CompanionPermissionRow(
-                title: "Open Companion at Launch",
+                title: "Open at Startup",
                 information: store.supportsLaunchAtLogin
                     ? (store.launchAtLoginMessage.isEmpty
                        ? "Open EspDesktop automatically after you sign in."
@@ -807,18 +844,7 @@ struct CompanionSettings: View {
                 isEnabled: store.launchAtLoginBinding(),
                 isAvailable: store.supportsLaunchAtLogin
             )
-            CompanionPermissionRow(
-                title: "Enable Keyboard Shortcuts",
-                information: accessibilityGranted
-                    ? "Accessibility access is enabled."
-                    : "Requires Accessibility access in System Settings.",
-                isEnabled: Binding(get: { accessibilityGranted }, set: { _ in enableAccessibility() })
-            )
-            CompanionPermissionRow(
-                title: "Share Stats to Device",
-                information: "Share processor, memory, storage, network, and battery statistics only with your paired display on the local network.",
-                isEnabled: $store.shareSystemMetricsEnabled
-            )
+            .controlSize(.regular)
         }
     }
 
@@ -826,9 +852,12 @@ struct CompanionSettings: View {
         Form {
             Section {
                 Link("Buy Me a Coffee", destination: CompanionStore.buyMeACoffeeURL)
+                    .font(.title2)
                     .help("Contribute to ongoing support and new features")
                 Link("Give Feedback", destination: CompanionStore.issuesURL)
+                    .font(.title2)
                 Link("Get Help", destination: CompanionStore.supportURL)
+                    .font(.title2)
             } header: {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Help EspDesktop grow")
@@ -893,9 +922,6 @@ struct CompanionSettings: View {
         accessibilityGranted = CompanionAccessibilityAuthorizer.shared.hasAccess
     }
 
-    private func enableAccessibility() {
-        accessibilityGranted = CompanionAccessibilityAuthorizer.shared.isTrusted()
-    }
 }
 
 /// Installs real selectable toolbar items in the hosting window. AppKit owns
@@ -915,7 +941,9 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
 
     func updateNSView(_ nsView: WindowObserver, context: Context) {
         context.coordinator.selection = $selection
+        let selection = self.selection
         context.coordinator.toolbar.selectedItemIdentifier = .init(selection.rawValue)
+        context.coordinator.updateSelection()
     }
 
     static func dismantleNSView(_ nsView: WindowObserver, coordinator: Coordinator) {
@@ -928,7 +956,10 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
-            onWindowChange?(window)
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.onWindowChange?(self.window)
+            }
         }
     }
 
@@ -948,7 +979,18 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
         }
 
+        func updateSelection() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                let identifier = NSToolbarItem.Identifier(self.selection.wrappedValue.rawValue)
+                if self.toolbar.selectedItemIdentifier != identifier {
+                    self.toolbar.selectedItemIdentifier = identifier
+                }
+            }
+        }
+
         func attach(to window: NSWindow?) {
+            guard self.window !== window else { return }
             if let previous = self.window, previous !== window, previous.toolbar === toolbar {
                 previous.toolbar = nil
             }

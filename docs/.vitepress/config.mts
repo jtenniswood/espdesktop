@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
+import { faqSchema, hostname, jsonLd, writeRedirects } from './discovery'
 
-const hostname = 'https://jtenniswood.github.io/espdesktop/'
 const defaultImage = {
   url: `${hostname}images/4848s040-hero.jpg`,
   width: '1024',
@@ -81,7 +81,14 @@ const screenProducts: Record<string, Record<string, string>> = {
   },
   'screens/jc1060p470.md': {
     name: 'Guition JC1060P470',
-    model: 'JC1060P470 / new panel revision',
+    model: 'JC1060P470',
+    size: '7 inches',
+    resolution: '1024 x 600',
+    processor: 'ESP32-P4',
+  },
+  'screens/jc1060p470-v1.md': {
+    name: 'Guition JC1060P470 V1',
+    model: 'JC1060P470 V1',
     size: '7 inches',
     resolution: '1024 x 600',
     processor: 'ESP32-P4',
@@ -104,7 +111,14 @@ const screenProducts: Record<string, Record<string, string>> = {
   'screens/jc8012p4a1.md': {
     name: 'Guition JC8012P4A1',
     brand: 'Guition',
-    model: 'JC8012P4A1 / new panel revision',
+    model: 'JC8012P4A1',
+    size: '10.1 inches',
+    resolution: '1280 x 800',
+    processor: 'ESP32-P4',
+  },
+  'screens/jc8012p4a1-v1.md': {
+    name: 'Guition JC8012P4A1 V1',
+    model: 'JC8012P4A1 V1',
     size: '10.1 inches',
     resolution: '1280 x 800',
     processor: 'ESP32-P4',
@@ -117,103 +131,22 @@ const screenProducts: Record<string, Record<string, string>> = {
     resolution: '1280 x 800',
     processor: 'ESP32-P4',
   },
+  'screens/jc8012p4a1-v3.md': {
+    name: 'Guition JC8012P4A1 V3',
+    model: 'JC8012P4A1 V3',
+    size: '10.1 inches',
+    resolution: '1280 x 800',
+    processor: 'ESP32-P4',
+  },
   'screens/p4-86.md': {
-    name: 'ESP32-P4 86 Panel',
-    brand: 'ESP32-P4',
+    name: 'ESP32-P4 86',
+    brand: 'Waveshare',
     model: 'ESP32-P4-86-Panel-ETH-2RO',
     size: '4 inches',
     resolution: '720 x 720',
     processor: 'ESP32-P4',
   },
 }
-
-const faqItems = [
-  {
-    question: "How Do I Find My Device's IP Address?",
-    answer:
-      'Check the display when no cards are configured, your router connected devices list, or the ESPHome device page in Home Assistant.',
-  },
-  {
-    question: 'The Web Page Looks Broken or Unstyled',
-    answer:
-      'Make sure the panel has internet access, clear your browser cache, and try Chrome or Edge.',
-  },
-  {
-    question: "My Device Won't Connect to WiFi",
-    answer:
-      'Use a 2.4 GHz WiFi network, double-check the password, move closer to the router during setup, or reconnect through the espdesktop setup hotspot.',
-  },
-  {
-    question: 'How Do I Reset the Device?',
-    answer:
-      'Re-flash the firmware from the install guide with a USB-C data cable. WiFi settings reset, while card configuration is stored separately.',
-  },
-  {
-    question: 'Can I Use This Without Home Assistant?',
-    answer:
-      'Yes. The 4-inch 4848S040 can use the Mac Companion connector without Home Assistant. Home Assistant remains optional for smart-home controls and is still the main connector on the other panel profiles.',
-  },
-  {
-    question: 'What Can I Control on My Mac?',
-    answer:
-      'A paired 4848S040 can launch approved apps, open approved folders and websites, run shortcuts, arrange windows, control media and volume, show Now Playing artwork, and display optional Mac statistics.',
-  },
-  {
-    question: 'Why Is a Mac Card Disabled?',
-    answer:
-      'Check that the Mac is connected, the app or folder is approved, required Accessibility or statistics permission is enabled, and the Mac app and display firmware versions match.',
-  },
-  {
-    question: 'How Do I Update the Firmware?',
-    answer:
-      'Leave Auto Update enabled for automatic updates, or use Check for Update in the Firmware section of the setup page. Advanced Ethernet-only builds may need to be updated through ESPHome.',
-  },
-  {
-    question: "What If the Icon I Need Isn't Listed?",
-    answer:
-      'Open a GitHub issue with the Material Design Icons name and what you would use it for.',
-  },
-  {
-    question: 'What Card Types Are Available?',
-    answer:
-      'The setup page includes Switch, Lights, Action, Option Select, Webhook, Trigger, Sensor, Doors & Windows, Presence, Slider, Fans, Vacuum, Lawn Mower, Cover, Garage Door, Lock, Alarm, Date & Time, World Clock, Weather, Camera, Media, Climate, Internal Switches, Screen Lock, and Subpage cards.',
-  },
-  {
-    question: 'How Many Cards Can I Have?',
-    answer:
-      'The home screen supports 20 cards on both JC8012P4A1 rear-case revisions, 15 on both JC1060P470 panel revisions, 6 on JC4880P443, and 9 on 4848S040 or the ESP32-P4 86 Panel, with more available through subpages.',
-  },
-  {
-    question: 'What Is a Subpage?',
-    answer:
-      'A Subpage card works like a folder, opening another page of cards for grouping rooms or device types.',
-  },
-  {
-    question: 'Can I Back Up My Setup?',
-    answer:
-      'Yes. Use Export and Import in the Backup section of the setup page to save and restore cards, subpages, colours, and display settings.',
-  },
-  {
-    question: 'Which Panels Are Supported?',
-    answer:
-      'EspDesktop supports both Guition JC8012P4A1 rear-case revisions, both JC1060P470 panel revisions, JC4880P443, 4848S040, and ESP32-P4 86 Panel touchscreens.',
-  },
-  {
-    question: 'Does the Panel Work with Other Smart Home Platforms?',
-    answer:
-      'EspDesktop is built for Home Assistant. Other platforms only work indirectly if they are integrated into Home Assistant.',
-  },
-  {
-    question: 'The Display Is Stuck on the Loading Screen',
-    answer:
-      'Wait up to 60 seconds, power-cycle the panel, and if the setup hotspot appears, go through WiFi setup again.',
-  },
-  {
-    question: 'How Is My Data Handled?',
-    answer:
-      'Device control stays on your local network. Internet access is only used for firmware update checks and web page styling resources.',
-  },
-]
 
 export default defineConfig({
   title: 'EspDesktop',
@@ -223,6 +156,20 @@ export default defineConfig({
   lang: 'en-US',
   cleanUrls: true,
   lastUpdated: true,
+  // Publish only the Mac Companion setup and control guides. The broader
+  // Home Assistant panel documentation lives in the EspControl docs.
+  srcExclude: [
+    'generated/**',
+    'guides/**',
+    'immich/**',
+    'card-types/{actions,alarms,buttons,calendar,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,internal-relays,lawn-mower,lights,local-actions,local-sensors,locks,media,option-select,presence,screen-lock,sensors,sliders,switches,timers,timezones,vacuum,weather,weather-forecast,webhooks,wifi-share}.md',
+    'features/{appearance,backlight,backup,battery,clock,clock-bar,firmware-updates,idle,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
+    'getting-started/{c6-recovery,home-assistant-actions,manual-esphome-setup,migrate-esphome-media-player}.md',
+    'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
+    'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
+  ],
+  markdown: { config: faqSchema },
+  buildEnd: ({ outDir }) => writeRedirects(outDir),
 
   sitemap: {
     hostname,
@@ -230,15 +177,10 @@ export default defineConfig({
   },
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/espdesktop/favicon.svg' }],
-    [
-      'meta',
-      {
-        name: 'keywords',
-        content:
-          'EspDesktop, Mac controller, macOS Companion, ESP32-S3, 4848S040, touchscreen, keyboard shortcuts, window controls, media controls, Home Assistant',
-      },
-    ],
+    ...(process.env.GOOGLE_SITE_VERIFICATION
+      ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
+      : []),
+    ['link', { rel: 'icon', type: 'image/png', href: '/espdesktop/favicon.png' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
     ['meta', { property: 'og:site_name', content: 'EspDesktop' }],
@@ -256,7 +198,7 @@ export default defineConfig({
     [
       'script',
       { type: 'application/ld+json' },
-      JSON.stringify({
+      jsonLd({
         '@context': 'https://schema.org',
         '@graph': [
           {
@@ -265,7 +207,7 @@ export default defineConfig({
             url: hostname,
             name: 'EspDesktop',
             description:
-              'A local touchscreen controller for Mac apps, shortcuts, windows, media, volume, folders, websites, and system statistics, with optional Home Assistant controls.',
+              'A local touchscreen controller for Mac apps, shortcuts, windows, media, volume, folders, websites, and system statistics.',
             inLanguage: 'en-US',
           },
           {
@@ -325,55 +267,22 @@ export default defineConfig({
       title &&
       description
     ) {
-      const isHowTo =
-        pageData.relativePath === 'getting-started/install.md' ||
-        pageData.relativePath === 'getting-started/manual-esphome-setup.md' ||
-        pageData.relativePath === 'getting-started/migrate-esphome-media-player.md'
       const articleSchema: Record<string, unknown> = {
         '@context': 'https://schema.org',
-        '@type': isHowTo ? 'HowTo' : 'TechArticle',
+        '@type': 'TechArticle',
         name: title,
         description,
         url: canonicalUrl,
         isPartOf: { '@id': `${hostname}#website` },
         author: { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' },
       }
-      if (isHowTo) {
-        if (pageData.relativePath === 'getting-started/manual-esphome-setup.md') {
-          articleSchema.step = [
-            { '@type': 'HowToStep', name: 'Choose the correct ESPHome package file' },
-            { '@type': 'HowToStep', name: 'Create the device in ESPHome Device Builder' },
-            { '@type': 'HowToStep', name: 'Install by USB or OTA' },
-            { '@type': 'HowToStep', name: 'Add the display to Home Assistant' },
-          ]
-        } else if (
-          pageData.relativePath === 'getting-started/migrate-esphome-media-player.md'
-        ) {
-          articleSchema.step = [
-            { '@type': 'HowToStep', name: 'Install and connect EspDesktop' },
-            { '@type': 'HowToStep', name: 'Choose an automatic or card-based cover-art layout' },
-            { '@type': 'HowToStep', name: 'Configure media playback controls' },
-            { '@type': 'HowToStep', name: 'Configure the idle clock or display-off behaviour' },
-          ]
-        } else {
-          articleSchema.step = [
-            { '@type': 'HowToStep', name: 'Flash firmware from your browser' },
-            { '@type': 'HowToStep', name: 'Connect to WiFi' },
-            { '@type': 'HowToStep', name: 'Add to Home Assistant' },
-            { '@type': 'HowToStep', name: 'Configure buttons from the web page' },
-          ]
-        }
+      if (pageData.lastUpdated) {
+        articleSchema.dateModified = new Date(pageData.lastUpdated).toISOString()
       }
       if (pageData.relativePath === 'reference/faq.md') {
         articleSchema['@type'] = 'FAQPage'
-        articleSchema.mainEntity = faqItems.map((item) => ({
-          '@type': 'Question',
-          name: item.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: item.answer,
-          },
-        }))
+        articleSchema.mainEntity = pageData.frontmatter.faqAnswers
+        delete pageData.frontmatter.faqAnswers
       }
       const screenProduct = screenProducts[pageData.relativePath]
       if (screenProduct) {
@@ -394,16 +303,14 @@ export default defineConfig({
       pageData.frontmatter.head.push([
         'script',
         { type: 'application/ld+json' },
-        JSON.stringify(articleSchema),
+        jsonLd(articleSchema),
       ])
     }
   },
 
   themeConfig: {
     nav: [
-      { text: 'Install', link: '/getting-started/install' },
-      { text: 'Mac App', link: '/getting-started/mac-app' },
-      { text: 'Mac Cards', link: '/card-types/companion' },
+      { text: 'Setup', link: '/getting-started/install' },
       { text: 'Issues', link: 'https://github.com/jtenniswood/espdesktop/issues' },
       { text: 'GitHub', link: 'https://github.com/jtenniswood/espdesktop' },
     ],
@@ -413,114 +320,29 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Install', link: '/getting-started/install' },
-          { text: 'Mac App', link: '/getting-started/mac-app' },
-          { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
+          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Companion App', link: '/getting-started/mac-app' },
         ],
       },
       {
         text: 'Mac Control',
         items: [
-          { text: 'Mac Cards & Capabilities', link: '/card-types/companion' },
-          { text: 'Volume Sliders', link: '/card-types/sliders' },
-          { text: 'Now Playing Cover Art', link: '/features/media-cover-art' },
-          { text: 'App & Stat Subpages', link: '/features/subpages' },
-        ],
-      },
-      {
-        text: 'Supported Screens',
-        items: [
-          { text: '10.1-inch JC8012P4A1', link: '/screens/jc8012p4a1' },
-          { text: '7-inch JC1060P470', link: '/screens/jc1060p470' },
-          { text: '4.3-inch JC4880P443', link: '/screens/jc4880p443' },
-          { text: '4-inch ESP32-P4 86 Panel', link: '/screens/p4-86' },
-          { text: '4-inch 4848S040', link: '/screens/4848s040' },
-          { text: 'Printable Stands', link: '/reference/3d-printable-stands' },
-        ],
-      },
-      {
-        text: 'Configuring',
-        items: [
-          { text: 'Setup', link: '/features/setup' },
+          { text: 'Overview', link: '/card-types/companion' },
+          { text: 'Configure', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
+          { text: 'Apps & Websites', link: '/mac-controls/apps' },
+          { text: 'Finder Folders', link: '/mac-controls/folders' },
+          { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Window Controls', link: '/mac-controls/windows' },
+          { text: 'Statistics', link: '/mac-controls/statistics' },
+          { text: 'Permissions & Security', link: '/mac-controls/security' },
+          { text: 'Where to Buy', link: 'https://jtenniswood.github.io/espcontrol/screens/4848s040#where-to-buy' },
         ],
       },
       {
-        text: 'Card Types',
+        text: 'Support',
         items: [
-          { text: 'Overview', link: '/card-types/' },
-          { text: 'Action', link: '/card-types/actions' },
-          { text: 'Alarm', link: '/card-types/alarms' },
-          { text: 'Camera', link: '/card-types/cameras' },
-          { text: 'Climate', link: '/card-types/climate' },
-          { text: 'Cover', link: '/card-types/covers' },
-          { text: 'Date & Time', link: '/card-types/calendar' },
-          { text: 'Doors & Windows', link: '/card-types/doors-windows' },
-          { text: 'Fans', link: '/card-types/fans' },
-          { text: 'Garage Door', link: '/card-types/garage-doors' },
-          { text: 'Gate', link: '/card-types/gates' },
-          { text: 'Internal', link: '/card-types/internal-relays' },
-          { text: 'Lawn Mower', link: '/card-types/lawn-mower' },
-          { text: 'Lights', link: '/card-types/lights' },
-          { text: 'Local Action', link: '/card-types/local-actions' },
-          { text: 'Lock', link: '/card-types/locks' },
-          { text: 'Media', link: '/card-types/media' },
-          { text: 'Option Select', link: '/card-types/option-select' },
-          { text: 'Presence', link: '/card-types/presence' },
-          { text: 'Screen Lock', link: '/card-types/screen-lock' },
-          { text: 'Sensor', link: '/card-types/sensors' },
-          { text: 'Local Sensor', link: '/card-types/local-sensors' },
-          { text: 'Slider', link: '/card-types/sliders' },
-          { text: 'Subpage', link: '/features/subpages' },
-          { text: 'Switch', link: '/card-types/switches' },
-          { text: 'Trigger', link: '/card-types/buttons' },
-          { text: 'Weather', link: '/card-types/weather' },
-          { text: 'Webhook', link: '/card-types/webhooks' },
-          { text: 'Wifi Share', link: '/card-types/wifi-share' },
-          { text: 'World Clock', link: '/card-types/timezones' },
-        ],
-      },
-      {
-        text: 'Home Assistant',
-        items: [
-          { text: 'Enable Actions', link: '/getting-started/home-assistant-actions' },
-        ],
-      },
-      {
-        text: 'Settings',
-        items: [
-          { text: '<span class="sidebar-static-header">Display</span>' },
-          { text: 'Appearance', link: '/features/appearance' },
-          { text: 'Backlight', link: '/features/backlight' },
-          { text: 'Clock Bar', link: '/features/clock-bar' },
-          { text: 'Battery', link: '/features/battery' },
-          { text: 'Rotation', link: '/features/rotation' },
-          { text: '<span class="sidebar-static-header">Sleep & Schedule</span>' },
-          { text: 'Idle', link: '/features/idle' },
-          { text: 'Screensaver', link: '/features/screensaver' },
-          { text: 'Media Cover Art', link: '/features/media-cover-art' },
-          { text: 'Night Schedule', link: '/features/screen-schedule' },
-          { text: '<span class="sidebar-static-header">System</span>' },
-          { text: 'Language', link: '/features/language' },
-          { text: 'Time Settings', link: '/features/clock' },
-          { text: 'Temperature Settings', link: '/features/temperature' },
-          { text: 'Backup', link: '/features/backup' },
-          { text: 'Firmware', link: '/features/firmware-updates' },
-          { text: 'Built-in Relays', link: '/features/relays' },
-          { text: 'Voice Control', link: '/features/voice-control' },
-        ],
-      },
-      {
-        text: 'Advanced',
-        items: [
-          { text: 'Manual Setup', link: '/getting-started/manual-esphome-setup' },
-          { text: 'Contributing', link: '/reference/contributing' },
-          { text: 'Collect USB Logs', link: '/reference/collect-usb-logs' },
-          { text: 'Wifi Issues', link: '/getting-started/c6-recovery' },
-          { text: 'Icon Reference', link: '/reference/icons' },
-          { text: 'Language Support', link: '/reference/language-support' },
-          { text: 'Request Device Support', link: '/reference/request-device-support' },
-          { text: 'Privacy Policy', link: '/reference/privacy' },
+          { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
         ],
       },

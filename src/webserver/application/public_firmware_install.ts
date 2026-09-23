@@ -50,13 +50,13 @@ export function createPublicFirmwareInstallFeature(
             return Promise.resolve(state.firmwareOtaUrl);
         return requestApi.getJsonQuietly(publicFirmwareVersionsUrl(), function (this: any, d?: any) {
             setPublicFirmwareVersions(firmwareInfosFromPublicVersions(d));
-        }).then(function (this: any) {
+        }, { credentials: "omit" }).then(function (this: any) {
             info = firmwareInfoForVersion(requestedVersion);
             if (info && info.ota_url)
                 return info.ota_url;
             return requestApi.getJsonQuietly(publicFirmwareManifestUrl(), function (this: any, d?: any) {
                 setPublicFirmwareInfo(firmwareInfoFromPublicManifest(d));
-            }).then(function (this: any) {
+            }, { credentials: "omit" }).then(function (this: any) {
                 info = firmwareInfoForVersion(requestedVersion);
                 return info && info.ota_url ? info.ota_url : "";
             });
@@ -73,7 +73,7 @@ export function createPublicFirmwareInstallFeature(
         return requestApi.getJsonQuietly(publicFirmwareManifestUrl(), function (this: any, d?: any) {
             if (installingLatest)
                 setPublicFirmwareInfo(firmwareInfoFromPublicManifest(d));
-        }).then(function (this: any) {
+        }, { credentials: "omit" }).then(function (this: any) {
             info = info || selectedFirmwareInfo();
             var targetVersion: any = info && info.latest_version ? info.latest_version : state.firmwareLatestVersion;
             if (isSpecificFirmwareVersion(targetVersion)) {
@@ -95,7 +95,7 @@ export function createPublicFirmwareInstallFeature(
             return ensurePublicFirmwareOtaUrl(info).then(function (this: any, otaUrl?: any) {
                 if (!otaUrl)
                     throw new Error("Firmware file is not available yet.");
-                return deviceApi.request(otaUrl, { cache: "no-store" });
+                return deviceApi.request(otaUrl, { cache: "no-store", credentials: "omit" });
             }).then(function (this: any, result?: any) {
                 if (result.kind === "network-error")
                     throw result.error;

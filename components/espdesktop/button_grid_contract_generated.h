@@ -12,6 +12,7 @@ constexpr int CARD_CONTRACT_VERSION = 1;
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
+  TIMER,
   SWITCH,
   ACTION,
   VACUUM,
@@ -101,6 +102,7 @@ enum class CardDriverId : uint8_t {
   WEATHER,
   IMAGE,
   WIFI_QR,
+  TIMER,
   UNKNOWN,
 };
 
@@ -126,6 +128,7 @@ constexpr bool has_capability(const CardRuntimeSpec &spec, CardCapabilityFlag ca
 }
 
 inline CardTypeId card_type_id(const std::string &type) {
+  if (type == "timer") return CardTypeId::TIMER;
   if (type.empty()) return CardTypeId::SWITCH;
   if (type == "action") return CardTypeId::ACTION;
   if (type == "vacuum") return CardTypeId::VACUUM;
@@ -174,6 +177,7 @@ inline CardTypeId card_type_id(const std::string &type) {
 
 inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
   switch (type) {
+    case CardTypeId::TIMER: return {type, CardDriverId::TIMER, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::SWITCH: return {type, CardDriverId::TOGGLE, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::ACTION: return {type, CardDriverId::ACTION, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::VACUUM: return {type, CardDriverId::VACUUM, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
@@ -214,8 +218,8 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::TIMEZONE: return {type, CardDriverId::DATE_TIME, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::IMAGE: return {type, CardDriverId::IMAGE, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
-    case CardTypeId::WIFI_QR: return {type, CardDriverId::WIFI_QR, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_SUBPAGE)};
-    case CardTypeId::WIFI_QR_CARD: return {type, CardDriverId::WIFI_QR, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_SUBPAGE)};
+    case CardTypeId::WIFI_QR: return {type, CardDriverId::WIFI_QR, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_SUBPAGE)};
+    case CardTypeId::WIFI_QR_CARD: return {type, CardDriverId::WIFI_QR, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER_FORECAST: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
     default: return {};
   }
@@ -317,6 +321,8 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_COVER_TABS = "cover_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_DATE_TIME_MODE = "date_time_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_FAN_LIGHT_ENTITY = "fan_light_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_FAN_TABS = "fan_tabs";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_BEHAVIOR = "finder_open_behavior";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_OVERRIDE = "finder_open_override";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GARAGE_MODE = "garage_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GATE_MODE = "gate_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_HIDDEN = "hidden";
@@ -346,6 +352,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_SCRIPT_FIELDS = "script_fields";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SECURITY = "security";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SPEAKER_GROUP_ENTITY = "speaker_group_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SSID64 = "ssid64";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_STAT_LABELS_OFF = "stat_labels_off";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_ENTITY = "state_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_HIGH_LABEL = "state_high_label";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT = "state_input";
@@ -567,6 +574,7 @@ inline bool card_contract_alarm_action_legacy_icon_name(const std::string &mode,
 }
 
 inline const char *card_contract_card_label(const std::string &type) {
+  if (type == "timer") return "Timer";
   if (type == "") return "Switch";
   if (type == "action") return "Action";
   if (type == "vacuum") return "Vacuum";
@@ -614,6 +622,7 @@ inline const char *card_contract_card_label(const std::string &type) {
 }
 
 inline bool card_contract_allow_in_subpage(const std::string &type) {
+  if (type == "timer") return true;
   if (type == "") return true;
   if (type == "action") return true;
   if (type == "vacuum") return true;
@@ -661,6 +670,7 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
 }
 
 inline const char *card_contract_default_icon_name(const std::string &type) {
+  if (type == "timer") return "Auto";
   if (type == "") return "Auto";
   if (type == "action") return "Flash";
   if (type == "vacuum") return "Robot Vacuum";
@@ -708,6 +718,7 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
 }
 
 inline const char *card_contract_default_icon_on_name(const std::string &type) {
+  if (type == "timer") return "Auto";
   if (type == "") return "Auto";
   if (type == "action") return "Auto";
   if (type == "vacuum") return "Auto";
@@ -788,6 +799,7 @@ inline bool card_contract_large_numbers_supported(const std::string &type, const
 }
 
 inline const char *card_contract_subpage_type_code(const std::string &type) {
+  if (type == "timer") return "TM";
   if (type == "action") return "A";
   if (type == "calendar") return "D";
   if (type == "clock") return "CK";
@@ -831,6 +843,7 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
 }
 
 inline std::string card_contract_subpage_type_from_code(const std::string &code) {
+  if (code == "TM") return "timer";
   if (code == "A") return "action";
   if (code == "D") return "calendar";
   if (code == "CK") return "clock";

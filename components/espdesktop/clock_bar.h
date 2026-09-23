@@ -345,23 +345,56 @@ inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
   return widths;
 }
 
+inline std::string &clock_bar_modal_label() {
+  static std::string label;
+  return label;
+}
+inline const std::string &clock_bar_left_title() {
+  return clock_bar_modal_label().empty() ? clock_bar_companion_subpage_label()
+                                       : clock_bar_modal_label();
+}
+struct ClockBarRefreshContext {
+  lv_obj_t *page = nullptr;
+  bool initialized = false;
+  bool visible = false;
+  bool indoor_enabled = false;
+  bool outdoor_enabled = false;
+  float indoor = NAN;
+  float outdoor = NAN;
+};
+inline ClockBarRefreshContext &clock_bar_refresh_context() {
+  static ClockBarRefreshContext context;
+  return context;
+}
+inline void refresh_clock_bar_temperature_label_values(
+    lv_obj_t *, bool, bool, bool, float, float);
 inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   if (!label) return;
   const auto &widths = clock_bar_left_text_widths();
-  lv_obj_set_width(label, clock_bar_companion_subpage_label().empty()
-      ? widths.temperature : widths.title);
+  lv_obj_set_width(label, clock_bar_left_title().empty() ? widths.temperature : widths.title);
 }
-
+inline void clock_bar_refresh_left_title() {
+  const auto context = clock_bar_refresh_context();
+  auto &labels = clock_bar_temperature_labels();
+  if (!labels.empty() && labels[0]) {
+    lv_label_set_display_text(labels[0], clock_bar_left_title().c_str());
+    clock_bar_update_left_text_width(labels[0]);
+    if (clock_bar_left_title().empty()) lv_obj_add_flag(labels[0], LV_OBJ_FLAG_HIDDEN);
+  }
+  if (context.initialized) {
+    refresh_clock_bar_temperature_label_values(context.page, context.visible,
+        context.indoor_enabled, context.outdoor_enabled, context.indoor, context.outdoor);
+  }
+}
 inline void set_clock_bar_companion_subpage_label(const std::string &label) {
   if (clock_bar_companion_subpage_label() == label) return;
   clock_bar_companion_subpage_label() = label;
-  // Update the visible text in the navigation event, not the periodic refresh.
-  auto &labels = clock_bar_temperature_labels();
-  if (!labels.empty() && labels[0]) {
-    lv_label_set_display_text(labels[0], label.c_str());
-    clock_bar_update_left_text_width(labels[0]);
-    if (label.empty()) lv_obj_add_flag(labels[0], LV_OBJ_FLAG_HIDDEN);
-  }
+  clock_bar_refresh_left_title();
+}
+inline void set_clock_bar_modal_label(const std::string &label) {
+  if (clock_bar_modal_label() == label) return;
+  clock_bar_modal_label() = label;
+  clock_bar_refresh_left_title();
 }
 
 inline void set_clock_bar_temperature_labels(lv_obj_t **labels, size_t count) {
@@ -382,6 +415,7 @@ inline void hide_clock_bar_top_layer_widgets(lv_obj_t **temperature_labels,
                                              size_t temperature_label_count,
                                              lv_obj_t *display_time,
                                              lv_obj_t *network_status_button) {
+  clock_bar_refresh_context().visible = false;
   set_clock_bar_temperature_labels(temperature_labels, temperature_label_count);
   for (size_t i = 0; temperature_labels && i < temperature_label_count; i++) {
     clock_bar_set_widget_hidden(temperature_labels[i], true);
@@ -467,12 +501,14 @@ inline void refresh_clock_bar_temperature_label_values(
     lv_obj_t *main_page_obj, bool clock_bar_visible,
     bool indoor_enabled, bool outdoor_enabled,
     float indoor, float outdoor) {
+  clock_bar_refresh_context() = {main_page_obj, true, clock_bar_visible,
+      indoor_enabled, outdoor_enabled, indoor, outdoor};
   const bool show_on_screen =
       clock_bar_visible && clock_bar_active_on_button_grid_page(main_page_obj);
   std::vector<lv_obj_t *> &labels = clock_bar_temperature_labels();
 
   if (!labels.empty()) clock_bar_update_left_text_width(labels[0]);
-  const std::string &companion_label = clock_bar_companion_subpage_label();
+  const std::string &companion_label = clock_bar_left_title();
   if (!companion_label.empty()) {
     if (!show_on_screen || labels.empty()) {
       for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
@@ -624,6 +660,38 @@ inline void clock_bar_prepare_text_label(lv_obj_t *obj, int width,
   lv_obj_set_style_text_align(obj, align, LV_PART_MAIN);
 }
 
+// Keep the settings shortcut above newly created or reordered modal overlays.
+// Hidden clock-bar controls stay hidden; only the existing button's stacking
+// order changes, so its normal touch handling remains in effect.
+inline void clock_bar_raise_settings_button(lv_obj_t *button) {
+  if (!button || lv_obj_has_flag(button, LV_OBJ_FLAG_HIDDEN)) return;
+  lv_obj_move_foreground(button);
+}
+
+inline void clock_bar_settings_layer_changed(lv_event_t *event) {
+  auto *button = static_cast<lv_obj_t *>(lv_event_get_user_data(event));
+  if (!button || lv_event_get_target(event) != lv_obj_get_parent(button)) return;
+  clock_bar_raise_settings_button(button);
+}
+
+// Register once after the top-layer widgets have been created.
+inline void clock_bar_enable_settings_access(lv_obj_t *button) {
+  if (!button) return;
+  lv_obj_t *layer = lv_obj_get_parent(button);
+  if (!layer) return;
+  lv_obj_add_event_cb(layer, clock_bar_settings_layer_changed,
+                      LV_EVENT_CHILD_CHANGED, button);
+  lv_obj_add_event_cb(button, [](lv_event_t *event) {
+    auto *deleted = static_cast<lv_obj_t *>(lv_event_get_target(event));
+    lv_obj_t *parent = lv_obj_get_parent(deleted);
+    if (parent) {
+      lv_obj_remove_event_cb_with_user_data(
+          parent, clock_bar_settings_layer_changed, deleted);
+    }
+  }, LV_EVENT_DELETE, nullptr);
+  clock_bar_raise_settings_button(button);
+}
+
 inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
                                          lv_obj_t *display_time,
                                          lv_obj_t *network_status_button,
@@ -666,7 +734,7 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
   }
   if (network_status_button) {
     lv_obj_align(network_status_button, LV_ALIGN_TOP_RIGHT, -right_x, network_y);
-    lv_obj_move_background(network_status_button);
+    clock_bar_raise_settings_button(network_status_button);
   }
 }
 

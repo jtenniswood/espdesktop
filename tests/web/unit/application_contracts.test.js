@@ -52,38 +52,42 @@ describe("browserless application contracts", () => {
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.match(connectors, /sp-card-badge sp-hidden/);
-    assert.match(connectors, /setHidden\(homeAssistantSteps, value\.home_assistant\.connected\)/);
-    assert.match(connectors, /setHidden\(homeAssistantActionInfo, value\.home_assistant\.actions_confirmed\)/);
+    assert.match(connectors, /setHidden\(homeAssistantSteps, statusEndpointAvailable && \(ha\.connected \|\| ha\.configured\)\)/);
+    assert.match(connectors, /setHidden\(homeAssistantActionInfo, !ha\.connected \|\| ha\.actions_confirmed\)/);
     assert.match(connectors, /sp-connector-info/);
-    assert.match(connectors, /cannot perform actions in Home Assistant/);
+    assert.match(connectors, /This lets the display control your devices/);
     assert.match(connectors, /connectors\/home-assistant\/complete/);
     assert.match(connectors, /connectors\/home-assistant\/forget/);
     assert.match(connectors, /Forget Home Assistant/);
-    assert.match(connectors, /I enabled Home Assistant actions/);
+    assert.doesNotMatch(connectors, /Only forget this connection/);
+    assert.match(connectors, /sp-action-btn sp-delete-btn sp-destructive-btn/);
+    assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
+    assert.match(connectors, /I’ve enabled actions/);
     assert.doesNotMatch(connectors, /Actions confirmed/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);
     assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{max-width:960px/);
+    assert.match(styles, /\.sp-connectors-config\{padding-top:32px\}/);
     assert.doesNotMatch(connectors, /sp-connectors-intro|Manage the services that provide data and actions/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
+    assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
 
-  test("gates Home Assistant and Companion screensaver modes by connector setup", () => {
+  test("gates Home Assistant and Companion screensaver modes by live connector state", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const screensaver = fs.readFileSync(path.join(ROOT, "src/webserver/application/screensaver_state.ts"), "utf8");
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     assert.match(settings, /\["sensor", "Home Assistant"\]/);
-    assert.match(settings, /\["companion", "Companion App"\]/);
-    assert.match(settings, /sensorBtn\.hidden = !haAvailable/);
+    assert.match(settings, /\["companion", "App Connection"\]/);
+    assert.match(settings, /sensorBtn\.hidden = !haConnected/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
     assert.match(screensaver, /state\.screensaverMode === "companion"/);
     assert.match(eventHandlers, /val === "companion"/);
-    assert.match(connectors, /homeAssistantConfigured\(\)/);
+    assert.match(connectors, /homeAssistantConnected\(\)/);
     assert.match(connectors, /companionConfigured\(\)/);
   });
 
@@ -479,8 +483,8 @@ describe("browserless application contracts", () => {
     assert.equal(definitions.wifi_qr.isAvailable(), false);
     nativeSupported = true;
     assert.equal(definitions.wifi_qr.isAvailable(), true);
-    assert.match(source, /labelField:\s*\{\s*label:\s*"Card title"/);
-    assert.doesNotMatch(source, /renderBasicCardFields\([^\n]+label:\s*false/);
+    assert.match(source, /labelField:\s*\{\s*label:\s*"Name"/);
+    assert.match(source, /renderBasicCardFields\([^\n]+label:\s*false/);
     assert.match(source, /disclosureSection\("Wifi Network"/);
     assert.match(source, /disclosureSection\("Modal Settings"/);
     assert.match(source, /wifiQrTabDefinitions/);
@@ -494,10 +498,20 @@ describe("browserless application contracts", () => {
     const custom = { label: "Visitors", options: "" };
     definitions.wifi_qr.normalizeConfig(custom);
     assert.equal(custom.label, "Visitors");
-    const qrCard = { type: "wifi_qr_card", label: "Remove me", icon: "Wifi", options: "" };
+    const guest = { type: "wifi_qr", entity: "switch.guest_wifi", label: "Visitors", options: "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials" };
+    definitions.wifi_qr.normalizeConfig(guest);
+    assert.equal(guest.entity, "switch.guest_wifi");
+    assert.equal(guest.options, "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials");
+    definitions.wifi_qr.cardMetadata.mode.onChange.call(
+      { value: "wifi_qr_card" }, guest, { saveField() {} },
+    );
+    assert.equal(guest.entity, "switch.guest_wifi");
+    assert.equal(guest.options, "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials");
+    rerenders = 0;
+    const qrCard = { type: "wifi_qr_card", label: "Visitors", icon: "Wifi", options: "" };
     definitions.wifi_qr_card.normalizeConfig(qrCard);
     assert.equal(qrCard.type, "wifi_qr_card");
-    assert.equal(qrCard.label, "");
+    assert.equal(qrCard.label, "Visitors");
     assert.equal(qrCard.icon, "Auto");
     const qrPreview = definitions.wifi_qr_card.renderPreview(qrCard, {});
     assert.equal(qrPreview.labelHtml, "");
@@ -512,7 +526,7 @@ describe("browserless application contracts", () => {
       { value: "wifi_qr" }, qrCard, { saveField() {} },
     );
     assert.equal(qrCard.type, "wifi_qr");
-    assert.equal(qrCard.label, "Connect");
+    assert.equal(qrCard.label, "Visitors");
     assert.equal(qrCard.icon, "Wifi");
     assert.equal(rerenders, 1);
     assert.match(source, /\[\["wifi_qr", "Connect Card"\], \["wifi_qr_card", "QR Card"\]\]/);
@@ -532,13 +546,65 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(webServer, /event_payload_is_legacy_panel_config/);
     assert.doesNotMatch(app, /panel_config_legacy_entity_guard/);
     assert.match(nativeController, /Sign in, enable web_server_auth, or update the panel firmware/);
-    assert.match(docs, /web_server_auth` package is not required for Wifi Sharing/);
+    assert.match(docs, /Wifi Sharing works without web authentication/);
+  });
+
+  test("authenticates native configuration bodies before receiving and before saving", () => {
+    const nativeWrite = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_write_endpoint.h"), "utf8");
+    const webServer = fs.readFileSync(path.join(ROOT, "components/web_server_idf/web_server_idf.cpp"), "utf8");
+
+    const receivePolicy = nativeWrite.slice(
+      nativeWrite.indexOf("bool canReceiveBody"),
+      nativeWrite.indexOf("void handleBody"),
+    );
+    assert.match(receivePolicy, /request->authenticate\(context\.username, context\.password\)/);
+    assert.ok(receivePolicy.indexOf("request->authenticate") < receivePolicy.indexOf("return true"));
+
+    const savePolicy = nativeWrite.slice(
+      nativeWrite.indexOf("void handleRequest"),
+      nativeWrite.indexOf("private:"),
+    );
+    assert.match(savePolicy, /request->authenticate\(context\.username, context\.password\)/);
+    assert.ok(savePolicy.indexOf("request->authenticate") < savePolicy.indexOf("save_if_generation"));
+
+    const rawBodyDispatcher = webServer.slice(
+      webServer.indexOf("esp_err_t AsyncWebServer::handle_raw_body_"),
+      webServer.indexOf("esp_err_t AsyncWebServer::request_handler"),
+    );
+    assert.ok(rawBodyDispatcher.indexOf("canReceiveBody") < rawBodyDispatcher.indexOf("httpd_req_recv"));
+  });
+
+  test("explicitly includes HTTP credentials in every browser request transport", () => {
+    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
+    const migration = fs.readFileSync(path.join(ROOT, "src/webserver/application/native_panel_config_migration.ts"), "utf8");
+    const deviceConfig = fs.readFileSync(path.join(ROOT, "src/webserver/device_config.ts"), "utf8");
+    const sensor = fs.readFileSync(path.join(ROOT, "src/webserver/cards/sensor.ts"), "utf8");
+    const action = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
+    assert.match(entry, /new EventSource\("\/events", \{ withCredentials: true \}\)/);
+    for (const source of [migration, deviceConfig, sensor, action]) {
+      assert.match(source, /credentials: "include"/);
+    }
+  });
+
+  test("requires per-request authorization without bearer cookies on plain HTTP", () => {
+    const webServer = fs.readFileSync(path.join(ROOT, "components/web_server_idf/web_server_idf.cpp"), "utf8");
+    const authenticate = webServer.slice(
+      webServer.indexOf("bool AsyncWebServerRequest::authenticate("),
+      webServer.indexOf("void AsyncWebServerRequest::requestAuthentication("),
+    );
+    assert.match(authenticate, /if \(!auth\.has_value\(\)\) \{\s*(?:\/\/[^\n]*\n\s*)*return false;/);
+    assert.doesNotMatch(authenticate, /get_header\("Cookie"\)/);
+    assert.doesNotMatch(webServer, /EspDesktopAuth|Set-Cookie|authenticate_digest_session|issue_digest_session/);
+    assert.match(authenticate, /check_digest_auth\(username, password/);
   });
 
   test("normalizes and preserves Wifi modal tab settings", () => {
     const modalTabs = createConfigModalTabOptionsFeature({ document: {}, renderButtonSettings() {} });
     assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("credentials|qr")), ["credentials", "qr"]);
     assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("credentials|credentials|invalid")), ["credentials"]);
+    assert.deepEqual(Array.from(modalTabs.wifiQrDefaultTabs()), ["qr", "credentials"]);
+    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("guest|qr|credentials|guest")), ["guest", "qr", "credentials"]);
+    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("guest")), ["guest"]);
     const card = { options: "ssid64=R3Vlc3Q" };
     modalTabs.setWifiQrTabs(card, ["credentials"]);
     assert.equal(card.options, "ssid64=R3Vlc3Q,wifi_tabs=credentials");
@@ -644,7 +710,7 @@ describe("browserless application contracts", () => {
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
     assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,?\s*\);/);
-    assert.match(card, /disclosureSection\(\s*"App subpage"/);
+    assert.match(card, /disclosureSection\(\s*"App Subpage"/);
     assert.match(card, /renderModalTabSettings\(appSubpageDisclosure\.section/);
     assert.match(card, /_appShortcutDisabledTabs = companionShortcutTabs\(card\)/);
     assert.match(card, /setCompanionShortcutTabs\(card, card\._appShortcutDisabledTabs\)/);
@@ -662,7 +728,6 @@ describe("browserless application contracts", () => {
     assert.match(card, /statsField[\s\S]*markCardPrimaryField\(statsField, "statistic"\)/);
     assert.match(card, /shortcutField[\s\S]*markCardPrimaryField\(shortcutField, "shortcut"\)/);
     assert.match(card, /urlField[\s\S]*markCardPrimaryField\(urlField, "url"\)/);
-    assert.match(card, /mediaField[\s\S]*markCardPrimaryField\(mediaField, "media"\)/);
     assert.match(card, /folderField[\s\S]*markCardPrimaryField\(folderField, "folder"\)/);
     assert.match(card, /windowField[\s\S]*markCardPrimaryField\(windowField, "window"\)/);
     assert.match(card, /folderPlaceholder\.disabled = true/);
@@ -674,7 +739,6 @@ describe("browserless application contracts", () => {
     assert.match(fields, /media: false/);
     assert.match(fields, /folder: false/);
     assert.match(fields, /window: false/);
-    assert.match(card, /sortCompanionLabels\(COMPANION_MEDIA_ACTIONS\)/);
     assert.match(card, /first\.group\.localeCompare\(second\.group/);
   });
 

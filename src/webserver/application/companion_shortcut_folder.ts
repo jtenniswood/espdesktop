@@ -12,6 +12,8 @@ import { isBackOrderToken } from "../model/subpage";
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
 export const COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION = "app_shortcuts_auto_switch";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
+export const FINDER_OPEN_BEHAVIOR_OPTION = "finder_open_behavior";
+export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
@@ -44,6 +46,7 @@ export interface CompanionShortcutTabDefinition {
 }
 
 export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): string {
+    if (bundleIdentifier === "com.apple.finder") return "Finder";
     return typeof bundleIdentifier === "string"
         ? COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.label || ""
         : "";
@@ -71,8 +74,12 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         return setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity);
     }
     if (!companionShortcutFolderAppLabel(card.entity) || card.sensor) return "";
-    const options = setConfigOption(
-        "",
+    const behavior = configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION);
+    let options = card.entity === "com.apple.finder" &&
+        (behavior === "same_window" || behavior === "new_window")
+        ? setConfigOptionValue("", FINDER_OPEN_BEHAVIOR_OPTION, behavior) : "";
+    options = setConfigOption(
+        options,
         COMPANION_APP_SHORTCUTS_OPTION,
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
@@ -113,6 +120,36 @@ export function setCompanionAppShortcutAutoSwitchEnabled(card: any, enabled: boo
         COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION,
         enabled && companionAppShortcutFolderEnabled(card),
     );
+}
+
+export type FinderOpenBehavior = "new_window" | "same_window";
+
+export function finderOpenBehavior(card: any): FinderOpenBehavior {
+    return configOptionValue(card?.options, FINDER_OPEN_BEHAVIOR_OPTION) === "same_window"
+        ? "same_window" : "new_window";
+}
+
+export function setFinderOpenBehavior(card: any, behavior: FinderOpenBehavior, override: boolean): void {
+    if (!card) return;
+    let options = setConfigOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION, behavior);
+    options = setConfigOption(options, FINDER_OPEN_OVERRIDE_OPTION, override);
+    card.options = options;
+}
+
+export function inheritFinderOpenBehaviorForCard(card: any, behavior: FinderOpenBehavior): boolean {
+    if (!card || configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION) ||
+        configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION) === behavior) return false;
+    setFinderOpenBehavior(card, behavior, false);
+    return true;
+}
+
+export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOpenBehavior): void {
+    if (!subpage || !Array.isArray(subpage.buttons)) return;
+    for (const button of subpage.buttons) {
+        if (button?.type !== "companion" || !String(button.entity || "").startsWith("folder.")) continue;
+        if (configOptionEnabled(button.options, FINDER_OPEN_OVERRIDE_OPTION)) continue;
+        setFinderOpenBehavior(button, behavior, false);
+    }
 }
 
 export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
@@ -265,6 +302,88 @@ export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: 
     };
 }
 
+export function finderFolderTabs(subpage: any): string[] {
+    const tokens = subpage?.grid?.length ? subpage.grid : (subpage?.order || []);
+    const selected: string[] = [];
+    for (const token of tokens) {
+        const index = Number.parseInt(String(token), 10) - 1;
+        const card = subpage?.buttons?.[index];
+        if (card?.type === "companion" && card.entity?.startsWith("folder.") && !selected.includes(card.entity)) {
+            selected.push(card.entity);
+        }
+    }
+    return selected;
+}
+
+export function syncFinderFolderSelection(
+    source: any, folders: readonly { id: string; label: string }[], selected: readonly string[],
+    maxSlots: number, buildGrid: (page: any) => unknown,
+): any | null {
+    const page = JSON.parse(JSON.stringify(source));
+    const managed = (card: any) => card?.type === "companion" && card.entity?.startsWith("folder.");
+    const sizes = { ...(page.sizes || {}) };
+    const suffixes = new Map<string, string>();
+    page.order = (page.order || []).map((token: string) => {
+        const index = Number.parseInt(String(token), 10) - 1;
+        const card = page.buttons[index];
+        if (!managed(card)) return token;
+        suffixes.set(card.entity, String(token).replace(/^\d+/, ""));
+        return "";
+    });
+    // Unplaced folder definitions persist disabled choices across reconnects.
+    // Automatic catalogue updates recognize these IDs and do not re-add them.
+    for (const folder of folders) {
+        if (!page.buttons.some((card: any) => managed(card) && card.entity === folder.id)) {
+            page.buttons.push(shortcutCard(folder.id, folder.label, "Folder Outline"));
+        }
+    }
+    page.sizes = {};
+    buildGrid(page);
+    for (const id of selected) {
+        const index = page.buttons.findIndex((card: any) => managed(card) && card.entity === id);
+        if (index < 0) continue;
+        const suffix = suffixes.get(id) || "";
+        const size = sizes[String(index + 1)] || 1;
+        let placed = false;
+        for (let position = 0; position < maxSlots; position++) {
+            if (page.grid[position]) continue;
+            const trial = JSON.parse(JSON.stringify(page));
+            while (trial.order.length <= position) trial.order.push("");
+            trial.order[position] = String(index + 1) + suffix;
+            buildGrid(trial);
+            if ((trial.sizes[String(index + 1)] || 1) !== size ||
+                page.grid.some((cell: number, i: number) => cell !== 0 && trial.grid[i] !== cell)) continue;
+            page.order = trial.order;
+            page.grid = trial.grid;
+            page.sizes = trial.sizes;
+            placed = true;
+            break;
+        }
+        if (!placed) return null;
+    }
+    return page;
+}
+
+// Add configured directories without replacing custom cards, labels, or layout.
+export function addFinderFolderTiles(
+    subpage: any, folders: readonly { id: string; label: string }[], maxSlots: number,
+): any {
+    const existing = new Set((subpage.buttons || []).map((card: any) => card.entity));
+    for (const folder of folders) {
+        if (!folder.id.startsWith("folder.") || folder.id.length <= 7 || existing.has(folder.id)) continue;
+        let position = -1;
+        for (let index = 0; index < maxSlots; index += 1) {
+            if (!subpage.order[index] && !subpage.grid?.[index]) { position = index; break; }
+        }
+        if (position < 0) break;
+        subpage.buttons.push(shortcutCard(folder.id, folder.label, "Folder Outline"));
+        while (subpage.order.length <= position) subpage.order.push("");
+        subpage.order[position] = String(subpage.buttons.length);
+        existing.add(folder.id);
+    }
+    return subpage;
+}
+
 function subpageOrderButtonIndex(token: unknown): number {
     const match = String(token || "").match(/^(\d+)/);
     return match ? Number.parseInt(match[1] || "0", 10) - 1 : -1;
@@ -296,19 +415,11 @@ export function companionShortcutTabsFromSubpage(
     }));
     const tabs: string[] = [];
     const visited = new Set<number>();
-    (subpage?.order || []).forEach(function (token: unknown) {
+    (subpage?.grid?.length ? subpage.grid : subpage?.order || []).forEach(function (token: unknown) {
         const index = subpageOrderButtonIndex(token);
         if (index < 0 || visited.has(index)) return;
         visited.add(index);
         const card = subpage?.buttons?.[index];
-        const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
-        const identity = companionShortcutPresetIdentity(card);
-        const value = identity ? presetIndex.get(identity) :
-            marker ? undefined : legacyPresetIndex.get(card?.entity);
-        if (value != null && tabs.indexOf(value) < 0) tabs.push(value);
-    });
-    (subpage?.buttons || []).forEach(function (card: any, index: number) {
-        if (visited.has(index)) return;
         const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
         const identity = companionShortcutPresetIdentity(card);
         const value = identity ? presetIndex.get(identity) :

@@ -7,6 +7,10 @@
 #include "grid_navigation_service.h"
 #include "espdesktop_app_core.h"
 
+// Implemented by button_grid_image.h; navigation calls this when a subpage
+// becomes active after the S3 camera screensaver released image buffers.
+inline void refresh_visible_image_cards();
+
 // ── Home Assistant-driven home-screen navigation ─────────────────────
 
 struct NavigationHomeTargetEntry {
@@ -108,10 +112,18 @@ inline void navigation_clear_home_targets() {
   grid_navigation_service().clear_home_targets();
 }
 
-inline void navigation_clear_subpages() {
+inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   lv_obj_t *active = lv_scr_act();
+  for (const auto &entry : navigation_subpages()) {
+    if (entry.screen != nullptr && entry.screen == active) {
+      // Move off the page before destroying its labels and live card contexts.
+      if (!navigation_return_home(main_page_obj)) return;
+      break;
+    }
+  }
   for (auto &entry : navigation_subpages()) {
-    if (entry.screen != nullptr && entry.screen != active) {
+    if (entry.screen != nullptr) {
+      navigation_release_subpage_runtime(entry);
       lv_obj_del(entry.screen);
     }
   }
@@ -288,6 +300,14 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
     companion_consume_subpage_return_request();
     return false;
   }
+  // A panel tap on the app's home card can focus Finder while its action-result
+  // callback is loading this very subpage. That focus change also raises the
+  // usual "leave the current app subpage" request; consume it without returning
+  // home when the newly focused app is the page we are already showing.
+  if (companion_pending_auto_subpage_action() == parent_config.entity) {
+    companion_consume_subpage_return_request();
+    return false;
+  }
   companion_consume_subpage_return_request();
   return navigation_return_home(main_page_obj);
 }
@@ -318,6 +338,7 @@ inline bool navigation_restore_subpage_slot(int slot) {
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   if (entry == nullptr || entry->screen == nullptr) return false;
   lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  refresh_visible_image_cards();
   return true;
 }
 
@@ -379,6 +400,7 @@ inline bool navigation_open_first_kind(const std::string &kind,
     return false;
   }
   lv_scr_load_anim(target->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  refresh_visible_image_cards();
   return true;
 }
 

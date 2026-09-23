@@ -7,7 +7,6 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
     var panelHost = ""
     var pairingAccount = "test-account"
     var hasSavedPairing = false
-    var mediaActionsAvailable = false
     var values: [String: Any] = [:]
     var credentialReads = 0
     func stringPreference(forKey key: String) -> String? { values[key] as? String }
@@ -18,7 +17,7 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
     func folderActions() -> [ApprovedFolder] { [] }
     func launchableApps() -> [LaunchableApp] { [] }
     func focusedCompanionActionIdentifier() -> String { "" }
-    func performResultStatus(actionIdentifier: String) async -> String { "not_allowed" }
+    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String { "not_allowed" }
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool { false }
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool { false }
     func load(account: String) -> Data? { credentialReads += 1; return nil }

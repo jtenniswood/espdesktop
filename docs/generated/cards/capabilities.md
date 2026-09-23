@@ -9,9 +9,10 @@ This generated reference lists stable setup facts from the shared card contract.
 
 | Card | Type | Entity domains | Subpages | Picker grouping | Main modes and options | Status |
 |---|---|---|---|---|---|---|
+| Timer | timer | timer | Yes | Own picker item | None | Visible |
 | Switch | switch | light, switch, input_boolean, fan | Yes | Own picker item | Large Active Display Numbers; Confirmation Required: default, off, on, both; On State Pattern: default, stripes; Message; Confirm Button; Cancel Button | Visible |
 | Action | action | scene, script, automation, button, input_button, input_boolean, number, input_number, input_select, select | Yes | Own picker item | Large State Numbers; Confirmation Required; Fields; Message; Confirm Button; Cancel Button | Visible |
-| Vacuum | vacuum | vacuum | Yes | Own picker item | Type: status, start_stop, dock, pause_resume, clean_spot, locate, clean_area | Visible |
+| Vacuum | vacuum | vacuum | Yes | Own picker item | Type: status, start_stop, start_dock, dock, pause_resume, clean_spot, locate, clean_area | Visible |
 | Lawn Mower | lawn_mower | lawn_mower | Yes | Own picker item | Type: status, start_mowing, dock, pause_resume | Visible |
 | Alarm | alarm | alarm_control_panel | Yes | Own picker item | Type: control_panel, away, home, night, vacation, disarm; PIN required for arming; PIN required for disarming; Visible Actions: away, home, night, vacation, disarm; Icon Display: static, status; Label Display: name, status | Visible |
 | Alarm | alarm_action | alarm_control_panel | Yes | Alarm (alarm) | None | Visible |
@@ -39,7 +40,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Media | media | media_player | Yes | Own picker item | Type: control_modal, speaker_group, play_pause, previous, next, volume, position, now_playing, cover_art, playlist; Type: default, state; Controls: default, progress, play_pause; Show Track Details; External Source Media Entity; Maximum Volume: 1-100; Speaker Discovery Entity; Label Display: label, status; Top Left Display: icon, volume; Media Content ID / URI; Player Source / Input; Large Media Numbers | Visible |
 | Option Select | option_select | select, input_select | Yes | Own picker item | None | Hidden |
 | Trigger | push | None | Yes | Own picker item | None | Visible |
-| Companion | companion | None | Yes | Own picker item | App Subpage; Auto switch to subpage; Large Sensor Numbers | Visible |
+| Companion | companion | None | Yes | Own picker item | App Subpage; Auto switch to subpage; Large Sensor Numbers; Show capacity label | Visible |
 | Screen Lock | screen_lock | None | Yes | Own picker item | None | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
 | Sensor | sensor | sensor, binary_sensor, text_sensor | Yes | Own picker item | Large Sensor Numbers; Incoming Value Unit: default, seconds, minutes, hours, days; Lit When Active; Status Translation; Input Status; Display Text; Input Status 2; Display Text 2 | Visible |
@@ -49,6 +50,6 @@ This generated reference lists stable setup facts from the shared card contract.
 | Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
 | Weather | weather | weather | Yes | Own picker item | Type: default, today, tomorrow; Large Temperature Numbers | Visible |
 | Camera Card | image | camera, image | Yes | Own picker item | Show Label; Show Icon; Expanded Image: fill, fit | Visible |
-| Wifi Sharing | wifi_qr | None | Yes | Own picker item | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials | Visible |
-| QR Card | wifi_qr_card | None | Yes | Wifi Sharing (wifi_qr) | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials | Visible |
+| Wifi Sharing | wifi_qr | switch | Yes | Own picker item | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
+| QR Card | wifi_qr_card | switch | Yes | Wifi Sharing (wifi_qr) | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Hidden |

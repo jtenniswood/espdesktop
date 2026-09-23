@@ -12,7 +12,6 @@ export type CompanionCardModel =
   | { readonly mode: "shortcut"; readonly shortcutId: string }
   | { readonly mode: "url"; readonly applicationId: string; readonly encodedUrl: string }
   | { readonly mode: "folder"; readonly folderId: string }
-  | { readonly mode: "media"; readonly actionId: string }
   | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string }
   | { readonly mode: "window"; readonly actionId: string };
 
@@ -25,7 +24,8 @@ export function companionCardModeValid(mode: unknown): mode is CompanionCardMode
 }
 
 export function companionCardModeOptions(): ReadonlyArray<readonly [CompanionCardModeId, string]> {
-  return COMPANION_CARD_MODES.map((mode) => [mode.id, mode.label] as const);
+  return COMPANION_CARD_MODES
+    .map((mode) => [mode.id, mode.label] as const);
 }
 
 export function companionCardDefaultIcon(mode: CompanionCardModeId): string {

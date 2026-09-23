@@ -239,23 +239,27 @@ vm.runInContext(generated, hostedSandbox, { filename: webOutput });
 hostedSandbox.__ESPDESKTOP_START_EMBEDDED__();
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.imageSlotCapacity(),
-  1,
+  2,
   "shared hosted bundle selects the device profile from its script URL",
 );
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.imageSlotCapacityMessage(),
-  "This display supports up to 1 Media Cover Art card.",
-  "S3 explains its constrained cover-art capacity",
+  "Image and Media Cover Art cards use shared image slots. You can save up to 2 of these cards across the main page and subpages.",
+  "S3 explains its shared image-card capacity",
 );
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("image", false),
-  false,
-  "S3 keeps general Image cards hidden",
+  true,
+  "S3 exposes Camera Cards",
 );
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("media_cover_art", false),
   false,
-  "S3 exposes Cover Art only through the Media subtype list",
+  "Media Cover Art remains a Media subtype rather than a separate picker entry",
+);
+assert(
+  Array.from(hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.mediaModeOptionValues()).includes("cover_art"),
+  "S3 exposes Media Cover Art in the Media subtype list",
 );
 assertGeneratedConfigValue("guition-esp32-s3-4848s040", generated, "mediaTitleSize", 7.083333);
 assert(previewStylesSource.includes(".sp-media-now-title{font-size:var(--media-title)"), "media titles use their dedicated preview size");
@@ -1358,8 +1362,8 @@ const subpageCompanionStatPreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "subpage_kind=companion_stat",
 });
-assert(subpageCompanionStatPreview.iconHtml.includes("%"), "Companion Stat subpage preview shows the metric unit");
-assert(subpageCompanionStatPreview.labelHtml.includes("Mac RAM Free"), "Companion Stat subpage preview uses the custom title");
+assert(subpageCompanionStatPreview.iconHtml.includes("mdi-memory"), "Companion Stat subpage preview shows the memory icon");
+assert(subpageCompanionStatPreview.labelHtml.includes("% free"), "Companion Stat subpage preview labels free memory");
 assert(subpageCompanionStatPreview.labelHtml.includes("mdi-chevron-right"), "Companion Stat subpage preview shows the chevron badge");
 
 [
@@ -1759,7 +1763,7 @@ async function verifyLocalFirmwareProfileSelection() {
   vm.runInContext(productionBundle, sandbox, { filename: "shared-local-www.js" });
   sandbox.__ESPDESKTOP_START_EMBEDDED__();
   await new Promise((resolve) => setImmediate(resolve));
-  assert.deepStrictEqual(requested, ["/espdesktop/version.json", "/api/v1/capabilities"]);
+  assert.deepStrictEqual(requested, ["/espdesktop/version.json", "/api/v1/capabilities", "/api/v1/capabilities"]);
   assert(
     sandbox.__domEvents.some((event) => event.type === "DOMContentLoaded"),
     "shared local bundle starts after resolving the firmware device profile",
@@ -1772,3 +1776,18 @@ verifyLocalFirmwareProfileSelection()
     console.error(error);
     process.exitCode = 1;
   });
+
+for (const [entity, icon, suffix] of [
+  ["stat.battery", "battery-outline", "% left"],
+  ["stat.memory", "memory", "% used"],
+  ["stat.memory_free", "memory", "% free"],
+  ["stat.storage", "harddisk", "% used"],
+  ["stat.storage_free", "harddisk", "% free"],
+  ["stat.network_throughput", "lan", " MB/s"],
+  ["stat.cpu", "gauge", "% used"],
+]) {
+  const preview = hooks.buttonTypePreviewFor("companion", {type: "companion", entity, precision: "1"});
+  assert(preview.iconHtml.includes("mdi-" + icon), `${entity} displays its metric icon`);
+  assert(preview.labelHtml.includes(suffix), `${entity} displays a reading with accurate wording`);
+  assert(!preview.iconHtml.includes("sp-sensor-value"), `${entity} no longer displays a large number`);
+}

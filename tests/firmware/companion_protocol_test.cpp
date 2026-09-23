@@ -19,6 +19,20 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
+  companion_protocol::SystemMetrics metrics;
+  metrics.generation = 1;
+  metrics.cpuUsagePercent = 10;
+  metrics.memoryUsagePercent = 20;
+  metrics.storageUsagePercent = 30;
+  metrics.storageDevices.emplace();
+  metrics.storageDevices->push_back({"external", "External drive", 42});
+  ArduinoJson::JsonDocument storage;
+  companion_protocol::encode(storage.to<ArduinoJson::JsonObject>(), metrics);
+  const auto storageRoundtrip = companion_protocol::decode(storage.as<ArduinoJson::JsonObjectConst>(),
+    companion_protocol::Direction::MAC_TO_PANEL, companion_protocol::SessionState::CONNECTED);
+  if (!storageRoundtrip) return 1;
+  const auto &devices = std::get<companion_protocol::SystemMetrics>(*storageRoundtrip).storageDevices;
+  if (!devices || devices->size() != 1 || devices->front().usagePercent != 42) return 1;
   companion_protocol::ActionInvoke command;
   command.requestId = "quoted-request";
   command.kind = "action";

@@ -105,6 +105,9 @@ final class CompanionStore: NSObject, ObservableObject {
     static let buyMeACoffeeURL = URL(string: "https://www.buymeacoffee.com/jtenniswood")!
 
     @Published var panelHost: String { didSet { defaults.set(panelHost, forKey: Keys.host) } }
+    @Published var panelDisplayName: String {
+        didSet { defaults.set(panelDisplayName, forKey: Keys.displayName) }
+    }
     private(set) var pairingAccount: String
     @Published private(set) var availableApps: [LaunchableApp] = []
     @Published private(set) var approvedApplicationIdentifiers: Set<String>
@@ -122,26 +125,14 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var nowPlayingArtwork: NSImage?
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
     @Published private(set) var systemMetricsSupported = false
-    @Published var shareSystemMetricsEnabled: Bool {
-        didSet {
-            defaults.set(shareSystemMetricsEnabled, forKey: Keys.shareSystemMetrics)
-            if !shareSystemMetricsEnabled {
-                latestSystemMetricsSnapshot = nil
-                if isConnected && systemMetricsSupported {
-                    connection.publishSystemMetricsUnavailable()
-                }
-            }
-            updateSystemMetricsProvider()
-        }
-    }
 
     private enum Keys {
         static let host = "panelHost"
+        static let displayName = "panelDisplayName"
         static let pairingAccount = "pairingAccount"
         static let approvedApplications = "approvedApplications"
         static let knownApplications = "knownApplications"
         static let approvedFolders = "approvedFolders"
-        static let shareSystemMetrics = "shareSystemMetrics"
     }
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
@@ -182,12 +173,12 @@ final class CompanionStore: NSObject, ObservableObject {
         approvedFolders = stableDefaults.data(forKey: Keys.approvedFolders)
             .flatMap { try? JSONDecoder().decode([ApprovedFolder].self, from: $0) }
             ?? []
-        shareSystemMetricsEnabled = stableDefaults.bool(forKey: Keys.shareSystemMetrics)
         let savedPairingAccounts = KeychainStore.accounts(service: KeychainStore.service)
         let configuredPanelHost = stableDefaults.string(forKey: Keys.host)
             ?? savedPairingAccounts.first
             ?? ""
         panelHost = configuredPanelHost
+        panelDisplayName = stableDefaults.string(forKey: Keys.displayName) ?? ""
         pairingAccount = stableDefaults.string(forKey: Keys.pairingAccount)
             ?? (savedPairingAccounts.contains(configuredPanelHost) ? configuredPanelHost : nil)
             ?? (savedPairingAccounts.count == 1 ? savedPairingAccounts[0] : "")
@@ -216,7 +207,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         systemMetricsProvider.onSnapshot = { [weak self] snapshot in
             guard let self else { return }
-            guard isConnected && systemMetricsSupported && shareSystemMetricsEnabled else { return }
+            guard isConnected && systemMetricsSupported else { return }
             latestSystemMetricsSnapshot = snapshot
             systemMetricsStatus = "Sharing processor, memory, storage, network and battery statistics"
             if isConnected { connection.publishSystemMetrics(snapshot) }
@@ -227,7 +218,13 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func stringPreference(forKey key: String) -> String? { defaults.string(forKey: key) }
     func integerPreference(forKey key: String) -> Int { defaults.integer(forKey: key) }
-    func setPreference(_ value: Any, forKey key: String) { defaults.set(value, forKey: key) }
+    func setPreference(_ value: Any, forKey key: String) {
+        if key == Keys.displayName, let displayName = value as? String {
+            panelDisplayName = displayName
+        } else {
+            defaults.set(value, forKey: key)
+        }
+    }
     func removePreference(forKey key: String) { defaults.removeObject(forKey: key) }
 
     var hasSavedPairing: Bool {
@@ -319,6 +316,21 @@ final class CompanionStore: NSObject, ObservableObject {
         approvedApplicationIdentifiers.contains(application.bundleIdentifier)
     }
 
+    var allApplicationsApproved: Bool {
+        !availableApps.isEmpty && availableApps.allSatisfy { applicationIsApproved($0) }
+    }
+
+    func setAllApplications(approved: Bool) {
+        let identifiers = Set(availableApps.map(\.bundleIdentifier))
+        if approved {
+            approvedApplicationIdentifiers.formUnion(identifiers)
+        } else {
+            approvedApplicationIdentifiers.subtract(identifiers)
+        }
+        defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
+        if isConnected { connection.publishCatalogue() }
+    }
+
     func setApplication(_ application: LaunchableApp, approved: Bool) {
         if approved {
             approvedApplicationIdentifiers.insert(application.bundleIdentifier)
@@ -332,7 +344,8 @@ final class CompanionStore: NSObject, ObservableObject {
     func folderActions() -> [ApprovedFolder] { approvedFolders }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
-              CompanionWindowDetector.hasVisibleWindow(for: application),
+              (application.bundleIdentifier == "com.apple.finder" ||
+               CompanionWindowDetector.hasVisibleWindow(for: application)),
               let identifier = application.bundleIdentifier,
               approvedApplicationIdentifiers.contains(identifier),
               availableApps.contains(where: { $0.bundleIdentifier == identifier }) else { return "" }
@@ -341,11 +354,12 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func focusedCompanionActionIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
-              let bundleIdentifier = application.bundleIdentifier,
-              CompanionWindowDetector.hasVisibleWindow(for: application) else { return "" }
+              let bundleIdentifier = application.bundleIdentifier else { return "" }
         if bundleIdentifier == "com.apple.finder" {
-            return focusedFinderFolderActionIdentifier()
+            let folder = focusedFinderFolderActionIdentifier()
+            return folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
         }
+        guard CompanionWindowDetector.hasVisibleWindow(for: application) else { return "" }
         return approvedApplicationIdentifiers.contains(bundleIdentifier) ? bundleIdentifier : ""
     }
 
@@ -358,9 +372,8 @@ final class CompanionStore: NSObject, ObservableObject {
     private func focusedFinderFolderPath() -> String? {
         let source = """
         tell application "Finder"
-            if (count of windows) is 0 then return ""
             try
-                set currentTarget to target of front window
+                set currentTarget to insertion location
                 return POSIX path of (currentTarget as alias)
             on error
                 return ""
@@ -503,6 +516,7 @@ final class CompanionStore: NSObject, ObservableObject {
         pairingAccount = ""
         connection.disconnect()
         panelHost = ""
+        panelDisplayName = ""
     }
 
     private func receiveSessionEvent(_ event: CompanionSessionEvent) {
@@ -544,22 +558,18 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private func updateSystemMetricsProvider() {
-        if isConnected && systemMetricsSupported && shareSystemMetricsEnabled {
+        if isConnected && systemMetricsSupported {
             systemMetricsStatus = "Collecting Mac system statistics…"
             systemMetricsProvider.start()
         } else {
             systemMetricsProvider.stop()
-            systemMetricsStatus = shareSystemMetricsEnabled
-                ? "Waiting for a display connection"
-                : "System statistics sharing is off"
+            latestSystemMetricsSnapshot = nil
+            systemMetricsStatus = "Waiting for a display connection"
         }
     }
 
     func setSystemMetricsSupported(_ supported: Bool) {
         systemMetricsSupported = supported
-        if supported && isConnected && !shareSystemMetricsEnabled {
-            connection.publishSystemMetricsUnavailable()
-        }
         updateSystemMetricsProvider()
     }
 
@@ -588,7 +598,7 @@ final class CompanionStore: NSObject, ObservableObject {
         connection.publishNowPlaying(snapshot, forceArtwork: true)
     }
     func republishCurrentSystemMetrics() {
-        guard isConnected, systemMetricsSupported, shareSystemMetricsEnabled,
+        guard isConnected, systemMetricsSupported,
               let snapshot = latestSystemMetricsSnapshot else { return }
         connection.publishSystemMetrics(snapshot, force: true)
     }
@@ -619,17 +629,18 @@ final class CompanionStore: NSObject, ObservableObject {
         return false
     }
 
-    func performResultStatus(actionIdentifier: String) async -> String {
+    func performResultStatus(actionIdentifier: String,
+                             folderOpenBehavior: String = "new_window") async -> String {
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
-            && !mediaController.supports(actionIdentifier: actionIdentifier)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
-        let performed = await perform(actionIdentifier: actionIdentifier)
+        let performed = await perform(actionIdentifier: actionIdentifier,
+                                      folderOpenBehavior: folderOpenBehavior)
         guard performed else { return "not_allowed" }
         return isApplicationLaunch ? "activated" : "performed"
     }
 
-    func openFolder(actionIdentifier: String) -> Bool {
+    func openFolder(actionIdentifier: String, behavior: String = "new_window") -> Bool {
         guard let identifier = ApprovedFolder.identifier(from: actionIdentifier),
               let folder = approvedFolders.first(where: { $0.id == identifier }) else {
             updateStatus("Blocked an unavailable folder")
@@ -644,16 +655,43 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("This folder is no longer available")
             return false
         }
-        return NSWorkspace.shared.open(url)
+        guard behavior == "same_window" else { return NSWorkspace.shared.open(url) }
+        let escapedPath = folder.path
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+        let source = """
+        tell application "Finder"
+            set targetFolder to POSIX file "\(escapedPath)" as alias
+            if (count of Finder windows) > 0 then
+                set target of front Finder window to targetFolder
+            else
+                open targetFolder
+            end if
+            activate
+        end tell
+        """
+        var error: NSDictionary?
+        guard NSAppleScript(source: source)?.executeAndReturnError(&error) != nil else {
+            updateStatus("Finder could not open \(folder.name) in the current window")
+            return false
+        }
+        return true
     }
 
-    func perform(actionIdentifier: String) async -> Bool {
+    func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window") async -> Bool {
         if actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix) {
-            return openFolder(actionIdentifier: actionIdentifier)
+            return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }
-        if mediaController.supports(actionIdentifier: actionIdentifier) {
-            return mediaController.perform(actionIdentifier: actionIdentifier)
+
+        if let performed = CompanionWindowArrangement.perform(identifier: actionIdentifier) {
+            if !performed {
+                updateStatus("Select an available app window and allow Accessibility access")
+            }
+            return performed
         }
+
         guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) ||
               actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) else {
             return await launch(bundleIdentifier: actionIdentifier)
@@ -705,9 +743,8 @@ final class CompanionStore: NSObject, ObservableObject {
         connection.publishMediaControlValues(values, unavailable: unavailable)
     }
 
-    var mediaActionsAvailable: Bool { mediaController.actionsAvailable }
-
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool {
+        _ = bundleIdentifier  // Older firmware sends the previously selected app; URLs now use the system default.
         guard encodedURL.utf8.count <= 128,
               let value = encodedURL.removingPercentEncoding,
               let components = URLComponents(string: value),
@@ -716,18 +753,13 @@ final class CompanionStore: NSObject, ObservableObject {
               components.host != nil,
               components.user == nil,
               components.password == nil,
-              let url = components.url,
-              let app = launchableApps().first(where: { $0.bundleIdentifier == bundleIdentifier }) else {
-            updateStatus("Blocked an invalid URL or unavailable app")
+              let url = components.url else {
+            updateStatus("Blocked an invalid URL")
             return false
         }
-        let opened: Bool = await withCheckedContinuation { continuation in
-            NSWorkspace.shared.open([url], withApplicationAt: app.url, configuration: .init()) { application, error in
-                continuation.resume(returning: application != nil && error == nil)
-            }
-        }
+        let opened = NSWorkspace.shared.open(url)
         if !opened {
-            updateStatus("macOS could not open this URL in \(app.name)")
+            updateStatus("macOS could not open this URL in the default browser")
         }
         return opened
     }

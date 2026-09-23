@@ -306,9 +306,9 @@ final class CompanionConnection: NSObject {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(15))
                 guard !Task.isCancelled, let self, self.task === task else { return }
-                task.sendPing { [weak self, weak task] error in
+                task.sendPing { [weak self, weak task = task] error in
                     guard error != nil else { return }
-                    Task { @MainActor [weak self, weak task] in
+                    Task { @MainActor [weak self, weak task = task] in
                         guard let self, let task else { return }
                         self.handleConnectionFailure(for: task)
                     }
@@ -356,10 +356,13 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Display disconnected", state: .disconnected)
             return
         }
+        let savedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
+        // A name refresh can keep an earlier discovery session open. Seed the
+        // recovery candidate from its current results before changing handlers.
+        endpointRecovery.discovered(discovery.displays, expectedFingerprint: savedFingerprint)
         discovery.onChange = { [weak self] displays in
             guard let self, self.shouldReconnect, !self.hasTerminalConnectionError else { return }
-            let saved = self.preferences.stringPreference(forKey: self.certificateFingerprintKey)
-            self.endpointRecovery.discovered(displays, expectedFingerprint: saved)
+            self.endpointRecovery.discovered(displays, expectedFingerprint: savedFingerprint)
         }
         discovery.start()
         guard reconnectTask == nil else { return }
@@ -421,12 +424,17 @@ final class CompanionConnection: NSObject {
             sessionAuthenticated = true
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
+            let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
             if let endpoint = endpointRecovery.authenticatedEndpoint(
-                expectedFingerprint: preferences.stringPreference(forKey: certificateFingerprintKey)) {
+                expectedFingerprint: expectedFingerprint) {
                 preferences.panelHost = endpoint
             }
+            if let displayName = endpointRecovery.authenticatedDisplayName(
+                expectedFingerprint: expectedFingerprint) {
+                preferences.setPreference(displayName, forKey: displayNameKey)
+            }
             endpointRecovery = CompanionEndpointRecovery()
-            discovery.stop()
+            refreshDisplayName(expectedFingerprint: expectedFingerprint)
             connectionTimeoutTask?.cancel()
             connectionTimeoutTask = nil
             reconnectAttempt = 0
@@ -448,7 +456,10 @@ final class CompanionConnection: NSObject {
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
-                    let status = await self.resources.performResultStatus(actionIdentifier: actionIdentifier)
+                    let status = await self.resources.performResultStatus(
+                        actionIdentifier: actionIdentifier,
+                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window"
+                    )
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
                 }
@@ -555,7 +566,13 @@ final class CompanionConnection: NSObject {
             "cpuUsagePercent": snapshot.cpuUsagePercent,
             "memoryUsagePercent": snapshot.memoryUsagePercent,
             "storageUsagePercent": snapshot.storageUsagePercent,
+            "storageDevices": snapshot.storageDevices.map {
+                ["id": $0.id, "label": $0.label, "usagePercent": $0.usagePercent] as [String: Any]
+            },
         ]
+        message["networkInterfaces"] = snapshot.networkInterfaces.map {
+            ["id": $0.id, "label": $0.label, "address": $0.address]
+        }
         if let battery = snapshot.batteryPercent { message["batteryPercent"] = battery }
         if let throughput = snapshot.networkThroughputKBps {
             message["networkThroughputKBps"] = throughput
@@ -612,7 +629,7 @@ final class CompanionConnection: NSObject {
         let supportedWindowActions = Self.supportedWindowActionIDs(
             for: ProcessInfo.processInfo.operatingSystemVersion
         )
-        var capabilities = (resources.mediaActionsAvailable ? ["media_actions"] : []) + supportedWindowActions
+        var capabilities = supportedWindowActions
         capabilities.append("keyboard_shortcuts")
         sendJSON(["type": "capabilities", "values": capabilities])
         // Bundle identifiers are stable and opaque to the browser layout editor;
@@ -685,9 +702,15 @@ final class CompanionConnection: NSObject {
         elapsedSeconds: TimeInterval
     ) -> Bool {
         guard let previous else { return true }
+        if current.networkInterfaces != previous.networkInterfaces { return true }
         if elapsedSeconds >= 30 { return true }
         if abs(current.cpuUsagePercent - previous.cpuUsagePercent) >= 1 { return true }
         if abs(current.memoryUsagePercent - previous.memoryUsagePercent) >= 0.5 { return true }
+        if current.storageDevices.count != previous.storageDevices.count { return true }
+        for (currentDevice, previousDevice) in zip(current.storageDevices, previous.storageDevices) {
+            if currentDevice.id != previousDevice.id || currentDevice.label != previousDevice.label ||
+                abs(currentDevice.usagePercent - previousDevice.usagePercent) >= 0.1 { return true }
+        }
         if abs(current.storageUsagePercent - previous.storageUsagePercent) >= 0.1 { return true }
         if optionalDifference(current.batteryPercent, previous.batteryPercent) >= 1 { return true }
         if optionalDifference(current.networkThroughputKBps, previous.networkThroughputKBps) >= 32 { return true }
@@ -701,6 +724,20 @@ final class CompanionConnection: NSObject {
 
     private var certificateFingerprintKey: String { "companion.certificateFingerprint.\(preferences.pairingAccount)" }
     private var authenticationSequenceKey: String { "companion.authenticationSequence.\(preferences.pairingAccount)" }
+    private var displayNameKey: String { "panelDisplayName" }
+
+    private func refreshDisplayName(expectedFingerprint: String?) {
+        guard let expectedFingerprint else { return }
+        discovery.onChange = { [weak self] displays in
+            guard let self, self.sessionAuthenticated else { return }
+            // Keep the pinned display's newest endpoint for reconnects too.
+            // The browser may already be active when scheduleReconnect runs.
+            self.endpointRecovery.discovered(displays, expectedFingerprint: expectedFingerprint)
+            guard let display = displays.first(where: { $0.id == expectedFingerprint }) else { return }
+            self.preferences.setPreference(display.name, forKey: self.displayNameKey)
+        }
+        discovery.start()
+    }
 
     private func nextAuthenticationSequence() -> UInt32 {
         let previous = UInt32(clamping: preferences.integerPreference(forKey: authenticationSequenceKey))

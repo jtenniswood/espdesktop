@@ -76,9 +76,13 @@ inline bool navigation_driver_setup_visual(
       grid.subpage_chevron_y, grid.subpage_chevron_text_width_percent);
     const std::string unit = trim_display_unit(
       config.unit.empty() ? subpage_companion_stat_default_unit(config.entity) : config.unit);
+    lv_label_set_display_text(slot.icon_lbl, find_icon(companion_metric_icon(config.entity)));
+    lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
     companion_track_metric_card(
-      slot.btn, slot.sensor_lbl, slot.unit_lbl, config.entity, unit,
-      parse_precision(config.precision), true);
+      slot.btn, slot.text_lbl, nullptr, config.entity, unit,
+      parse_precision(config.precision), true,
+      !cfg_option_token_present(config.options, "stat_labels_off"));
   } else if (navigation_driver_parent_sensor_state_enabled(config, context)) {
     setup_subpage_parent_state_card(
       slot, config, display_sensor_font(display),
@@ -128,9 +132,13 @@ inline bool navigation_driver_bind_main(
   if (navigation_driver_parent_companion_stat_state_enabled(config, context)) {
     const std::string unit = trim_display_unit(
       config.unit.empty() ? subpage_companion_stat_default_unit(config.entity) : config.unit);
+    lv_label_set_display_text(slot.icon_lbl, find_icon(companion_metric_icon(config.entity)));
+    lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
     companion_track_metric_card(
-      slot.btn, slot.sensor_lbl, slot.unit_lbl, config.entity, unit,
-      parse_precision(config.precision));
+      slot.btn, slot.text_lbl, nullptr, config.entity, unit,
+      parse_precision(config.precision), true,
+      !cfg_option_token_present(config.options, "stat_labels_off"));
     return true;
   }
 
@@ -253,6 +261,7 @@ inline bool navigation_driver_handle_main_click(
     ? static_cast<lv_obj_t *>(lv_obj_get_user_data(button)) : nullptr;
   if (screen) {
     lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    refresh_visible_image_cards();
   }
   return true;
 }

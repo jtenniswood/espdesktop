@@ -56,6 +56,11 @@ namespace esphome::api { Server *global_api_server = &server; }
 bool ha_api_available() { return esphome::api::global_api_server != nullptr; }
 bool state_connected = false;
 bool ha_api_state_connected() { return state_connected; }
+std::string cover_art_home_assistant_client_address;
+bool endpoint_resolve_called = false;
+struct EndpointResolver {
+  void execute() { endpoint_resolve_called = true; }
+} cover_art_resolve_home_assistant_base_url;
 struct Recovery {
   bool running = true;
   void stop() { running = false; }
@@ -70,16 +75,22 @@ void disconnect(const std::string &client_info) {
 void reset(std::vector<Client *> clients) {
   server.clients = clients;
   state_connected = false;
+  cover_art_home_assistant_client_address = "192.168.1.31";
+  endpoint_resolve_called = false;
   ha_refresh_after_connect.running = true;
   retained = forecast_pending = cover_pending = true;
 }
 void expect_preserved() {
   assert(ha_refresh_after_connect.running);
   assert(retained && forecast_pending && cover_pending);
+  assert(cover_art_home_assistant_client_address == "192.168.1.31");
+  assert(!endpoint_resolve_called);
 }
 void expect_cancelled() {
   assert(!ha_refresh_after_connect.running);
   assert(!retained && !forecast_pending && !cover_pending);
+  assert(cover_art_home_assistant_client_address.empty());
+  assert(endpoint_resolve_called);
 }
 int main() {
   Client replacement{"Home Assistant 2026.8"};
@@ -189,6 +200,25 @@ class ArtworkRecoveryTest(unittest.TestCase):
 
     def test_reconnect_recovers_after_retry_exhaustion(self):
         subprocess.run([self.executable, "exhausted_reconnect"], check=True)
+
+
+class DisplaySensorRebindTest(unittest.TestCase):
+    def test_rebind_discards_old_sensor_values(self):
+        source = (ROOT / "components/espdesktop/button_grid_grid.h").read_text()
+        match = re.search(r"^inline void grid_phase3\([^;{]*\) \{\n.*?^\}",
+                          source, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(match)
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            (directory / "display_sensor_binding.h").write_text(match.group())
+            executable = str(directory / "display_sensor_rebind_test")
+            subprocess.run(
+                shlex.split(os.environ.get("CXX", "c++"))
+                + ["-std=c++17", "-Wall", "-Wextra", "-Werror", "-I", str(directory),
+                   str(ROOT / "tests/firmware/display_sensor_rebind_test.cpp"), "-o", executable],
+                check=True,
+            )
+            subprocess.run([executable], check=True)
 
 
 if __name__ == "__main__":

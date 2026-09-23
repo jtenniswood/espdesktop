@@ -250,6 +250,8 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
   if (s.sensor_container) lv_obj_align(s.sensor_container, align, 0, 0);
 }
 
+inline void grid_prepare_timer_visual_reset(lv_obj_t *owner);
+#include "button_grid_timer_driver.h"
 #include "button_grid_date_time_driver.h"
 #include "button_grid_sensor_driver.h"
 #include "button_grid_weather_driver.h"
@@ -296,7 +298,7 @@ inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_state(s.btn, LV_STATE_CHECKED);
   sync_card_checked_text_color(s.btn);
-  lv_obj_clear_state(s.btn, LV_STATE_DISABLED);
+  set_card_disabled_state(s.btn, false);
   lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);
   if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.sensor_container) lv_obj_set_user_data(s.sensor_container, nullptr);
@@ -530,6 +532,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               int col_span = 1) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto family = context.family;
+  grid_prepare_timer_visual_reset(s.btn);
   espdesktop::cards::status_entity_driver_cleanup(s, p, context);
   espdesktop::cards::date_time_driver_cleanup(s, p, context);
   espdesktop::cards::sensor_driver_cleanup(s, p, context);
@@ -575,6 +578,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
 
   if (context.known) screen_lock_register_controlled_button(s.btn);
 
+  if (espdesktop::cards::timer_driver_setup_visual(s, p, context)) return;
   if (espdesktop::cards::image_driver_setup_visual(s, p, context)) {
     espdesktop::cards::image_driver_attach_interaction(s, p, context);
     espdesktop::cards::image_driver_refresh_layout(s, p, context);
@@ -912,6 +916,7 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   display_apply_main_width(s.icon_lbl, display);
+  control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);
   if (espdesktop::cards::navigation_driver_refresh_layout(
         s, p, context, cfg)) return;
@@ -957,6 +962,8 @@ inline void grid_refresh_layout(
   // still point at now-invalid cells from the previous descriptor.
   for (int i = 0; i < NS; i++)
     lv_obj_add_flag(slots[i].btn, LV_OBJ_FLAG_HIDDEN);
+  grid_navigation_service().layout_slots = NS;
+  grid_navigation_service().layout_columns = COLS;
   configure_grid_layout(main_page_obj, NS, COLS);
   int ROWS = (NS + COLS - 1) / COLS;
 
@@ -1022,6 +1029,8 @@ inline void grid_phase1(
   if (COLS > MAX_GRID_SLOTS) COLS = MAX_GRID_SLOTS;
   for (int i = 0; i < NS; i++)
     lv_obj_add_flag(slots[i].btn, LV_OBJ_FLAG_HIDDEN);
+  grid_navigation_service().layout_slots = NS;
+  grid_navigation_service().layout_columns = COLS;
   configure_grid_layout(main_page_obj, NS, COLS);
   int ROWS = (NS + COLS - 1) / COLS;
   if (NS != cfg.num_slots) {
@@ -1329,6 +1338,17 @@ inline std::vector<GridRuntimeAllocation> &grid_runtime_allocations() {
 template<typename T>
 inline void grid_delete_runtime_ptr(void *ptr) {
   delete static_cast<T *>(ptr);
+}
+
+inline void grid_prepare_timer_visual_reset(lv_obj_t *owner) {
+  for (const auto &allocation : grid_runtime_allocations()) {
+    if (allocation.owner == owner &&
+        allocation.deleter == grid_delete_runtime_ptr<TimerCardCtx>) {
+      auto *timer = static_cast<TimerCardCtx *>(allocation.ptr);
+      if (lv_obj_get_user_data(owner) == timer) lv_obj_set_user_data(owner, nullptr);
+      timer->detach();
+    }
+  }
 }
 
 inline void grid_delete_transient_status_label(TransientStatusLabel *ctx) {
@@ -1807,6 +1827,8 @@ inline void grid_phase2(
   set_wifi_qr_heading_font(display_media_title_font(display));
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
+  grid_navigation_service().layout_slots = NS;
+  grid_navigation_service().layout_columns = COLS;
   configure_grid_layout(main_page_obj, NS, COLS);
   if (NS != cfg.num_slots) {
     ESP_LOGW("sensors", "Grid slot count %d exceeds max %d; ignoring extra slots",
@@ -1842,7 +1864,7 @@ inline void grid_phase2(
   navigation_clear_home_targets();
   // Image-card contexts may still point at widgets inside subpage screens.
   espdesktop::cards::image_driver_reset_pool(cfg);
-  navigation_clear_subpages();
+  navigation_clear_subpages(main_page_obj);
   clear_subpage_vacuum_card_text_refs();
 
   bool has_on;
@@ -1914,6 +1936,7 @@ inline void grid_phase2(
       palette, display, s, cfg);
     if (espdesktop::cards::media_driver_bind_main(
           s, p, context, media_environment)) continue;
+    if (espdesktop::cards::timer_driver_bind_data(s, p, context)) continue;
     if (bind_basic_sensor_card(s, p, context, palette, col_span)) continue;
     espdesktop::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
@@ -2041,6 +2064,7 @@ inline void grid_phase2(
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
       lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+      refresh_visible_image_cards();
     }, LV_EVENT_CLICKED, main_page_obj);
     screen_lock_register_controlled_button(back_btn);
     navigation_register_subpage_back_button(si + 1, back_slot);
@@ -2146,6 +2170,10 @@ inline void grid_phase2(
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espdesktop::cards::media_driver_bind_subpage(
             sub_slot, sb_cfg, context, media_environment)) continue;
+      if (espdesktop::cards::timer_driver_bind_data(
+            sub_slot, sb_cfg, context, [&](const std::string &entity_id) {
+              add_parent_indicator(entity_id, timer_card_state_active_ref);
+            })) continue;
       if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette, cs)) continue;
       espdesktop::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
@@ -2374,8 +2402,30 @@ inline void grid_phase3(
     std::function<void()> sleep_callback,
     std::function<void()> schedule_presence_changed_callback,
     std::function<bool()> clock_bar_temperature_visible_callback = nullptr) {
+  // Grid redraws also run this path. Preserve live sensor values when their
+  // configuration is unchanged, including while Home Assistant is offline.
+  const std::vector<std::string> sensor_config = {
+      indoor_on ? "1" : "0", outdoor_on ? "1" : "0", indoor_entity, outdoor_entity,
+      temperature_entities, presence_entity, schedule_presence_entity, media_player_entity};
+  const std::vector<const void *> sensor_targets = {
+      indoor_temp_ptr, outdoor_temp_ptr, main_page_obj, presence_detected_ptr,
+      schedule_presence_detected_ptr, media_player_playing_ptr,
+      temperature_labels && temperature_label_count ? temperature_labels[0] : nullptr};
+  static std::vector<std::string> bound_config;
+  static std::vector<const void *> bound_targets;
+  if (sensor_config == bound_config && sensor_targets == bound_targets) return;
+  bound_config = sensor_config;
+  bound_targets = sensor_targets;
   ESP_LOGI("sensors", "Phase 3: temp/presence/media subscriptions start (%lu ms)", esphome::millis());
   ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3);
+  // Rebinding can remove an entity or wait for a new state. Values from the
+  // previous subscriptions must not keep controlling the screen meanwhile.
+  const bool schedule_presence_was_detected = schedule_presence_detected_ptr && *schedule_presence_detected_ptr;
+  if (indoor_temp_ptr) *indoor_temp_ptr = NAN;
+  if (outdoor_temp_ptr) *outdoor_temp_ptr = NAN;
+  if (presence_detected_ptr) *presence_detected_ptr = false;
+  if (schedule_presence_detected_ptr) *schedule_presence_detected_ptr = false;
+  if (media_player_playing_ptr) *media_player_playing_ptr = false;
   bool has_clock_bar_entities = configure_clock_bar_temperature_entities(
       temperature_entities, temperature_labels, temperature_label_count,
       main_page_obj, clock_bar_visible_callback,
@@ -2474,6 +2524,9 @@ inline void grid_phase3(
         }),
       HA_SUBSCRIPTION_SCOPE_PHASE3
     );
+  }
+  if (schedule_presence_was_detected && !*schedule_presence_detected_ptr && schedule_presence_changed_callback) {
+    schedule_presence_changed_callback();
   }
   ESP_LOGI("sensors", "Phase 3: done (%lu ms)", esphome::millis());
 }

@@ -1,6 +1,6 @@
+import { buildSubpageGrid } from "../../src/webserver/model/subpage";
 import { decodeCompanionCard, encodeCompanionCard } from "../../src/webserver/model/companion_card_codec";
 import {
-  applyCompanionMediaPresentation,
   companionAppLabel,
   companionApplicationActions,
   companionApplicationActionIdCanSave,
@@ -13,10 +13,10 @@ import {
   COMPANION_STATS_OPTIONS,
   companionLabelPlaceholder,
   companionMetricDisplayMode,
+  companionMetricDescriptionEnabled,
+  companionMetricDisplayLabel,
   companionMetricPreviewValue,
-  companionMediaIcon,
-  COMPANION_MEDIA_PLAY_PAUSE_ACTION,
-  COMPANION_MEDIA_ACTIONS,
+  companionGeneratedIcon,
   companionShortcutActionId,
   companionSubtypeDefaultIcon,
   companionSubtypeIcon,
@@ -26,7 +26,6 @@ import {
   companionWindowActionLabel,
   formatCompanionShortcutActionId,
   normalizeCompanionCard,
-  resetCompanionMediaPresentation,
   resetCompanionMetricPresentation,
 } from "../../src/webserver/cards/companion";
 import {
@@ -54,6 +53,12 @@ import {
   SAFARI_BUNDLE_ID,
   CODEX_BUNDLE_ID,
   SLACK_BUNDLE_ID,
+  finderFolderTabs,
+  syncFinderFolderSelection,
+  addFinderFolderTiles,
+  inheritFinderOpenBehaviorForCard,
+  setFinderOpenBehavior,
+  createCompanionShortcutSubpage,
   createSafariShortcutSubpage,
   createCodexShortcutSubpage,
   codexShortcutPresetCards,
@@ -73,6 +78,7 @@ import {
   companionCardModeValid,
 } from "../../src/webserver/model/companion_card";
 import { emptyCardConfig } from "../../src/webserver/model/card";
+import { configOptionEnabled, configOptionValue } from "../../src/webserver/model/config_primitives";
 
 function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
   "code" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey"> {
@@ -87,17 +93,78 @@ function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
 }
 
 export function runCompanionShortcutFeatureTests(): void {
+  const finder = { ...emptyCardConfig("companion"), entity: "com.apple.finder", options: "app_shortcuts,app_shortcuts_auto_switch" };
+  if (!companionAppShortcutFolderEnabled(finder) || !companionAppShortcutAutoSwitchEnabled(finder) ||
+      !cardTransferOwnsSubpage(finder)) throw new Error("Finder must own an optional app subpage");
+  const finderPage = createCompanionShortcutSubpage(finder.entity);
+  if (finderPage.buttons.length || finderPage.order.join() !== "B") {
+    throw new Error("Finder should start with an empty editable folder page");
+  }
+  const inheritedFolder = { ...emptyCardConfig("companion"), entity: "folder.projects" };
+  if (!inheritFinderOpenBehaviorForCard(inheritedFolder, "same_window") ||
+      configOptionValue(inheritedFolder.options, "finder_open_behavior") !== "same_window" ||
+      configOptionEnabled(inheritedFolder.options, "finder_open_override")) {
+    throw new Error("New folder cards must persist the Finder subpage behavior when inheriting it");
+  }
+  const overriddenFolder = { ...emptyCardConfig("companion"), entity: "folder.archive" };
+  setFinderOpenBehavior(overriddenFolder, "new_window", true);
+  if (inheritFinderOpenBehaviorForCard(overriddenFolder, "same_window") ||
+      configOptionValue(overriddenFolder.options, "finder_open_behavior") !== "new_window" ||
+      !configOptionEnabled(overriddenFolder.options, "finder_open_override")) {
+    throw new Error("Inherited Finder behavior must preserve a folder card's explicit override");
+  }
+  finderPage.buttons.push({ ...emptyCardConfig("companion"), entity: "folder.projects", label: "Projects" });
+  finderPage.order.push("1");
+  const restoredPage = JSON.parse(JSON.stringify(finderPage));
+  syncCompanionShortcutSubpage(finder.entity, [], restoredPage);
+  if (restoredPage.buttons[0]?.entity !== "folder.projects" || restoredPage.order.join() !== "B,1") {
+    throw new Error("Saving Finder settings must preserve configured directory cards");
+  }
+  const folderTiles = [{ id: "folder.projects", label: "Projects renamed" }, { id: "folder.downloads", label: "Downloads" }];
+  addFinderFolderTiles(restoredPage, folderTiles, 4);
+  addFinderFolderTiles(restoredPage, folderTiles, 4);
+  if (restoredPage.buttons.length !== 2 || restoredPage.buttons[0].label !== "Projects" ||
+      restoredPage.buttons[1].entity !== "folder.downloads" || restoredPage.order.join() !== "B,1,2") {
+    throw new Error("Finder folder population must add missing folders once and preserve existing tiles");
+  }
+  const fullPage = createCompanionShortcutSubpage("com.apple.finder");
+  addFinderFolderTiles(fullPage, folderTiles, 2);
+  if (fullPage.buttons.length !== 1 || fullPage.order.length !== 2) {
+    throw new Error("Folder population must reserve Back and respect display capacity");
+  }
+  const buildFinderGrid = (page: any) => Object.assign(page, buildSubpageGrid(page, 9, 3));
+  const selectionSource = createCompanionShortcutSubpage("com.apple.finder");
+  addFinderFolderTiles(selectionSource, folderTiles, 9);
+  buildFinderGrid(selectionSource);
+  const toggled = syncFinderFolderSelection(selectionSource, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
+  if (!toggled || finderFolderTabs(toggled).join() !== "folder.downloads" || toggled.buttons.length !== 2) {
+    throw new Error("Disabled folders must remain saved but absent from the visible grid");
+  }
+  addFinderFolderTiles(toggled, folderTiles, 9);
+  buildFinderGrid(toggled);
+  if (finderFolderTabs(toggled).join() !== "folder.downloads") throw new Error("Auto population must respect disabled folders");
+  const reordered = syncFinderFolderSelection(toggled, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (finderFolderTabs(reordered).join() !== "folder.downloads,folder.projects") throw new Error("Folder toggles must apply their chosen order");
+  [reordered.grid[1], reordered.grid[2]] = [reordered.grid[2], reordered.grid[1]];
+  if (finderFolderTabs(reordered).join() !== "folder.projects,folder.downloads") throw new Error("Folder lists must follow tile moves");
+  const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
+  if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
+  if (companionModes.length !== 6 || new Set(companionModes.map(([mode]) => mode)).size !== 6 ||
       !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
+  const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
+  normalizeCompanionCard(storageCard);
+  if (decodeCompanionCard(storageCard).mode !== "stats" || companionMetricDisplayMode(storageCard) !== "free" ||
+      storageCard.entity !== "stat.storage_free:external-volume") throw new Error("Selected storage device must survive normalization");
+
   const typedCard = decodeCompanionCard(emptyCardConfig("companion"), "app");
   if (typedCard.mode !== "app" || typedCard.applicationId !== "") {
     throw new Error("Companion cards must have a typed in-memory model without changing saved config");
   }
-  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free"]) {
+  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free", "stat.storage:external-volume", "stat.storage_free:external-volume"]) {
     const saved = { ...emptyCardConfig("companion"), entity, label: "Keep", options: "future_option=keep", precision: "2", unit: "%" };
     if (JSON.stringify(encodeCompanionCard(decodeCompanionCard(saved), saved)) !== JSON.stringify(saved)) {
       throw new Error("Companion variants must round-trip offline cards and unknown options");
@@ -107,7 +174,7 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Legacy Companion Stat subpages must remain readable");
   }
   if (subpageKindOptions("home_assistant").some((option: any) => option[0] === "companion_stat") ||
-      JSON.stringify(subpageKindOptions("mac_companion")) !== JSON.stringify([["", "Generic"]])) {
+      JSON.stringify(subpageKindOptions("mac_companion")) !== JSON.stringify([["", "Folder"]])) {
     throw new Error("Home Assistant and Companion subpage type options must remain separate");
   }
   if (normalizeSubpageConnector("mac_companion") !== "mac_companion" ||
@@ -324,6 +391,16 @@ export function runCompanionShortcutFeatureTests(): void {
       companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, duplicatedPresetSubpage).includes("0")) {
     throw new Error("A duplicated preset must become a custom shortcut without re-enabling its source preset");
   }
+  const movedSafari = createSafariShortcutSubpage();
+  movedSafari.grid = [-2, 4, 3, 5, 0, 0, 0, 0, 0];
+  if (companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, movedSafari).join("|") !== "3|2|4") {
+    throw new Error("App options must follow visible tile order and leave unplaced cards disabled");
+  }
+  movedSafari.grid = [];
+  movedSafari.order = ["B", "5", "3"];
+  if (companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, movedSafari).join("|") !== "4|2") {
+    throw new Error("Saved subpage order must determine app option enablement after reload");
+  }
   const fullSafariSubpage = createSafariShortcutSubpage();
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3"], fullSafariSubpage);
   for (let index = 0; index < 4; index += 1) {
@@ -354,6 +431,12 @@ export function runCompanionShortcutFeatureTests(): void {
       slackSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
     throw new Error("Slack app subpage layout changed");
   }
+  const ipCard: any = { type: "companion", entity: "stat.ip_address:en1", icon: "Auto" };
+  normalizeCompanionCard(ipCard);
+  if (ipCard.entity !== "stat.ip_address:en1" || ipCard.icon !== "Laptop" ||
+      decodeCompanionCard(ipCard).mode !== "stats") {
+    throw new Error("Mac IP cards must preserve their selected network device and use a laptop icon");
+  }
   if (!companionCardIsMetric({ entity: "stat.memory" }) ||
       !companionCardIsMetric({ entity: "stat.memory_free" }) ||
       companionCardIsMetric({ entity: "sensor.memory_use" })) {
@@ -364,6 +447,14 @@ export function runCompanionShortcutFeatureTests(): void {
       companionMetricDisplayMode({ entity: "stat.storage_free" }) !== "free") {
     throw new Error("Memory and storage statistics must retain their Used or Free display choice");
   }
+  if (!companionMetricDescriptionEnabled({ entity: "stat.memory" }) ||
+      companionMetricDescriptionEnabled({ entity: "stat.memory", options: "stat_labels_off" }) ||
+      companionMetricDisplayLabel({ entity: "stat.memory", options: "stat_labels_off" }, "24", "%") !== "24%" ||
+      companionMetricDisplayLabel({ entity: "stat.memory" }, "24", "%") !== "24% used" ||
+      companionMetricDisplayMode({ entity: "stat.battery_used" }) !== "free" ||
+      companionMetricDisplayLabel({ entity: "stat.battery_used" }, "31", "%") !== "31% used") {
+    throw new Error("Companion statistic description toggle must control the used/free wording");
+  }
   if (companionLabelPlaceholder({ entity: "stat.network_throughput" }) !== "e.g. Network") {
     throw new Error("Network throughput must use Network as its default label");
   }
@@ -372,6 +463,7 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   if (JSON.stringify(COMPANION_STATS_OPTIONS) !== JSON.stringify([
     ["battery", "Battery"],
+    ["ip_address", "IP address"],
     ["memory_usage", "Memory"],
     ["network_throughput", "Network"],
     ["processor", "Processor"],
@@ -411,9 +503,6 @@ export function runCompanionShortcutFeatureTests(): void {
   if (legacyNetworkCard.unit !== "MB/s") {
     throw new Error("Network throughput cards must migrate to MB/s");
   }
-  if (companionCardMode({ entity: "media.play_pause", sensor: "" }) !== "media") {
-    throw new Error("Companion media actions must retain their card subtype");
-  }
   if (companionCardMode({ entity: "media.thirdparty.app", sensor: "" }) !== "app") {
     throw new Error("Installed apps beginning with media. must remain app actions");
   }
@@ -442,8 +531,8 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const folderAction = "folder.00000000-0000-0000-0000-000000000001";
   if (companionCardMode({ entity: folderAction, sensor: "" }) !== "folder" ||
-      companionCardMode({ entity: "com.apple.finder", sensor: "" }) !== "folder") {
-    throw new Error("Folder actions and legacy Finder cards must use the folder subtype");
+      companionCardMode({ entity: "com.apple.finder", sensor: "" }) !== "app") {
+    throw new Error("Folder actions must use the folder subtype and Finder must use the app subtype");
   }
   const catalogue = [
     { id: "com.apple.Safari", label: "Safari" },
@@ -451,13 +540,13 @@ export function runCompanionShortcutFeatureTests(): void {
     { id: "com.apple.finder", label: "Finder" },
     { id: folderAction, label: "Projects" },
     { id: "folder.00000000-0000-0000-0000-000000000002", label: "Archive" },
-    { id: COMPANION_MEDIA_PLAY_PAUSE_ACTION, label: "Media Play/Pause" },
+    { id: "media.play_pause", label: "Media Play/Pause" },
   ];
-  if (companionApplicationActions(catalogue).map((action) => action.id).join() !== "com.google.Chrome,com.apple.Safari") {
-    throw new Error("Finder and approved folders must not appear in the alphabetized application list");
+  if (companionApplicationActions(catalogue).map((action) => action.id).join() !== "com.apple.finder,com.google.Chrome,com.apple.Safari") {
+    throw new Error("Finder must appear in the alphabetized application list without folder actions");
   }
   if (!companionApplicationActionIdValid(catalogue, "com.apple.Safari") ||
-      companionApplicationActionIdValid(catalogue, "com.apple.finder") ||
+      !companionApplicationActionIdValid(catalogue, "com.apple.finder") ||
       companionApplicationActionIdValid([], "com.apple.Safari")) {
     throw new Error("Companion app selections require an available application action");
   }
@@ -491,43 +580,19 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionAppLabel("Work browser", "Safari", "Google Chrome") !== "Work browser") {
     throw new Error("Changing a Companion app must preserve a custom card label");
   }
-  if (companionMediaIcon("Play Pause", "Play Pause", "Skip Next") !== "Skip Next") {
+  if (companionGeneratedIcon("Play Pause", "Play Pause", "Skip Next") !== "Skip Next") {
     throw new Error("Changing media actions must refresh a generated icon");
   }
-  if (companionMediaIcon("Music", "Play Pause", "Skip Next") !== "Music") {
+  if (companionGeneratedIcon("Music", "Play Pause", "Skip Next") !== "Music") {
     throw new Error("Changing media actions must preserve a custom icon");
-  }
-  if (COMPANION_MEDIA_ACTIONS.find((action) => action.id === "media.previous")?.label !== "Previous" ||
-      COMPANION_MEDIA_ACTIONS.find((action) => action.id === "media.next")?.label !== "Next") {
-    throw new Error("Companion media actions must use the short Previous and Next labels");
-  }
-  const generatedAppCard = { entity: "com.apple.Safari", label: "Safari", icon: "Monitor" };
-  applyCompanionMediaPresentation(generatedAppCard, "Safari");
-  if (generatedAppCard.label !== "Play / Pause" || generatedAppCard.icon !== "Play Pause") {
-    throw new Error("Entering Media Control must refresh generated app presentation fields");
-  }
-  const customAppCard = { entity: "com.apple.Safari", label: "Work", icon: "Briefcase" };
-  applyCompanionMediaPresentation(customAppCard, "Safari");
-  if (customAppCard.label !== "Work" || customAppCard.icon !== "Briefcase") {
-    throw new Error("Entering Media Control must preserve custom presentation fields");
-  }
-  const generatedMediaCard = { entity: "media.play_pause", label: "Play / Pause", icon: "Play Pause" };
-  resetCompanionMediaPresentation(generatedMediaCard, "app");
-  if (generatedMediaCard.label !== "" || generatedMediaCard.icon !== "Monitor") {
-    throw new Error("Leaving Media Control must clear generated media presentation fields");
-  }
-  const customMediaCard = { entity: "media.next", label: "Skip", icon: "Music" };
-  resetCompanionMediaPresentation(customMediaCard, "shortcut");
-  if (customMediaCard.label !== "Skip" || customMediaCard.icon !== "Music") {
-    throw new Error("Leaving Media Control must preserve custom presentation fields");
   }
   const metricCard = {
     entity: "stat.cpu", label: "Processor", icon: "Monitor", sensor: "ignored",
-    unit: "", precision: "", options: "large_numbers,active_color", icon_on: "Auto",
+    unit: "", precision: "", options: "large_numbers,active_color,stat_labels_off", icon_on: "Auto",
   };
   normalizeCompanionCard(metricCard);
   if (metricCard.sensor !== "" || metricCard.unit !== "%" || metricCard.precision !== "0" ||
-      metricCard.options !== "large_numbers") {
+      metricCard.options !== "large_numbers,stat_labels_off") {
     throw new Error("Companion statistics must normalize their own sensor-style fields");
   }
   resetCompanionMetricPresentation(metricCard, "app");
@@ -555,6 +620,9 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!companionApplicationActionIdCanSave([], offlineSavedApp, offlineSavedApp)
       || companionApplicationActionIdCanSave([], "com.apple.TextEdit", offlineSavedApp)) {
     throw new Error("Offline app editing must preserve only the card's existing app identifier");
+  }
+  if (companionFolderActionIdCanSave([], "folder.", "folder.")) {
+    throw new Error("An empty folder placeholder must not be saved as an unavailable folder");
   }
   const offlineSavedFolder = "folder.approved-documents";
   if (!companionFolderActionIdCanSave([], offlineSavedFolder, offlineSavedFolder)
@@ -618,9 +686,5 @@ export function runCompanionShortcutFeatureTests(): void {
   const statsCard = { entity: "stat.cpu", sensor: "", icon: "Monitor" };
   normalizeCompanionCard(statsCard);
   if (statsCard.icon !== "Gauge") throw new Error("Existing stats cards must adopt the Gauge default icon");
-  const mediaCard = { entity: COMPANION_MEDIA_PLAY_PAUSE_ACTION, sensor: "", icon: "Auto" };
-  normalizeCompanionCard(mediaCard);
-  if (mediaCard.entity !== "media.play_pause" || mediaCard.icon !== "Play Pause") {
-    throw new Error("Play / Pause cards must round-trip with their fixed default icon");
-  }
+
 }

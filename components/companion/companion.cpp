@@ -100,8 +100,9 @@ void CompanionService::setup() {
       global_preferences->make_preference<uint32_t>(fnv1a_hash("companion_auth_sequence"));
   if (!this->identity_.paired || !this->sequence_preferences_.load(&this->last_sequence_))
     this->last_sequence_ = 0;
-  register_companion_action_sender([this](const std::string &action, const std::string &request) {
-    return this->invoke_(action, request);
+  register_companion_action_sender([this](const std::string &action, const std::string &request,
+                                          const std::string &folder_open_behavior) {
+    return this->invoke_(action, request, folder_open_behavior);
   });
   register_companion_url_sender([this](const std::string &app, const std::string &url,
                                        const std::string &request) {
@@ -241,6 +242,12 @@ bool CompanionService::ensure_identity_() {
 bool CompanionService::start_server_() {
   httpd_ssl_config_t config = HTTPD_SSL_CONFIG_DEFAULT();
   config.httpd.max_open_sockets = 2;
+  // Detect a Mac that disappears without closing its WebSocket (power or
+  // network loss), so connection-driven screensavers can still activate.
+  config.httpd.keep_alive_enable = true;
+  config.httpd.keep_alive_idle = 5;
+  config.httpd.keep_alive_interval = 5;
+  config.httpd.keep_alive_count = 3;
   // Never evict an authenticated Companion session just to admit an
   // unauthenticated socket. Excess connections are rejected instead.
   config.httpd.lru_purge_enable = false;
@@ -413,7 +420,6 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const int previous_socket = this->session_.authenticate(socket_fd);
       if (previous_socket != -1 && previous_socket != socket_fd)
         httpd_sess_trigger_close(this->server_, previous_socket);
-      companion_set_media_actions_supported(false);
       this->forget_unauthenticated_socket_(socket_fd);
       this->set_connected_(true);
       {
@@ -487,14 +493,11 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     }
 
     if (const auto *payload = std::get_if<companion_protocol::Capabilities>(&*decoded)) {
-      bool media_actions = false;
       bool keyboard_actions = false;
       bool keyboard_actions_capability_received = false;
       std::vector<std::string> window_actions;
       for (const auto &capability : payload->values) {
-        if (capability == "media_actions") {
-          media_actions = true;
-        } else if (capability == "keyboard_shortcuts") {
+        if (capability == "keyboard_shortcuts") {
           keyboard_actions = true;
           keyboard_actions_capability_received = true;
         } else if (capability == "keyboard_shortcuts_unavailable") {
@@ -504,9 +507,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           window_actions.push_back(capability);
         }
       }
-      this->defer_session_([media_actions, keyboard_actions, keyboard_actions_capability_received,
+      this->defer_session_([keyboard_actions, keyboard_actions_capability_received,
                             window_actions = std::move(window_actions)]() mutable {
-        companion_set_media_actions_supported(media_actions);
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         companion_set_window_actions(std::move(window_actions));
       });
@@ -635,8 +637,16 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       snapshot.cpu_usage_percent = payload->cpuUsagePercent.value_or(NAN);
       snapshot.memory_usage_percent = payload->memoryUsagePercent.value_or(NAN);
       snapshot.storage_usage_percent = payload->storageUsagePercent.value_or(NAN);
+      if (payload->storageDevices) {
+        for (const auto &device : *payload->storageDevices)
+          snapshot.storage_devices.push_back({device.id, device.label, static_cast<float>(device.usagePercent)});
+      }
       snapshot.battery_percent = payload->batteryPercent.value_or(NAN);
       snapshot.network_throughput_kbps = payload->networkThroughputKBps.value_or(NAN);
+      if (payload->networkInterfaces) {
+        for (const auto &network : *payload->networkInterfaces)
+          snapshot.network_interfaces.push_back({network.id, network.label, network.address});
+      }
       const std::array<float, 3> required{{
           snapshot.cpu_usage_percent,
           snapshot.memory_usage_percent,
@@ -879,13 +889,16 @@ void CompanionService::publish_catalogue_() {
               std::to_string(COMPANION_PROTOCOL_VERSION) + "}");
 }
 
-bool CompanionService::invoke_(const std::string &action_id, const std::string &request_id) {
+bool CompanionService::invoke_(const std::string &action_id, const std::string &request_id,
+                               const std::string &folder_open_behavior) {
   const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0 || !safe_field(action_id, 96) || !safe_field(request_id, 64)) return false;
+  if (socket_fd < 0 || !safe_field(action_id, 96) || !safe_field(request_id, 64) ||
+      (folder_open_behavior != "new_window" && folder_open_behavior != "same_window")) return false;
   companion_protocol::ActionInvoke payload;
   payload.requestId = request_id;
   payload.kind = "action";
   payload.actionId = action_id;
+  if (action_id.rfind("folder.", 0) == 0) payload.folderOpenBehavior = folder_open_behavior;
   return this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
     companion_protocol::encode(root, payload);
   }));

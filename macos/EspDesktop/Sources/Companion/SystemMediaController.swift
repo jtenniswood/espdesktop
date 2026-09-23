@@ -1,31 +1,11 @@
 import CoreAudio
 import Foundation
-import MediaRemoteShim
-
-protocol MediaCommandProviding {
-    var isAvailable: Bool { get }
-    func send(command: UInt32) -> Bool
-}
-
-struct MediaRemoteCommandSource: MediaCommandProviding {
-    var isAvailable: Bool { ECMediaRemoteBridge.isCommandAvailable() }
-    func send(command: UInt32) -> Bool { ECMediaRemoteBridge.sendCommand(command) }
-}
 
 @MainActor
 final class SystemMediaController {
-    static let playPauseID = CompanionCapabilities.mediaPlayPauseID
     static let outputVolumeID = "media.output_volume"
     static let inputVolumeID = "media.input_volume"
     static let volumeControlIDs = Set([outputVolumeID, inputVolumeID])
-    static var mediaActionsAvailable: Bool { MediaRemoteCommandSource().isAvailable }
-
-    private let commandSource: MediaCommandProviding
-
-    init(commandSource: MediaCommandProviding = MediaRemoteCommandSource()) {
-        self.commandSource = commandSource
-    }
-
     static func unavailableVolumeIDs(
         values: [String: Int],
         previousValues: [String: Int],
@@ -33,27 +13,6 @@ final class SystemMediaController {
     ) -> Set<String> {
         let candidates = force ? volumeControlIDs : Set(previousValues.keys)
         return candidates.subtracting(values.keys)
-    }
-
-    private enum RemoteCommand: UInt32 {
-        case togglePlayPause = 2
-        case nextTrack = 4
-        case previousTrack = 5
-    }
-
-    static func supports(actionIdentifier: String) -> Bool {
-        CompanionCapabilities.mediaCommandByActionID[actionIdentifier] != nil
-    }
-
-    func perform(actionIdentifier: String) -> Bool {
-        let command: RemoteCommand
-        switch CompanionCapabilities.mediaCommandByActionID[actionIdentifier] {
-        case "togglePlayPause": command = .togglePlayPause
-        case "previousTrack": command = .previousTrack
-        case "nextTrack": command = .nextTrack
-        default: return false
-        }
-        return commandSource.isAvailable && commandSource.send(command: command.rawValue)
     }
 
     func values() -> [String: Int] {
