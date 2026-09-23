@@ -234,6 +234,7 @@ struct CompanionSettings: View {
     @State private var pairingFlowError = ""
     @AppStorage("companion.onboarding.completed") private var onboardingCompleted = false
     @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
+    @State private var applicationSearchText = ""
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
@@ -365,6 +366,15 @@ struct CompanionSettings: View {
 
     private var selectedPageBinding: Binding<CompanionSettingsPage> {
         Binding(get: { selectedPage }, set: { selectedPageID = $0.rawValue })
+    }
+
+    private var filteredApplications: [LaunchableApp] {
+        store.availableApps.filter(matchesApplicationSearch)
+    }
+
+    private func matchesApplicationSearch(_ application: LaunchableApp) -> Bool {
+        let query = applicationSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return query.isEmpty || application.name.localizedStandardContains(query)
     }
 
     private var connectionPage: some View {
@@ -707,17 +717,28 @@ struct CompanionSettings: View {
                         Button("Refresh Applications") { store.refreshApplications() }
                     }
                 } else {
-                    ForEach(store.availableApps) { application in
-                        Toggle(isOn: Binding(
-                            get: { store.applicationIsApproved(application) },
-                            set: { store.setApplication(application, approved: $0) }
-                        )) {
-                            HStack(spacing: 10) {
-                                Text(application.name)
+                    TextField("Search apps", text: $applicationSearchText)
+                        .textFieldStyle(.roundedBorder)
+                        .accessibilityLabel("Search apps")
+
+                    if filteredApplications.isEmpty {
+                        emptyState("No Matching Apps", symbol: "magnifyingglass",
+                                   detail: "Try a different search.") {
+                            Button("Clear Search") { applicationSearchText = "" }
+                        }
+                    } else {
+                        ForEach(store.availableApps) { application in
+                            if matchesApplicationSearch(application) {
+                                Toggle(isOn: Binding(
+                                    get: { store.applicationIsApproved(application) },
+                                    set: { store.setApplication(application, approved: $0) }
+                                )) {
+                                    Text(application.name)
+                                }
+                                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                                .padding(.vertical, 2)
                             }
                         }
-                        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                        .padding(.vertical, 2)
                     }
                 }
             } header: {
