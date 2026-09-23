@@ -10,6 +10,8 @@ import { isBackOrderToken } from "../model/subpage";
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
 export const COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION = "app_shortcuts_auto_switch";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
+export const FINDER_OPEN_BEHAVIOR_OPTION = "finder_open_behavior";
+export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
@@ -80,8 +82,12 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         return setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity);
     }
     if (!companionShortcutFolderAppLabel(card.entity) || card.sensor) return "";
-    const options = setConfigOption(
-        "",
+    const behavior = configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION);
+    let options = card.entity === "com.apple.finder" &&
+        (behavior === "same_window" || behavior === "new_window")
+        ? setConfigOptionValue("", FINDER_OPEN_BEHAVIOR_OPTION, behavior) : "";
+    options = setConfigOption(
+        options,
         COMPANION_APP_SHORTCUTS_OPTION,
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
@@ -122,6 +128,29 @@ export function setCompanionAppShortcutAutoSwitchEnabled(card: any, enabled: boo
         COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION,
         enabled && companionAppShortcutFolderEnabled(card),
     );
+}
+
+export type FinderOpenBehavior = "new_window" | "same_window";
+
+export function finderOpenBehavior(card: any): FinderOpenBehavior {
+    return configOptionValue(card?.options, FINDER_OPEN_BEHAVIOR_OPTION) === "same_window"
+        ? "same_window" : "new_window";
+}
+
+export function setFinderOpenBehavior(card: any, behavior: FinderOpenBehavior, override: boolean): void {
+    if (!card) return;
+    let options = setConfigOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION, behavior);
+    options = setConfigOption(options, FINDER_OPEN_OVERRIDE_OPTION, override);
+    card.options = options;
+}
+
+export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOpenBehavior): void {
+    if (!subpage || !Array.isArray(subpage.buttons)) return;
+    for (const button of subpage.buttons) {
+        if (button?.type !== "companion" || !String(button.entity || "").startsWith("folder.")) continue;
+        if (configOptionEnabled(button.options, FINDER_OPEN_OVERRIDE_OPTION)) continue;
+        setFinderOpenBehavior(button, behavior, false);
+    }
 }
 
 export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
