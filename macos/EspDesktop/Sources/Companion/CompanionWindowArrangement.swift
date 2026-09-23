@@ -57,12 +57,18 @@ enum CompanionWindowArrangement {
         let y: Double
         let width: Double
         let height: Double
+        let bundleIdentifier: String?
+        let windowTitle: String?
+        let savedAt: Date?
 
-        init(_ frame: CGRect) {
+        init(_ frame: CGRect, bundleIdentifier: String?, windowTitle: String?) {
             x = frame.minX
             y = frame.minY
             width = frame.width
             height = frame.height
+            self.bundleIdentifier = bundleIdentifier
+            self.windowTitle = windowTitle
+            savedAt = Date()
         }
 
         var rect: CGRect { CGRect(x: x, y: y, width: width, height: height) }
@@ -91,11 +97,17 @@ enum CompanionWindowArrangement {
         guard desktop.width > 0, desktop.height > 0 else { return false }
 
         if action == .restore {
-            guard let frame = previousFrames[active.restoreKey] else {
-                // Let macOS handle windows tiled outside EspDesktop when there
-                // is no frame from one of our own arrangement actions.
-                return CompanionKeyboardShortcut(actionIdentifier: identifier)?.replay() ?? false
+            // A shortcut can be posted without macOS actually restoring the
+            // window, so only report success for frames saved by our own tiling.
+            guard let storedFrame = previousFrames[active.restoreKey] else { return false }
+            guard let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier),
+                  storedFrame.bundleIdentifier == bundleIdentifier,
+                  storedFrame.windowTitle == windowTitle(for: active.element) else {
+                previousFrames.removeValue(forKey: active.restoreKey)
+                savePreviousFrames()
+                return false
             }
+            let frame = storedFrame.rect
             let restoreScreen = NSScreen.screens.max(by: {
                 intersectionArea(accessibilityFrame(for: $0.frame), frame)
                     < intersectionArea(accessibilityFrame(for: $1.frame), frame)
@@ -138,23 +150,50 @@ enum CompanionWindowArrangement {
             }
         }
 
-        for window in selected where previousFrames[window.restoreKey] == nil {
-            previousFrames[window.restoreKey] = window.frame
+        for window in selected {
+            guard let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier) else { continue }
+            let title = windowTitle(for: window.element)
+            if let previousFrame = previousFrames[window.restoreKey],
+               previousFrame.bundleIdentifier == bundleIdentifier,
+               previousFrame.windowTitle == title {
+                continue
+            }
+            previousFrames[window.restoreKey] = StoredFrame(
+                window.frame,
+                bundleIdentifier: bundleIdentifier,
+                windowTitle: title
+            )
         }
         savePreviousFrames()
         return true
     }
 
-    private static func loadPreviousFrames() -> [String: CGRect] {
+    private static func loadPreviousFrames() -> [String: StoredFrame] {
         guard let data = UserDefaults.standard.data(forKey: restoreFramesDefaultsKey),
               let storedFrames = try? JSONDecoder().decode([String: StoredFrame].self, from: data)
         else { return [:] }
-        return storedFrames.mapValues(\.rect)
+        let expiryDate = Date().addingTimeInterval(-14 * 24 * 60 * 60)
+        return storedFrames.compactMapValues { storedFrame in
+            guard storedFrame.bundleIdentifier != nil,
+                  let savedAt = storedFrame.savedAt,
+                  savedAt >= expiryDate else { return nil }
+            return storedFrame
+        }
     }
 
     private static func savePreviousFrames() {
-        guard let data = try? JSONEncoder().encode(previousFrames.mapValues(StoredFrame.init)) else { return }
+        guard let data = try? JSONEncoder().encode(previousFrames) else { return }
         UserDefaults.standard.set(data, forKey: restoreFramesDefaultsKey)
+    }
+
+    private static func applicationBundleIdentifier(for processIdentifier: pid_t) -> String? {
+        NSRunningApplication(processIdentifier: processIdentifier)?.bundleIdentifier
+    }
+
+    private static func windowTitle(for element: AXUIElement) -> String? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXTitleAttribute as CFString, &value) == .success else { return nil }
+        return value as? String
     }
 
     private static func visibleWindows() -> [Window]? {
