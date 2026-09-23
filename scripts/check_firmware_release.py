@@ -538,6 +538,8 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         normal_factory = ROOT / "builds" / f"{slug}.factory.yaml"
         assert "esp32_c6_recovery" not in normal_factory.read_text(encoding="utf-8")
 
+    install = (ROOT / "docs/getting-started/install.md").read_text(encoding="utf-8")
+    assert "https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery" in install
     firmware_updates = (ROOT / "docs/features/firmware-updates.md").read_text(encoding="utf-8")
     assert "/getting-started/c6-recovery" in firmware_updates
     screen_docs = {

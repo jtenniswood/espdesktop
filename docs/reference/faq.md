@@ -38,10 +38,6 @@ The app or folder must be approved in EspDesktop. Open **Applications** or **Fol
 
 The Mac must be paired and connected. Some audio devices do not expose software volume control, in which case the slider is disabled by macOS.
 
-### Why are Now Playing details or artwork missing?
-
-The playback app must publish a usable Now Playing session to macOS. Some apps or web players provide only part of the information, and others may not report artwork or track details.
-
 ### How do I replace a display or reset pairing?
 
 Choose **Forget Display** in the Mac app, then reset pairing from **Connectors → Mac Companion** on the display. Pair the replacement using its new temporary code.

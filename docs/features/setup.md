@@ -14,7 +14,7 @@ After pairing the Mac app, open the display's address in a browser and use its b
 3. Choose a control type, such as **Launch app**, **Keyboard shortcut**, **Open folder**, **Open URL**, **Window control**, or **Stats**.
 4. Set the options and choose **Apply Configuration** to save the layout.
 
-Apps and folders must first be approved in the Mac app. Keyboard shortcuts and window controls need Accessibility permission. See [Mac Cards and Capabilities](/card-types/companion) for the available actions and requirements.
+Apps and folders must first be approved in the Mac app. Keyboard shortcuts and window controls need Accessibility permission. See [Mac Controls](/card-types/companion) for the available actions and requirements.
 
 ## Arrange and Personalise Cards
 
@@ -29,5 +29,9 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 ## Back Up Your Layout
 
 Use the setup page's backup controls to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
+
+The **Connectors** tab shows your connection status. It provides setup steps for a new connection, a short reconnect check when offline, and Home Assistant actions permission guidance after connecting.
+
+Home Assistant settings appear only while the Home Assistant connector is connected. When it disconnects, **Cover Art Screen Saver**, the **Home Assistant** modes in **Screensaver** and **Night Schedule**, **Home Assistant Settings**, and the clock-bar temperature control are hidden. Saved settings return when Home Assistant reconnects. Use the **Connectors** tab to check or restore the connection.
 
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).
