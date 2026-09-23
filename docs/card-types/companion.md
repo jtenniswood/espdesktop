@@ -7,7 +7,7 @@ description: Launch approved Mac apps, open folders and websites, run shortcuts,
 
 Mac controls use the **Mac Companion** connector between the EspDesktop display and the EspDesktop menu-bar app. They currently work on the **4-inch Guition ESP32-S3 4848S040** with one paired Mac.
 
-Home Assistant is not required for these controls. You can connect Home Assistant as well if you want Mac and smart-home cards on the same display.
+For Home Assistant controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
 ::: tip Before adding cards
 First [install and pair the EspDesktop Mac app](/getting-started/mac-app). The monitor icon beside WiFi in the display's clock bar shows that the Mac is connected.
@@ -19,7 +19,7 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 
 | Companion type | What it does | Extra setup |
 |---|---|---|
-| **Launch app** | Brings an approved Mac application to the front | Approve the app in the Mac app's **Applications** page |
+| **Launch app** | Brings an approved Mac application to the front | Approve the app in the Mac app's **Apps** page |
 | **Keyboard shortcut** | Replays a shortcut such as Command-A in the active app | Allow Accessibility access |
 | **Open URL** | Opens an `http://` or `https://` address in an approved app | Choose an approved browser or other app |
 | **Open folder** | Opens an approved Finder folder | Add the folder in the Mac app's **Folders** page |
@@ -30,7 +30,7 @@ Action cards are disabled when the Mac is offline or the selected application, f
 
 ## Launch Apps and Open Websites
 
-For **Launch app**, select an application from the approved list supplied by the Mac app. Approve **Finder** in the Mac app to include it. Its card lights up when a Finder window or the desktop is active.
+For **Launch app**, select an application from the approved list supplied by the Mac app. Approve **Finder** in the Mac app's **Apps** page to include it. Its card lights up when a Finder window or the desktop is active.
 
 For **Open URL**, enter an `http://` or `https://` address and choose the approved application that should open it, such as Safari or Chrome. Addresses containing an embedded username or password are rejected, and other URL types such as `file://` are not accepted.
 
@@ -92,7 +92,7 @@ See [Media Cover Art](/features/media-cover-art) for its display and timing opti
 
 ## Mac Volume Sliders
 
-Mac volume uses the normal [Slider card](/card-types/sliders), not a Companion card.
+Mac volume uses a **Slider** card, not a Companion card.
 
 1. Add a **Slider** card.
 2. Set **Control** to **Mac output volume** for the selected speakers or **Mac input volume** for the selected microphone.
@@ -123,7 +123,7 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 
 | Feature | Approval or permission |
 |---|---|
-| Launching an app | The app must be selected in EspDesktop's **Applications** page |
+| Launching an app | The app must be selected in EspDesktop's **Apps** page |
 | Opening a folder | The folder must be added in EspDesktop's **Folders** page |
 | Keyboard and window controls | EspDesktop must be enabled in **System Settings → Privacy & Security → Accessibility** |
 | Mac statistics | Shared automatically while connected to the paired display |
@@ -137,7 +137,7 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 - Applications and folders must be approved on the Mac. Folder paths remain on the Mac; the display receives a friendly name and anonymous identifier.
 - The connector accepts only its defined actions. It does not run shell commands or accept incoming network connections on the Mac.
 - Now Playing information is read through macOS's private `MediaRemote` framework because Apple's public API only lets an app publish its own session. If a macOS update removes the required interface, media and artwork become unavailable while the other Mac controls continue to work.
-- Companion cards are currently offered only on the 4848S040 profile. Other supported panels continue to provide their Home Assistant cards normally.
+- Companion cards are currently offered only on the 4848S040 profile.
 
 If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. You can also tap the display’s network icon and choose **Pairing**. The popup shows the pairing code and the display’s IP address.
 

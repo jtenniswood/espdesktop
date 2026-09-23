@@ -7,7 +7,7 @@ description: Install EspDesktop on macOS, pair a 4848S040 display, approve apps 
 
 The EspDesktop menu-bar app connects one Mac to one supported display over your local network. It powers Mac cards for launching apps, opening folders and websites, replaying shortcuts, arranging windows, controlling media and volume, showing Now Playing artwork, and sharing Mac statistics.
 
-Mac Companion is currently a proof of concept for the **4-inch Guition ESP32-S3 4848S040** display. Home Assistant is optional and can be connected alongside it.
+Mac Companion currently supports the **4-inch Guition ESP32-S3 4848S040** display. For Home Assistant panels and smart-home controls, visit the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
 ## Install a Release
 
@@ -38,21 +38,20 @@ When the connection is ready, a monitor icon appears beside WiFi in the display'
 
 ## Choose the First-Run Options
 
-First-run setup has three screens: choose your display, enter the pairing code, then **Access and startup**. The final screen opens automatically after pairing and keeps all three options together. Choose **Finish** when ready; you can change these options later in **Display → Permissions**. Use the info buttons for more detail.
+First-run setup has three steps: choose your display, enter the pairing code, then review **Access and startup**. After pairing, enable Accessibility if you want to use keyboard shortcuts or window controls, and choose whether EspDesktop should open when you sign in. These options are also available in the **Display** tab.
 
 | Option | What it enables | Required? |
 |---|---|---|
-| **Keyboard shortcuts** | Keyboard shortcut and Window cards | Only for those cards |
-| **Share Mac stats** | Processor, memory, storage, network, and battery cards | Optional |
-| **Launch at login** | Starts EspDesktop when you sign in so the display reconnects | Optional but recommended |
+| **Accessibility** | Keyboard shortcut and window controls | Only for those controls |
+| **Open at Startup** | Starts EspDesktop when you sign in so the display can reconnect | Optional |
 
-Shortcut and window controls need macOS Accessibility access. When asked, turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, websites, media, artwork, and volume do not need Accessibility permission.
+Keyboard shortcuts and window controls need macOS Accessibility access. Choose **Open Settings**, then turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, websites, media, artwork, and volume do not need Accessibility permission.
 
-## Approve Applications and Folders
+## Approve Apps and Folders
 
 The display cannot ask the Mac to open any arbitrary application or folder.
 
-- Open **Applications** in the Mac app and select only the apps the display may launch or use for website cards.
+- Open **Apps** in the Mac app and select only the apps the display may launch or use for website cards.
 - Open **Folders**, choose **Add Folder…**, and select each folder the display may open in Finder.
 - If a moved folder shows as unavailable, choose **Choose Again…** to renew access.
 - Removing an app or folder makes any card that uses it unavailable.
@@ -70,12 +69,12 @@ Then add the controls you want:
 
 ## Accessibility and Startup
 
-The **Accessibility** and **Startup** groups sit below the connection panel in the **Display** tab:
+The **Accessibility** and startup settings sit below the connection panel in the **Display** tab:
 
-- **Open EspDesktop at Login** keeps the local connector available after you sign in.
-- **Keyboard & Window Controls** opens the macOS Accessibility setting and shows whether permission is available.
+- **Open at Startup** keeps the local connector available after you sign in.
+- **Enable Shortcuts** opens the macOS Accessibility setting; the app reports whether access is available.
 
-Mac statistics are shared automatically with the paired display while connected; there is no statistics-sharing switch.
+Mac statistics become available to the paired display while connected, when the display firmware supports them.
 
 If shortcuts or window cards stop working after replacing the app, remove the old EspDesktop entry from Accessibility, add the installed app again, and retry the card.
 
