@@ -356,10 +356,13 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Display disconnected", state: .disconnected)
             return
         }
+        let savedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
+        // A name refresh can keep an earlier discovery session open. Seed the
+        // recovery candidate from its current results before changing handlers.
+        endpointRecovery.discovered(discovery.displays, expectedFingerprint: savedFingerprint)
         discovery.onChange = { [weak self] displays in
             guard let self, self.shouldReconnect, !self.hasTerminalConnectionError else { return }
-            let saved = self.preferences.stringPreference(forKey: self.certificateFingerprintKey)
-            self.endpointRecovery.discovered(displays, expectedFingerprint: saved)
+            self.endpointRecovery.discovered(displays, expectedFingerprint: savedFingerprint)
         }
         discovery.start()
         guard reconnectTask == nil else { return }
@@ -723,8 +726,11 @@ final class CompanionConnection: NSObject {
     private func refreshDisplayName(expectedFingerprint: String?) {
         guard let expectedFingerprint else { return }
         discovery.onChange = { [weak self] displays in
-            guard let self, self.sessionAuthenticated,
-                  let display = displays.first(where: { $0.id == expectedFingerprint }) else { return }
+            guard let self, self.sessionAuthenticated else { return }
+            // Keep the pinned display's newest endpoint for reconnects too.
+            // The browser may already be active when scheduleReconnect runs.
+            self.endpointRecovery.discovered(displays, expectedFingerprint: expectedFingerprint)
+            guard let display = displays.first(where: { $0.id == expectedFingerprint }) else { return }
             self.preferences.setPreference(display.name, forKey: self.displayNameKey)
         }
         discovery.start()
