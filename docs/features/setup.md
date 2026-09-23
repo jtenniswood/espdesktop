@@ -30,7 +30,11 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 Use the setup page's backup controls to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
 
-The **Connectors** tab provides setup and status for Mac Companion. Home Assistant support is off by default. To opt in on a display, add this setting under its `espdesktop:` section in the ESPHome YAML, then install the updated firmware:
+The **Connectors** tab provides setup and status for Mac Companion. Home Assistant support is off by default.
+
+> **Unsupported feature:** This Home Assistant opt-in is provided for experimentation only. It is not supported and may be removed at any time.
+
+To opt in on a display, add this setting under its `espdesktop:` section in the ESPHome YAML, then install the updated firmware:
 
 ```yaml
 espdesktop:
