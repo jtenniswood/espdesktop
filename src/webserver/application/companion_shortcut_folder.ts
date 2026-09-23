@@ -482,3 +482,85 @@ export function createCodexShortcutSubpage(): any {
 export function createSlackShortcutSubpage(): any {
     return createCompanionShortcutSubpage(SLACK_BUNDLE_ID);
 }
+
+export function finderFolderTabs(subpage: any): string[] {
+    const tokens = subpage?.grid?.length ? subpage.grid : (subpage?.order || []);
+    const selected: string[] = [];
+    for (const token of tokens) {
+        const index = Number.parseInt(String(token), 10) - 1;
+        const card = subpage?.buttons?.[index];
+        if (card?.type === "companion" && card.entity?.startsWith("folder.") && !selected.includes(card.entity)) {
+            selected.push(card.entity);
+        }
+    }
+    return selected;
+}
+
+export function syncFinderFolderSelection(
+    source: any, folders: readonly { id: string; label: string }[], selected: readonly string[],
+    maxSlots: number, buildGrid: (page: any) => unknown,
+): any | null {
+    const page = JSON.parse(JSON.stringify(source));
+    const managed = (card: any) => card?.type === "companion" && card.entity?.startsWith("folder.");
+    const sizes = { ...(page.sizes || {}) };
+    const suffixes = new Map<string, string>();
+    page.order = (page.order || []).map((token: string) => {
+        const index = Number.parseInt(String(token), 10) - 1;
+        const card = page.buttons[index];
+        if (!managed(card)) return token;
+        suffixes.set(card.entity, String(token).replace(/^\d+/, ""));
+        return "";
+    });
+    // Unplaced folder definitions persist disabled choices across reconnects.
+    // Automatic catalogue updates recognize these IDs and do not re-add them.
+    for (const folder of folders) {
+        if (!page.buttons.some((card: any) => managed(card) && card.entity === folder.id)) {
+            page.buttons.push(shortcutCard(folder.id, folder.label, "Folder Outline"));
+        }
+    }
+    page.sizes = {};
+    buildGrid(page);
+    for (const id of selected) {
+        const index = page.buttons.findIndex((card: any) => managed(card) && card.entity === id);
+        if (index < 0) continue;
+        const suffix = suffixes.get(id) || "";
+        const size = sizes[String(index + 1)] || 1;
+        let placed = false;
+        for (let position = 0; position < maxSlots; position++) {
+            if (page.grid[position]) continue;
+            const trial = JSON.parse(JSON.stringify(page));
+            while (trial.order.length <= position) trial.order.push("");
+            trial.order[position] = String(index + 1) + suffix;
+            buildGrid(trial);
+            if ((trial.sizes[String(index + 1)] || 1) !== size ||
+                page.grid.some((cell: number, i: number) => cell !== 0 && trial.grid[i] !== cell)) continue;
+            page.order = trial.order;
+            page.grid = trial.grid;
+            page.sizes = trial.sizes;
+            placed = true;
+            break;
+        }
+        if (!placed) return null;
+    }
+    return page;
+}
+
+// Add configured directories without replacing custom cards, labels, or layout.
+export function addFinderFolderTiles(
+    subpage: any, folders: readonly { id: string; label: string }[], maxSlots: number,
+): any {
+    const existing = new Set((subpage.buttons || []).map((card: any) => card.entity));
+    for (const folder of folders) {
+        if (!folder.id.startsWith("folder.") || folder.id.length <= 7 || existing.has(folder.id)) continue;
+        let position = -1;
+        for (let index = 0; index < maxSlots; index += 1) {
+            if (!subpage.order[index] && !subpage.grid?.[index]) { position = index; break; }
+        }
+        if (position < 0) break;
+        subpage.buttons.push(shortcutCard(folder.id, folder.label, "Folder Outline"));
+        while (subpage.order.length <= position) subpage.order.push("");
+        subpage.order[position] = String(subpage.buttons.length);
+        existing.add(folder.id);
+    }
+    return subpage;
+}
