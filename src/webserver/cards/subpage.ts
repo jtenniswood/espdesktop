@@ -60,11 +60,11 @@ export function registerSubpageCardTypes(
         },
         labelField: {
             label: "Label",
-            placeholder: "e.g. Lighting",
+            placeholder: "e.g. Folder Name",
         },
         icon: {
             field: "icon",
-            fallback: "Auto",
+            fallback: "Folder Outline",
             label: "Icon",
         },
         showState: {
@@ -145,16 +145,16 @@ export function registerSubpageCardTypes(
         },
     };
     var subpageDefinition: any = {
-        label: "Subpage",
+        label: "Folder",
         allowInSubpage: false,
         hideLabel: true,
-        labelPlaceholder: "e.g. Lighting",
+        labelPlaceholder: "e.g. Folder Name",
         cardMetadata: SUBPAGE_CARD_METADATA,
         onSelect: function (this: any, b?: any) {
             b.entity = "";
             b.sensor = "";
             b.unit = "";
-            b.icon = "Auto";
+            b.icon = "Folder Outline";
             b.icon_on = "Auto";
             b.options = "";
         },
@@ -284,12 +284,15 @@ export function registerSubpageCardTypes(
                 return;
             }
             var mode: any = subpageStateDisplayMode(b);
-            var showState: any = mode !== "off";
+            var showStateAvailable: any = helpers.homeAssistantEnabled() && subpageConnector(b) === "home_assistant";
+            var showState: any = showStateAvailable && mode !== "off";
             var sensorEntity: any = b.sensor && b.sensor !== "indicator" ? b.sensor : "";
             var iconStateEntity: any = mode === "icon" ? (b.entity || "") : "";
             helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
             var iconSectionMain: any = helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
-            var showStateToggle: any = helpers.renderCardOptionToggle(panel, b, helpers, SUBPAGE_CARD_METADATA.showState);
+            var showStateToggle: any = showStateAvailable
+                ? helpers.renderCardOptionToggle(panel, b, helpers, SUBPAGE_CARD_METADATA.showState)
+                : null;
             var stateCond: any = condField();
             if (showState)
                 stateCond.classList.add("sp-visible");
@@ -364,8 +367,9 @@ export function registerSubpageCardTypes(
             panel.appendChild(stateCond);
             function setMode(this: any, nextMode?: any, persist?: any) {
                 mode = nextMode;
-                showState = mode !== "off";
-                showStateToggle.input.checked = showState;
+                showState = showStateAvailable && mode !== "off";
+                if (showStateToggle)
+                    showStateToggle.input.checked = showState;
                 var iconLabel: any = iconSectionMain.querySelector(".sp-field-label");
                 if (iconLabel)
                     iconLabel.textContent = mode === "icon" ? "Off Icon" : "Icon";
@@ -433,9 +437,11 @@ export function registerSubpageCardTypes(
                     helpers.saveField("icon_on", "Auto");
                 }
             }
-            showStateToggle.input.addEventListener("change", function (this: any) {
-                setMode(this.checked ? (mode === "off" ? "icon" : mode) : "off", true);
-            });
+            if (showStateToggle) {
+                showStateToggle.input.addEventListener("change", function (this: any) {
+                    setMode(this.checked ? (mode === "off" ? "icon" : mode) : "off", true);
+                });
+            }
             setMode(mode, false);
             appendEditSubpageButton(panel, slot);
         },
@@ -486,7 +492,7 @@ export function registerSubpageCardTypes(
     const registeredSubpageDefinition = registry.register("subpage", subpageDefinition);
     registry.register("companion_subpage", {
         ...registeredSubpageDefinition,
-        label: "Subpage",
+        label: "Folder",
         onSelect: function (this: any, b?: any) {
             b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
         },

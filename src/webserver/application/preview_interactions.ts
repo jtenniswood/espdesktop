@@ -482,6 +482,7 @@ export function createPreviewInteractionsFeature(
         if (slot < 0)
             return;
         state.buttons[slot - 1] = emptyButtonConfig("subpage");
+        state.buttons[slot - 1].icon = "Folder Outline";
         state.grid[pos] = slot;
         state.subpages[slot] = { order: [], buttons: [], grid: [], sizes: {} };
         buildSubpageGrid(state.subpages[slot]);
@@ -489,6 +490,7 @@ export function createPreviewInteractionsFeature(
         configPersistence.saveButtonConfig(slot);
         configPersistence.saveSubpageEntity(slot);
         selectButton(slot);
+        renderButtonSettings(true);
     }
     function duplicateButton(this: any, srcSlot?: any) {
         if (isConfigLocked())
