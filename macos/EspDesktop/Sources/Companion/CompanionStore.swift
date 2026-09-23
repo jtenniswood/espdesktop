@@ -649,6 +649,12 @@ final class CompanionStore: NSObject, ObservableObject {
             return openFolder(actionIdentifier: actionIdentifier)
         }
 
+        if let performed = CompanionWindowArrangement.perform(identifier: actionIdentifier) {
+            if !performed {
+                updateStatus("Select an available app window and allow Accessibility access")
+            }
+            return performed
+        }
         if mediaController.supports(actionIdentifier: actionIdentifier) {
             return mediaController.perform(actionIdentifier: actionIdentifier)
         }
