@@ -94,46 +94,53 @@ enum CompanionWindowArrangement {
               CFGetTypeID(focusedValue) == AXUIElementGetTypeID()
         else { return nil }
         let focused = focusedValue as! AXUIElement
-        guard let active = makeWindow(focused) else { return nil }
+        guard let focusedWindow = makeWindow(focused),
+              let windowInfo = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[String: Any]] else { return nil }
 
-        var result = [active]
-        guard let windowInfo = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[String: Any]] else {
-            return result
-        }
-        var seen: Set<CGWindowID> = [active.id]
+        var available: [(id: CGWindowID, pid: pid_t, frame: CGRect)] = []
         for info in windowInfo {
             guard let idValue = info[kCGWindowNumber as String] as? NSNumber,
                   let pidValue = info[kCGWindowOwnerPID as String] as? NSNumber,
                   let layer = info[kCGWindowLayer as String] as? NSNumber, layer.intValue == 0,
-                  let alpha = info[kCGWindowAlpha as String] as? NSNumber, alpha.doubleValue > 0
+                  let alpha = info[kCGWindowAlpha as String] as? NSNumber, alpha.doubleValue > 0,
+                  let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                  let frame = CGRect(dictionaryRepresentation: bounds)
             else { continue }
             let id = CGWindowID(idValue.uint32Value)
-            guard seen.insert(id).inserted else { continue }
-            let app = AXUIElementCreateApplication(pidValue.int32Value)
+            available.append((id, pid_t(pidValue.int32Value), frame))
+        }
+
+        guard let activeIndex = available.firstIndex(where: {
+            $0.pid == frontmost.processIdentifier && framesMatch($0.frame, focusedWindow.frame)
+        }) else { return nil }
+        var usedIDs: Set<CGWindowID> = []
+        let activeInfo = available[activeIndex]
+        usedIDs.insert(activeInfo.id)
+        var result = [Window(element: focused, id: activeInfo.id, frame: focusedWindow.frame)]
+
+        for info in available where !usedIDs.contains(info.id) {
+            let app = AXUIElementCreateApplication(info.pid)
             var appWindowsValue: CFTypeRef?
             guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &appWindowsValue) == .success,
                   let appWindows = appWindowsValue as? [AXUIElement],
-                  let match = appWindows.first(where: { windowNumber(of: $0) == id }),
-                  let window = makeWindow(match)
+                  let match = appWindows.lazy.compactMap(makeWindow).first(where: { framesMatch($0.frame, info.frame) })
             else { continue }
-            result.append(window)
+            usedIDs.insert(info.id)
+            result.append(Window(element: match.element, id: info.id, frame: match.frame))
         }
         return result
     }
 
     private static func makeWindow(_ element: AXUIElement) -> Window? {
-        guard let id = windowNumber(of: element),
-              let position = pointAttribute(kAXPositionAttribute as CFString, of: element),
+        guard let position = pointAttribute(kAXPositionAttribute as CFString, of: element),
               let size = sizeAttribute(kAXSizeAttribute as CFString, of: element)
         else { return nil }
-        return Window(element: element, id: id, frame: CGRect(origin: position, size: size))
+        return Window(element: element, id: 0, frame: CGRect(origin: position, size: size))
     }
 
-    private static func windowNumber(of element: AXUIElement) -> CGWindowID? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXWindowNumberAttribute as CFString, &value) == .success,
-              let number = value as? NSNumber else { return nil }
-        return CGWindowID(number.uint32Value)
+    private static func framesMatch(_ first: CGRect, _ second: CGRect) -> Bool {
+        abs(first.minX - second.minX) < 2 && abs(first.minY - second.minY) < 2 &&
+            abs(first.width - second.width) < 2 && abs(first.height - second.height) < 2
     }
 
     private static func pointAttribute(_ name: CFString, of element: AXUIElement) -> CGPoint? {
@@ -183,24 +190,24 @@ enum CompanionWindowArrangement {
         let bottomRight = CGRect(x: desktop.minX + halfWidth, y: desktop.minY + halfHeight, width: halfWidth, height: halfHeight)
 
         switch action {
-        case .fill: [desktop]
+        case .fill: return [desktop]
         case .center:
             let width = min(currentFrame.width, desktop.width)
             let height = min(currentFrame.height, desktop.height)
-            [CGRect(x: desktop.midX - width / 2, y: desktop.midY - height / 2, width: width, height: height)]
-        case .left: [left]
-        case .right: [right]
-        case .top: [top]
-        case .bottom: [bottom]
-        case .restore: []
-        case .leftRight: [left, right]
-        case .rightLeft: [right, left]
-        case .topBottom: [top, bottom]
-        case .bottomTop: [bottom, top]
-        case .leftQuarters: [left, topRight, bottomRight]
-        case .rightQuarters: [right, topLeft, bottomLeft]
-        case .topQuarters: [top, bottomLeft, bottomRight]
-        case .bottomQuarters: [bottom, topLeft, topRight]
+            return [CGRect(x: desktop.midX - width / 2, y: desktop.midY - height / 2, width: width, height: height)]
+        case .left: return [left]
+        case .right: return [right]
+        case .top: return [top]
+        case .bottom: return [bottom]
+        case .restore: return []
+        case .leftRight: return [left, right]
+        case .rightLeft: return [right, left]
+        case .topBottom: return [top, bottom]
+        case .bottomTop: return [bottom, top]
+        case .leftQuarters: return [left, topRight, bottomRight]
+        case .rightQuarters: return [right, topLeft, bottomLeft]
+        case .topQuarters: return [top, bottomLeft, bottomRight]
+        case .bottomQuarters: return [bottom, topLeft, topRight]
         }
     }
 }
