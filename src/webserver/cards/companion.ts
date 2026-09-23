@@ -53,6 +53,7 @@ import {
     setCompanionAppShortcutFolderEnabled,
     setCompanionAppShortcutAutoSwitchEnabled,
     finderOpenBehavior,
+    inheritFinderOpenBehaviorForCard,
     setFinderOpenBehavior,
     syncInheritedFinderOpenBehavior,
     FINDER_OPEN_BEHAVIOR_OPTION,
@@ -820,6 +821,10 @@ export function registerCompanionCardTypes(
             const parentSlot = Number(state.editingSubpage || slot || 0);
             const parentCard = parentSlot > 0 ? state.buttons[parentSlot - 1] : null;
             const canInheritFinderBehavior = helpers.isSub && parentCard?.entity === "com.apple.finder";
+            if (canInheritFinderBehavior &&
+                inheritFinderOpenBehaviorForCard(card, finderOpenBehavior(parentCard))) {
+                helpers.saveField("options", card.options);
+            }
             const folderBehaviorChoices: readonly [string, string][] = helpers.isSub
                 && canInheritFinderBehavior
                 ? [["inherit", "Use Finder subpage setting"], ["new_window", "A new window"], ["same_window", "The same window"]]

@@ -144,6 +144,13 @@ export function setFinderOpenBehavior(card: any, behavior: FinderOpenBehavior, o
     card.options = options;
 }
 
+export function inheritFinderOpenBehaviorForCard(card: any, behavior: FinderOpenBehavior): boolean {
+    if (!card || configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION) ||
+        configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION) === behavior) return false;
+    setFinderOpenBehavior(card, behavior, false);
+    return true;
+}
+
 export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOpenBehavior): void {
     if (!subpage || !Array.isArray(subpage.buttons)) return;
     for (const button of subpage.buttons) {
