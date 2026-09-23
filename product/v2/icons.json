@@ -2007,6 +2007,131 @@
       "name": "Laptop",
       "codepoint": "F0322",
       "mdi": "laptop"
+    },
+    {
+      "name": "Window Close",
+      "codepoint": "F05AD",
+      "mdi": "window-close"
+    },
+    {
+      "name": "Window Minimise",
+      "codepoint": "F05B0",
+      "mdi": "window-minimize"
+    },
+    {
+      "name": "Eye Off",
+      "codepoint": "F0209",
+      "mdi": "eye-off"
+    },
+    {
+      "name": "Full Screen",
+      "codepoint": "F0293",
+      "mdi": "fullscreen"
+    },
+    {
+      "name": "Fit to Screen",
+      "codepoint": "F18F4",
+      "mdi": "fit-to-screen"
+    },
+    {
+      "name": "Target",
+      "codepoint": "F04FE",
+      "mdi": "target"
+    },
+    {
+      "name": "Dock Left",
+      "codepoint": "F10AA",
+      "mdi": "dock-left"
+    },
+    {
+      "name": "Dock Right",
+      "codepoint": "F10AB",
+      "mdi": "dock-right"
+    },
+    {
+      "name": "Dock Top",
+      "codepoint": "F1513",
+      "mdi": "dock-top"
+    },
+    {
+      "name": "Dock Bottom",
+      "codepoint": "F10A9",
+      "mdi": "dock-bottom"
+    },
+    {
+      "name": "Arrow Top Left",
+      "codepoint": "F005B",
+      "mdi": "arrow-top-left"
+    },
+    {
+      "name": "Arrow Top Right",
+      "codepoint": "F005C",
+      "mdi": "arrow-top-right"
+    },
+    {
+      "name": "Arrow Bottom Left",
+      "codepoint": "F0042",
+      "mdi": "arrow-bottom-left"
+    },
+    {
+      "name": "Arrow Bottom Right",
+      "codepoint": "F0043",
+      "mdi": "arrow-bottom-right"
+    },
+    {
+      "name": "Window Restore",
+      "codepoint": "F05B2",
+      "mdi": "window-restore"
+    },
+    {
+      "name": "Split Vertical",
+      "codepoint": "F0BCC",
+      "mdi": "view-split-vertical"
+    },
+    {
+      "name": "Arrow Left Right",
+      "codepoint": "F0E73",
+      "mdi": "arrow-left-right"
+    },
+    {
+      "name": "Split Horizontal",
+      "codepoint": "F0BCB",
+      "mdi": "view-split-horizontal"
+    },
+    {
+      "name": "Arrow Left Bold Box Outline",
+      "codepoint": "F0733",
+      "mdi": "arrow-left-bold-box-outline"
+    },
+    {
+      "name": "Arrow Right Bold Box Outline",
+      "codepoint": "F0736",
+      "mdi": "arrow-right-bold-box-outline"
+    },
+    {
+      "name": "Arrow Up Bold Box Outline",
+      "codepoint": "F0739",
+      "mdi": "arrow-up-bold-box-outline"
+    },
+    {
+      "name": "Arrow Down Bold Box Outline",
+      "codepoint": "F0730",
+      "mdi": "arrow-down-bold-box-outline"
+    },
+    {
+      "name": "View Grid",
+      "codepoint": "F0570",
+      "mdi": "view-grid"
+    },
+    {
+      "name": "Arrow Expand",
+      "codepoint": "F0616",
+      "mdi": "arrow-expand"
+    },
+    {
+      "name": "Arrow Collapse",
+      "codepoint": "F0615",
+      "mdi": "arrow-collapse"
     }
   ],
   "domain_defaults": {
