@@ -320,9 +320,8 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Install', link: '/getting-started/install' },
-          { text: 'Mac App', link: '/getting-started/mac-app' },
-          { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
+          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Companion App', link: '/getting-started/mac-app' },
         ],
       },
       {
@@ -342,8 +341,9 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Reference',
+        text: 'Support',
         items: [
+          { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
         ],
       },
