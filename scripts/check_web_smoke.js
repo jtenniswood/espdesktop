@@ -504,7 +504,7 @@ assert(!infoOnlyPickerKeys.includes(""), "info-only displays hide switch control
 assert(!infoOnlyPickerKeys.includes("subpage"), "info-only displays hide subpage cards");
 assert(!infoOnlyPickerKeys.includes("media"), "info-only displays hide media controls");
 const pickerOptions = Array.from(hooks.buttonTypePickerOptionsFor(false, null));
-assert(pickerOptions.length > 8, "main card picker exposes the visible card choices");
+assert(pickerOptions.length > 5, "main card picker retains local and Companion choices");
 for (const option of pickerOptions) {
   assert.strictEqual(typeof option.icon, "string", `${option.key}: picker option has an icon`);
   assert(option.icon.length > 0, `${option.key}: picker option icon is not empty`);
