@@ -43,7 +43,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-connector-steps li+li{margin-top:7px}" +
         ".sp-connector-info{margin:0 0 18px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.86rem;line-height:1.5}" +
         ".sp-ha-connector{max-width:64ch;font-size:var(--text-lg);line-height:1.6;overflow-wrap:anywhere}" +
-        ".sp-ha-connector .sp-connector-status{font-size:var(--text-xl);font-weight:600;line-height:1.5;color:var(--text);margin-bottom:24px}" +
+        ".sp-ha-connector .sp-connector-status{font-size:var(--text-md);font-weight:600;line-height:1.5;color:var(--text);margin-bottom:4px}" +
         ".sp-ha-connector .sp-connector-status-connected{color:var(--success)}" +
         ".sp-ha-connector h4{font-size:var(--text-lg);font-weight:600;line-height:1.4;margin:0 0 10px}" +
         ".sp-ha-connector p{margin:0 0 12px}.sp-ha-connector p:last-child{margin-bottom:0}" +
@@ -53,7 +53,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ha-connector .sp-connector-info:not(.sp-ha-offline-info){margin:0;padding:0;border:0;background:none;font-size:inherit;line-height:inherit}" +
         ".sp-ha-connector .sp-action-btn{min-height:44px;max-width:100%;white-space:normal;text-align:start;margin-top:4px}" +
         ".sp-ha-connector .sp-action-btn:disabled{opacity:.5;cursor:default}" +
-        ".sp-ha-connector .sp-ha-offline-info{margin:0 0 18px}.sp-ha-offline-info .sp-connector-status{margin-bottom:8px}.sp-ha-offline-info p{margin-bottom:8px}" +
+        ".sp-ha-connector .sp-ha-offline-info{margin:0 0 18px;padding:0;border:0;background:none;border-radius:0}" +
+        ".sp-ha-offline-info .sp-connector-status{margin-bottom:4px}.sp-ha-offline-info p{margin:0 0 8px}" +
         ".sp-hidden{display:none!important}" +
         ".sp-support-btn{position:fixed;right:28px;bottom:28px;z-index:150;display:inline-block;line-height:0}" +
         ".sp-support-link{display:block;width:214px;height:60px;border-radius:999px;overflow:hidden;text-indent:-9999px;white-space:nowrap}" +
@@ -428,6 +429,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-action-btn:active{opacity:.85}" +
         ".sp-delete-btn,.sp-hide-btn,.sp-cancel-btn{background:var(--surface2);color:var(--text);display:inline-flex;align-items:center;gap:6px}" +
         ".sp-delete-btn:hover,.sp-hide-btn:hover,.sp-cancel-btn:hover{background:var(--border);color:var(--text)}" +
+        ".sp-delete-btn.sp-destructive-btn{background:var(--danger);color:#fff}" +
+        ".sp-delete-btn.sp-destructive-btn:hover{filter:brightness(.9)}" +
         ".sp-save-btn{background:var(--accent);color:#fff}" +
         ".sp-save-btn:hover{background:var(--accent-hover);box-shadow:var(--shadow-1)}" +
         ".sp-transfer-copy-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;" +

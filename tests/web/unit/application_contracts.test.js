@@ -59,6 +59,9 @@ describe("browserless application contracts", () => {
     assert.match(connectors, /connectors\/home-assistant\/complete/);
     assert.match(connectors, /connectors\/home-assistant\/forget/);
     assert.match(connectors, /Forget Home Assistant/);
+    assert.doesNotMatch(connectors, /Only forget this connection/);
+    assert.match(connectors, /sp-action-btn sp-delete-btn sp-destructive-btn/);
+    assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
     assert.match(connectors, /I’ve enabled actions/);
     assert.doesNotMatch(connectors, /Actions confirmed/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
@@ -69,6 +72,7 @@ describe("browserless application contracts", () => {
     assert.match(styles, /\.sp-connectors-config\{padding-top:32px\}/);
     assert.doesNotMatch(connectors, /sp-connectors-intro|Manage the services that provide data and actions/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
+    assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
 
   test("gates Home Assistant and Companion screensaver modes by live connector state", () => {

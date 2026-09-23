@@ -43,7 +43,7 @@ function setHidden(element: HTMLElement | null, hidden: boolean): void {
 
 export function homeAssistantConnectorStatusText(state: HomeAssistantConnectorState): string {
     if (state.connected) return "Home Assistant connected";
-    if (state.configured) return "Home Assistant configured, but currently offline";
+    if (state.configured) return "Configured but disconnected";
     return "Waiting for Home Assistant";
 }
 
@@ -201,7 +201,7 @@ export function createConnectorsPageFeature(
         homeAssistantStatus.textContent = "Checking Home Assistant status…";
 
         homeAssistantOfflineInfo = document.createElement("div");
-        homeAssistantOfflineInfo.className = "sp-connector-info sp-ha-offline-info";
+        homeAssistantOfflineInfo.className = "sp-ha-offline-info";
         setHidden(homeAssistantOfflineInfo, true);
         homeAssistantOfflineInfo.appendChild(homeAssistantStatus);
         body.appendChild(homeAssistantOfflineInfo);
@@ -283,7 +283,7 @@ export function createConnectorsPageFeature(
 
         homeAssistantForgetButton = document.createElement("button");
         homeAssistantForgetButton.type = "button";
-        homeAssistantForgetButton.className = "sp-action-btn sp-delete-btn";
+        homeAssistantForgetButton.className = "sp-action-btn sp-delete-btn sp-destructive-btn";
         homeAssistantForgetButton.textContent = "Forget Home Assistant";
         homeAssistantForgetButton.hidden = true;
         homeAssistantForgetButton.addEventListener("click", async function () {
@@ -301,7 +301,6 @@ export function createConnectorsPageFeature(
                 if (homeAssistantForgetButton) homeAssistantForgetButton.disabled = false;
             }
         });
-        addParagraph(homeAssistantOfflineInfo, "Only forget this connection if you want to set up Home Assistant again.");
         homeAssistantOfflineInfo.appendChild(homeAssistantForgetButton);
 
         homeAssistantBadge = document.createElement("span");

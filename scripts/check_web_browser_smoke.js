@@ -6383,12 +6383,15 @@ async function assertHomeAssistantConnectorLayout(browser) {
       }
       await reconnect.waitFor({ state: "visible" });
       const offlineInfo = card.locator(".sp-ha-offline-info");
-      assert(await offlineInfo.isVisible(), "Offline guidance is grouped in one info panel");
-      assert.strictEqual(await offlineInfo.locator(".sp-connector-status").count(), 1, "Offline status is part of its info panel");
-      assert.strictEqual(await offlineInfo.locator("p").count(), 2, "Reconnect and forget guidance share the same panel");
+      assert(await offlineInfo.isVisible(), "Offline status and guidance are visible");
+      assert.strictEqual(await offlineInfo.locator(".sp-connector-status").count(), 1, "Offline status is shown with its guidance");
+      assert.strictEqual(await offlineInfo.locator("p").count(), 1, "Only the troubleshooting sentence is shown");
       const statusFontSize = await card.locator(".sp-connector-status").evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
       const guidanceFontSize = await reconnect.evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
-      assert(statusFontSize > guidanceFontSize, "Offline status is more prominent than its guidance");
+      assert(statusFontSize < guidanceFontSize, "Disconnected status is smaller than its guidance");
+      assert.strictEqual(await card.locator(".sp-connector-status").textContent(), "Configured but disconnected");
+      assert(!(await card.getByText("Only forget this connection if you want to set up Home Assistant again.").count()), "Forget warning is removed");
+      assert.strictEqual(await forget.evaluate(node => getComputedStyle(node).backgroundColor), "rgb(241, 65, 88)", "Forget action has a destructive red background");
       assert(!(await card.getByRole("heading", { name: "Reconnect Home Assistant" }).count()), "Offline guidance has no extra heading");
       assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
       assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
