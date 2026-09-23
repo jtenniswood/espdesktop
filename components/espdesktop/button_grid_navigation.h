@@ -275,6 +275,7 @@ inline std::string navigation_active_subpage_label() {
   if (entry->kind != "app_shortcuts") return "";
   const ParsedCfg parent_config = parse_cfg(parent->config);
   if (!companion_app_shortcuts_enabled(parent_config)) return "";
+  if (parent_config.entity == "com.apple.finder") return "Finder";
   return companion_shortcut_catalog::app_label(parent_config.entity);
 }
 
