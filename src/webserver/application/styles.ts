@@ -352,7 +352,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-field-label{display:block;font-size:var(--text-sm);font-weight:500;color:var(--text2);margin-bottom:8px}" +
         ".sp-field-info-button{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin:-4px 0 -4px 2px;padding:0;border:0;background:none;color:inherit;cursor:help;font-size:.9rem;vertical-align:middle}" +
         ".sp-field-info-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}" +
-        ".sp-field-info-text{display:none;font-size:.75rem;color:var(--text2);line-height:1.35;margin:-2px 0 8px}" +
+        ".sp-field-info-text{display:none;font-size:.75rem;color:var(--text2);line-height:1.35;margin:6px 0 8px}" +
         ".sp-field-info-text.sp-visible{display:block}" +
         ".sp-setting-note{margin:-2px 0 14px;color:var(--text2);font-size:var(--text-sm);line-height:1.4;overflow-wrap:anywhere}" +
         ".sp-input,.sp-select{width:100%;padding:10px 12px;background:var(--surface2);" +
