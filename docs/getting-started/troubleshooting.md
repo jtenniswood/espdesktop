@@ -25,10 +25,9 @@ The Mac stores its credential in Keychain and checks the paired display certific
 - **App or folder:** confirm it is still approved in the Mac app's **Applications** or **Folders** page.
 - **Keyboard shortcut or window:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**.
 - **Window arrangement:** requires macOS 15 or newer; some applications do not support every window action.
-- **Volume:** confirm the Mac is connected and the selected audio device supports software volume control.
 - **Statistics:** the Mac app must be connected and sharing Mac readings.
 
-For the control's exact requirements, see [Mac Cards and Capabilities](/card-types/companion).
+For the control's exact requirements, see [Mac Controls](/card-types/companion).
 
 ## A Mac App or Display Update Breaks Compatibility
 

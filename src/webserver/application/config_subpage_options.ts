@@ -27,7 +27,7 @@ import {
         return normalizeSubpageConnector(configOptionValue(b && b.options, SUBPAGE_CONNECTOR_OPTION));
     }
     var SUBPAGE_KIND_PRESET_DEFINITIONS: any = [
-        { value: "", label: "Generic" },
+        { value: "", label: "Folder" },
         { value: "switch", label: "Switch", preset: { label: "Switch", icon: "Power Plug", entityDomains: ["light", "switch", "input_boolean", "fan"], placeholder: "e.g. switch.living_room" } },
         { value: "lights", label: "Lights", preset: { label: "Lighting", icon: "Lightbulb", entityDomains: ["light"], placeholder: "e.g. light.living_room" } },
         { value: "climate", label: "Climate", preset: { label: "Climate", icon: "Thermostat", entityDomains: ["climate"], placeholder: "e.g. climate.living_room" } },

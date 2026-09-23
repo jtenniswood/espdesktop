@@ -1,14 +1,14 @@
 ---
 title: EspDesktop — Touch Controls for Your Mac
 titleTemplate: :title
-description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to launch apps, run shortcuts, manage windows, control volume and Now Playing, and view Mac status."
+description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to launch apps, run shortcuts, manage windows, and view Mac status."
 ---
 
 # EspDesktop
 
 **A small touchscreen for the things you do on your Mac.**
 
-EspDesktop pairs the **4-inch Guition 4848S040** with a native macOS menu-bar app. Build a personal control surface to launch approved apps, open folders and websites, run keyboard shortcuts, arrange windows, adjust volume, and see Mac status or Now Playing artwork.
+EspDesktop pairs the **4-inch Guition 4848S040** with a native macOS menu-bar app. Build a personal control surface to launch approved apps, open folders and websites, run keyboard shortcuts, arrange windows, and see Mac status.
 
 Start with [the supported display](/screens/4848s040), then [install the firmware](/getting-started/install) and [pair the Mac app](/getting-started/mac-app).
 
@@ -17,11 +17,9 @@ Start with [the supported display](/screens/4848s040), then [install the firmwar
 - **Apps and folders** — launch approved Mac applications and open Finder folders you've chosen.
 - **Shortcuts and windows** — replay keyboard shortcuts and control or arrange the active window.
 - **Websites** — open approved `http://` and `https://` links in an app you choose.
-- **Volume** — adjust the selected Mac speaker or microphone.
-- **Now Playing** — show playback state, track details, progress, source app, and artwork when macOS makes it available.
 - **Mac status** — show processor, memory, storage, network, battery, and IP address.
 
-Organise controls into pages and app-specific subpages using the display's built-in setup page. No Home Assistant account is needed for Mac controls.
+Organise controls into subpages using the display's built-in setup page. No Home Assistant account is needed for Mac controls.
 
 ## Get Started
 

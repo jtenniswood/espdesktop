@@ -11,7 +11,7 @@ The language setting is stored on the device as the Home Assistant select entity
 
 The selector shows languages that are included in the firmware. English, Czech, Danish, German, Spanish, Finnish, French, Hebrew, Hungarian, Italian, Norwegian Bokmål, Dutch, Polish, Portuguese, Brazilian Portuguese, Romanian, Russian, Slovak, Slovenian, Swedish, Turkish, and Ukrainian are included.
 
-Built-in panel labels follow the selected language, including Cover Art, Mac volume controls, window actions, and named shortcut keys. Custom card labels and app names keep their original text.
+Built-in panel labels follow the selected language, including Cover Art, window actions, and named shortcut keys. Custom card labels and app names keep their original text.
 
 ## Translation Files
 

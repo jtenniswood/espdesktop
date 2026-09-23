@@ -310,13 +310,8 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
-      { text: 'Supported Display', link: '/screens/4848s040' },
-      { text: 'Install', link: '/getting-started/install' },
-      { text: 'Mac App', link: '/getting-started/mac-app' },
-      { text: 'Mac Cards', link: '/card-types/companion' },
-      { text: 'EspControl Docs ↗', link: 'https://jtenniswood.github.io/espcontrol/' },
+      { text: 'Setup', link: '/getting-started/install' },
       { text: 'Issues', link: 'https://github.com/jtenniswood/espdesktop/issues' },
-      { text: 'FAQ', link: '/reference/faq' },
       { text: 'GitHub', link: 'https://github.com/jtenniswood/espdesktop' },
     ],
 
@@ -325,37 +320,29 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Supported Display', link: '/screens/4848s040' },
-          { text: 'Install', link: '/getting-started/install' },
-          { text: 'Mac App', link: '/getting-started/mac-app' },
-          { text: 'Configure', link: '/features/setup' },
-          { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
+          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Companion App', link: '/getting-started/mac-app' },
         ],
       },
       {
         text: 'Mac Control',
         items: [
-          { text: 'Mac Cards & Capabilities', link: '/card-types/companion' },
-          { text: 'Now Playing Cover Art', link: '/features/media-cover-art' },
-          { text: 'App & Stat Subpages', link: '/features/subpages' },
-        ],
-      },
-      {
-        text: 'Configuring',
-        items: [
-          { text: 'Setup', link: '/features/setup' },
+          { text: 'Overview', link: '/card-types/companion' },
+          { text: 'Configure', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
+          { text: 'Apps & Websites', link: '/mac-controls/apps' },
+          { text: 'Finder Folders', link: '/mac-controls/folders' },
+          { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Window Controls', link: '/mac-controls/windows' },
+          { text: 'Statistics', link: '/mac-controls/statistics' },
+          { text: 'Permissions & Security', link: '/mac-controls/security' },
+          { text: 'Where to Buy', link: 'https://jtenniswood.github.io/espcontrol/screens/4848s040#where-to-buy' },
         ],
       },
       {
-        text: 'Home Assistant',
+        text: 'Support',
         items: [
-          { text: 'EspControl Home Assistant Docs ↗', link: 'https://jtenniswood.github.io/espcontrol/' },
-        ],
-      },
-      {
-        text: 'Reference',
-        items: [
+          { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
         ],
       },
