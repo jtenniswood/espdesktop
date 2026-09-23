@@ -6325,10 +6325,86 @@ async function assertPanelNaming(browser) {
   } finally { await context.close(); }
 }
 
+async function assertHomeAssistantConnectorLayout(browser) {
+  const slug = "guition-esp32-s3-4848s040";
+  for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport });
+    const status = {
+      onboarding_complete: true,
+      home_assistant: { available: true, configured: true, connected: false, actions_confirmed: false },
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    };
+    const posts = [];
+    await installRoutes(context, slug, { connectorsStatus: status });
+    await context.route("**/connectors/home-assistant/*", async route => {
+      const action = new URL(route.request().url()).pathname.split("/").pop();
+      posts.push(action);
+      if (action === "complete") status.home_assistant.actions_confirmed = true;
+      if (action === "forget") status.home_assistant.configured = false;
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(status) });
+    });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await page.getByRole("tab", { name: "Connectors" }).click();
+      const card = page.locator("#sp-connectors .card").filter({ has: page.getByRole("heading", { name: "Home Assistant", exact: true }) });
+      await card.locator(".card-header").click();
+      const reconnect = card.getByRole("heading", { name: "Reconnect Home Assistant" });
+      const setup = card.getByRole("heading", { name: "Connect your display" });
+      const actions = card.getByRole("button", { name: "I’ve enabled actions" });
+      const forget = card.getByRole("button", { name: "Forget Home Assistant", exact: true });
+      async function checkLayout(name) {
+        assert(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), `${name}: no horizontal overflow`);
+        const buttons = await card.locator("button:visible").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
+        assert(buttons.every(height => height >= 44), `${name}: actions have usable touch targets`);
+        const positions = await card.evaluate(node => ({
+          status: node.querySelector(".sp-connector-status").getBoundingClientRect().top,
+          instructions: node.querySelector(".sp-connector-instructions").getBoundingClientRect().top,
+        }));
+        assert(positions.status < positions.instructions, `${name}: status precedes instructions`);
+        if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
+          fs.mkdirSync(FAILURE_DIR, { recursive: true });
+          await page.screenshot({ path: path.join(FAILURE_DIR, `ha-${name}-${viewport.width}.png`), fullPage: true });
+        }
+      }
+      await reconnect.waitFor({ state: "visible" });
+      assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
+      assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
+      assert(await forget.isVisible(), "The saved connection can still be forgotten");
+      await checkLayout("offline");
+      status.home_assistant.connected = true;
+      await actions.waitFor({ state: "visible" });
+      assert(await actions.isEnabled(), "Connected users can confirm action permission");
+      assert(!(await reconnect.isVisible()), "Connected users should not see reconnect instructions");
+      assert(!(await forget.isVisible()), "Connected users cannot forget an active connection");
+      await checkLayout("permission");
+      await actions.click();
+      await actions.waitFor({ state: "hidden" });
+      assert.deepStrictEqual(posts, ["complete"], "Permission confirmation uses the existing endpoint");
+      status.home_assistant.connected = false;
+      await forget.waitFor({ state: "visible" });
+      await forget.click();
+      await setup.waitFor({ state: "visible" });
+      assert(!(await reconnect.isVisible()), "Forgetting returns to first-time setup");
+      assert(!(await forget.isVisible()), "No forget action without a saved connection");
+      assert.strictEqual(await card.locator("code").textContent(), "espdesktop.test", "Show the current display address");
+      assert.deepStrictEqual(posts, ["complete", "forget"], "Only user actions write connector state");
+      await checkLayout("setup");
+    } finally { await context.close(); }
+  }
+}
+
 (async function main() {
   const browser = await chromium.launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
+      await assertHomeAssistantConnectorLayout(browser);
+      console.log("Home Assistant connector layout browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
       await assertNamingOfflineBackups(browser);
       await assertPanelNaming(browser);
@@ -6337,6 +6413,7 @@ async function assertPanelNaming(browser) {
     }
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }
+    await assertHomeAssistantConnectorLayout(browser);
     await assertNamingOfflineBackups(browser);
     await assertPanelNaming(browser);
     if (!acceptanceOnly) {

@@ -52,14 +52,14 @@ describe("browserless application contracts", () => {
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.match(connectors, /sp-card-badge sp-hidden/);
-    assert.match(connectors, /setHidden\(homeAssistantSteps, value\.home_assistant\.connected\)/);
-    assert.match(connectors, /setHidden\(homeAssistantActionInfo, value\.home_assistant\.actions_confirmed\)/);
+    assert.match(connectors, /setHidden\(homeAssistantSteps, ha\.connected \|\| ha\.configured\)/);
+    assert.match(connectors, /setHidden\(homeAssistantActionInfo, !ha\.connected \|\| ha\.actions_confirmed\)/);
     assert.match(connectors, /sp-connector-info/);
-    assert.match(connectors, /cannot perform actions in Home Assistant/);
+    assert.match(connectors, /This lets the display control your Home Assistant devices/);
     assert.match(connectors, /connectors\/home-assistant\/complete/);
     assert.match(connectors, /connectors\/home-assistant\/forget/);
     assert.match(connectors, /Forget Home Assistant/);
-    assert.match(connectors, /I enabled Home Assistant actions/);
+    assert.match(connectors, /I’ve enabled actions/);
     assert.doesNotMatch(connectors, /Actions confirmed/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);

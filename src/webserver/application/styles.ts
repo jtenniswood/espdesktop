@@ -42,6 +42,18 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-connector-steps{margin:0 0 18px;padding-left:22px;color:var(--text2);font-size:.86rem;line-height:1.55}" +
         ".sp-connector-steps li+li{margin-top:7px}" +
         ".sp-connector-info{margin:0 0 18px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.86rem;line-height:1.5}" +
+        ".sp-ha-connector{max-width:64ch;font-size:var(--text-lg);line-height:1.6;overflow-wrap:anywhere}" +
+        ".sp-ha-connector .sp-connector-status{font-size:var(--text-md);font-weight:600;line-height:1.5;color:var(--text);margin-bottom:24px}" +
+        ".sp-ha-connector .sp-connector-status-connected{color:var(--success)}" +
+        ".sp-ha-connector h4{font-size:var(--text-lg);font-weight:600;line-height:1.4;margin:0 0 10px}" +
+        ".sp-ha-connector p{margin:0 0 12px}.sp-ha-connector p:last-child{margin-bottom:0}" +
+        ".sp-ha-setup-steps{padding-inline-start:24px;margin:0 0 20px}.sp-ha-setup-steps li{padding-inline-start:6px}.sp-ha-setup-steps li+li{margin-top:16px}" +
+        ".sp-ha-setup-steps li::marker{color:var(--text2);font-weight:600}.sp-ha-setup-steps strong{font-weight:600}" +
+        ".sp-ha-connector code{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--surface2);font-size:.95em;user-select:text}" +
+        ".sp-ha-connector .sp-connector-info{margin:0;padding:0;border:0;background:none;font-size:inherit;line-height:inherit}" +
+        ".sp-ha-connector .sp-action-btn{min-height:44px;max-width:100%;white-space:normal;text-align:start;margin-top:4px}" +
+        ".sp-ha-connector .sp-action-btn:disabled{opacity:.5;cursor:default}" +
+        ".sp-ha-forget{margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}.sp-ha-forget p{color:var(--text2);font-size:var(--text-md)}" +
         ".sp-hidden{display:none!important}" +
         ".sp-support-btn{position:fixed;right:28px;bottom:28px;z-index:150;display:inline-block;line-height:0}" +
         ".sp-support-link{display:block;width:214px;height:60px;border-radius:999px;overflow:hidden;text-indent:-9999px;white-space:nowrap}" +

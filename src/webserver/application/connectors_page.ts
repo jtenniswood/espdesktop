@@ -88,6 +88,8 @@ export function createConnectorsPageFeature(
     let homeAssistantStatus: HTMLElement | null = null;
     let homeAssistantInstructions: HTMLElement | null = null;
     let homeAssistantSteps: HTMLElement | null = null;
+    let homeAssistantReconnect: HTMLElement | null = null;
+    let homeAssistantForgetSection: HTMLElement | null = null;
     let homeAssistantActionInfo: HTMLElement | null = null;
     let homeAssistantConfirmButton: HTMLButtonElement | null = null;
     let homeAssistantForgetButton: HTMLButtonElement | null = null;
@@ -148,16 +150,18 @@ export function createConnectorsPageFeature(
             homeAssistantStatus.classList.toggle(
                 "sp-connector-status-connected", value.home_assistant.connected);
         }
-        // Once connected, hide the setup steps. Keep the action-permission
-        // warning visible until that permission has actually been confirmed.
-        setHidden(homeAssistantSteps, value.home_assistant.connected);
-        setHidden(homeAssistantActionInfo, value.home_assistant.actions_confirmed);
+        const ha = value.home_assistant;
+        // Show only the next relevant step, rather than repeating first-time
+        // setup during an outage or offering an action that cannot run yet.
+        setHidden(homeAssistantSteps, ha.connected || ha.configured);
+        setHidden(homeAssistantReconnect, ha.connected || !ha.configured);
+        setHidden(homeAssistantActionInfo, !ha.connected || ha.actions_confirmed);
         if (homeAssistantConfirmButton) {
             homeAssistantConfirmButton.disabled = !value.home_assistant.connected ||
                 value.home_assistant.actions_confirmed;
         }
-        setHidden(homeAssistantForgetButton,
-            !value.home_assistant.configured || value.home_assistant.connected);
+        setHidden(homeAssistantForgetSection, !ha.configured || ha.connected);
+        setHidden(homeAssistantForgetButton, !ha.configured || ha.connected);
         setHidden(homeAssistantInstructions, value.home_assistant.connected &&
             value.home_assistant.actions_confirmed);
         setHidden(homeAssistantBadge, !value.home_assistant.connected);
@@ -184,14 +188,7 @@ export function createConnectorsPageFeature(
 
     function buildHomeAssistantCard(): HTMLElement {
         const body = document.createElement("div");
-        homeAssistantInstructions = document.createElement("div");
-        homeAssistantInstructions.className = "sp-connector-instructions";
-
-        const note = document.createElement("p");
-        note.className = "sp-setting-note";
-        note.textContent = "Add this display in Home Assistant, then allow it to perform Home Assistant actions.";
-        homeAssistantInstructions.appendChild(note);
-
+        body.className = "sp-ha-connector";
         homeAssistantStatus = document.createElement("div");
         homeAssistantStatus.className = "sp-connector-status";
         homeAssistantStatus.setAttribute("role", "status");
@@ -199,30 +196,68 @@ export function createConnectorsPageFeature(
         homeAssistantStatus.textContent = "Checking Home Assistant status…";
         body.appendChild(homeAssistantStatus);
 
+        homeAssistantInstructions = document.createElement("div");
+        homeAssistantInstructions.className = "sp-connector-instructions";
+        body.appendChild(homeAssistantInstructions);
+
+        function addParagraph(parent: HTMLElement, text: string): HTMLElement {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = text;
+            parent.appendChild(paragraph);
+            return paragraph;
+        }
+        function addHeading(parent: HTMLElement, text: string): void {
+            const heading = document.createElement("h4");
+            heading.textContent = text;
+            parent.appendChild(heading);
+        }
+
+        const setup = document.createElement("div");
+        homeAssistantSteps = setup;
+        setHidden(setup, true);
+        addHeading(setup, "Connect your display");
         const steps = document.createElement("ol");
-        homeAssistantSteps = steps;
-        steps.className = "sp-connector-steps";
-        [
-            "In Home Assistant, open Settings → Devices & services.",
-            "Add the discovered EspDesktop device. If it is not shown, add ESPHome and enter " + window.location.hostname + ".",
-        ].forEach(function (text) {
+        steps.className = "sp-ha-setup-steps";
+        ([
+            ["Open Home Assistant", "Go to Settings → Devices & services."],
+            ["Add this display", "Select the discovered EspDesktop device and follow the setup steps."],
+        ] as const).forEach(function ([title, text]) {
             const item = document.createElement("li");
-            item.textContent = text;
+            const label = document.createElement("strong");
+            label.textContent = title;
+            item.appendChild(label);
+            addParagraph(item, text);
             steps.appendChild(item);
         });
-        homeAssistantInstructions.appendChild(steps);
+        setup.appendChild(steps);
+        const fallback = addParagraph(setup, "Display not found? Add the ESPHome integration and enter this address: ");
+        const address = document.createElement("code");
+        address.textContent = window.location.hostname;
+        fallback.appendChild(address);
+        homeAssistantInstructions.appendChild(setup);
+
+        homeAssistantReconnect = document.createElement("div");
+        setHidden(homeAssistantReconnect, true);
+        addHeading(homeAssistantReconnect, "Reconnect Home Assistant");
+        addParagraph(homeAssistantReconnect, "Your setup is saved. Check that Home Assistant is running and can reach this display.");
+        addParagraph(homeAssistantReconnect, "In Home Assistant, open Settings → Devices & services → ESPHome and check this display’s connection.");
+        homeAssistantInstructions.appendChild(homeAssistantReconnect);
 
         const actionInfo = document.createElement("div");
         homeAssistantActionInfo = actionInfo;
         actionInfo.className = "sp-connector-info";
-        actionInfo.setAttribute("role", "note");
-        actionInfo.appendChild(document.createTextNode(
-            "3. Enable ‘Allow the device to perform Home Assistant actions’ in the device configuration. Without this, the screen cannot perform actions in Home Assistant.",
-        ));
+        setHidden(actionInfo, true);
+        addHeading(actionInfo, "Allow Home Assistant actions");
+        addParagraph(actionInfo, "In this display’s ESPHome configuration, enable:");
+        const permission = addParagraph(actionInfo, "");
+        const permissionLabel = document.createElement("strong");
+        permissionLabel.textContent = "Allow the device to perform Home Assistant actions";
+        permission.appendChild(permissionLabel);
+        addParagraph(actionInfo, "This lets the display control your Home Assistant devices. Then confirm below.");
         homeAssistantConfirmButton = document.createElement("button");
         homeAssistantConfirmButton.type = "button";
-        homeAssistantConfirmButton.className = "sp-button";
-        homeAssistantConfirmButton.textContent = "I enabled Home Assistant actions";
+        homeAssistantConfirmButton.className = "sp-action-btn sp-save-btn";
+        homeAssistantConfirmButton.textContent = "I’ve enabled actions";
         homeAssistantConfirmButton.disabled = true;
         homeAssistantConfirmButton.addEventListener("click", async function () {
             if (!current?.home_assistant.connected || !homeAssistantConfirmButton) return;
@@ -238,13 +273,12 @@ export function createConnectorsPageFeature(
                 if (homeAssistantConfirmButton) homeAssistantConfirmButton.disabled = false;
             }
         });
-        actionInfo.appendChild(document.createElement("br"));
         actionInfo.appendChild(homeAssistantConfirmButton);
         homeAssistantInstructions.appendChild(actionInfo);
 
         homeAssistantForgetButton = document.createElement("button");
         homeAssistantForgetButton.type = "button";
-        homeAssistantForgetButton.className = "sp-button";
+        homeAssistantForgetButton.className = "sp-action-btn sp-delete-btn";
         homeAssistantForgetButton.textContent = "Forget Home Assistant";
         homeAssistantForgetButton.hidden = true;
         homeAssistantForgetButton.addEventListener("click", async function () {
@@ -262,8 +296,12 @@ export function createConnectorsPageFeature(
                 if (homeAssistantForgetButton) homeAssistantForgetButton.disabled = false;
             }
         });
-        body.appendChild(homeAssistantForgetButton);
-        body.insertBefore(homeAssistantInstructions, homeAssistantStatus);
+        homeAssistantForgetSection = document.createElement("div");
+        homeAssistantForgetSection.className = "sp-ha-forget";
+        setHidden(homeAssistantForgetSection, true);
+        addParagraph(homeAssistantForgetSection, "Only forget this connection if you want to set up Home Assistant again.");
+        homeAssistantForgetSection.appendChild(homeAssistantForgetButton);
+        body.appendChild(homeAssistantForgetSection);
 
         homeAssistantBadge = document.createElement("span");
         homeAssistantBadge.className = "sp-card-badge sp-hidden";
