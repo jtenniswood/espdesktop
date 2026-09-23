@@ -46,10 +46,30 @@ enum CompanionWindowArrangement {
     private struct Window {
         let element: AXUIElement
         let id: CGWindowID
+        let processIdentifier: pid_t
         let frame: CGRect
+
+        var restoreKey: String { "\(processIdentifier):\(id)" }
     }
 
-    private static var previousFrames: [CGWindowID: CGRect] = [:]
+    private struct StoredFrame: Codable {
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+
+        init(_ frame: CGRect) {
+            x = frame.minX
+            y = frame.minY
+            width = frame.width
+            height = frame.height
+        }
+
+        var rect: CGRect { CGRect(x: x, y: y, width: width, height: height) }
+    }
+
+    private static let restoreFramesDefaultsKey = "companion.window-arrangement.restore-frames.v1"
+    private static var previousFrames = loadPreviousFrames()
 
     /// Returns nil for ordinary app shortcuts, and the result for a supported
     /// tiling action otherwise.
@@ -57,32 +77,66 @@ enum CompanionWindowArrangement {
         guard let action = Action(identifier: identifier) else { return nil }
         guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 15 else { return false }
         guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
-        guard let windows = visibleWindows(), let active = windows.first,
-              let screen = NSScreen.screens.first(where: {
-                  accessibilityFrame(for: $0.frame).intersects(active.frame)
-              }) ?? NSScreen.main
-        else { return false }
+        guard let windows = visibleWindows(), let active = windows.first else { return false }
+        let screenWithMostWindowArea = NSScreen.screens.max(by: {
+            intersectionArea(accessibilityFrame(for: $0.frame), active.frame)
+                < intersectionArea(accessibilityFrame(for: $1.frame), active.frame)
+        })
+        let screen = screenWithMostWindowArea.flatMap {
+            intersectionArea(accessibilityFrame(for: $0.frame), active.frame) > 0 ? $0 : nil
+        } ?? NSScreen.main
+        guard let screen else { return false }
 
         let desktop = accessibilityFrame(for: screen.visibleFrame)
         guard desktop.width > 0, desktop.height > 0 else { return false }
 
         if action == .restore {
-            guard let frame = previousFrames.removeValue(forKey: active.id) else { return false }
-            return setFrame(frame, for: active.element)
+            guard let frame = previousFrames[active.restoreKey] else {
+                // Let macOS handle windows tiled outside EspDesktop when there
+                // is no frame from one of our own arrangement actions.
+                return CompanionKeyboardShortcut(actionIdentifier: identifier)?.replay() ?? false
+            }
+            guard setFrame(frame, for: active.element) else { return false }
+            previousFrames.removeValue(forKey: active.restoreKey)
+            savePreviousFrames()
+            return true
         }
 
         let selected = Array(windows.prefix(action.requiredWindowCount))
         guard selected.count == action.requiredWindowCount else { return false }
-        for window in selected where previousFrames[window.id] == nil {
-            previousFrames[window.id] = window.frame
-        }
-
         let frames = frames(for: action, in: desktop, currentFrame: active.frame)
         guard frames.count == selected.count else { return false }
-        for (window, frame) in zip(selected, frames) {
-            guard setFrame(frame, for: window.element) else { return false }
+
+        guard selected.allSatisfy({ canSetFrame(for: $0.element) }) else { return false }
+        for (index, pair) in zip(selected, frames).enumerated() {
+            let (window, frame) = pair
+            guard setFrame(frame, for: window.element) else {
+                // A failed size or position update can leave that window partly
+                // changed, so restore it along with every earlier window.
+                for rollbackWindow in selected.prefix(index + 1).reversed() {
+                    _ = setFrame(rollbackWindow.frame, for: rollbackWindow.element)
+                }
+                return false
+            }
         }
+
+        for window in selected where previousFrames[window.restoreKey] == nil {
+            previousFrames[window.restoreKey] = window.frame
+        }
+        savePreviousFrames()
         return true
+    }
+
+    private static func loadPreviousFrames() -> [String: CGRect] {
+        guard let data = UserDefaults.standard.data(forKey: restoreFramesDefaultsKey),
+              let storedFrames = try? JSONDecoder().decode([String: StoredFrame].self, from: data)
+        else { return [:] }
+        return storedFrames.mapValues(\.rect)
+    }
+
+    private static func savePreviousFrames() {
+        guard let data = try? JSONEncoder().encode(previousFrames.mapValues(StoredFrame.init)) else { return }
+        UserDefaults.standard.set(data, forKey: restoreFramesDefaultsKey)
     }
 
     private static func visibleWindows() -> [Window]? {
@@ -114,28 +168,50 @@ enum CompanionWindowArrangement {
             $0.pid == frontmost.processIdentifier && framesMatch($0.frame, focusedWindow.frame)
         }) else { return nil }
         var usedIDs: Set<CGWindowID> = []
+        var accessibilityWindowsByPID: [pid_t: [AXUIElement]] = [:]
+        var usedAccessibilityIndicesByPID: [pid_t: Set<Int>] = [:]
         let activeInfo = available[activeIndex]
         usedIDs.insert(activeInfo.id)
-        var result = [Window(element: focused, id: activeInfo.id, frame: focusedWindow.frame)]
+        let frontmostPID = frontmost.processIdentifier
+        accessibilityWindowsByPID[frontmostPID] = windows(for: frontmostPID)
+        if let appWindows = accessibilityWindowsByPID[frontmostPID],
+           let focusedIndex = appWindows.firstIndex(where: { CFEqual($0, focused) })
+            ?? appWindows.indices.first(where: { index in
+                guard let window = makeWindow(appWindows[index]) else { return false }
+                return framesMatch(window.frame, focusedWindow.frame)
+            }) {
+            usedAccessibilityIndicesByPID[frontmostPID, default: []].insert(focusedIndex)
+        }
+        var result = [Window(element: focused, id: activeInfo.id, processIdentifier: frontmostPID, frame: focusedWindow.frame)]
 
         for info in available where !usedIDs.contains(info.id) {
-            let app = AXUIElementCreateApplication(info.pid)
-            var appWindowsValue: CFTypeRef?
-            guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &appWindowsValue) == .success,
-                  let appWindows = appWindowsValue as? [AXUIElement],
-                  let match = appWindows.lazy.compactMap(makeWindow).first(where: { framesMatch($0.frame, info.frame) })
-            else { continue }
+            let appWindows = accessibilityWindowsByPID[info.pid] ?? windows(for: info.pid)
+            accessibilityWindowsByPID[info.pid] = appWindows
+            let usedIndices = usedAccessibilityIndicesByPID[info.pid, default: []]
+            guard let matchIndex = appWindows.indices.first(where: { index in
+                !usedIndices.contains(index)
+                    && makeWindow(appWindows[index]).map { framesMatch($0.frame, info.frame) } == true
+            }), let match = makeWindow(appWindows[matchIndex]) else { continue }
             usedIDs.insert(info.id)
-            result.append(Window(element: match.element, id: info.id, frame: match.frame))
+            usedAccessibilityIndicesByPID[info.pid, default: []].insert(matchIndex)
+            result.append(Window(element: match.element, id: info.id, processIdentifier: info.pid, frame: match.frame))
         }
         return result
+    }
+
+    private static func windows(for processIdentifier: pid_t) -> [AXUIElement] {
+        let app = AXUIElementCreateApplication(processIdentifier)
+        var appWindowsValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &appWindowsValue) == .success,
+              let appWindows = appWindowsValue as? [AXUIElement] else { return [] }
+        return appWindows
     }
 
     private static func makeWindow(_ element: AXUIElement) -> Window? {
         guard let position = pointAttribute(kAXPositionAttribute as CFString, of: element),
               let size = sizeAttribute(kAXSizeAttribute as CFString, of: element)
         else { return nil }
-        return Window(element: element, id: 0, frame: CGRect(origin: position, size: size))
+        return Window(element: element, id: 0, processIdentifier: 0, frame: CGRect(origin: position, size: size))
     }
 
     private static func framesMatch(_ first: CGRect, _ second: CGRect) -> Bool {
@@ -168,6 +244,21 @@ enum CompanionWindowArrangement {
               let point = AXValueCreate(.cgPoint, &frameOrigin) else { return false }
         guard AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, size) == .success else { return false }
         return AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, point) == .success
+    }
+
+    private static func canSetFrame(for element: AXUIElement) -> Bool {
+        var canSetSize = DarwinBoolean(false)
+        var canSetPosition = DarwinBoolean(false)
+        return AXUIElementIsAttributeSettable(element, kAXSizeAttribute as CFString, &canSetSize) == .success
+            && canSetSize.boolValue
+            && AXUIElementIsAttributeSettable(element, kAXPositionAttribute as CFString, &canSetPosition) == .success
+            && canSetPosition.boolValue
+    }
+
+    private static func intersectionArea(_ first: CGRect, _ second: CGRect) -> CGFloat {
+        let intersection = first.intersection(second)
+        guard !intersection.isNull, !intersection.isEmpty else { return 0 }
+        return intersection.width * intersection.height
     }
 
     /// AppKit screen coordinates use a bottom-left origin; Accessibility uses
