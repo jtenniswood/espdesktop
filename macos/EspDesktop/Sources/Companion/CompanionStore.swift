@@ -691,9 +691,6 @@ final class CompanionStore: NSObject, ObservableObject {
             }
             return performed
         }
-        if mediaController.supports(actionIdentifier: actionIdentifier) {
-            return mediaController.perform(actionIdentifier: actionIdentifier)
-        }
         if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) {
             if let error = CompanionNativeWindowAction.perform(actionIdentifier) {
                 updateStatus(error)
