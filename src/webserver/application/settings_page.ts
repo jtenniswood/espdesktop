@@ -521,6 +521,12 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var ssBadge: any = statusBadge("Screensaver on");
         els.setScreensaverBadge = ssBadge;
         function setSsMode(this: any, mode?: any) {
+            // Device events can reapply a saved HA mode while its connector is
+            // offline. Hide its controls without overwriting the saved mode.
+            if ((mode === "sensor" && !homeAssistantConnected()) ||
+                (mode === "companion" && !companionConfigured())) {
+                mode = "disabled";
+            }
             ssMode = mode;
             disabledBtn.classList.toggle("active", mode === "disabled");
             timerBtn.classList.toggle("active", mode === "timer");

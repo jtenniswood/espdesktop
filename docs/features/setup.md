@@ -32,4 +32,6 @@ Use the setup page's backup controls to save a copy of the display configuration
 
 The **Connectors** tab shows your connection status. It provides setup steps for a new connection, a short reconnect check when offline, and Home Assistant actions permission guidance after connecting.
 
+Home Assistant settings appear only while the Home Assistant connector is connected. When it disconnects, **Cover Art Screen Saver**, the **Home Assistant** modes in **Screensaver** and **Night Schedule**, **Home Assistant Settings**, and the clock-bar temperature control are hidden. Saved settings return when Home Assistant reconnects. Use the **Connectors** tab to check or restore the connection.
+
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).
