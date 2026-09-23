@@ -310,26 +310,8 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
-      { text: 'Supported Display', link: '/screens/4848s040' },
-      { text: 'Install', link: '/getting-started/install' },
-      { text: 'Mac App', link: '/getting-started/mac-app' },
-      {
-        text: 'Mac Controls',
-        link: '/card-types/companion',
-        items: [
-          { text: 'Overview', link: '/card-types/companion' },
-          { text: 'Apps & Websites', link: '/mac-controls/apps' },
-          { text: 'Finder Folders', link: '/mac-controls/folders' },
-          { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
-          { text: 'Window Controls', link: '/mac-controls/windows' },
-          { text: 'Volume', link: '/mac-controls/volume' },
-          { text: 'Statistics', link: '/mac-controls/statistics' },
-          { text: 'Permissions & Security', link: '/mac-controls/security' },
-        ],
-      },
-      { text: 'EspControl Docs', link: 'https://jtenniswood.github.io/espcontrol/' },
+      { text: 'Setup', link: '/getting-started/install' },
       { text: 'Issues', link: 'https://github.com/jtenniswood/espdesktop/issues' },
-      { text: 'FAQ', link: '/reference/faq' },
       { text: 'GitHub', link: 'https://github.com/jtenniswood/espdesktop' },
     ],
 
