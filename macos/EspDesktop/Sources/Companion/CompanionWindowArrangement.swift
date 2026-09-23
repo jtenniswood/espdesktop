@@ -161,7 +161,7 @@ enum CompanionWindowArrangement {
             } else {
                 safeFrame = clampedFrame(frame, to: restoreDesktop)
             }
-            guard let safeFrame, canSetFrame(for: active.element) else { return false }
+            guard let safeFrame, canSetFrame(for: active.element, to: safeFrame) else { return false }
             guard setFrame(safeFrame, for: active.element) else {
                 // Restore can fail after only one AX attribute has been applied.
                 // Put the active window back before reporting failure.
@@ -188,7 +188,9 @@ enum CompanionWindowArrangement {
         let frames = frames(for: action, in: desktop, currentFrame: active.frame)
         guard frames.count == selected.count else { return false }
 
-        guard selected.allSatisfy({ canSetFrame(for: $0.element) }) else { return false }
+        guard zip(selected, frames).allSatisfy({ pair in
+            canSetFrame(for: pair.0.element, to: pair.1)
+        }) else { return false }
         for (index, pair) in zip(selected, frames).enumerated() {
             let (window, frame) = pair
             guard setFrame(frame, for: window.element) else {
@@ -380,24 +382,34 @@ enum CompanionWindowArrangement {
     }
 
     private static func setFrame(_ frame: CGRect, for element: AXUIElement) -> Bool {
-        var frameSize = CGSize(width: frame.width, height: frame.height)
         var frameOrigin = CGPoint(x: frame.minX, y: frame.minY)
-        guard let size = AXValueCreate(.cgSize, &frameSize),
-              let point = AXValueCreate(.cgPoint, &frameOrigin) else { return false }
-        guard AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, size) == .success else { return false }
+        guard let point = AXValueCreate(.cgPoint, &frameOrigin) else { return false }
+        let requestedSize = CGSize(width: frame.width, height: frame.height)
+        if sizeAttribute(kAXSizeAttribute as CFString, of: element).map({ !sizesMatch($0, requestedSize) }) ?? true {
+            var frameSize = requestedSize
+            guard let size = AXValueCreate(.cgSize, &frameSize),
+                  AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, size) == .success else { return false }
+        }
         guard AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, point) == .success,
               let actualPosition = pointAttribute(kAXPositionAttribute as CFString, of: element),
               let actualSize = sizeAttribute(kAXSizeAttribute as CFString, of: element) else { return false }
         return framesMatch(CGRect(origin: actualPosition, size: actualSize), frame)
     }
 
-    private static func canSetFrame(for element: AXUIElement) -> Bool {
-        var canSetSize = DarwinBoolean(false)
+    private static func sizesMatch(_ first: CGSize, _ second: CGSize) -> Bool {
+        abs(first.width - second.width) < 2 && abs(first.height - second.height) < 2
+    }
+
+    private static func canSetFrame(for element: AXUIElement, to frame: CGRect) -> Bool {
         var canSetPosition = DarwinBoolean(false)
+        guard AXUIElementIsAttributeSettable(element, kAXPositionAttribute as CFString, &canSetPosition) == .success,
+              canSetPosition.boolValue else { return false }
+        if sizeAttribute(kAXSizeAttribute as CFString, of: element).map({ sizesMatch($0, frame.size) }) == true {
+            return true
+        }
+        var canSetSize = DarwinBoolean(false)
         return AXUIElementIsAttributeSettable(element, kAXSizeAttribute as CFString, &canSetSize) == .success
             && canSetSize.boolValue
-            && AXUIElementIsAttributeSettable(element, kAXPositionAttribute as CFString, &canSetPosition) == .success
-            && canSetPosition.boolValue
     }
 
     private static func intersectionArea(_ first: CGRect, _ second: CGRect) -> CGFloat {
