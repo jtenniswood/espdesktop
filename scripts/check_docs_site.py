@@ -171,6 +171,25 @@ def check_build(dist):
             errors.append(f'Inconsistent brand spelling: {url}')
 
     report = snapshot(pages)
+    mac_docs = {
+        BASE,
+        BASE + 'screens/4848s040',
+        BASE + 'getting-started/install',
+        BASE + 'getting-started/mac-app',
+        BASE + 'getting-started/troubleshooting',
+        BASE + 'card-types/companion',
+        BASE + 'features/setup',
+        BASE + 'features/subpages',
+        BASE + 'features/media-cover-art',
+        BASE + 'reference/faq',
+        BASE + 'reference/companion-compatibility',
+        BASE + 'reference/privacy',
+    }
+    unexpected_pages = set(pages) - mac_docs
+    if unexpected_pages:
+        errors.append(f'Non-Mac guide is still published: {sorted(unexpected_pages)}')
+    if not any(link == 'https://jtenniswood.github.io/espcontrol/' for link in pages[BASE].links):
+        errors.append('Homepage is missing the EspControl Home Assistant documentation link')
     for field in ('duplicate_titles', 'duplicate_descriptions'):
         if report[field]:
             errors.append(f'{field}: {report[field]}')
@@ -202,25 +221,29 @@ def check_build(dist):
             errors.append('FAQ structured answers differ from the rendered questions or answers')
 
     redirects = {
-        'reference/request-device-support': BASE + 'screens/',
-        'card-types/weather-forecast': BASE + 'card-types/weather#temperatures-tomorrow',
+        'reference/request-device-support': BASE + 'screens/4848s040',
+        'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
+        'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
+        'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/',
+        'guides/index': 'https://jtenniswood.github.io/espcontrol/',
+        'immich/index': 'https://jtenniswood.github.io/espcontrol/',
         'generated/companion-compatibility': BASE + 'reference/companion-compatibility',
-        'generated/cards/capabilities': BASE + 'reference/card-capabilities',
+        'generated/cards/capabilities': BASE + 'card-types/companion',
         'generated/cards/runtime-coverage': 'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
     }
     screen_guides = {
-        '4848s040': ('4848s040#card-grid', '4848s040'),
-        'jc1060p470': ('jc1060p470#card-grid', 'jc1060p470-v1'),
-        'jc1060p470-v2': ('jc1060p470#card-grid', 'jc1060p470-v2'),
-        'jc4880p443': ('jc4880p443#card-grid', 'jc4880p443'),
-        'jc8012p4a1': ('jc8012p4a1', 'jc8012p4a1-v1'),
-        'jc8012p4a1-v2': ('jc8012p4a1', 'jc8012p4a1-v2'),
-        'jc8012p4a1-v3': ('jc8012p4a1', 'jc8012p4a1-v3'),
-        'p4-86': ('p4-86#card-grid', 'p4-86'),
+        '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
+        'jc1060p470': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc4880p443': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc8012p4a1': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc8012p4a1-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc8012p4a1-v3': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'p4-86': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
     }
     for model, (grid, install) in screen_guides.items():
-        redirects[f'generated/screens/{model}-grid'] = BASE + 'screens/' + grid
-        redirects[f'generated/screens/{model}-install'] = BASE + 'screens/' + install + '#install'
+        redirects[f'generated/screens/{model}-grid'] = grid
+        redirects[f'generated/screens/{model}-install'] = install
     baseline = json.loads((ROOT / 'dev-docs/hosting/seo-baseline-2026-09-22.json').read_text())
     for url in baseline['generated_urls']:
         if url.removeprefix(BASE) not in redirects:

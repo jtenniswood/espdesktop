@@ -3,32 +3,37 @@ import { join } from 'node:path'
 import type { MarkdownRenderer } from 'vitepress'
 
 export const hostname = 'https://jtenniswood.github.io/espdesktop/'
+const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
-  'reference/request-device-support': `${hostname}screens/`,
-  'card-types/weather-forecast': `${hostname}card-types/weather#temperatures-tomorrow`,
-  'generated/cards/capabilities': `${hostname}reference/card-capabilities`,
+  'reference/request-device-support': `${hostname}screens/4848s040`,
+  'card-types/weather-forecast': espcontrol,
+  'card-types/index': espcontrol,
+  'getting-started/home-assistant-actions': espcontrol,
+  'guides/index': espcontrol,
+  'immich/index': espcontrol,
+  'generated/cards/capabilities': `${hostname}card-types/companion`,
   'generated/cards/runtime-coverage':
     'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
-  'generated/screens/4848s040-grid': `${hostname}screens/4848s040#card-grid`,
+  'generated/screens/4848s040-grid': `${hostname}screens/4848s040`,
   'generated/screens/4848s040-install': `${hostname}screens/4848s040#install`,
-  'generated/screens/jc1060p470-grid': `${hostname}screens/jc1060p470#card-grid`,
-  'generated/screens/jc1060p470-install': `${hostname}screens/jc1060p470-v1#install`,
-  'generated/screens/jc1060p470-v2-grid': `${hostname}screens/jc1060p470#card-grid`,
-  'generated/screens/jc1060p470-v2-install': `${hostname}screens/jc1060p470-v2#install`,
-  'generated/screens/jc4880p443-grid': `${hostname}screens/jc4880p443#card-grid`,
-  'generated/screens/jc4880p443-install': `${hostname}screens/jc4880p443#install`,
-  'generated/screens/jc8012p4a1-grid': `${hostname}screens/jc8012p4a1`,
-  'generated/screens/jc8012p4a1-install': `${hostname}screens/jc8012p4a1-v1#install`,
-  'generated/screens/jc8012p4a1-v2-grid': `${hostname}screens/jc8012p4a1`,
-  'generated/screens/jc8012p4a1-v2-install': `${hostname}screens/jc8012p4a1-v2#install`,
-  'generated/screens/jc8012p4a1-v3-grid': `${hostname}screens/jc8012p4a1`,
-  'generated/screens/jc8012p4a1-v3-install': `${hostname}screens/jc8012p4a1-v3#install`,
-  'generated/screens/p4-86-grid': `${hostname}screens/p4-86#card-grid`,
-  'generated/screens/p4-86-install': `${hostname}screens/p4-86#install`,
+  'generated/screens/jc1060p470-grid': espcontrol,
+  'generated/screens/jc1060p470-install': espcontrol,
+  'generated/screens/jc1060p470-v2-grid': espcontrol,
+  'generated/screens/jc1060p470-v2-install': espcontrol,
+  'generated/screens/jc4880p443-grid': espcontrol,
+  'generated/screens/jc4880p443-install': espcontrol,
+  'generated/screens/jc8012p4a1-grid': espcontrol,
+  'generated/screens/jc8012p4a1-install': espcontrol,
+  'generated/screens/jc8012p4a1-v2-grid': espcontrol,
+  'generated/screens/jc8012p4a1-v2-install': espcontrol,
+  'generated/screens/jc8012p4a1-v3-grid': espcontrol,
+  'generated/screens/jc8012p4a1-v3-install': espcontrol,
+  'generated/screens/p4-86-grid': espcontrol,
+  'generated/screens/p4-86-install': espcontrol,
 }
 
 export async function writeRedirects(outDir: string) {
