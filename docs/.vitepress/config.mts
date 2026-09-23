@@ -327,7 +327,7 @@ export default defineConfig({
           { text: 'Permissions & Security', link: '/mac-controls/security' },
         ],
       },
-      { text: 'EspControl Docs ↗', link: 'https://jtenniswood.github.io/espcontrol/' },
+      { text: 'EspControl Docs', link: 'https://jtenniswood.github.io/espcontrol/' },
       { text: 'Issues', link: 'https://github.com/jtenniswood/espdesktop/issues' },
       { text: 'FAQ', link: '/reference/faq' },
       { text: 'GitHub', link: 'https://github.com/jtenniswood/espdesktop' },
@@ -368,7 +368,7 @@ export default defineConfig({
       {
         text: 'Home Assistant',
         items: [
-          { text: 'EspControl Home Assistant Docs ↗', link: 'https://jtenniswood.github.io/espcontrol/' },
+          { text: 'EspControl', link: 'https://jtenniswood.github.io/espcontrol/' },
         ],
       },
       {
