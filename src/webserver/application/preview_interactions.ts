@@ -481,8 +481,9 @@ export function createPreviewInteractionsFeature(
         var slot: any = firstFreeSlot();
         if (slot < 0)
             return;
-        state.buttons[slot - 1] = emptyButtonConfig("subpage");
-        state.buttons[slot - 1].icon = "Folder Outline";
+        var folderButton: any = emptyButtonConfig("subpage");
+        folderButton.icon = "Folder Outline";
+        state.buttons[slot - 1] = folderButton;
         state.grid[pos] = slot;
         state.subpages[slot] = { order: [], buttons: [], grid: [], sizes: {} };
         buildSubpageGrid(state.subpages[slot]);
