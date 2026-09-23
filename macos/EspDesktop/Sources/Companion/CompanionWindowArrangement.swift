@@ -1,0 +1,510 @@
+import AppKit
+import ApplicationServices
+import CoreGraphics
+import Foundation
+
+/// Performs macOS window tiling directly through Accessibility. macOS does not
+/// reliably honour synthetic Fn-key events, which are the shortcuts Apple uses
+/// for its built-in tiling commands.
+@MainActor
+enum CompanionWindowArrangement {
+    private enum Action: Equatable {
+        case fill, center, left, right, top, bottom, restore
+        case leftRight, rightLeft, topBottom, bottomTop
+        case leftQuarters, rightQuarters, topQuarters, bottomQuarters
+
+        init?(identifier: String) {
+            switch identifier {
+            case "window.fill": self = .fill
+            case "window.center": self = .center
+            case "window.left": self = .left
+            case "window.right": self = .right
+            case "window.top": self = .top
+            case "window.bottom": self = .bottom
+            case "window.restore": self = .restore
+            case "window.arrange.left-right": self = .leftRight
+            case "window.arrange.right-left": self = .rightLeft
+            case "window.arrange.top-bottom": self = .topBottom
+            case "window.arrange.bottom-top": self = .bottomTop
+            case "window.arrange.left-quarters": self = .leftQuarters
+            case "window.arrange.right-quarters": self = .rightQuarters
+            case "window.arrange.top-quarters": self = .topQuarters
+            case "window.arrange.bottom-quarters": self = .bottomQuarters
+            default: return nil
+            }
+        }
+
+        var requiredWindowCount: Int {
+            switch self {
+            case .leftRight, .rightLeft, .topBottom, .bottomTop: 2
+            case .leftQuarters, .rightQuarters, .topQuarters, .bottomQuarters: 3
+            default: 1
+            }
+        }
+    }
+
+    private struct Window {
+        let element: AXUIElement
+        let id: CGWindowID
+        let processIdentifier: pid_t
+        let frame: CGRect
+
+        var restoreKey: String { "\(processIdentifier):\(id)" }
+    }
+
+    private struct StoredFrame: Codable {
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+        let arrangedFrame: StoredRect?
+        let bundleIdentifier: String?
+        let windowIdentifier: String?
+        let savedAt: Date?
+
+        init(_ frame: CGRect, arrangedFrame: CGRect, bundleIdentifier: String, windowIdentifier: String) {
+            x = frame.minX
+            y = frame.minY
+            width = frame.width
+            height = frame.height
+            self.arrangedFrame = StoredRect(arrangedFrame)
+            self.bundleIdentifier = bundleIdentifier
+            self.windowIdentifier = windowIdentifier
+            savedAt = Date()
+        }
+
+        var rect: CGRect { CGRect(x: x, y: y, width: width, height: height) }
+        var lastArrangedRect: CGRect? { arrangedFrame?.rect }
+    }
+
+    private struct StoredRect: Codable {
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+
+        init(_ frame: CGRect) {
+            x = frame.minX
+            y = frame.minY
+            width = frame.width
+            height = frame.height
+        }
+
+        var rect: CGRect { CGRect(x: x, y: y, width: width, height: height) }
+    }
+
+    private struct SessionRestoreFrame {
+        let element: AXUIElement
+        let processIdentifier: pid_t
+        let originalFrame: CGRect
+        let arrangedFrame: CGRect
+    }
+
+    private static let restoreFramesDefaultsKey = "companion.window-arrangement.restore-frames.v1"
+    private static var previousFrames = loadPreviousFrames()
+    private static var sessionRestoreFrames: [SessionRestoreFrame] = []
+
+    /// Returns nil for ordinary app shortcuts, and the result for a supported
+    /// tiling action otherwise.
+    static func perform(identifier: String) -> Bool? {
+        guard let action = Action(identifier: identifier) else { return nil }
+        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 15 else { return false }
+        guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
+        guard let windows = visibleWindows(), let active = windows.first else { return false }
+        let screenWithMostWindowArea = NSScreen.screens.max(by: {
+            intersectionArea(accessibilityFrame(for: $0.frame), active.frame)
+                < intersectionArea(accessibilityFrame(for: $1.frame), active.frame)
+        })
+        let screen = screenWithMostWindowArea.flatMap {
+            intersectionArea(accessibilityFrame(for: $0.frame), active.frame) > 0 ? $0 : nil
+        } ?? NSScreen.main
+        guard let screen else { return false }
+
+        let desktop = accessibilityFrame(for: screen.visibleFrame)
+        guard desktop.width > 0, desktop.height > 0 else { return false }
+
+        if action == .restore {
+            // A shortcut can be posted without macOS actually restoring the
+            // window, so only report success for frames saved by our own tiling.
+            let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier)
+            let storedFrame = previousFrames[active.restoreKey]
+            let identifier = windowIdentifier(for: active.element)
+            let storedIdentityMatches: StoredFrame?
+            if let storedFrame, let bundleIdentifier, let identifier,
+               storedFrame.bundleIdentifier == bundleIdentifier,
+               storedFrame.windowIdentifier == identifier {
+                storedIdentityMatches = storedFrame
+            } else {
+                storedIdentityMatches = nil
+            }
+            let sessionIndex = sessionRestoreFrames.firstIndex {
+                $0.processIdentifier == active.processIdentifier && CFEqual($0.element, active.element)
+            }
+            guard let frame = storedIdentityMatches?.rect
+                    ?? sessionIndex.map({ sessionRestoreFrames[$0].originalFrame }) else {
+                previousFrames.removeValue(forKey: active.restoreKey)
+                savePreviousFrames()
+                return false
+            }
+            let restoreScreen = NSScreen.screens.max(by: {
+                intersectionArea(accessibilityFrame(for: $0.frame), frame)
+                    < intersectionArea(accessibilityFrame(for: $1.frame), frame)
+            }).flatMap {
+                intersectionArea(accessibilityFrame(for: $0.frame), frame) > 0 ? $0 : nil
+            } ?? screen
+            let restoreDesktop = accessibilityFrame(for: restoreScreen.visibleFrame)
+            let safeFrame: CGRect?
+            if isReachable(frame, on: NSScreen.screens) {
+                // Keep deliberately oversized or spanning frames intact when
+                // enough of the window remains available on a connected display.
+                safeFrame = frame
+            } else {
+                safeFrame = clampedFrame(frame, to: restoreDesktop)
+            }
+            guard let safeFrame, canSetFrame(for: active.element, to: safeFrame) else { return false }
+            guard setFrame(safeFrame, for: active.element) else {
+                // Restore can fail after only one AX attribute has been applied.
+                // Put the active window back before reporting failure.
+                _ = setFrame(active.frame, for: active.element)
+                return false
+            }
+            previousFrames.removeValue(forKey: active.restoreKey)
+            if let sessionIndex { sessionRestoreFrames.remove(at: sessionIndex) }
+            savePreviousFrames()
+            return true
+        }
+
+        let displayFrame = accessibilityFrame(for: screen.frame)
+        let windowsOnScreen = windows.filter { window in
+            let areaOnActiveScreen = intersectionArea(displayFrame, window.frame)
+            guard areaOnActiveScreen > 0 else { return false }
+            let largestScreenArea = NSScreen.screens.map {
+                intersectionArea(accessibilityFrame(for: $0.frame), window.frame)
+            }.max() ?? 0
+            return areaOnActiveScreen >= largestScreenArea
+        }
+        let selected = Array(windowsOnScreen.prefix(action.requiredWindowCount))
+        guard selected.count == action.requiredWindowCount else { return false }
+        let frames = frames(for: action, in: desktop, currentFrame: active.frame)
+        guard frames.count == selected.count else { return false }
+
+        guard zip(selected, frames).allSatisfy({ pair in
+            canSetFrame(for: pair.0.element, to: pair.1)
+        }) else { return false }
+        for (index, pair) in zip(selected, frames).enumerated() {
+            let (window, frame) = pair
+            guard setFrame(frame, for: window.element) else {
+                // A failed size or position update can leave that window partly
+                // changed, so restore it along with every earlier window.
+                for rollbackWindow in selected.prefix(index + 1).reversed() {
+                    _ = setFrame(rollbackWindow.frame, for: rollbackWindow.element)
+                }
+                return false
+            }
+        }
+
+        for (index, window) in selected.enumerated() {
+            let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier)
+            let identifier = windowIdentifier(for: window.element)
+            let sessionIndex = sessionRestoreFrames.firstIndex {
+                $0.processIdentifier == window.processIdentifier && CFEqual($0.element, window.element)
+            }
+            let previousFrame = previousFrames[window.restoreKey]
+            let restoreFrame: CGRect
+            if let sessionIndex,
+               framesMatch(window.frame, sessionRestoreFrames[sessionIndex].arrangedFrame) {
+                // Preserve the original frame only while the window remains
+                // in the position created by our previous arrangement.
+                restoreFrame = sessionRestoreFrames[sessionIndex].originalFrame
+            } else if let previousFrame,
+                      previousFrame.bundleIdentifier == bundleIdentifier,
+                      previousFrame.windowIdentifier == identifier,
+                      let arrangedFrame = previousFrame.lastArrangedRect,
+                      framesMatch(window.frame, arrangedFrame) {
+                restoreFrame = previousFrame.rect
+            } else {
+                // A manual move or resize becomes the new previous size.
+                restoreFrame = window.frame
+            }
+            let arrangedFrame = frames[index]
+            let sessionFrame = SessionRestoreFrame(
+                element: window.element,
+                processIdentifier: window.processIdentifier,
+                originalFrame: restoreFrame,
+                arrangedFrame: arrangedFrame
+            )
+            if let sessionIndex {
+                sessionRestoreFrames[sessionIndex] = sessionFrame
+            } else {
+                sessionRestoreFrames.append(sessionFrame)
+            }
+            if let identifier, let bundleIdentifier {
+                previousFrames[window.restoreKey] = StoredFrame(
+                    restoreFrame,
+                    arrangedFrame: arrangedFrame,
+                    bundleIdentifier: bundleIdentifier,
+                    windowIdentifier: identifier
+                )
+            } else {
+                previousFrames.removeValue(forKey: window.restoreKey)
+            }
+        }
+        savePreviousFrames()
+        return true
+    }
+
+    private static func loadPreviousFrames() -> [String: StoredFrame] {
+        guard let data = UserDefaults.standard.data(forKey: restoreFramesDefaultsKey),
+              let storedFrames = try? JSONDecoder().decode([String: StoredFrame].self, from: data)
+        else { return [:] }
+        let expiryDate = Date().addingTimeInterval(-14 * 24 * 60 * 60)
+        return storedFrames.compactMapValues { storedFrame in
+            guard storedFrame.bundleIdentifier != nil,
+                  storedFrame.windowIdentifier != nil,
+                  storedFrame.lastArrangedRect != nil,
+                  let savedAt = storedFrame.savedAt,
+                  savedAt >= expiryDate else { return nil }
+            return storedFrame
+        }
+    }
+
+    private static func savePreviousFrames() {
+        guard let data = try? JSONEncoder().encode(previousFrames) else { return }
+        UserDefaults.standard.set(data, forKey: restoreFramesDefaultsKey)
+    }
+
+    private static func applicationBundleIdentifier(for processIdentifier: pid_t) -> String? {
+        NSRunningApplication(processIdentifier: processIdentifier)?.bundleIdentifier
+    }
+
+    private static func windowIdentifier(for element: AXUIElement) -> String? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXIdentifierAttribute as CFString, &value) == .success else { return nil }
+        return value as? String
+    }
+
+    private static func visibleWindows() -> [Window]? {
+        guard let frontmost = NSWorkspace.shared.frontmostApplication else { return nil }
+        let application = AXUIElementCreateApplication(frontmost.processIdentifier)
+        var focusedValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(application, kAXFocusedWindowAttribute as CFString, &focusedValue) == .success,
+              let focusedValue,
+              CFGetTypeID(focusedValue) == AXUIElementGetTypeID()
+        else { return nil }
+        let focused = focusedValue as! AXUIElement
+        guard let focusedWindow = makeWindow(focused),
+              let windowInfo = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[String: Any]] else { return nil }
+
+        var available: [(id: CGWindowID, pid: pid_t, frame: CGRect)] = []
+        for info in windowInfo {
+            guard let idValue = info[kCGWindowNumber as String] as? NSNumber,
+                  let pidValue = info[kCGWindowOwnerPID as String] as? NSNumber,
+                  let layer = info[kCGWindowLayer as String] as? NSNumber, layer.intValue == 0,
+                  let alpha = info[kCGWindowAlpha as String] as? NSNumber, alpha.doubleValue > 0,
+                  let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                  let frame = CGRect(dictionaryRepresentation: bounds)
+            else { continue }
+            let id = CGWindowID(idValue.uint32Value)
+            available.append((id, pid_t(pidValue.int32Value), frame))
+        }
+
+        guard let activeIndex = available.firstIndex(where: {
+            $0.pid == frontmost.processIdentifier && framesMatch($0.frame, focusedWindow.frame)
+        }) else { return nil }
+        var usedIDs: Set<CGWindowID> = []
+        var accessibilityWindowsByPID: [pid_t: [AXUIElement]] = [:]
+        var usedAccessibilityIndicesByPID: [pid_t: Set<Int>] = [:]
+        let activeInfo = available[activeIndex]
+        usedIDs.insert(activeInfo.id)
+        let frontmostPID = frontmost.processIdentifier
+        accessibilityWindowsByPID[frontmostPID] = windows(for: frontmostPID)
+        if let appWindows = accessibilityWindowsByPID[frontmostPID],
+           let focusedIndex = appWindows.firstIndex(where: { CFEqual($0, focused) })
+            ?? appWindows.indices.first(where: { index in
+                guard let window = makeWindow(appWindows[index]) else { return false }
+                return framesMatch(window.frame, focusedWindow.frame)
+            }) {
+            usedAccessibilityIndicesByPID[frontmostPID, default: []].insert(focusedIndex)
+        }
+        var result = [Window(element: focused, id: activeInfo.id, processIdentifier: frontmostPID, frame: focusedWindow.frame)]
+
+        for info in available where !usedIDs.contains(info.id) {
+            let appWindows = accessibilityWindowsByPID[info.pid] ?? windows(for: info.pid)
+            accessibilityWindowsByPID[info.pid] = appWindows
+            let usedIndices = usedAccessibilityIndicesByPID[info.pid, default: []]
+            guard let matchIndex = appWindows.indices.first(where: { index in
+                !usedIndices.contains(index)
+                    && makeWindow(appWindows[index]).map { framesMatch($0.frame, info.frame) } == true
+            }), let match = makeWindow(appWindows[matchIndex]) else { continue }
+            usedIDs.insert(info.id)
+            usedAccessibilityIndicesByPID[info.pid, default: []].insert(matchIndex)
+            result.append(Window(element: match.element, id: info.id, processIdentifier: info.pid, frame: match.frame))
+        }
+        return result
+    }
+
+    private static func windows(for processIdentifier: pid_t) -> [AXUIElement] {
+        let app = AXUIElementCreateApplication(processIdentifier)
+        var appWindowsValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &appWindowsValue) == .success,
+              let appWindows = appWindowsValue as? [AXUIElement] else { return [] }
+        return appWindows
+    }
+
+    private static func makeWindow(_ element: AXUIElement) -> Window? {
+        guard let position = pointAttribute(kAXPositionAttribute as CFString, of: element),
+              let size = sizeAttribute(kAXSizeAttribute as CFString, of: element)
+        else { return nil }
+        return Window(element: element, id: 0, processIdentifier: 0, frame: CGRect(origin: position, size: size))
+    }
+
+    private static func framesMatch(_ first: CGRect, _ second: CGRect) -> Bool {
+        abs(first.minX - second.minX) < 2 && abs(first.minY - second.minY) < 2 &&
+            abs(first.width - second.width) < 2 && abs(first.height - second.height) < 2
+    }
+
+    private static func pointAttribute(_ name: CFString, of element: AXUIElement) -> CGPoint? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, name, &value) == .success,
+              let value, CFGetTypeID(value) == AXValueGetTypeID() else { return nil }
+        var point = CGPoint.zero
+        guard AXValueGetValue(value as! AXValue, .cgPoint, &point) else { return nil }
+        return point
+    }
+
+    private static func sizeAttribute(_ name: CFString, of element: AXUIElement) -> CGSize? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, name, &value) == .success,
+              let value, CFGetTypeID(value) == AXValueGetTypeID() else { return nil }
+        var size = CGSize.zero
+        guard AXValueGetValue(value as! AXValue, .cgSize, &size) else { return nil }
+        return size
+    }
+
+    private static func setFrame(_ frame: CGRect, for element: AXUIElement) -> Bool {
+        var frameOrigin = CGPoint(x: frame.minX, y: frame.minY)
+        guard let point = AXValueCreate(.cgPoint, &frameOrigin) else { return false }
+        let requestedSize = CGSize(width: frame.width, height: frame.height)
+        if sizeAttribute(kAXSizeAttribute as CFString, of: element).map({ !sizesMatch($0, requestedSize) }) ?? true {
+            var frameSize = requestedSize
+            guard let size = AXValueCreate(.cgSize, &frameSize),
+                  AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, size) == .success else { return false }
+        }
+        guard AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, point) == .success,
+              let actualPosition = pointAttribute(kAXPositionAttribute as CFString, of: element),
+              let actualSize = sizeAttribute(kAXSizeAttribute as CFString, of: element) else { return false }
+        return framesMatch(CGRect(origin: actualPosition, size: actualSize), frame)
+    }
+
+    private static func sizesMatch(_ first: CGSize, _ second: CGSize) -> Bool {
+        abs(first.width - second.width) < 2 && abs(first.height - second.height) < 2
+    }
+
+    private static func canSetFrame(for element: AXUIElement, to frame: CGRect) -> Bool {
+        var canSetPosition = DarwinBoolean(false)
+        guard AXUIElementIsAttributeSettable(element, kAXPositionAttribute as CFString, &canSetPosition) == .success,
+              canSetPosition.boolValue else { return false }
+        if sizeAttribute(kAXSizeAttribute as CFString, of: element).map({ sizesMatch($0, frame.size) }) == true {
+            return true
+        }
+        var canSetSize = DarwinBoolean(false)
+        return AXUIElementIsAttributeSettable(element, kAXSizeAttribute as CFString, &canSetSize) == .success
+            && canSetSize.boolValue
+    }
+
+    private static func intersectionArea(_ first: CGRect, _ second: CGRect) -> CGFloat {
+        let intersection = first.intersection(second)
+        guard !intersection.isNull, !intersection.isEmpty else { return 0 }
+        return intersection.width * intersection.height
+    }
+
+    private static func clampedFrame(_ frame: CGRect, to desktop: CGRect) -> CGRect? {
+        guard desktop.width > 0, desktop.height > 0,
+              frame.minX.isFinite, frame.minY.isFinite,
+              frame.width.isFinite, frame.height.isFinite,
+              frame.width > 0, frame.height > 0 else { return nil }
+        let width = min(frame.width, desktop.width)
+        let height = min(frame.height, desktop.height)
+        let x = min(max(frame.minX, desktop.minX), desktop.maxX - width)
+        let y = min(max(frame.minY, desktop.minY), desktop.maxY - height)
+        return CGRect(x: x, y: y, width: width, height: height)
+    }
+
+    /// A window remains reachable when at least 64 points of its title bar and
+    /// the first 32 points of its height are visible on a connected display.
+    /// This preserves spanning frames while recovering windows whose title bar
+    /// is stranded by display changes.
+    private static func isReachable(_ frame: CGRect, on screens: [NSScreen]) -> Bool {
+        guard frame.minX.isFinite, frame.minY.isFinite,
+              frame.width.isFinite, frame.height.isFinite,
+              frame.width > 0, frame.height > 0 else { return false }
+        let requiredWidth = min(64, frame.width)
+        let titleBarHeight = min(32, frame.height)
+        let titleBar = CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: titleBarHeight)
+        return screens.contains { screen in
+            let visibleFrame = accessibilityFrame(for: screen.visibleFrame)
+            let intersection = titleBar.intersection(visibleFrame)
+            return !intersection.isNull
+                && intersection.width >= requiredWidth
+                && intersection.height >= titleBarHeight
+        }
+    }
+
+    /// AppKit screen coordinates use a bottom-left origin; Accessibility uses
+    /// the top-left origin shared with the Core Graphics window list.
+    private static func accessibilityFrame(for frame: CGRect) -> CGRect {
+        let mainScreenHeight = NSScreen.screens.first(where: { $0.frame.origin == .zero })?.frame.maxY ?? frame.maxY
+        return CGRect(x: frame.minX, y: mainScreenHeight - frame.maxY, width: frame.width, height: frame.height)
+    }
+
+    private static var tiledWindowMarginsEnabled: Bool {
+        guard let setting = UserDefaults(suiteName: "com.apple.WindowManager")?
+            .object(forKey: "EnableTiledWindowMargins") as? NSNumber else { return true }
+        return setting.boolValue
+    }
+
+    private static func frames(for action: Action, in desktop: CGRect, currentFrame: CGRect) -> [CGRect] {
+        let margin: CGFloat = tiledWindowMarginsEnabled ? 8 : 0
+        let gap = margin
+        let usableWidth = desktop.width - 2 * margin
+        let usableHeight = desktop.height - 2 * margin
+        let halfWidth = (usableWidth - gap) / 2
+        let halfHeight = (usableHeight - gap) / 2
+        let leftX = desktop.minX + margin
+        let rightX = leftX + halfWidth + gap
+        let topY = desktop.minY + margin
+        let bottomY = topY + halfHeight + gap
+        let left = CGRect(x: leftX, y: topY, width: halfWidth, height: usableHeight)
+        let right = CGRect(x: rightX, y: topY, width: halfWidth, height: usableHeight)
+        let top = CGRect(x: leftX, y: topY, width: usableWidth, height: halfHeight)
+        let bottom = CGRect(x: leftX, y: bottomY, width: usableWidth, height: halfHeight)
+        let topLeft = CGRect(x: leftX, y: topY, width: halfWidth, height: halfHeight)
+        let topRight = CGRect(x: rightX, y: topY, width: halfWidth, height: halfHeight)
+        let bottomLeft = CGRect(x: leftX, y: bottomY, width: halfWidth, height: halfHeight)
+        let bottomRight = CGRect(x: rightX, y: bottomY, width: halfWidth, height: halfHeight)
+
+        switch action {
+        case .fill: return [CGRect(x: leftX, y: topY, width: usableWidth, height: usableHeight)]
+        case .center:
+            return [CGRect(
+                x: desktop.midX - currentFrame.width / 2,
+                y: desktop.midY - currentFrame.height / 2,
+                width: currentFrame.width,
+                height: currentFrame.height
+            )]
+        case .left: return [left]
+        case .right: return [right]
+        case .top: return [top]
+        case .bottom: return [bottom]
+        case .restore: return []
+        case .leftRight: return [left, right]
+        case .rightLeft: return [right, left]
+        case .topBottom: return [top, bottom]
+        case .bottomTop: return [bottom, top]
+        case .leftQuarters: return [left, topRight, bottomRight]
+        case .rightQuarters: return [right, topLeft, bottomLeft]
+        case .topQuarters: return [top, bottomLeft, bottomRight]
+        case .bottomQuarters: return [bottom, topLeft, topRight]
+        }
+    }
+}
