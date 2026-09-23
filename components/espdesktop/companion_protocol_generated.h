@@ -67,6 +67,7 @@ struct ActionInvoke {
   std::string requestId{};
   std::string kind{};
   std::optional<std::string> actionId{};
+  std::optional<std::string> folderOpenBehavior{};
   std::optional<std::string> appId{};
   std::optional<std::string> encodedUrl{};
 };
@@ -208,6 +209,7 @@ inline void encode(JsonObject root, const ActionInvoke &message) {
   root["requestId"] = message.requestId;
   root["kind"] = message.kind;
   if (message.actionId) root["actionId"] = *message.actionId;
+  if (message.folderOpenBehavior) root["folderOpenBehavior"] = *message.folderOpenBehavior;
   if (message.appId) root["appId"] = *message.appId;
   if (message.encodedUrl) root["encodedUrl"] = *message.encodedUrl;
 }
@@ -448,6 +450,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!root["actionId"].isUnbound()) {
       if (!(string_valid(root["actionId"], 1, 96))) return std::nullopt;
     }
+    if (!root["folderOpenBehavior"].isUnbound()) {
+      if (!(string_valid(root["folderOpenBehavior"], 10, 11) && (root["folderOpenBehavior"].as<std::string>() == "new_window" || root["folderOpenBehavior"].as<std::string>() == "same_window"))) return std::nullopt;
+    }
     if (!root["appId"].isUnbound()) {
       if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
     }
@@ -465,6 +470,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.requestId = root["requestId"].as<std::string>();
     result.kind = root["kind"].as<std::string>();
     if (!root["actionId"].isUnbound()) result.actionId = root["actionId"].as<std::string>();
+    if (!root["folderOpenBehavior"].isUnbound()) result.folderOpenBehavior = root["folderOpenBehavior"].as<std::string>();
     if (!root["appId"].isUnbound()) result.appId = root["appId"].as<std::string>();
     if (!root["encodedUrl"].isUnbound()) result.encodedUrl = root["encodedUrl"].as<std::string>();
     return result;

@@ -304,6 +304,14 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
     companion_consume_subpage_return_request();
     return false;
   }
+  // A panel tap on the app's home card can focus Finder while its action-result
+  // callback is loading this very subpage. That focus change also raises the
+  // usual "leave the current app subpage" request; consume it without returning
+  // home when the newly focused app is the page we are already showing.
+  if (companion_pending_auto_subpage_action() == parent_config.entity) {
+    companion_consume_subpage_return_request();
+    return false;
+  }
   companion_consume_subpage_return_request();
   return navigation_return_home(main_page_obj);
 }

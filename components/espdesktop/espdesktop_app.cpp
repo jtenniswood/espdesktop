@@ -409,10 +409,12 @@ void EspDesktopApp::sync_finder_folders() {
   PanelConfigRecord record;
   while (reader.next(&record) == PanelConfigStatus::OK) records.push_back(record);
   std::array<bool, PANEL_CONFIG_MAX_SLOT_COUNT + 1> finder_slots{};
+  std::array<std::string, PANEL_CONFIG_MAX_SLOT_COUNT + 1> finder_open_behaviors{};
   for (const auto &item : records) {
     if (item.type != PanelConfigRecordType::BUTTON) continue;
     const auto card = parse_cfg(std::string(reinterpret_cast<const char *>(item.value), item.value_size));
     finder_slots[item.slot] = card.entity == "com.apple.finder" && companion_app_shortcuts_enabled(card);
+    finder_open_behaviors[item.slot] = companion_folder_open_behavior(card);
   }
   PanelConfigWriter writer(output, capacity);
   if (writer.begin() != PanelConfigStatus::OK) return;
@@ -445,7 +447,8 @@ void EspDesktopApp::sync_finder_folders() {
         size_t capacity = 0;
         for (auto *chunk : panel_config_button_texts_[item.slot - 1].subpages)
           if (chunk) capacity += 255;
-        const auto updated = finder_append_folder_tiles(config, occupied, folders, capacity);
+        const auto updated = finder_append_folder_tiles(
+            config, occupied, folders, capacity, finder_open_behaviors[item.slot]);
         changed |= updated != config;
         config = updated;
       }

@@ -754,9 +754,10 @@ inline void companion_refresh_cards_if_requested() {}
 #endif
 
 inline bool invoke_companion_action(const std::string &action_id,
-                                    const std::string &request_id) {
+                                    const std::string &request_id,
+                                    const std::string &folder_open_behavior = "new_window") {
   if (!companion_action_available(action_id) || !companion_action_sender()) return false;
-  return companion_action_sender()(action_id, request_id);
+  return companion_action_sender()(action_id, request_id, folder_open_behavior);
 }
 
 inline bool invoke_companion_url(const std::string &app_id,
