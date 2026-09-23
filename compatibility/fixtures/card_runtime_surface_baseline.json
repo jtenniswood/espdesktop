@@ -2186,8 +2186,8 @@
       "web": {
         "registration": "push",
         "picker": {
-          "main": true,
-          "subpage": true,
+          "main": false,
+          "subpage": false,
           "infoOnly": false
         },
         "preview": {
@@ -2248,8 +2248,8 @@
       "web": {
         "registration": "screen_lock",
         "picker": {
-          "main": false,
-          "subpage": false,
+          "main": true,
+          "subpage": true,
           "infoOnly": false
         },
         "preview": {
