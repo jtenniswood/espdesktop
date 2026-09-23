@@ -512,7 +512,7 @@ for (const option of pickerOptions) {
   assert(option.description.length > 0, `${option.key}: picker option description is not empty`);
 }
 const switchPickerOption = pickerOptions.find((option) => option.key === "");
-assert(switchPickerOption, "switch card appears in the main card picker");
+assert.strictEqual(switchPickerOption, undefined, "Home Assistant switch controls are hidden from the picker");
 assert.strictEqual(switchPickerOption.icon, "toggle-switch", "switch picker option uses the expected icon");
 const cardStylesSource = fs.readFileSync(
   path.join(ROOT, "src", "webserver", "application", "styles.ts"),
