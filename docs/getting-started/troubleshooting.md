@@ -1,90 +1,39 @@
 ---
-title: "Troubleshoot EspDesktop Installation and Home Assistant Controls"
-description:
-  Solutions for common issues when installing EspDesktop, connecting to WiFi, or adding the device to Home Assistant.
+title: Troubleshoot Mac Controls
+description: Resolve common EspDesktop Mac app pairing, network, permissions, and control issues.
 ---
 
-# Troubleshooting
+# Troubleshoot Mac Controls
 
-Start with the symptom below. Have your screen model, hardware revision, and firmware version ready; use the matching [screen guide](/screens/) to confirm the installed firmware.
+## The Display Does Not Appear in EspDesktop
 
-## Web Configuration Changes Won't Save
+- Confirm the display and Mac are connected to the same local network.
+- Allow local-network access for EspDesktop if macOS requested it.
+- Check that guest WiFi or router client isolation is not separating devices.
+- In the Mac app, choose **Enter address manually** and enter the display's IP address or `.local` name.
 
-The web editor can load a compatible hosted update independently of the display's firmware. Reload the page to pick up a published fix; reflashing is usually unnecessary for a hosted editor problem.
+Discovery only locates a display; it does not configure its WiFi. For a first-time firmware install, follow [Install EspDesktop](/getting-started/install).
 
-If saving or importing a backup fails, try opening `http://YOUR-DISPLAY-IP/?espdesktop_fallback=1` to use the editor embedded in the firmware. Replace `YOUR-DISPLAY-IP` with the display's address. On builds with an embedded editor, this bypasses the hosted editor for that page load. Save one setting and reload to check that it persisted. Reopen the normal device address to return to the hosted editor.
+## The Display Will Not Pair
 
-## The Screen Doesn't Respond to Commands
+Open **Connectors → Mac Companion** on the display to show a fresh code. Enter it in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget Display** in the app and reset its pairing from the connector page before trying again.
 
-- If the display shows your Home Assistant devices but nothing happens when you tap controls, such as turning lights on, Home Assistant actions probably need to be enabled for the display.
-- Follow the [Enable Actions](https://jtenniswood.github.io/espdesktop/getting-started/home-assistant-actions) guide and make sure **Allow the device to perform Home Assistant actions** is turned on.
+The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
-## The Install Button Doesn't Detect My Device
+## A Card Does Not Work
 
-- Make sure you're using **Chrome or Edge** on a desktop computer. Mobile browsers and Safari/Firefox don't support the required browser feature (WebSerial).
-- Try a **different USB-C cable**. Charge-only cables won't work.
-- Try a **different USB port** on your computer.
-- On Windows, you may need to install drivers — check Device Manager for an unrecognised device.
+- **App or folder:** confirm it is still approved in the Mac app's **Applications** or **Folders** page.
+- **Keyboard shortcut or window:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**.
+- **Window arrangement:** requires macOS 15 or newer; some applications do not support every window action.
+- **Volume:** confirm the Mac is connected and the selected audio device supports software volume control.
+- **Statistics:** the Mac app must be connected and sharing Mac readings.
 
-## The Display Is Stuck on the Loading Screen
+For the control's exact requirements, see [Mac Cards and Capabilities](/card-types/companion).
 
-- Give it up to 60 seconds after first boot. It needs time to connect to WiFi and download resources.
-- If it stays on the loading screen, power-cycle it and check whether the WiFi hotspot appears. If it does, the display couldn't connect to your network — go through the WiFi setup again.
-- If you need to report the problem, collect a startup log with the [USB log guide](/reference/collect-usb-logs) and include it in the GitHub issue.
+## A Mac App or Display Update Breaks Compatibility
 
-## Home Assistant Doesn't Discover the Device
+Install the Mac app and display firmware from the same EspDesktop release. If you are testing a development build, use the matching display firmware as well. See [Companion Compatibility](/reference/companion-compatibility).
 
-- Make sure the display and Home Assistant are on the **same WiFi network** (not a guest network or a different VLAN).
-- In Home Assistant, go to **Settings > Devices & Services > Add Integration** and search for **ESPHome**. Enter the device's IP address manually.
+## Still Stuck?
 
-## Home Assistant Says "Connection Requires Encryption"
-
-- Update both Home Assistant and ESPHome Device Builder to 2026.8 or newer. These versions pass a display's unique API encryption key between Home Assistant and Device Builder when the display is adopted or rebuilt.
-- If you already rebuilt the display and Home Assistant asks for a key, open its YAML in ESPHome Device Builder and use the existing `api.encryption.key` value in Home Assistant's reauthentication prompt. Do not generate a different key.
-- Normal OTA updates retain the key stored on the display. Erasing the whole display during a USB install can remove it and may require pairing the display with Home Assistant again.
-- See [Manual Setup](/getting-started/manual-esphome-setup) for more about automatic API encryption.
-
-## A P4 Panel Has Unreliable WiFi
-
-- P4 panels use a separate ESP32-C6 WiFi processor. Mismatched or outdated C6
-  firmware can cause repeated disconnects, failed initial setup, or a panel that
-  disappears from Home Assistant after restarting.
-- Use the [C6 WiFi recovery installer](/getting-started/c6-recovery) to reinstall
-  EspDesktop and repair the C6 over USB without depending on WiFi.
-- This recovery is for P4 panels only, not the ESP32-S3 4848S040.
-
-## The Web Page Looks Broken or Unstyled
-
-- The setup page loads hosted web resources through your **browser**. Check that the browser can reach them, even if the panel itself is on a restricted IoT network.
-- Force-refresh the page or try a private window. If loading still fails, try the [embedded-editor fallback](#web-configuration-changes-won-t-save).
-
-## WiFi Does Not Connect
-
-- Use 2.4 GHz WiFi, check the password, and move closer to the access point during setup.
-- If saved WiFi cannot reconnect, wait up to **90 seconds** for the `ESP_xxxxxx` setup hotspot, then repeat [WiFi setup](/getting-started/install#connect-to-wifi).
-- Ethernet-only custom builds have no WiFi hotspot. Check the wired connection and DHCP lease instead.
-- For repeated P4 disconnections, use the [P4 WiFi checks](#a-p4-panel-has-unreliable-wifi).
-
-## Stripes, Haze, or a Halo on the Screen
-
-Confirm the firmware matches the exact panel revision and use a known-good power supply and cable that meet its specifications. If the fault remains, include photos, the power setup, model, and firmware version in a report. A hardware fault may need the seller's help.
-
-## I Want to Start Over
-
-- Save a backup, then use **Settings > System > Factory Reset**. Partial reset keeps WiFi and the Home Assistant encryption key; Complete reset clears those saved credentials too.
-- Both keep installed firmware and compiled defaults. A normal reflash is not a guaranteed reset. Follow [Reset the display](/features/backup#reset-the-display) for the full procedure and older-firmware limitations.
-
-## I Need Help With a Bug
-
-- Open a [GitHub issue](https://github.com/jtenniswood/espdesktop/issues/new) and describe the display model, firmware version, and what happened.
-- For startup, WiFi, loading screen, or Home Assistant connection problems, include a USB log from the [Collect USB Logs](/reference/collect-usb-logs) guide.
-
-Next: [Setup](/features/setup)
-
-## Mac app cannot find a display
-
-- Connect the Mac and display to the same local network. Guest WiFi and separate network segments can block Bonjour discovery.
-- Use display firmware with discovery support and the matching Mac app. Mac Companion currently supports the 4-inch S3 4848S040.
-- On macOS versions with local-network privacy controls, allow **EspDesktop** under **System Settings → Privacy & Security → Local Network**, then choose **Retry discovery**. Restart the app if needed.
-- Choose **Enter address manually** to use the display's IP address or `.local` name. Local-network permission is still needed to connect.
-- An unexpected certificate change requires forgetting and pairing the display again; discovery never bypasses that check.
+Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). For Home Assistant touchscreen help, use the [EspControl docs](https://jtenniswood.github.io/espcontrol/).

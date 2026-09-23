@@ -67,6 +67,15 @@ export function runConnectorsFeatureTests(): void {
   if (permissionStatus !== "Home Assistant connected") {
     throw new Error("Connected Home Assistant setup must not show a confirmation action");
   }
+  const disconnectedHomeAssistant = homeAssistantConnectorStatusText({
+    available: true,
+    configured: true,
+    connected: false,
+    actions_confirmed: true,
+  });
+  if (disconnectedHomeAssistant !== "Configured but disconnected") {
+    throw new Error("Configured Home Assistant should use the concise disconnected status");
+  }
   const offlineHomeAssistant = status({
     onboarding_complete: true,
     home_assistant: {

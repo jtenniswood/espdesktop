@@ -553,7 +553,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const clockBar = createClockBarController();
   clockBarState = createClockBarFeature(clockBar, runtime, core, environment, {
-    homeAssistantSettingsAvailable: () => !!connectorsPage?.homeAssistantSettingsAvailable(),
+    homeAssistantConnected: () => !!connectorsPage?.homeAssistantConnected(),
     hideSettingsOverlay: () => selection.hideSettingsOverlay(),
     timezoneId: (value) => statusPreview.getTzId(value),
     postTemperatureEntities: (value) => clockBarPostApi.postClockBarTemperatureEntities(value),
@@ -920,12 +920,12 @@ function composeApplicationContext(): ApplicationContext {
   connectorsPage = createConnectorsPageFeature(
     dom, shell, fields, companionSection, !!layout.config.features?.companion,
   );
-  let temperatureAvailable = connectorsPage.homeAssistantSettingsAvailable();
+  let temperatureHomeAssistantConnected = connectorsPage.homeAssistantConnected();
   connectorsPage.onStatusChange(() => {
-    const available = connectorsPage.homeAssistantSettingsAvailable();
-    if (available === temperatureAvailable) return;
-    temperatureAvailable = available;
-    if (!available && statusPreview.isClockBarTemperatureItem(state.clockBarSelectedItem)) {
+    const connected = connectorsPage.homeAssistantConnected();
+    if (connected === temperatureHomeAssistantConnected) return;
+    temperatureHomeAssistantConnected = connected;
+    if (!connected && statusPreview.isClockBarTemperatureItem(state.clockBarSelectedItem)) {
       selection.clearCardSelection();
     }
     statusPreview.updateClockBarItemUi();
