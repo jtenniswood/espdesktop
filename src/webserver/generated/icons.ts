@@ -52,6 +52,10 @@ export const GENERATED_ICON_EXCEPTIONS: Readonly<Record<string, string>> = {
     Timer: "timer-outline",
     "Wall Outlet": "power-socket",
     "Weather Night Cloudy": "weather-night-partly-cloudy",
+    "Window Minimise": "window-minimize",
+    "Full Screen": "fullscreen",
+    "Split Vertical": "view-split-vertical",
+    "Split Horizontal": "view-split-horizontal",
 };
 export const GENERATED_ICON_NAMES: readonly string[] = [
     "Shortcut Command", "Chevron Left", "Chevron Right", "Account", "Air Conditioner", "Air Filter",
@@ -114,7 +118,11 @@ export const GENERATED_ICON_NAMES: readonly string[] = [
     "Weather Sunny", "Weather Sunny Alert", "Weather Sunny Off", "Weather Sunset", "Weather Sunset Down", "Weather Sunset Up",
     "Weather Tornado", "Weather Windy", "Weather Windy Variant", "Web", "Wifi", "Wind Power",
     "Wind Turbine", "Wind Turbine Alert", "Wind Turbine Check", "Window Closed", "Window Open", "Window Shutter",
-    "Window Shutter Open", "Tab", "Laptop",
+    "Window Shutter Open", "Tab", "Laptop", "Window Close", "Window Minimise", "Eye Off",
+    "Full Screen", "Fit to Screen", "Target", "Dock Left", "Dock Right", "Dock Top",
+    "Dock Bottom", "Arrow Top Left", "Arrow Top Right", "Arrow Bottom Left", "Arrow Bottom Right", "Window Restore",
+    "Split Vertical", "Arrow Left Right", "Split Horizontal", "Arrow Left Bold Box Outline", "Arrow Right Bold Box Outline", "Arrow Up Bold Box Outline",
+    "Arrow Down Bold Box Outline", "View Grid", "Arrow Expand", "Arrow Collapse",
   ];
 // --- GENERATED:ICONS END ---
 

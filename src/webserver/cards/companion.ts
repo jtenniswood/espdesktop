@@ -70,6 +70,36 @@ const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
 const COMPANION_WINDOW_PREFIX = "window.";
+const COMPANION_WINDOW_ACTION_ICONS: Readonly<Record<string, string>> = {
+    "window.close": "Window Close",
+    "window.minimize": "Window Minimise",
+    "window.hide": "Eye Off",
+    "window.fullscreen": "Full Screen",
+    "window.fill": "Fit to Screen",
+    "window.center": "Target",
+    "window.left": "Dock Left",
+    "window.right": "Dock Right",
+    "window.top": "Dock Top",
+    "window.bottom": "Dock Bottom",
+    "window.top-left": "Arrow Top Left",
+    "window.top-right": "Arrow Top Right",
+    "window.bottom-left": "Arrow Bottom Left",
+    "window.bottom-right": "Arrow Bottom Right",
+    "window.restore": "Window Restore",
+    "window.arrange.left-right": "Split Vertical",
+    "window.arrange.right-left": "Arrow Left Right",
+    "window.arrange.top-bottom": "Split Horizontal",
+    "window.arrange.bottom-top": "Arrow Up Down",
+    "window.arrange.left-quarters": "Arrow Left Bold Box Outline",
+    "window.arrange.right-quarters": "Arrow Right Bold Box Outline",
+    "window.arrange.top-quarters": "Arrow Up Bold Box Outline",
+    "window.arrange.bottom-quarters": "Arrow Down Bold Box Outline",
+    "window.arrange.quarters": "View Grid",
+    "window.fullscreen.enter": "Arrow Expand",
+    "window.fullscreen.exit": "Arrow Collapse",
+    "window.split.left": "Dock Left",
+    "window.split.right": "Dock Right",
+};
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
 export const COMPANION_SUBTYPE_DEFAULT_ICONS = {
     ...Object.fromEntries(COMPANION_CARD_MODES.map((mode) => [mode.id, mode.defaultIcon])),
@@ -196,6 +226,9 @@ export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
 
     if (COMPANION_STATS_MODES.includes(mode)) {
         return companionCardDefaultIcon("stats");
+    }
+    if (mode === "window") {
+        return COMPANION_WINDOW_ACTION_ICONS[entity] || companionCardDefaultIcon("window");
     }
     return COMPANION_CARD_MODES.some((candidate) => candidate.id === mode)
         ? companionCardDefaultIcon(mode as CompanionCardModeId)
@@ -1102,8 +1135,16 @@ export function registerCompanionCardTypes(
                 const currentLabel = typeof card.label === "string" ? card.label : "";
                 const previousLabel = companionWindowActionLabel(card.entity);
                 const nextLabel = companionWindowActionLabel(windowSelect.value);
+                const previousIcon = companionSubtypeDefaultIcon("window", card.entity);
+                const currentIcon = card.icon === "Monitor" ? previousIcon : card.icon || "";
                 card.entity = windowSelect.value;
+                card.icon = companionGeneratedIcon(
+                    currentIcon,
+                    previousIcon,
+                    companionSubtypeDefaultIcon("window", card.entity),
+                );
                 helpers.saveField("entity", card.entity);
+                helpers.saveField("icon", card.icon);
                 const updatedLabel = companionAppLabel(currentLabel, previousLabel, nextLabel);
                 if (updatedLabel !== currentLabel) {
                     card.label = updatedLabel;
