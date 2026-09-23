@@ -2,6 +2,7 @@ import XCTest
 @testable import Companion
 
 final class CompanionNativeWindowActionTests: XCTestCase {
+    @MainActor
     func testSplitViewMenuPathsUseLocalizedTitlesAndKeepEnglishFallbacks() {
         let paths = [
             ["Window", "Full Screen Tile", "Left of Screen"],
