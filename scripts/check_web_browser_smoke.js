@@ -5636,7 +5636,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.waitForFunction(
-      () => document.querySelector("#sp-connectors")?.textContent?.includes("configured, but currently offline"),
+      () => document.querySelector("#sp-connectors")?.textContent?.includes("Home Assistant is offline"),
     );
     await page.getByRole("tab", { name: "Settings" }).click();
     const coverArtCard = page.locator("#sp-settings .card").filter({
@@ -6351,7 +6351,7 @@ async function assertHomeAssistantConnectorLayout(browser) {
       await page.getByRole("tab", { name: "Connectors" }).click();
       const card = page.locator("#sp-connectors .card").filter({ has: page.getByRole("heading", { name: "Home Assistant", exact: true }) });
       await card.locator(".card-header").click();
-      const reconnect = card.getByRole("heading", { name: "Reconnect Home Assistant" });
+      const reconnect = card.getByText("Check that the device is enabled under Settings → Devices & services → ESPHome.", { exact: true });
       const setup = card.getByRole("heading", { name: "Connect your display" });
       const actions = card.getByRole("button", { name: "I’ve enabled actions" });
       const forget = card.getByRole("button", { name: "Forget Home Assistant", exact: true });
@@ -6370,9 +6370,11 @@ async function assertHomeAssistantConnectorLayout(browser) {
         }
       }
       await reconnect.waitFor({ state: "visible" });
+      assert(!(await card.getByRole("heading", { name: "Reconnect Home Assistant" }).count()), "Offline guidance has no extra heading");
       assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
       assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
       assert(await forget.isVisible(), "The saved connection can still be forgotten");
+      assert(await card.locator(".sp-ha-forget.sp-connector-info").isVisible(), "Forget guidance uses the shared info panel style");
       await checkLayout("offline");
       status.home_assistant.connected = true;
       await actions.waitFor({ state: "visible" });

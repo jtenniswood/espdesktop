@@ -43,7 +43,7 @@ function setHidden(element: HTMLElement | null, hidden: boolean): void {
 
 export function homeAssistantConnectorStatusText(state: HomeAssistantConnectorState): string {
     if (state.connected) return "Home Assistant connected";
-    if (state.configured) return "Home Assistant configured, but currently offline";
+    if (state.configured) return "Home Assistant is offline";
     return "Waiting for Home Assistant";
 }
 
@@ -238,8 +238,7 @@ export function createConnectorsPageFeature(
 
         homeAssistantReconnect = document.createElement("div");
         setHidden(homeAssistantReconnect, true);
-        addHeading(homeAssistantReconnect, "Reconnect Home Assistant");
-        addParagraph(homeAssistantReconnect, "Setup is saved. Check Home Assistant is running, then check this display under Settings → Devices & services → ESPHome.");
+        addParagraph(homeAssistantReconnect, "Check that the device is enabled under Settings → Devices & services → ESPHome.");
         homeAssistantInstructions.appendChild(homeAssistantReconnect);
 
         const actionInfo = document.createElement("div");
@@ -296,7 +295,7 @@ export function createConnectorsPageFeature(
             }
         });
         homeAssistantForgetSection = document.createElement("div");
-        homeAssistantForgetSection.className = "sp-ha-forget";
+        homeAssistantForgetSection.className = "sp-connector-info sp-ha-forget";
         setHidden(homeAssistantForgetSection, true);
         addParagraph(homeAssistantForgetSection, "Only forget this connection if you want to set up Home Assistant again.");
         homeAssistantForgetSection.appendChild(homeAssistantForgetButton);
