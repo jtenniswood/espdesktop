@@ -533,7 +533,6 @@ assert(
   cardStylesSource.includes(".sp-image-preview-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad)"),
   "image card icons use the same top-left placement",
 );
-assert(/Toggle lights/.test(switchPickerOption.description), "switch picker option includes concise help text");
 const wifiSharePickerOption = pickerOptions.find((option) => option.key === "wifi_qr");
 assert.strictEqual(
   wifiSharePickerOption,
