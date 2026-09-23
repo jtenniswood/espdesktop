@@ -818,7 +818,7 @@ export function registerCompanionCardTypes(
                     card.options = "";
                 } else {
                     card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
-                    card.icon = companionMediaIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
+                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
                     card.entity = preset.entity;
                     card.options = preset.options;
                 }

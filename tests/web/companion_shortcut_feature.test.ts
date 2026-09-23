@@ -27,7 +27,6 @@ import {
   formatCompanionShortcutActionId,
   normalizeCompanionCard,
   registerCompanionCardTypes,
-  resetCompanionMediaPresentation,
   resetCompanionMetricPresentation,
 } from "../../src/webserver/cards/companion";
 import {
