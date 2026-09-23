@@ -6,9 +6,6 @@ EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar ap
 
 Set up the display from a normal web browser. There is no YAML to write or Home Assistant account needed for Mac controls.
 
-> [!NOTE]
-> **Current status:** Mac Companion is in active development and currently supports one display, the **4-inch Guition ESP32-S3 4848S040**, paired with one Mac. Other EspDesktop display profiles do not currently offer Mac Companion controls. Home Assistant panels and smart-home controls are covered by the [EspControl documentation](https://jtenniswood.github.io/espcontrol/). There are no published GitHub releases yet; see the documentation site for current installation information. When testing, use matching display firmware and Mac app builds from the same release or feature branch.
-
 **Documentation and setup guides:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
 
 ## What You Can Control
