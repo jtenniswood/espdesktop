@@ -421,12 +421,17 @@ final class CompanionConnection: NSObject {
             sessionAuthenticated = true
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
+            let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
             if let endpoint = endpointRecovery.authenticatedEndpoint(
-                expectedFingerprint: preferences.stringPreference(forKey: certificateFingerprintKey)) {
+                expectedFingerprint: expectedFingerprint) {
                 preferences.panelHost = endpoint
             }
+            if let displayName = endpointRecovery.authenticatedDisplayName(
+                expectedFingerprint: expectedFingerprint) {
+                preferences.setPreference(displayName, forKey: displayNameKey)
+            }
             endpointRecovery = CompanionEndpointRecovery()
-            discovery.stop()
+            refreshDisplayName(expectedFingerprint: expectedFingerprint)
             connectionTimeoutTask?.cancel()
             connectionTimeoutTask = nil
             reconnectAttempt = 0
@@ -713,6 +718,17 @@ final class CompanionConnection: NSObject {
 
     private var certificateFingerprintKey: String { "companion.certificateFingerprint.\(preferences.pairingAccount)" }
     private var authenticationSequenceKey: String { "companion.authenticationSequence.\(preferences.pairingAccount)" }
+    private var displayNameKey: String { "panelDisplayName" }
+
+    private func refreshDisplayName(expectedFingerprint: String?) {
+        guard let expectedFingerprint else { return }
+        discovery.onChange = { [weak self] displays in
+            guard let self, self.sessionAuthenticated,
+                  let display = displays.first(where: { $0.id == expectedFingerprint }) else { return }
+            self.preferences.setPreference(display.name, forKey: self.displayNameKey)
+        }
+        discovery.start()
+    }
 
     private func nextAuthenticationSequence() -> UInt32 {
         let previous = UInt32(clamping: preferences.integerPreference(forKey: authenticationSequenceKey))

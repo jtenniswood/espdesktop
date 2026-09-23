@@ -219,11 +219,13 @@ private final class BonjourDisplayResolution: NSObject, @preconcurrency NetServi
 /// authenticated, and from the saved endpoint. Discovery alone cannot commit it.
 struct CompanionEndpointRecovery {
     var candidate: String?
+    private(set) var candidateDisplay: DiscoveredDisplay?
     private(set) var attempted: String?
     var verifiedFingerprint: String?
 
     mutating func discovered(_ displays: [DiscoveredDisplay], expectedFingerprint: String?) {
-        candidate = displays.first(where: { $0.id == expectedFingerprint })?.endpoint
+        candidateDisplay = displays.first(where: { $0.id == expectedFingerprint })
+        candidate = candidateDisplay?.endpoint
     }
     mutating func begin(savedEndpoint: String) {
         attempted = candidate ?? savedEndpoint
@@ -232,5 +234,11 @@ struct CompanionEndpointRecovery {
     func authenticatedEndpoint(expectedFingerprint: String?) -> String? {
         guard let verifiedFingerprint, verifiedFingerprint == expectedFingerprint else { return nil }
         return attempted
+    }
+    func authenticatedDisplayName(expectedFingerprint: String?) -> String? {
+        guard let verifiedFingerprint,
+              verifiedFingerprint == expectedFingerprint,
+              candidateDisplay?.id == expectedFingerprint else { return nil }
+        return candidateDisplay?.name
     }
 }

@@ -515,6 +515,7 @@ struct CompanionSettings: View {
             Button {
                 manualAddress = true
                 selectedDisplayID = nil
+                store.panelDisplayName = ""
                 focusedField = .panelHost
             } label: {
                 displayOption(
@@ -603,10 +604,16 @@ struct CompanionSettings: View {
                     .font(.title.weight(.semibold))
             }
             .accessibilityElement(children: .combine)
-            Text(store.panelHost)
+            Text(store.panelDisplayName.isEmpty ? store.panelHost : store.panelDisplayName)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
+            if !store.panelDisplayName.isEmpty && !store.panelHost.isEmpty {
+                Text(store.panelHost)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .textSelection(.enabled)
+            }
             if store.connectionState == .failed || store.connectionState == .reconnecting {
                 Text(store.connectionState == .reconnecting
                      ? "Check that your display is powered on and connected to the same network. EspDesktop will try again automatically."
@@ -668,6 +675,7 @@ struct CompanionSettings: View {
         if !manualAddress {
             guard let display = discovery.displays.first(where: { $0.id == selectedDisplayID }) else { return }
             store.panelHost = display.endpoint
+            store.panelDisplayName = display.name
         }
         guard canOpenPairingPage else {
             pairingFlowError = "Enter a valid local IP address or name.local."
