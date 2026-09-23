@@ -869,6 +869,7 @@ export function createButtonSettingsFeature(
             cardSize: c.sizes[slot] || 1,
             idPrefix: idPrefix,
             isSub: c.isSub,
+            homeAssistantEnabled: connectorState.homeAssistantEnabled,
         };
         if (typeDef && typeDef.renderSettingsBeforeLabel &&
             (!c.isSub || buttonTypeRegistryValue(typeDef, "allowInSubpage", false))) {
