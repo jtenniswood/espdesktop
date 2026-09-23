@@ -366,12 +366,6 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Home Assistant',
-        items: [
-          { text: 'EspControl', link: 'https://jtenniswood.github.io/espcontrol/' },
-        ],
-      },
-      {
         text: 'Reference',
         items: [
           { text: 'FAQ', link: '/reference/faq' },
