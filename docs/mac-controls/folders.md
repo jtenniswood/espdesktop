@@ -21,7 +21,7 @@ You can show approved folders as tiles on a Finder app subpage:
 
 1. Approve **Finder** in the Mac app's **Apps** page and add a **Launch app** card for it.
 2. Turn on **Add app subpage** in the card settings.
-3. Use the folder list under **App subpage** to choose which folders appear and drag them into order.
+3. Use the folder list under **App Subpage** to choose which folders appear and drag them into order.
 
 Newly approved folders can be added to enabled Finder subpages when space is available. Existing tiles are not removed automatically. Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
 
