@@ -1,7 +1,7 @@
 ---
 title: EspDesktop — Touch Controls for Your Mac
 titleTemplate: :title
-description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to launch apps, run shortcuts, manage windows, control media and volume, and view Mac status."
+description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to launch apps, run shortcuts, manage windows, adjust volume, and view Mac status."
 ---
 
 # EspDesktop
