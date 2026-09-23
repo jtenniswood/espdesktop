@@ -100,11 +100,11 @@ Apple Music, Spotify, and browser playback can work when the application publish
 
 To turn the whole display into a Now Playing view, open **Settings → Sleep & Schedule → Media Cover Art**, turn on **Show Cover Art**, and choose **Mac Companion** as the source. EspDesktop can then show the title, artist, album, progress, playback state, source application, and artwork supplied by the Mac. No Home Assistant media-player entity is needed for this source.
 
-See [Media Cover Art](/features/media-cover-art) for its display and timing options.
+See [Media Controls and Cover Art](#media-controls-and-cover-art) for its display and timing options.
 
 ## Mac Volume Sliders
 
-Mac volume uses the normal [Slider card](/card-types/sliders), not a Companion card.
+Mac volume uses the normal Slider card, not a Companion card.
 
 1. Add a **Slider** card.
 2. Set **Control** to **Mac output volume** for the selected speakers or **Mac input volume** for the selected microphone.
@@ -150,5 +150,5 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 
 If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. You can also tap the display’s network icon and choose **Pairing**. The popup shows the pairing code and the display’s IP address.
 
-For version details, see [Companion Compatibility](/generated/companion-compatibility).
+For version details, see [Companion Compatibility](/reference/companion-compatibility).
 
