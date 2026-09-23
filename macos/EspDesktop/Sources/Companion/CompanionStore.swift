@@ -105,6 +105,9 @@ final class CompanionStore: NSObject, ObservableObject {
     static let buyMeACoffeeURL = URL(string: "https://www.buymeacoffee.com/jtenniswood")!
 
     @Published var panelHost: String { didSet { defaults.set(panelHost, forKey: Keys.host) } }
+    @Published var panelDisplayName: String {
+        didSet { defaults.set(panelDisplayName, forKey: Keys.displayName) }
+    }
     private(set) var pairingAccount: String
     @Published private(set) var availableApps: [LaunchableApp] = []
     @Published private(set) var approvedApplicationIdentifiers: Set<String>
@@ -125,6 +128,7 @@ final class CompanionStore: NSObject, ObservableObject {
 
     private enum Keys {
         static let host = "panelHost"
+        static let displayName = "panelDisplayName"
         static let pairingAccount = "pairingAccount"
         static let approvedApplications = "approvedApplications"
         static let knownApplications = "knownApplications"
@@ -174,6 +178,7 @@ final class CompanionStore: NSObject, ObservableObject {
             ?? savedPairingAccounts.first
             ?? ""
         panelHost = configuredPanelHost
+        panelDisplayName = stableDefaults.string(forKey: Keys.displayName) ?? ""
         pairingAccount = stableDefaults.string(forKey: Keys.pairingAccount)
             ?? (savedPairingAccounts.contains(configuredPanelHost) ? configuredPanelHost : nil)
             ?? (savedPairingAccounts.count == 1 ? savedPairingAccounts[0] : "")
@@ -213,7 +218,13 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func stringPreference(forKey key: String) -> String? { defaults.string(forKey: key) }
     func integerPreference(forKey key: String) -> Int { defaults.integer(forKey: key) }
-    func setPreference(_ value: Any, forKey key: String) { defaults.set(value, forKey: key) }
+    func setPreference(_ value: Any, forKey key: String) {
+        if key == Keys.displayName, let displayName = value as? String {
+            panelDisplayName = displayName
+        } else {
+            defaults.set(value, forKey: key)
+        }
+    }
     func removePreference(forKey key: String) { defaults.removeObject(forKey: key) }
 
     var hasSavedPairing: Bool {
@@ -505,6 +516,7 @@ final class CompanionStore: NSObject, ObservableObject {
         pairingAccount = ""
         connection.disconnect()
         panelHost = ""
+        panelDisplayName = ""
     }
 
     private func receiveSessionEvent(_ event: CompanionSessionEvent) {
