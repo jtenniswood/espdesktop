@@ -24,15 +24,15 @@ Addresses containing an embedded username or password are rejected. Other URL ty
 
 ## Ready-Made App Subpages
 
-Launch cards for **Safari**, **Slack**, and **Codex** can create editable subpages with useful shortcuts.
+An approved **Launch app** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Current examples include **Safari**, **Slack**, and **Codex**; community contributions can add more apps.
 
-1. Add a **Launch app** card for one of these apps.
+1. Add a **Launch app** card for an app with a shortcut template.
 2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
 3. Choose the shortcuts to include and drag them into order.
 4. Optionally enable **Auto switch to subpage**.
 
-Safari includes Back, Forward, Reload, New Tab, and Close Tab. Slack includes Compose, Search, Direct Messages, Unread, and All Unread. Codex includes command, approval, browser, sidebar, side panel, and terminal controls.
+The page uses the same templates as standalone **Shortcut Catalog** cards and remains editable. Turning the app subpage option off preserves your changes. With auto-switch enabled, the display opens the subpage only after the Mac confirms the app is active.
 
-The generated page remains editable. Turning the app subpage option off preserves your changes. With auto-switch enabled, the display opens the subpage only after the Mac confirms the app is active.
+To contribute templates for another app, see [Run Mac Keyboard Shortcuts](/mac-controls/shortcuts#add-templates-for-another-app).
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
