@@ -219,8 +219,8 @@ export function createConnectorsPageFeature(
         const steps = document.createElement("ol");
         steps.className = "sp-ha-setup-steps";
         ([
-            ["Open Home Assistant", "Go to Settings → Devices & services."],
-            ["Add this display", "Select the discovered EspDesktop device and follow the setup steps."],
+            ["Open Devices & services", "In Home Assistant, go to Settings → Devices & services."],
+            ["Add EspDesktop", "Select the discovered display and finish setup."],
         ] as const).forEach(function ([title, text]) {
             const item = document.createElement("li");
             const label = document.createElement("strong");
@@ -230,7 +230,7 @@ export function createConnectorsPageFeature(
             steps.appendChild(item);
         });
         setup.appendChild(steps);
-        const fallback = addParagraph(setup, "Display not found? Add the ESPHome integration and enter this address: ");
+        const fallback = addParagraph(setup, "Not listed? Add ESPHome at: ");
         const address = document.createElement("code");
         address.textContent = window.location.hostname;
         fallback.appendChild(address);
@@ -239,8 +239,7 @@ export function createConnectorsPageFeature(
         homeAssistantReconnect = document.createElement("div");
         setHidden(homeAssistantReconnect, true);
         addHeading(homeAssistantReconnect, "Reconnect Home Assistant");
-        addParagraph(homeAssistantReconnect, "Your setup is saved. Check that Home Assistant is running and can reach this display.");
-        addParagraph(homeAssistantReconnect, "In Home Assistant, open Settings → Devices & services → ESPHome and check this display’s connection.");
+        addParagraph(homeAssistantReconnect, "Setup is saved. Check Home Assistant is running, then check this display under Settings → Devices & services → ESPHome.");
         homeAssistantInstructions.appendChild(homeAssistantReconnect);
 
         const actionInfo = document.createElement("div");
@@ -248,12 +247,12 @@ export function createConnectorsPageFeature(
         actionInfo.className = "sp-connector-info";
         setHidden(actionInfo, true);
         addHeading(actionInfo, "Allow Home Assistant actions");
-        addParagraph(actionInfo, "In this display’s ESPHome configuration, enable:");
+        addParagraph(actionInfo, "In the display’s ESPHome settings, enable:");
         const permission = addParagraph(actionInfo, "");
         const permissionLabel = document.createElement("strong");
         permissionLabel.textContent = "Allow the device to perform Home Assistant actions";
         permission.appendChild(permissionLabel);
-        addParagraph(actionInfo, "This lets the display control your Home Assistant devices. Then confirm below.");
+        addParagraph(actionInfo, "This lets the display control your devices. Confirm to finish.");
         homeAssistantConfirmButton = document.createElement("button");
         homeAssistantConfirmButton.type = "button";
         homeAssistantConfirmButton.className = "sp-action-btn sp-save-btn";

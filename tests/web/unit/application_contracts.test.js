@@ -55,7 +55,7 @@ describe("browserless application contracts", () => {
     assert.match(connectors, /setHidden\(homeAssistantSteps, ha\.connected \|\| ha\.configured\)/);
     assert.match(connectors, /setHidden\(homeAssistantActionInfo, !ha\.connected \|\| ha\.actions_confirmed\)/);
     assert.match(connectors, /sp-connector-info/);
-    assert.match(connectors, /This lets the display control your Home Assistant devices/);
+    assert.match(connectors, /This lets the display control your devices/);
     assert.match(connectors, /connectors\/home-assistant\/complete/);
     assert.match(connectors, /connectors\/home-assistant\/forget/);
     assert.match(connectors, /Forget Home Assistant/);
