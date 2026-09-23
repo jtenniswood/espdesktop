@@ -1381,8 +1381,8 @@ assert(subpageCompanionStatPreview.labelHtml.includes("mdi-chevron-right"), "Com
   assert(preview.labelHtml.includes("mdi-chevron-right"), `${label} subpage preset preview shows the chevron badge`);
 });
 
-assert(hooks.buttonTypePickerKeysFor(false).includes("lawn_mower"), "lawn mower cards are available in the main picker");
-assert(hooks.buttonTypePickerKeysFor(true).includes("lawn_mower"), "lawn mower cards are available in subpages");
+assert(!hooks.buttonTypePickerKeysFor(false).includes("lawn_mower"), "Home Assistant lawn mower cards stay hidden from the main picker");
+assert(!hooks.buttonTypePickerKeysFor(true).includes("lawn_mower"), "Home Assistant lawn mower cards stay hidden in subpages");
 assert.deepStrictEqual(plain(hooks.buttonTypeDefaultConfig("lawn_mower")), {
   entity: "",
   label: "",
