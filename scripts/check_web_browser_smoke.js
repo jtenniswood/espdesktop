@@ -6381,6 +6381,13 @@ async function assertHomeAssistantConnectorLayout(browser) {
       assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
       assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
       assert(await forget.isVisible(), "The saved connection can still be forgotten");
+      await page.getByRole("tab", { name: "Settings" }).click();
+      const settingsCard = page.locator("#sp-settings .card:visible").first();
+      await settingsCard.waitFor({ state: "visible" });
+      const settingsCardWidth = await settingsCard.evaluate(node => node.getBoundingClientRect().width);
+      await page.getByRole("tab", { name: "Connectors" }).click();
+      const connectorsCardWidth = await card.evaluate(node => node.getBoundingClientRect().width);
+      assert(Math.abs(settingsCardWidth - connectorsCardWidth) < 1, "Connector cards match Settings panel width");
       await checkLayout("offline");
       status.home_assistant.connected = true;
       await actions.waitFor({ state: "visible" });
