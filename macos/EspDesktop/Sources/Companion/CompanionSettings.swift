@@ -369,9 +369,12 @@ struct CompanionSettings: View {
     }
 
     private var filteredApplications: [LaunchableApp] {
+        store.availableApps.filter(matchesApplicationSearch)
+    }
+
+    private func matchesApplicationSearch(_ application: LaunchableApp) -> Bool {
         let query = applicationSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return store.availableApps }
-        return store.availableApps.filter { $0.name.localizedStandardContains(query) }
+        return query.isEmpty || application.name.localizedStandardContains(query)
     }
 
     private var connectionPage: some View {
@@ -724,15 +727,17 @@ struct CompanionSettings: View {
                             Button("Clear Search") { applicationSearchText = "" }
                         }
                     } else {
-                        ForEach(filteredApplications) { application in
-                            Toggle(isOn: Binding(
-                                get: { store.applicationIsApproved(application) },
-                                set: { store.setApplication(application, approved: $0) }
-                            )) {
-                                Text(application.name)
+                        ForEach(store.availableApps) { application in
+                            if matchesApplicationSearch(application) {
+                                Toggle(isOn: Binding(
+                                    get: { store.applicationIsApproved(application) },
+                                    set: { store.setApplication(application, approved: $0) }
+                                )) {
+                                    Text(application.name)
+                                }
+                                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                                .padding(.vertical, 2)
                             }
-                            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                            .padding(.vertical, 2)
                         }
                     }
                 }
