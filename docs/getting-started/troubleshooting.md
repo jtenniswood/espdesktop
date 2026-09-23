@@ -28,7 +28,7 @@ The Mac stores its credential in Keychain and checks the paired display certific
 - **Volume:** confirm the Mac is connected and the selected audio device supports software volume control.
 - **Statistics:** the Mac app must be connected and sharing Mac readings.
 
-For the control's exact requirements, see [Mac Cards and Capabilities](/card-types/companion).
+For the control's exact requirements, see [Mac Controls](/card-types/companion).
 
 ## A Mac App or Display Update Breaks Compatibility
 
