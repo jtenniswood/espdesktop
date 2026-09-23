@@ -560,7 +560,7 @@ export function registerCompanionCardTypes(
 
             const appField = document.createElement("div");
             appField.className = "sp-field";
-            const appFieldLabel = fieldLabel("Mac App", helpers.idPrefix + "companion-action");
+            const appFieldLabel = fieldLabel("Application", helpers.idPrefix + "companion-action");
             appField.appendChild(appFieldLabel);
 
             const select = document.createElement("select");
@@ -846,7 +846,7 @@ export function registerCompanionCardTypes(
 
             function syncMode(mode: string): void {
                 appField.style.display = mode === "app" || mode === "url" ? "" : "none";
-                appFieldLabel.textContent = mode === "url" ? "Open with" : "Mac App";
+                appFieldLabel.textContent = mode === "url" ? "Open with" : "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
