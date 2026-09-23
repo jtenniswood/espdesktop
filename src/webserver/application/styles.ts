@@ -50,10 +50,10 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ha-setup-steps{padding-inline-start:24px;margin:0 0 20px}.sp-ha-setup-steps li{padding-inline-start:6px}.sp-ha-setup-steps li+li{margin-top:16px}" +
         ".sp-ha-setup-steps li::marker{color:var(--text2);font-weight:600}.sp-ha-setup-steps strong{font-weight:600}" +
         ".sp-ha-connector code{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--surface2);font-size:.95em;user-select:text}" +
-        ".sp-ha-connector .sp-connector-info:not(.sp-ha-forget){margin:0;padding:0;border:0;background:none;font-size:inherit;line-height:inherit}" +
+        ".sp-ha-connector .sp-connector-info:not(.sp-ha-offline-info){margin:0;padding:0;border:0;background:none;font-size:inherit;line-height:inherit}" +
         ".sp-ha-connector .sp-action-btn{min-height:44px;max-width:100%;white-space:normal;text-align:start;margin-top:4px}" +
         ".sp-ha-connector .sp-action-btn:disabled{opacity:.5;cursor:default}" +
-        ".sp-ha-connector .sp-ha-forget{margin:16px 0 0}" +
+        ".sp-ha-connector .sp-ha-offline-info{margin:0 0 18px}.sp-ha-offline-info .sp-connector-status{margin-bottom:8px}.sp-ha-offline-info p{margin-bottom:8px}" +
         ".sp-hidden{display:none!important}" +
         ".sp-support-btn{position:fixed;right:28px;bottom:28px;z-index:150;display:inline-block;line-height:0}" +
         ".sp-support-link{display:block;width:214px;height:60px;border-radius:999px;overflow:hidden;text-indent:-9999px;white-space:nowrap}" +

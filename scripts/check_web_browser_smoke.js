@@ -6370,6 +6370,10 @@ async function assertHomeAssistantConnectorLayout(browser) {
         }
       }
       await reconnect.waitFor({ state: "visible" });
+      const offlineInfo = card.locator(".sp-ha-offline-info");
+      assert(await offlineInfo.isVisible(), "Offline guidance is grouped in one info panel");
+      assert.strictEqual(await offlineInfo.locator(".sp-connector-status").count(), 1, "Offline status is part of its info panel");
+      assert.strictEqual(await offlineInfo.locator("p").count(), 2, "Reconnect and forget guidance share the same panel");
       const statusFontSize = await card.locator(".sp-connector-status").evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
       const guidanceFontSize = await reconnect.evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
       assert(statusFontSize > guidanceFontSize, "Offline status is more prominent than its guidance");
@@ -6377,7 +6381,6 @@ async function assertHomeAssistantConnectorLayout(browser) {
       assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
       assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
       assert(await forget.isVisible(), "The saved connection can still be forgotten");
-      assert(await card.locator(".sp-ha-forget.sp-connector-info").isVisible(), "Forget guidance uses the shared info panel style");
       await checkLayout("offline");
       status.home_assistant.connected = true;
       await actions.waitFor({ state: "visible" });

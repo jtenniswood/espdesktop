@@ -86,10 +86,9 @@ export function createConnectorsPageFeature(
     let homeAssistantCard: HTMLElement | null = null;
     let companionCard: HTMLElement | null = null;
     let homeAssistantStatus: HTMLElement | null = null;
+    let homeAssistantOfflineInfo: HTMLElement | null = null;
     let homeAssistantInstructions: HTMLElement | null = null;
     let homeAssistantSteps: HTMLElement | null = null;
-    let homeAssistantReconnect: HTMLElement | null = null;
-    let homeAssistantForgetSection: HTMLElement | null = null;
     let homeAssistantActionInfo: HTMLElement | null = null;
     let homeAssistantConfirmButton: HTMLButtonElement | null = null;
     let homeAssistantForgetButton: HTMLButtonElement | null = null;
@@ -151,16 +150,22 @@ export function createConnectorsPageFeature(
                 "sp-connector-status-connected", value.home_assistant.connected);
         }
         const ha = value.home_assistant;
+        if (homeAssistantStatus && homeAssistantOfflineInfo?.parentElement) {
+            if (ha.configured && !ha.connected) {
+                homeAssistantOfflineInfo.insertBefore(homeAssistantStatus, homeAssistantOfflineInfo.firstChild);
+            } else {
+                homeAssistantOfflineInfo.parentElement.insertBefore(homeAssistantStatus, homeAssistantOfflineInfo);
+            }
+        }
         // Show only the next relevant step, rather than repeating first-time
         // setup during an outage or offering an action that cannot run yet.
         setHidden(homeAssistantSteps, ha.connected || ha.configured);
-        setHidden(homeAssistantReconnect, ha.connected || !ha.configured);
+        setHidden(homeAssistantOfflineInfo, !ha.configured || ha.connected);
         setHidden(homeAssistantActionInfo, !ha.connected || ha.actions_confirmed);
         if (homeAssistantConfirmButton) {
             homeAssistantConfirmButton.disabled = !value.home_assistant.connected ||
                 value.home_assistant.actions_confirmed;
         }
-        setHidden(homeAssistantForgetSection, !ha.configured || ha.connected);
         setHidden(homeAssistantForgetButton, !ha.configured || ha.connected);
         setHidden(homeAssistantInstructions, value.home_assistant.connected &&
             value.home_assistant.actions_confirmed);
@@ -194,7 +199,12 @@ export function createConnectorsPageFeature(
         homeAssistantStatus.setAttribute("role", "status");
         homeAssistantStatus.setAttribute("aria-live", "polite");
         homeAssistantStatus.textContent = "Checking Home Assistant status…";
-        body.appendChild(homeAssistantStatus);
+
+        homeAssistantOfflineInfo = document.createElement("div");
+        homeAssistantOfflineInfo.className = "sp-connector-info sp-ha-offline-info";
+        setHidden(homeAssistantOfflineInfo, true);
+        homeAssistantOfflineInfo.appendChild(homeAssistantStatus);
+        body.appendChild(homeAssistantOfflineInfo);
 
         homeAssistantInstructions = document.createElement("div");
         homeAssistantInstructions.className = "sp-connector-instructions";
@@ -236,10 +246,7 @@ export function createConnectorsPageFeature(
         fallback.appendChild(address);
         homeAssistantInstructions.appendChild(setup);
 
-        homeAssistantReconnect = document.createElement("div");
-        setHidden(homeAssistantReconnect, true);
-        addParagraph(homeAssistantReconnect, "Check that the device is enabled under Settings → Devices & services → ESPHome.");
-        homeAssistantInstructions.appendChild(homeAssistantReconnect);
+        addParagraph(homeAssistantOfflineInfo, "Check that the device is enabled under Settings → Devices & services → ESPHome.");
 
         const actionInfo = document.createElement("div");
         homeAssistantActionInfo = actionInfo;
@@ -294,12 +301,8 @@ export function createConnectorsPageFeature(
                 if (homeAssistantForgetButton) homeAssistantForgetButton.disabled = false;
             }
         });
-        homeAssistantForgetSection = document.createElement("div");
-        homeAssistantForgetSection.className = "sp-connector-info sp-ha-forget";
-        setHidden(homeAssistantForgetSection, true);
-        addParagraph(homeAssistantForgetSection, "Only forget this connection if you want to set up Home Assistant again.");
-        homeAssistantForgetSection.appendChild(homeAssistantForgetButton);
-        body.appendChild(homeAssistantForgetSection);
+        addParagraph(homeAssistantOfflineInfo, "Only forget this connection if you want to set up Home Assistant again.");
+        homeAssistantOfflineInfo.appendChild(homeAssistantForgetButton);
 
         homeAssistantBadge = document.createElement("span");
         homeAssistantBadge.className = "sp-card-badge sp-hidden";
