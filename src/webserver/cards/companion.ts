@@ -241,7 +241,7 @@ export function companionMetricDisplayMode(card: any): "used" | "free" | "remain
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
     if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
-    if (!metric && companionCardMode(card) === "url") return "Website Name";
+    if (!metric && companionCardMode(card) === "url") return "e.g. Website name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
 }
 
