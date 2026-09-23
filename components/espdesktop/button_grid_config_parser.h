@@ -1323,6 +1323,14 @@ inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
          cfg_option_token_present(p.options, "app_shortcuts");
 }
 
+inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
+  if (p.entity.rfind("folder.", 0) == 0 &&
+      cfg_option_value(p.options, "finder_open_behavior") == "same_window") {
+    return "same_window";
+  }
+  return "new_window";
+}
+
 inline bool companion_app_subpage_auto_switch_enabled(const ParsedCfg &p) {
   return companion_app_shortcuts_enabled(p) &&
          cfg_option_token_present(p.options, "app_shortcuts_auto_switch");

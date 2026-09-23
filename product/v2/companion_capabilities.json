@@ -185,6 +185,13 @@
             "maxLength": 96,
             "optional": true
           },
+          "folderOpenBehavior": {
+            "type": "string",
+            "enum": ["new_window", "same_window"],
+            "minLength": 10,
+            "maxLength": 11,
+            "optional": true
+          },
           "appId": {
             "type": "string",
             "minLength": 1,

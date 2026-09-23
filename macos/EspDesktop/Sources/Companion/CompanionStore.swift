@@ -617,16 +617,18 @@ final class CompanionStore: NSObject, ObservableObject {
         return false
     }
 
-    func performResultStatus(actionIdentifier: String) async -> String {
+    func performResultStatus(actionIdentifier: String,
+                             folderOpenBehavior: String = "new_window") async -> String {
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
-        let performed = await perform(actionIdentifier: actionIdentifier)
+        let performed = await perform(actionIdentifier: actionIdentifier,
+                                      folderOpenBehavior: folderOpenBehavior)
         guard performed else { return "not_allowed" }
         return isApplicationLaunch ? "activated" : "performed"
     }
 
-    func openFolder(actionIdentifier: String) -> Bool {
+    func openFolder(actionIdentifier: String, behavior: String = "new_window") -> Bool {
         guard let identifier = ApprovedFolder.identifier(from: actionIdentifier),
               let folder = approvedFolders.first(where: { $0.id == identifier }) else {
             updateStatus("Blocked an unavailable folder")
@@ -641,12 +643,34 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("This folder is no longer available")
             return false
         }
-        return NSWorkspace.shared.open(url)
+        guard behavior == "same_window" else { return NSWorkspace.shared.open(url) }
+        let escapedPath = folder.path
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+        let source = """
+        tell application "Finder"
+            set targetFolder to POSIX file "\(escapedPath)" as alias
+            if (count of Finder windows) > 0 then
+                set target of front Finder window to targetFolder
+            else
+                open targetFolder
+            end if
+            activate
+        end tell
+        """
+        var error: NSDictionary?
+        guard NSAppleScript(source: source)?.executeAndReturnError(&error) != nil else {
+            updateStatus("Finder could not open \(folder.name) in the current window")
+            return false
+        }
+        return true
     }
 
-    func perform(actionIdentifier: String) async -> Bool {
+    func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window") async -> Bool {
         if actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix) {
-            return openFolder(actionIdentifier: actionIdentifier)
+            return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }
 
         if let performed = CompanionWindowArrangement.perform(identifier: actionIdentifier) {

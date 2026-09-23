@@ -80,7 +80,8 @@ class CompanionService final : public Component {
   void update_authentication_deadline_();
   void set_connected_(bool connected, int closing_socket = -1);
   void publish_catalogue_();
-  bool invoke_(const std::string &action_id, const std::string &request_id);
+  bool invoke_(const std::string &action_id, const std::string &request_id,
+               const std::string &folder_open_behavior);
   bool invoke_url_(const std::string &app_id, const std::string &encoded_url,
                    const std::string &request_id);
   bool invoke_value_(const std::string &control_id, int value,
