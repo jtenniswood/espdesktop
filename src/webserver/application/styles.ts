@@ -354,6 +354,12 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-field-info-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}" +
         ".sp-field-info-text{display:none;font-size:.75rem;color:var(--text2);line-height:1.35;margin:6px 0 8px}" +
         ".sp-field-info-text.sp-visible{display:block}" +
+        ".sp-shortcut-modifiers{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}" +
+        ".sp-shortcut-modifier{min-height:36px;padding:7px 10px;border:1px solid var(--border);border-radius:9px;" +
+        "background:var(--surface2);color:var(--text2);font:inherit;font-size:.8rem;cursor:pointer}" +
+        ".sp-shortcut-modifier:hover{color:var(--text);border-color:var(--text3)}" +
+        ".sp-shortcut-modifier.active{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}" +
+        ".sp-shortcut-modifier:focus-visible{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-setting-note{margin:-2px 0 14px;color:var(--text2);font-size:var(--text-sm);line-height:1.4;overflow-wrap:anywhere}" +
         ".sp-input,.sp-select{width:100%;padding:10px 12px;background:var(--surface2);" +
         "border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:var(--text-md);" +

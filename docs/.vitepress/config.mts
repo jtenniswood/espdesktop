@@ -180,7 +180,7 @@ export default defineConfig({
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
       : []),
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/espdesktop/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/espdesktop/favicon.png' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
     ['meta', { property: 'og:site_name', content: 'EspDesktop' }],

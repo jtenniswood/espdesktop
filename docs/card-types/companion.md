@@ -18,7 +18,7 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Show Mac statistics](/mac-controls/statistics)
 - [Permissions and security](/mac-controls/security)
 
-Action cards are unavailable when the Mac is disconnected or the selected app, folder, command, or URL is unavailable. Statistics show `--` until a reading is available.
+Action cards are unavailable when the Mac is disconnected or the selected app, folder, command, or URL is unavailable. Open URL cards use the Mac's default browser. Statistics show `--` until a reading is available.
 
 Companion cards are currently offered only on the 4848S040 profile. For Home Assistant controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 

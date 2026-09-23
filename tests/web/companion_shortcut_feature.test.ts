@@ -56,6 +56,8 @@ import {
   finderFolderTabs,
   syncFinderFolderSelection,
   addFinderFolderTiles,
+  inheritFinderOpenBehaviorForCard,
+  setFinderOpenBehavior,
   createCompanionShortcutSubpage,
   createSafariShortcutSubpage,
   createCodexShortcutSubpage,
@@ -76,6 +78,7 @@ import {
   companionCardModeValid,
 } from "../../src/webserver/model/companion_card";
 import { emptyCardConfig } from "../../src/webserver/model/card";
+import { configOptionEnabled, configOptionValue } from "../../src/webserver/model/config_primitives";
 
 function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
   "code" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey"> {
@@ -96,6 +99,19 @@ export function runCompanionShortcutFeatureTests(): void {
   const finderPage = createCompanionShortcutSubpage(finder.entity);
   if (finderPage.buttons.length || finderPage.order.join() !== "B") {
     throw new Error("Finder should start with an empty editable folder page");
+  }
+  const inheritedFolder = { ...emptyCardConfig("companion"), entity: "folder.projects" };
+  if (!inheritFinderOpenBehaviorForCard(inheritedFolder, "same_window") ||
+      configOptionValue(inheritedFolder.options, "finder_open_behavior") !== "same_window" ||
+      configOptionEnabled(inheritedFolder.options, "finder_open_override")) {
+    throw new Error("New folder cards must persist the Finder subpage behavior when inheriting it");
+  }
+  const overriddenFolder = { ...emptyCardConfig("companion"), entity: "folder.archive" };
+  setFinderOpenBehavior(overriddenFolder, "new_window", true);
+  if (inheritFinderOpenBehaviorForCard(overriddenFolder, "same_window") ||
+      configOptionValue(overriddenFolder.options, "finder_open_behavior") !== "new_window" ||
+      !configOptionEnabled(overriddenFolder.options, "finder_open_override")) {
+    throw new Error("Inherited Finder behavior must preserve a folder card's explicit override");
   }
   finderPage.buttons.push({ ...emptyCardConfig("companion"), entity: "folder.projects", label: "Projects" });
   finderPage.order.push("1");

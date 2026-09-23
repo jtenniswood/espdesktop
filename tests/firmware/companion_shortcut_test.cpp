@@ -243,7 +243,8 @@ int main() {
   assert(invoke_companion_value("media.output_volume", 64, "volume-1"));
   assert(volume_invoked);
   assert(companion_url_available("com.apple.Safari", url_config));
-  assert(!companion_url_available("com.google.Chrome", url_config));
+  assert(companion_url_available("com.google.Chrome", url_config));
+  assert(companion_url_available("system.default_browser", url_config));
   // Companion reports the focused app, not the page it currently shows, so a
   // URL card must never inherit the app-launch card's checked state.
   companion_set_focused_application("com.apple.Safari");
@@ -254,10 +255,10 @@ int main() {
   bool invoked = false;
   register_companion_url_sender([&invoked](const std::string &app, const std::string &url,
                                            const std::string &request) {
-    invoked = app == "com.apple.Safari" && url.rfind("https%3A%2F%2F", 0) == 0 && request == "test-1";
+    invoked = app == "system.default_browser" && url.rfind("https%3A%2F%2F", 0) == 0 && request == "test-1";
     return invoked;
   });
-  assert(invoke_companion_url("com.apple.Safari", url_config, "test-1"));
+  assert(invoke_companion_url("com.google.Chrome", url_config, "test-1"));
   assert(invoked);
   bool navigated = false;
   companion_expect_action_result("launch-1", [&navigated]() { navigated = true; });
@@ -314,6 +315,8 @@ int main() {
   assert(companion_take_timezone_changed());
   assert(!companion_timezone_changed());
   companion_set_connected(false);
+  assert(!companion_url_available("system.default_browser", url_config));
+  assert(!invoke_companion_url("system.default_browser", url_config, "offline-url"));
   assert(companion_consume_subpage_return_request());
   companion_set_timezone_id("");
   assert(companion_timezone_id().empty());
