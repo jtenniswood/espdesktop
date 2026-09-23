@@ -32,6 +32,8 @@ If your display does not appear, choose **Enter address manually** and enter its
 
 After pairing, the Mac first tries the saved address. If that fails, it can discover the same display at its new address and reconnect without re-pairing. It verifies the saved device certificate and authenticates before remembering the new address. Discovery does not set up the display's WiFi and may be blocked by guest WiFi or separate network segments.
 
+The **Display** tab shows the display's friendly name when it is available. If no name is known, it shows the host and port instead.
+
 The code expires after 15 minutes and is hidden after pairing. EspDesktop stores the pairing credential in macOS Keychain and pins the display's certificate so an unexpected certificate change is rejected later.
 
 When the connection is ready, a monitor icon appears beside WiFi in the display's clock bar. The icon disappears shortly after the Mac disconnects.

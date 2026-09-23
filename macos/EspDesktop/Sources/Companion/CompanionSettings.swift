@@ -515,6 +515,7 @@ struct CompanionSettings: View {
             Button {
                 manualAddress = true
                 selectedDisplayID = nil
+                store.panelDisplayName = ""
                 focusedField = .panelHost
             } label: {
                 displayOption(
@@ -603,7 +604,7 @@ struct CompanionSettings: View {
                     .font(.title.weight(.semibold))
             }
             .accessibilityElement(children: .combine)
-            Text(store.panelHost)
+            Text(store.panelDisplayName.isEmpty ? store.panelHost : store.panelDisplayName)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
@@ -668,6 +669,7 @@ struct CompanionSettings: View {
         if !manualAddress {
             guard let display = discovery.displays.first(where: { $0.id == selectedDisplayID }) else { return }
             store.panelHost = display.endpoint
+            store.panelDisplayName = display.name
         }
         guard canOpenPairingPage else {
             pairingFlowError = "Enter a valid local IP address or name.local."
