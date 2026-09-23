@@ -158,7 +158,7 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Legacy Companion Stat subpages must remain readable");
   }
   if (subpageKindOptions("home_assistant").some((option: any) => option[0] === "companion_stat") ||
-      JSON.stringify(subpageKindOptions("mac_companion")) !== JSON.stringify([["", "Generic"]])) {
+      JSON.stringify(subpageKindOptions("mac_companion")) !== JSON.stringify([["", "Folder"]])) {
     throw new Error("Home Assistant and Companion subpage type options must remain separate");
   }
   if (normalizeSubpageConnector("mac_companion") !== "mac_companion" ||

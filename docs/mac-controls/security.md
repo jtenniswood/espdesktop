@@ -13,7 +13,6 @@ The display can only use the apps, folders, and actions made available through t
 | Opening a folder | Add it on the Mac app's **Folders** page |
 | Keyboard shortcuts and window controls | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
 | Mac statistics | Shared while connected when the display firmware supports them |
-| Mac volume | The selected audio device must support software volume control |
 
 ## Pairing and Data
 

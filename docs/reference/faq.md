@@ -34,10 +34,6 @@ Enable EspDesktop in **System Settings → Privacy & Security → Accessibility*
 
 The app or folder must be approved in EspDesktop. Open **Applications** or **Folders** in the Mac app and confirm the item is still available. Removing it from the app disables its associated cards.
 
-### Why is a volume slider disabled?
-
-The Mac must be paired and connected. Some audio devices do not expose software volume control, in which case the slider is disabled by macOS.
-
 ### How do I replace a display or reset pairing?
 
 Choose **Forget Display** in the Mac app, then reset pairing from **Connectors → Mac Companion** on the display. Pair the replacement using its new temporary code.
