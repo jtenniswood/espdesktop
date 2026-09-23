@@ -52,38 +52,42 @@ describe("browserless application contracts", () => {
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.match(connectors, /sp-card-badge sp-hidden/);
-    assert.match(connectors, /setHidden\(homeAssistantSteps, value\.home_assistant\.connected\)/);
-    assert.match(connectors, /setHidden\(homeAssistantActionInfo, value\.home_assistant\.actions_confirmed\)/);
+    assert.match(connectors, /setHidden\(homeAssistantSteps, statusEndpointAvailable && \(ha\.connected \|\| ha\.configured\)\)/);
+    assert.match(connectors, /setHidden\(homeAssistantActionInfo, !ha\.connected \|\| ha\.actions_confirmed\)/);
     assert.match(connectors, /sp-connector-info/);
-    assert.match(connectors, /cannot perform actions in Home Assistant/);
+    assert.match(connectors, /This lets the display control your devices/);
     assert.match(connectors, /connectors\/home-assistant\/complete/);
     assert.match(connectors, /connectors\/home-assistant\/forget/);
     assert.match(connectors, /Forget Home Assistant/);
-    assert.match(connectors, /I enabled Home Assistant actions/);
+    assert.doesNotMatch(connectors, /Only forget this connection/);
+    assert.match(connectors, /sp-action-btn sp-delete-btn sp-destructive-btn/);
+    assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
+    assert.match(connectors, /I’ve enabled actions/);
     assert.doesNotMatch(connectors, /Actions confirmed/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);
     assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{max-width:960px/);
+    assert.match(styles, /\.sp-connectors-config\{padding-top:32px\}/);
     assert.doesNotMatch(connectors, /sp-connectors-intro|Manage the services that provide data and actions/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
+    assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
 
-  test("gates Home Assistant and Companion screensaver modes by connector setup", () => {
+  test("gates Home Assistant and Companion screensaver modes by live connector state", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const screensaver = fs.readFileSync(path.join(ROOT, "src/webserver/application/screensaver_state.ts"), "utf8");
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     assert.match(settings, /\["sensor", "Home Assistant"\]/);
     assert.match(settings, /\["companion", "App Connection"\]/);
-    assert.match(settings, /sensorBtn\.hidden = !haAvailable/);
+    assert.match(settings, /sensorBtn\.hidden = !haConnected/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
     assert.match(screensaver, /state\.screensaverMode === "companion"/);
     assert.match(eventHandlers, /val === "companion"/);
-    assert.match(connectors, /homeAssistantConfigured\(\)/);
+    assert.match(connectors, /homeAssistantConnected\(\)/);
     assert.match(connectors, /companionConfigured\(\)/);
   });
 

@@ -30,4 +30,6 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 Use the setup page's backup controls to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
 
+The **Connectors** tab shows your connection status. It provides setup steps for a new connection, a short reconnect check when offline, and Home Assistant actions permission guidance after connecting.
+
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).

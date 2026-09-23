@@ -5607,22 +5607,23 @@ async function assertCompanionStorageSettings(browser, testCase) {
 async function assertCompanionOnlyCardPicker(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, {
-    connectorsStatus: {
-      onboarding_complete: true,
-      home_assistant: {
-        available: true,
-        configured: true,
-        connected: false,
-        actions_confirmed: true,
-      },
-      mac_companion: {
-        available: true,
-        configured: true,
-        paired: true,
-        connected: false,
-      },
+  const connectorStatus = {
+    onboarding_complete: true,
+    home_assistant: {
+      available: true,
+      configured: true,
+      connected: true,
+      actions_confirmed: true,
     },
+    mac_companion: {
+      available: true,
+      configured: true,
+      paired: true,
+      connected: false,
+    },
+  };
+  await installRoutes(context, testCase.slug, {
+    connectorsStatus: connectorStatus,
   });
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -5636,17 +5637,17 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.waitForFunction(
-      () => document.querySelector("#sp-connectors")?.textContent?.includes("configured, but currently offline"),
+      () => document.querySelector("#sp-connectors")?.textContent?.includes("Home Assistant connected"),
     );
     await page.getByRole("tab", { name: "Settings" }).click();
     const coverArtCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Cover Art Screen Saver$/ }),
     }).first();
-    assert(await coverArtCard.isVisible(), "Configured but offline HA keeps cover art settings available");
+    assert(await coverArtCard.isVisible(), "Connected HA shows cover art settings");
     const haSettingsCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Home Assistant Settings$/ }),
     }).first();
-    assert(await haSettingsCard.isVisible(), "Configured but offline HA keeps connection settings available");
+    assert(await haSettingsCard.isVisible(), "Connected HA shows connection settings");
     assert.strictEqual(await page.locator("#sp-set-ss-cover-art-source").count(), 0,
       "Home Assistant cover art has no source selector");
     const scheduleCard = page.locator("#sp-settings .card").filter({
@@ -5654,35 +5655,46 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     }).first();
     await scheduleCard.locator(".card-header").click();
     const scheduleHaMode = scheduleCard.getByRole("button", { name: "Home Assistant", exact: true });
-    assert(await scheduleHaMode.isVisible(), "Configured but offline HA keeps Night Schedule mode available");
+    assert(await scheduleHaMode.isVisible(), "Connected HA shows Night Schedule mode");
     await scheduleHaMode.click();
     assert(await page.locator("#sp-set-schedule-presence").isVisible(), "HA schedule exposes its sensor");
-    await context.route("**/connectors/status", (route) => route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        onboarding_complete: true,
-        home_assistant: { available: true, configured: false, connected: false, actions_confirmed: false },
-        mac_companion: { available: true, configured: true, paired: true, connected: true },
-      }),
-    }));
-    await coverArtCard.waitFor({ state: "hidden" });
-    await haSettingsCard.waitFor({ state: "hidden" });
-    assert(!(await scheduleHaMode.isVisible()), "Unconfigured HA hides Night Schedule mode");
-    assert(!(await page.locator("#sp-set-schedule-presence").isVisible()), "Unconfigured HA hides saved sensor controls");
-    await scheduleCard.getByRole("button", { name: "Time", exact: true }).click();
-    assert(await page.locator("#sp-set-schedule-on-hour").isVisible(), "Time schedule remains available without HA");
-    assert(!(await scheduleHaMode.isVisible()), "Schedule updates keep unavailable HA mode hidden");
     const screensaverCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Screensaver$/ }),
     }).first();
     await screensaverCard.locator(".card-header").click();
-    const haMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
-    assert.strictEqual(await haMode.isVisible(), false,
-      "Unconfigured Home Assistant screensaver mode stays hidden after mode synchronization");
-    await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
-    assert.strictEqual(await haMode.isVisible(), false,
-      "Selecting Timer preserves Home Assistant mode visibility");
+    const screensaverHaMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
+    assert(await screensaverHaMode.isVisible(), "Connected HA shows the Home Assistant screensaver mode");
+    const temperatureItem = page.locator('[data-clockbar-item="temperature"]');
+    assert(await temperatureItem.count(), "Clock Bar temperature control is rendered");
+    assert(!(await temperatureItem.evaluate(node => node.classList.contains("sp-clockbar-hidden"))), "Connected HA enables the Clock Bar temperature control");
+
+    connectorStatus.home_assistant.connected = false;
+    await coverArtCard.waitFor({ state: "hidden" });
+    await haSettingsCard.waitFor({ state: "hidden" });
+    await scheduleHaMode.waitFor({ state: "hidden" });
+    await screensaverHaMode.waitFor({ state: "hidden" });
+    assert(!(await page.locator("#sp-set-schedule-presence").isVisible()), "Offline HA hides its saved schedule sensor");
+    await page.waitForFunction(() => !document.querySelector('[data-clockbar-item="temperature"]'));
+    assert.strictEqual(await temperatureItem.count(), 0, "Offline HA removes the Clock Bar temperature control");
+    assert(!(await coverArtCard.isVisible()), "Offline HA hides cover art settings");
+    assert(!(await haSettingsCard.isVisible()), "Offline HA hides Home Assistant settings");
+
+    connectorStatus.home_assistant.connected = true;
+    await coverArtCard.waitFor({ state: "visible" });
+    await haSettingsCard.waitFor({ state: "visible" });
+    await scheduleHaMode.waitFor({ state: "visible" });
+    await screensaverHaMode.waitFor({ state: "visible" });
+    await temperatureItem.waitFor({ state: "attached" });
+    assert(!(await temperatureItem.evaluate(node => node.classList.contains("sp-clockbar-hidden"))), "Reconnected HA restores the Clock Bar temperature control");
+
+    connectorStatus.home_assistant.connected = false;
+    await coverArtCard.waitFor({ state: "hidden" });
+    await haSettingsCard.waitFor({ state: "hidden" });
+    await scheduleHaMode.waitFor({ state: "hidden" });
+    await screensaverHaMode.waitFor({ state: "hidden" });
+    await page.waitForFunction(() => !document.querySelector('[data-clockbar-item="temperature"]'));
+    await scheduleCard.getByRole("button", { name: "Time", exact: true }).click();
+    assert(await page.locator("#sp-set-schedule-on-hour").isVisible(), "Time schedule remains available offline");
     assert(await screensaverCard.getByRole("button", { name: "App Connection", exact: true }).isVisible(),
       "Configured Companion screensaver mode remains available");
 
@@ -6325,10 +6337,127 @@ async function assertPanelNaming(browser) {
   } finally { await context.close(); }
 }
 
+async function assertHomeAssistantConnectorLayout(browser) {
+  const slug = "guition-esp32-s3-4848s040";
+  for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport });
+    const status = {
+      onboarding_complete: true,
+      home_assistant: { available: true, configured: true, connected: false, actions_confirmed: false },
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    };
+    const posts = [];
+    await installRoutes(context, slug, { connectorsStatus: status });
+    await context.route("**/connectors/home-assistant/*", async route => {
+      const action = new URL(route.request().url()).pathname.split("/").pop();
+      posts.push(action);
+      if (action === "complete") status.home_assistant.actions_confirmed = true;
+      if (action === "forget") status.home_assistant.configured = false;
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(status) });
+    });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await page.getByRole("tab", { name: "Connectors" }).click();
+      const card = page.locator("#sp-connectors .card").filter({ has: page.getByRole("heading", { name: "Home Assistant", exact: true }) });
+      await card.locator(".card-header").click();
+      const reconnect = card.getByText("Check that the device is enabled under Settings → Devices & services → ESPHome.", { exact: true });
+      const setup = card.getByRole("heading", { name: "Connect your display" });
+      const actions = card.getByRole("button", { name: "I’ve enabled actions" });
+      const forget = card.getByRole("button", { name: "Forget Home Assistant", exact: true });
+      async function checkLayout(name) {
+        assert(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), `${name}: no horizontal overflow`);
+        const buttons = await card.locator("button:visible").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
+        assert(buttons.every(height => height >= 44), `${name}: actions have usable touch targets`);
+        const positions = await card.evaluate(node => ({
+          status: node.querySelector(".sp-connector-status").getBoundingClientRect().top,
+          instructions: node.querySelector(".sp-connector-instructions").getBoundingClientRect().top,
+        }));
+        assert(positions.status < positions.instructions, `${name}: status precedes instructions`);
+        if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
+          fs.mkdirSync(FAILURE_DIR, { recursive: true });
+          await page.screenshot({ path: path.join(FAILURE_DIR, `ha-${name}-${viewport.width}.png`), fullPage: true });
+        }
+      }
+      await reconnect.waitFor({ state: "visible" });
+      const offlineInfo = card.locator(".sp-ha-offline-info");
+      assert(await offlineInfo.isVisible(), "Offline status and guidance are visible");
+      assert.strictEqual(await offlineInfo.locator(".sp-connector-status").count(), 1, "Offline status is shown with its guidance");
+      assert.strictEqual(await offlineInfo.locator("p").count(), 1, "Only the troubleshooting sentence is shown");
+      const statusFontSize = await card.locator(".sp-connector-status").evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
+      const guidanceFontSize = await reconnect.evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
+      assert(statusFontSize < guidanceFontSize, "Disconnected status is smaller than its guidance");
+      assert.strictEqual(await card.locator(".sp-connector-status").textContent(), "Configured but disconnected");
+      assert(!(await card.getByText("Only forget this connection if you want to set up Home Assistant again.").count()), "Forget warning is removed");
+      assert.strictEqual(await forget.evaluate(node => getComputedStyle(node).backgroundColor), "rgb(241, 65, 88)", "Forget action has a destructive red background");
+      assert(!(await card.getByRole("heading", { name: "Reconnect Home Assistant" }).count()), "Offline guidance has no extra heading");
+      assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
+      assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
+      assert(await forget.isVisible(), "The saved connection can still be forgotten");
+      await page.getByRole("tab", { name: "Settings" }).click();
+      const settingsCard = page.locator("#sp-settings .card:visible").first();
+      await settingsCard.waitFor({ state: "visible" });
+      const settingsCardWidth = await settingsCard.evaluate(node => node.getBoundingClientRect().width);
+      await page.getByRole("tab", { name: "Connectors" }).click();
+      const connectorsCardWidth = await card.evaluate(node => node.getBoundingClientRect().width);
+      assert(Math.abs(settingsCardWidth - connectorsCardWidth) < 1, "Connector cards match Settings panel width");
+      await checkLayout("offline");
+      status.home_assistant.connected = true;
+      await actions.waitFor({ state: "visible" });
+      assert(await actions.isEnabled(), "Connected users can confirm action permission");
+      assert(!(await reconnect.isVisible()), "Connected users should not see reconnect instructions");
+      assert(!(await forget.isVisible()), "Connected users cannot forget an active connection");
+      await checkLayout("permission");
+      await actions.click();
+      await actions.waitFor({ state: "hidden" });
+      assert.deepStrictEqual(posts, ["complete"], "Permission confirmation uses the existing endpoint");
+      status.home_assistant.connected = false;
+      await forget.waitFor({ state: "visible" });
+      await forget.click();
+      await setup.waitFor({ state: "visible" });
+      assert(!(await reconnect.isVisible()), "Forgetting returns to first-time setup");
+      assert(!(await forget.isVisible()), "No forget action without a saved connection");
+      assert.strictEqual(await card.locator("code").textContent(), "espdesktop.test", "Show the current display address");
+      assert.deepStrictEqual(posts, ["complete", "forget"], "Only user actions write connector state");
+      await checkLayout("setup");
+    } finally { await context.close(); }
+  }
+
+  const legacyContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await installRoutes(legacyContext, slug);
+  const legacyPage = await legacyContext.newPage();
+  await installFakeEventSource(legacyPage);
+  try {
+    await legacyPage.goto(`http://espdesktop.test/${slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await legacyPage.waitForSelector("#sp-app");
+    await legacyPage.getByRole("tab", { name: "Connectors" }).click();
+    const legacyCard = legacyPage.locator("#sp-connectors .card").filter({ has: legacyPage.getByRole("heading", { name: "Home Assistant", exact: true }) });
+    await legacyCard.locator(".card-header").click();
+    await legacyCard.getByRole("heading", { name: "Connect your display" }).waitFor({ state: "visible" });
+    assert.strictEqual(await legacyCard.locator("code").textContent(), "espdesktop.test", "Legacy firmware retains the ESPHome address fallback");
+    assert(!(await legacyCard.locator(".sp-connector-status").isVisible()), "Unknown legacy connection state is not shown as disconnected");
+    assert(!(await legacyCard.getByRole("button", { name: "Forget Home Assistant", exact: true }).isVisible()), "Legacy firmware does not expose an unsupported Forget action");
+  } finally { await legacyContext.close(); }
+}
+
 (async function main() {
   const browser = await chromium.launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
+      await assertHomeAssistantConnectorLayout(browser);
+      console.log("Home Assistant connector layout browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_CONNECTOR_STATUS_ONLY === "1") {
+      const testCase = CASES.find((candidate) => candidate.slug === "guition-esp32-s3-4848s040");
+      assert(testCase, "4-inch S3 browser profile is available");
+      await assertCompanionOnlyCardPicker(browser, testCase);
+      console.log("Home Assistant connection transition browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
       await assertNamingOfflineBackups(browser);
       await assertPanelNaming(browser);
@@ -6337,6 +6466,7 @@ async function assertPanelNaming(browser) {
     }
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }
+    await assertHomeAssistantConnectorLayout(browser);
     await assertNamingOfflineBackups(browser);
     await assertPanelNaming(browser);
     if (!acceptanceOnly) {
