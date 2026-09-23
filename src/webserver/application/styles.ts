@@ -43,7 +43,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-connector-steps li+li{margin-top:7px}" +
         ".sp-connector-info{margin:0 0 18px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.86rem;line-height:1.5}" +
         ".sp-ha-connector{max-width:64ch;font-size:var(--text-lg);line-height:1.6;overflow-wrap:anywhere}" +
-        ".sp-ha-connector .sp-connector-status{font-size:var(--text-md);font-weight:600;line-height:1.5;color:var(--text);margin-bottom:24px}" +
+        ".sp-ha-connector .sp-connector-status{font-size:var(--text-xl);font-weight:600;line-height:1.5;color:var(--text);margin-bottom:24px}" +
         ".sp-ha-connector .sp-connector-status-connected{color:var(--success)}" +
         ".sp-ha-connector h4{font-size:var(--text-lg);font-weight:600;line-height:1.4;margin:0 0 10px}" +
         ".sp-ha-connector p{margin:0 0 12px}.sp-ha-connector p:last-child{margin-bottom:0}" +

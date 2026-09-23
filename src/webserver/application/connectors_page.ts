@@ -43,7 +43,7 @@ function setHidden(element: HTMLElement | null, hidden: boolean): void {
 
 export function homeAssistantConnectorStatusText(state: HomeAssistantConnectorState): string {
     if (state.connected) return "Home Assistant connected";
-    if (state.configured) return "Home Assistant is offline";
+    if (state.configured) return "Home Assistant configured, but currently offline";
     return "Waiting for Home Assistant";
 }
 

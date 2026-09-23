@@ -5636,7 +5636,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.waitForFunction(
-      () => document.querySelector("#sp-connectors")?.textContent?.includes("Home Assistant is offline"),
+      () => document.querySelector("#sp-connectors")?.textContent?.includes("Home Assistant configured, but currently offline"),
     );
     await page.getByRole("tab", { name: "Settings" }).click();
     const coverArtCard = page.locator("#sp-settings .card").filter({
@@ -6370,6 +6370,9 @@ async function assertHomeAssistantConnectorLayout(browser) {
         }
       }
       await reconnect.waitFor({ state: "visible" });
+      const statusFontSize = await card.locator(".sp-connector-status").evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
+      const guidanceFontSize = await reconnect.evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
+      assert(statusFontSize > guidanceFontSize, "Offline status is more prominent than its guidance");
       assert(!(await card.getByRole("heading", { name: "Reconnect Home Assistant" }).count()), "Offline guidance has no extra heading");
       assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
       assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
