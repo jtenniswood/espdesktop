@@ -83,26 +83,40 @@ enum CompanionNativeWindowAction {
               let data = try? Data(contentsOf: tableURL),
               let table = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil)
                 as? [String: [String: Any]] else {
-            return localizedMenuPaths(paths, translations: [:])
+            return paths
         }
-        let localizations = table.compactMap { language, values in
-            language != "LocProvenance" && values.values.contains(where: { $0 is String }) ? language : nil
+        let translationsByLocalization = table.filter { $0.key != "LocProvenance" }.compactMapValues { values -> [String: String]? in
+            guard !values.isEmpty else { return nil }
+            return values.compactMapValues { $0 as? String }
         }
-        let languages = Bundle.preferredLocalizations(
-            from: localizations,
-            forPreferences: Locale.preferredLanguages
+        return localizedMenuPaths(
+            paths,
+            translationsByLocalization: translationsByLocalization,
+            preferredLocalizations: Locale.preferredLanguages
         )
-        let values = languages.first.flatMap { table[$0] } ?? table["en"] ?? [:]
-        let translations = values.compactMapValues { $0 as? String }
-        return localizedMenuPaths(paths, translations: translations)
     }
 
-    static func localizedMenuPaths(_ paths: [[String]], translations: [String: String]) -> [[String]] {
-        let localizedPaths = paths.map { path in
-            path.map { translations[$0] ?? $0 }
+    static func localizedMenuPaths(
+        _ paths: [[String]],
+        translationsByLocalization: [String: [String: String]],
+        preferredLocalizations: [String]
+    ) -> [[String]] {
+        let preferred = Bundle.preferredLocalizations(
+            from: Array(translationsByLocalization.keys),
+            forPreferences: preferredLocalizations
+        )
+        let localizations = preferred + translationsByLocalization.keys
+            .filter { !preferred.contains($0) }
+            .sorted()
+        let localizedPaths = localizations.flatMap { localization in
+            paths.map { path in
+                path.map { translationsByLocalization[localization]?[$0] ?? $0 }
+            }
         }
-        // Keep English paths as a fallback for third-party apps with custom menus.
-        return localizedPaths + paths
+        // Apps can use a per-app macOS language that differs from EspDesktop's.
+        // Try every AppKit localization before English paths for third-party menus.
+        var seen = Set<[String]>()
+        return (localizedPaths + paths).filter { seen.insert($0).inserted }
     }
 
     private static func resolve(
@@ -111,23 +125,28 @@ enum CompanionNativeWindowAction {
         children: (AXUIElement) -> [AXUIElement],
         deadline: Date
     ) -> AXUIElement? {
-        for path in paths where !path.isEmpty {
-            var candidates = roots
-            for (index, component) in path.enumerated() {
-                guard Date() < deadline else { return nil }
-                let matches = candidates.filter {
-                    (attribute($0, kAXTitleAttribute) as? String) == component
-                        && (attribute($0, kAXEnabledAttribute) as? Bool == true)
+        let maxDepth = paths.map(\.count).max() ?? 0
+        func find(in candidates: [AXUIElement], depth: Int) -> AXUIElement? {
+            guard depth < maxDepth, Date() < deadline else { return nil }
+            let pathsAtDepth = paths.filter { $0.count > depth }
+            let titles = Set(pathsAtDepth.map { $0[depth] })
+            let leafTitles = Set(paths.filter { $0.count == depth + 1 }.compactMap(\.last))
+            for candidate in candidates {
+                guard Date() < deadline,
+                      let title = attribute(candidate, kAXTitleAttribute) as? String,
+                      titles.contains(title),
+                      attribute(candidate, kAXEnabledAttribute) as? Bool == true else { continue }
+                let candidateChildren = children(candidate)
+                if leafTitles.contains(title), candidateChildren.isEmpty {
+                    return candidate
                 }
-                if index == path.count - 1 {
-                    let leaves = matches.filter { children($0).isEmpty }
-                    if leaves.count == 1 { return leaves[0] }
-                } else {
-                    candidates = matches.flatMap(children)
+                if let match = find(in: candidateChildren, depth: depth + 1) {
+                    return match
                 }
             }
+            return nil
         }
-        return nil
+        return find(in: roots, depth: 0)
     }
 
     private static func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
