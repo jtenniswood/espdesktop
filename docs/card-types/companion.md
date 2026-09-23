@@ -80,16 +80,6 @@ Window cards act on the active Mac window. Choose **Companion → Window control
 
 The Mac app must have Accessibility permission. Some applications or windows do not support every macOS window command; in that case the window stays where it is.
 
-## Cover Art
-
-Play / Pause, Previous, and Next are no longer offered as Mac cards. Existing saved playback cards are removed from layouts when loaded, including cards in subpages and imported backups.
-
-Apple Music, Spotify, and browser playback can work when the application publishes a usable session to macOS. Support depends on the application's macOS media integration.
-
-To turn the whole display into a Now Playing view, open **Settings → Sleep & Schedule → Media Cover Art**, turn on **Show Cover Art**, and choose **Mac Companion** as the source. EspDesktop can then show the title, artist, album, progress, playback state, source application, and artwork supplied by the Mac. No Home Assistant media-player entity is needed for this source.
-
-See [Media Cover Art](/features/media-cover-art) for its display and timing options.
-
 ## Mac Volume Sliders
 
 Mac volume uses a **Slider** card, not a Companion card.
@@ -127,7 +117,6 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 | Opening a folder | The folder must be added in EspDesktop's **Folders** page |
 | Keyboard and window controls | EspDesktop must be enabled in **System Settings → Privacy & Security → Accessibility** |
 | Mac statistics | Shared automatically while connected to the paired display |
-| Media and artwork | The playing application must publish a usable macOS Now Playing session |
 | Output or input volume | The selected audio device must expose software volume control |
 
 ## Security and Current Limits
@@ -136,7 +125,6 @@ You can also choose **Subpage → Companion Stat** to put one of these readings 
 - Pairing uses a temporary code that expires after 15 minutes. The Mac stores the credential in Keychain and pins the display certificate after the first pairing.
 - Applications and folders must be approved on the Mac. Folder paths remain on the Mac; the display receives a friendly name and anonymous identifier.
 - The connector accepts only its defined actions. It does not run shell commands or accept incoming network connections on the Mac.
-- Now Playing information is read through macOS's private `MediaRemote` framework because Apple's public API only lets an app publish its own session. If a macOS update removes the required interface, media and artwork become unavailable while the other Mac controls continue to work.
 - Companion cards are currently offered only on the 4848S040 profile.
 
 If pairing needs to be replaced, reset it from **Connectors → Mac Companion** on the display, choose **Forget Display** in the Mac app, and pair again. You can also tap the display’s network icon and choose **Pairing**. The popup shows the pairing code and the display’s IP address.
