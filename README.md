@@ -2,7 +2,7 @@
 
 **Turn a small touchscreen into a dedicated controller for your Mac.**
 
-EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders and websites, run keyboard shortcuts, arrange windows, adjust Mac volume, and view Mac statistics.
+EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders and websites, run keyboard shortcuts, arrange windows, and view Mac statistics.
 
 Set up the display from a normal web browser. There is no YAML to write or Home Assistant account needed for Mac controls.
 
@@ -13,7 +13,6 @@ Set up the display from a normal web browser. There is no YAML to write or Home 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
 - **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
 - **Windows** — close, minimise, hide, enter full screen, or use the move-and-resize controls available on your version of macOS.
-- **Volume** — adjust Mac output and input volume from Slider cards.
 - **Folders and websites** — open approved Finder folders or safe `http://` and `https://` links in an approved app.
 - **Mac statistics** — optionally show processor, memory, storage, network throughput, and battery readings.
 

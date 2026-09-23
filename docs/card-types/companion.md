@@ -1,6 +1,6 @@
 ---
 title: Mac Controls
-description: Overview of EspDesktop Mac Companion controls for apps, folders, shortcuts, windows, volume, and Mac statistics.
+description: Overview of EspDesktop Mac Companion controls for apps, folders, shortcuts, windows, and Mac statistics.
 ---
 
 # Mac Controls
@@ -15,7 +15,6 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Open Finder folders](/mac-controls/folders)
 - [Run keyboard shortcuts](/mac-controls/shortcuts)
 - [Control and arrange windows](/mac-controls/windows)
-- [Adjust Mac volume](/mac-controls/volume)
 - [Show Mac statistics](/mac-controls/statistics)
 - [Permissions and security](/mac-controls/security)
 
