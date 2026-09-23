@@ -382,7 +382,7 @@ export function normalizeCompanionCard(card: any): void {
             configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION));
         card.options = options;
         card.icon_on = "Auto";
-        if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
+        if (!card.icon || card.icon === "Auto" || card.icon === "Monitor" || card.icon === "Folder") {
             card.icon = companionSubtypeDefaultIcon("folder", card.entity);
         }
         return;
