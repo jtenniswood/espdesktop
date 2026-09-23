@@ -29,4 +29,3 @@ inline void set_card_disabled_state(lv_obj_t *btn, bool disabled) {
   else lv_obj_clear_state(btn, LV_STATE_DISABLED);
   set_card_content_disabled(btn, disabled);
 }
-

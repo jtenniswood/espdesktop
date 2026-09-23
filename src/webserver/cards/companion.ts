@@ -34,6 +34,8 @@ import type { ConfigModalTabOptionsFeature } from "../application/config_modal_t
 import { state } from "../state/app_instance";
 import {
     COMPANION_SHORTCUT_PREFIX,
+    companionShortcutPresetCards,
+    COMPANION_SHORTCUT_APPS,
     companionAppShortcutAutoSwitchEnabled,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
@@ -132,6 +134,15 @@ export function formatCompanionShortcutActionId(actionId: string): string {
     const keyLabel = COMPANION_SHORTCUT_KEY_LABELS[key]
         || (/^[a-z]$/.test(key) ? key.toUpperCase() : key.toUpperCase());
     return parts.map((part) => symbols[part]).join("") + keyLabel;
+}
+
+export function companionShortcutCatalogSelection(card: any) {
+    for (const app of COMPANION_SHORTCUT_APPS.filter((app) => app.catalog)) {
+        const preset = companionShortcutPresetCards(app.appId).find((preset) =>
+            preset.entity === card?.entity && preset.options === card?.options);
+        if (preset) return { ...preset, appId: app.appId };
+    }
+    return undefined;
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -632,72 +643,201 @@ export function registerCompanionCardTypes(
 
             const shortcutField = document.createElement("div");
             shortcutField.className = "sp-field";
-            shortcutField.appendChild(fieldLabel("Shortcut", helpers.idPrefix + "companion-shortcut"));
-            const shortcutInput = document.createElement("input");
-            shortcutInput.className = "sp-input";
-            shortcutInput.id = helpers.idPrefix + "companion-shortcut";
-            shortcutInput.readOnly = true;
-            shortcutInput.placeholder = "Choose modifiers, then press a key";
-            shortcutInput.value = formatCompanionShortcutActionId(card.entity);
-            shortcutInput.setAttribute("aria-label", "Keyboard shortcut");
-            const shortcutParts = companionShortcutActionIdValid(card.entity)
-                ? card.entity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+")
-                : [];
-            let shortcutKey = shortcutParts.pop() || "";
-            const shortcutModifiers = new Set(shortcutParts);
-            const shortcutModifierGroup = document.createElement("div");
-            shortcutModifierGroup.className = "sp-shortcut-modifiers";
-            shortcutModifierGroup.setAttribute("role", "group");
-            shortcutModifierGroup.setAttribute("aria-label", "Shortcut modifiers");
-            const shortcutModifierLabels: ReadonlyArray<readonly [string, string]> = [
+            const savedCatalogShortcut = companionShortcutCatalogSelection(card);
+            const shortcutType = card._shortcutType || (savedCatalogShortcut ? "catalog" : "custom");
+            const typeField = document.createElement("div");
+            typeField.className = "sp-field";
+            typeField.appendChild(fieldLabel("Type", helpers.idPrefix + "shortcut-type"));
+            const typeSelect = document.createElement("select");
+            typeSelect.className = "sp-select";
+            typeSelect.id = helpers.idPrefix + "shortcut-type";
+            for (const [value, label] of [["custom", "Custom Shortcut"], ["catalog", "Shortcut Catalog"]] as const) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                typeSelect.appendChild(option);
+            }
+            typeSelect.value = shortcutType;
+            typeField.appendChild(typeSelect);
+            shortcutField.appendChild(typeField);
+            const shortcutPanel = helpers.disclosureSection(
+                "Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
+            );
+            shortcutPanel.button.addEventListener("click", function () {
+                card._shortcutPanelOpen = shortcutPanel.panel.classList.contains("sp-open");
+            });
+            const customField = document.createElement("div");
+            customField.style.display = shortcutType === "custom" ? "" : "none";
+            shortcutPanel.section.appendChild(customField);
+            const modifierLabel = document.createElement("div");
+            modifierLabel.className = "sp-field-label";
+            modifierLabel.textContent = "Modifiers";
+            customField.appendChild(modifierLabel);
+            const modifierButtons = document.createElement("fieldset");
+            modifierButtons.className = "sp-segment";
+            modifierButtons.style.padding = "0";
+            modifierButtons.style.minWidth = "0";
+            modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
+            const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
+            let selectedKey = shortcutParts.pop() || "";
+            const selectedModifiers = new Set(shortcutParts.filter((part) =>
+                (COMPANION_SHORTCUT_MODIFIERS as readonly string[]).includes(part)));
+            const modifierControls = new Map<string, HTMLButtonElement>();
+            for (const [modifier, label] of [
                 ["command", "⌘ Command"], ["control", "⌃ Control"],
                 ["option", "⌥ Option"], ["shift", "⇧ Shift"],
-            ];
-            shortcutModifierLabels.forEach(function ([modifier, label]) {
+            ] as const) {
                 const button = document.createElement("button");
                 button.type = "button";
-                button.className = "sp-shortcut-modifier";
                 button.textContent = label;
-                button.setAttribute("aria-pressed", shortcutModifiers.has(modifier) ? "true" : "false");
-                if (shortcutModifiers.has(modifier)) button.classList.add("active");
                 button.addEventListener("click", function () {
-                    if (shortcutModifiers.has(modifier)) shortcutModifiers.delete(modifier);
-                    else shortcutModifiers.add(modifier);
-                    const selected = shortcutModifiers.has(modifier);
-                    button.classList.toggle("active", selected);
-                    button.setAttribute("aria-pressed", selected ? "true" : "false");
-                    saveShortcut();
-                    shortcutInput.focus();
+                    if (selectedModifiers.has(modifier)) selectedModifiers.delete(modifier);
+                    else selectedModifiers.add(modifier);
+                    saveBuiltShortcut();
                 });
-                shortcutModifierGroup.appendChild(button);
-            });
-            function saveShortcut(): void {
-                const modifiers = COMPANION_SHORTCUT_MODIFIERS.filter((modifier) => shortcutModifiers.has(modifier));
-                if (!shortcutKey || !modifiers.some((modifier) => modifier !== "shift")) {
-                    shortcutInput.value = "Choose Command, Control, or Option, then press a key";
-                    return;
-                }
-                const actionId = COMPANION_SHORTCUT_PREFIX + modifiers.concat(shortcutKey).join("+");
-                if (!companionShortcutActionIdValid(actionId)) return;
-                card.entity = actionId;
-                shortcutInput.value = formatCompanionShortcutActionId(actionId);
-                helpers.clearFieldError(shortcutInput);
-                helpers.saveField("entity", card.entity);
+                modifierControls.set(modifier, button);
+                modifierButtons.appendChild(button);
             }
-            shortcutField.appendChild(shortcutModifierGroup);
-            shortcutField.appendChild(shortcutInput);
-            const shortcutNote = document.createElement("div");
-            shortcutNote.className = "sp-field-info-text sp-visible";
-            shortcutNote.textContent = "Choose modifier buttons, then press the key by itself. This avoids browser shortcuts. The shortcut is replayed on the active Mac app.";
-            shortcutField.appendChild(shortcutNote);
+            customField.appendChild(modifierButtons);
+            const keyField = document.createElement("div");
+            keyField.className = "sp-field";
+            keyField.appendChild(fieldLabel("Key", helpers.idPrefix + "shortcut-key"));
+            const keySelect = document.createElement("select");
+            keySelect.className = "sp-select";
+            keySelect.id = helpers.idPrefix + "shortcut-key";
+            const keyPlaceholder = document.createElement("option");
+            keyPlaceholder.value = "";
+            keyPlaceholder.textContent = "Choose a key…";
+            keySelect.appendChild(keyPlaceholder);
+            const keyGroups: readonly [string, readonly string[]][] = [
+                ["Letters", Array.from("abcdefghijklmnopqrstuvwxyz")],
+                ["Numbers", Array.from("0123456789")],
+                ["Navigation and editing", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => !key.startsWith("key"))],
+                ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
+                ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
+            ];
+            for (const [label, keys] of keyGroups) {
+                const group = document.createElement("optgroup");
+                group.label = label;
+                for (const key of keys) {
+                    const option = document.createElement("option");
+                    option.value = key;
+                    option.textContent = COMPANION_SHORTCUT_KEY_LABELS[key] || key.toUpperCase();
+                    group.appendChild(option);
+                }
+                keySelect.appendChild(group);
+            }
+            keySelect.addEventListener("change", function () {
+                selectedKey = keySelect.value;
+                saveBuiltShortcut();
+            });
+            keyField.appendChild(keySelect);
+            customField.appendChild(keyField);
+            shortcutField.appendChild(shortcutPanel.panel);
+            function syncShortcutBuilder(): void {
+                for (const [modifier, button] of modifierControls) {
+                    const selected = selectedModifiers.has(modifier);
+                    button.classList.toggle("active", selected);
+                    button.setAttribute("aria-pressed", String(selected));
+                }
+                keySelect.value = selectedKey;
+            }
+            function saveBuiltShortcut(): void {
+                const modifiers = COMPANION_SHORTCUT_MODIFIERS.filter((modifier) => selectedModifiers.has(modifier));
+                card.entity = COMPANION_SHORTCUT_PREFIX + [...modifiers, selectedKey].join("+");
+                card.options = "app_shortcut_preset=custom";
+                helpers.clearFieldError(keySelect);
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("options", card.options);
+                syncShortcutBuilder();
+            }
+            syncShortcutBuilder();
+
+            const catalogField = document.createElement("div");
+            catalogField.style.display = shortcutType === "catalog" ? "" : "none";
+            const catalogAppField = document.createElement("div");
+            catalogAppField.className = "sp-field";
+            catalogAppField.appendChild(fieldLabel("App", helpers.idPrefix + "shortcut-catalog-app"));
+            const catalogApp = document.createElement("select");
+            catalogApp.className = "sp-select";
+            catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
+            for (const [value, label] of [["", "Choose an app…"], ...COMPANION_SHORTCUT_APPS.filter((app) => app.catalog).map((app) => [app.appId, app.label] as const)] as const) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                catalogApp.appendChild(option);
+            }
+            catalogApp.value = savedCatalogShortcut?.appId || card._shortcutCatalogApp || "";
+            catalogAppField.appendChild(catalogApp);
+            catalogField.appendChild(catalogAppField);
+            const catalogShortcutField = document.createElement("div");
+            catalogShortcutField.className = "sp-field";
+            catalogShortcutField.appendChild(fieldLabel("Shortcut", helpers.idPrefix + "shortcut-catalog-action"));
+            const catalogShortcut = document.createElement("select");
+            catalogShortcut.className = "sp-select";
+            catalogShortcut.id = helpers.idPrefix + "shortcut-catalog-action";
+            const catalogPlaceholder = document.createElement("option");
+            catalogPlaceholder.value = "";
+            catalogPlaceholder.textContent = "Choose a shortcut…";
+            catalogShortcut.appendChild(catalogPlaceholder);
+            if (catalogApp.value) {
+                companionShortcutPresetCards(catalogApp.value).forEach((preset) => {
+                    const option = document.createElement("option");
+                    option.value = preset.options;
+                    option.textContent = preset.label + " (" + formatCompanionShortcutActionId(preset.entity) + ")";
+                    catalogShortcut.appendChild(option);
+                });
+            }
+            catalogShortcut.disabled = !catalogApp.value;
+            catalogShortcut.value = savedCatalogShortcut?.options || "";
+            catalogShortcutField.appendChild(catalogShortcut);
+            catalogField.appendChild(catalogShortcutField);
+            shortcutPanel.section.appendChild(catalogField);
+            helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
+                return initialMode === "shortcut" && shortcutType === "catalog";
+            }, function () {
+                return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
+            });
+            typeSelect.addEventListener("change", function () {
+                card._shortcutType = typeSelect.value;
+                card._shortcutCatalogApp = "";
+                // Keep the selected combination when switching to Custom Shortcut.
+                if (typeSelect.value === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
+                card.options = "app_shortcut_preset=custom";
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("options", card.options);
+                renderButtonSettings();
+            });
+            catalogApp.addEventListener("change", function () {
+                card._shortcutCatalogApp = catalogApp.value;
+                card.entity = COMPANION_SHORTCUT_PREFIX;
+                card.options = "";
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("options", card.options);
+                renderButtonSettings();
+            });
+            catalogShortcut.addEventListener("change", function () {
+                const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
+                if (!preset) {
+                    card.entity = COMPANION_SHORTCUT_PREFIX;
+                    card.options = "";
+                } else {
+                    card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
+                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
+                    card.entity = preset.entity;
+                    card.options = preset.options;
+                }
+                for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
+                renderButtonSettings();
+            });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
-            helpers.requireField(shortcutInput, "Capture a valid keyboard shortcut before saving.", function () {
-                return initialMode === "shortcut";
+            helpers.requireField(keySelect, "Choose a key with Command, Control, or Option before saving.", function () {
+                return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
-                return companionShortcutActionIdValid(card.entity) && !!shortcutKey &&
+                return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
                     COMPANION_SHORTCUT_MODIFIERS.some((modifier) =>
-                        modifier !== "shift" && shortcutModifiers.has(modifier));
+                        modifier !== "shift" && selectedModifiers.has(modifier));
             });
 
             const windowField = document.createElement("div");
@@ -957,21 +1097,6 @@ export function registerCompanionCardTypes(
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
             }
             syncMode(initialMode);
-
-            shortcutInput.addEventListener("keydown", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                if (["MetaLeft", "MetaRight", "ControlLeft", "ControlRight", "AltLeft", "AltRight", "ShiftLeft", "ShiftRight"]
-                    .includes(event.code)) return;
-                const key = companionShortcutKey(event.code);
-                if (!key) {
-                    shortcutKey = "";
-                    shortcutInput.value = "Choose a supported key";
-                    return;
-                }
-                shortcutKey = key;
-                saveShortcut();
-            });
 
             windowSelect.addEventListener("change", function () {
                 const currentLabel = typeof card.label === "string" ? card.label : "";

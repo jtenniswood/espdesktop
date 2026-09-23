@@ -11,7 +11,7 @@ test("every firmware icon name resolves to its actual web glyph", () => {
   }
 });
 
-test("Command is selectable and existing shortcut names retain their glyphs", () => {
+test("Command is selectable and shortcut icon names retain their glyphs", () => {
   assert.ok(iconOptions.includes("Shortcut Command"));
   assert.equal(iconSlug("Shortcut Command"), "apple-keyboard-command");
   assert.equal(iconSlug("Shortcut Control"), "apple-keyboard-control");

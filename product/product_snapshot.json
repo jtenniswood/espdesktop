@@ -12,7 +12,7 @@
     "deviceProfiles": 8,
     "cardTypes": 44,
     "entityNames": 107,
-    "icons": 362,
+    "icons": 363,
     "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
   },
@@ -9734,6 +9734,11 @@
         "name": "Window Shutter Open",
         "codepoint": "F111E",
         "mdi": "window-shutter-open"
+      },
+      {
+        "name": "Tab",
+        "codepoint": "F04E9",
+        "mdi": "tab"
       },
       {
         "name": "Laptop",
