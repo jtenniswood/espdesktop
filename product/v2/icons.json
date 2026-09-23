@@ -2002,6 +2002,11 @@
       "name": "Laptop",
       "codepoint": "F0322",
       "mdi": "laptop"
+    },
+    {
+      "name": "Tab",
+      "codepoint": "F04E9",
+      "mdi": "tab"
     }
   ],
   "domain_defaults": {
