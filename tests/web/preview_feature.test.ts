@@ -58,6 +58,11 @@ export function runPreviewFeatureTests(): void {
   equal(cardRequiresHomeAssistant("action", { sensor: "local" }), false, "local actions can be transferred");
   equal(cardRequiresHomeAssistant("sensor", { sensor: "sensor.temperature" }), true, "Home Assistant sensors require Home Assistant");
   equal(cardRequiresHomeAssistant("sensor", { sensor: "local" }), false, "local sensors can be transferred");
+  equal(cardRequiresHomeAssistant("subpage", { options: "subpage_connector=mac_companion" }), false, "Mac Companion subpages can be transferred");
+  equal(cardRequiresHomeAssistant("subpage", { options: "" }), true, "Home Assistant subpages remain blocked from transfers");
+  equal(cardRequiresHomeAssistant("wifi_qr", { options: "wifi_tabs=qr%7Ccredentials" }), false, "local Wi-Fi sharing cards can be transferred");
+  equal(cardRequiresHomeAssistant("wifi_qr", { options: "wifi_tabs=qr%7Cguest" }), true, "Wi-Fi cards with Guest Wi-Fi controls require Home Assistant");
+  equal(cardRequiresHomeAssistant("wifi_qr_card", { entity: "switch.guest_wifi" }), true, "Wi-Fi cards with a guest switch require Home Assistant");
   equal(cardTypeVisibleForConnector("action", "mac_companion"), true, "local actions remain available with Companion");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
   equal(cardTypeVisibleForConnector("sensor", "mac_companion"), true, "local sensors remain available with Companion");

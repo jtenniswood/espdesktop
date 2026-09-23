@@ -1,3 +1,9 @@
+import { cardContractOptionName } from "../generated/card_contract";
+import { configOptionValue } from "../model/config_primitives";
+
+const SUBPAGE_CONNECTOR_OPTION = cardContractOptionName("subpage_connector");
+const WIFI_QR_TABS_OPTION = cardContractOptionName("wifi_tabs");
+
 export interface Point {
   readonly x: number;
   readonly y: number;
@@ -147,8 +153,19 @@ export function cardTypeConnector(key: string): CardPickerOption["connector"] {
 
 export function cardRequiresHomeAssistant(
   key: string,
-  card: { readonly sensor?: string | null } | null | undefined,
+  card: {
+    readonly entity?: string | null;
+    readonly options?: string | null;
+    readonly sensor?: string | null;
+  } | null | undefined,
 ): boolean {
+  if (key === "subpage" && configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION) === "mac_companion") {
+    return false;
+  }
+  if (key === "wifi_qr" || key === "wifi_qr_card") {
+    const tabs = configOptionValue(card?.options, WIFI_QR_TABS_OPTION).split("|");
+    return tabs.includes("guest") || /^switch\./.test(String(card?.entity || ""));
+  }
   const source = cardTypeConnector(key);
   if (source === "home_assistant") return true;
   if (source !== "home_assistant_or_local") return false;

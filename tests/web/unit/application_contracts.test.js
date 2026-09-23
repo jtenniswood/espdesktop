@@ -116,8 +116,16 @@ describe("browserless application contracts", () => {
 
   test("rejects Home Assistant card imports and clipboard pastes", () => {
     const clipboard = fs.readFileSync(path.join(ROOT, "src/webserver/application/preview_clipboard.ts"), "utf8");
+    const interactions = fs.readFileSync(path.join(ROOT, "src/webserver/application/preview_interactions.ts"), "utf8");
+    const wifiCard = fs.readFileSync(path.join(ROOT, "src/webserver/cards/wifi_qr.ts"), "utf8");
     assert.match(clipboard, /cardRequiresHomeAssistant\(type, normalized\)/);
-    assert.match(clipboard, /cardRequiresHomeAssistant\(entryButton\.type \|\| "", entryButton\)/);
+    assert.match(clipboard, /clipboardEntryRequiresHomeAssistant\(entries\[entryIndex\]\)/);
+    assert.match(clipboard, /function clipboardEntryRequiresHomeAssistant\(entry: any\): boolean/);
+    assert.match(clipboard, /subpage\.buttons \|\| \[\]/);
+    assert.match(interactions, /duplicateRequiresHomeAssistant\(src, state\.subpages\[srcSlot\]\)/);
+    assert.match(interactions, /duplicateRequiresHomeAssistant\(src\)/);
+    assert.match(wifiCard, /if \(!wifiQrTabs\(b\)\.includes\("guest"\)\)/);
+    assert.match(wifiCard, /return definition\.value !== "guest"/);
   });
 
   test("owns entity catalogue helpers as one explicit service", () => {

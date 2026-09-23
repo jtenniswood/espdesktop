@@ -339,6 +339,17 @@ export function createPreviewClipboardFeature(
     function clipboardButtonConfig(entry: any) {
         return normalizeButtonConfig(EspDesktopModel.cloneCardConfig(entry));
     }
+    function clipboardEntryRequiresHomeAssistant(entry: any): boolean {
+        var button: any = clipboardButtonConfig(entry);
+        if (button.type && cardRequiresHomeAssistant(button.type, button))
+            return true;
+        if (!entry || !entry.subpageConfig)
+            return false;
+        var subpage: any = parseSubpageConfig(entry.subpageConfig);
+        return (subpage.buttons || []).some(function (nested: any) {
+            return !!nested && !!nested.type && cardRequiresHomeAssistant(nested.type, nested);
+        });
+    }
     function firstUnusedClipboardSlot(grid: any, maxSlots: any) {
         var used: any = {};
         grid.forEach(function (slot: any) {
@@ -468,8 +479,7 @@ export function createPreviewClipboardFeature(
         if (!entries || !entries.length)
             return { ok: false, error: "No copied cards are available." };
         for (var entryIndex: any = 0; entryIndex < entries.length; entryIndex++) {
-            var entryButton: any = clipboardButtonConfig(entries[entryIndex]);
-            if (cardRequiresHomeAssistant(entryButton.type || "", entryButton)) {
+            if (clipboardEntryRequiresHomeAssistant(entries[entryIndex])) {
                 var unavailableMessage: any = "Home Assistant-backed cards are no longer available in this configurator.";
                 showBanner(unavailableMessage, "error");
                 return { ok: false, error: unavailableMessage };

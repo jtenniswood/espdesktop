@@ -14,6 +14,7 @@ import type { GridFeature } from "./grid";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
 import type { PreviewGridPlacementFeature } from "./preview_grid_placement";
 import type { PreviewContextMenuFeature } from "./preview_context_menu";
+import { cardRequiresHomeAssistant } from "../features/preview";
 export interface PreviewInteractionsDependencies {
     readonly cardEditorDraft: CardEditorDraftController;
     readonly configPersistence: ConfigPersistenceFeature;
@@ -23,7 +24,7 @@ export interface PreviewInteractionsDependencies {
     readonly codec: ConfigCodecFeature;
     readonly runtime: UiRuntimeState;
     readonly entityState: Pick<EntityStateFeature, "entityName">;
-    readonly shell: Pick<ControlsShellFeature, "isConfigLocked">;
+    readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "showBanner">;
     readonly requestApi: Pick<ApplicationApiFeature, "postText">;
     readonly grid: Pick<GridFeature, "ctx" | "serializeGrid">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "selectClockBarItem">;
@@ -52,7 +53,7 @@ export function createPreviewInteractionsFeature(
     const window = dependencies.window;
     const runtime = dependencies.runtime;
     const { entityName } = dependencies.entityState;
-    const { isConfigLocked } = dependencies.shell;
+    const { isConfigLocked, showBanner } = dependencies.shell;
     const { ctx, serializeGrid } = dependencies.grid;
     const { hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
     const { findDuplicatePlacement, getCellFromEvent, moveSelectedToCell, moveToCell, placeSlotAt } = dependencies.placement;
@@ -65,6 +66,16 @@ export function createPreviewInteractionsFeature(
         canAddImageCards,
         showImageCardLimitBanner,
     } = dependencies.imageOptions;
+    function duplicateRequiresHomeAssistant(this: any, button?: any, subpage?: any): boolean {
+        if (button && button.type && cardRequiresHomeAssistant(button.type, button)) return true;
+        var nestedButtons: any = subpage && Array.isArray(subpage.buttons) ? subpage.buttons : [];
+        return nestedButtons.some(function (this: any, nested?: any) {
+            return !!nested && !!nested.type && cardRequiresHomeAssistant(nested.type, nested);
+        });
+    }
+    function blockHomeAssistantDuplicate(this: any): void {
+        showBanner("Home Assistant-backed cards can no longer be duplicated in this configurator.", "error");
+    }
     const {
         parseSubpageConfig,
         serializeSubpageConfig,
@@ -496,6 +507,13 @@ export function createPreviewInteractionsFeature(
     function duplicateButton(this: any, srcSlot?: any) {
         if (isConfigLocked())
             return;
+        var src: any = state.buttons[srcSlot - 1];
+        if (!src)
+            return;
+        if (duplicateRequiresHomeAssistant(src, state.subpages[srcSlot])) {
+            blockHomeAssistantDuplicate();
+            return;
+        }
         var newSlot: any = firstFreeSlot();
         if (newSlot < 0)
             return;
@@ -504,7 +522,6 @@ export function createPreviewInteractionsFeature(
         var placement: any = findDuplicatePlacement(state.grid, srcPos + 1, srcSz, dependencies.layout.numSlots);
         if (placement.pos < 0)
             return;
-        var src: any = state.buttons[srcSlot - 1];
         var extraImageCards: any = isImageCard(src) ? 1 : 0;
         if (state.subpages[srcSlot])
             extraImageCards += imageCardCountInSubpage(state.subpages[srcSlot]);
@@ -542,6 +559,13 @@ export function createPreviewInteractionsFeature(
             return;
         var homeSlot: any = state.editingSubpage;
         var sp: any = getSubpage(homeSlot);
+        var src: any = sp.buttons[srcSlot - 1];
+        if (!src)
+            return;
+        if (duplicateRequiresHomeAssistant(src)) {
+            blockHomeAssistantDuplicate();
+            return;
+        }
         var newSlot: any = subpageFirstFreeSlot(sp);
         while (sp.buttons.length < newSlot) {
             sp.buttons.push(emptyButtonConfig());
@@ -551,7 +575,6 @@ export function createPreviewInteractionsFeature(
         var placement: any = findDuplicatePlacement(sp.grid, srcPos + 1, srcSz, dependencies.layout.numSlots);
         if (placement.pos < 0)
             return;
-        var src: any = sp.buttons[srcSlot - 1];
         if (!canAddImageCards(isImageCard(src) ? 1 : 0)) {
             showImageCardLimitBanner();
             return;
