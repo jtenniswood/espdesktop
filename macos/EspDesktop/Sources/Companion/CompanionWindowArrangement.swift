@@ -161,8 +161,13 @@ enum CompanionWindowArrangement {
             } else {
                 safeFrame = clampedFrame(frame, to: restoreDesktop)
             }
-            guard let safeFrame,
-                  canSetFrame(for: active.element), setFrame(safeFrame, for: active.element) else { return false }
+            guard let safeFrame, canSetFrame(for: active.element) else { return false }
+            guard setFrame(safeFrame, for: active.element) else {
+                // Restore can fail after only one AX attribute has been applied.
+                // Put the active window back before reporting failure.
+                _ = setFrame(active.frame, for: active.element)
+                return false
+            }
             previousFrames.removeValue(forKey: active.restoreKey)
             if let sessionIndex { sessionRestoreFrames.remove(at: sessionIndex) }
             savePreviousFrames()
