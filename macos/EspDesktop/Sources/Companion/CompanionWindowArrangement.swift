@@ -93,8 +93,17 @@ enum CompanionWindowArrangement {
         var rect: CGRect { CGRect(x: x, y: y, width: width, height: height) }
     }
 
+    private struct SessionRestoreFrame {
+        let element: AXUIElement
+        let processIdentifier: pid_t
+        let bundleIdentifier: String
+        let originalFrame: CGRect
+        let arrangedFrame: CGRect
+    }
+
     private static let restoreFramesDefaultsKey = "companion.window-arrangement.restore-frames.v1"
     private static var previousFrames = loadPreviousFrames()
+    private static var sessionRestoreFrames: [SessionRestoreFrame] = []
 
     /// Returns nil for ordinary app shortcuts, and the result for a supported
     /// tiling action otherwise.
@@ -118,16 +127,26 @@ enum CompanionWindowArrangement {
         if action == .restore {
             // A shortcut can be posted without macOS actually restoring the
             // window, so only report success for frames saved by our own tiling.
-            guard let storedFrame = previousFrames[active.restoreKey] else { return false }
-            guard let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier),
-                  let identifier = windowIdentifier(for: active.element),
-                  storedFrame.bundleIdentifier == bundleIdentifier,
-                  storedFrame.windowIdentifier == identifier else {
+            guard let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier) else { return false }
+            let storedFrame = previousFrames[active.restoreKey]
+            let identifier = windowIdentifier(for: active.element)
+            let storedIdentityMatches: StoredFrame?
+            if let storedFrame, let identifier,
+               storedFrame.bundleIdentifier == bundleIdentifier,
+               storedFrame.windowIdentifier == identifier {
+                storedIdentityMatches = storedFrame
+            } else {
+                storedIdentityMatches = nil
+            }
+            let sessionIndex = sessionRestoreFrames.firstIndex {
+                $0.processIdentifier == active.processIdentifier && CFEqual($0.element, active.element)
+            }
+            guard let frame = storedIdentityMatches?.rect
+                    ?? sessionIndex.map({ sessionRestoreFrames[$0].originalFrame }) else {
                 previousFrames.removeValue(forKey: active.restoreKey)
                 savePreviousFrames()
                 return false
             }
-            let frame = storedFrame.rect
             let restoreScreen = NSScreen.screens.max(by: {
                 intersectionArea(accessibilityFrame(for: $0.frame), frame)
                     < intersectionArea(accessibilityFrame(for: $1.frame), frame)
@@ -146,6 +165,7 @@ enum CompanionWindowArrangement {
             guard let safeFrame,
                   canSetFrame(for: active.element), setFrame(safeFrame, for: active.element) else { return false }
             previousFrames.removeValue(forKey: active.restoreKey)
+            if let sessionIndex { sessionRestoreFrames.remove(at: sessionIndex) }
             savePreviousFrames()
             return true
         }
@@ -178,30 +198,52 @@ enum CompanionWindowArrangement {
         }
 
         for (index, window) in selected.enumerated() {
-            guard let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier),
-                  let identifier = windowIdentifier(for: window.element) else {
-                previousFrames.removeValue(forKey: window.restoreKey)
-                continue
+            guard let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier) else { continue }
+            let identifier = windowIdentifier(for: window.element)
+            let sessionIndex = sessionRestoreFrames.firstIndex {
+                $0.processIdentifier == window.processIdentifier && CFEqual($0.element, window.element)
             }
+            let previousFrame = previousFrames[window.restoreKey]
             let restoreFrame: CGRect
-            if let previousFrame = previousFrames[window.restoreKey],
-               previousFrame.bundleIdentifier == bundleIdentifier,
-               previousFrame.windowIdentifier == identifier,
-               let arrangedFrame = previousFrame.lastArrangedRect,
-               framesMatch(window.frame, arrangedFrame) {
+            if let sessionIndex,
+               sessionRestoreFrames[sessionIndex].bundleIdentifier == bundleIdentifier,
+               framesMatch(window.frame, sessionRestoreFrames[sessionIndex].arrangedFrame) {
                 // Preserve the original frame only while the window remains
                 // in the position created by our previous arrangement.
+                restoreFrame = sessionRestoreFrames[sessionIndex].originalFrame
+            } else if let previousFrame,
+                      previousFrame.bundleIdentifier == bundleIdentifier,
+                      previousFrame.windowIdentifier == identifier,
+                      let arrangedFrame = previousFrame.lastArrangedRect,
+                      framesMatch(window.frame, arrangedFrame) {
                 restoreFrame = previousFrame.rect
             } else {
                 // A manual move or resize becomes the new previous size.
                 restoreFrame = window.frame
             }
-            previousFrames[window.restoreKey] = StoredFrame(
-                restoreFrame,
-                arrangedFrame: frames[index],
+            let arrangedFrame = frames[index]
+            let sessionFrame = SessionRestoreFrame(
+                element: window.element,
+                processIdentifier: window.processIdentifier,
                 bundleIdentifier: bundleIdentifier,
-                windowIdentifier: identifier
+                originalFrame: restoreFrame,
+                arrangedFrame: arrangedFrame
             )
+            if let sessionIndex {
+                sessionRestoreFrames[sessionIndex] = sessionFrame
+            } else {
+                sessionRestoreFrames.append(sessionFrame)
+            }
+            if let identifier {
+                previousFrames[window.restoreKey] = StoredFrame(
+                    restoreFrame,
+                    arrangedFrame: arrangedFrame,
+                    bundleIdentifier: bundleIdentifier,
+                    windowIdentifier: identifier
+                )
+            } else {
+                previousFrames.removeValue(forKey: window.restoreKey)
+            }
         }
         savePreviousFrames()
         return true
@@ -341,7 +383,10 @@ enum CompanionWindowArrangement {
         guard let size = AXValueCreate(.cgSize, &frameSize),
               let point = AXValueCreate(.cgPoint, &frameOrigin) else { return false }
         guard AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, size) == .success else { return false }
-        return AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, point) == .success
+        guard AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, point) == .success,
+              let actualPosition = pointAttribute(kAXPositionAttribute as CFString, of: element),
+              let actualSize = sizeAttribute(kAXSizeAttribute as CFString, of: element) else { return false }
+        return framesMatch(CGRect(origin: actualPosition, size: actualSize), frame)
     }
 
     private static func canSetFrame(for element: AXUIElement) -> Bool {
