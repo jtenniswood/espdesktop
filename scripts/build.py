@@ -3932,10 +3932,17 @@ def web_mdi_icon_names(data, codepoints):
             for match in re.finditer(r"\bmdi-([a-z0-9-]+)\b", source)
             if match.group(1) in codepoints
         )
+        accessibility_role_values = {
+            match.span(1)
+            for match in re.finditer(
+                r"\.setAttribute\(\s*[\"']role[\"']\s*,\s*[\"']([a-z][a-z0-9-]*)[\"']",
+                source,
+            )
+        }
         names.update(
             match.group(1)
             for match in re.finditer(r"['\"]([a-z][a-z0-9-]*)['\"]", source)
-            if match.group(1) in codepoints
+            if match.group(1) in codepoints and match.span(1) not in accessibility_role_values
         )
     return names
 
