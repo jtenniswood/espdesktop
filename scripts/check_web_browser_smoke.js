@@ -5507,10 +5507,10 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const panels = page.locator(".sp-settings-modal .sp-panel > .sp-disclosure");
     const panelLabels = await panels.locator(".sp-disclosure-button > span:first-child").allTextContents();
     assert(
-      panelLabels.includes("Card Settings") && panelLabels.includes("App subpage"),
-      `${testCase.name}: App subpage should be a separate panel beside Card Settings`,
+      panelLabels.includes("Card Settings") && panelLabels.includes("App Subpage"),
+      `${testCase.name}: App Subpage should be a separate panel beside Card Settings`,
     );
-    const appSubpage = panels.filter({ hasText: "App subpage" }).first();
+    const appSubpage = panels.filter({ hasText: "App Subpage" }).first();
     await appSubpage.locator(".sp-disclosure-button").click();
     const rows = appSubpage.locator(".sp-light-tab-row");
     assert.deepStrictEqual(

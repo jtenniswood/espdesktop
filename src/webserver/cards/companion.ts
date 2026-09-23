@@ -758,7 +758,7 @@ export function registerCompanionCardTypes(
             });
 
             const appSubpageDisclosure = helpers.disclosureSection(
-                "App subpage",
+                "App Subpage",
                 helpers.idPrefix + "companion-app-subpage",
                 card._modalSettingsOpen === true,
             );

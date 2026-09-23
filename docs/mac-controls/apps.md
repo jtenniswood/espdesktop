@@ -27,7 +27,7 @@ Addresses containing an embedded username or password are rejected. Other URL ty
 Launch cards for **Safari**, **Slack**, and **Codex** can create editable subpages with useful shortcuts.
 
 1. Add a **Launch app** card for one of these apps.
-2. Open **App subpage** in its card settings and turn on **Add app subpage**.
+2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
 3. Choose the shortcuts to include and drag them into order.
 4. Optionally enable **Auto switch to subpage**.
 
