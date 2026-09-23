@@ -44,7 +44,7 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("subpage", "mac_companion"), false, "Home Assistant subpages are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_subpage", "home_assistant"), false, "Companion subpages are hidden from Home Assistant");
   equal(cardTypeVisibleForConnector("companion_subpage", "mac_companion"), true, "Companion subpages remain in the Companion picker");
-  for (const key of ["calendar", "slider", "timer"]) {
+  for (const key of ["calendar", "push", "slider", "timer"]) {
     equal(cardTypeConnector(key), "home_assistant", `${key} is classified as Home Assistant-only`);
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
@@ -54,6 +54,7 @@ export function runPreviewFeatureTests(): void {
     equal(cardTypeVisibleForConnector(key, "mac_companion"), true, `${key} remains available without Home Assistant`);
   }
   equal(cardRequiresHomeAssistant("climate", {}), true, "Home Assistant-only cards require Home Assistant");
+  equal(cardRequiresHomeAssistant("push", {}), true, "Trigger cards require the Home Assistant event bus");
   equal(cardRequiresHomeAssistant("action", { sensor: "light.turn_on" }), true, "Home Assistant actions require Home Assistant");
   equal(cardRequiresHomeAssistant("action", { sensor: "local" }), false, "local actions can be transferred");
   equal(cardRequiresHomeAssistant("sensor", { sensor: "sensor.temperature" }), true, "Home Assistant sensors require Home Assistant");

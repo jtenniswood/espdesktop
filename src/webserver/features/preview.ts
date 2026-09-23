@@ -120,11 +120,11 @@ const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
 const LOCAL_ONLY_CARD_TYPES = new Set(["action", "sensor"]);
 
 const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
-  "calendar", "slider",
+  "calendar", "push", "slider",
 ]);
 
 const LOCAL_CARD_TYPES = new Set([
-  "clock", "internal", "local_sensor", "push", "screen_lock", "timezone", "wifi_qr", "wifi_qr_card",
+  "clock", "internal", "local_sensor", "screen_lock", "timezone", "wifi_qr", "wifi_qr_card",
 ]);
 
 export type CardPickerConnector = "home_assistant" | "mac_companion";

@@ -2422,6 +2422,11 @@ async function assertEmptyCellSettings(page, posts, label) {
     `${label}: Home Assistant Switch cards are not available in the add-card picker`,
   );
   assert.strictEqual(
+    await page.getByRole("button", { name: "Trigger card type" }).count(),
+    0,
+    `${label}: Home Assistant event Trigger cards are not available in the add-card picker`,
+  );
+  assert.strictEqual(
     await page.locator("#sp-inp-type").count(),
     0,
     `${label}: new card draft does not show the compact type dropdown before selection`,
