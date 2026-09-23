@@ -442,7 +442,8 @@ export function registerCompanionCardTypes(
 
             if (!companionCardIsMetric(card)) {
                 helpers.renderCardTextField(panel, card, helpers, {
-                    label: "Label", idSuffix: "label", field: "label",
+                    label: initialMode === "url" ? "Website Name" : "Label",
+                    idSuffix: "label", field: "label",
                     placeholder: companionLabelPlaceholder(card), rerender: true,
                 });
             }
