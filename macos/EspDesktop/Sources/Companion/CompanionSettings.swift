@@ -608,12 +608,6 @@ struct CompanionSettings: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
-            if !store.panelDisplayName.isEmpty && !store.panelHost.isEmpty {
-                Text(store.panelHost)
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .textSelection(.enabled)
-            }
             if store.connectionState == .failed || store.connectionState == .reconnecting {
                 Text(store.connectionState == .reconnecting
                      ? "Check that your display is powered on and connected to the same network. EspDesktop will try again automatically."
