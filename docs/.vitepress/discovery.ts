@@ -14,6 +14,7 @@ export const redirects: Record<string, string> = {
   'card-types/index': espcontrol,
   'getting-started/home-assistant-actions': espcontrol,
   'features/media-cover-art': `${hostname}card-types/companion`,
+  'mac-controls/volume': `${hostname}card-types/companion`,
   'guides/index': espcontrol,
   'immich/index': espcontrol,
   'generated/cards/capabilities': `${hostname}card-types/companion`,
