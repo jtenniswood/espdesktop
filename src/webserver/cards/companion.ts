@@ -57,6 +57,7 @@ import {
 } from "../application/companion_shortcut_folder";
 
 const COMPANION_URL_PREFIX = "url.";
+const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
 const COMPANION_WINDOW_PREFIX = "window.";
@@ -281,6 +282,7 @@ export function companionCardMode(card: any): CompanionCardModeId {
 }
 
 export function companionEntityForMode(mode: string): string {
+    if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
@@ -573,11 +575,11 @@ export function registerCompanionCardTypes(
             select.appendChild(loading);
             appField.appendChild(select);
             panel?.appendChild(appField);
-            if (initialMode === "app" || initialMode === "url") {
+            if (initialMode === "app") {
                 helpers.markCardPrimaryField(appField, "entity");
             }
             helpers.requireField(select, "Choose a Mac app before saving.", function () {
-                return initialMode === "app" || initialMode === "url";
+                return initialMode === "app";
             }, function (value: string) {
                 return companionApplicationActionIdCanSave(availableCompanionApps, value, currentEntity);
             });
@@ -798,8 +800,8 @@ export function registerCompanionCardTypes(
             }
 
             function syncMode(mode: string): void {
-                appField.style.display = mode === "app" || mode === "url" ? "" : "none";
-                appFieldLabel.textContent = mode === "url" ? "Open with" : "Mac App";
+                appField.style.display = mode === "app" ? "" : "none";
+                appFieldLabel.textContent = "Mac App";
                 folderField.style.display = mode === "folder" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";

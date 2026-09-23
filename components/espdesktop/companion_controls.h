@@ -516,7 +516,8 @@ inline bool companion_metric_card_should_disable(bool connected, bool preserve_n
 }
 
 inline bool companion_url_available(const std::string &app_id, const std::string &url_config) {
-  return !companion_encoded_url(url_config).empty() && companion_action_available(app_id);
+  return !companion_encoded_url(url_config).empty() &&
+         (app_id == "system.default_browser" || companion_action_available(app_id));
 }
 
 inline bool companion_card_focus_allowed(const std::string &url_config) {
@@ -762,7 +763,9 @@ inline bool invoke_companion_url(const std::string &app_id,
                                  const std::string &url_config,
                                  const std::string &request_id) {
   const std::string encoded_url = companion_encoded_url(url_config);
-  if (encoded_url.empty() || !companion_action_available(app_id) || !companion_url_sender()) return false;
+  if (encoded_url.empty() ||
+      (app_id != "system.default_browser" && !companion_action_available(app_id)) ||
+      !companion_url_sender()) return false;
   return companion_url_sender()(app_id, encoded_url, request_id);
 }
 
