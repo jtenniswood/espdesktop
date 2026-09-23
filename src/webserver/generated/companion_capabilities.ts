@@ -212,6 +212,26 @@ export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [
     group: "Move & Resize"
   },
   {
+    id: "window.top-left",
+    label: "Top Left",
+    group: "Move & Resize"
+  },
+  {
+    id: "window.top-right",
+    label: "Top Right",
+    group: "Move & Resize"
+  },
+  {
+    id: "window.bottom-left",
+    label: "Bottom Left",
+    group: "Move & Resize"
+  },
+  {
+    id: "window.bottom-right",
+    label: "Bottom Right",
+    group: "Move & Resize"
+  },
+  {
     id: "window.restore",
     label: "Return to Previous Size",
     group: "Move & Resize"
@@ -255,6 +275,31 @@ export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [
     id: "window.arrange.bottom-quarters",
     label: "Bottom & Quarters",
     group: "Arrange Windows"
+  },
+  {
+    id: "window.arrange.quarters",
+    label: "Quarters",
+    group: "Arrange Windows"
+  },
+  {
+    id: "window.fullscreen.enter",
+    label: "Enter Full Screen",
+    group: "Full Screen"
+  },
+  {
+    id: "window.fullscreen.exit",
+    label: "Exit Full Screen",
+    group: "Full Screen"
+  },
+  {
+    id: "window.split.left",
+    label: "Left of Screen",
+    group: "Full Screen"
+  },
+  {
+    id: "window.split.right",
+    label: "Right of Screen",
+    group: "Full Screen"
   }
 ];
 export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [

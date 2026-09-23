@@ -10,8 +10,9 @@ import Foundation
 enum CompanionWindowArrangement {
     private enum Action: Equatable {
         case fill, center, left, right, top, bottom, restore
+        case topLeft, topRight, bottomLeft, bottomRight
         case leftRight, rightLeft, topBottom, bottomTop
-        case leftQuarters, rightQuarters, topQuarters, bottomQuarters
+        case leftQuarters, rightQuarters, topQuarters, bottomQuarters, quarters
 
         init?(identifier: String) {
             switch identifier {
@@ -21,6 +22,10 @@ enum CompanionWindowArrangement {
             case "window.right": self = .right
             case "window.top": self = .top
             case "window.bottom": self = .bottom
+            case "window.top-left": self = .topLeft
+            case "window.top-right": self = .topRight
+            case "window.bottom-left": self = .bottomLeft
+            case "window.bottom-right": self = .bottomRight
             case "window.restore": self = .restore
             case "window.arrange.left-right": self = .leftRight
             case "window.arrange.right-left": self = .rightLeft
@@ -30,6 +35,7 @@ enum CompanionWindowArrangement {
             case "window.arrange.right-quarters": self = .rightQuarters
             case "window.arrange.top-quarters": self = .topQuarters
             case "window.arrange.bottom-quarters": self = .bottomQuarters
+            case "window.arrange.quarters": self = .quarters
             default: return nil
             }
         }
@@ -38,6 +44,7 @@ enum CompanionWindowArrangement {
             switch self {
             case .leftRight, .rightLeft, .topBottom, .bottomTop: 2
             case .leftQuarters, .rightQuarters, .topQuarters, .bottomQuarters: 3
+            case .quarters: 4
             default: 1
             }
         }
@@ -496,6 +503,10 @@ enum CompanionWindowArrangement {
         case .right: return [right]
         case .top: return [top]
         case .bottom: return [bottom]
+        case .topLeft: return [topLeft]
+        case .topRight: return [topRight]
+        case .bottomLeft: return [bottomLeft]
+        case .bottomRight: return [bottomRight]
         case .restore: return []
         case .leftRight: return [left, right]
         case .rightLeft: return [right, left]
@@ -505,6 +516,7 @@ enum CompanionWindowArrangement {
         case .rightQuarters: return [right, topLeft, bottomLeft]
         case .topQuarters: return [top, bottomLeft, bottomRight]
         case .bottomQuarters: return [bottom, topLeft, topRight]
+        case .quarters: return [topLeft, topRight, bottomLeft, bottomRight]
         }
     }
 }
