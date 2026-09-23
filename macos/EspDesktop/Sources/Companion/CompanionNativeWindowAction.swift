@@ -63,7 +63,7 @@ enum CompanionNativeWindowAction {
         }
 
         guard let item = resolve(
-            paths: action.menuPaths,
+            paths: localizedMenuPaths(action.menuPaths),
             roots: children(of: menuBar),
             children: children,
             deadline: deadline
@@ -75,6 +75,34 @@ enum CompanionNativeWindowAction {
         }
         return AXUIElementPerformAction(item, kAXPressAction as CFString) == .success
             ? nil : "macOS could not start Split View"
+    }
+
+    private static func localizedMenuPaths(_ paths: [[String]]) -> [[String]] {
+        let appKitBundle = Bundle(for: NSMenu.self)
+        guard let tableURL = appKitBundle.url(forResource: "MenuCommands", withExtension: "loctable"),
+              let data = try? Data(contentsOf: tableURL),
+              let table = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+                as? [String: [String: Any]] else {
+            return localizedMenuPaths(paths, translations: [:])
+        }
+        let localizations = table.compactMap { language, values in
+            language != "LocProvenance" && values.values.contains(where: { $0 is String }) ? language : nil
+        }
+        let languages = Bundle.preferredLocalizations(
+            from: localizations,
+            forPreferences: Locale.preferredLanguages
+        )
+        let values = languages.first.flatMap { table[$0] } ?? table["en"] ?? [:]
+        let translations = values.compactMapValues { $0 as? String }
+        return localizedMenuPaths(paths, translations: translations)
+    }
+
+    static func localizedMenuPaths(_ paths: [[String]], translations: [String: String]) -> [[String]] {
+        let localizedPaths = paths.map { path in
+            path.map { translations[$0] ?? $0 }
+        }
+        // Keep English paths as a fallback for third-party apps with custom menus.
+        return localizedPaths + paths
     }
 
     private static func resolve(
