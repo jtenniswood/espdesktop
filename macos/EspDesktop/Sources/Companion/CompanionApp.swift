@@ -11,6 +11,7 @@ struct CompanionApp: App {
         Settings {
             CompanionSettings(store: appDelegate.store)
                 .frame(minWidth: 500, minHeight: 500)
+                .background(WindowRestorationDisabler().frame(width: 0, height: 0))
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -23,6 +24,24 @@ struct CompanionApp: App {
                     .keyboardShortcut(",", modifiers: .command)
             }
         }
+    }
+}
+
+private struct WindowRestorationDisabler: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        WindowRestorationMarkerView(frame: .zero)
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+private final class WindowRestorationMarkerView: NSView {
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let window else { return }
+        window.isRestorable = false
+        // The app presents its own AppKit settings window; this scene window is redundant.
+        DispatchQueue.main.async { [weak window] in window?.close() }
     }
 }
 
@@ -226,6 +245,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         window.title = "Settings"
         window.backgroundColor = .windowBackgroundColor
         window.delegate = self
+        window.isRestorable = false
         window.minSize = NSSize(width: 500, height: 500)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
