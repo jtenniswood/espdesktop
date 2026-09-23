@@ -334,7 +334,6 @@ export default defineConfig({
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
           { text: 'Window Controls', link: '/mac-controls/windows' },
-          { text: 'Volume', link: '/mac-controls/volume' },
           { text: 'Statistics', link: '/mac-controls/statistics' },
           { text: 'Permissions & Security', link: '/mac-controls/security' },
           { text: 'Where to Buy', link: 'https://jtenniswood.github.io/espcontrol/screens/4848s040#where-to-buy' },
