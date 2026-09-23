@@ -540,6 +540,8 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
 
     install = (ROOT / "docs/getting-started/install.md").read_text(encoding="utf-8")
     assert "https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery" in install
+    firmware_updates = (ROOT / "docs/features/firmware-updates.md").read_text(encoding="utf-8")
+    assert "/getting-started/c6-recovery" in firmware_updates
     screen_docs = {
         "guition-esp32-p4-jc1060p470": ROOT / "docs/screens/jc1060p470-v1.md",
         "guition-esp32-p4-jc1060p470-v2": ROOT / "docs/screens/jc1060p470-v2.md",
