@@ -249,8 +249,8 @@ assert.strictEqual(
 );
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("image", false),
-  true,
-  "S3 exposes Camera Cards",
+  false,
+  "Home Assistant camera cards are hidden from the configurator",
 );
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("media_cover_art", false),
@@ -491,8 +491,8 @@ const sceneWithStaleConfirmation = hooks.parseButtonConfig(hooks.serializeButton
   options: "confirm_on,confirm_message=Run bedtime?",
 }));
 assert.strictEqual(sceneWithStaleConfirmation.options, "", "non-script action cards drop script confirmation options");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), true);
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), true);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), false);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("local_sensor", false), false);
@@ -635,8 +635,8 @@ assert.deepStrictEqual(Array.from(hooks.alarmVisibleActions(hooks.parseButtonCon
 assert.deepStrictEqual(Array.from(hooks.alarmVisibleActions(hooks.parseButtonConfig(
   "alarm_control_panel.house;House;Security;Auto;;;alarm;;actions=away%7Chome%7Cnight%7Cvacation%7Cdisarm"
 ))), ["away", "home", "night"]);
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), true);
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), true);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), false);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_switch", false), false);
