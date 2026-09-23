@@ -103,7 +103,15 @@ enum CompanionWindowArrangement {
                 intersectionArea(accessibilityFrame(for: $0.frame), frame) > 0 ? $0 : nil
             } ?? screen
             let restoreDesktop = accessibilityFrame(for: restoreScreen.visibleFrame)
-            guard let safeFrame = clampedFrame(frame, to: restoreDesktop),
+            let safeFrame: CGRect?
+            if isReachable(frame, on: NSScreen.screens) {
+                // Keep deliberately oversized or spanning frames intact when
+                // enough of the window remains available on a connected display.
+                safeFrame = frame
+            } else {
+                safeFrame = clampedFrame(frame, to: restoreDesktop)
+            }
+            guard let safeFrame,
                   canSetFrame(for: active.element), setFrame(safeFrame, for: active.element) else { return false }
             previousFrames.removeValue(forKey: active.restoreKey)
             savePreviousFrames()
@@ -281,6 +289,25 @@ enum CompanionWindowArrangement {
         let x = min(max(frame.minX, desktop.minX), desktop.maxX - width)
         let y = min(max(frame.minY, desktop.minY), desktop.maxY - height)
         return CGRect(x: x, y: y, width: width, height: height)
+    }
+
+    /// A window remains reachable when at least a 64-point square (or the
+    /// whole window when it is smaller) is inside any connected display's
+    /// visible area. This preserves spanning and intentionally offset frames
+    /// while still recovering windows stranded by display changes.
+    private static func isReachable(_ frame: CGRect, on screens: [NSScreen]) -> Bool {
+        guard frame.minX.isFinite, frame.minY.isFinite,
+              frame.width.isFinite, frame.height.isFinite,
+              frame.width > 0, frame.height > 0 else { return false }
+        let requiredWidth = min(64, frame.width)
+        let requiredHeight = min(64, frame.height)
+        return screens.contains { screen in
+            let visibleFrame = accessibilityFrame(for: screen.visibleFrame)
+            let intersection = frame.intersection(visibleFrame)
+            return !intersection.isNull
+                && intersection.width >= requiredWidth
+                && intersection.height >= requiredHeight
+        }
     }
 
     /// AppKit screen coordinates use a bottom-left origin; Accessibility uses
