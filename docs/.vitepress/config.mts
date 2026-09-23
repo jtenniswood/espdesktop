@@ -320,10 +320,8 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Supported Display', link: '/screens/4848s040' },
           { text: 'Install', link: '/getting-started/install' },
           { text: 'Mac App', link: '/getting-started/mac-app' },
-          { text: 'Configure', link: '/features/setup' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
         ],
       },
@@ -331,6 +329,8 @@ export default defineConfig({
         text: 'Mac Control',
         items: [
           { text: 'Overview', link: '/card-types/companion' },
+          { text: 'Configure', link: '/features/setup' },
+          { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps & Websites', link: '/mac-controls/apps' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
@@ -338,13 +338,7 @@ export default defineConfig({
           { text: 'Volume', link: '/mac-controls/volume' },
           { text: 'Statistics', link: '/mac-controls/statistics' },
           { text: 'Permissions & Security', link: '/mac-controls/security' },
-        ],
-      },
-      {
-        text: 'Configuring',
-        items: [
-          { text: 'Setup', link: '/features/setup' },
-          { text: 'Subpages', link: '/features/subpages' },
+          { text: 'Where to Buy', link: 'https://jtenniswood.github.io/espcontrol/screens/4848s040#where-to-buy' },
         ],
       },
       {
