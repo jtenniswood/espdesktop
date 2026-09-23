@@ -52,7 +52,7 @@ describe("browserless application contracts", () => {
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.match(connectors, /sp-card-badge sp-hidden/);
-    assert.match(connectors, /setHidden\(homeAssistantSteps, ha\.connected \|\| ha\.configured\)/);
+    assert.match(connectors, /setHidden\(homeAssistantSteps, statusEndpointAvailable && \(ha\.connected \|\| ha\.configured\)\)/);
     assert.match(connectors, /setHidden\(homeAssistantActionInfo, !ha\.connected \|\| ha\.actions_confirmed\)/);
     assert.match(connectors, /sp-connector-info/);
     assert.match(connectors, /This lets the display control your devices/);

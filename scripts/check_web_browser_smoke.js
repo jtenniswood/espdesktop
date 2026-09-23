@@ -6424,6 +6424,22 @@ async function assertHomeAssistantConnectorLayout(browser) {
       await checkLayout("setup");
     } finally { await context.close(); }
   }
+
+  const legacyContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await installRoutes(legacyContext, slug);
+  const legacyPage = await legacyContext.newPage();
+  await installFakeEventSource(legacyPage);
+  try {
+    await legacyPage.goto(`http://espdesktop.test/${slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await legacyPage.waitForSelector("#sp-app");
+    await legacyPage.getByRole("tab", { name: "Connectors" }).click();
+    const legacyCard = legacyPage.locator("#sp-connectors .card").filter({ has: legacyPage.getByRole("heading", { name: "Home Assistant", exact: true }) });
+    await legacyCard.locator(".card-header").click();
+    await legacyCard.getByRole("heading", { name: "Connect your display" }).waitFor({ state: "visible" });
+    assert.strictEqual(await legacyCard.locator("code").textContent(), "espdesktop.test", "Legacy firmware retains the ESPHome address fallback");
+    assert(!(await legacyCard.locator(".sp-connector-status").isVisible()), "Unknown legacy connection state is not shown as disconnected");
+    assert(!(await legacyCard.getByRole("button", { name: "Forget Home Assistant", exact: true }).isVisible()), "Legacy firmware does not expose an unsupported Forget action");
+  } finally { await legacyContext.close(); }
 }
 
 (async function main() {

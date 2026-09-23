@@ -150,6 +150,7 @@ export function createConnectorsPageFeature(
                 "sp-connector-status-connected", value.home_assistant.connected);
         }
         const ha = value.home_assistant;
+        setHidden(homeAssistantStatus, !statusEndpointAvailable);
         if (homeAssistantStatus && homeAssistantOfflineInfo?.parentElement) {
             if (ha.configured && !ha.connected) {
                 homeAssistantOfflineInfo.insertBefore(homeAssistantStatus, homeAssistantOfflineInfo.firstChild);
@@ -159,14 +160,16 @@ export function createConnectorsPageFeature(
         }
         // Show only the next relevant step, rather than repeating first-time
         // setup during an outage or offering an action that cannot run yet.
-        setHidden(homeAssistantSteps, ha.connected || ha.configured);
-        setHidden(homeAssistantOfflineInfo, !ha.configured || ha.connected);
+        setHidden(homeAssistantSteps, statusEndpointAvailable && (ha.connected || ha.configured));
+        setHidden(homeAssistantOfflineInfo,
+            !statusEndpointAvailable || !ha.configured || ha.connected);
         setHidden(homeAssistantActionInfo, !ha.connected || ha.actions_confirmed);
         if (homeAssistantConfirmButton) {
             homeAssistantConfirmButton.disabled = !value.home_assistant.connected ||
                 value.home_assistant.actions_confirmed;
         }
-        setHidden(homeAssistantForgetButton, !ha.configured || ha.connected);
+        setHidden(homeAssistantForgetButton,
+            !statusEndpointAvailable || !ha.configured || ha.connected);
         setHidden(homeAssistantInstructions, value.home_assistant.connected &&
             value.home_assistant.actions_confirmed);
         setHidden(homeAssistantBadge, !value.home_assistant.connected);
