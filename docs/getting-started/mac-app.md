@@ -64,7 +64,7 @@ After pairing, open the display's web page and add a simple **Companion → Laun
 
 Then add the controls you want:
 
-- [Mac Cards and Capabilities](/card-types/companion) covers app subpages, custom shortcuts, folders, websites, window controls, volume, and statistics.
+- [Mac Controls](/card-types/companion) links to the detailed guide for each control type.
 - [Setup](/features/setup) explains card placement, sizes, colours, subpages, and backups.
 
 ## Accessibility and Startup

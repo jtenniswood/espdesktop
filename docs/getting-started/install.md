@@ -37,6 +37,6 @@ Open that address in a browser to reach the display's setup page. Choose **Conne
 ## Next
 
 - [Install and pair the Mac app](/getting-started/mac-app)
-- [Build Mac control cards](/card-types/companion)
+- [Explore Mac Controls](/card-types/companion)
 - [Configure your control surface](/features/setup)
 - For Home Assistant panels and controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
