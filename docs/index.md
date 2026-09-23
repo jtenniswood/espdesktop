@@ -20,7 +20,7 @@ Start with [the supported display](/screens/4848s040), then [install the firmwar
 - **Volume** — adjust the selected Mac speaker or microphone.
 - **Mac status** — show processor, memory, storage, network, battery, and IP address.
 
-Organise controls into pages and app-specific subpages using the display's built-in setup page. No Home Assistant account is needed for Mac controls.
+Organise controls into subpages using the display's built-in setup page. No Home Assistant account is needed for Mac controls.
 
 ## Get Started
 

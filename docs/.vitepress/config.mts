@@ -336,7 +336,6 @@ export default defineConfig({
         text: 'Mac Control',
         items: [
           { text: 'Mac Cards & Capabilities', link: '/card-types/companion' },
-          { text: 'App & Stat Subpages', link: '/features/subpages' },
         ],
       },
       {
