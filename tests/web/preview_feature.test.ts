@@ -1,5 +1,6 @@
 import {
   cardPickerConnectors,
+  cardRequiresHomeAssistant,
   cardTypeConnector,
   cardTypePickerOptions,
   cardTypeVisibleForConnector,
@@ -43,11 +44,20 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("subpage", "mac_companion"), false, "Home Assistant subpages are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_subpage", "home_assistant"), false, "Companion subpages are hidden from Home Assistant");
   equal(cardTypeVisibleForConnector("companion_subpage", "mac_companion"), true, "Companion subpages remain in the Companion picker");
-  for (const key of ["calendar", "internal", "screen_lock", "slider", "wifi_qr", "wifi_qr_card", "timer"]) {
+  for (const key of ["calendar", "slider", "timer"]) {
     equal(cardTypeConnector(key), "home_assistant", `${key} is classified as Home Assistant-only`);
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
   }
+  for (const key of ["internal", "screen_lock", "wifi_qr", "wifi_qr_card"]) {
+    equal(cardTypeConnector(key), "local", `${key} is classified as a local card`);
+    equal(cardTypeVisibleForConnector(key, "mac_companion"), true, `${key} remains available without Home Assistant`);
+  }
+  equal(cardRequiresHomeAssistant("climate", {}), true, "Home Assistant-only cards require Home Assistant");
+  equal(cardRequiresHomeAssistant("action", { sensor: "light.turn_on" }), true, "Home Assistant actions require Home Assistant");
+  equal(cardRequiresHomeAssistant("action", { sensor: "local" }), false, "local actions can be transferred");
+  equal(cardRequiresHomeAssistant("sensor", { sensor: "sensor.temperature" }), true, "Home Assistant sensors require Home Assistant");
+  equal(cardRequiresHomeAssistant("sensor", { sensor: "local" }), false, "local sensors can be transferred");
   equal(cardTypeVisibleForConnector("action", "mac_companion"), true, "local actions remain available with Companion");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
   equal(cardTypeVisibleForConnector("sensor", "mac_companion"), true, "local sensors remain available with Companion");
@@ -65,8 +75,8 @@ export function runPreviewFeatureTests(): void {
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    ["action", "sensor"],
-    "subpage picker retains local-only action and sensor cards",
+    ["action", "sensor", "wifi_qr"],
+    "subpage picker retains local-only action, sensor, and Wi-Fi sharing cards",
   );
   const companionOptions = cardTypePickerOptions({
       ...definitions,
@@ -84,10 +94,12 @@ export function runPreviewFeatureTests(): void {
       screen_lock: { label: "Screen Lock", allowInSubpage: true },
       webhook: { label: "Webhook", allowInSubpage: true },
       slider: { label: "Slider", allowInSubpage: true },
+      wifi_qr: { label: "Wifi Sharing", allowInSubpage: true },
+      wifi_qr_card: { label: "QR Card", pickerKey: "wifi_qr", allowInSubpage: true },
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "companion_shortcut", "companion_app", "companion_folder", "companion_url", "sensor", "companion_stats", "companion_subpage", "webhook", "companion_window"],
+    ["action", "internal", "companion_shortcut", "companion_app", "companion_folder", "companion_url", "screen_lock", "sensor", "companion_stats", "companion_subpage", "webhook", "wifi_qr", "companion_window"],
     "Companion picker includes local cards and excludes Home Assistant-only controls",
   );
   equal(

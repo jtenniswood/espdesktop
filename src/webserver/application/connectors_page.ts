@@ -78,7 +78,9 @@ export function createConnectorsPageFeature(
     const { document, window, fetch } = dom;
     let heading: HTMLElement | null = null;
     let companionCard: HTMLElement | null = null;
+    let unavailableMessage: HTMLElement | null = null;
     let current: ConnectorsStatus | null = null;
+    let statusEndpointAvailable = false;
     const statusListeners: Array<() => void> = [];
     let timer: number | null = null;
     let refreshInProgress = false;
@@ -131,6 +133,7 @@ export function createConnectorsPageFeature(
         refreshInProgress = true;
         try {
             const status = await requestStatus();
+            statusEndpointAvailable = true;
             applyStatus(status);
         } catch {
             if (!current) applyStatus(fallbackStatus());
@@ -169,6 +172,11 @@ export function createConnectorsPageFeature(
                 !openCompanion,
             );
             config.appendChild(companionCard);
+        } else {
+            unavailableMessage = document.createElement("p");
+            unavailableMessage.className = "sp-connectors-unavailable";
+            unavailableMessage.textContent = "No external connectors are available on this display.";
+            config.appendChild(unavailableMessage);
         }
         page.appendChild(config);
         parent.appendChild(page);
@@ -181,11 +189,14 @@ export function createConnectorsPageFeature(
     }
 
     function homeAssistantConnected(): boolean {
-        return false;
+        if (!current) return false;
+        // Older firmware does not report connector status. Keep its existing
+        // Home Assistant settings available while still hiding new card setup.
+        return !statusEndpointAvailable || !!current.home_assistant.connected;
     }
 
     function homeAssistantSettingsAvailable(): boolean {
-        return false;
+        return homeAssistantConnected();
     }
 
     function homeAssistantCardPickerEnabled(): boolean {

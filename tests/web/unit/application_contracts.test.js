@@ -52,8 +52,9 @@ describe("browserless application contracts", () => {
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(connectors, /buildHomeAssistantCard|Home Assistant actions|Forget Home Assistant/);
-    assert.match(connectors, /function homeAssistantConnected\(\): boolean \{\s*return false;/);
+    assert.match(connectors, /function homeAssistantConnected\(\): boolean \{[\s\S]*statusEndpointAvailable[\s\S]*current\.home_assistant\.connected/);
     assert.match(connectors, /function homeAssistantCardPickerEnabled\(\): boolean \{\s*return false;/);
+    assert.match(connectors, /No external connectors are available on this display\./);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
     assert.doesNotMatch(connectors, /connectors\/home-assistant\/complete|connectors\/home-assistant\/forget/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
@@ -62,7 +63,6 @@ describe("browserless application contracts", () => {
     assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
     assert.match(styles, /\.sp-connectors-config\{padding-top:32px\}/);
-    assert.doesNotMatch(connectors, /sp-connectors-intro|Manage the services that provide data and actions/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
     assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
@@ -112,6 +112,12 @@ describe("browserless application contracts", () => {
 
   test("filters the add-card picker by connector without persisting a source", () => {
     runPreviewFeatureTests();
+  });
+
+  test("rejects Home Assistant card imports and clipboard pastes", () => {
+    const clipboard = fs.readFileSync(path.join(ROOT, "src/webserver/application/preview_clipboard.ts"), "utf8");
+    assert.match(clipboard, /cardRequiresHomeAssistant\(type, normalized\)/);
+    assert.match(clipboard, /cardRequiresHomeAssistant\(entryButton\.type \|\| "", entryButton\)/);
   });
 
   test("owns entity catalogue helpers as one explicit service", () => {

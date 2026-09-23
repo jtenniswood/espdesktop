@@ -16,6 +16,7 @@ import type { ControlsShellFeature } from "./controls_shell";
 import type { ApplicationApiFeature } from "./api";
 import type { GridFeature } from "./grid";
 import { cardOwnsSubpage } from "./companion_shortcut_folder";
+import { cardRequiresHomeAssistant } from "../features/preview";
 export interface PreviewClipboardDependencies {
     readonly configPersistence: ConfigPersistenceFeature;
     readonly document: Document;
@@ -156,6 +157,9 @@ export function createPreviewClipboardFeature(
         if (buttonConfigDisabledForDevice(normalized)) {
             throw cardTransferError("This controller does not support the " +
                 cardTransferTypeLabel(type) + " card type.");
+        }
+        if (cardRequiresHomeAssistant(type, normalized)) {
+            throw cardTransferError("Home Assistant-backed cards are no longer available in this configurator.");
         }
         if (inSubpage && cardOwnsSubpage(normalized)) {
             throw cardTransferError("Subpage cards cannot be placed inside another subpage.");
@@ -463,6 +467,14 @@ export function createPreviewClipboardFeature(
             return { ok: false, error: "Configuration is locked." };
         if (!entries || !entries.length)
             return { ok: false, error: "No copied cards are available." };
+        for (var entryIndex: any = 0; entryIndex < entries.length; entryIndex++) {
+            var entryButton: any = clipboardButtonConfig(entries[entryIndex]);
+            if (cardRequiresHomeAssistant(entryButton.type || "", entryButton)) {
+                var unavailableMessage: any = "Home Assistant-backed cards are no longer available in this configurator.";
+                showBanner(unavailableMessage, "error");
+                return { ok: false, error: unavailableMessage };
+            }
+        }
         if (!canAddImageCards(imageCardCountInClipboardEntries(entries))) {
             showImageCardLimitBanner();
             return { ok: false, error: imageSlotCapacityMessage() };

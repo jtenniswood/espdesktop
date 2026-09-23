@@ -61,6 +61,7 @@ function casesFromManifest() {
       slots: device.slots,
       viewport: viewportFor(aspect.ratio),
       coverArtSquareOverlay: !!(device.web && device.web.coverArtSquareOverlay),
+      companionSupported: !!(device.capabilities && device.capabilities.companion),
       mediaCoverArtSupported: !(
         device.web &&
         Array.isArray(device.web.disabledCardTypes) &&
@@ -2396,31 +2397,29 @@ async function assertEmptyCellSettings(page, posts, label) {
     `${label}: card choices do not display connector source labels`,
   );
   const pickerTabs = page.locator(".sp-card-type-tab");
-  if ((await pickerTabs.count()) === 2) {
+  assert(
+    (await pickerTabs.count()) <= 1,
+    `${label}: the picker has no Home Assistant source tab`,
+  );
+  if ((await pickerTabs.count()) === 1) {
     assert.deepStrictEqual(
       await pickerTabs.allTextContents(),
-      ["Home Assistant", "Mac Companion"],
-      `${label}: Companion-capable picker exposes Home Assistant and Mac Companion tabs`,
+      ["Mac Companion"],
+      `${label}: Companion-capable picker exposes only Mac Companion`,
     );
-    await pickerTabs.nth(1).click();
     assert(
       await page.getByRole("button", { name: "Webhook card type" }).isVisible(),
       `${label}: shared webhook card appears in the Companion picker`,
     );
-    await pickerTabs.nth(0).click();
   }
   const switchTypeOption = page.getByRole("button", {
     name: "Switch card type",
   });
-  assert(
-    await switchTypeOption.isVisible(),
-    `${label}: new card draft shows Switch as a card type`,
-  );
-  assert(
-    (
-      await switchTypeOption.locator(".sp-card-type-icon").getAttribute("class")
-    ).includes("mdi-toggle-switch"),
-    `${label}: card type picker preserves pre-slugged MDI icon names`,
+  const homeAssistantSwitchAvailable = (await switchTypeOption.count()) > 0;
+  assert.strictEqual(
+    homeAssistantSwitchAvailable,
+    false,
+    `${label}: Home Assistant Switch cards are not available in the add-card picker`,
   );
   assert.strictEqual(
     await page.locator("#sp-inp-type").count(),
@@ -2523,102 +2522,16 @@ async function assertEmptyCellSettings(page, posts, label) {
 
   await page.locator(`.sp-main [data-pos="${pos}"]`).click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await chooseCardType(page, "Switch");
-  const switchCardSettings = page
+  await chooseCardType(page, "Action");
+  const actionCardSettings = page
     .locator(".sp-settings-modal .sp-disclosure")
     .filter({ hasText: "Card Settings" })
     .first();
-  assert(
-    await switchCardSettings.isVisible(),
-    `${label}: Switch should show a Card Settings panel`,
-  );
-  assert(
-    !(await switchCardSettings.getAttribute("class")).includes("sp-open"),
-    `${label}: Switch Card Settings should start collapsed`,
-  );
-  await switchCardSettings.locator(".sp-disclosure-button").click();
-  await page.locator("#sp-inp-label").fill("Keep this label");
-  await page.locator("#sp-inp-entity").fill("switch.keep_this_entity");
-  await page.locator("#sp-inp-entity").waitFor({ state: "visible" });
-  assert.strictEqual(
-    await page
-      .locator("#sp-inp-entity")
-      .evaluate((el) => !!el.closest(".sp-disclosure")),
-    false,
-    `${label}: Switch entity should sit outside Card Settings`,
-  );
-  for (const [selector, fieldLabel] of [
-    ["#sp-inp-label", "Label"],
-    ["#sp-inp-icon", "Off Icon"],
-    ["#sp-inp-icon_on", "On Icon"],
-    ["#sp-inp-sensor-when-on-toggle", "Active Display"],
-    ["#sp-inp-confirm-toggle", "Confirmation Required"],
-  ]) {
-    assert.strictEqual(
-      await page.locator(selector).evaluate((el) => !!el.closest(".sp-disclosure")),
-      true,
-      `${label}: Switch ${fieldLabel} should sit inside Card Settings`,
-    );
+  if (!(await actionCardSettings.getAttribute("class")).includes("sp-open")) {
+    await actionCardSettings.locator(".sp-disclosure-button").click();
   }
-  assert(
-    await page.locator("#sp-inp-label").isVisible(),
-    `${label}: opening Switch Card Settings should reveal its controls`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-inp-label").inputValue(),
-    "Keep this label",
-    `${label}: changing the default card type preserves the typed label`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-inp-entity").inputValue(),
-    "switch.keep_this_entity",
-    `${label}: changing the default card type preserves the typed entity`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-inp-icon").inputValue(),
-    "Auto",
-    `${label}: changing the default Action card type clears its icon default`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-inp-sensor-when-on-toggle").isChecked(),
-    false,
-    `${label}: changing the default Action card type clears its active display default`,
-  );
-  assert(
-    await page.locator(".sp-settings-modal .sp-save-btn").isVisible(),
-    `${label}: changing the default card type keeps Save visible`,
-  );
-  assert.strictEqual(
-    await page.locator(".sp-settings-modal .sp-delete-btn").count(),
-    0,
-    `${label}: unsaved new card keeps Delete hidden after type selection`,
-  );
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => {
-    var overlay = document.querySelector(".sp-settings-overlay");
-    return overlay && !overlay.classList.contains("sp-visible");
-  });
-  await page.waitForTimeout(100);
-  assert.strictEqual(
-    posts.length,
-    before,
-    `${label}: closing a typed new card draft before Save should not post`,
-  );
-  await page
-    .locator(`.sp-main [data-pos="${pos}"].sp-empty-cell`)
-    .waitFor({ state: "visible" });
-
-  await page.locator(`.sp-main [data-pos="${pos}"]`).click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await chooseCardType(page, "Switch");
-  await page
-    .locator(".sp-settings-modal .sp-disclosure")
-    .filter({ hasText: "Card Settings" })
-    .first()
-    .locator(".sp-disclosure-button")
-    .click();
-  await page.locator("#sp-inp-label").fill("New Card");
-  await page.locator("#sp-inp-entity").fill("switch.new_card");
+  await page.locator("#sp-inp-local-key").fill("local_action");
+  await page.locator("#sp-inp-label").fill("Local Action");
   await page.getByRole("button", { name: "Save" }).click();
   await page
     .locator(`.sp-main [data-pos="${pos}"][data-slot]`)
@@ -2629,7 +2542,7 @@ async function assertEmptyCellSettings(page, posts, label) {
   await waitForPost(
     posts,
     { domain: "text", name: "button_order", action: "set" },
-    `${label}: saving new card posts button order`,
+    `${label}: saving a local Action posts button order`,
     before,
   );
   await waitForAnyPost(
@@ -2638,22 +2551,34 @@ async function assertEmptyCellSettings(page, posts, label) {
       { domain: "text", name: `button_${slot}_config`, action: "set" },
       { domain: "text", name: `Button ${slot} Config`, action: "set" },
     ],
-    `${label}: saving new card posts card config`,
+    `${label}: saving a local Action posts card config`,
     before,
   );
 }
 
-async function assertConnectorsManagement(page, label) {
+async function assertConnectorsManagement(page, testCase) {
   await page.getByRole("tab", { name: "Connectors" }).click();
   await page.waitForSelector("#sp-connectors.sp-page.active");
-  assert(
-    await page.locator("#sp-connectors").getByRole("heading", { name: "Home Assistant", exact: true }).isVisible(),
-    `${label}: Connectors tab shows Home Assistant setup`,
+  assert.strictEqual(
+    await page.locator("#sp-connectors").getByRole("heading", { name: "Home Assistant", exact: true }).count(),
+    0,
+    `${testCase.name}: Connectors tab hides Home Assistant setup`,
   );
+  if (testCase.companionSupported) {
+    assert(
+      await page.locator("#sp-connectors").getByText("Connect your Mac").count() > 0,
+      `${testCase.name}: Mac Companion remains available`,
+    );
+  } else {
+    assert(
+      await page.locator("#sp-connectors").getByText("No external connectors are available on this display.").isVisible(),
+      `${testCase.name}: unsupported profiles show a useful local connector state`,
+    );
+  }
   assert.strictEqual(
     await page.locator("#sp-connectors .sp-card-type-source, #sp-connectors [data-card-connector]").count(),
     0,
-    `${label}: connector cards do not expose card-source badges`,
+    `${testCase.name}: connector cards do not expose card-source badges`,
   );
   await page.getByRole("tab", { name: "Screen" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
@@ -2671,32 +2596,25 @@ async function chooseCardType(page, label) {
   );
 }
 
-async function assertNewMediaCardDefaults(page, posts, label, mediaCoverArtSupported) {
+async function assertNewMediaCardDefaults(page, posts, label) {
   const emptyCell = page
     .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
     .first();
   if ((await emptyCell.count()) === 0) return;
 
   const before = posts.length;
-  const pos = await emptyCell.getAttribute("data-pos");
   await emptyCell.click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await chooseCardType(page, "Media");
-  await page.locator("#sp-inp-media-mode").waitFor({ state: "visible" });
-
   assert.strictEqual(
-    await page.locator("#sp-inp-media-mode").inputValue(),
-    mediaCoverArtSupported ? "cover_art" : "play_pause",
-    `${label}: a new Media card should default to an available mode`,
+    await page.getByRole("button", { name: "Media card type" }).count(),
+    0,
+    `${label}: Home Assistant Media cards are not available to add`,
   );
-  if (mediaCoverArtSupported) {
-    await page.locator("#sp-inp-media-mode").selectOption("play_pause");
-    assert.strictEqual(
-      await page.locator("#sp-inp-label").inputValue(),
-      "Play/Pause",
-      `${label}: leaving Cover Art should refresh the generated label`,
-    );
-  }
+  assert.strictEqual(
+    await page.locator('[data-card-type="calendar"]').count(),
+    0,
+    `${label}: Home Assistant-only card types stay out of the picker`,
+  );
 
   await page.locator(".sp-settings-close").click();
   await page.waitForFunction(() => {
@@ -2721,7 +2639,7 @@ async function assertAllCardSettingsGrouped(page, posts, label) {
   const before = posts.length;
   await emptyCell.click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await chooseCardType(page, "Switch");
+  await chooseCardType(page, "Action");
 
   async function assertGrouped(context) {
     const result = await page.evaluate(() => {
@@ -2786,7 +2704,7 @@ async function assertAllCardSettingsGrouped(page, posts, label) {
     );
   }
 
-  await assertGrouped("Switch");
+  await assertGrouped("Action");
   assert.strictEqual(
     await page.locator(".sp-settings-modal .sp-card-type-readonly").count(),
     0,
@@ -2814,6 +2732,14 @@ async function assertFanOptionalLightSettings(page, label) {
   if ((await emptyCell.count()) === 0) return;
   await emptyCell.click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  if ((await page.getByRole("button", { name: "Fans card type" }).count()) === 0) {
+    await page.locator(".sp-settings-close").click();
+    await page.waitForFunction(() => {
+      const overlay = document.querySelector(".sp-settings-overlay");
+      return overlay && !overlay.classList.contains("sp-visible");
+    });
+    return;
+  }
   await chooseCardType(page, "Fans");
   const fanType = page.locator(
     '.sp-settings-modal .sp-panel > [data-sp-card-primary="type"] select',
@@ -3345,7 +3271,7 @@ async function assertPlaylistValidationOpensSourcePanel(page, label) {
   });
 }
 
-async function assertNumberActionRequiresValue(page, posts, label) {
+async function assertOnlyLocalActionsAvailable(page, posts, label) {
   await page.getByRole("tab", { name: "Screen" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
   const emptyCell = page
@@ -3357,44 +3283,17 @@ async function assertNumberActionRequiresValue(page, posts, label) {
   await emptyCell.click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
   await chooseCardType(page, "Action");
-  await page.locator("#sp-inp-action").selectOption("number.set_value");
-  await page.locator("#sp-inp-entity").fill("number.target_level");
-  await page.locator("#sp-inp-entity").press("Tab");
-  await page
-    .locator(".sp-settings-modal .sp-disclosure")
-    .filter({ hasText: "Card Settings" })
-    .first()
-    .locator("> .sp-disclosure-button")
-    .click();
-  await page.locator("#sp-inp-action-value").fill("");
-  await page.getByRole("button", { name: "Save" }).click();
-
-  assert(
-    await page.getByText("Enter a value before saving.", { exact: true }).isVisible(),
-    `${label}: a number action should reject a blank value`,
+  const actionModes = await page.locator("#sp-inp-action option").evaluateAll((options) =>
+    options.map((option) => option.value),
   );
-  assert.strictEqual(
-    posts.length,
-    before,
-    `${label}: an invalid number action should not post`,
-  );
-
-  await page.locator("#sp-inp-action-value").fill("12.5");
-  assert.strictEqual(
-    await page.getByText("Enter a value before saving.", { exact: true }).count(),
-    0,
-    `${label}: entering a number action value should clear the validation error`,
-  );
+  assert.deepStrictEqual(actionModes, ["local"], `${label}: Action cards offer only the local action mode`);
   await page.locator(".sp-settings-close").click();
   await page.waitForFunction(() => {
     const overlay = document.querySelector(".sp-settings-overlay");
     return overlay && !overlay.classList.contains("sp-visible");
   });
-  assert.strictEqual(
-    posts.length,
-    before,
-    `${label}: closing the number action draft should not post`,
-  );
+  assert.strictEqual(posts.length, before, `${label}: checking local action modes should not post`);
+  assert.strictEqual(posts.length, before, `${label}: closing the local action draft should not post`);
 }
 
 async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
@@ -5749,8 +5648,11 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
-    await page.waitForFunction(
-      () => document.querySelector("#sp-connectors")?.textContent?.includes("Configured but disconnected"),
+    await page.getByRole("tab", { name: "Connectors" }).click();
+    assert.strictEqual(
+      await page.locator("#sp-connectors").getByRole("heading", { name: "Home Assistant", exact: true }).count(),
+      0,
+      "A configured Home Assistant connection does not show connector setup",
     );
     await page.getByRole("tab", { name: "Settings" }).click();
     const coverArtCard = page.locator("#sp-settings .card").filter({
@@ -6072,18 +5974,12 @@ async function assertCardIconsTopLeft(page, label) {
 
 async function assertTimerEntityValidation(page) {
   await page.locator(".sp-main .sp-empty-cell").first().click();
-  await page.getByRole("button", { name: "Timer card type", exact: true }).click();
-  const entity = page.locator("#sp-inp-entity");
-  await entity.waitFor({ state: "visible" });
-  assert.strictEqual(await entity.evaluate(el => !!el.closest(".sp-disclosure")), false);
-  const save = page.locator(".sp-settings-modal .sp-save-btn");
-  await save.click();
-  await page.getByText("Add a timer entity before saving.", { exact: true }).waitFor();
-  await entity.fill("switch.kitchen");
-  await save.click();
-  await page.getByText("Choose a timer entity (timer.*).", { exact: true }).waitFor();
-  await entity.fill("timer.kitchen");
-  await save.click();
+  assert.strictEqual(
+    await page.getByRole("button", { name: "Timer card type", exact: true }).count(),
+    0,
+    "Home Assistant timer cards are not available in the add-card picker",
+  );
+  await page.locator(".sp-settings-close").click();
   await page.waitForFunction(() =>
     !document.querySelector(".sp-settings-overlay.sp-visible"));
 }
@@ -6177,7 +6073,7 @@ async function runCase(browser, testCase) {
     if (testCase.mediaCoverArtSupported) {
       await assertMediaCoverArtCompactPreview(page, testCase.name);
     }
-    await assertConnectorsManagement(page, testCase.name);
+    await assertConnectorsManagement(page, testCase);
     await assertSettingsPage(page, testCase.name, testCase, posts);
     if (testCase.exerciseInteractions) {
       await assertNightScheduleSensorControls(page, posts, testCase.name);
@@ -6199,16 +6095,11 @@ async function runCase(browser, testCase) {
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
       await assertFanOptionalLightSettings(page, testCase.name);
       await assertWebhookSettingsPanel(page, posts, testCase.name);
-      await assertNumberActionRequiresValue(page, posts, testCase.name);
+      await assertOnlyLocalActionsAvailable(page, posts, testCase.name);
     }
     await assertInternalControlsPanel(page, posts, testCase.name);
     await assertEmptyCellSettings(page, posts, testCase.name);
-    await assertNewMediaCardDefaults(
-      page,
-      posts,
-      testCase.name,
-      testCase.mediaCoverArtSupported,
-    );
+    await assertNewMediaCardDefaults(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {
       await assertClockBarEditorSmoke(page, posts, testCase.name);
       await assertBackupImportSmoke(page, posts, testCase);
@@ -6484,108 +6375,56 @@ async function assertPanelNaming(browser) {
 }
 
 async function assertHomeAssistantConnectorLayout(browser) {
-  const slug = "guition-esp32-s3-4848s040";
-  for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
-    const context = await browser.newContext({ viewport });
-    const status = {
+  for (const testCase of ACTIVE_CASES) {
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    const connectorStatus = {
       onboarding_complete: true,
-      home_assistant: { available: true, configured: true, connected: false, actions_confirmed: false },
-      mac_companion: { available: true, configured: true, paired: true, connected: true },
+      home_assistant: {
+        available: true,
+        configured: true,
+        connected: true,
+        actions_confirmed: true,
+      },
+      mac_companion: {
+        available: !!testCase.companionSupported,
+        configured: !!testCase.companionSupported,
+        paired: !!testCase.companionSupported,
+        connected: !!testCase.companionSupported,
+      },
     };
-    const posts = [];
-    await installRoutes(context, slug, { connectorsStatus: status });
-    await context.route("**/connectors/home-assistant/*", async route => {
-      const action = new URL(route.request().url()).pathname.split("/").pop();
-      posts.push(action);
-      if (action === "complete") status.home_assistant.actions_confirmed = true;
-      if (action === "forget") status.home_assistant.configured = false;
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(status) });
-    });
+    await installRoutes(context, testCase.slug, { connectorsStatus: connectorStatus });
     const page = await context.newPage();
     await installFakeEventSource(page);
     try {
-      await page.goto(`http://espdesktop.test/${slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
       await page.waitForSelector("#sp-app");
       await page.getByRole("tab", { name: "Connectors" }).click();
-      const card = page.locator("#sp-connectors .card").filter({ has: page.getByRole("heading", { name: "Home Assistant", exact: true }) });
-      await card.locator(".card-header").click();
-      const reconnect = card.getByText("Check that the device is enabled under Settings → Devices & services → ESPHome.", { exact: true });
-      const setup = card.getByRole("heading", { name: "Connect your display" });
-      const actions = card.getByRole("button", { name: "I’ve enabled actions" });
-      const forget = card.getByRole("button", { name: "Forget Home Assistant", exact: true });
-      async function checkLayout(name) {
-        assert(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), `${name}: no horizontal overflow`);
-        const buttons = await card.locator("button:visible").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
-        assert(buttons.every(height => height >= 44), `${name}: actions have usable touch targets`);
-        const positions = await card.evaluate(node => ({
-          status: node.querySelector(".sp-connector-status").getBoundingClientRect().top,
-          instructions: node.querySelector(".sp-connector-instructions").getBoundingClientRect().top,
-        }));
-        assert(positions.status < positions.instructions, `${name}: status precedes instructions`);
-        if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
-          fs.mkdirSync(FAILURE_DIR, { recursive: true });
-          await page.screenshot({ path: path.join(FAILURE_DIR, `ha-${name}-${viewport.width}.png`), fullPage: true });
-        }
+      const connectors = page.locator("#sp-connectors");
+      assert.strictEqual(
+        await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).count(),
+        0,
+        `${testCase.name}: connected Home Assistant does not expose setup or confirmation UI`,
+      );
+      assert.strictEqual(
+        await connectors.getByRole("button", { name: "I’ve enabled actions" }).count(),
+        0,
+        `${testCase.name}: Home Assistant action confirmation is unavailable`,
+      );
+      if (testCase.companionSupported) {
+        assert(
+          await connectors.getByText("Connect your Mac").count() > 0,
+          `${testCase.name}: Mac Companion setup remains available`,
+        );
+      } else {
+        assert(
+          await connectors.getByText("No external connectors are available on this display.").isVisible(),
+          `${testCase.name}: unsupported profiles show a useful local connector state`,
+        );
       }
-      await reconnect.waitFor({ state: "visible" });
-      const offlineInfo = card.locator(".sp-ha-offline-info");
-      assert(await offlineInfo.isVisible(), "Offline status and guidance are visible");
-      assert.strictEqual(await offlineInfo.locator(".sp-connector-status").count(), 1, "Offline status is shown with its guidance");
-      assert.strictEqual(await offlineInfo.locator("p").count(), 1, "Only the troubleshooting sentence is shown");
-      const statusFontSize = await card.locator(".sp-connector-status").evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
-      const guidanceFontSize = await reconnect.evaluate(node => Number.parseFloat(getComputedStyle(node).fontSize));
-      assert(statusFontSize < guidanceFontSize, "Disconnected status is smaller than its guidance");
-      assert.strictEqual(await card.locator(".sp-connector-status").textContent(), "Configured but disconnected");
-      assert(!(await card.getByText("Only forget this connection if you want to set up Home Assistant again.").count()), "Forget warning is removed");
-      assert.strictEqual(await forget.evaluate(node => getComputedStyle(node).backgroundColor), "rgb(241, 65, 88)", "Forget action has a destructive red background");
-      assert(!(await card.getByRole("heading", { name: "Reconnect Home Assistant" }).count()), "Offline guidance has no extra heading");
-      assert(!(await setup.isVisible()), "An offline saved connection should not repeat setup");
-      assert(!(await actions.isVisible()), "Do not offer permission confirmation before connecting");
-      assert(await forget.isVisible(), "The saved connection can still be forgotten");
-      await page.getByRole("tab", { name: "Settings" }).click();
-      const settingsCard = page.locator("#sp-settings .card:visible").first();
-      await settingsCard.waitFor({ state: "visible" });
-      const settingsCardWidth = await settingsCard.evaluate(node => node.getBoundingClientRect().width);
-      await page.getByRole("tab", { name: "Connectors" }).click();
-      const connectorsCardWidth = await card.evaluate(node => node.getBoundingClientRect().width);
-      assert(Math.abs(settingsCardWidth - connectorsCardWidth) < 1, "Connector cards match Settings panel width");
-      await checkLayout("offline");
-      status.home_assistant.connected = true;
-      await actions.waitFor({ state: "visible" });
-      assert(await actions.isEnabled(), "Connected users can confirm action permission");
-      assert(!(await reconnect.isVisible()), "Connected users should not see reconnect instructions");
-      assert(!(await forget.isVisible()), "Connected users cannot forget an active connection");
-      await checkLayout("permission");
-      await actions.click();
-      await actions.waitFor({ state: "hidden" });
-      assert.deepStrictEqual(posts, ["complete"], "Permission confirmation uses the existing endpoint");
-      status.home_assistant.connected = false;
-      await forget.waitFor({ state: "visible" });
-      await forget.click();
-      await setup.waitFor({ state: "visible" });
-      assert(!(await reconnect.isVisible()), "Forgetting returns to first-time setup");
-      assert(!(await forget.isVisible()), "No forget action without a saved connection");
-      assert.strictEqual(await card.locator("code").textContent(), "espdesktop.test", "Show the current display address");
-      assert.deepStrictEqual(posts, ["complete", "forget"], "Only user actions write connector state");
-      await checkLayout("setup");
-    } finally { await context.close(); }
+    } finally {
+      await context.close();
+    }
   }
-
-  const legacyContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-  await installRoutes(legacyContext, slug);
-  const legacyPage = await legacyContext.newPage();
-  await installFakeEventSource(legacyPage);
-  try {
-    await legacyPage.goto(`http://espdesktop.test/${slug}?events=1`, { waitUntil: "domcontentloaded" });
-    await legacyPage.waitForSelector("#sp-app");
-    await legacyPage.getByRole("tab", { name: "Connectors" }).click();
-    const legacyCard = legacyPage.locator("#sp-connectors .card").filter({ has: legacyPage.getByRole("heading", { name: "Home Assistant", exact: true }) });
-    await legacyCard.locator(".card-header").click();
-    await legacyCard.getByRole("heading", { name: "Connect your display" }).waitFor({ state: "visible" });
-    assert.strictEqual(await legacyCard.locator("code").textContent(), "espdesktop.test", "Legacy firmware retains the ESPHome address fallback");
-    assert(!(await legacyCard.locator(".sp-connector-status").isVisible()), "Unknown legacy connection state is not shown as disconnected");
-    assert(!(await legacyCard.getByRole("button", { name: "Forget Home Assistant", exact: true }).isVisible()), "Legacy firmware does not expose an unsupported Forget action");
-  } finally { await legacyContext.close(); }
 }
 
 (async function main() {
