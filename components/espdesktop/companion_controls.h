@@ -516,7 +516,8 @@ inline bool companion_metric_card_should_disable(bool connected, bool preserve_n
 }
 
 inline bool companion_url_available(const std::string &app_id, const std::string &url_config) {
-  return !companion_encoded_url(url_config).empty() && companion_action_available(app_id);
+  (void) app_id;  // URL cards use the system default and do not need an approved app.
+  return companion_connected() && !companion_encoded_url(url_config).empty();
 }
 
 inline bool companion_card_focus_allowed(const std::string &url_config) {
@@ -753,17 +754,19 @@ inline void companion_refresh_cards_if_requested() {}
 #endif
 
 inline bool invoke_companion_action(const std::string &action_id,
-                                    const std::string &request_id) {
+                                    const std::string &request_id,
+                                    const std::string &folder_open_behavior = "new_window") {
   if (!companion_action_available(action_id) || !companion_action_sender()) return false;
-  return companion_action_sender()(action_id, request_id);
+  return companion_action_sender()(action_id, request_id, folder_open_behavior);
 }
 
 inline bool invoke_companion_url(const std::string &app_id,
                                  const std::string &url_config,
                                  const std::string &request_id) {
   const std::string encoded_url = companion_encoded_url(url_config);
-  if (encoded_url.empty() || !companion_action_available(app_id) || !companion_url_sender()) return false;
-  return companion_url_sender()(app_id, encoded_url, request_id);
+  (void) app_id;  // Older cards store a browser ID; URL actions no longer use it.
+  if (encoded_url.empty() || !companion_connected() || !companion_url_sender()) return false;
+  return companion_url_sender()("system.default_browser", encoded_url, request_id);
 }
 
 inline bool invoke_companion_value(const std::string &control_id, int value,

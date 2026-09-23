@@ -4,7 +4,8 @@
 // calculation used by the display, including large cards and the Back button.
 inline std::string finder_append_folder_tiles(
     const std::string &config, const std::vector<bool> &occupied,
-    const std::vector<CompanionAction> &folders, size_t capacity = 65535) {
+    const std::vector<CompanionAction> &folders, size_t capacity = 65535,
+    const std::string &open_behavior = "new_window") {
   auto buttons = parse_subpage_config(config);
   const size_t start = !config.empty() && config[0] == '~' ? 1 : 0;
   std::string order_text = config.substr(start, config.find('|', start) - start);
@@ -38,7 +39,9 @@ inline std::string finder_append_folder_tiles(
     while (position < occupied.size() &&
            (occupied[position] || !order[position].empty())) ++position;
     if (position == occupied.size()) break;
-    buttons.push_back({folder.id, folder.label, "Folder Outline", "Auto", "", "", "companion", "", ""});
+    const std::string options = open_behavior == "same_window"
+      ? "finder_open_behavior=same_window" : "finder_open_behavior=new_window";
+    buttons.push_back({folder.id, folder.label, "Folder Outline", "Auto", "", "", "companion", "", options});
     order[position] = std::to_string(buttons.size());
     auto candidate = serialize();
     if (candidate.size() > capacity) {

@@ -456,7 +456,10 @@ final class CompanionConnection: NSObject {
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
-                    let status = await self.resources.performResultStatus(actionIdentifier: actionIdentifier)
+                    let status = await self.resources.performResultStatus(
+                        actionIdentifier: actionIdentifier,
+                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window"
+                    )
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
                 }

@@ -1,6 +1,6 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
-import { configOptionEnabled, setConfigOption } from "../model/config_primitives";
+import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
 import { createCompanionCatalogue } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
@@ -52,11 +52,19 @@ import {
     resetCompanionShortcutTabs,
     setCompanionAppShortcutFolderEnabled,
     setCompanionAppShortcutAutoSwitchEnabled,
+    finderOpenBehavior,
+    inheritFinderOpenBehaviorForCard,
+    setFinderOpenBehavior,
+    syncInheritedFinderOpenBehavior,
+    FINDER_OPEN_BEHAVIOR_OPTION,
+    FINDER_OPEN_OVERRIDE_OPTION,
+    type FinderOpenBehavior,
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
 
 const COMPANION_URL_PREFIX = "url.";
+const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
 const COMPANION_WINDOW_PREFIX = "window.";
@@ -240,6 +248,7 @@ export function companionMetricDisplayMode(card: any): "used" | "free" | "remain
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
     if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
+    if (!metric && companionCardMode(card) === "url") return "e.g. Website name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
 }
 
@@ -281,6 +290,7 @@ export function companionCardMode(card: any): CompanionCardModeId {
 }
 
 export function companionEntityForMode(mode: string): string {
+    if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
@@ -368,6 +378,19 @@ export function normalizeCompanionCard(card: any): void {
     card.sensor = urlConfig;
     card.unit = "";
     card.precision = "";
+    if (!urlConfig && typeof card.entity === "string" && card.entity.startsWith(COMPANION_FOLDER_PREFIX)) {
+        const behavior = configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION);
+        let options = behavior === "same_window" || behavior === "new_window"
+            ? setConfigOptionValue("", FINDER_OPEN_BEHAVIOR_OPTION, behavior) : "";
+        options = setConfigOption(options, FINDER_OPEN_OVERRIDE_OPTION,
+            configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION));
+        card.options = options;
+        card.icon_on = "Auto";
+        if (!card.icon || card.icon === "Auto" || card.icon === "Monitor" || card.icon === "Folder") {
+            card.icon = companionSubtypeDefaultIcon("folder", card.entity);
+        }
+        return;
+    }
     card.options = normalizeCompanionAppShortcutOptions(card);
     card.icon_on = "Auto";
     const mode = companionCardMode(card);
@@ -440,7 +463,8 @@ export function registerCompanionCardTypes(
 
             if (!companionCardIsMetric(card)) {
                 helpers.renderCardTextField(panel, card, helpers, {
-                    label: "Label", idSuffix: "label", field: "label",
+                    label: "Label",
+                    idSuffix: "label", field: "label",
                     placeholder: companionLabelPlaceholder(card), rerender: true,
                 });
             }
@@ -560,7 +584,7 @@ export function registerCompanionCardTypes(
 
             const appField = document.createElement("div");
             appField.className = "sp-field";
-            const appFieldLabel = fieldLabel("Mac App", helpers.idPrefix + "companion-action");
+            const appFieldLabel = fieldLabel("Application", helpers.idPrefix + "companion-action");
             appField.appendChild(appFieldLabel);
 
             const select = document.createElement("select");
@@ -573,11 +597,11 @@ export function registerCompanionCardTypes(
             select.appendChild(loading);
             appField.appendChild(select);
             panel?.appendChild(appField);
-            if (initialMode === "app" || initialMode === "url") {
+            if (initialMode === "app") {
                 helpers.markCardPrimaryField(appField, "entity");
             }
             helpers.requireField(select, "Choose a Mac app before saving.", function () {
-                return initialMode === "app" || initialMode === "url";
+                return initialMode === "app";
             }, function (value: string) {
                 return companionApplicationActionIdCanSave(availableCompanionApps, value, currentEntity);
             });
@@ -613,20 +637,67 @@ export function registerCompanionCardTypes(
             shortcutInput.className = "sp-input";
             shortcutInput.id = helpers.idPrefix + "companion-shortcut";
             shortcutInput.readOnly = true;
-            shortcutInput.placeholder = "Click, then press a shortcut such as ⌘A";
+            shortcutInput.placeholder = "Choose modifiers, then press a key";
             shortcutInput.value = formatCompanionShortcutActionId(card.entity);
             shortcutInput.setAttribute("aria-label", "Keyboard shortcut");
+            const shortcutParts = companionShortcutActionIdValid(card.entity)
+                ? card.entity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+")
+                : [];
+            let shortcutKey = shortcutParts.pop() || "";
+            const shortcutModifiers = new Set(shortcutParts);
+            const shortcutModifierGroup = document.createElement("div");
+            shortcutModifierGroup.className = "sp-shortcut-modifiers";
+            shortcutModifierGroup.setAttribute("role", "group");
+            shortcutModifierGroup.setAttribute("aria-label", "Shortcut modifiers");
+            const shortcutModifierLabels: ReadonlyArray<readonly [string, string]> = [
+                ["command", "⌘ Command"], ["control", "⌃ Control"],
+                ["option", "⌥ Option"], ["shift", "⇧ Shift"],
+            ];
+            shortcutModifierLabels.forEach(function ([modifier, label]) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "sp-shortcut-modifier";
+                button.textContent = label;
+                button.setAttribute("aria-pressed", shortcutModifiers.has(modifier) ? "true" : "false");
+                if (shortcutModifiers.has(modifier)) button.classList.add("active");
+                button.addEventListener("click", function () {
+                    if (shortcutModifiers.has(modifier)) shortcutModifiers.delete(modifier);
+                    else shortcutModifiers.add(modifier);
+                    const selected = shortcutModifiers.has(modifier);
+                    button.classList.toggle("active", selected);
+                    button.setAttribute("aria-pressed", selected ? "true" : "false");
+                    saveShortcut();
+                    shortcutInput.focus();
+                });
+                shortcutModifierGroup.appendChild(button);
+            });
+            function saveShortcut(): void {
+                const modifiers = COMPANION_SHORTCUT_MODIFIERS.filter((modifier) => shortcutModifiers.has(modifier));
+                if (!shortcutKey || !modifiers.some((modifier) => modifier !== "shift")) {
+                    shortcutInput.value = "Choose Command, Control, or Option, then press a key";
+                    return;
+                }
+                const actionId = COMPANION_SHORTCUT_PREFIX + modifiers.concat(shortcutKey).join("+");
+                if (!companionShortcutActionIdValid(actionId)) return;
+                card.entity = actionId;
+                shortcutInput.value = formatCompanionShortcutActionId(actionId);
+                helpers.clearFieldError(shortcutInput);
+                helpers.saveField("entity", card.entity);
+            }
+            shortcutField.appendChild(shortcutModifierGroup);
             shortcutField.appendChild(shortcutInput);
             const shortcutNote = document.createElement("div");
-            shortcutNote.className = "sp-field-info-text";
-            shortcutNote.textContent = "Use Command, Control, or Option with a key. The shortcut is replayed on the active Mac app.";
+            shortcutNote.className = "sp-field-info-text sp-visible";
+            shortcutNote.textContent = "Choose modifier buttons, then press the key by itself. This avoids browser shortcuts. The shortcut is replayed on the active Mac app.";
             shortcutField.appendChild(shortcutNote);
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
             helpers.requireField(shortcutInput, "Capture a valid keyboard shortcut before saving.", function () {
                 return initialMode === "shortcut";
             }, function () {
-                return companionShortcutActionIdValid(card.entity);
+                return companionShortcutActionIdValid(card.entity) && !!shortcutKey &&
+                    COMPANION_SHORTCUT_MODIFIERS.some((modifier) =>
+                        modifier !== "shift" && shortcutModifiers.has(modifier));
             });
 
             const windowField = document.createElement("div");
@@ -758,6 +829,79 @@ export function registerCompanionCardTypes(
                 helpers.saveField("options", card.options);
             });
 
+            const finderOpenBehaviorField = document.createElement("div");
+            finderOpenBehaviorField.className = "sp-field";
+            finderOpenBehaviorField.appendChild(fieldLabel("Folder shortcuts open in", helpers.idPrefix + "finder-open-behavior"));
+            const finderOpenBehaviorSelect = document.createElement("select");
+            finderOpenBehaviorSelect.className = "sp-select";
+            finderOpenBehaviorSelect.id = helpers.idPrefix + "finder-open-behavior";
+            const globalBehaviorChoices: readonly [FinderOpenBehavior, string][] = [
+                ["new_window", "A new window"],
+                ["same_window", "The same window"],
+            ];
+            for (const [value, label] of globalBehaviorChoices) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                option.selected = value === finderOpenBehavior(card);
+                finderOpenBehaviorSelect.appendChild(option);
+            }
+            finderOpenBehaviorField.appendChild(finderOpenBehaviorSelect);
+            const finderOpenBehaviorNote = document.createElement("div");
+            finderOpenBehaviorNote.className = "sp-field-info-text";
+            finderOpenBehaviorNote.textContent = "Default for Finder folder shortcuts. Individual folder cards can override this in Advanced.";
+            finderOpenBehaviorField.appendChild(finderOpenBehaviorNote);
+            appSubpageDisclosure.section.appendChild(finderOpenBehaviorField);
+            finderOpenBehaviorSelect.addEventListener("change", function () {
+                const behavior: FinderOpenBehavior = finderOpenBehaviorSelect.value === "same_window"
+                    ? "same_window" : "new_window";
+                card.options = setConfigOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION, behavior);
+                card._finderOpenBehaviorChanged = true;
+                helpers.saveField("options", card.options);
+            });
+
+            const advancedFolderSettings = helpers.disclosureSection(
+                "Advanced", helpers.idPrefix + "finder-folder-advanced", false,
+            );
+            const advancedFolderBehaviorField = document.createElement("div");
+            advancedFolderBehaviorField.className = "sp-field";
+            advancedFolderBehaviorField.appendChild(fieldLabel("Open folder in", helpers.idPrefix + "finder-folder-open-behavior"));
+            const advancedFolderBehaviorSelect = document.createElement("select");
+            advancedFolderBehaviorSelect.className = "sp-select";
+            advancedFolderBehaviorSelect.id = helpers.idPrefix + "finder-folder-open-behavior";
+            const parentSlot = Number(state.editingSubpage || slot || 0);
+            const parentCard = parentSlot > 0 ? state.buttons[parentSlot - 1] : null;
+            const canInheritFinderBehavior = helpers.isSub && parentCard?.entity === "com.apple.finder";
+            if (canInheritFinderBehavior &&
+                inheritFinderOpenBehaviorForCard(card, finderOpenBehavior(parentCard))) {
+                helpers.saveField("options", card.options);
+            }
+            const folderBehaviorChoices: readonly [string, string][] = helpers.isSub
+                && canInheritFinderBehavior
+                ? [["inherit", "Use Finder subpage setting"], ["new_window", "A new window"], ["same_window", "The same window"]]
+                : [["new_window", "A new window"], ["same_window", "The same window"]];
+            const hasFinderOverride = configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION);
+            const selectedFolderBehavior = canInheritFinderBehavior && !hasFinderOverride
+                ? "inherit" : finderOpenBehavior(card);
+            for (const [value, label] of folderBehaviorChoices) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                option.selected = value === selectedFolderBehavior;
+                advancedFolderBehaviorSelect.appendChild(option);
+            }
+            advancedFolderBehaviorField.appendChild(advancedFolderBehaviorSelect);
+            advancedFolderSettings.section.appendChild(advancedFolderBehaviorField);
+            advancedFolderBehaviorSelect.addEventListener("change", function () {
+                const inherited = canInheritFinderBehavior && advancedFolderBehaviorSelect.value === "inherit";
+                const behavior: FinderOpenBehavior = inherited
+                    ? finderOpenBehavior(parentCard)
+                    : advancedFolderBehaviorSelect.value === "same_window" ? "same_window" : "new_window";
+                setFinderOpenBehavior(card, behavior, !inherited);
+                helpers.saveField("options", card.options);
+            });
+            panel?.appendChild(advancedFolderSettings.panel);
+
             const finderFolderList = document.createElement("div");
             if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
                 finderFolderList.className = "sp-app-subpage-folder-list";
@@ -798,8 +942,8 @@ export function registerCompanionCardTypes(
             }
 
             function syncMode(mode: string): void {
-                appField.style.display = mode === "app" || mode === "url" ? "" : "none";
-                appFieldLabel.textContent = mode === "url" ? "Open with" : "Mac App";
+                appField.style.display = mode === "app" ? "" : "none";
+                appFieldLabel.textContent = "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
@@ -808,6 +952,9 @@ export function registerCompanionCardTypes(
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
                 autoSwitchField.style.display = !helpers.isSub && mode === "app" &&
                     companionAppShortcutFolderEnabled(card) ? "" : "none";
+                finderOpenBehaviorField.style.display = !helpers.isSub && mode === "app" &&
+                    card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
+                advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
             }
             syncMode(initialMode);
 
@@ -816,15 +963,14 @@ export function registerCompanionCardTypes(
                 event.stopPropagation();
                 if (["MetaLeft", "MetaRight", "ControlLeft", "ControlRight", "AltLeft", "AltRight", "ShiftLeft", "ShiftRight"]
                     .includes(event.code)) return;
-                const actionId = companionShortcutActionId(event);
-                if (!actionId) {
-                    shortcutInput.value = "Use ⌘, ⌃, or ⌥ with a supported key";
+                const key = companionShortcutKey(event.code);
+                if (!key) {
+                    shortcutKey = "";
+                    shortcutInput.value = "Choose a supported key";
                     return;
                 }
-                card.entity = actionId;
-                shortcutInput.value = formatCompanionShortcutActionId(actionId);
-                helpers.clearFieldError(shortcutInput);
-                helpers.saveField("entity", card.entity);
+                shortcutKey = key;
+                saveShortcut();
             });
 
             windowSelect.addEventListener("change", function () {
@@ -1071,13 +1217,15 @@ export function registerCompanionCardTypes(
             delete card._finderFolderTabs;
             const selectionChanged = card._appShortcutSelectionChanged === true;
             const appChanged = card._appShortcutAppChanged === true;
+            const openBehaviorChanged = card._finderOpenBehaviorChanged === true;
             delete card._appShortcutSelectionChanged;
             delete card._appShortcutAppChanged;
+            delete card._finderOpenBehaviorChanged;
             delete card._appShortcutDisabledTabs;
             delete card._appShortcutCapacityRejected;
             if (!companionAppShortcutFolderEnabled(card)) return "saved";
             const existing = state.subpages[slot];
-            if (existing && !selectionChanged && !appChanged) return "saved";
+            if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             const source = existing ? {
                 ...existing,
                 order: (existing.order || []).slice(),
@@ -1098,6 +1246,7 @@ export function registerCompanionCardTypes(
                 } else {
                     addFinderFolderTiles(subpage, folders, maxSlots);
                 }
+                syncInheritedFinderOpenBehavior(subpage, finderOpenBehavior(card));
             }
             codec.buildSubpageGrid(subpage);
             state.subpages[slot] = subpage;

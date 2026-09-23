@@ -97,7 +97,7 @@ inline std::string companion_network_address(const CompanionRuntimeSnapshot &sna
   return "--";
 }
 
-using CompanionActionSender = std::function<bool(const std::string &, const std::string &)>;
+using CompanionActionSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
 using CompanionUrlSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
 using CompanionValueSender = std::function<bool(const std::string &, int, const std::string &)>;
 using CompanionActionResultHandler = std::function<void()>;

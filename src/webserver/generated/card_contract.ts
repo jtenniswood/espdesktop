@@ -3025,6 +3025,27 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": true
       },
       {
+        "name": "finder_open_behavior",
+        "label": "Finder Folder Open Behavior",
+        "kind": "choice",
+        "values": [
+          "new_window",
+          "same_window"
+        ],
+        "defaultValue": "new_window",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "finder_open_override",
+        "label": "Finder Folder Open Override",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "app_shortcuts_tabs",
         "label": "App Subpage Shortcuts",
         "kind": "text",
@@ -3098,6 +3119,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "canonicalOptionOrder": [
         "app_shortcuts",
         "app_shortcuts_auto_switch",
+        "finder_open_behavior",
+        "finder_open_override",
         "app_shortcuts_tabs",
         "app_shortcut_preset",
         "large_numbers",
@@ -4868,6 +4891,8 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "date_time_mode": "date_time_mode",
   "fan_light_entity": "fan_light_entity",
   "fan_tabs": "fan_tabs",
+  "finder_open_behavior": "finder_open_behavior",
+  "finder_open_override": "finder_open_override",
   "garage_mode": "garage_mode",
   "gate_mode": "gate_mode",
   "hidden": "hidden",
