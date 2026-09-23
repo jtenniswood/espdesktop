@@ -113,11 +113,24 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         return true
     }
 
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let menu = NSMenu()
+        addContextualControlMenuItems(to: menu)
+        return menu
+    }
+
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         menu.addItem(connectionStatusItem())
         menu.addItem(.separator())
 
+        addContextualControlMenuItems(to: menu)
+        addMenuItem(
+            "Quit", action: #selector(quit), key: "q",
+            image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
+    }
+
+    private func addContextualControlMenuItems(to menu: NSMenu) {
         let panelWebpageItem = NSMenuItem(
             title: "Customize Display",
             action: #selector(openDisplaySettings),
@@ -137,9 +150,6 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.items.last?.isEnabled = !store.updater.isChecking
         addMenuItem("Support", action: #selector(openHelp), key: "?",
                     image: NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Support"), to: menu)
-        addMenuItem(
-            "Quit", action: #selector(quit), key: "q",
-            image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
     }
 
     private func connectionStatusItem() -> NSMenuItem {
