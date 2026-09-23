@@ -125,9 +125,6 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.addItem(.separator())
 
         addContextualControlMenuItems(to: menu)
-        addMenuItem(
-            "Quit", action: #selector(quit), key: "q",
-            image: NSImage(systemSymbolName: "power", accessibilityDescription: "Quit"), to: menu)
     }
 
     private func addContextualControlMenuItems(to menu: NSMenu) {
@@ -138,18 +135,21 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         )
         panelWebpageItem.target = self
         panelWebpageItem.keyEquivalentModifierMask = [.command]
-        panelWebpageItem.image = NSImage(
-            systemSymbolName: "display", accessibilityDescription: "Configure")
+        panelWebpageItem.image = menuSymbol("display", description: "Customize Display")
         panelWebpageItem.isEnabled = !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         menu.addItem(panelWebpageItem)
 
-        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",", to: menu)
+        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",",
+                    image: menuSymbol("gearshape", description: "Mac Settings"), to: menu)
         addMenuItem("Updates",
                     action: #selector(checkForUpdates), key: "u",
-                    image: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates"), to: menu)
+                    image: menuSymbol("arrow.triangle.2.circlepath", description: "Updates"), to: menu)
         menu.items.last?.isEnabled = !store.updater.isChecking
         addMenuItem("Support", action: #selector(openHelp), key: "?",
-                    image: NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Support"), to: menu)
+                    image: menuSymbol("questionmark.circle", description: "Support"), to: menu)
+        addMenuItem(
+            "Quit", action: #selector(quit), key: "q",
+            image: menuSymbol("power", description: "Quit"), to: menu)
     }
 
     private func connectionStatusItem() -> NSMenuItem {
@@ -194,6 +194,12 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         item.target = self
         item.image = image
         menu.addItem(item)
+    }
+
+    private func menuSymbol(_ name: String, description: String) -> NSImage? {
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: description)
+        image?.isTemplate = true
+        return image
     }
 
     @objc private func openDisplaySettings() { store.openPanelWebServer() }
