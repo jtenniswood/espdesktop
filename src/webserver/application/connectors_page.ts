@@ -29,7 +29,7 @@ export interface ConnectorsStatus {
 export interface ConnectorsPageFeature {
     buildPage(parent: HTMLElement): void;
     start(): void;
-    homeAssistantConfigured(): boolean;
+    homeAssistantConnected(): boolean;
     homeAssistantCardPickerEnabled(): boolean;
     companionConfigured(): boolean;
     onStatusChange(callback: () => void): void;
@@ -356,8 +356,12 @@ export function createConnectorsPageFeature(
         timer = window.setInterval(function () { void refreshStatus(); }, 2000);
     }
 
-    function homeAssistantConfigured(): boolean {
-        return !!current?.home_assistant.configured;
+    function homeAssistantConnected(): boolean {
+        if (!current) return false;
+        // Older firmware cannot report connection state, so retain its
+        // established Home Assistant controls after the status request fails.
+        if (!statusEndpointAvailable) return true;
+        return !!current.home_assistant.connected;
     }
 
     function homeAssistantCardPickerEnabled(): boolean {
@@ -379,7 +383,7 @@ export function createConnectorsPageFeature(
     return {
         buildPage,
         start,
-        homeAssistantConfigured,
+        homeAssistantConnected,
         homeAssistantCardPickerEnabled,
         companionConfigured,
         onStatusChange,

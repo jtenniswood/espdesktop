@@ -5607,22 +5607,23 @@ async function assertCompanionStorageSettings(browser, testCase) {
 async function assertCompanionOnlyCardPicker(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, {
-    connectorsStatus: {
-      onboarding_complete: true,
-      home_assistant: {
-        available: true,
-        configured: true,
-        connected: false,
-        actions_confirmed: true,
-      },
-      mac_companion: {
-        available: true,
-        configured: true,
-        paired: true,
-        connected: false,
-      },
+  const connectorStatus = {
+    onboarding_complete: true,
+    home_assistant: {
+      available: true,
+      configured: true,
+      connected: true,
+      actions_confirmed: true,
     },
+    mac_companion: {
+      available: true,
+      configured: true,
+      paired: true,
+      connected: false,
+    },
+  };
+  await installRoutes(context, testCase.slug, {
+    connectorsStatus: connectorStatus,
   });
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -5636,17 +5637,17 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.waitForFunction(
-      () => document.querySelector("#sp-connectors")?.textContent?.includes("Home Assistant configured, but currently offline"),
+      () => document.querySelector("#sp-connectors")?.textContent?.includes("Home Assistant connected"),
     );
     await page.getByRole("tab", { name: "Settings" }).click();
     const coverArtCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Cover Art Screen Saver$/ }),
     }).first();
-    assert(await coverArtCard.isVisible(), "Configured but offline HA keeps cover art settings available");
+    assert(await coverArtCard.isVisible(), "Connected HA shows cover art settings");
     const haSettingsCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Home Assistant Settings$/ }),
     }).first();
-    assert(await haSettingsCard.isVisible(), "Configured but offline HA keeps connection settings available");
+    assert(await haSettingsCard.isVisible(), "Connected HA shows connection settings");
     assert.strictEqual(await page.locator("#sp-set-ss-cover-art-source").count(), 0,
       "Home Assistant cover art has no source selector");
     const scheduleCard = page.locator("#sp-settings .card").filter({
@@ -5654,35 +5655,46 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     }).first();
     await scheduleCard.locator(".card-header").click();
     const scheduleHaMode = scheduleCard.getByRole("button", { name: "Home Assistant", exact: true });
-    assert(await scheduleHaMode.isVisible(), "Configured but offline HA keeps Night Schedule mode available");
+    assert(await scheduleHaMode.isVisible(), "Connected HA shows Night Schedule mode");
     await scheduleHaMode.click();
     assert(await page.locator("#sp-set-schedule-presence").isVisible(), "HA schedule exposes its sensor");
-    await context.route("**/connectors/status", (route) => route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        onboarding_complete: true,
-        home_assistant: { available: true, configured: false, connected: false, actions_confirmed: false },
-        mac_companion: { available: true, configured: true, paired: true, connected: true },
-      }),
-    }));
-    await coverArtCard.waitFor({ state: "hidden" });
-    await haSettingsCard.waitFor({ state: "hidden" });
-    assert(!(await scheduleHaMode.isVisible()), "Unconfigured HA hides Night Schedule mode");
-    assert(!(await page.locator("#sp-set-schedule-presence").isVisible()), "Unconfigured HA hides saved sensor controls");
-    await scheduleCard.getByRole("button", { name: "Time", exact: true }).click();
-    assert(await page.locator("#sp-set-schedule-on-hour").isVisible(), "Time schedule remains available without HA");
-    assert(!(await scheduleHaMode.isVisible()), "Schedule updates keep unavailable HA mode hidden");
     const screensaverCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Screensaver$/ }),
     }).first();
     await screensaverCard.locator(".card-header").click();
-    const haMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
-    assert.strictEqual(await haMode.isVisible(), false,
-      "Unconfigured Home Assistant screensaver mode stays hidden after mode synchronization");
-    await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
-    assert.strictEqual(await haMode.isVisible(), false,
-      "Selecting Timer preserves Home Assistant mode visibility");
+    const screensaverHaMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
+    assert(await screensaverHaMode.isVisible(), "Connected HA shows the Home Assistant screensaver mode");
+    const temperatureItem = page.locator('[data-clockbar-item="temperature"]');
+    assert(await temperatureItem.count(), "Clock Bar temperature control is rendered");
+    assert(!(await temperatureItem.evaluate(node => node.classList.contains("sp-clockbar-hidden"))), "Connected HA enables the Clock Bar temperature control");
+
+    connectorStatus.home_assistant.connected = false;
+    await coverArtCard.waitFor({ state: "hidden" });
+    await haSettingsCard.waitFor({ state: "hidden" });
+    await scheduleHaMode.waitFor({ state: "hidden" });
+    await screensaverHaMode.waitFor({ state: "hidden" });
+    assert(!(await page.locator("#sp-set-schedule-presence").isVisible()), "Offline HA hides its saved schedule sensor");
+    await page.waitForFunction(() => !document.querySelector('[data-clockbar-item="temperature"]'));
+    assert.strictEqual(await temperatureItem.count(), 0, "Offline HA removes the Clock Bar temperature control");
+    assert(!(await coverArtCard.isVisible()), "Offline HA hides cover art settings");
+    assert(!(await haSettingsCard.isVisible()), "Offline HA hides Home Assistant settings");
+
+    connectorStatus.home_assistant.connected = true;
+    await coverArtCard.waitFor({ state: "visible" });
+    await haSettingsCard.waitFor({ state: "visible" });
+    await scheduleHaMode.waitFor({ state: "visible" });
+    await screensaverHaMode.waitFor({ state: "visible" });
+    await temperatureItem.waitFor({ state: "attached" });
+    assert(!(await temperatureItem.evaluate(node => node.classList.contains("sp-clockbar-hidden"))), "Reconnected HA restores the Clock Bar temperature control");
+
+    connectorStatus.home_assistant.connected = false;
+    await coverArtCard.waitFor({ state: "hidden" });
+    await haSettingsCard.waitFor({ state: "hidden" });
+    await scheduleHaMode.waitFor({ state: "hidden" });
+    await screensaverHaMode.waitFor({ state: "hidden" });
+    await page.waitForFunction(() => !document.querySelector('[data-clockbar-item="temperature"]'));
+    await scheduleCard.getByRole("button", { name: "Time", exact: true }).click();
+    assert(await page.locator("#sp-set-schedule-on-hour").isVisible(), "Time schedule remains available offline");
     assert(await screensaverCard.getByRole("button", { name: "App Connection", exact: true }).isVisible(),
       "Configured Companion screensaver mode remains available");
 
@@ -6418,6 +6430,13 @@ async function assertHomeAssistantConnectorLayout(browser) {
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("Home Assistant connector layout browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_CONNECTOR_STATUS_ONLY === "1") {
+      const testCase = CASES.find((candidate) => candidate.slug === "guition-esp32-s3-4848s040");
+      assert(testCase, "4-inch S3 browser profile is available");
+      await assertCompanionOnlyCardPicker(browser, testCase);
+      console.log("Home Assistant connection transition browser checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {

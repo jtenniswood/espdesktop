@@ -66,24 +66,24 @@ describe("browserless application contracts", () => {
     assert.match(companion, /Connect your Mac/);
     assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{max-width:960px/);
+    assert.match(styles, /\.sp-connectors-config\{padding-top:32px\}/);
     assert.doesNotMatch(connectors, /sp-connectors-intro|Manage the services that provide data and actions/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
   });
 
-  test("gates Home Assistant and Companion screensaver modes by connector setup", () => {
+  test("gates Home Assistant and Companion screensaver modes by live connector state", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const screensaver = fs.readFileSync(path.join(ROOT, "src/webserver/application/screensaver_state.ts"), "utf8");
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     assert.match(settings, /\["sensor", "Home Assistant"\]/);
     assert.match(settings, /\["companion", "App Connection"\]/);
-    assert.match(settings, /sensorBtn\.hidden = !haAvailable/);
+    assert.match(settings, /sensorBtn\.hidden = !haConnected/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
     assert.match(screensaver, /state\.screensaverMode === "companion"/);
     assert.match(eventHandlers, /val === "companion"/);
-    assert.match(connectors, /homeAssistantConfigured\(\)/);
+    assert.match(connectors, /homeAssistantConnected\(\)/);
     assert.match(connectors, /companionConfigured\(\)/);
   });
 
