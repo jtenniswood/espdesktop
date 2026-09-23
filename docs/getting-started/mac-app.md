@@ -51,7 +51,7 @@ Keyboard shortcuts and window controls need macOS Accessibility access. Choose *
 
 The display cannot ask the Mac to open any arbitrary application or folder.
 
-- Open **Apps** in the Mac app and select only the apps the display may launch or use for website cards.
+- Open **Apps** in the Mac app and select only the apps the display may launch. Website cards use the Mac's default browser.
 - Open **Folders**, choose **Add Folder…**, and select each folder the display may open in Finder.
 - If a moved folder shows as unavailable, choose **Choose Again…** to renew access.
 - Removing an app or folder makes any card that uses it unavailable.
