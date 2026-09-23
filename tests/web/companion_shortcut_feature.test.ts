@@ -601,12 +601,18 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Leaving a generated statistic card must clear its generated presentation");
   }
 
-  if (COMPANION_WINDOW_ACTIONS.length !== 19) {
+  if (COMPANION_WINDOW_ACTIONS.length !== 28) {
     throw new Error("Companion window controls must expose the complete approved preset list");
   }
   const windowIds = new Set(COMPANION_WINDOW_ACTIONS.map((action) => action.id));
+  const additionalWindowIds = [
+    "window.top-left", "window.top-right", "window.bottom-left", "window.bottom-right",
+    "window.arrange.quarters", "window.fullscreen.enter", "window.fullscreen.exit",
+    "window.split.left", "window.split.right",
+  ];
   if (windowIds.size !== COMPANION_WINDOW_ACTIONS.length || !windowIds.has("window.close")
-      || !windowIds.has("window.arrange.bottom-quarters")) {
+      || !windowIds.has("window.arrange.bottom-quarters")
+      || additionalWindowIds.some((id) => !windowIds.has(id))) {
     throw new Error("Companion window action identifiers must be unique and complete");
   }
   if (companionCardMode({ entity: "window.left", sensor: "" }) !== "window") {
