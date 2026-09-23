@@ -58,16 +58,16 @@ enum CompanionWindowArrangement {
         let width: Double
         let height: Double
         let bundleIdentifier: String?
-        let windowTitle: String?
+        let windowIdentifier: String?
         let savedAt: Date?
 
-        init(_ frame: CGRect, bundleIdentifier: String?, windowTitle: String?) {
+        init(_ frame: CGRect, bundleIdentifier: String?, windowIdentifier: String?) {
             x = frame.minX
             y = frame.minY
             width = frame.width
             height = frame.height
             self.bundleIdentifier = bundleIdentifier
-            self.windowTitle = windowTitle
+            self.windowIdentifier = windowIdentifier
             savedAt = Date()
         }
 
@@ -102,7 +102,8 @@ enum CompanionWindowArrangement {
             guard let storedFrame = previousFrames[active.restoreKey] else { return false }
             guard let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier),
                   storedFrame.bundleIdentifier == bundleIdentifier,
-                  storedFrame.windowTitle == windowTitle(for: active.element) else {
+                  storedFrame.windowIdentifier == nil
+                    || storedFrame.windowIdentifier == windowIdentifier(for: active.element) else {
                 previousFrames.removeValue(forKey: active.restoreKey)
                 savePreviousFrames()
                 return false
@@ -131,7 +132,14 @@ enum CompanionWindowArrangement {
         }
 
         let displayFrame = accessibilityFrame(for: screen.frame)
-        let windowsOnScreen = windows.filter { intersectionArea(displayFrame, $0.frame) > 0 }
+        let windowsOnScreen = windows.filter { window in
+            let areaOnActiveScreen = intersectionArea(displayFrame, window.frame)
+            guard areaOnActiveScreen > 0 else { return false }
+            let largestScreenArea = NSScreen.screens.map {
+                intersectionArea(accessibilityFrame(for: $0.frame), window.frame)
+            }.max() ?? 0
+            return areaOnActiveScreen >= largestScreenArea
+        }
         let selected = Array(windowsOnScreen.prefix(action.requiredWindowCount))
         guard selected.count == action.requiredWindowCount else { return false }
         let frames = frames(for: action, in: desktop, currentFrame: active.frame)
@@ -152,16 +160,16 @@ enum CompanionWindowArrangement {
 
         for window in selected {
             guard let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier) else { continue }
-            let title = windowTitle(for: window.element)
+            let identifier = windowIdentifier(for: window.element)
             if let previousFrame = previousFrames[window.restoreKey],
                previousFrame.bundleIdentifier == bundleIdentifier,
-               previousFrame.windowTitle == title {
+               previousFrame.windowIdentifier == identifier {
                 continue
             }
             previousFrames[window.restoreKey] = StoredFrame(
                 window.frame,
                 bundleIdentifier: bundleIdentifier,
-                windowTitle: title
+                windowIdentifier: identifier
             )
         }
         savePreviousFrames()
@@ -190,9 +198,9 @@ enum CompanionWindowArrangement {
         NSRunningApplication(processIdentifier: processIdentifier)?.bundleIdentifier
     }
 
-    private static func windowTitle(for element: AXUIElement) -> String? {
+    private static func windowIdentifier(for element: AXUIElement) -> String? {
         var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXTitleAttribute as CFString, &value) == .success else { return nil }
+        guard AXUIElementCopyAttributeValue(element, kAXIdentifierAttribute as CFString, &value) == .success else { return nil }
         return value as? String
     }
 
