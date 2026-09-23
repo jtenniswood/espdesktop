@@ -1152,6 +1152,7 @@ export function registerCompanionCardTypes(
                     if (labelInput) labelInput.value = updatedLabel;
                     helpers.saveField("label", updatedLabel);
                 }
+                renderButtonSettings();
             });
 
             function saveUrl(): void {
