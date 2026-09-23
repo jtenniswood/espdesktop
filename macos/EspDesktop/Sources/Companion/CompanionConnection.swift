@@ -306,9 +306,9 @@ final class CompanionConnection: NSObject {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(15))
                 guard !Task.isCancelled, let self, self.task === task else { return }
-                task.sendPing { [weak self, weak task] error in
+                task.sendPing { [weak self, weak task = task] error in
                     guard error != nil else { return }
-                    Task { @MainActor [weak self, weak task] in
+                    Task { @MainActor [weak self, weak task = task] in
                         guard let self, let task else { return }
                         self.handleConnectionFailure(for: task)
                     }

@@ -12,11 +12,13 @@ VERSION="${MARKETING_VERSION:-1.0.0}"
 BUILD_NUMBER="${CURRENT_PROJECT_VERSION:-1}"
 PRODUCT_BUNDLE_IDENTIFIER="${PRODUCT_BUNDLE_IDENTIFIER:-io.espdesktop.app}"
 ALLOW_ADHOC="${ALLOW_ADHOC:-0}"
+MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-13.0}"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
     echo "This script must run on macOS because it uses SwiftPM and codesign." >&2
     exit 1
 fi
+MACOS_SDK_VERSION="$(xcrun --sdk macosx --show-sdk-version)"
 
 if [[ "${ALLOW_ADHOC}" != "1" && -z "${CODE_SIGN_IDENTITY:-}" ]]; then
     echo "Set CODE_SIGN_IDENTITY to a Developer ID Application identity, or use ALLOW_ADHOC=1 for local verification only." >&2
@@ -31,7 +33,11 @@ swift build \
     --package-path "${PROJECT_DIR}" \
     --configuration release \
     --product "${EXECUTABLE_NAME}" \
-    -Xswiftc -warnings-as-errors
+    -Xswiftc -warnings-as-errors \
+    -Xlinker -platform_version \
+    -Xlinker macos \
+    -Xlinker "${MACOSX_DEPLOYMENT_TARGET}" \
+    -Xlinker "${MACOS_SDK_VERSION}"
 
 BUILD_BIN_PATH="$(swift build \
     --package-path "${PROJECT_DIR}" \
