@@ -351,6 +351,7 @@ const ICON_GROUPS = {
   'Shower Head': 'Water & Outdoors',
 
   'Application': 'Network & Tech',
+  'Tab': 'Network & Tech',
   'Bluetooth': 'Network & Tech',
   'Folder Outline': 'Network & Tech',
   'Harddisk': 'Network & Tech',

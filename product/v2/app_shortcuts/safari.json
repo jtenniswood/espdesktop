@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "com.apple.Safari",
+  "label": "Safari",
+  "catalog": true,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Back",
+      "shortcut": "command+keybracketleft",
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "1",
+      "label": "Forward",
+      "shortcut": "command+keybracketright",
+      "icon": "Chevron Right"
+    },
+    {
+      "id": "2",
+      "label": "Reload",
+      "shortcut": "command+r",
+      "icon": "Repeat"
+    },
+    {
+      "id": "3",
+      "label": "New Tab",
+      "shortcut": "command+t",
+      "icon": "Plus"
+    },
+    {
+      "id": "4",
+      "label": "Close Tab",
+      "shortcut": "command+w",
+      "icon": "Close"
+    }
+  ]
+}

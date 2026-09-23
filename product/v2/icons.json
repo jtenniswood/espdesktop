@@ -1999,6 +1999,11 @@
       "mdi": "window-shutter-open"
     },
     {
+      "name": "Tab",
+      "codepoint": "F04E9",
+      "mdi": "tab"
+    },
+    {
       "name": "Laptop",
       "codepoint": "F0322",
       "mdi": "laptop"
