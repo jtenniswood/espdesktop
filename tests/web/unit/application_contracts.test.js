@@ -47,16 +47,20 @@ describe("browserless application contracts", () => {
     runConnectorsFeatureTests();
   });
 
-  test("hides Home Assistant connector setup and keeps Companion guidance", () => {
+  test("gates Home Assistant connector setup behind firmware opt-in and keeps Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    assert.doesNotMatch(connectors, /buildHomeAssistantCard|Home Assistant actions|Forget Home Assistant/);
-    assert.match(connectors, /function homeAssistantConnected\(\): boolean \{[\s\S]*statusEndpointAvailable[\s\S]*current\.home_assistant\.connected/);
-    assert.match(connectors, /function homeAssistantCardPickerEnabled\(\): boolean \{\s*return false;/);
+    assert.match(connectors, /if \(homeAssistantSupported\(\)\) \{\s*homeAssistantCard = buildHomeAssistantCard\(\)/);
+    assert.match(connectors, /function homeAssistantConnected\(\): boolean \{[\s\S]*!homeAssistantSupported\(\)/);
+    assert.match(connectors, /function homeAssistantCardPickerEnabled\(\): boolean \{\s*return homeAssistantSupported\(\) &&/);
     assert.match(connectors, /No external connectors are available on this display\./);
+    const component = fs.readFileSync(path.join(ROOT, "components/espdesktop/__init__.py"), "utf8");
+    assert.match(component, /CONF_HOME_ASSISTANT_SUPPORT = "home_assistant_support"/);
+    assert.match(component, /cv.Optional\(CONF_HOME_ASSISTANT_SUPPORT, default=False\)/);
+    assert.match(component, /if config\[CONF_HOME_ASSISTANT_SUPPORT\]:\s+cg.add_define\("ESPDESKTOP_HOME_ASSISTANT_SUPPORT"\)/);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
-    assert.doesNotMatch(connectors, /connectors\/home-assistant\/complete|connectors\/home-assistant\/forget/);
+    assert.match(connectors, /connectors\/home-assistant\/complete|connectors\/home-assistant\/forget/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);

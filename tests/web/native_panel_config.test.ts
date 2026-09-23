@@ -84,6 +84,8 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
     return response(200, document, "\"7\"");
   });
   equal(await client.discover(), true, "native capabilities are detected");
+  equal(client.homeAssistantSupportEnabled(), false,
+    "Home Assistant support stays disabled unless firmware advertises explicit opt-in");
   equal(await client.save((current) => ({ ...current, settings: { ...current.settings, button_order: "1d" } })), "saved", "guarded native save succeeds");
   const put = requests.find((entry) => entry.request?.method === "PUT");
   equal(put?.request?.headers?.["If-Match"], "\"7\"", "native save uses the document generation");
@@ -191,6 +193,18 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
     "a non-numeric document version is rejected");
   equal(malformedVersionClient.confirmedUnsupported(), false,
     "a malformed version list is not mistaken for older firmware");
+
+  const homeAssistantEnabledClient = createNativePanelConfigClient(async () => ({
+    ...response(200),
+    json: async () => ({
+      home_assistant_support: true,
+      configuration: { read: false, write: false, document_versions: [] },
+    }),
+  }));
+  equal(await homeAssistantEnabledClient.discover(), false,
+    "Home Assistant capability can be read even without native config support");
+  equal(homeAssistantEnabledClient.homeAssistantSupportEnabled(), true,
+    "an explicit firmware capability enables Home Assistant support");
 
   let nativeInitializationComplete = false;
   const reconnectingClient = createNativePanelConfigClient(async (path, request) => {

@@ -32,8 +32,8 @@ export function runPreviewFeatureTests(): void {
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
   deepEqual(
     cardPickerConnectors(true, true),
-    [["mac_companion", "Mac Companion"]],
-    "Home Assistant stays hidden even when configured and Companion is supported",
+    [["home_assistant", "Home Assistant"], ["mac_companion", "Mac Companion"]],
+    "Home Assistant is available when explicitly enabled and Companion is supported",
   );
   deepEqual(
     cardPickerConnectors(false, true),

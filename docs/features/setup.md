@@ -30,6 +30,13 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 Use the setup page's backup controls to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
 
-The **Connectors** tab provides setup and status for Mac Companion. The EspDesktop configurator no longer offers Home Assistant setup or new Home Assistant-backed cards, even if Home Assistant is already connected. Home Assistant cards already saved on a display remain in its layout.
+The **Connectors** tab provides setup and status for Mac Companion. Home Assistant support is off by default. To opt in on a display, add this setting under its `espdesktop:` section in the ESPHome YAML, then install the updated firmware:
+
+```yaml
+espdesktop:
+  home_assistant_support: true
+```
+
+When enabled, the Connectors tab offers Home Assistant setup and the editor can add Home Assistant-backed cards. With the setting omitted or set to `false`, Home Assistant setup and new Home Assistant controls stay hidden, including when the display was previously connected.
 
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).

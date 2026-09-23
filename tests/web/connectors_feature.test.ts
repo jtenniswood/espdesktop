@@ -85,11 +85,11 @@ export function runConnectorsFeatureTests(): void {
       actions_confirmed: true,
     },
   });
-  if (homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
-    throw new Error("Home Assistant cards must stay unavailable when connector status is missing");
+  if (!homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
+    throw new Error("The Home Assistant picker stays usable on older firmware without status reporting");
   }
   if (homeAssistantPickerAvailable(offlineHomeAssistant, true)) {
-    throw new Error("New firmware must hide Home Assistant cards while its connector is offline");
+    throw new Error("New firmware hides Home Assistant cards while its connector is offline");
   }
   const connectedHomeAssistant = status({
     home_assistant: {
@@ -99,7 +99,7 @@ export function runConnectorsFeatureTests(): void {
       actions_confirmed: true,
     },
   });
-  if (homeAssistantPickerAvailable(connectedHomeAssistant, true)) {
-    throw new Error("Home Assistant cards must stay unavailable while its connector is connected");
+  if (!homeAssistantPickerAvailable(connectedHomeAssistant, true)) {
+    throw new Error("Home Assistant cards should be available while its connector is connected");
   }
 }

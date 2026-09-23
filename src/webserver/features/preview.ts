@@ -133,9 +133,8 @@ export function cardPickerConnectors(
   homeAssistantEnabled: boolean,
   companionSupported: boolean,
 ): Array<[CardPickerConnector, string]> {
-  // Home Assistant is intentionally unavailable in the configuration UI.
-  void homeAssistantEnabled;
   const connectors: Array<[CardPickerConnector, string]> = [];
+  if (homeAssistantEnabled) connectors.push(["home_assistant", "Home Assistant"]);
   if (companionSupported) connectors.push(["mac_companion", "Mac Companion"]);
   return connectors;
 }
