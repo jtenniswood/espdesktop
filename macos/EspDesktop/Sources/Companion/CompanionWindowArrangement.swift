@@ -96,7 +96,6 @@ enum CompanionWindowArrangement {
     private struct SessionRestoreFrame {
         let element: AXUIElement
         let processIdentifier: pid_t
-        let bundleIdentifier: String
         let originalFrame: CGRect
         let arrangedFrame: CGRect
     }
@@ -127,11 +126,11 @@ enum CompanionWindowArrangement {
         if action == .restore {
             // A shortcut can be posted without macOS actually restoring the
             // window, so only report success for frames saved by our own tiling.
-            guard let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier) else { return false }
+            let bundleIdentifier = applicationBundleIdentifier(for: active.processIdentifier)
             let storedFrame = previousFrames[active.restoreKey]
             let identifier = windowIdentifier(for: active.element)
             let storedIdentityMatches: StoredFrame?
-            if let storedFrame, let identifier,
+            if let storedFrame, let bundleIdentifier, let identifier,
                storedFrame.bundleIdentifier == bundleIdentifier,
                storedFrame.windowIdentifier == identifier {
                 storedIdentityMatches = storedFrame
@@ -198,7 +197,7 @@ enum CompanionWindowArrangement {
         }
 
         for (index, window) in selected.enumerated() {
-            guard let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier) else { continue }
+            let bundleIdentifier = applicationBundleIdentifier(for: window.processIdentifier)
             let identifier = windowIdentifier(for: window.element)
             let sessionIndex = sessionRestoreFrames.firstIndex {
                 $0.processIdentifier == window.processIdentifier && CFEqual($0.element, window.element)
@@ -206,7 +205,6 @@ enum CompanionWindowArrangement {
             let previousFrame = previousFrames[window.restoreKey]
             let restoreFrame: CGRect
             if let sessionIndex,
-               sessionRestoreFrames[sessionIndex].bundleIdentifier == bundleIdentifier,
                framesMatch(window.frame, sessionRestoreFrames[sessionIndex].arrangedFrame) {
                 // Preserve the original frame only while the window remains
                 // in the position created by our previous arrangement.
@@ -225,7 +223,6 @@ enum CompanionWindowArrangement {
             let sessionFrame = SessionRestoreFrame(
                 element: window.element,
                 processIdentifier: window.processIdentifier,
-                bundleIdentifier: bundleIdentifier,
                 originalFrame: restoreFrame,
                 arrangedFrame: arrangedFrame
             )
@@ -234,7 +231,7 @@ enum CompanionWindowArrangement {
             } else {
                 sessionRestoreFrames.append(sessionFrame)
             }
-            if let identifier {
+            if let identifier, let bundleIdentifier {
                 previousFrames[window.restoreKey] = StoredFrame(
                     restoreFrame,
                     arrangedFrame: arrangedFrame,
@@ -416,22 +413,23 @@ enum CompanionWindowArrangement {
         return CGRect(x: x, y: y, width: width, height: height)
     }
 
-    /// A window remains reachable when at least a 64-point square (or the
-    /// whole window when it is smaller) is inside any connected display's
-    /// visible area. This preserves spanning and intentionally offset frames
-    /// while still recovering windows stranded by display changes.
+    /// A window remains reachable when at least 64 points of its title bar and
+    /// the first 32 points of its height are visible on a connected display.
+    /// This preserves spanning frames while recovering windows whose title bar
+    /// is stranded by display changes.
     private static func isReachable(_ frame: CGRect, on screens: [NSScreen]) -> Bool {
         guard frame.minX.isFinite, frame.minY.isFinite,
               frame.width.isFinite, frame.height.isFinite,
               frame.width > 0, frame.height > 0 else { return false }
         let requiredWidth = min(64, frame.width)
-        let requiredHeight = min(64, frame.height)
+        let titleBarHeight = min(32, frame.height)
+        let titleBar = CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: titleBarHeight)
         return screens.contains { screen in
             let visibleFrame = accessibilityFrame(for: screen.visibleFrame)
-            let intersection = frame.intersection(visibleFrame)
+            let intersection = titleBar.intersection(visibleFrame)
             return !intersection.isNull
                 && intersection.width >= requiredWidth
-                && intersection.height >= requiredHeight
+                && intersection.height >= titleBarHeight
         }
     }
 
@@ -469,11 +467,14 @@ enum CompanionWindowArrangement {
         let bottomRight = CGRect(x: rightX, y: bottomY, width: halfWidth, height: halfHeight)
 
         switch action {
-        case .fill: return [desktop]
+        case .fill: return [CGRect(x: leftX, y: topY, width: usableWidth, height: usableHeight)]
         case .center:
-            let width = min(currentFrame.width, desktop.width)
-            let height = min(currentFrame.height, desktop.height)
-            return [CGRect(x: desktop.midX - width / 2, y: desktop.midY - height / 2, width: width, height: height)]
+            return [CGRect(
+                x: desktop.midX - currentFrame.width / 2,
+                y: desktop.midY - currentFrame.height / 2,
+                width: currentFrame.width,
+                height: currentFrame.height
+            )]
         case .left: return [left]
         case .right: return [right]
         case .top: return [top]
