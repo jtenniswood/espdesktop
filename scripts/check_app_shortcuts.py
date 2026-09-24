@@ -3,6 +3,7 @@
 import copy
 import json
 from pathlib import Path
+import shutil
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -43,6 +44,10 @@ class AppShortcutTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'duplicate shortcut id'):
             validate_app(self.app, self.icons)
 
+    def test_reference_example_is_valid(self):
+        example = json.loads((ROOT / 'product/v2/app_shortcuts/examples/example-editor.json').read_text())
+        validate_app(example, self.icons)
+
     def test_new_file_is_discovered_and_reordering_preserves_ids(self):
         with TemporaryDirectory() as temp:
             root = Path(temp)
@@ -65,6 +70,24 @@ class AppShortcutTests(unittest.TestCase):
 
 
 class WebAppTests(unittest.TestCase):
+    def test_reference_example_is_valid(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = ROOT / 'product/v2/web_apps'
+            directory = root / 'product/v2/web_apps'
+            (directory / 'icons').mkdir(parents=True)
+            (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
+            example = source / 'examples/example-service.json'
+            (directory / 'example-service.json').write_text(example.read_text())
+            shutil.copy2(source / 'icons/google-docs.png', directory / 'icons/google-docs.png')
+            (directory / 'manifest.json').write_text(json.dumps({
+                'formatVersion': 1,
+                'catalogueVersion': 1,
+                'minimumCompanionVersion': '1.0.0',
+                'entries': [{'path': 'example-service.json'}],
+            }))
+            self.assertEqual([app['id'] for app in load_web_apps(root)], ['example-service'])
+
     def test_web_templates_manifest_and_hosted_icon(self):
         apps = load_web_apps(ROOT)
         self.assertEqual([app['id'] for app in apps], ['google-docs'])
