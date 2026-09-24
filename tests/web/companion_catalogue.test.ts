@@ -15,13 +15,19 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
   let definitionId = "example";
   let emptyDefinitions = false;
+  const requestedPages: number[] = [];
   const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, init });
-    if (url === "/companion/definitions") {
-      return new Response(JSON.stringify({ definitions: emptyDefinitions ? [] : [
+    if (url.startsWith("/companion/definitions?page=")) {
+      const page = Number(url.slice(url.lastIndexOf("=") + 1));
+      requestedPages.push(page);
+      if (emptyDefinitions) return new Response(JSON.stringify({ page, hasMore: false, definitions: [] }), { status: 200 });
+      if (page === 0) return new Response(JSON.stringify({ page, hasMore: true, definitions: [
         { kind: "application", definition: { appId: "org.example.Editor" } },
         { kind: "webapp", definition: { id: definitionId } },
+      ] }), { status: 200 });
+      return new Response(JSON.stringify({ page, hasMore: false, definitions: [
         { kind: "webapp", definition: null },
         { kind: "other", definition: { id: "ignored" } },
       ] }), { status: 200 });
@@ -32,8 +38,8 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   const catalogue = createCompanionCatalogue(fetchImpl);
   const definitions = await catalogue.loadDefinitions();
   if (definitions.applications.length !== 1 || definitions.webApplications.length !== 1 ||
-      definitions.webApplications[0]?.id !== "example") {
-    throw new Error("Remote Companion templates must retain only recognized native and Web App definitions");
+      definitions.webApplications[0]?.id !== "example" || requestedPages.slice(0, 2).join("|") !== "0|1") {
+    throw new Error("Remote Companion definitions must load all pages and retain recognized native and Web App definitions");
   }
   definitionId = "updated";
   const refreshed = await catalogue.loadDefinitions(true);

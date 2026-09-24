@@ -247,10 +247,17 @@ inline CompanionPairingProvider &companion_pairing_provider() {
 }
 
 inline void companion_set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
+  size_t application_count = 0;
+  size_t web_app_count = 0;
   definitions.erase(std::remove_if(definitions.begin(), definitions.end(),
-    [](const CompanionRemoteDefinition &definition) {
-      return (definition.kind != "application" && definition.kind != "webapp") ||
-        definition.json.empty() || definition.json.size() > 12000;
+    [&application_count, &web_app_count](const CompanionRemoteDefinition &definition) {
+      if ((definition.kind != "application" && definition.kind != "webapp") ||
+          definition.json.empty() || definition.json.size() > 12000 ||
+          !companion_remote_definition_capacity_available(definition.kind, application_count, web_app_count))
+        return true;
+      if (definition.kind == "application") ++application_count;
+      else ++web_app_count;
+      return false;
     }), definitions.end());
   companion_runtime_service().set_remote_definitions(std::move(definitions));
 }
@@ -954,37 +961,70 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     if (!companion_authorize_web_request(request)) return;
     std::string json = "[";
     bool first = true;
-    const auto snapshot = companion_runtime_snapshot();
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const std::string requested_url = request->url_to(url_buf);
     const bool networks = requested_url == "/companion/networks";
     const bool definitions = requested_url == "/companion/definitions";
-    if (definitions) json = "{\"definitions\":[";
-    if (snapshot.connected && networks) {
-      for (const auto &network : snapshot.system_metrics.network_interfaces) {
+    auto &runtime = companion_runtime_service();
+    const bool connected = runtime.connected();
+    if (definitions) {
+      constexpr size_t page_size = 4;
+      constexpr size_t maximum_pages = 64;
+      size_t page = 0;
+      httpd_req_t *req = *request;
+      char query[64] = {};
+      char page_text[16] = {};
+      if (httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK &&
+          httpd_query_key_value(query, "page", page_text, sizeof(page_text)) == ESP_OK) {
+        if (page_text[0] == '\0') {
+          httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+          return;
+        }
+        for (const char *digit = page_text; *digit; ++digit) {
+          if (*digit < '0' || *digit > '9' || page >= maximum_pages) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+            return;
+          }
+          page = page * 10 + static_cast<size_t>(*digit - '0');
+        }
+      }
+      if (page >= maximum_pages) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+        return;
+      }
+      bool definitions_connected = false;
+      bool has_more = false;
+      const auto entries = runtime.remote_definitions_page(page * page_size, page_size,
+                                                           definitions_connected, has_more);
+      json = "{\"page\":" + std::to_string(page) + ",\"hasMore\":" +
+        (has_more ? "true" : "false") + ",\"definitions\":[";
+      if (definitions_connected) {
+        for (const auto &definition : entries) {
+          if (!first) json += ",";
+          first = false;
+          json += "{\"kind\":\"" + companion_json_escape(definition.kind) +
+            "\",\"definition\":" + definition.json + "}";
+        }
+      }
+      json += "]}";
+    } else if (connected && networks) {
+      const auto metrics = runtime.system_metrics();
+      for (const auto &network : metrics.network_interfaces) {
         if (!first) json += ",";
         first = false;
         json += "{\"id\":\"" + companion_json_escape(network.id) +
           "\",\"label\":\"" + companion_json_escape(network.label) + "\"}";
       }
     }
-    if (snapshot.connected && definitions) {
-      for (const auto &definition : snapshot.remote_definitions) {
-        if (!first) json += ",";
-        first = false;
-        json += "{\"kind\":\"" + companion_json_escape(definition.kind) +
-          "\",\"definition\":" + definition.json + "}";
-      }
-    }
-    if (snapshot.connected && !networks && !definitions) {
-      for (const auto &action : snapshot.actions) {
+    if (connected && !networks && !definitions) {
+      for (const auto &action : runtime.actions()) {
         if (!first) json += ",";
         first = false;
         json += "{\"id\":\"" + companion_json_escape(action.id) +
           "\",\"label\":\"" + companion_json_escape(action.label) + "\"}";
       }
     }
-    json += definitions ? "]}" : "]";
+    if (!definitions) json += "]";
     httpd_req_t *req = *request;
     httpd_resp_set_status(req, "200 OK");
     httpd_resp_set_type(req, "application/json");

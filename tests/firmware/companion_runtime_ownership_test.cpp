@@ -24,6 +24,18 @@ int main() {
   const auto before = allocations;
   for (int i = 0; i < 1000; ++i) assert(first.companion_runtime().connected());
   assert(allocations == before); // Simple status reads never copy the catalogue.
+  std::vector<CompanionRemoteDefinition> definitions;
+  definitions.reserve(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2);
+  for (size_t i = 0; i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2; ++i)
+    definitions.push_back({i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE ? "application" : "webapp",
+                           std::to_string(i), "", "{}"});
+  first.companion_runtime().set_remote_definitions(std::move(definitions));
+  bool definitions_connected = false;
+  bool has_more = false;
+  assert(first.companion_runtime().remote_definitions_page(0, 4, definitions_connected, has_more).size() == 4);
+  assert(definitions_connected && has_more);
+  assert(first.companion_runtime().remote_definitions_page(252, 4, definitions_connected, has_more).size() == 4);
+  assert(definitions_connected && !has_more);
   assert(first.start());
   bool invoked = false;
   assert(companion_expect_action_result("old-session", [&] { invoked = true; }));

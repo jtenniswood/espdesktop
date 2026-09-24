@@ -192,6 +192,31 @@ class CompanionRuntimeService {
     return connected_;
   }
 
+  std::vector<CompanionAction> actions() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return actions_;
+  }
+
+  CompanionSystemMetricsSnapshot system_metrics() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return system_metrics_;
+  }
+
+  std::vector<CompanionRemoteDefinition> remote_definitions_page(
+      size_t offset, size_t limit, bool &connected, bool &has_more) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    connected = connected_;
+    if (!connected_) {
+      has_more = false;
+      return {};
+    }
+    const size_t count = remote_definitions_.size();
+    const size_t begin = std::min(offset, count);
+    const size_t end = std::min(count, begin + limit);
+    has_more = end < count;
+    return {remote_definitions_.begin() + begin, remote_definitions_.begin() + end};
+  }
+
   CompanionNowPlayingSnapshot now_playing() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return now_playing_;
@@ -237,7 +262,8 @@ class CompanionRuntimeService {
 
   void set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (definitions.size() > 128) definitions.resize(128);
+    if (definitions.size() > COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2)
+      definitions.resize(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2);
     remote_definitions_ = std::move(definitions);
     request_refresh_();
   }

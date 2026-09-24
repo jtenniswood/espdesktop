@@ -133,13 +133,15 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   }
 
   async function fetchDefinitions(): Promise<CompanionDefinitions> {
-    const response = await fetchImpl("/companion/definitions", { cache: "no-store" });
-    if (!response.ok) throw new Error("Companion definitions unavailable");
-    const data: unknown = await response.json();
     const applications: AppShortcutApplication[] = [];
     const webApplications: WebAppDefinition[] = [];
-    const payload = data as { definitions?: unknown } | null;
-    if (Array.isArray(payload?.definitions)) {
+    for (let page = 0; page < 64; page += 1) {
+      const response = await fetchImpl(`/companion/definitions?page=${page}`, { cache: "no-store" });
+      if (!response.ok) throw new Error("Companion definitions unavailable");
+      const data: unknown = await response.json();
+      const payload = data as { definitions?: unknown; page?: unknown; hasMore?: unknown } | null;
+      if (!Array.isArray(payload?.definitions) || payload.page !== page || typeof payload.hasMore !== "boolean")
+        throw new Error("Companion definitions page is invalid");
       for (const value of payload.definitions) {
         if (!value || typeof value !== "object") continue;
         const entry = value as { kind?: unknown; definition?: unknown };
@@ -148,6 +150,8 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
         if (entry.kind === "application" && typeof definition.appId === "string") applications.push(definition as unknown as AppShortcutApplication);
         if (entry.kind === "webapp" && typeof definition.id === "string") webApplications.push(definition as unknown as WebAppDefinition);
       }
+      if (!payload.hasMore) break;
+      if (page === 63) throw new Error("Companion definitions exceed the supported catalogue size");
     }
     if (applications.length + webApplications.length === 0) throw new Error("Companion definitions are empty or invalid");
     return { applications, webApplications };

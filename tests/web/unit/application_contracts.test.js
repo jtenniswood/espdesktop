@@ -1142,14 +1142,26 @@ describe("browserless application contracts", () => {
     assert.match(hooks, /ConfigPersistenceFeature/);
     assert.match(entry, /createConfigCodecFeature\([\s\S]*configurationPersistence/);
     assert.match(entry, /configPersistence: configurationPersistence/);
-    assert.match(persistence, /return requests\(\)\.postText\(entityNameForSlot\("button_config", slot\)/);
+    assert.match(persistence, /publishAfter\(requests\(\)\.postText\(entityNameForSlot\("button_config", slot\)/);
     assert.match(buttonSettings, /saveBtn\.addEventListener\("click", async function/);
     assert.match(buttonSettings, /if \(await applySettingsDraft\(\)\)/);
     assert.match(buttonSettings, /restoreDraftState\(\);[\s\S]*return false/);
     assert.match(buttonSettings, /configPersistence\.saveButtonConfigAndOrder\(slot, serializeGrid\(state\.grid\)\)/);
     assert.match(persistence, /nativePanelConfig\.writeButtonAndOrder/);
     assert.match(persistence, /Wifi Sharing requires current device firmware/);
+    assert.match(persistence, /connectFocusRegistrationPublisher/);
+    assert.match(persistence, /publishFocusRegistrations\?\.\(\)/);
+    assert.match(entry, /connectFocusRegistrationPublisher\(\(\) =>/);
+    assert.match(entry, /companionFocusRegistrationValues\(state\.buttons, state\.subpages\)/);
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_RAW_CHUNK_FIELDS|saveButtonConfig|saveSubpageEntity|saveSubpageEntityLegacy|scheduleSliderSubpageMigration|subpageChunkShouldPost|subpageEntityKeys):/);
+  });
+
+  test("offers Web Apps directly in the Companion card picker", () => {
+    const companion = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
+    const preview = fs.readFileSync(path.join(ROOT, "src/webserver/features/preview.ts"), "utf8");
+    assert.match(companion, /\["companion_webapp", "Web App", "webapp"\]/);
+    assert.match(preview, /companion_webapp: \{ icon: "web"/);
+    assert.match(preview, /companion_webapp: "companion"/);
   });
 
   test("composes the backup contract without compatibility globals", () => {

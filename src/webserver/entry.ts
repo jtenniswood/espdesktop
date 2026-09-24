@@ -538,6 +538,11 @@ function composeApplicationContext(): ApplicationContext {
     postOrder: (value) => { void requestApi.postText(entityState.entityName("button_order"), value); },
   });
   const focusTargetCatalogue = createCompanionCatalogue(dom.fetch);
+  configurationPersistence.connectFocusRegistrationPublisher(() => {
+    void focusTargetCatalogue.saveFocusRegistrations(
+      companionFocusRegistrationValues(state.buttons, state.subpages),
+    ).catch(() => { /* Keep card editing available when Companion is offline. */ });
+  });
   stateLoader = createStateLoaderFeature(
     runtime,
     layout,
