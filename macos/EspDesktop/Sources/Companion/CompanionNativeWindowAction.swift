@@ -52,8 +52,10 @@ enum CompanionNativeWindowAction {
             }
             guard isFullScreen != shouldBeFullScreen else { return nil }
             let target: CFTypeRef = shouldBeFullScreen ? kCFBooleanTrue : kCFBooleanFalse
-            return AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, target) == .success
-                ? nil : "The active window could not change full-screen mode"
+            let result = AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, target)
+            if result == .success { return nil }
+            if identifier == "window.fullscreen" { return replayFullScreenShortcut() }
+            return "The active window could not change full-screen mode"
         }
 
         guard let menuBar = element(application, kAXMenuBarAttribute) else {
