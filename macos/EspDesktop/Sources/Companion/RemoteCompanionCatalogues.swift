@@ -75,7 +75,7 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
         func parts(_ value: String) -> [Int]? {
             let values = value.split(separator: ".", omittingEmptySubsequences: false)
             guard !values.isEmpty, values.allSatisfy({ Int($0) != nil }) else { return nil }
-            return values.compactMap(Int.init)
+            return values.compactMap { Int($0) }
         }
         guard let required = parts(minimum), let installed = parts(current) else { return false }
         let width = max(required.count, installed.count)

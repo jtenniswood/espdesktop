@@ -1325,7 +1325,7 @@ inline std::string normalize_saved_config_subpage_options(
 }
 
 inline bool companion_shortcut_template_id_valid(const std::string &value) {
-  if (value.empty() || value.size() > 3 || value[0] == '0' && value.size() > 1) return false;
+  if (value.empty() || value.size() > 3 || (value[0] == '0' && value.size() > 1)) return false;
   for (char ch : value) if (ch < '0' || ch > '9') return false;
   return std::atoi(value.c_str()) <= 999;
 }
