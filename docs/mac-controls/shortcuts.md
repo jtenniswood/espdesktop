@@ -21,7 +21,7 @@ Shortcuts must include Command, Control, or Option with a supported letter, numb
 
 ## Use a Template on an App Subpage
 
-An approved **Companion → Launch app** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. These are the same definitions used by the standalone Shortcut Catalog.
+An approved **Companion → Applications** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. These are the same definitions used by the standalone Shortcut Catalog.
 
 The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and Codex. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
 
@@ -34,7 +34,7 @@ Anyone can contribute a template for an app that is not in the catalog. The matc
   "/Applications/Your App.app/Contents/Info.plist"
 ```
 
-Use the returned value exactly as `appId` in the app's JSON file. The `label` field is the friendly name shown in EspDesktop. For example, the Safari definition uses `appId` `com.apple.Safari`; that exact identifier is how its shortcuts are matched to Safari. The Mac app must approve the app before its Launch app card and subpage can be used.
+Use the returned value exactly as `appId` in the app's JSON file. The `label` field is the friendly name shown in EspDesktop. For example, the Safari definition uses `appId` `com.apple.Safari`; that exact identifier is how its shortcuts are matched to Safari. The Mac app must approve the app before its Applications card and subpage can be used.
 
 To add a template:
 

@@ -20,6 +20,8 @@ Open **Connectors → Mac Companion** on the display to show a fresh code. Enter
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
+If the Mac app asks you to unlock your Mac or allow Keychain access, do that first, then choose **Retry** on the **Display** tab.
+
 ## A Card Does Not Work
 
 - **App or folder:** confirm it is still approved in the Mac app's **Applications** or **Folders** page.

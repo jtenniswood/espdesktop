@@ -72,7 +72,7 @@ export function runPreviewFeatureTests(): void {
       ...definitions,
       calendar: { label: "Date & Time", allowInSubpage: true },
       companion: { label: "Companion", allowInSubpage: true },
-      companion_app: { label: "Launch app", allowInSubpage: true },
+      companion_app: { label: "Applications", allowInSubpage: true },
       companion_shortcut: { label: "Keyboard shortcut", allowInSubpage: true },
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
@@ -87,7 +87,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_shortcut", "companion_app", "companion_folder", "companion_url", "companion_stats", "companion_subpage", "webhook", "companion_window"],
+    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "companion_subpage", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(
