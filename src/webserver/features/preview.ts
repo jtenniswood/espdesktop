@@ -2,6 +2,7 @@ import { cardContractOptionName } from "../generated/card_contract";
 import { configOptionValue } from "../model/config_primitives";
 
 const SUBPAGE_CONNECTOR_OPTION = cardContractOptionName("subpage_connector");
+const SUBPAGE_KIND_OPTION = cardContractOptionName("subpage_kind");
 const WIFI_QR_TABS_OPTION = cardContractOptionName("wifi_tabs");
 
 export interface Point {
@@ -158,8 +159,14 @@ export function cardRequiresHomeAssistant(
     readonly sensor?: string | null;
   } | null | undefined,
 ): boolean {
-  if (key === "subpage" && configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION) === "mac_companion") {
-    return false;
+  if (key === "subpage") {
+    const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
+    const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);
+    if (connector === "mac_companion" || kind === "companion_stat") return false;
+    const hasState = !!(card?.sensor || card?.entity);
+    // An unconfigured folder is only navigation; presets and state bindings
+    // use Home Assistant, including on an otherwise plain folder card.
+    return connector === "home_assistant" || !!kind || hasState;
   }
   if (key === "wifi_qr" || key === "wifi_qr_card") {
     const tabs = configOptionValue(card?.options, WIFI_QR_TABS_OPTION).split("|");
@@ -236,7 +243,8 @@ export function cardTypePickerOptions(
     const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
       (source === "home_assistant_or_local" && !LOCAL_ONLY_CARD_TYPES.has(typeKey)));
     const localDateTimePicker = !homeAssistantEnabled && typeKey === "calendar";
-    if (requiresHomeAssistant && !localDateTimePicker) {
+    const localFolderPicker = !homeAssistantEnabled && typeKey === "subpage";
+    if (requiresHomeAssistant && !localDateTimePicker && !localFolderPicker) {
       if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {
         selectedUnsupported = { key: selectedTypeKey, label };
       }
@@ -252,7 +260,7 @@ export function cardTypePickerOptions(
     if (pickerKey && pickerKey !== typeKey) continue;
     if (isSub && !allowInSubpage) continue;
     if (definition.isAvailable && !definition.isAvailable({ isSub }) && selectedTypeKey !== typeKey) continue;
-    if (!cardTypeVisibleForConnector(typeKey, connector) && !localDateTimePicker) continue;
+    if (!cardTypeVisibleForConnector(typeKey, connector) && !localDateTimePicker && !localFolderPicker) continue;
     options.push({
       key: typeKey,
       label,
