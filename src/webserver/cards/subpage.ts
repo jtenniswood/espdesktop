@@ -164,7 +164,10 @@ export function registerSubpageCardTypes(
             b.options = "";
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            var kind: any = helpers.homeAssistantConfigured() ? subpageKind(b) : "";
+            var savedKind: any = subpageKind(b);
+            var kind: any = helpers.homeAssistantConfigured() || savedKind === "companion_stat"
+                ? savedKind
+                : "";
             helpers.renderCardModeSelector(panel, b, helpers, {
                 mode: Object.assign({}, SUBPAGE_CARD_METADATA.kind, {
                     value: function (this: any) { return kind; },
