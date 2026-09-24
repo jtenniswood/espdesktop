@@ -87,7 +87,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_shortcut", "companion_app", "companion_folder", "companion_url", "companion_stats", "companion_subpage", "webhook", "companion_window"],
+    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "companion_subpage", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(
