@@ -105,7 +105,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "internal", "companion_shortcut", "companion_app", "companion_folder", "companion_url", "screen_lock", "sensor", "companion_stats", "companion_subpage", "webhook", "wifi_qr", "companion_window"],
+    ["action", "companion_app", "internal", "companion_shortcut", "companion_folder", "companion_url", "screen_lock", "sensor", "companion_stats", "companion_subpage", "webhook", "wifi_qr", "companion_window"],
     "Companion picker includes local cards and excludes Home Assistant-only controls",
   );
   equal(
