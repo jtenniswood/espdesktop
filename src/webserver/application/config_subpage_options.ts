@@ -45,12 +45,13 @@ import {
         { value: "image", label: "Camera/Image", preset: { label: "Camera", icon: "Camera", entityDomains: ["camera", "image"], placeholder: "e.g. camera.front_door" } },
         { value: "companion_stat", label: "Companion Stat" },
     ];
-    function subpageKindOptions(this: any, connector?: any) {
+    function subpageKindOptions(this: any, connector?: any, homeAssistantConfigured?: any) {
         var normalizedConnector: any = normalizeSubpageConnector(connector);
+        var includeHomeAssistantKinds: any = homeAssistantConfigured !== false;
         return SUBPAGE_KIND_PRESET_DEFINITIONS.filter(function (definition: any) {
-            return normalizedConnector === "mac_companion"
-                ? definition.value === ""
-                : definition.value !== "companion_stat";
+            if (normalizedConnector === "mac_companion" || !includeHomeAssistantKinds)
+                return definition.value === "";
+            return definition.value !== "companion_stat";
         }).map(function (this: any, definition?: any) {
             return [definition.value, definition.label];
         });

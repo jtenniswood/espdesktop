@@ -29,6 +29,7 @@ export interface ConnectorsStatus {
 export interface ConnectorsPageFeature {
     buildPage(parent: HTMLElement): void;
     start(): void;
+    homeAssistantConfigured(): boolean;
     homeAssistantConnected(): boolean;
     homeAssistantSettingsAvailable(): boolean;
     homeAssistantCardPickerEnabled(): boolean;
@@ -362,6 +363,13 @@ export function createConnectorsPageFeature(
         return !statusEndpointAvailable || !!current.home_assistant.connected;
     }
 
+    function homeAssistantConfigured(): boolean {
+        // The opt-in can disable Home Assistant entirely. When it is enabled,
+        // legacy firmware without connector status retains its established types.
+        return homeAssistantSupported() &&
+            (!statusEndpointAvailable || !!current?.home_assistant.configured);
+    }
+
     function homeAssistantSettingsAvailable(): boolean {
         return homeAssistantConnected();
     }
@@ -381,6 +389,7 @@ export function createConnectorsPageFeature(
     return {
         buildPage,
         start,
+        homeAssistantConfigured,
         homeAssistantConnected,
         homeAssistantSettingsAvailable,
         homeAssistantCardPickerEnabled,
