@@ -592,10 +592,12 @@ final class CompanionStore: NSObject, ObservableObject {
         if connected {
             startMediaControlPublishing()
             browserFocusTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-                guard let self,
-                      let bundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
-                      bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" else { return }
-                connection.publishFocusedAction()
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          let bundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+                          bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" else { return }
+                    connection.publishFocusedAction()
+                }
             }
             Task {
                 await remoteCatalogueStore.refresh()
