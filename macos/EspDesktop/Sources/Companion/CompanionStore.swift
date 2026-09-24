@@ -148,7 +148,6 @@ final class CompanionStore: NSObject, ObservableObject {
     private var latestNowPlayingSnapshot: CompanionNowPlayingSnapshot?
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
     private var mediaControlTimer: Timer?
-    private var browserFocusTimer: Timer?
     private var lastMediaControlValues: [String: Int] = [:]
     private var companionURLFocusTargets: [(id: String, url: URL)] = []
     private var companionWebAppFocusIDs: Set<String> = []
@@ -593,21 +592,11 @@ final class CompanionStore: NSObject, ObservableObject {
         let connected = state == .connected
         guard isConnected != connected else { return }
         isConnected = connected
-        browserFocusTimer?.invalidate()
-        browserFocusTimer = nil
         if !connected { systemMetricsSupported = false }
         updateNowPlayingProvider()
         updateSystemMetricsProvider()
         if connected {
             startMediaControlPublishing()
-            browserFocusTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    guard let self,
-                          let bundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
-                          bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" else { return }
-                    self.connection.publishFocusedAction()
-                }
-            }
             Task {
                 await remoteCatalogueStore.refresh()
                 if isConnected { connection.publishCatalogue() }
@@ -697,12 +686,17 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func performResultStatus(actionIdentifier: String,
                              folderOpenBehavior: String = "new_window") async -> String {
+        let performed = await perform(actionIdentifier: actionIdentifier,
+                                      folderOpenBehavior: folderOpenBehavior)
+        return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
+    }
+
+    static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {
+        guard performed else { return "not_allowed" }
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
-        let performed = await perform(actionIdentifier: actionIdentifier,
-                                      folderOpenBehavior: folderOpenBehavior)
-        guard performed else { return "not_allowed" }
+            && !actionIdentifier.hasPrefix("webapp.")
         return isApplicationLaunch ? "activated" : "performed"
     }
 

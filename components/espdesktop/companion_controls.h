@@ -359,6 +359,14 @@ inline void companion_set_focused_action(std::string action_id) {
   if (should_return_from_subpage) companion_subpage_return_requested().store(true);
 }
 
+inline void companion_set_focused_actions(std::vector<std::string> action_ids) {
+  for (auto &action_id : action_ids)
+    if (action_id.size() > 96) action_id.clear();
+  const bool should_return_from_subpage =
+    companion_runtime_service().set_focused_actions(std::move(action_ids));
+  if (should_return_from_subpage) companion_subpage_return_requested().store(true);
+}
+
 inline std::atomic<bool> &companion_subpage_return_requested() {
   return companion_runtime_service().subpage_return_requested;
 }

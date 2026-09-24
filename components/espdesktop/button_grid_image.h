@@ -1104,11 +1104,45 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
   }
 }
 
+inline void image_card_evict_optional_icon(ImageCardCtx *ctx) {
+  if (!ctx || !ctx->active || !ctx->remote_icon) return;
+  if (ctx->image && ctx->image->request_is_active()) ctx->image->cancel_update();
+  image_card_release_download_slot(ctx);
+  if (ctx->image) ctx->image->release();
+  image_card_clear_widget_source(ctx->widget);
+  if (ctx->widget) lv_obj_add_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+  if (ctx->fallback_icon_label) lv_obj_clear_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+  ctx->active = false;
+  ctx->image_ready = false;
+  ctx->requested_once = false;
+  ctx->remote_icon = false;
+  ctx->widget = nullptr;
+  ctx->btn = nullptr;
+  ctx->loading_widget = nullptr;
+  ctx->loading_label = nullptr;
+  ctx->fallback_icon_label = nullptr;
+  ctx->entity_id.clear();
+  ctx->cached_entity_id.clear();
+  ctx->source_url.clear();
+  ctx->url.clear();
+  ctx->modal_url.clear();
+  ctx->modal_source_url.clear();
+}
+
 inline ImageCardCtx *acquire_image_card_context(const GridConfig &cfg,
-                                                const std::string &entity_id) {
+                                                const std::string &entity_id,
+                                                bool optional_icon = false) {
   ImageCardCtx *contexts = image_card_contexts();
   int count = cfg.image_card_image_count;
   if (count > IMAGE_CARD_MAX_CONTEXTS) count = IMAGE_CARD_MAX_CONTEXTS;
+  if (optional_icon) {
+    int free_count = 0;
+    for (int i = 0; i < count; i++)
+      if (!contexts[i].active && contexts[i].image) ++free_count;
+    // Web App icons are decorative. Keep at least one image downloader free
+    // for camera and image cards; these can still render their fallback glyph.
+    if (free_count <= 1) return nullptr;
+  }
   ImageCardCtx *selected = nullptr;
   for (int i = 0; i < count; i++) {
     if (!contexts[i].active && contexts[i].image && contexts[i].image_ready &&
@@ -1123,6 +1157,14 @@ inline ImageCardCtx *acquire_image_card_context(const GridConfig &cfg,
         selected = &contexts[i];
         break;
       }
+    }
+  }
+  if (!selected && !optional_icon) {
+    for (int i = 0; i < count; i++) {
+      if (!contexts[i].active || !contexts[i].remote_icon) continue;
+      image_card_evict_optional_icon(&contexts[i]);
+      selected = &contexts[i];
+      break;
     }
   }
   if (!selected) return nullptr;
@@ -2965,7 +3007,7 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
   if (p.type != "companion" || p.entity.rfind("webapp.", 0) != 0) return false;
   const std::string source = companion_web_app_icon_url(p.entity);
   if (source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return false;
-  ImageCardCtx *ctx = acquire_image_card_context(cfg, p.entity);
+  ImageCardCtx *ctx = acquire_image_card_context(cfg, p.entity, true);
   if (!ctx || !ctx->image || !s.btn) return false;
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
   lv_obj_t *widget = lv_image_create(s.btn);
@@ -3072,6 +3114,8 @@ inline bool image_card_bind_runtime(BtnSlot &s, const ParsedCfg &p,
   ctx->end_display_takeover = cfg.end_display_takeover;
   ctx->modal_fit = image_card_modal_fit_enabled(p);
   ctx->media_artwork = false;
+  ctx->remote_icon = false;
+  ctx->fallback_icon_label = nullptr;
   ctx->media_artwork_suppressed = false;
   ctx->media_artwork_refresh_forced = false;
   ctx->media_artwork_refresh.reset();

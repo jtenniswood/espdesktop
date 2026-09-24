@@ -88,6 +88,11 @@ struct CompanionURLFocusTarget {
   std::string url;
 };
 
+struct CompanionFocusTargetsState {
+  bool connected{false};
+  uint32_t generation{0};
+};
+
 struct CompanionRuntimeSnapshot {
   std::vector<CompanionAction> actions;
   std::vector<CompanionValue> values;
@@ -165,6 +170,7 @@ class CompanionRuntimeService {
   CompanionNowPlayingHandler now_playing_handler;
   CompanionConnectionChangedHandler connection_changed_handler;
   CompanionArtworkHandler artwork_handler;
+  std::function<void()> focus_registrations_changed_handler;
   std::atomic<bool> subpage_return_requested{false};
   std::atomic<uint32_t> request_number{0};
 
@@ -194,16 +200,26 @@ class CompanionRuntimeService {
             web_app_focus_ids_, url_focus_targets_generation_};
   }
 
-  void set_focus_registrations(std::vector<CompanionURLFocusTarget> targets, std::vector<std::string> web_app_ids) {
+  CompanionFocusTargetsState focus_targets_state() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (targets.size() > 64) targets.resize(64);
-    if (web_app_ids.size() > 64) web_app_ids.resize(64);
-    if (targets.size() == url_focus_targets_.size() && web_app_ids == web_app_focus_ids_ && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
-        [](const auto &a, const auto &b) { return a.id == b.id && a.url == b.url; })) return;
-    url_focus_targets_ = std::move(targets);
-    web_app_focus_ids_ = std::move(web_app_ids);
-    ++url_focus_targets_generation_;
-    if (url_focus_targets_generation_ == 0) url_focus_targets_generation_ = 1;
+    return {connected_, url_focus_targets_generation_};
+  }
+
+  void set_focus_registrations(std::vector<CompanionURLFocusTarget> targets, std::vector<std::string> web_app_ids) {
+    std::function<void()> changed_handler;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (targets.size() > 64) targets.resize(64);
+      if (web_app_ids.size() > 64) web_app_ids.resize(64);
+      if (targets.size() == url_focus_targets_.size() && web_app_ids == web_app_focus_ids_ && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
+          [](const auto &a, const auto &b) { return a.id == b.id && a.url == b.url; })) return;
+      url_focus_targets_ = std::move(targets);
+      web_app_focus_ids_ = std::move(web_app_ids);
+      ++url_focus_targets_generation_;
+      if (url_focus_targets_generation_ == 0) url_focus_targets_generation_ = 1;
+      changed_handler = focus_registrations_changed_handler;
+    }
+    if (changed_handler) changed_handler();
   }
 
   void set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
@@ -282,13 +298,19 @@ class CompanionRuntimeService {
       return std::string();
     };
     const std::string application_id = parent_id(accepted);
-    const std::string previous_application_id = parent_id(focused_action_ids_);
-    const bool should_return = connected_ && !previous_application_id.empty() &&
-      application_id != previous_application_id;
+    const std::string auto_subpage_id = [&accepted, &application_id]() {
+      for (const auto &value : accepted)
+        if (value.rfind("webapp.", 0) == 0) return value;
+      return application_id;
+    }();
+    const std::string previous_auto_subpage_id = focused_auto_subpage_id_;
+    const bool should_return = connected_ && !previous_auto_subpage_id.empty() &&
+      auto_subpage_id != previous_auto_subpage_id;
     if (accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
-    else if (previous_application_id != application_id) pending_auto_subpage_action_id_ = application_id;
+    else if (previous_auto_subpage_id != auto_subpage_id) pending_auto_subpage_action_id_ = auto_subpage_id;
     focused_action_ids_ = std::move(accepted);
     focused_action_id_ = parent_id(focused_action_ids_);
+    focused_auto_subpage_id_ = auto_subpage_id;
     request_refresh_();
     return should_return;
   }
@@ -314,6 +336,7 @@ class CompanionRuntimeService {
       values_.clear();
       focused_action_id_.clear();
       focused_action_ids_.clear();
+      focused_auto_subpage_id_.clear();
       pending_auto_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
       window_actions_.clear();
@@ -339,6 +362,7 @@ class CompanionRuntimeService {
   std::vector<CompanionValue> values_;
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
+  std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
   bool keyboard_actions_supported_{false};
   std::vector<std::string> window_actions_;

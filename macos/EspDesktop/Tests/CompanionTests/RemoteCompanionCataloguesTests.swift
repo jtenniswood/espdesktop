@@ -79,4 +79,20 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
             companionVersion: "1.2.0"
         ))
     }
+
+    func testBundledDefinitionsAreLoadedFromEveryManifestEntry() throws {
+        let manifest = Data(#"{"formatVersion":1,"catalogueVersion":7,"minimumCompanionVersion":"1.0.0","entries":[{"path":"custom/editor.json"},{"path":"custom/writer.json"}]}"#.utf8)
+        let editor = Data(#"{"version":1,"appId":"org.example.Editor","label":"Editor","catalog":false,"shortcuts":[{"id":"0","label":"New","shortcut":"command+n","icon":"Plus"}]}"#.utf8)
+        let writer = Data(#"{"version":1,"appId":"org.example.Writer","label":"Writer","catalog":false,"shortcuts":[{"id":"0","label":"New","shortcut":"command+n","icon":"Plus"}]}"#.utf8)
+        var requestedPaths: [String] = []
+        let entries: [RemoteMacApplicationDefinition]? = decodeBundledCatalogueEntries(
+            manifestData: manifest,
+            companionVersion: "1.2.0"
+        ) { path in
+            requestedPaths.append(path)
+            return path == "custom/editor.json" ? editor : (path == "custom/writer.json" ? writer : nil)
+        }
+        XCTAssertEqual(requestedPaths, ["custom/editor.json", "custom/writer.json"])
+        XCTAssertEqual(entries?.map(\.appId), ["org.example.Editor", "org.example.Writer"])
+    }
 }

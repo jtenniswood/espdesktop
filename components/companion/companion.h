@@ -33,6 +33,14 @@ struct CompanionIdentityPreference {
   uint8_t paired{0};
 };
 
+struct CompanionFocusTargetsPreference {
+  uint32_t version{1};
+  uint8_t url_count{0};
+  uint8_t web_app_count{0};
+  char urls[64][129]{};
+  char web_app_ids[64][65]{};
+};
+
 class CompanionService final : public Component {
  public:
   void set_port(uint16_t port) { this->port_ = port; }
@@ -82,6 +90,8 @@ class CompanionService final : public Component {
   void set_connected_(bool connected, int closing_socket = -1);
   void publish_catalogue_();
   void publish_focus_targets_();
+  void restore_focus_targets_();
+  void save_focus_targets_();
   bool invoke_(const std::string &action_id, const std::string &request_id,
                const std::string &folder_open_behavior);
   bool invoke_url_(const std::string &app_id, const std::string &encoded_url,
@@ -92,6 +102,7 @@ class CompanionService final : public Component {
 
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
+  ESPPreferenceObject focus_targets_preferences_;
   CompanionIdentityPreference identity_{};
   httpd_handle_t server_{nullptr};
   uint16_t port_{8443};

@@ -129,6 +129,18 @@ int main() {
   const std::string folder_action = "folder.00000000-0000-0000-0000-000000000001";
   companion_set_focus_registrations({}, {"google-docs", "-invalid", "UPPER"});
   assert(companion_runtime_snapshot().web_app_focus_ids == std::vector<std::string>{"google-docs"});
+  int focus_registration_updates = 0;
+  companion_runtime_service().focus_registrations_changed_handler = [&focus_registration_updates] {
+    ++focus_registration_updates;
+  };
+  const std::string focus_url = "https://example.com/";
+  const std::string focus_url_id = companion_url_card_focus_id(
+      "url." + companion_encode_url_focus_value(focus_url));
+  companion_set_focus_registrations({{focus_url_id, focus_url}}, {"google-docs"});
+  assert(focus_registration_updates == 1);
+  companion_set_focus_registrations({{focus_url_id, focus_url}}, {"google-docs"});
+  assert(focus_registration_updates == 1);
+  companion_runtime_service().focus_registrations_changed_handler = {};
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
   assert(companion_default_action_label("com.apple.Safari") == "Safari");
   std::string resolved_label;
@@ -227,6 +239,16 @@ int main() {
   companion_set_focused_action("com.apple.Safari");
   assert(!companion_action_focused("com.apple.finder"));
   assert(companion_consume_subpage_return_request());
+  companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs", "urlcard.0123456789abcdef"});
+  assert(companion_action_focused("com.apple.Safari"));
+  assert(companion_action_focused("webapp.google-docs"));
+  assert(companion_pending_auto_subpage_action() == "webapp.google-docs");
+  assert(companion_consume_subpage_return_request());
+  assert(companion_consume_auto_subpage_action("webapp.google-docs"));
+  companion_set_focused_actions({"com.apple.Safari"});
+  assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
+  assert(companion_consume_subpage_return_request());
+  assert(companion_consume_auto_subpage_action("com.apple.Safari"));
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
   assert(!companion_consume_subpage_return_request());

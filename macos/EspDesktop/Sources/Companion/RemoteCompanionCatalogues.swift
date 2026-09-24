@@ -36,6 +36,33 @@ struct RemoteCatalogueManifest: Decodable, Sendable {
     let entries: [Entry]
 }
 
+func decodeBundledCatalogueEntries<T: Decodable>(
+    manifestData: Data,
+    companionVersion: String,
+    loadEntry: (String) -> Data?
+) -> [T]? {
+    guard let manifest = try? JSONDecoder().decode(RemoteCatalogueManifest.self, from: manifestData),
+          manifest.formatVersion == 1,
+          manifest.catalogueVersion > 0,
+          !manifest.entries.isEmpty,
+          manifest.entries.count <= 128,
+          Set(manifest.entries.map(\.path)).count == manifest.entries.count,
+          RemoteCompanionCatalogues.supports(manifest.minimumCompanionVersion, current: companionVersion) else {
+        return nil
+    }
+    var definitions: [T] = []
+    for entry in manifest.entries {
+        guard !entry.path.hasPrefix("/"),
+              !entry.path.split(separator: "/").contains(".."),
+              entry.path.hasSuffix(".json"),
+              entry.path.range(of: #"^[A-Za-z0-9._/-]+$"#, options: .regularExpression) != nil,
+              let data = loadEntry(entry.path),
+              let definition = try? JSONDecoder().decode(T.self, from: data) else { return nil }
+        definitions.append(definition)
+    }
+    return definitions.count == manifest.entries.count ? definitions : nil
+}
+
 struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     let version: Int
     let applications: [RemoteMacApplicationDefinition]
@@ -168,6 +195,7 @@ final class RemoteCompanionCatalogueStore {
     private let defaults: UserDefaults
     private let session: URLSession
     private(set) var value: RemoteCompanionCatalogues
+    private var refreshTask: Task<Void, Never>?
 
     init(defaults: UserDefaults = UserDefaults(suiteName: "io.espdesktop.app") ?? .standard,
          session: URLSession = .shared) {
@@ -182,6 +210,20 @@ final class RemoteCompanionCatalogueStore {
     }
 
     func refresh() async {
+        if let refreshTask {
+            await refreshTask.value
+            return
+        }
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.refreshOnce()
+        }
+        refreshTask = task
+        await task.value
+        refreshTask = nil
+    }
+
+    private func refreshOnce() async {
         var next = value
         if let native = try? await loadCatalogue(directory: "app_shortcuts", webApps: false) {
             next = RemoteCompanionCatalogues(version: max(next.version, native.version),
@@ -239,17 +281,26 @@ final class RemoteCompanionCatalogueStore {
     }
 
     private static func bundled() -> RemoteCompanionCatalogues {
-        func load<T: Decodable>(_ type: T.Type, folder: String, file: String) -> T? {
-            guard let url = Bundle.module.url(forResource: file, withExtension: "json", subdirectory: folder),
-                  let data = try? Data(contentsOf: url) else { return nil }
-            return try? JSONDecoder().decode(type, from: data)
+        let companionVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        func load<T: Decodable>(_ type: T.Type, folder: String) -> [T] {
+            guard let manifestURL = Bundle.module.url(
+                forResource: "manifest", withExtension: "json", subdirectory: folder
+            ), let manifestData = try? Data(contentsOf: manifestURL) else { return [] }
+            return decodeBundledCatalogueEntries(
+                manifestData: manifestData, companionVersion: companionVersion
+            ) { path in
+                let relative = URL(fileURLWithPath: path)
+                let parent = relative.deletingLastPathComponent().path
+                let subdirectory = parent == "." ? folder : "\(folder)/\(parent)"
+                return Bundle.module.url(
+                    forResource: relative.deletingPathExtension().lastPathComponent,
+                    withExtension: relative.pathExtension,
+                    subdirectory: subdirectory
+                ).flatMap { try? Data(contentsOf: $0) }
+            } ?? []
         }
-        let applications = (0..<3).compactMap { index -> RemoteMacApplicationDefinition? in
-            let files = ["codex", "safari", "slack"]
-            guard index < files.count else { return nil }
-            return load(RemoteMacApplicationDefinition.self, folder: "AppShortcuts", file: files[index])
-        }
-        let webApps = load(RemoteWebApplicationDefinition.self, folder: "WebApps", file: "google-docs").map { [$0] } ?? []
+        let applications: [RemoteMacApplicationDefinition] = load(RemoteMacApplicationDefinition.self, folder: "AppShortcuts")
+        let webApps: [RemoteWebApplicationDefinition] = load(RemoteWebApplicationDefinition.self, folder: "WebApps")
         let result = RemoteCompanionCatalogues(version: 1, applications: applications, webApplications: webApps)
         return Self.valid(result) ? result : .empty
     }
