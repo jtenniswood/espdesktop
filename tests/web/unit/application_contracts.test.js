@@ -709,7 +709,8 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
     assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,?\s*\);/);
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
-    assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*loadCompanionActions\(true\)/);
+    assert.match(card, /createCompanionCatalogueRetry\(\s*\(\) => loadCompanionActions\(true\)/);
+    assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueRetry\.start\(\)[\s\S]*companionCatalogueRetry\.stop\(\)/);
     assert.match(card, /renderModalTabSettings\(appSubpageDisclosure\.section/);
     assert.match(card, /_appShortcutDisabledTabs = companionShortcutTabs\(card\)/);
     assert.match(card, /setCompanionShortcutTabs\(card, card\._appShortcutDisabledTabs\)/);

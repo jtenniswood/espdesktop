@@ -1,7 +1,7 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
-import { createCompanionCatalogue } from "../api/companion_catalogue";
+import { createCompanionCatalogue, createCompanionCatalogueRetry } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
 import {
@@ -465,6 +465,14 @@ export function registerCompanionCardTypes(
     const loadCompanionActions = catalogue.load;
     let companionApplications: readonly CompanionAction[] = [];
 
+    const companionCatalogueRetry = createCompanionCatalogueRetry(
+        () => loadCompanionActions(true),
+        function (actions) {
+            rememberCompanionApplications(actions);
+            cardUi.renderPreview();
+        },
+    );
+
     function rememberCompanionApplications(actions: readonly CompanionAction[]): void {
         companionApplications = companionApplicationActions(actions);
     }
@@ -479,11 +487,8 @@ export function registerCompanionCardTypes(
             cardUi.renderPreview();
         }).catch(function () {});
         connectorStatus.onCompanionConnectionChange(function (connected) {
-            if (!connected) return;
-            void loadCompanionActions(true).then(function (actions) {
-                rememberCompanionApplications(actions);
-                cardUi.renderPreview();
-            }).catch(function () {});
+            if (connected) companionCatalogueRetry.start();
+            else companionCatalogueRetry.stop();
         });
     }
 

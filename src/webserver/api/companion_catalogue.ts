@@ -1,5 +1,59 @@
 export interface CompanionAction { readonly id: string; readonly label: string; }
 
+export function createCompanionCatalogueRetry(
+  load: () => Promise<readonly CompanionAction[]>,
+  onActions: (actions: readonly CompanionAction[]) => void,
+  schedule: (callback: () => void, delayMs: number) => number =
+    (callback, delayMs) => window.setTimeout(callback, delayMs),
+  cancel: (timer: number) => void = (timer) => window.clearTimeout(timer),
+) {
+  let timer: number | null = null;
+  let generation = 0;
+  let retryDelayMs = 1000;
+
+  function clearTimer(): void {
+    if (timer !== null) cancel(timer);
+    timer = null;
+  }
+
+  async function request(run: number): Promise<void> {
+    try {
+      const actions = await load();
+      if (run !== generation) return;
+      onActions(actions);
+      if (actions.length > 0) {
+        clearTimer();
+        retryDelayMs = 1000;
+        return;
+      }
+    } catch {
+      if (run !== generation) return;
+    }
+
+    if (run !== generation || timer !== null) return;
+    const delayMs = retryDelayMs;
+    retryDelayMs = Math.min(retryDelayMs * 2, 10000);
+    timer = schedule(() => {
+      timer = null;
+      void request(run);
+    }, delayMs);
+  }
+
+  return {
+    start(): void {
+      ++generation;
+      clearTimer();
+      retryDelayMs = 1000;
+      void request(generation);
+    },
+    stop(): void {
+      ++generation;
+      clearTimer();
+      retryDelayMs = 1000;
+    },
+  };
+}
+
 export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   let cached: readonly CompanionAction[] | null = null;
   let pending: Promise<readonly CompanionAction[]> | null = null;

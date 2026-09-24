@@ -515,6 +515,15 @@ inline std::string companion_default_action_label(const std::string &action_id,
   return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
 }
 
+inline std::string companion_default_action_label_with_fallback(
+    const std::string &action_id, const std::string &url_config,
+    std::string &resolved_label) {
+  std::string label = companion_default_action_label(action_id, url_config);
+  if (label == action_id && !resolved_label.empty()) return resolved_label;
+  resolved_label = label;
+  return label;
+}
+
 inline bool companion_metric_card_should_disable(bool connected, bool preserve_navigation) {
   return !connected && !preserve_navigation;
 }
@@ -542,6 +551,7 @@ struct CompanionCardRef {
   bool metric_description{true};
   bool preserve_navigation{false};
   bool dynamic_default_label{false};
+  std::string resolved_default_label;
 };
 
 struct CompanionSliderRef {
@@ -636,6 +646,9 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   });
   if (existing != refs.end()) {
     if (companion_metric_key_valid(action_id) && !existing->metric_key.empty()) return;
+    if (existing->action_id != action_id || existing->url_config != url_config) {
+      existing->resolved_default_label.clear();
+    }
     existing->action_id = action_id;
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
@@ -717,7 +730,10 @@ inline void companion_refresh_cards_if_requested() {
       continue;
     }
     if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
-      const std::string label = companion_default_action_label(it->action_id, it->url_config);
+      // A disconnected Companion temporarily has no action catalogue. Keep
+      // the friendly name seen before the outage instead of showing its ID.
+      const std::string label = companion_default_action_label_with_fallback(
+        it->action_id, it->url_config, it->resolved_default_label);
       lv_label_set_display_text(it->text_label, label.c_str());
     }
     const bool available = it->url_config.empty()

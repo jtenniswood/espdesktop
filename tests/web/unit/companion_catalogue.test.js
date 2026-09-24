@@ -2,7 +2,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { loadTypeScriptModule } = require("../../../scripts/load_typescript_module");
-const { createCompanionCatalogue } = loadTypeScriptModule("src/webserver/api/companion_catalogue.ts");
+const { createCompanionCatalogue, createCompanionCatalogueRetry } = loadTypeScriptModule("src/webserver/api/companion_catalogue.ts");
 
 test("catalogue caches are isolated, retries empty results, and preserves identities after failures", async () => {
   let calls = 0, fail = false, empty = false;
@@ -49,4 +49,68 @@ test("catalogue caches are isolated, retries empty results, and preserves identi
   assert.deepEqual(await startup, []);
   assert.deepEqual(await reconnect, [{ id: "reconnected", label: "Reconnected" }]);
   assert.equal(queuedCalls, 2);
+});
+
+test("connected catalogue retries empty results until friendly app names are available", async () => {
+  let calls = 0;
+  let nextTimer = 0;
+  const scheduled = new Map();
+  const delays = [];
+  const shown = [];
+  const retry = createCompanionCatalogueRetry(
+    async () => ++calls < 3 ? [] : [{ id: "com.example.app", label: "Example App" }],
+    (actions) => shown.push(actions),
+    (callback, delayMs) => {
+      const id = ++nextTimer;
+      scheduled.set(id, callback);
+      delays.push(delayMs);
+      return id;
+    },
+    (id) => scheduled.delete(id),
+  );
+  async function runNextRetry() {
+    const [id, callback] = scheduled.entries().next().value;
+    scheduled.delete(id);
+    callback();
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  retry.start();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls, 1);
+  await runNextRetry();
+  assert.equal(calls, 2);
+  await runNextRetry();
+  assert.equal(calls, 3);
+  assert.deepEqual(delays, [1000, 2000]);
+  assert.deepEqual(shown.at(-1), [{ id: "com.example.app", label: "Example App" }]);
+  assert.equal(scheduled.size, 0);
+});
+
+test("disconnect stops catalogue retries and ignores an in-flight response", async () => {
+  let calls = 0;
+  let nextTimer = 0;
+  const scheduled = new Map();
+  const shown = [];
+  let resolveLoad;
+  const retry = createCompanionCatalogueRetry(
+    () => {
+      ++calls;
+      return new Promise((resolve) => { resolveLoad = resolve; });
+    },
+    (actions) => shown.push(actions),
+    (callback) => {
+      const id = ++nextTimer;
+      scheduled.set(id, callback);
+      return id;
+    },
+    (id) => scheduled.delete(id),
+  );
+  retry.start();
+  retry.stop();
+  resolveLoad([]);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls, 1);
+  assert.equal(shown.length, 0);
+  assert.equal(scheduled.size, 0);
 });
