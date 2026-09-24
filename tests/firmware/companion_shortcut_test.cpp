@@ -130,6 +130,12 @@ int main() {
   companion_set_focus_registrations({}, {"google-docs", "-invalid", "UPPER"});
   assert(companion_runtime_snapshot().web_app_focus_ids == std::vector<std::string>{"google-docs"});
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
+  assert(companion_default_action_label("com.apple.Safari") == "Safari");
+  std::string resolved_label;
+  assert(companion_default_action_label_with_fallback("com.apple.Safari", "", resolved_label) == "Safari");
+  companion_set_actions({});
+  assert(companion_default_action_label_with_fallback("com.apple.Safari", "", resolved_label) == "Safari");
+  companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
   companion_set_window_actions({"window.left"});
   companion_set_keyboard_actions_supported(true);
   assert(companion_card_refresh_requested().load());
