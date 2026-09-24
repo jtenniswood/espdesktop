@@ -859,11 +859,6 @@ struct CompanionSettings: View {
 
     @ViewBuilder
     private var accessibilityAndStartupSections: some View {
-        if !accessibilityGranted {
-            Section("Accessibility") {
-                CompanionAccessibilityRow()
-            }
-        }
         Section {
             CompanionPermissionRow(
                 title: "Open at Startup",
@@ -876,6 +871,14 @@ struct CompanionSettings: View {
                 isAvailable: store.supportsLaunchAtLogin
             )
             .controlSize(.regular)
+            .frame(minHeight: 48)
+        }
+        if !accessibilityGranted {
+            Section {
+                CompanionAccessibilityRow()
+                    .controlSize(.regular)
+                    .frame(minHeight: 48)
+            }
         }
     }
 
