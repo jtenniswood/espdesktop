@@ -4,6 +4,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/preferences.h"
 #include "session_state.h"
+#include "../espdesktop/companion_runtime.h"
 
 #include <esp_https_server.h>
 
