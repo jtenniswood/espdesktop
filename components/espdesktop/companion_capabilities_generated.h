@@ -58,7 +58,7 @@ inline constexpr CompanionWindowCapability COMPANION_WINDOW_CAPABILITIES[] = {
   {"window.close", "Close"},
   {"window.minimize", "Minimise"},
   {"window.hide", "Hide App"},
-  {"window.fullscreen", "Full Screen"},
+  {"window.fullscreen", "Toggle Full Screen"},
   {"window.fill", "Fill Desktop"},
   {"window.center", "Centre"},
   {"window.left", "Left"},
