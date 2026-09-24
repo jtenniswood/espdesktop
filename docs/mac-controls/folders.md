@@ -19,7 +19,7 @@ If a folder is moved or renamed, choose **Choose Again…** in the Mac app to re
 
 You can show approved folders as tiles on a Finder app subpage:
 
-1. Approve **Finder** in the Mac app's **Apps** page and add a **Launch app** card for it.
+1. Approve **Finder** in the Mac app's **Apps** page and add an **Applications** card for it.
 2. Turn on **Add app subpage** in the card settings.
 3. Use the folder list under **App Subpage** to choose which folders appear and drag them into order.
 
