@@ -13,6 +13,8 @@ Companion cards can bring an approved application to the front or open a website
 2. In the display's setup page, add a **Companion → Applications** card.
 3. Select an approved application and save the display configuration.
 
+The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
+
 Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac.
 
 ## Open a Website

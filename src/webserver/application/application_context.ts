@@ -73,6 +73,7 @@ import type { PreviewContextMenuFeature } from "./preview_context_menu";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ButtonSettingsFeature } from "./button_settings";
 import type { AppFeature } from "./app";
+import type { ConnectorsPageFeature } from "./connectors_page";
 
 export type { CardRegistry } from "./card_registry";
 
@@ -178,6 +179,7 @@ export interface ApplicationContext {
     readonly contextMenu: PreviewContextMenuFeature;
     readonly interactions: PreviewInteractionsFeature;
     readonly buttonSettings: ButtonSettingsFeature;
+    readonly connectorsPage: ConnectorsPageFeature;
     readonly app: AppFeature;
   };
   readonly dom: ApplicationDomServices;
@@ -260,6 +262,7 @@ export interface ApplicationContextOptions {
   readonly contextMenu: PreviewContextMenuFeature;
   readonly interactions: PreviewInteractionsFeature;
   readonly buttonSettings: ButtonSettingsFeature;
+  readonly connectorsPage: ConnectorsPageFeature;
   readonly app: AppFeature;
   readonly dom: ApplicationDomServices;
   readonly cards: CardRegistry;
@@ -362,6 +365,7 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       contextMenu: options.contextMenu,
       interactions: options.interactions,
       buttonSettings: options.buttonSettings,
+      connectorsPage: options.connectorsPage,
       app: options.app,
     },
     dom: options.dom,
