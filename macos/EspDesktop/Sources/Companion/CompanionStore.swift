@@ -691,7 +691,7 @@ final class CompanionStore: NSObject, ObservableObject {
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
     }
 
-    static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {
+    nonisolated static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {
         guard performed else { return "not_allowed" }
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
