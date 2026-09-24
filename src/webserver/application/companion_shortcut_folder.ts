@@ -10,7 +10,6 @@ import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { isBackOrderToken } from "../model/subpage";
 
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
-export const COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION = "app_shortcuts_auto_switch";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
 export const FINDER_OPEN_BEHAVIOR_OPTION = "finder_open_behavior";
 export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
@@ -58,11 +57,6 @@ export function companionAppShortcutFolderEnabled(card: any): boolean {
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION);
 }
 
-export function companionAppShortcutAutoSwitchEnabled(card: any): boolean {
-    return companionAppShortcutFolderEnabled(card) &&
-        configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION);
-}
-
 export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
     const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
@@ -83,18 +77,12 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         COMPANION_APP_SHORTCUTS_OPTION,
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
-    const flags = setConfigOption(
-        options,
-        COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION,
-        configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION) &&
-            configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION),
-    );
-    if (!configOptionEnabled(flags, COMPANION_APP_SHORTCUTS_OPTION)) return flags;
+    if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return options;
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :
         tabs.join("|") === defaults.join("|") ? "" : tabs.join("|");
-    return setConfigOptionValue(flags, COMPANION_APP_SHORTCUTS_TABS_OPTION, value);
+    return setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, value);
 }
 
 export function setCompanionAppShortcutFolderEnabled(card: any, enabled: boolean): void {
@@ -106,20 +94,12 @@ export function setCompanionAppShortcutFolderEnabled(card: any, enabled: boolean
         COMPANION_APP_SHORTCUTS_OPTION,
         valid,
     );
+    // Remove the retired flag from cards saved before app subpages became automatic.
+    options = setConfigOption(options, "app_shortcuts_auto_switch", false);
     if (!valid) {
-        options = setConfigOption(options, COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION, false);
         options = setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, "");
     }
     card.options = options;
-}
-
-export function setCompanionAppShortcutAutoSwitchEnabled(card: any, enabled: boolean): void {
-    if (!card) return;
-    card.options = setConfigOption(
-        card.options,
-        COMPANION_APP_SHORTCUTS_AUTO_SWITCH_OPTION,
-        enabled && companionAppShortcutFolderEnabled(card),
-    );
 }
 
 export type FinderOpenBehavior = "new_window" | "same_window";

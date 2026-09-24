@@ -320,7 +320,7 @@ inline bool navigation_open_companion_subpage_if_requested(
   if (requested.empty()) return false;
   for (const auto &parent : navigation_home_targets()) {
     const ParsedCfg parent_config = parse_cfg(parent.config);
-    if (!companion_app_subpage_auto_switch_enabled(parent_config) ||
+    if (!companion_app_shortcuts_enabled(parent_config) ||
         parent_config.entity != requested) continue;
     NavigationSubpageEntry *entry = navigation_find_slot(parent.slot);
     if (entry == nullptr || entry->screen == nullptr) return false;

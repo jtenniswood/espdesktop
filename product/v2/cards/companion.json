@@ -4,7 +4,6 @@
   "domains": [],
   "options": [
     { "name": "app_shortcuts", "label": "App Subpage", "kind": "flag", "omitDefault": true },
-    { "name": "app_shortcuts_auto_switch", "label": "Auto switch to subpage", "kind": "flag", "omitDefault": true },
     { "name": "finder_open_behavior", "label": "Finder Folder Open Behavior", "kind": "choice", "values": ["new_window", "same_window"], "defaultValue": "new_window", "omitDefault": true, "hidden": true, "docsHidden": true },
     { "name": "finder_open_override", "label": "Finder Folder Open Override", "kind": "flag", "omitDefault": true, "hidden": true, "docsHidden": true },
     { "name": "app_shortcuts_tabs", "label": "App Subpage Shortcuts", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true },
@@ -22,7 +21,7 @@
       "precision": { "policy": "allowed", "values": ["", "0", "1", "2"], "fallback": "" },
       "options": { "policy": "hook", "hook": "normalize_date_time_options" }
     },
-    "unknownOptions": "drop", "canonicalOptionOrder": ["app_shortcuts", "app_shortcuts_auto_switch", "finder_open_behavior", "finder_open_override", "app_shortcuts_tabs", "app_shortcut_preset", "large_numbers", "stat_labels_off"],
+    "unknownOptions": "drop", "canonicalOptionOrder": ["app_shortcuts", "finder_open_behavior", "finder_open_override", "app_shortcuts_tabs", "app_shortcut_preset", "large_numbers", "stat_labels_off"],
     "optionHook": "normalize_date_time_options"
   },
   "default": {

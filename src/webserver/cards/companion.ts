@@ -37,7 +37,6 @@ import {
     COMPANION_SHORTCUT_PREFIX,
     companionShortcutPresetCards,
     COMPANION_SHORTCUT_APPS,
-    companionAppShortcutAutoSwitchEnabled,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
     companionShortcutFolderAppLabel,
@@ -54,7 +53,6 @@ import {
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
     setCompanionAppShortcutFolderEnabled,
-    setCompanionAppShortcutAutoSwitchEnabled,
     finderOpenBehavior,
     inheritFinderOpenBehaviorForCard,
     setFinderOpenBehavior,
@@ -1020,25 +1018,6 @@ export function registerCompanionCardTypes(
                 renderButtonSettings();
             });
 
-            const autoSwitchField = document.createElement("div");
-            autoSwitchField.className = "sp-field";
-            const autoSwitchToggle = helpers.toggleRow(
-                "Auto switch to subpage",
-                helpers.idPrefix + "companion-app-shortcuts-auto-switch",
-                companionAppShortcutAutoSwitchEnabled(card),
-            );
-            autoSwitchField.appendChild(autoSwitchToggle.row);
-            const autoSwitchNote = document.createElement("div");
-            autoSwitchNote.className = "sp-field-info-text";
-            autoSwitchNote.textContent = "Automatically show this subpage when " + shortcutFolderApp +
-                " is opened or focused on the Mac.";
-            autoSwitchField.appendChild(autoSwitchNote);
-            appSubpageDisclosure.section.appendChild(autoSwitchField);
-            autoSwitchToggle.input.addEventListener("change", function () {
-                setCompanionAppShortcutAutoSwitchEnabled(card, autoSwitchToggle.input.checked);
-                helpers.saveField("options", card.options);
-            });
-
             const finderOpenBehaviorField = document.createElement("div");
             finderOpenBehaviorField.className = "sp-field";
             finderOpenBehaviorField.appendChild(fieldLabel("Folder shortcuts open in", helpers.idPrefix + "finder-open-behavior"));
@@ -1160,8 +1139,6 @@ export function registerCompanionCardTypes(
                 urlField.style.display = mode === "url" ? "" : "none";
                 appSubpageDisclosure.panel.style.display = !helpers.isSub && mode === "app" &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
-                autoSwitchField.style.display = !helpers.isSub && mode === "app" &&
-                    companionAppShortcutFolderEnabled(card) ? "" : "none";
                 finderOpenBehaviorField.style.display = !helpers.isSub && mode === "app" &&
                     card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";

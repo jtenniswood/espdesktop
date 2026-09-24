@@ -5114,12 +5114,6 @@
             "omitDefault": true
           },
           {
-            "name": "app_shortcuts_auto_switch",
-            "label": "Auto switch to subpage",
-            "kind": "flag",
-            "omitDefault": true
-          },
-          {
             "name": "finder_open_behavior",
             "label": "Finder Folder Open Behavior",
             "kind": "choice",
@@ -5213,7 +5207,6 @@
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
             "app_shortcuts",
-            "app_shortcuts_auto_switch",
             "finder_open_behavior",
             "finder_open_override",
             "app_shortcuts_tabs",

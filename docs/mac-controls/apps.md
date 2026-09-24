@@ -31,9 +31,8 @@ An approved **Applications** card can offer an editable subpage when EspDesktop 
 1. Add an **Applications** card for an app with a shortcut template.
 2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
 3. Choose the shortcuts to include and drag them into order.
-4. Optionally enable **Auto switch to subpage**.
 
-The page uses the same templates as standalone **Shortcut Catalog** cards and remains editable. Turning the app subpage option off preserves your changes. With auto-switch enabled, the display opens the subpage only after the Mac confirms the app is active.
+The page uses the same templates as standalone **Shortcut Catalog** cards and remains editable. Turning the app subpage option off preserves your changes. When the app subpage is enabled, the display opens it whenever that app is opened or focused on the Mac.
 
 To contribute templates for another app, see [Run Mac Keyboard Shortcuts](/mac-controls/shortcuts#add-templates-for-another-app).
 

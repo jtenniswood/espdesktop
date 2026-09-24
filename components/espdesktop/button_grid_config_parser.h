@@ -1340,11 +1340,6 @@ inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
   return "new_window";
 }
 
-inline bool companion_app_subpage_auto_switch_enabled(const ParsedCfg &p) {
-  return companion_app_shortcuts_enabled(p) &&
-         cfg_option_token_present(p.options, "app_shortcuts_auto_switch");
-}
-
 inline std::string companion_app_shortcut_tabs_normalized(const ParsedCfg &p) {
   const std::string value = cfg_option_value(p.options, "app_shortcuts_tabs");
   if (value.empty()) return "";
@@ -1381,8 +1376,7 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     return "app_shortcut_preset=" + encode_compact_field(preset);
   }
   if (!companion_app_shortcuts_enabled(p)) return "";
-  std::string out = companion_app_subpage_auto_switch_enabled(p)
-    ? "app_shortcuts,app_shortcuts_auto_switch" : "app_shortcuts";
+  std::string out = "app_shortcuts";
   const std::string tabs = companion_app_shortcut_tabs_normalized(p);
   if (!tabs.empty()) {
     out += ",app_shortcuts_tabs=" + encode_compact_field(tabs);
