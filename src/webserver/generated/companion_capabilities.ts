@@ -178,8 +178,8 @@ export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [
   },
   {
     id: "window.fullscreen",
-    label: "Full Screen",
-    group: "Window"
+    label: "Toggle Full Screen",
+    group: "Full Screen"
   },
   {
     id: "window.fill",
