@@ -716,7 +716,8 @@ describe("browserless application contracts", () => {
     assert.match(card, /renderModalTabSettings\(appSubpageDisclosure\.section/);
     assert.match(card, /_appShortcutDisabledTabs = companionShortcutTabs\(card\)/);
     assert.match(card, /setCompanionShortcutTabs\(card, card\._appShortcutDisabledTabs\)/);
-    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*appendChild\(autoSwitchField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderModalTabSettings/);
+    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderModalTabSettings/);
+    assert.doesNotMatch(card, /autoSwitchField|Auto switch to subpage/);
     assert.match(styles, /\.sp-app-subpage-options-divider\{/);
     assert.match(card, /No free subpage space\. Remove a custom card before enabling another shortcut\./);
     assert.match(card, /changedFromSavedApp = card\.entity !== savedParent\?\.entity/);

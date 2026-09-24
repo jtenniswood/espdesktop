@@ -15,7 +15,7 @@ A **Companion → Keyboard shortcut** card sends a chosen key combination to whi
    - **Shortcut Catalog**: choose an app and one of its named shortcuts. The card starts with the template's label and icon; you can customise them in Card Settings.
 3. Give the card a label and icon if needed, then save the display configuration.
 
-A shortcut card replays keys in the active Mac app. Choosing an app in **Shortcut Catalog** does not launch it. Bring that app to the front before using the card. When using an app subpage with **Auto switch to subpage**, EspDesktop waits for the Mac to confirm that the selected app is active before opening the page.
+A shortcut card replays keys in the active Mac app. Choosing an app in **Shortcut Catalog** does not launch it. Bring that app to the front before using the card. If the app has an enabled subpage, EspDesktop opens it when the Mac confirms that app is active.
 
 Shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Shift is optional. Modifier-only combinations and unsupported system keys are rejected.
 

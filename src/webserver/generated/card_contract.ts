@@ -3019,12 +3019,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": true
       },
       {
-        "name": "app_shortcuts_auto_switch",
-        "label": "Auto switch to subpage",
-        "kind": "flag",
-        "omitDefault": true
-      },
-      {
         "name": "finder_open_behavior",
         "label": "Finder Folder Open Behavior",
         "kind": "choice",
@@ -3118,7 +3112,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "unknownOptions": "drop",
       "canonicalOptionOrder": [
         "app_shortcuts",
-        "app_shortcuts_auto_switch",
         "finder_open_behavior",
         "finder_open_override",
         "app_shortcuts_tabs",
@@ -4873,7 +4866,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "alarm_card_type": "alarm_card_type",
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
-  "app_shortcuts_auto_switch": "app_shortcuts_auto_switch",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
   "climate_tabs": "climate_tabs",
   "confirm_message": "confirm_message",
