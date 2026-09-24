@@ -50,7 +50,7 @@ Use this page when you know what you want the panel to do but are not sure which
 
 Mac controls currently work on the 4-inch 4848S040 and need the [EspDesktop Mac app](/getting-started/mac-app). The Companion connector is enough to use them; Home Assistant is optional.
 
-- **Companion** includes Launch app, Keyboard shortcut, Open URL, Open folder, Stats, and Window control.
+- **Companion** includes Applications, Keyboard shortcut, Open URL, Open folder, Stats, and Window control.
 - **Subpage** includes Companion Stat for a processor, memory, storage, network, or battery reading on the folder tile.
 
 See [Mac Cards and Capabilities](/card-types/companion) for the complete list and its permissions.
@@ -83,7 +83,7 @@ Some names in the setup page group several related modes:
 | **Alarm** | All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, Disarm |
 | **Date & Time** | Clock, Date, Time & Date, World Clock |
 | **Media** | All Controls, Speaker Group, Play/Pause, Previous, Next, Volume, Track Position, Now Playing, Cover Art, Media Content |
-| **Companion** | Launch app, Keyboard shortcut, Open URL, Open folder, Stats, Window control |
+| **Companion** | Applications, Keyboard shortcut, Open URL, Open folder, Stats, Window control |
 | **Cover** | All Controls, Position, Tilt, Toggle, Open, Close, Stop, Set Position |
 | **Subpage** | Generic, Switch, Lights, Climate, Presence, Media, Alarm, Cover, Garage Door, Gate, Lock, Vacuum, Lawn Mower, Weather, Sensor, Camera / Image, Companion Stat |
 

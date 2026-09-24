@@ -62,7 +62,7 @@ Folder paths stay on the Mac. The display receives only the friendly folder name
 
 ## Check the Connection
 
-After pairing, open the display's web page and add a simple **Companion → Launch app** card for an approved application. Apply the configuration, tap the card, and confirm the app comes to the front.
+After pairing, open the display's web page and add a simple **Companion → Applications** card for an approved application. Apply the configuration, tap the card, and confirm the app comes to the front.
 
 Then add the controls you want:
 
