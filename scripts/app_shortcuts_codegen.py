@@ -52,6 +52,8 @@ def validate_app(data, icons):
         require(text(item['label'], 48), f'{ident}: label must contain 1–48 bytes of text')
         require(shortcut_valid(item['shortcut']), f'{ident}: invalid keyboard shortcut: {item["shortcut"]!r}')
         require(isinstance(item['icon'], str) and item['icon'] in icons, f'{ident}: icon must be a name from product/v2/icons.json')
+    require(len(json.dumps(data, ensure_ascii=False, separators=(',', ':')).encode('utf-8')) <= 12000,
+            'compact serialized definition exceeds 12000 bytes')
     return data
 
 

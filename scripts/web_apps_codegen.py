@@ -27,8 +27,8 @@ def load_web_apps(root: Path):
         if app["id"] in seen:
             raise ValueError(f"{path.name}: duplicate Web App id {app['id']}")
         seen.add(app["id"])
-        if not isinstance(app["label"], str) or not app["label"].strip():
-            raise ValueError(f"{path.name}: label is required")
+        if not isinstance(app["label"], str) or not app["label"].strip() or len(app["label"].encode("utf-8")) > 48:
+            raise ValueError(f"{path.name}: label must contain 1–48 bytes of text")
         if not isinstance(app["url"], str) or not app["url"].startswith("https://"):
             raise ValueError(f"{path.name}: url must use HTTPS")
         from urllib.parse import urlparse
@@ -57,8 +57,12 @@ def load_web_apps(root: Path):
             if not isinstance(ident, str) or not re.fullmatch(r"0|[1-9][0-9]{0,2}", ident) or ident in ids:
                 raise ValueError(f"{path.name}: shortcut ids must be unique numbers from 0 to 999")
             ids.add(ident)
-            if not isinstance(shortcut["label"], str) or not shortcut["label"].strip() or not shortcut_valid(shortcut["shortcut"]) or shortcut["icon"] not in icons:
+            if (not isinstance(shortcut["label"], str) or not shortcut["label"].strip() or
+                    len(shortcut["label"].encode("utf-8")) > 48 or
+                    not shortcut_valid(shortcut["shortcut"]) or shortcut["icon"] not in icons):
                 raise ValueError(f"{path.name}: invalid shortcut {ident}")
+        if len(json.dumps(app, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) > 12000:
+            raise ValueError(f"{path.name}: compact serialized definition exceeds 12000 bytes")
         apps.append(app)
     validate_manifest(directory, {path.name for path in directory.glob("*.json") if path.name != "manifest.json"})
     return sorted(apps, key=lambda app: (app["label"].casefold(), app["id"]))

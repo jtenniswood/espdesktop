@@ -580,7 +580,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         const bool is_web_app = kind == "webapp";
         if (companion_remote_definition_capacity_available(kind, this->application_definition_count_,
                                                            this->web_app_definition_count_) &&
-            safe_utf8_field(json, 12000) && json.size() >= 2) {
+            companion_json_payload_valid(json, 12000)) {
           JsonDocument document;
           const auto error = deserializeJson(document, json);
           const std::string id = kind == "webapp"

@@ -14,6 +14,9 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 using namespace esphome::companion;
 
 int main() {
+  assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
+  assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
+  assert(!companion_json_payload_valid("{}", 1));
   assert(companion_remote_definition_capacity_available("application", 127, 0));
   assert(companion_remote_definition_capacity_available("webapp", 128, 127));
   assert(!companion_remote_definition_capacity_available("application", 128, 0));

@@ -115,16 +115,18 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     }
 
     fileprivate static func valid(_ app: RemoteMacApplicationDefinition) -> Bool {
-        app.version == 1 && !app.label.isEmpty &&
+        let encodedSize = (try? JSONEncoder().encode(app).count) ?? Int.max
+        return app.version == 1 && !app.label.isEmpty && app.label.utf8.count <= 48 &&
         app.appId.range(of: #"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil &&
         !app.shortcuts.isEmpty && app.shortcuts.allSatisfy(valid) &&
-        Set(app.shortcuts.map(\.id)).count == app.shortcuts.count
+        Set(app.shortcuts.map(\.id)).count == app.shortcuts.count && encodedSize <= 12_000
     }
 
     fileprivate static func valid(_ app: RemoteWebApplicationDefinition) -> Bool {
+        let encodedSize = (try? JSONEncoder().encode(app).count) ?? Int.max
         guard app.version == 1,
               app.id.range(of: #"^[a-z0-9]+(?:-[a-z0-9]+)*$"#, options: .regularExpression) != nil,
-              !app.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !app.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, app.label.utf8.count <= 48,
               let target = URL(string: app.url), target.scheme == "https", target.host != nil,
               app.matchHost == app.matchHost.lowercased(), !app.matchHost.isEmpty,
               target.host?.lowercased() == app.matchHost,
@@ -135,13 +137,13 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
               !iconURL.path.split(separator: "/").contains(".."),
               ["png", "jpg", "jpeg"].contains(iconURL.pathExtension.lowercased()),
               !app.shortcuts.isEmpty, app.shortcuts.allSatisfy(valid),
-              Set(app.shortcuts.map(\.id)).count == app.shortcuts.count else { return false }
+              Set(app.shortcuts.map(\.id)).count == app.shortcuts.count, encodedSize <= 12_000 else { return false }
         return true
     }
 
     fileprivate static func valid(_ shortcut: RemoteShortcutDefinition) -> Bool {
         guard shortcut.id.range(of: #"^(0|[1-9][0-9]{0,2})$"#, options: .regularExpression) != nil,
-              !shortcut.label.isEmpty, !shortcut.icon.isEmpty else { return false }
+              !shortcut.label.isEmpty, shortcut.label.utf8.count <= 48, !shortcut.icon.isEmpty else { return false }
         let parts = shortcut.shortcut.split(separator: "+").map(String.init)
         guard let key = parts.last, parts.count >= 2 else { return false }
         let modifiers = parts.dropLast()

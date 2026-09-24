@@ -80,6 +80,31 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         ))
     }
 
+    func testRemoteDefinitionsEnforceLabelAndWireSizeLimits() throws {
+        let nativeManifest = Data(#"{"formatVersion":1,"catalogueVersion":1,"minimumCompanionVersion":"1.0.0","entries":[{"path":"example.json"}]}"#.utf8)
+        let webManifest = Data(#"{"formatVersion":1,"catalogueVersion":1,"minimumCompanionVersion":"1.0.0","entries":[{"path":"google-docs.json"}]}"#.utf8)
+        let native = Data(#"{"version":1,"appId":"org.example.Editor","label":"Editor","catalog":false,"shortcuts":[{"id":"0","label":"New","shortcut":"command+n","icon":"Plus"}]}"#.utf8)
+
+        let oversizedLabel = RemoteWebApplicationDefinition(
+            version: docs.version, id: docs.id, label: String(repeating: "A", count: 49), url: docs.url,
+            matchHost: docs.matchHost, matchPath: docs.matchPath, icon: docs.icon, shortcuts: docs.shortcuts
+        )
+        XCTAssertThrowsError(try RemoteCompanionCatalogues.decode(
+            nativeManifest: nativeManifest, nativeDefinitions: [native], webManifest: webManifest,
+            webDefinitions: [JSONEncoder().encode(oversizedLabel)], companionVersion: "1.2.0"
+        ))
+
+        let oversizedDefinition = RemoteWebApplicationDefinition(
+            version: docs.version, id: docs.id, label: docs.label,
+            url: docs.url + "?q=" + String(repeating: "x", count: 12_000), matchHost: docs.matchHost,
+            matchPath: docs.matchPath, icon: docs.icon, shortcuts: docs.shortcuts
+        )
+        XCTAssertThrowsError(try RemoteCompanionCatalogues.decode(
+            nativeManifest: nativeManifest, nativeDefinitions: [native], webManifest: webManifest,
+            webDefinitions: [JSONEncoder().encode(oversizedDefinition)], companionVersion: "1.2.0"
+        ))
+    }
+
     func testBundledDefinitionsAreLoadedFromEveryManifestEntry() throws {
         let manifest = Data(#"{"formatVersion":1,"catalogueVersion":7,"minimumCompanionVersion":"1.0.0","entries":[{"path":"custom/editor.json"},{"path":"custom/writer.json"}]}"#.utf8)
         let editor = Data(#"{"version":1,"appId":"org.example.Editor","label":"Editor","catalog":false,"shortcuts":[{"id":"0","label":"New","shortcut":"command+n","icon":"Plus"}]}"#.utf8)

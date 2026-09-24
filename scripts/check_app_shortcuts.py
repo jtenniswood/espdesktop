@@ -120,6 +120,33 @@ class WebAppTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 load_web_apps(root)
 
+    def test_web_labels_and_definition_size_fit_the_wire_format(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = ROOT / 'product/v2/web_apps'
+            directory = root / 'product/v2/web_apps'
+            (directory / 'icons').mkdir(parents=True)
+            (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
+            (directory / 'google-docs.json').write_text((source / 'google-docs.json').read_text())
+            (directory / 'manifest.json').write_text((source / 'manifest.json').read_text())
+            shutil.copy2(source / 'icons/google-docs.png', directory / 'icons/google-docs.png')
+            template_path = directory / 'google-docs.json'
+            template = json.loads(template_path.read_text())
+            template['label'] = 'W' * 49
+            template_path.write_text(json.dumps(template))
+            with self.assertRaisesRegex(ValueError, 'label must contain 1–48 bytes'):
+                load_web_apps(root)
+            template['label'] = 'Google Docs'
+            template['shortcuts'][0]['label'] = 'B' * 49
+            template_path.write_text(json.dumps(template))
+            with self.assertRaisesRegex(ValueError, 'invalid shortcut'):
+                load_web_apps(root)
+            template['shortcuts'][0]['label'] = 'Bold'
+            template['url'] += '?q=' + ('x' * 12000)
+            template_path.write_text(json.dumps(template))
+            with self.assertRaisesRegex(ValueError, 'compact serialized definition exceeds 12000 bytes'):
+                load_web_apps(root)
+
 
 if __name__ == '__main__':
     unittest.main()

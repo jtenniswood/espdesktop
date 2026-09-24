@@ -96,6 +96,13 @@ struct CompanionFocusTargetsState {
 
 inline constexpr size_t COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE = 128;
 
+inline bool companion_json_payload_valid(const std::string &value, size_t limit) {
+  if (value.size() < 2 || value.size() > limit) return false;
+  return std::all_of(value.begin(), value.end(), [](unsigned char byte) {
+    return byte >= 0x20;
+  });
+}
+
 inline bool companion_remote_definition_capacity_available(const std::string &kind,
                                                            size_t application_count,
                                                            size_t web_app_count) {
