@@ -596,7 +596,7 @@ final class CompanionStore: NSObject, ObservableObject {
                     guard let self,
                           let bundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
                           bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" else { return }
-                    connection.publishFocusedAction()
+                    self.connection.publishFocusedAction()
                 }
             }
             Task {
