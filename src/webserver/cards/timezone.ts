@@ -16,11 +16,13 @@ export function registerTimezoneCardTypes(
     dateTimeOptions: ConfigDateTimeOptionsFeature,
     documentService: Document,
     fields: ControlsFieldsFeature,
+    homeAssistantSupported: () => boolean,
 ): void {
     const { cardBadgeLabelHtml, cardLargeNumbersHidePreviewLabel, cardSensorPreviewHtml } = fields;
     const {
         appendTimezoneOption,
         defaultTimezoneCardEntity,
+        metadataForHomeAssistantSupport,
         metadata,
         timezoneCardCityLabel,
         timezoneCardTimeParts,
@@ -50,7 +52,7 @@ export function registerTimezoneCardTypes(
                 b.label = "";
                 helpers.saveField("label", "");
             }
-            helpers.renderCardModeSelector(panel, b, helpers, metadata);
+            helpers.renderCardModeSelector(panel, b, helpers, metadataForHomeAssistantSupport(homeAssistantSupported()));
             helpers.renderCardLargeNumbersToggle(panel, b, helpers, metadata);
             var tzSelect: any = documentService.createElement("select");
             tzSelect.className = "sp-select";

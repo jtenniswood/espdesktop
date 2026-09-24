@@ -70,10 +70,10 @@ export function createPreviewInteractionsFeature(
     } = dependencies.imageOptions;
     function duplicateRequiresHomeAssistant(this: any, button?: any, subpage?: any): boolean {
         if (homeAssistantSupported()) return false;
-        if (button && button.type && cardRequiresHomeAssistant(button.type, button)) return true;
+        if (button && typeof button.type === "string" && cardRequiresHomeAssistant(button.type, button)) return true;
         var nestedButtons: any = subpage && Array.isArray(subpage.buttons) ? subpage.buttons : [];
         return nestedButtons.some(function (this: any, nested?: any) {
-            return !!nested && !!nested.type && cardRequiresHomeAssistant(nested.type, nested);
+            return !!nested && typeof nested.type === "string" && cardRequiresHomeAssistant(nested.type, nested);
         });
     }
     function blockHomeAssistantDuplicate(this: any): void {

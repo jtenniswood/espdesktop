@@ -139,6 +139,7 @@ export function createConnectorsPageFeature(
         const wasComplete = previous?.onboarding_complete === true;
         const announceCompletion = !!previous && !wasComplete && value.onboarding_complete;
         current = value;
+        setHidden(unavailableMessage, homeAssistantSupported());
         if (homeAssistantSupported() && !homeAssistantCard && configContainer) {
             homeAssistantCard = buildHomeAssistantCard();
             configContainer.insertBefore(homeAssistantCard, companionCard ?? null);

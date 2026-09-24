@@ -22,7 +22,7 @@ export function registerWifiQrCardTypes(
     modalTabs: ConfigModalTabOptionsFeature,
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
-    nativePanelConfig: Pick<NativePanelConfigController, "supported">,
+    nativePanelConfig: Pick<NativePanelConfigController, "supported" | "homeAssistantSupportEnabled">,
 ): void {
     const { renderButtonSettings } = cardUi;
     const SSID_OPTION = "ssid64";
@@ -154,7 +154,7 @@ export function registerWifiQrCardTypes(
                 renderModalTabSettings(modalTabsDisclosure.section, b, helpers, {
                     definitions: function (this: any) {
                         var definitions: any = wifiQrTabDefinitions();
-                        if (!wifiQrTabs(b).includes("guest")) {
+                        if (!nativePanelConfig.homeAssistantSupportEnabled() && !wifiQrTabs(b).includes("guest")) {
                             definitions = definitions.filter(function (this: any, definition?: any) {
                                 return definition.value !== "guest";
                             });

@@ -14,6 +14,7 @@ export function registerActionCardTypes(
     entityState: Pick<EntityStateFeature, "refreshEntityDatalist">,
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
+    homeAssistantSupported: () => boolean,
 ): void {
     const { renderButtonSettings } = cardUi;
     const { cardBadgeLabelHtml, cardLargeNumbersActiveForCardSize, cardSensorPreviewHtml, condField } = fields;
@@ -48,7 +49,7 @@ export function registerActionCardTypes(
             label: "Type",
             idSuffix: "action",
             options: ACTION_CARD_ACTIONS.filter(function (this: any, action?: any) {
-                return actionCardIsLocal(action.value);
+                return homeAssistantSupported() || actionCardIsLocal(action.value);
             }),
             value: function (this: any, b?: any) {
                 return b.sensor || "scene.turn_on";

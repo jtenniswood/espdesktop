@@ -320,6 +320,10 @@ export function createPreviewClipboardFeature(
             return;
         if (slot < 1)
             return;
+        if (!homeAssistantSupported() && clipboardEntryRequiresHomeAssistant(buildClipboardEntry(slot))) {
+            showBanner("Home Assistant-backed cards cannot be cut while Home Assistant support is disabled.", "error");
+            return;
+        }
         copySlot(slot);
         deleteSlot(slot);
     }
@@ -329,6 +333,12 @@ export function createPreviewClipboardFeature(
         var cardSlots: any = slots.filter(function (this: any, slot?: any) { return slot > 0; });
         if (!cardSlots.length)
             return;
+        if (!homeAssistantSupported() && cardSlots.some(function (this: any, slot?: any) {
+            return clipboardEntryRequiresHomeAssistant(buildClipboardEntry(slot));
+        })) {
+            showBanner("Home Assistant-backed cards cannot be cut while Home Assistant support is disabled.", "error");
+            return;
+        }
         copyButtons(cardSlots);
         deleteButtons(cardSlots);
     }
@@ -344,13 +354,13 @@ export function createPreviewClipboardFeature(
     function clipboardEntryRequiresHomeAssistant(entry: any): boolean {
         if (homeAssistantSupported()) return false;
         var button: any = clipboardButtonConfig(entry);
-        if (button.type && cardRequiresHomeAssistant(button.type, button))
+        if (typeof button.type === "string" && cardRequiresHomeAssistant(button.type, button))
             return true;
         if (!entry || !entry.subpageConfig)
             return false;
         var subpage: any = parseSubpageConfig(entry.subpageConfig);
         return (subpage.buttons || []).some(function (nested: any) {
-            return !!nested && !!nested.type && cardRequiresHomeAssistant(nested.type, nested);
+            return !!nested && typeof nested.type === "string" && cardRequiresHomeAssistant(nested.type, nested);
         });
     }
     function firstUnusedClipboardSlot(grid: any, maxSlots: any) {

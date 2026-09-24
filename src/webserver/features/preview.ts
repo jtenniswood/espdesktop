@@ -222,6 +222,7 @@ export function cardTypePickerOptions(
   isSub: boolean,
   selectedTypeKey: string | null | undefined,
   connector: CardPickerConnector = "home_assistant",
+  homeAssistantEnabled = false,
 ): CardPickerOption[] {
   const options: CardPickerOption[] = [];
   let selectedUnsupported: { key: string; label: string } | null = null;
@@ -232,9 +233,10 @@ export function cardTypePickerOptions(
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
     const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
     const source = cardTypeConnector(typeKey);
-    const requiresHomeAssistant = source === "home_assistant" ||
-      (source === "home_assistant_or_local" && !LOCAL_ONLY_CARD_TYPES.has(typeKey));
-    if (requiresHomeAssistant) {
+    const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
+      (source === "home_assistant_or_local" && !LOCAL_ONLY_CARD_TYPES.has(typeKey)));
+    const localDateTimePicker = !homeAssistantEnabled && typeKey === "calendar";
+    if (requiresHomeAssistant && !localDateTimePicker) {
       if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {
         selectedUnsupported = { key: selectedTypeKey, label };
       }
@@ -250,7 +252,7 @@ export function cardTypePickerOptions(
     if (pickerKey && pickerKey !== typeKey) continue;
     if (isSub && !allowInSubpage) continue;
     if (definition.isAvailable && !definition.isAvailable({ isSub }) && selectedTypeKey !== typeKey) continue;
-    if (!cardTypeVisibleForConnector(typeKey, connector)) continue;
+    if (!cardTypeVisibleForConnector(typeKey, connector) && !localDateTimePicker) continue;
     options.push({
       key: typeKey,
       label,

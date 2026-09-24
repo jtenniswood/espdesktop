@@ -18,6 +18,7 @@ export function registerSensorCardTypes(
     sensorOptions: ConfigSensorOptionsFeature,
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
+    homeAssistantSupported: () => boolean,
 ): void {
     const { renderButtonSettings } = cardUi;
     const { cardBadgeLabelHtml, cardSensorPreviewHtml, condField, toggleRow } = fields;
@@ -41,9 +42,11 @@ export function registerSensorCardTypes(
     var SENSOR_CARD_METADATA: any = {
         source: {
             label: "Source",
-            options: [
-                [SENSOR_CARD_LOCAL_SENSOR, "Local Sensor"],
-            ],
+            options: function (this: any) {
+                return homeAssistantSupported()
+                    ? [[SENSOR_CARD_LOCAL_SENSOR, "Local Sensor"], ["ha", "Home Assistant"]]
+                    : [[SENSOR_CARD_LOCAL_SENSOR, "Local Sensor"]];
+            },
             value: function (this: any, b?: any) {
                 return sensorCardIsLocal(b) ? SENSOR_CARD_LOCAL_SENSOR : "ha";
             },

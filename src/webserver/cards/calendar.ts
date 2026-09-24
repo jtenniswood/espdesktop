@@ -13,10 +13,12 @@ export function registerCalendarCardTypes(
     registry: CardRegistry,
     dateTimeOptions: ConfigDateTimeOptionsFeature,
     fields: ControlsFieldsFeature,
+    homeAssistantSupported: () => boolean,
 ): void {
     const { cardBadgeLabelHtml, cardLargeNumbersHidePreviewLabel, cardSensorPreviewHtml } = fields;
     const {
         dateTimeCardTimeParts,
+        metadataForHomeAssistantSupport,
         metadata,
         monthNameForIndex,
         now,
@@ -38,7 +40,8 @@ export function registerCalendarCardTypes(
         renderSettings: function (panel?: any, button?: any, _slot?: any, helpers?: any) {
             if (!button.entity) button.entity = "sensor.date";
             if (button.precision !== "datetime") button.precision = "";
-            helpers.renderCardModeSelector(panel, button, helpers, metadata);
+            const modeMetadata = metadataForHomeAssistantSupport(homeAssistantSupported());
+            helpers.renderCardModeSelector(panel, button, helpers, modeMetadata);
             helpers.renderCardLargeNumbersToggle(panel, button, helpers, metadata);
         },
         renderPreview: function (button?: any, helpers?: any) {

@@ -239,6 +239,32 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
   equal(restartedClient.retryable(), true,
     "a restarted panel retries native discovery when its endpoint is temporarily missing");
 
+  let startupCapabilityRequests = 0;
+  const startupRetryController = new NativePanelConfigController({
+    fetch: async () => ++startupCapabilityRequests === 1
+      ? { ...response(503), json: async () => ({}) }
+      : {
+        ...response(200),
+        json: async () => ({
+          home_assistant_support: true,
+          configuration: { read: true, write: true, document_versions: [1] },
+        }),
+      },
+    deviceProfile: () => "panel-a",
+    slotCount: () => 2,
+    entityName: (name: string) => name,
+    entityNameForSlot: (name: string, slot: number) => `${name}_${slot}`,
+    normalizeHexColor: (value: string) => value,
+    showBanner: () => undefined,
+    delay: (callback: () => void) => { callback(); return 0 as any; },
+  });
+  equal(await startupRetryController.waitForDiscovery(), true,
+    "startup capability discovery retries a temporary 503 before deciding Home Assistant is disabled");
+  equal(startupRetryController.homeAssistantSupportEnabled(), true,
+    "the retry exposes the opt-in after deferred capability initialization completes");
+  equal(startupCapabilityRequests, 2,
+    "startup discovery repeats the capabilities request once the deferred endpoint is ready");
+
   const savedDescriptors = new Map<string, PropertyDescriptor | undefined>();
   const saveDescriptor = (name: string): void => {
     if (!savedDescriptors.has(name))

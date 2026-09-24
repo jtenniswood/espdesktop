@@ -54,6 +54,7 @@ describe("browserless application contracts", () => {
     assert.match(connectors, /if \(homeAssistantSupported\(\)\) \{\s*homeAssistantCard = buildHomeAssistantCard\(\)/);
     assert.match(connectors, /function homeAssistantConnected\(\): boolean \{[\s\S]*!homeAssistantSupported\(\)/);
     assert.match(connectors, /function homeAssistantCardPickerEnabled\(\): boolean \{\s*return homeAssistantSupported\(\) &&/);
+    assert.match(connectors, /setHidden\(unavailableMessage, homeAssistantSupported\(\)\)/);
     assert.match(connectors, /No external connectors are available on this display\./);
     const component = fs.readFileSync(path.join(ROOT, "components/espdesktop/__init__.py"), "utf8");
     assert.match(component, /CONF_HOME_ASSISTANT_SUPPORT = "home_assistant_support"/);
@@ -126,9 +127,11 @@ describe("browserless application contracts", () => {
     assert.match(clipboard, /clipboardEntryRequiresHomeAssistant\(entries\[entryIndex\]\)/);
     assert.match(clipboard, /function clipboardEntryRequiresHomeAssistant\(entry: any\): boolean/);
     assert.match(clipboard, /subpage\.buttons \|\| \[\]/);
+    assert.match(clipboard, /typeof button\.type === "string"/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src, state\.subpages\[srcSlot\]\)/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src\)/);
-    assert.match(wifiCard, /if \(!wifiQrTabs\(b\)\.includes\("guest"\)\)/);
+    assert.match(wifiCard, /if \(!nativePanelConfig\.homeAssistantSupportEnabled\(\) && !wifiQrTabs\(b\)\.includes\("guest"\)\)/);
+    assert.match(clipboard, /function cutSlot[\s\S]*clipboardEntryRequiresHomeAssistant\(buildClipboardEntry\(slot\)\)[\s\S]*deleteSlot\(slot\)/);
     assert.match(wifiCard, /return definition\.value !== "guest"/);
   });
 
@@ -451,7 +454,7 @@ describe("browserless application contracts", () => {
       assert.match(source, /registry\.register\(/, `${relativePath} should use the typed card registry`);
       assert.doesNotMatch(source, /\bregisterButtonType\s*\(/, `${relativePath} should not read ambient registration state`);
       assert.match(entry, new RegExp(
-        `${registrationFunction}\\(\\s*registry(?:,\\s*(?:context\\.(?:configuration\\.[A-Za-z]+|controllers\\.[A-Za-z]+|core|device\\.id)|lightCards|fields|cardUi))*[,]?\\s*\\)`,
+        `${registrationFunction}\\(\\s*registry,[\\s\\S]*?\\);`,
       ));
     }
   });
@@ -805,9 +808,9 @@ describe("browserless application contracts", () => {
       const source = fs.readFileSync(path.join(ROOT, `src/webserver/cards/${card}.ts`), "utf8");
       assert.doesNotMatch(source, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|DATE_TIME_CARD_METADATA)\b/);
     }
-    assert.match(entry, /registerCalendarCardTypes\(registry, context\.configuration\.dateTimeOptions, fields\);/);
-    assert.match(entry, /registerClockCardTypes\(registry, context\.configuration\.dateTimeOptions, fields\);/);
-    assert.match(entry, /registerTimezoneCardTypes\(registry, context\.configuration\.dateTimeOptions, context\.dom\.document, fields\);/);
+    assert.match(entry, /registerCalendarCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
+    assert.match(entry, /registerClockCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
+    assert.match(entry, /registerTimezoneCardTypes\(registry, context\.configuration\.dateTimeOptions, context\.dom\.document, fields,[\s\S]*homeAssistantSupportEnabled/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerCalendarCardTypes/);
     assert.doesNotMatch(globals, /\bvar (?:DATE_TIME_CARD_METADATA|dateTimeCardMode|dateTimeCardTimeParts|dateTimeLargeNumbersLabel|dateTimeModeOptionValues|defaultTimezoneCardEntity|normalizeDateTimeCardMode|setDateTimeCardMode):/);
   });
@@ -852,7 +855,7 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
     assert.match(options, /sensorCardLocalSource = LOCAL_SENSOR_SOURCE/);
-    assert.match(entry, /registerSensorCardTypes\(registry, context\.configuration\.options, fields, cardUi\);/);
+    assert.match(entry, /registerSensorCardTypes\(registry, context\.configuration\.options, fields, cardUi,[\s\S]*homeAssistantSupportEnabled/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerSensorCardTypes/);
     assert.doesNotMatch(globals, /\bvar (?:SENSOR_CARD_LOCAL_SENSOR|SENSOR_CARD_METADATA|renderSensorLocalSettings|sensorCardIsLocal|sensorLocalPreview):/);
   });
@@ -901,7 +904,7 @@ describe("browserless application contracts", () => {
     assert.equal(actionOptions.actionCardEntityMatchesAction("number.target_level", "input_number.set_value"), false);
     assert.equal(actionOptions.actionCardEntityMatchesAction("", "input_number.set_value"), true);
     assert.match(card, /actionCardEntityMatchesAction\(b\.entity, this\.value\)/);
-    assert.match(entry, /registerActionCardTypes\(registry, context\.configuration\.confirmationOptions, context\.controllers\.entityState, fields, cardUi\);/);
+    assert.match(entry, /registerActionCardTypes\(registry, context\.configuration\.confirmationOptions, context\.controllers\.entityState, fields, cardUi,[\s\S]*homeAssistantSupportEnabled/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerActionCardTypes/);
     assert.match(entry, /actionCardStateEntity: \(button\) => confirmationOptions\.actionCardStateEntity\(button\)/);
     assert.doesNotMatch(globals, /\bvar (?:ACTION_CARD_ACTIONS|ACTION_CARD_METADATA|actionCardInfo|actionCardIsLocal|actionCardIsOptionSelect|actionCardNeedsExtraValue|actionCardStateDisplayMode|actionCardStateEntity|actionCardStatePrecision|actionCardStateUnit|normalizeActionCardConfig|normalizeSavedConfigActionFields|renderActionCardLocalSettings|setActionCardStateOptions):/);

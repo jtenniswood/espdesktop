@@ -54,6 +54,7 @@ export function runPreviewFeatureTests(): void {
     equal(cardTypeVisibleForConnector(key, "mac_companion"), true, `${key} remains available without Home Assistant`);
   }
   equal(cardRequiresHomeAssistant("climate", {}), true, "Home Assistant-only cards require Home Assistant");
+  equal(cardRequiresHomeAssistant("", {}), true, "the canonical empty-string Switch type requires Home Assistant");
   equal(cardRequiresHomeAssistant("push", {}), true, "Trigger cards require the Home Assistant event bus");
   equal(cardRequiresHomeAssistant("action", { sensor: "light.turn_on" }), true, "Home Assistant actions require Home Assistant");
   equal(cardRequiresHomeAssistant("action", { sensor: "local" }), false, "local actions can be transferred");
@@ -73,6 +74,7 @@ export function runPreviewFeatureTests(): void {
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
+    calendar: { label: "Date & Time", allowInSubpage: true },
     climate: { label: "Climate", allowInSubpage: false },
     climate_control: { label: "Climate controls", pickerKey: "climate", allowInSubpage: false },
     sensor: { label: "Sensor", allowInSubpage: true },
@@ -81,9 +83,17 @@ export function runPreviewFeatureTests(): void {
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    ["action", "sensor", "wifi_qr"],
-    "subpage picker retains local-only action, sensor, and Wi-Fi sharing cards",
+    ["action", "calendar", "sensor", "wifi_qr"],
+    "subpage picker retains local-only cards and the Date & Time route for local modes",
   );
+  const defaultPicker = cardTypePickerOptions(definitions, [], false, false, null);
+  equal(defaultPicker.some((option) => option.key === "calendar"), true,
+    "the Date & Time route remains available for local Clock and World Clock modes");
+  equal(defaultPicker.some((option) => option.key === "climate"), false,
+    "Home Assistant cards stay hidden while support is disabled");
+  const optedInPicker = cardTypePickerOptions(definitions, [], false, false, null, "home_assistant", true);
+  equal(optedInPicker.some((option) => option.key === "climate"), true,
+    "firmware opt-in restores Home Assistant cards to the picker");
   const companionOptions = cardTypePickerOptions({
       ...definitions,
       calendar: { label: "Date & Time", allowInSubpage: true },
@@ -105,8 +115,8 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "companion_app", "internal", "companion_shortcut", "companion_folder", "companion_url", "screen_lock", "sensor", "companion_stats", "companion_subpage", "webhook", "wifi_qr", "companion_window"],
-    "Companion picker includes local cards and excludes Home Assistant-only controls",
+    ["action", "companion_app", "calendar", "internal", "companion_shortcut", "companion_folder", "companion_url", "screen_lock", "sensor", "companion_stats", "companion_subpage", "webhook", "wifi_qr", "companion_window"],
+    "Companion picker includes local cards and Date & Time while excluding Home Assistant-only controls",
   );
   equal(
     companionOptions.find((option) => option.key === "companion_shortcut")?.icon,
@@ -114,9 +124,10 @@ export function runPreviewFeatureTests(): void {
     "Companion keyboard shortcut cards use the Apple Command icon",
   );
   const infoOnlyOptions = cardTypePickerOptions(definitions, [], true, false, "action");
-  equal(infoOnlyOptions[0]?.key, "action", "selected Home Assistant type remains visible for editing");
-  equal(infoOnlyOptions[0]?.disabled, true, "selected Home Assistant type is labelled unavailable");
-  equal(infoOnlyOptions[1]?.key, "sensor", "local-only info sensor remains selectable");
+  equal(infoOnlyOptions.find((option) => option.key === "action")?.disabled, true,
+    "selected Home Assistant type is labelled unavailable");
+  equal(infoOnlyOptions.find((option) => option.key === "sensor")?.disabled, false,
+    "local-only info sensor remains selectable");
 
   equal(
     swapGridCell({ x: 99, y: 75 }, { left: 0, top: 0, right: 100, bottom: 100 }, 2, 2),
