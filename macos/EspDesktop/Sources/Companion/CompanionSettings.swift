@@ -385,6 +385,16 @@ struct CompanionSettings: View {
                         VStack(spacing: 20) {
                             connectionStatus
                             HStack(spacing: 12) {
+                                if store.connectionState == .failed {
+                                    Button {
+                                        store.connect()
+                                    } label: {
+                                        Label("Retry", systemImage: "arrow.clockwise")
+                                            .padding(.vertical, 4)
+                                    }
+                                    .help("Try connecting to this display again")
+                                    .modifier(CompanionCapsuleButton())
+                                }
                                 Button {
                                     store.openPanelWebServer()
                                 } label: {

@@ -10,7 +10,7 @@ Companion cards can bring an approved application to the front or open a website
 ## Launch an App
 
 1. In the Mac app, open **Apps** and approve the applications the display may launch.
-2. In the display's setup page, add a **Companion → Launch app** card.
+2. In the display's setup page, add a **Companion → Applications** card.
 3. Select an approved application and save the display configuration.
 
 Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac.
@@ -24,9 +24,9 @@ Addresses containing an embedded username or password are rejected. Other URL ty
 
 ## Ready-Made App Subpages
 
-An approved **Launch app** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Current examples include **Safari**, **Slack**, and **Codex**; community contributions can add more apps.
+An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Current examples include **Safari**, **Slack**, and **Codex**; community contributions can add more apps.
 
-1. Add a **Launch app** card for an app with a shortcut template.
+1. Add an **Applications** card for an app with a shortcut template.
 2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
 3. Choose the shortcuts to include and drag them into order.
 4. Optionally enable **Auto switch to subpage**.

@@ -17,7 +17,7 @@ To look up an app's bundle identifier, replace the example path with the app's a
 
 Copy the returned value exactly into `appId`. Set `label` to the name users see in the Companion app list; it is a friendly label and does not control matching. If the app is not in `/Applications`, use its actual `.app` path.
 
-For example, Safari's bundle identifier is `com.apple.Safari`. A definition with that `appId` applies to the Safari app, even if the JSON file has a different filename. The app must be approved in the Mac Companion app to use its Launch app card and app subpage.
+For example, Safari's bundle identifier is `com.apple.Safari`. A definition with that `appId` applies to the Safari app, even if the JSON file has a different filename. The app must be approved in the Mac Companion app to use its Applications card and app subpage.
 
 ## File format
 
@@ -50,7 +50,7 @@ For example, Safari's bundle identifier is `com.apple.Safari`. A definition with
 | Shortcut `shortcut` | Modifier/key combination, without the `shortcut.` prefix. |
 | Shortcut `icon` | Exact icon name from `product/v2/icons.json`, such as `Plus` or `Chevron Left`. |
 
-Every valid app file supplies templates for the matching **Launch app → App subpage**. The `catalog` flag controls only whether those same templates can be selected as standalone **Companion → Keyboard shortcut** cards. For example, the current Safari file is in the standalone catalog; Codex and Slack are currently subpage-only.
+Every valid app file supplies templates for the matching **Applications → App subpage**. The `catalog` flag controls only whether those same templates can be selected as standalone **Companion → Keyboard shortcut** cards. For example, the current Safari file is in the standalone catalog; Codex and Slack are currently subpage-only.
 
 ## Stable shortcut IDs
 

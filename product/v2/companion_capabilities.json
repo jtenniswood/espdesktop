@@ -677,7 +677,7 @@
   "cardModes": [
     {
       "id": "app",
-      "label": "Launch app",
+      "label": "Applications",
       "capability": "applications",
       "defaultIcon": "Monitor"
     },

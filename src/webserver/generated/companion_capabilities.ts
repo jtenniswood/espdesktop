@@ -13,7 +13,7 @@ export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
 export const COMPANION_CARD_MODES = [
   {
     id: "app",
-    label: "Launch app",
+    label: "Applications",
     capability: "applications",
     defaultIcon: "Monitor"
   },
