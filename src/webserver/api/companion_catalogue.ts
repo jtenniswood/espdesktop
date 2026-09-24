@@ -1,15 +1,17 @@
 export interface CompanionAction { readonly id: string; readonly label: string; }
 
-export function createCompanionCatalogueRetry(
+export function createCompanionCatalogueMonitor(
   load: () => Promise<readonly CompanionAction[]>,
   onActions: (actions: readonly CompanionAction[]) => void,
   schedule: (callback: () => void, delayMs: number) => number =
     (callback, delayMs) => window.setTimeout(callback, delayMs),
   cancel: (timer: number) => void = (timer) => window.clearTimeout(timer),
 ) {
+  const refreshIntervalMs = 30000;
   let timer: number | null = null;
   let generation = 0;
   let retryDelayMs = 1000;
+  let lastActions: readonly CompanionAction[] | null = null;
 
   function clearTimer(): void {
     if (timer !== null) cancel(timer);
@@ -17,22 +19,31 @@ export function createCompanionCatalogueRetry(
   }
 
   async function request(run: number): Promise<void> {
+    let delayMs: number;
     try {
       const actions = await load();
       if (run !== generation) return;
-      onActions(actions);
+      const changed = lastActions === null || lastActions.length !== actions.length ||
+        lastActions.some((action, index) =>
+          action.id !== actions[index]?.id || action.label !== actions[index]?.label);
+      if (changed) {
+        lastActions = actions;
+        onActions(actions);
+      }
       if (actions.length > 0) {
-        clearTimer();
         retryDelayMs = 1000;
-        return;
+        delayMs = refreshIntervalMs;
+      } else {
+        delayMs = retryDelayMs;
+        retryDelayMs = Math.min(retryDelayMs * 2, 10000);
       }
     } catch {
       if (run !== generation) return;
+      delayMs = retryDelayMs;
+      retryDelayMs = Math.min(retryDelayMs * 2, 10000);
     }
 
     if (run !== generation || timer !== null) return;
-    const delayMs = retryDelayMs;
-    retryDelayMs = Math.min(retryDelayMs * 2, 10000);
     timer = schedule(() => {
       timer = null;
       void request(run);

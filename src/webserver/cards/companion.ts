@@ -1,7 +1,7 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
-import { createCompanionCatalogue, createCompanionCatalogueRetry } from "../api/companion_catalogue";
+import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
 import {
@@ -464,21 +464,28 @@ export function registerCompanionCardTypes(
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     let companionApplications: readonly CompanionAction[] = [];
+    const companionApplicationLabels = new Map<string, string>();
 
-    const companionCatalogueRetry = createCompanionCatalogueRetry(
+    const companionCatalogueMonitor = createCompanionCatalogueMonitor(
         () => loadCompanionActions(true),
         function (actions) {
-            rememberCompanionApplications(actions);
-            cardUi.renderPreview();
+            if (rememberCompanionApplications(actions)) cardUi.renderPreview();
         },
     );
 
-    function rememberCompanionApplications(actions: readonly CompanionAction[]): void {
-        companionApplications = companionApplicationActions(actions);
+    function rememberCompanionApplications(actions: readonly CompanionAction[]): boolean {
+        const applications = companionApplicationActions(actions);
+        for (const action of applications) companionApplicationLabels.set(action.id, action.label);
+        const changed = applications.length !== companionApplications.length ||
+            applications.some((action, index) =>
+                action.id !== companionApplications[index]?.id ||
+                action.label !== companionApplications[index]?.label);
+        companionApplications = applications;
+        return changed;
     }
 
     function companionApplicationLabel(actionId: string): string {
-        return companionApplications.find((action) => action.id === actionId)?.label || "";
+        return companionApplicationLabels.get(actionId) || "";
     }
 
     if (supported) {
@@ -487,8 +494,8 @@ export function registerCompanionCardTypes(
             cardUi.renderPreview();
         }).catch(function () {});
         connectorStatus.onCompanionConnectionChange(function (connected) {
-            if (connected) companionCatalogueRetry.start();
-            else companionCatalogueRetry.stop();
+            if (connected) companionCatalogueMonitor.start();
+            else companionCatalogueMonitor.stop();
         });
     }
 
