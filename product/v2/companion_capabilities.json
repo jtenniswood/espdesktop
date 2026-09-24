@@ -745,8 +745,8 @@
     },
     {
       "id": "window.fullscreen",
-      "label": "Full Screen",
-      "group": "Window",
+      "label": "Toggle Full Screen",
+      "group": "Full Screen",
       "key": "f",
       "modifiers": [
         "control",

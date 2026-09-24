@@ -5,6 +5,7 @@ import ApplicationServices
 @MainActor
 enum CompanionNativeWindowAction {
     private static let supportedIdentifiers: Set<String> = [
+        "window.fullscreen",
         "window.fullscreen.enter",
         "window.fullscreen.exit",
         "window.split.left",
@@ -33,14 +34,22 @@ enum CompanionNativeWindowAction {
         let application = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetMessagingTimeout(application, 0.2)
 
-        if identifier == "window.fullscreen.enter" || identifier == "window.fullscreen.exit" {
+        if identifier == "window.fullscreen" ||
+            identifier == "window.fullscreen.enter" || identifier == "window.fullscreen.exit" {
             guard let window = element(application, kAXFocusedWindowAttribute) else {
+                if identifier == "window.fullscreen" { return replayFullScreenShortcut() }
                 return "The active app has no accessible window"
             }
             guard let isFullScreen = attribute(window, "AXFullScreen") as? Bool else {
+                if identifier == "window.fullscreen" { return replayFullScreenShortcut() }
                 return "The active window does not support full screen"
             }
-            let shouldBeFullScreen = identifier == "window.fullscreen.enter"
+            let shouldBeFullScreen: Bool
+            switch identifier {
+            case "window.fullscreen": shouldBeFullScreen = !isFullScreen
+            case "window.fullscreen.enter": shouldBeFullScreen = true
+            default: shouldBeFullScreen = false
+            }
             guard isFullScreen != shouldBeFullScreen else { return nil }
             let target: CFTypeRef = shouldBeFullScreen ? kCFBooleanTrue : kCFBooleanFalse
             return AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, target) == .success
@@ -75,6 +84,13 @@ enum CompanionNativeWindowAction {
         }
         return AXUIElementPerformAction(item, kAXPressAction as CFString) == .success
             ? nil : "macOS could not start Split View"
+    }
+
+    private static func replayFullScreenShortcut() -> String? {
+        guard CompanionKeyboardShortcut(actionIdentifier: "window.fullscreen")?.replay() == true else {
+            return "The active window could not change full-screen mode"
+        }
+        return nil
     }
 
     private static func localizedMenuPaths(_ paths: [[String]]) -> [[String]] {
