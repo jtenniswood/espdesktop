@@ -1139,8 +1139,6 @@ export function registerCompanionCardTypes(
                 urlField.style.display = mode === "url" ? "" : "none";
                 appSubpageDisclosure.panel.style.display = !helpers.isSub && mode === "app" &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
-                autoSwitchField.style.display = !helpers.isSub && mode === "app" &&
-                    companionAppShortcutFolderEnabled(card) ? "" : "none";
                 finderOpenBehaviorField.style.display = !helpers.isSub && mode === "app" &&
                     card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
