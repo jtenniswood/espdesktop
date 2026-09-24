@@ -81,7 +81,15 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (presetIdentity && companionShortcutActionIdValid(card.entity)) {
         return setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity);
     }
-    if (!companionShortcutFolderAppLabel(card.entity) || card.sensor) return "";
+    if (!companionShortcutFolderAppLabel(card.entity)) {
+        const identifier = typeof card.entity === "string" ? card.entity : "";
+        const mayBeRemoteApplication = identifier.startsWith("webapp.") ||
+            /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$/.test(identifier);
+        // A remote definition may arrive after saved cards have been parsed.
+        // Keep its options intact so startup cannot migrate them away.
+        return mayBeRemoteApplication ? String(card.options || "") : "";
+    }
+    if (card.sensor) return "";
     const behavior = configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION);
     let options = card.entity === "com.apple.finder" &&
         (behavior === "same_window" || behavior === "new_window")

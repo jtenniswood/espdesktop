@@ -9,6 +9,7 @@
 #include <functional>
 #include <atomic>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -92,6 +93,18 @@ struct CompanionFocusTargetsState {
   bool connected{false};
   uint32_t generation{0};
 };
+
+inline constexpr size_t COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE = 128;
+
+inline bool companion_remote_definition_capacity_available(const std::string &kind,
+                                                           size_t application_count,
+                                                           size_t web_app_count) {
+  if (application_count + web_app_count >= COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2)
+    return false;
+  if (kind == "application") return application_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
+  if (kind == "webapp") return web_app_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
+  return false;
+}
 
 struct CompanionRuntimeSnapshot {
   std::vector<CompanionAction> actions;

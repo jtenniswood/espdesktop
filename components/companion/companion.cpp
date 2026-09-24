@@ -568,14 +568,18 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           page != (page == 0 ? 0 : this->definitions_next_page_)) return false;
       if (page == 0) {
         this->remote_definitions_.clear();
+        this->application_definition_count_ = 0;
+        this->web_app_definition_count_ = 0;
         this->definitions_generation_ = generation;
         this->definitions_next_page_ = 0;
       }
       for (const auto &item : payload->items) {
-        if (this->remote_definitions_.size() >= 128) break;
         const std::string kind = item.kind;
         const std::string json = item.json;
-        if ((kind == "application" || kind == "webapp") &&
+        const bool is_application = kind == "application";
+        const bool is_web_app = kind == "webapp";
+        if (companion_remote_definition_capacity_available(kind, this->application_definition_count_,
+                                                           this->web_app_definition_count_) &&
             safe_utf8_field(json, 12000) && json.size() >= 2) {
           JsonDocument document;
           const auto error = deserializeJson(document, json);
@@ -588,6 +592,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
             continue;
           }
           this->remote_definitions_.push_back({kind, id, icon_url, json});
+          if (is_application) ++this->application_definition_count_;
+          else ++this->web_app_definition_count_;
         }
       }
       this->definitions_next_page_ = page + 1;

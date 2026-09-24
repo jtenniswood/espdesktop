@@ -125,6 +125,8 @@ class CompanionService final : public Component {
   bool now_playing_artwork_follows_{false};
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
+  uint16_t application_definition_count_{0};
+  uint16_t web_app_definition_count_{0};
   uint32_t catalogue_generation_{0};
   uint16_t catalogue_next_page_{0};
   uint32_t definitions_generation_{0};

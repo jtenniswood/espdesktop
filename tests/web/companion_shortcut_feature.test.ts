@@ -227,9 +227,17 @@ export function runCompanionShortcutFeatureTests(): void {
   const chromeFolderCard = {
     type: "companion", entity: "com.google.Chrome", options: "app_shortcuts",
   };
-  if (normalizeCompanionAppShortcutOptions(chromeFolderCard) !== "" ||
+  if (normalizeCompanionAppShortcutOptions(chromeFolderCard) !== "app_shortcuts" ||
       companionAppShortcutFolderEnabled(chromeFolderCard)) {
-    throw new Error("Unsupported apps must not retain the shortcut-folder option");
+    throw new Error("Unknown app options must stay dormant until its remote definition is loaded");
+  }
+  for (const entity of ["com.example.FutureEditor", "webapp.future-editor"]) {
+    const remotelyDefinedCard = {
+      type: "companion", entity, options: "app_shortcuts,app_shortcuts_tabs=0|1",
+    };
+    if (normalizeCompanionAppShortcutOptions(remotelyDefinedCard) !== remotelyDefinedCard.options) {
+      throw new Error("Initial config parsing must preserve options for a remotely defined app");
+    }
   }
   const legacyAutoSwitchCard = {
     ...safariFolderCard,

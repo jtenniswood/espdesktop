@@ -366,6 +366,9 @@ final class CompanionStore: NSObject, ObservableObject {
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
             let browser = focusedLaunchableApplicationIdentifier()
+            guard !companionWebAppFocusIDs.isEmpty || !companionURLFocusTargets.isEmpty else {
+                return browser.isEmpty ? [] : [browser]
+            }
             guard let url = activeBrowserTabURL(bundleIdentifier: bundleIdentifier) else {
                 return browser.isEmpty ? [] : [browser]
             }
@@ -688,7 +691,22 @@ final class CompanionStore: NSObject, ObservableObject {
                              folderOpenBehavior: String = "new_window") async -> String {
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior)
+        if performed, actionIdentifier.hasPrefix("webapp.") {
+            return await waitForWebAppFocus(actionIdentifier) ? "activated" : "performed"
+        }
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
+    }
+
+    private func waitForWebAppFocus(_ actionIdentifier: String) async -> Bool {
+        guard actionIdentifier.hasPrefix("webapp."),
+              companionWebAppFocusIDs.contains(String(actionIdentifier.dropFirst("webapp.".count))) else {
+            return false
+        }
+        for _ in 0..<40 {
+            if focusedCompanionActionIdentifiers().contains(actionIdentifier) { return true }
+            try? await Task.sleep(nanoseconds: 150_000_000)
+        }
+        return false
     }
 
     nonisolated static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {
