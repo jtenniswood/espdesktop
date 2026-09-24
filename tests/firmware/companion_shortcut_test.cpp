@@ -128,6 +128,7 @@ int main() {
 
   const std::string folder_action = "folder.00000000-0000-0000-0000-000000000001";
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
+  assert(companion_default_action_label("com.apple.Safari") == "Safari");
   companion_set_window_actions({"window.left"});
   companion_set_keyboard_actions_supported(true);
   assert(companion_card_refresh_requested().load());

@@ -34,6 +34,7 @@ export interface ConnectorsPageFeature {
     homeAssistantCardPickerEnabled(): boolean;
     companionConfigured(): boolean;
     onStatusChange(callback: () => void): void;
+    onCompanionConnectionChange(callback: (connected: boolean) => void): void;
 }
 
 function setHidden(element: HTMLElement | null, hidden: boolean): void {
@@ -97,6 +98,7 @@ export function createConnectorsPageFeature(
     let current: ConnectorsStatus | null = null;
     let statusEndpointAvailable = false;
     const statusListeners: Array<() => void> = [];
+    const companionConnectionListeners: Array<(connected: boolean) => void> = [];
     let timer: number | null = null;
     let refreshInProgress = false;
 
@@ -136,6 +138,10 @@ export function createConnectorsPageFeature(
         const wasComplete = previous?.onboarding_complete === true;
         const announceCompletion = !!previous && !wasComplete && value.onboarding_complete;
         current = value;
+        if (previous?.mac_companion.connected !== value.mac_companion.connected) {
+            companionConnectionListeners.forEach((listener) =>
+                listener(value.mac_companion.connected));
+        }
         if (homeAssistantCard && companionCard) {
             // Use saved setup state so a temporary disconnect does not reorder cards.
             const companionFirst = value.mac_companion.paired && !value.home_assistant.configured;
@@ -391,6 +397,10 @@ export function createConnectorsPageFeature(
         statusListeners.push(callback);
     }
 
+    function onCompanionConnectionChange(callback: (connected: boolean) => void): void {
+        companionConnectionListeners.push(callback);
+    }
+
     return {
         buildPage,
         start,
@@ -399,5 +409,6 @@ export function createConnectorsPageFeature(
         homeAssistantCardPickerEnabled,
         companionConfigured,
         onStatusChange,
+        onCompanionConnectionChange,
     };
 }

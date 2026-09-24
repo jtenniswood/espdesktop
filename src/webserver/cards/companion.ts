@@ -30,6 +30,7 @@ import type { CardRegistry, CardUiServices } from "../application/card_registry"
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
+import type { ConnectorsPageFeature } from "../application/connectors_page";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import { state } from "../state/app_instance";
 import {
@@ -456,6 +457,7 @@ export function registerCompanionCardTypes(
     codec: Pick<ConfigCodecFeature, "buildSubpageGrid" | "enterSubpage" | "saveSubpageConfig">,
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
+    connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
 ): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings } = cardUi;
@@ -476,6 +478,13 @@ export function registerCompanionCardTypes(
             rememberCompanionApplications(actions);
             cardUi.renderPreview();
         }).catch(function () {});
+        connectorStatus.onCompanionConnectionChange(function (connected) {
+            if (!connected) return;
+            void loadCompanionActions(true).then(function (actions) {
+                rememberCompanionApplications(actions);
+                cardUi.renderPreview();
+            }).catch(function () {});
+        });
     }
 
     function applyCompanionPickerPreset(card: any, mode: string): void {

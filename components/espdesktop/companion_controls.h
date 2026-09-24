@@ -541,6 +541,7 @@ struct CompanionCardRef {
   int precision{0};
   bool metric_description{true};
   bool preserve_navigation{false};
+  bool dynamic_default_label{false};
 };
 
 struct CompanionSliderRef {
@@ -626,7 +627,8 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
 
 inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                                  const std::string &url_config = "",
-                                 lv_obj_t *text_label = nullptr) {
+                                 lv_obj_t *text_label = nullptr,
+                                 bool dynamic_default_label = false) {
   if (!button) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
@@ -636,6 +638,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     if (companion_metric_key_valid(action_id) && !existing->metric_key.empty()) return;
     existing->action_id = action_id;
     existing->url_config = url_config;
+    existing->dynamic_default_label = dynamic_default_label;
     // The periodic config tracker does not have the label pointer. Preserve
     // the pointer registered while the card was rendered so state updates can
     // continue replacing the Play/Pause label.
@@ -646,7 +649,8 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->unit_label = nullptr;
     return;
   }
-  refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false});
+  refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
+                  false, dynamic_default_label});
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
 }
 
@@ -712,6 +716,10 @@ inline void companion_refresh_cards_if_requested() {
       ++it;
       continue;
     }
+    if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
+      const std::string label = companion_default_action_label(it->action_id, it->url_config);
+      lv_label_set_display_text(it->text_label, label.c_str());
+    }
     const bool available = it->url_config.empty()
       ? companion_action_available(it->action_id)
       : companion_url_available(it->action_id, it->url_config);
@@ -748,7 +756,8 @@ inline void companion_refresh_cards_if_requested() {
   }
 }
 #else
-inline void companion_track_card(void *, const std::string &, const std::string & = "", void * = nullptr) {}
+inline void companion_track_card(void *, const std::string &, const std::string & = "",
+                                 void * = nullptr, bool = false) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "") {}
