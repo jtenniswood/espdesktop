@@ -52,6 +52,12 @@ For example, Safari's bundle identifier is `com.apple.Safari`. A definition with
 
 Every valid app file supplies templates for the matching **Applications → App subpage**. The `catalog` flag controls only whether those same templates can be selected as standalone **Companion → Keyboard shortcut** cards. For example, the current Safari file is in the standalone catalog; Codex and Slack are currently subpage-only.
 
+## Remote manifest
+
+`manifest.json` lists every template delivered to connected Companion installations. Increment `catalogueVersion` when changing the catalogue, keep `formatVersion` at `1` while the manifest shape stays the same, and raise `minimumCompanionVersion` only when older Companion builds cannot read the entries. The Mac app fetches the manifest and its templates on launch and reconnect. It keeps each catalogue's last valid copy when that catalogue cannot be fetched or validated, and ships bundled starter templates for first launch without a network connection.
+
+The file must list every `*.json` template beside it exactly once. Template changes merged to the repository are picked up by existing Companion installations without a Mac app release. Shortcuts already saved by a user remain their own saved choices; changing a template changes future selections and defaults.
+
 ## Stable shortcut IDs
 
 Keep an existing shortcut's `id` when renaming it or moving it in the file. Give each new shortcut an unused ID; gaps are fine. Never reuse a removed ID for a different action. The Safari, Codex, and Slack IDs were kept when their earlier definitions were imported into this format.
@@ -87,7 +93,7 @@ Shortcuts replay keyboard input in the active Mac app. A catalog entry does not 
 
 4. Include the new JSON file and generated outputs in the PR. In the PR description, name the app/version and macOS version, identify the bundle ID, and say which combinations you confirmed in the app.
 
-CI checks the file format and generated output. After the PR is reviewed and merged, the normal Companion and web asset build automatically discovers the new file and packages its templates. No one needs to edit an app registration list. The catalog is build-time data rather than a live download, so the new template reaches users with the next build or release that includes it; an open or unmerged PR is not installed on displays.
+CI checks the template, manifest, and generated output. After the PR is reviewed and merged, connected Companion apps fetch the updated catalogue from GitHub; a Mac app release is only needed when changing the reader or supported file format.
 
 Do not edit `src/webserver/generated/app_shortcuts.ts` or `components/espdesktop/app_shortcuts_generated.h` directly. If adding a new icon, add its pinned definition to `product/v2/icons.json` and its gallery group in `docs/.vitepress/theme/components/IconGallery.vue` before building, then run `python3 scripts/check_product_snapshot.py --update`. Choosing an existing icon avoids these extra steps.
 

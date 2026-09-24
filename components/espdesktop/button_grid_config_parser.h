@@ -1324,12 +1324,31 @@ inline std::string normalize_saved_config_subpage_options(
   return subpage_card_options_normalized(options, p.sensor, p.precision);
 }
 
+inline bool companion_shortcut_template_id_valid(const std::string &value) {
+  if (value.empty() || value.size() > 3 || value[0] == '0' && value.size() > 1) return false;
+  for (char ch : value) if (ch < '0' || ch > '9') return false;
+  return std::atoi(value.c_str()) <= 999;
+}
+
+inline bool companion_shortcut_app_id_valid(const std::string &value) {
+  if (value.size() > 96 || value.empty()) return false;
+  const bool web_app = value.rfind("webapp.", 0) == 0;
+  const std::string id = web_app ? value.substr(7) : value;
+  if (id.empty()) return false;
+  bool has_separator = false;
+  for (char ch : id) {
+    const bool allowed = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
+      (ch >= '0' && ch <= '9') || ch == '-' || (web_app ? false : ch == '.');
+    if (!allowed) return false;
+    if (ch == '.' || ch == '-') has_separator = true;
+  }
+  return web_app ? true : has_separator && id.find('.') != std::string::npos;
+}
+
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
   return p.type == "companion" &&
-         (p.entity == "com.apple.finder" ||
-          companion_shortcut_catalog::app_label(p.entity)[0] != '\0') &&
-         p.sensor.empty() &&
-         cfg_option_token_present(p.options, "app_shortcuts");
+         (p.entity == "com.apple.finder" || companion_shortcut_app_id_valid(p.entity)) &&
+         p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
 }
 
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
@@ -1351,7 +1370,7 @@ inline std::string companion_app_shortcut_tabs_normalized(const ParsedCfg &p) {
   if (value == "none") return value;
   std::vector<std::string> tabs;
   for (const auto &part : split_config_fields(value, '|')) {
-    if (!companion_shortcut_catalog::has_shortcut(p.entity, part) ||
+    if (!companion_shortcut_template_id_valid(part) ||
         std::find(tabs.begin(), tabs.end(), part) != tabs.end()) {
       continue;
     }
@@ -1371,8 +1390,8 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
   if (value == "custom") return value;
   const size_t separator = value.rfind(':');
   if (separator == std::string::npos) return "";
-  return companion_shortcut_catalog::has_shortcut(value.substr(0, separator), value.substr(separator + 1))
-    ? value : "";
+  return companion_shortcut_app_id_valid(value.substr(0, separator)) &&
+         companion_shortcut_template_id_valid(value.substr(separator + 1)) ? value : "";
 }
 
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {

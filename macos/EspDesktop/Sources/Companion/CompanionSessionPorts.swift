@@ -19,6 +19,9 @@ protocol CompanionSessionResources: AnyObject {
     func folderActions() -> [ApprovedFolder]
     func launchableApps() -> [LaunchableApp]
     func focusedCompanionActionIdentifier() -> String
+    func focusedCompanionActionIdentifiers() -> [String]
+    func setCompanionURLFocusTargets(_ targets: [(id: String, url: URL)])
+    func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
@@ -45,4 +48,14 @@ enum CompanionSessionEvent {
     case capabilities(systemMetrics: Bool)
     case publishCurrentState
     case artworkRequested(UInt32)
+}
+
+@MainActor
+extension CompanionSessionResources {
+    func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
+    func focusedCompanionActionIdentifiers() -> [String] {
+        let identifier = focusedCompanionActionIdentifier()
+        return identifier.isEmpty ? [] : [identifier]
+    }
+    func setCompanionURLFocusTargets(_ targets: [(id: String, url: URL)]) {}
 }

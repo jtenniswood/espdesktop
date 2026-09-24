@@ -141,6 +141,9 @@ void CompanionService::setup() {
 
 void CompanionService::loop() {
   companion_expire_action_results(millis());
+  const auto runtime = companion_runtime_snapshot();
+  if (runtime.connected && runtime.url_focus_targets_generation != this->focus_targets_generation_.load())
+    this->publish_focus_targets_();
   {
     std::lock_guard<std::mutex> lock(this->pairing_mutex_);
     if (!this->pairing_code_.empty() && static_cast<int32_t>(millis() - this->pairing_expires_at_) >= 0) {
@@ -544,6 +547,46 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::CatalogueDefinitionsPage>(&*decoded)) {
+      const uint32_t generation = payload->generation;
+      const uint16_t page = payload->page;
+      if (generation == 0 || (page != 0 && generation != this->definitions_generation_) ||
+          page != (page == 0 ? 0 : this->definitions_next_page_)) return false;
+      if (page == 0) {
+        this->remote_definitions_.clear();
+        this->definitions_generation_ = generation;
+        this->definitions_next_page_ = 0;
+      }
+      for (const auto &item : payload->items) {
+        if (this->remote_definitions_.size() >= 128) break;
+        const std::string kind = item.kind;
+        const std::string json = item.json;
+        if ((kind == "application" || kind == "webapp") &&
+            safe_utf8_field(json, 12000) && json.size() >= 2) {
+          JsonDocument document;
+          const auto error = deserializeJson(document, json);
+          const std::string id = kind == "webapp"
+            ? document["id"].as<std::string>() : document["appId"].as<std::string>();
+          const std::string icon_url = kind == "webapp"
+            ? document["icon"].as<std::string>() : std::string();
+          if (error || id.empty() || id.size() > 96 ||
+              (kind == "webapp" && icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0)) {
+            continue;
+          }
+          this->remote_definitions_.push_back({kind, id, icon_url, json});
+        }
+      }
+      this->definitions_next_page_ = page + 1;
+      if (payload->complete) {
+        auto definitions = std::move(this->remote_definitions_);
+        this->remote_definitions_.clear();
+        this->defer_session_([definitions = std::move(definitions)]() mutable {
+          companion_set_remote_definitions(std::move(definitions));
+        });
+      }
+      return true;
+    }
+
     if (const auto *payload = std::get_if<companion_protocol::ActionResult>(&*decoded)) {
       const std::string request_id = payload->requestId;
       const std::string status = payload->status;
@@ -568,7 +611,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::FocusChanged>(&*decoded)) {
       const std::string action_id = payload->actionId;
       if (!action_id.empty() && !safe_field(action_id, 96)) return false;
-      this->defer_session_([action_id] { companion_set_focused_action(action_id); });
+      std::vector<std::string> action_ids = payload->actionIds.value_or(std::vector<std::string>{});
+      if (action_ids.empty() && !action_id.empty()) action_ids.push_back(action_id);
+      if (action_ids.size() > 64 || std::any_of(action_ids.begin(), action_ids.end(),
+          [](const std::string &value) { return !safe_field(value, 96); })) return false;
+      this->defer_session_([action_ids = std::move(action_ids)]() mutable {
+        companion_runtime_service().set_focused_actions(std::move(action_ids));
+      });
       return true;
     }
 
@@ -865,6 +914,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
   }
   if (connected) {
     this->now_playing_generation_ = 0;
+    this->focus_targets_generation_ = 0;
     this->disconnect_grace_expires_at_.store(0);
   } else {
     this->reset_artwork_transfer_("connection closed");
@@ -887,6 +937,22 @@ void CompanionService::publish_catalogue_() {
   this->send_(this->session_.authenticated_socket(),
               "{\"type\":\"catalogue.request\",\"protocol\":" +
               std::to_string(COMPANION_PROTOCOL_VERSION) + "}");
+}
+
+void CompanionService::publish_focus_targets_() {
+  const int socket_fd = this->session_.authenticated_socket();
+  if (socket_fd < 0) return;
+  const auto snapshot = companion_runtime_snapshot();
+  companion_protocol::FocusTargets payload;
+  for (const auto &target : snapshot.url_focus_targets) {
+    if (!safe_field(target.id, 96) || target.url.size() < 8 || target.url.size() > 128) continue;
+    payload.items.push_back({target.id, target.url});
+  }
+  if (this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
+        companion_protocol::encode(root, payload);
+      }))) {
+    this->focus_targets_generation_.store(snapshot.url_focus_targets_generation);
+  }
 }
 
 bool CompanionService::invoke_(const std::string &action_id, const std::string &request_id,

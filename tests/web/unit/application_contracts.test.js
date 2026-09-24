@@ -19,6 +19,7 @@ describe("browserless application contracts", () => {
   const { runClipboardFeatureTests } = loadTypescriptTest("tests/web/clipboard_feature.test.ts");
   const { runCompanionPairingFeatureTests, runCompanionCopyTests } = loadTypescriptTest("tests/web/companion_pairing_feature.test.ts");
   const { runCompanionShortcutFeatureTests } = loadTypescriptTest("tests/web/companion_shortcut_feature.test.ts");
+  const { runCompanionCatalogueTests } = loadTypescriptTest("tests/web/companion_catalogue.test.ts");
   const { runConnectorsFeatureTests } = loadTypescriptTest("tests/web/connectors_feature.test.ts");
   const { runApplicationContextTests } = loadTypescriptTest("tests/web/application_context.test.ts");
   const { runDeviceApiTests } = loadTypescriptTest("tests/web/device_api.test.ts");
@@ -42,6 +43,7 @@ describe("browserless application contracts", () => {
   test("captures and formats Companion keyboard shortcuts", () => {
     runCompanionShortcutFeatureTests();
   });
+  test("loads remote Companion templates and registers URL-card focus targets", runCompanionCatalogueTests);
 
   test("models connector onboarding and card sources", () => {
     runConnectorsFeatureTests();

@@ -24,6 +24,12 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Shortcut Command"
   },
   {
+    id: "webapp",
+    label: "Web App",
+    capability: "applications",
+    defaultIcon: "Web"
+  },
+  {
     id: "url",
     label: "Open URL",
     capability: "applications",
@@ -158,6 +164,16 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
     id: "error",
     direction: "bidirectional",
     authorization: "public"
+  },
+  {
+    id: "catalogue.definitions.page",
+    direction: "mac_to_panel",
+    authorization: "session"
+  },
+  {
+    id: "focus.targets",
+    direction: "panel_to_mac",
+    authorization: "session"
   }
 ];
 export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [

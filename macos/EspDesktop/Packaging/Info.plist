@@ -37,7 +37,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>EspDesktop uses Apple Events to identify the folder shown in the frontmost Finder window.</string>
+	<string>EspDesktop uses Apple Events to identify the folder shown in Finder and the active tab URL in Safari or Google Chrome.</string>
 	<key>NSAppBundlesUsageDescription</key>
 	<string>EspDesktop reads installed app names so you can choose which apps your paired display may launch or control.</string>
 	<key>NSHumanReadableCopyright</key>

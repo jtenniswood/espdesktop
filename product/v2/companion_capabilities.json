@@ -187,7 +187,10 @@
           },
           "folderOpenBehavior": {
             "type": "string",
-            "enum": ["new_window", "same_window"],
+            "enum": [
+              "new_window",
+              "same_window"
+            ],
             "minLength": 10,
             "maxLength": 11,
             "optional": true
@@ -329,6 +332,16 @@
             "type": "string",
             "minLength": 0,
             "maxLength": 96
+          },
+          "actionIds": {
+            "type": "array",
+            "maxItems": 64,
+            "optional": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96
+            }
           }
         },
         "states": [
@@ -662,6 +675,81 @@
           "authenticating",
           "connected"
         ]
+      },
+      {
+        "id": "catalogue.definitions.page",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 1,
+            "items": {
+              "type": "object",
+              "fields": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "application",
+                    "webapp"
+                  ],
+                  "minLength": 5,
+                  "maxLength": 11
+                },
+                "json": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 12000
+                }
+              }
+            }
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "focus.targets",
+        "direction": "panel_to_mac",
+        "authorization": "session",
+        "fields": {
+          "items": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "fields": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "url": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 128
+                }
+              }
+            }
+          }
+        },
+        "states": [
+          "connected"
+        ]
       }
     ]
   },
@@ -686,6 +774,12 @@
       "label": "Keyboard shortcut",
       "capability": "keyboard_shortcuts",
       "defaultIcon": "Shortcut Command"
+    },
+    {
+      "id": "webapp",
+      "label": "Web App",
+      "capability": "applications",
+      "defaultIcon": "Web"
     },
     {
       "id": "url",
@@ -979,8 +1073,16 @@
       "group": "Full Screen",
       "minimumMacOS": 15,
       "menuPaths": [
-        ["Window", "Full Screen Tile", "Left of Screen"],
-        ["Window", "Full-Screen Tile", "Left of Screen"]
+        [
+          "Window",
+          "Full Screen Tile",
+          "Left of Screen"
+        ],
+        [
+          "Window",
+          "Full-Screen Tile",
+          "Left of Screen"
+        ]
       ]
     },
     {
@@ -989,8 +1091,16 @@
       "group": "Full Screen",
       "minimumMacOS": 15,
       "menuPaths": [
-        ["Window", "Full Screen Tile", "Right of Screen"],
-        ["Window", "Full-Screen Tile", "Right of Screen"]
+        [
+          "Window",
+          "Full Screen Tile",
+          "Right of Screen"
+        ],
+        [
+          "Window",
+          "Full-Screen Tile",
+          "Right of Screen"
+        ]
       ]
     }
   ],

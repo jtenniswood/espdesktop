@@ -150,8 +150,8 @@ export function runCompanionShortcutFeatureTests(): void {
   const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
   if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 6 || new Set(companionModes.map(([mode]) => mode)).size !== 6 ||
-      !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
+  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
+      !companionCardModeValid("window") || !companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }

@@ -86,6 +86,8 @@ struct ImageCardCtx {
   bool access_token_request_pending = false;
   bool camera_refresh_pending = false;
   bool media_artwork = false;
+  bool remote_icon = false;
+  lv_obj_t *fallback_icon_label = nullptr;
   bool media_artwork_suppressed = false;
   bool media_artwork_refresh_forced = false;
   lv_obj_t *media_overlay = nullptr;
@@ -841,7 +843,12 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
   } else {
     image_card_set_widget_source(ctx->widget, ctx->image);
     lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_move_background(ctx->widget);
+    if (ctx->remote_icon) {
+      lv_obj_move_foreground(ctx->widget);
+      if (ctx->fallback_icon_label) lv_obj_add_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_move_background(ctx->widget);
+    }
     lv_obj_invalidate(ctx->widget);
     if (ctx->btn) lv_obj_invalidate(ctx->btn);
     notify_dashboard_content_changed();
@@ -1067,6 +1074,8 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
     contexts[i].access_token_request_pending = false;
     contexts[i].camera_refresh_pending = false;
     contexts[i].media_artwork = false;
+    contexts[i].remote_icon = false;
+    contexts[i].fallback_icon_label = nullptr;
     contexts[i].media_artwork_suppressed = false;
     contexts[i].media_artwork_refresh_forced = false;
     contexts[i].media_overlay = nullptr;
@@ -2949,6 +2958,68 @@ inline void image_card_resume_pipeline() {
   }
   ESP_LOGI("image_card", "Resumed dashboard image pipeline; reloading %d visible card(s)",
            reload_count);
+}
+
+inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p,
+                                                   const GridConfig &cfg) {
+  if (p.type != "companion" || p.entity.rfind("webapp.", 0) != 0) return false;
+  const std::string source = companion_web_app_icon_url(p.entity);
+  if (source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return false;
+  ImageCardCtx *ctx = acquire_image_card_context(cfg, p.entity);
+  if (!ctx || !ctx->image || !s.btn) return false;
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  lv_obj_t *widget = lv_image_create(s.btn);
+#else
+  lv_obj_t *widget = lv_img_create(s.btn);
+#endif
+  lv_obj_clear_flag(widget, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(widget, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_style_pad_all(widget, 0, LV_PART_MAIN);
+  lv_obj_set_style_border_width(widget, 0, LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(widget, LV_OPA_TRANSP, LV_PART_MAIN);
+  const int icon_size = std::max(24, std::min(48, static_cast<int>(lv_obj_get_height(s.btn) * 0.42f)));
+  lv_obj_set_size(widget, icon_size, icon_size);
+  lv_obj_align(widget, LV_ALIGN_CENTER, 0, s.text_lbl ? -4 : 0);
+  lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
+  ctx->widget = widget;
+  ctx->btn = s.btn;
+  ctx->loading_widget = nullptr;
+  ctx->loading_label = nullptr;
+  ctx->icon_font = image_card_icon_font_for_slot(s);
+  ctx->label_font = image_card_label_font_for_slot(s);
+  ctx->entity_id = p.entity;
+  ctx->camera_name.clear();
+  ctx->source_url = source;
+  ctx->base_url.clear();
+  ctx->base_url_provider = nullptr;
+  ctx->begin_display_takeover = nullptr;
+  ctx->end_display_takeover = nullptr;
+  ctx->modal_fit = false;
+  ctx->media_artwork = false;
+  ctx->remote_icon = true;
+  ctx->fallback_icon_label = s.icon_lbl;
+  ctx->media_artwork_suppressed = false;
+  ctx->media_artwork_refresh_forced = false;
+  ctx->media_artwork_refresh.reset();
+  ctx->media_overlay = nullptr;
+  ctx->pending_fallback_picture.clear();
+  ctx->media_artwork_retry_mask = 0;
+  ctx->media_artwork_timeout_retries = 0;
+  ctx->diagnostics_enabled = cfg.image_card_diagnostics;
+  ctx->retry_deadline_ms = esphome::millis() + IMAGE_CARD_STARTUP_RETRY_MS;
+  ctx->width_compensation_percent = cfg.width_compensation_percent;
+  ctx->media_artwork_width_compensation_percent = 100;
+  ctx->show_label = false;
+  ctx->image->set_target_size(icon_size, icon_size);
+  image_card_log_diagnostics(ctx, "bind-companion-webapp-icon");
+  image_card_request_source_url(ctx, true);
+  if (ctx->image_ready) {
+    image_card_set_widget_source(ctx->widget, ctx->image);
+    lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(ctx->widget);
+    if (ctx->fallback_icon_label) lv_obj_add_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+  }
+  return true;
 }
 
 inline bool image_card_bind_runtime(BtnSlot &s, const ParsedCfg &p,

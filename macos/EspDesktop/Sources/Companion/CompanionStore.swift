@@ -144,10 +144,13 @@ final class CompanionStore: NSObject, ObservableObject {
     private let nowPlayingProvider: any NowPlayingProviding
     private let mediaController: any MediaControlling
     private let systemMetricsProvider: any SystemMetricsProviding
+    private let remoteCatalogueStore = RemoteCompanionCatalogueStore()
     private var latestNowPlayingSnapshot: CompanionNowPlayingSnapshot?
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
     private var mediaControlTimer: Timer?
+    private var browserFocusTimer: Timer?
     private var lastMediaControlValues: [String: Int] = [:]
+    private var companionURLFocusTargets: [(id: String, url: URL)] = []
 
     override convenience init() {
         self.init(
@@ -214,6 +217,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
+        Task { await remoteCatalogueStore.refresh() }
     }
 
     func stringPreference(forKey key: String) -> String? { defaults.string(forKey: key) }
@@ -342,6 +346,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
+    func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { remoteCatalogueStore.value }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
               (application.bundleIdentifier == "com.apple.finder" ||
@@ -353,14 +358,52 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func focusedCompanionActionIdentifier() -> String {
+        focusedCompanionActionIdentifiers().first ?? ""
+    }
+
+    func focusedCompanionActionIdentifiers() -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
-              let bundleIdentifier = application.bundleIdentifier else { return "" }
+              let bundleIdentifier = application.bundleIdentifier else { return [] }
+        if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
+            guard let url = activeBrowserTabURL(bundleIdentifier: bundleIdentifier) else { return [] }
+            let catalogues = remoteCatalogueStore.value
+            let webApps = ActiveTabURLMatcher.matchingWebAppIDs(url: url, definitions: catalogues.webApplications)
+                .map { "webapp.\($0)" }
+            return webApps + ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: companionURLFocusTargets)
+        }
         if bundleIdentifier == "com.apple.finder" {
             let folder = focusedFinderFolderActionIdentifier()
-            return folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
+            let result = folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
+            return result.isEmpty ? [] : [result]
         }
-        guard CompanionWindowDetector.hasVisibleWindow(for: application) else { return "" }
-        return approvedApplicationIdentifiers.contains(bundleIdentifier) ? bundleIdentifier : ""
+        guard CompanionWindowDetector.hasVisibleWindow(for: application),
+              approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
+        return [bundleIdentifier]
+    }
+
+    func setCompanionURLFocusTargets(_ targets: [(id: String, url: URL)]) {
+        companionURLFocusTargets = Array(targets.prefix(64))
+        if isConnected { connection.publishFocusedAction() }
+    }
+
+    private func activeBrowserTabURL(bundleIdentifier: String) -> URL? {
+        let application = bundleIdentifier == "com.apple.Safari" ? "Safari" : "Google Chrome"
+        let source = """
+        tell application "\(application)"
+            try
+                if (count of windows) is 0 then return ""
+                return URL of active tab of front window
+            on error
+                return ""
+            end try
+        end tell
+        """
+        var error: NSDictionary?
+        guard let descriptor = NSAppleScript(source: source)?.executeAndReturnError(&error),
+              let rawURL = descriptor.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+              let url = URL(string: rawURL),
+              (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
+        return url
     }
 
     private func focusedFinderFolderActionIdentifier() -> String {
@@ -541,11 +584,23 @@ final class CompanionStore: NSObject, ObservableObject {
         let connected = state == .connected
         guard isConnected != connected else { return }
         isConnected = connected
+        browserFocusTimer?.invalidate()
+        browserFocusTimer = nil
         if !connected { systemMetricsSupported = false }
         updateNowPlayingProvider()
         updateSystemMetricsProvider()
         if connected {
             startMediaControlPublishing()
+            browserFocusTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+                guard let self,
+                      let bundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+                      bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" else { return }
+                connection.publishFocusedAction()
+            }
+            Task {
+                await remoteCatalogueStore.refresh()
+                if isConnected { connection.publishCatalogue() }
+            }
         } else {
             mediaControlTimer?.invalidate()
             mediaControlTimer = nil
@@ -700,6 +755,11 @@ final class CompanionStore: NSObject, ObservableObject {
 
         guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) ||
               actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) else {
+            if actionIdentifier.hasPrefix("webapp."),
+               let definition = remoteCatalogueStore.value.webApplications.first(where: { "webapp.\($0.id)" == actionIdentifier }),
+               let url = URL(string: definition.url) {
+                return NSWorkspace.shared.open(url)
+            }
             return await launch(bundleIdentifier: actionIdentifier)
         }
         guard let shortcut = CompanionKeyboardShortcut(actionIdentifier: actionIdentifier) else {

@@ -41,12 +41,15 @@ inline constexpr CompanionProtocolMessagePolicy COMPANION_PROTOCOL_MESSAGES[] = 
   {"artwork.abort", "bidirectional", "session"},
   {"artwork.request", "panel_to_mac", "session"},
   {"error", "bidirectional", "public"},
+  {"catalogue.definitions.page", "mac_to_panel", "session"},
+  {"focus.targets", "panel_to_mac", "session"},
 };
 
 struct CompanionCardModeCapability { const char *id; const char *label; const char *capability; const char *default_icon; };
 inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"app", "Applications", "applications", "Monitor"},
   {"shortcut", "Keyboard shortcut", "keyboard_shortcuts", "Shortcut Command"},
+  {"webapp", "Web App", "applications", "Web"},
   {"url", "Open URL", "applications", "Web"},
   {"folder", "Open folder", "folders", "Folder Outline"},
   {"stats", "Stats", "system_metrics", "Gauge"},

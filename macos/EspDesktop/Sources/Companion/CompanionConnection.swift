@@ -67,8 +67,9 @@ final class CompanionConnection: NSObject {
     private var artworkOffset = 0
     private var lastArtworkGeneration: UInt32 = 0
     private var lastArtworkSHA256: String?
-    private var lastFocusedActionIdentifier: String?
+    private var lastFocusedActionIdentifiers: [String]?
     private var catalogueGeneration: UInt32 = 0
+    private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
     private static let artworkChunkBytes = CompanionCapabilities.artworkChunkBytes
@@ -448,6 +449,18 @@ final class CompanionConnection: NSObject {
         case .catalogueRequest:
             guard sessionAuthenticated else { return false }
             publishCatalogue()
+        case .focusTargets(let payload):
+            guard sessionAuthenticated else { return false }
+            let targets = payload.items.compactMap { item -> (id: String, url: URL)? in
+                guard item.id.hasPrefix("urlcard."),
+                      item.id.range(of: #"^urlcard\.[0-9a-f]{16}$"#, options: .regularExpression) != nil,
+                      item.url.utf8.count <= 128,
+                      let url = URL(string: item.url),
+                      (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
+                return (item.id, url)
+            }
+            resources.setCompanionURLFocusTargets(Array(targets.prefix(64)))
+            publishFocusedAction()
         case .actionInvoke(let payload):
             guard sessionAuthenticated else { return false }
             let requestIdentifier = payload.requestId
@@ -625,7 +638,7 @@ final class CompanionConnection: NSObject {
 
     func publishCatalogue() {
         guard sessionAuthenticated || task != nil else { return }
-        lastFocusedActionIdentifier = nil
+        lastFocusedActionIdentifiers = nil
         let supportedWindowActions = Self.supportedWindowActionIDs(
             for: ProcessInfo.processInfo.operatingSystemVersion
         )
@@ -642,6 +655,10 @@ final class CompanionConnection: NSObject {
         } + resources.launchableApps().compactMap { app -> [String: String]? in
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
+        } + resources.remoteCompanionCatalogues().webApplications.compactMap { app -> [String: String]? in
+            let identifier = "webapp.\(app.id)"
+            guard Self.validCatalogueIdentifier(identifier) else { return nil }
+            return ["id": identifier, "label": Self.catalogueLabel(app.label, fallback: app.id)]
         }
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
@@ -651,6 +668,27 @@ final class CompanionConnection: NSObject {
         for (page, items) in pages.enumerated() {
             sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
                       "page": page, "complete": page == pages.count - 1, "items": items])
+        }
+        let definitions = resources.remoteCompanionCatalogues()
+        let payloads: [(String, Data)] = definitions.applications.compactMap { app in
+            guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
+            return ("application", data)
+        } + definitions.webApplications.compactMap { app in
+            guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
+            return ("webapp", data)
+        }
+        let definitionPages = max(payloads.count, 1)
+        definitionGeneration &+= 1
+        if definitionGeneration == 0 { definitionGeneration = 1 }
+        for page in 0..<definitionPages {
+            let items: [[String: String]]
+            if page < payloads.count, let json = String(data: payloads[page].1, encoding: .utf8) {
+                items = [["kind": payloads[page].0, "json": json]]
+            } else {
+                items = []
+            }
+            sendJSON(["type": "catalogue.definitions.page", "generation": definitionGeneration,
+                      "page": page, "complete": page == definitionPages - 1, "items": items])
         }
         publishFocusedAction()
     }
@@ -668,11 +706,14 @@ final class CompanionConnection: NSObject {
     }
 
     func publishFocusedAction() {
-        let identifier = resources.focusedCompanionActionIdentifier()
-        guard identifier.isEmpty || Self.validCatalogueIdentifier(identifier) else { return }
-        guard identifier != lastFocusedActionIdentifier else { return }
-        lastFocusedActionIdentifier = identifier
-        sendJSON(["type": "focus.changed", "actionId": identifier])
+        var identifiers: [String] = []
+        for identifier in resources.focusedCompanionActionIdentifiers() where identifiers.count < 64 {
+            if !identifier.isEmpty && !identifiers.contains(identifier) { identifiers.append(identifier) }
+        }
+        guard identifiers.allSatisfy(Self.validCatalogueIdentifier) else { return }
+        guard identifiers != lastFocusedActionIdentifiers else { return }
+        lastFocusedActionIdentifiers = identifiers
+        sendJSON(["type": "focus.changed", "actionId": identifiers.first ?? "", "actionIds": identifiers])
     }
 
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {

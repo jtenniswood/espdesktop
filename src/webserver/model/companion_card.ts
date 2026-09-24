@@ -11,6 +11,7 @@ export type CompanionCardModel =
   | { readonly mode: "app"; readonly applicationId: string }
   | { readonly mode: "shortcut"; readonly shortcutId: string }
   | { readonly mode: "url"; readonly applicationId: string; readonly encodedUrl: string }
+  | { readonly mode: "webapp"; readonly webAppId: string }
   | { readonly mode: "folder"; readonly folderId: string }
   | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string }
   | { readonly mode: "window"; readonly actionId: string };

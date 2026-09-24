@@ -2,6 +2,7 @@ import { resetAwareFetch } from "./api/reset_session";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
 import { createDeviceApi } from "./api/device_api";
+import { companionURLCardTargetValues, createCompanionCatalogue } from "./api/companion_catalogue";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
 import * as AppInstance from "./state/app_instance";
 import { state } from "./state/app_instance";
@@ -535,6 +536,7 @@ function composeApplicationContext(): ApplicationContext {
     renderButtonSettings: () => buttonSettings.render(),
     postOrder: (value) => { void requestApi.postText(entityState.entityName("button_order"), value); },
   });
+  const focusTargetCatalogue = createCompanionCatalogue(dom.fetch);
   stateLoader = createStateLoaderFeature(
     runtime,
     layout,
@@ -549,6 +551,11 @@ function composeApplicationContext(): ApplicationContext {
     {
       subpageEntityKeys: configurationPersistence.subpageEntityKeys,
       connectEvents: () => appEvents.connect(),
+      publishCompanionURLTargets: () => {
+        void focusTargetCatalogue.saveURLFocusTargets(
+          companionURLCardTargetValues(state.buttons, state.subpages),
+        ).catch(() => { /* Keep saved card editing available when Companion is offline. */ });
+      },
     },
   );
   const clockBar = createClockBarController();
