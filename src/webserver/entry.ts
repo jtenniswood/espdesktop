@@ -2,7 +2,7 @@ import { resetAwareFetch } from "./api/reset_session";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
 import { createDeviceApi } from "./api/device_api";
-import { companionURLCardTargetValues, createCompanionCatalogue } from "./api/companion_catalogue";
+import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
 import * as AppInstance from "./state/app_instance";
 import { state } from "./state/app_instance";
@@ -552,8 +552,8 @@ function composeApplicationContext(): ApplicationContext {
       subpageEntityKeys: configurationPersistence.subpageEntityKeys,
       connectEvents: () => appEvents.connect(),
       publishCompanionURLTargets: () => {
-        void focusTargetCatalogue.saveURLFocusTargets(
-          companionURLCardTargetValues(state.buttons, state.subpages),
+        void focusTargetCatalogue.saveFocusRegistrations(
+          companionFocusRegistrationValues(state.buttons, state.subpages),
         ).catch(() => { /* Keep saved card editing available when Companion is offline. */ });
       },
     },

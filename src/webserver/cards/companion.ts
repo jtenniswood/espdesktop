@@ -1,7 +1,7 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
-import { companionURLCardTargetValues, createCompanionCatalogue } from "../api/companion_catalogue";
+import { companionFocusRegistrationValues, createCompanionCatalogue } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
 import {
@@ -470,7 +470,7 @@ export function registerCompanionCardTypes(
     const loadCompanionActions = catalogue.load;
 
     function syncURLCardFocusTargets(extra?: any): void {
-        void catalogue.saveURLFocusTargets(companionURLCardTargetValues(
+        void catalogue.saveFocusRegistrations(companionFocusRegistrationValues(
             Array.isArray(state.buttons) ? state.buttons : [], state.subpages, extra,
         )).catch(() => { /* Companion may be offline; a later state refresh retries. */ });
     }
@@ -516,7 +516,7 @@ export function registerCompanionCardTypes(
             const initialMode = companionCardMode(card);
             const savedParent = !helpers.isSub && slot ? state.buttons[slot - 1] : null;
             let companionActions: readonly CompanionAction[] = [];
-            void catalogue.loadDefinitions().then((definitions) => {
+            void catalogue.loadDefinitions(true).then((definitions) => {
                 if (replaceCompanionDefinitions(definitions.applications, definitions.webApplications)) renderButtonSettings();
             }).catch(() => { /* Keep the bundled starter definitions while the Mac app is offline. */ });
             let availableCompanionApps: readonly CompanionAction[] = [];

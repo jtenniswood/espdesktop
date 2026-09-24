@@ -17,6 +17,12 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
     func testWebAppMatchingUsesHostAndPathAndIgnoresQueryAndFragment() throws {
         let match = try XCTUnwrap(URL(string: "https://docs.google.com/document/d/abc/edit?tab=t.0#heading"))
         XCTAssertEqual(ActiveTabURLMatcher.matchingWebAppIDs(url: match, definitions: [docs]), ["google-docs"])
+        XCTAssertEqual(ActiveTabURLMatcher.matchingConfiguredWebAppIDs(
+            url: match, definitions: [docs], configuredIDs: ["google-docs"]
+        ), ["google-docs"])
+        XCTAssertTrue(ActiveTabURLMatcher.matchingConfiguredWebAppIDs(
+            url: match, definitions: [docs], configuredIDs: ["notion"]
+        ).isEmpty)
         XCTAssertTrue(ActiveTabURLMatcher.matchingWebAppIDs(
             url: URL(string: "https://docs.google.com/spreadsheets/d/abc"), definitions: [docs]
         ).isEmpty)

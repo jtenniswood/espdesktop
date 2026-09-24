@@ -296,11 +296,17 @@ inline bool companion_url_focus_target_valid(const std::string &id, const std::s
   return !authority.empty() && authority.find('@') == std::string::npos;
 }
 
-inline void companion_set_url_focus_targets(std::vector<CompanionURLFocusTarget> targets) {
+inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarget> targets,
+                                               std::vector<std::string> web_app_ids) {
   targets.erase(std::remove_if(targets.begin(), targets.end(), [](const auto &target) {
     return !companion_url_focus_target_valid(target.id, target.url);
   }), targets.end());
-  companion_runtime_service().set_url_focus_targets(std::move(targets));
+  web_app_ids.erase(std::remove_if(web_app_ids.begin(), web_app_ids.end(), [](const auto &id) {
+    return id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
+      return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+    });
+  }), web_app_ids.end());
+  companion_runtime_service().set_focus_registrations(std::move(targets), std::move(web_app_ids));
 }
 
 inline void companion_set_actions(std::vector<CompanionAction> actions) {
@@ -965,6 +971,7 @@ class CompanionFocusTargetsHandler final : public esphome::web_server_idf::Async
     if (!companion_authorize_web_request(request)) return;
     const auto content_type = request->get_header("Content-Type");
     std::vector<CompanionURLFocusTarget> targets;
+    std::vector<std::string> web_app_ids;
     const bool parsed = content_type.has_value() && *content_type == "application/json" &&
       valid_ && received_ == expected_ && esphome::json::parse_json(body_.data(), received_, [&](JsonObject root) {
         if (!root["targets"].is<JsonArrayConst>()) return false;
@@ -979,12 +986,25 @@ class CompanionFocusTargetsHandler final : public esphome::web_server_idf::Async
           if (!companion_url_focus_target_valid(id, url)) return false;
           targets.push_back({id, url});
         }
+        if (!root["webAppIDs"].isUnbound()) {
+          if (!root["webAppIDs"].is<JsonArrayConst>()) return false;
+          const JsonArrayConst ids = root["webAppIDs"].as<JsonArrayConst>();
+          if (ids.size() > 64) return false;
+          for (JsonVariantConst value : ids) {
+            if (!value.is<const char *>()) return false;
+            const std::string id = value.as<const char *>();
+            if (id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
+                  return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+                })) return false;
+            web_app_ids.push_back(id);
+          }
+        }
         return true;
       });
     valid_ = false;
     httpd_req_t *raw = *request;
     if (!parsed) { httpd_resp_send_err(raw, HTTPD_400_BAD_REQUEST, "Invalid Companion focus targets"); return; }
-    companion_set_url_focus_targets(std::move(targets));
+    companion_set_focus_registrations(std::move(targets), std::move(web_app_ids));
     httpd_resp_set_type(raw, "application/json");
     httpd_resp_set_hdr(raw, "Cache-Control", "no-store");
     httpd_resp_send(raw, "{\"saved\":true}", HTTPD_RESP_USE_STRLEN);

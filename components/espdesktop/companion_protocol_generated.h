@@ -167,6 +167,7 @@ struct FocusTargetsItemsItem {
 };
 struct FocusTargets {
   std::vector<FocusTargetsItemsItem> items{};
+  std::optional<std::vector<std::string>> webAppIDs{};
 };
 inline void encode(JsonObject root, const Hello &message) {
   root["type"] = "hello";
@@ -369,6 +370,12 @@ inline void encode(JsonObject root, const FocusTargets &message) {
     auto entry = values_items.add<JsonObject>();
     entry["id"] = item.id;
     entry["url"] = item.url;
+  }
+  if (message.webAppIDs) {
+  auto values_webAppIDs = root["webAppIDs"].to<JsonArray>();
+  for (const auto &item : *message.webAppIDs) {
+    values_webAppIDs.add(item);
+  }
   }
 }
 using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, Error, CatalogueDefinitionsPage, FocusTargets>;
@@ -871,9 +878,21 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
         }
       }
     }
+    if (!root["webAppIDs"].isUnbound()) {
+      if (!(root["webAppIDs"].is<JsonArrayConst>() && root["webAppIDs"].size() <= 64)) return std::nullopt;
+      for (JsonVariantConst item : root["webAppIDs"].as<JsonArrayConst>()) {
+        if (!(string_valid(item, 1, 64))) return std::nullopt;
+      }
+    }
     FocusTargets result;
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
       result.items.push_back({item["id"].as<std::string>(), item["url"].as<std::string>()});
+    }
+    if (!root["webAppIDs"].isUnbound()) {
+    result.webAppIDs.emplace();
+    for (JsonVariantConst item : root["webAppIDs"].as<JsonArrayConst>()) {
+      result.webAppIDs->push_back(item.as<std::string>());
+    }
     }
     return result;
   }

@@ -7,11 +7,22 @@ export interface CompanionDefinitions {
   readonly webApplications: readonly WebAppDefinition[];
 }
 
-export function companionURLCardTargetValues(buttons: readonly unknown[], subpages: unknown, extra?: unknown): string[] {
+export interface CompanionFocusRegistrations {
+  readonly urls: readonly string[];
+  readonly webAppIDs: readonly string[];
+}
+
+export function companionFocusRegistrationValues(buttons: readonly unknown[], subpages: unknown, extra?: unknown): CompanionFocusRegistrations {
   const urls = new Set<string>();
+  const webAppIDs = new Set<string>();
   const visit = (candidate: unknown) => {
     if (!candidate || typeof candidate !== "object") return;
-    const sensor = (candidate as { sensor?: unknown }).sensor;
+    const card = candidate as { sensor?: unknown; entity?: unknown };
+    if (typeof card.entity === "string" && card.entity.startsWith("webapp.")) {
+      const id = card.entity.slice("webapp.".length);
+      if (/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) webAppIDs.add(id);
+    }
+    const sensor = card.sensor;
     if (typeof sensor !== "string" || !sensor.startsWith("url.")) return;
     try {
       const value = decodeURIComponent(sensor.slice("url.".length));
@@ -28,7 +39,7 @@ export function companionURLCardTargetValues(buttons: readonly unknown[], subpag
     });
   }
   visit(extra);
-  return [...urls].slice(0, 64);
+  return { urls: [...urls].slice(0, 64), webAppIDs: [...webAppIDs].slice(0, 64) };
 }
 
 function focusId(encodedURL: string): string {
@@ -70,10 +81,12 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
         if (entry.kind === "webapp" && typeof definition.id === "string") webApplications.push(definition as unknown as WebAppDefinition);
       }
     }
+    if (applications.length + webApplications.length === 0) throw new Error("Companion definitions are empty or invalid");
     return { applications, webApplications };
   }
   return {
-    async saveURLFocusTargets(urls: readonly string[]): Promise<void> {
+    async saveFocusRegistrations(registrations: CompanionFocusRegistrations): Promise<void> {
+      const urls = registrations.urls;
       const targets = [...new Set(urls)].slice(0, 64).flatMap((value) => {
         try {
           const url = new URL(value);
@@ -84,7 +97,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
       });
       const response = await fetchImpl("/companion/focus-targets", {
         method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targets }),
+        body: JSON.stringify({ targets, webAppIDs: [...new Set(registrations.webAppIDs)].slice(0, 64) }),
       });
       if (!response.ok) throw new Error("Companion URL focus targets unavailable");
     },

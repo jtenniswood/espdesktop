@@ -142,7 +142,8 @@ void CompanionService::setup() {
 void CompanionService::loop() {
   companion_expire_action_results(millis());
   const auto runtime = companion_runtime_snapshot();
-  if (runtime.connected && runtime.url_focus_targets_generation != this->focus_targets_generation_.load())
+  if (runtime.connected && this->focus_targets_supported_.load() &&
+      runtime.url_focus_targets_generation != this->focus_targets_generation_.load())
     this->publish_focus_targets_();
   {
     std::lock_guard<std::mutex> lock(this->pairing_mutex_);
@@ -498,6 +499,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::Capabilities>(&*decoded)) {
       bool keyboard_actions = false;
       bool keyboard_actions_capability_received = false;
+      bool focus_targets_supported = false;
       std::vector<std::string> window_actions;
       for (const auto &capability : payload->values) {
         if (capability == "keyboard_shortcuts") {
@@ -506,14 +508,18 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         } else if (capability == "keyboard_shortcuts_unavailable") {
           keyboard_actions = false;
           keyboard_actions_capability_received = true;
+        } else if (capability == "url_card_focus") {
+          focus_targets_supported = true;
         } else if (companion_window_action_valid(capability)) {
           window_actions.push_back(capability);
         }
       }
-      this->defer_session_([keyboard_actions, keyboard_actions_capability_received,
+      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported,
                             window_actions = std::move(window_actions)]() mutable {
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         companion_set_window_actions(std::move(window_actions));
+        this->focus_targets_supported_.store(focus_targets_supported);
+        if (focus_targets_supported) this->focus_targets_generation_.store(0);
       });
       return true;
     }
@@ -915,8 +921,10 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
   if (connected) {
     this->now_playing_generation_ = 0;
     this->focus_targets_generation_ = 0;
+    this->focus_targets_supported_ = false;
     this->disconnect_grace_expires_at_.store(0);
   } else {
+    this->focus_targets_supported_ = false;
     this->reset_artwork_transfer_("connection closed");
     this->disconnect_grace_expires_at_.store(millis() + NOW_PLAYING_RECONNECT_GRACE_MS);
   }
@@ -940,6 +948,7 @@ void CompanionService::publish_catalogue_() {
 }
 
 void CompanionService::publish_focus_targets_() {
+  if (!this->focus_targets_supported_.load()) return;
   const int socket_fd = this->session_.authenticated_socket();
   if (socket_fd < 0) return;
   const auto snapshot = companion_runtime_snapshot();
@@ -948,6 +957,7 @@ void CompanionService::publish_focus_targets_() {
     if (!safe_field(target.id, 96) || target.url.size() < 8 || target.url.size() > 128) continue;
     payload.items.push_back({target.id, target.url});
   }
+  payload.webAppIDs = snapshot.web_app_focus_ids;
   if (this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
         companion_protocol::encode(root, payload);
       }))) {

@@ -20,7 +20,7 @@ protocol CompanionSessionResources: AnyObject {
     func launchableApps() -> [LaunchableApp]
     func focusedCompanionActionIdentifier() -> String
     func focusedCompanionActionIdentifiers() -> [String]
-    func setCompanionURLFocusTargets(_ targets: [(id: String, url: URL)])
+    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String])
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool
@@ -57,5 +57,5 @@ extension CompanionSessionResources {
         let identifier = focusedCompanionActionIdentifier()
         return identifier.isEmpty ? [] : [identifier]
     }
-    func setCompanionURLFocusTargets(_ targets: [(id: String, url: URL)]) {}
+    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String]) {}
 }

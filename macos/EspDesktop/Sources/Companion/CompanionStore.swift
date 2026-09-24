@@ -151,6 +151,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private var browserFocusTimer: Timer?
     private var lastMediaControlValues: [String: Int] = [:]
     private var companionURLFocusTargets: [(id: String, url: URL)] = []
+    private var companionWebAppFocusIDs: Set<String> = []
 
     override convenience init() {
         self.init(
@@ -365,11 +366,18 @@ final class CompanionStore: NSObject, ObservableObject {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
-            guard let url = activeBrowserTabURL(bundleIdentifier: bundleIdentifier) else { return [] }
+            let browser = focusedLaunchableApplicationIdentifier()
+            guard let url = activeBrowserTabURL(bundleIdentifier: bundleIdentifier) else {
+                return browser.isEmpty ? [] : [browser]
+            }
             let catalogues = remoteCatalogueStore.value
-            let webApps = ActiveTabURLMatcher.matchingWebAppIDs(url: url, definitions: catalogues.webApplications)
-                .map { "webapp.\($0)" }
-            return webApps + ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: companionURLFocusTargets)
+            let webApps = ActiveTabURLMatcher.matchingConfiguredWebAppIDs(
+                url: url, definitions: catalogues.webApplications, configuredIDs: companionWebAppFocusIDs
+            ).map { "webapp.\($0)" }
+            var matches = browser.isEmpty ? [] : [browser]
+            matches.append(contentsOf: webApps)
+            matches.append(contentsOf: ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: companionURLFocusTargets))
+            return matches
         }
         if bundleIdentifier == "com.apple.finder" {
             let folder = focusedFinderFolderActionIdentifier()
@@ -381,8 +389,9 @@ final class CompanionStore: NSObject, ObservableObject {
         return [bundleIdentifier]
     }
 
-    func setCompanionURLFocusTargets(_ targets: [(id: String, url: URL)]) {
+    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String]) {
         companionURLFocusTargets = Array(targets.prefix(64))
+        companionWebAppFocusIDs = Set(webAppIDs.prefix(64))
         if isConnected { connection.publishFocusedAction() }
     }
 

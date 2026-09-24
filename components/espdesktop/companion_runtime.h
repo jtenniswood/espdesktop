@@ -100,6 +100,7 @@ struct CompanionRuntimeSnapshot {
   CompanionSystemMetricsSnapshot system_metrics;
   std::vector<CompanionRemoteDefinition> remote_definitions;
   std::vector<CompanionURLFocusTarget> url_focus_targets;
+  std::vector<std::string> web_app_focus_ids;
   uint32_t url_focus_targets_generation{0};
 };
 
@@ -190,15 +191,17 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
             connected_, now_playing_, system_metrics_, remote_definitions_, url_focus_targets_,
-            url_focus_targets_generation_};
+            web_app_focus_ids_, url_focus_targets_generation_};
   }
 
-  void set_url_focus_targets(std::vector<CompanionURLFocusTarget> targets) {
+  void set_focus_registrations(std::vector<CompanionURLFocusTarget> targets, std::vector<std::string> web_app_ids) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (targets.size() > 64) targets.resize(64);
-    if (targets.size() == url_focus_targets_.size() && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
+    if (web_app_ids.size() > 64) web_app_ids.resize(64);
+    if (targets.size() == url_focus_targets_.size() && web_app_ids == web_app_focus_ids_ && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
         [](const auto &a, const auto &b) { return a.id == b.id && a.url == b.url; })) return;
     url_focus_targets_ = std::move(targets);
+    web_app_focus_ids_ = std::move(web_app_ids);
     ++url_focus_targets_generation_;
     if (url_focus_targets_generation_ == 0) url_focus_targets_generation_ = 1;
   }
@@ -331,6 +334,7 @@ class CompanionRuntimeService {
   std::vector<CompanionAction> actions_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
+  std::vector<std::string> web_app_focus_ids_;
   uint32_t url_focus_targets_generation_{0};
   std::vector<CompanionValue> values_;
   std::string focused_action_id_;

@@ -1,4 +1,6 @@
 {
   "schemaVersion": 1,
-  "paths": []
+  "paths": [
+    "bundles/7443cd16a135989278e3ac7ca014b761c0c3eb013d20c84c12ded69f7ac038ff/www.js"
+  ]
 }

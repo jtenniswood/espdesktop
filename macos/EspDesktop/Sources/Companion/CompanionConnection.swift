@@ -459,7 +459,7 @@ final class CompanionConnection: NSObject {
                       (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
                 return (item.id, url)
             }
-            resources.setCompanionURLFocusTargets(Array(targets.prefix(64)))
+            resources.setCompanionFocusRegistrations(Array(targets.prefix(64)), webAppIDs: Array((payload.webAppIDs ?? []).prefix(64)))
             publishFocusedAction()
         case .actionInvoke(let payload):
             guard sessionAuthenticated else { return false }
@@ -644,6 +644,7 @@ final class CompanionConnection: NSObject {
         )
         var capabilities = supportedWindowActions
         capabilities.append("keyboard_shortcuts")
+        capabilities.append("url_card_focus")
         sendJSON(["type": "capabilities", "values": capabilities])
         // Bundle identifiers are stable and opaque to the browser layout editor;
         // it never receives a path or an arbitrary shell command.

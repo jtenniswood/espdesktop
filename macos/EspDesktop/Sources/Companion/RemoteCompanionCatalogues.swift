@@ -129,6 +129,10 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
 }
 
 struct ActiveTabURLMatcher {
+    static func matchingConfiguredWebAppIDs(url: URL?, definitions: [RemoteWebApplicationDefinition], configuredIDs: Set<String>) -> [String] {
+        matchingWebAppIDs(url: url, definitions: definitions).filter(configuredIDs.contains)
+    }
+
     static func matchingWebAppIDs(url: URL?, definitions: [RemoteWebApplicationDefinition]) -> [String] {
         guard let url, let host = url.host?.lowercased(),
               let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return [] }

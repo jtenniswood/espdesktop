@@ -110,6 +110,7 @@ class CompanionService final : public Component {
   std::array<uint8_t, 32> artwork_sha256_{};
   uint32_t now_playing_generation_{0};
   std::atomic<uint32_t> focus_targets_generation_{0};
+  std::atomic<bool> focus_targets_supported_{false};
   bool now_playing_artwork_follows_{false};
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;

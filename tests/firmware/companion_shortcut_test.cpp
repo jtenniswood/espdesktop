@@ -127,6 +127,8 @@ int main() {
   assert(!companion_metric_card_should_disable(true, false));
 
   const std::string folder_action = "folder.00000000-0000-0000-0000-000000000001";
+  companion_set_focus_registrations({}, {"google-docs", "-invalid", "UPPER"});
+  assert(companion_runtime_snapshot().web_app_focus_ids == std::vector<std::string>{"google-docs"});
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
   companion_set_window_actions({"window.left"});
   companion_set_keyboard_actions_supported(true);
