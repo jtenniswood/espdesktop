@@ -652,6 +652,10 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->action_id = action_id;
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
+    if (dynamic_default_label) {
+      (void) companion_default_action_label_with_fallback(
+        action_id, url_config, existing->resolved_default_label);
+    }
     // The periodic config tracker does not have the label pointer. Preserve
     // the pointer registered while the card was rendered so state updates can
     // continue replacing the Play/Pause label.
@@ -662,8 +666,13 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->unit_label = nullptr;
     return;
   }
+  std::string resolved_default_label;
+  if (dynamic_default_label) {
+    (void) companion_default_action_label_with_fallback(
+      action_id, url_config, resolved_default_label);
+  }
   refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
-                  false, dynamic_default_label});
+                  false, dynamic_default_label, resolved_default_label});
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
 }
 
