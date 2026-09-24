@@ -72,7 +72,7 @@ export function runPreviewFeatureTests(): void {
       ...definitions,
       calendar: { label: "Date & Time", allowInSubpage: true },
       companion: { label: "Companion", allowInSubpage: true },
-      companion_app: { label: "Launch app", allowInSubpage: true },
+      companion_app: { label: "Applications", allowInSubpage: true },
       companion_shortcut: { label: "Keyboard shortcut", allowInSubpage: true },
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
