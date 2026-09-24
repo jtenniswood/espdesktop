@@ -508,6 +508,10 @@ inline std::string companion_default_action_label(const std::string &action_id,
   const std::string window_label = companion_window_action_label(action_id);
   if (!window_label.empty()) return window_label;
   if (!companion_encoded_url(url_config).empty()) return espdesktop_i18n("Open URL");
+  const auto snapshot = companion_runtime_snapshot();
+  const auto action = std::find_if(snapshot.actions.begin(), snapshot.actions.end(),
+    [&action_id](const CompanionAction &candidate) { return candidate.id == action_id; });
+  if (action != snapshot.actions.end() && !action->label.empty()) return action->label;
   return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
 }
 

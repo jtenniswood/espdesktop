@@ -461,6 +461,22 @@ export function registerCompanionCardTypes(
     const { renderButtonSettings } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
+    let companionApplications: readonly CompanionAction[] = [];
+
+    function rememberCompanionApplications(actions: readonly CompanionAction[]): void {
+        companionApplications = companionApplicationActions(actions);
+    }
+
+    function companionApplicationLabel(actionId: string): string {
+        return companionApplications.find((action) => action.id === actionId)?.label || "";
+    }
+
+    if (supported) {
+        void loadCompanionActions().then(function (actions) {
+            rememberCompanionApplications(actions);
+            cardUi.renderPreview();
+        }).catch(function () {});
+    }
 
     function applyCompanionPickerPreset(card: any, mode: string): void {
         if (!card) return;
@@ -1169,6 +1185,8 @@ export function registerCompanionCardTypes(
             loadCompanionActions(true).then(function (actions) {
                 companionActions = actions;
                 const applicationActions = companionApplicationActions(actions);
+                rememberCompanionApplications(applicationActions);
+                cardUi.renderPreview();
                 availableCompanionApps = applicationActions;
                 const folderActions = companionFolderActions(actions);
                 availableCompanionFolders = folderActions;
@@ -1356,16 +1374,18 @@ export function registerCompanionCardTypes(
             }
             const shortcutLabel = formatCompanionShortcutActionId(card.entity);
             const windowLabel = companionWindowActionLabel(card.entity);
+            const appLabel = mode === "app" || mode === "url"
+                ? companionApplicationLabel(card.entity) : "";
             let urlLabel = "";
             try { urlLabel = new URL(companionUrlValue(card.sensor || "")).hostname; } catch { /* incomplete URL */ }
             const preview = cardBadgePreview(card, helpers, {
-                label: card.label || shortcutLabel || windowLabel || urlLabel || card.entity ||
+                label: card.label || shortcutLabel || windowLabel || urlLabel || appLabel || card.entity ||
                     (mode === "folder" ? "Folder" : "Mac App"),
                 iconFallback: companionSubtypeDefaultIcon(mode, card.entity),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
             if (companionAppShortcutFolderEnabled(card)) {
-                const label = card.label || card.entity || "Safari";
+                const label = card.label || appLabel || card.entity || "Safari";
                 preview.labelHtml = '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
                     helpers.escHtml(label) +
                     '</span><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
