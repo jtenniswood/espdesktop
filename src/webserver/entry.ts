@@ -714,6 +714,9 @@ function composeApplicationContext(): ApplicationContext {
       homeAssistantEnabled: () => connectorsPage
         ? connectorsPage.homeAssistantCardPickerEnabled()
         : true,
+      homeAssistantConfigured: () => connectorsPage
+        ? connectorsPage.homeAssistantConfigured()
+        : true,
     },
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
@@ -931,10 +934,13 @@ function composeApplicationContext(): ApplicationContext {
     statusPreview.updateClockBarItemUi();
   });
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
+  let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
   connectorsPage.onStatusChange(() => {
     const enabled = connectorsPage.homeAssistantCardPickerEnabled();
-    if (enabled === pickerHomeAssistantEnabled) return;
+    const configured = connectorsPage.homeAssistantConfigured();
+    if (enabled === pickerHomeAssistantEnabled && configured === pickerHomeAssistantConfigured) return;
     pickerHomeAssistantEnabled = enabled;
+    pickerHomeAssistantConfigured = configured;
     buttonSettings.render();
   });
   settingsPage = createSettingsPageFeature(

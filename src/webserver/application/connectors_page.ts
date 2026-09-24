@@ -29,6 +29,7 @@ export interface ConnectorsStatus {
 export interface ConnectorsPageFeature {
     buildPage(parent: HTMLElement): void;
     start(): void;
+    homeAssistantConfigured(): boolean;
     homeAssistantConnected(): boolean;
     homeAssistantSettingsAvailable(): boolean;
     homeAssistantCardPickerEnabled(): boolean;
@@ -367,6 +368,12 @@ export function createConnectorsPageFeature(
         return !!current.home_assistant.connected;
     }
 
+    function homeAssistantConfigured(): boolean {
+        // Legacy firmware has no connector status endpoint, so keep the
+        // established Home Assistant subpage types available there.
+        return !statusEndpointAvailable || !!current?.home_assistant.configured;
+    }
+
     function homeAssistantSettingsAvailable(): boolean {
         // Settings require a live connection, including after a previous setup.
         // Keep them hidden during loading, but retain legacy firmware support
@@ -394,6 +401,7 @@ export function createConnectorsPageFeature(
     return {
         buildPage,
         start,
+        homeAssistantConfigured,
         homeAssistantConnected,
         homeAssistantSettingsAvailable,
         homeAssistantCardPickerEnabled,

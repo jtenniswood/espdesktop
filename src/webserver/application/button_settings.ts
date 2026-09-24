@@ -38,6 +38,7 @@ export interface ButtonSettingsFeature {
 
 export interface CardPickerConnectorState {
     homeAssistantEnabled(): boolean;
+    homeAssistantConfigured(): boolean;
 }
 
 export function createButtonSettingsFeature(
@@ -870,6 +871,7 @@ export function createButtonSettingsFeature(
             idPrefix: idPrefix,
             isSub: c.isSub,
             homeAssistantEnabled: connectorState.homeAssistantEnabled,
+            homeAssistantConfigured: connectorState.homeAssistantConfigured,
         };
         if (typeDef && typeDef.renderSettingsBeforeLabel &&
             (!c.isSub || buttonTypeRegistryValue(typeDef, "allowInSubpage", false))) {

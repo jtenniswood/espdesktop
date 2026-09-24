@@ -56,7 +56,12 @@ export function registerSubpageCardTypes(
         kind: {
             label: "Type",
             idSuffix: "subpage-kind",
-            options: function (this: any, b?: any) { return subpageKindOptions(subpageConnector(b)); },
+            options: function (this: any, b?: any, helpers?: any) {
+                var homeAssistantConfigured: any = helpers && typeof helpers.homeAssistantConfigured === "function"
+                    ? helpers.homeAssistantConfigured()
+                    : true;
+                return subpageKindOptions(subpageConnector(b), homeAssistantConfigured);
+            },
         },
         labelField: {
             label: "Label",
@@ -159,7 +164,7 @@ export function registerSubpageCardTypes(
             b.options = "";
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            var kind: any = subpageKind(b);
+            var kind: any = helpers.homeAssistantConfigured() ? subpageKind(b) : "";
             helpers.renderCardModeSelector(panel, b, helpers, {
                 mode: Object.assign({}, SUBPAGE_CARD_METADATA.kind, {
                     value: function (this: any) { return kind; },
