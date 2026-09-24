@@ -62,7 +62,7 @@ export function runBackupExportControllerTests(): void {
       unit: "",
       type: "companion",
       precision: "",
-      options: "app_shortcuts,app_shortcuts_auto_switch",
+      options: "app_shortcuts",
     },
     {
       entity: "stat.storage_free",

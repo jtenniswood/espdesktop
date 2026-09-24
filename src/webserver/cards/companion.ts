@@ -37,7 +37,6 @@ import {
     COMPANION_SHORTCUT_PREFIX,
     companionShortcutPresetCards,
     COMPANION_SHORTCUT_APPS,
-    companionAppShortcutAutoSwitchEnabled,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
     companionShortcutFolderAppLabel,
@@ -54,7 +53,6 @@ import {
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
     setCompanionAppShortcutFolderEnabled,
-    setCompanionAppShortcutAutoSwitchEnabled,
     finderOpenBehavior,
     inheritFinderOpenBehaviorForCard,
     setFinderOpenBehavior,
@@ -1018,25 +1016,6 @@ export function registerCompanionCardTypes(
                 card._modalSettingsOpen = true;
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
-            });
-
-            const autoSwitchField = document.createElement("div");
-            autoSwitchField.className = "sp-field";
-            const autoSwitchToggle = helpers.toggleRow(
-                "Auto switch to subpage",
-                helpers.idPrefix + "companion-app-shortcuts-auto-switch",
-                companionAppShortcutAutoSwitchEnabled(card),
-            );
-            autoSwitchField.appendChild(autoSwitchToggle.row);
-            const autoSwitchNote = document.createElement("div");
-            autoSwitchNote.className = "sp-field-info-text";
-            autoSwitchNote.textContent = "Automatically show this subpage when " + shortcutFolderApp +
-                " is opened or focused on the Mac.";
-            autoSwitchField.appendChild(autoSwitchNote);
-            appSubpageDisclosure.section.appendChild(autoSwitchField);
-            autoSwitchToggle.input.addEventListener("change", function () {
-                setCompanionAppShortcutAutoSwitchEnabled(card, autoSwitchToggle.input.checked);
-                helpers.saveField("options", card.options);
             });
 
             const finderOpenBehaviorField = document.createElement("div");

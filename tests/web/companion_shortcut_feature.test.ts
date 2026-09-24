@@ -43,7 +43,6 @@ import {
 } from "../../src/webserver/cards/slider";
 import {
   companionAppShortcutFolderEnabled,
-  companionAppShortcutAutoSwitchEnabled,
   companionShortcutActionIdValid,
   companionShortcutFolderEditorAvailable,
   companionShortcutSelectionMatchesSavedParent,
@@ -67,7 +66,6 @@ import {
   normalizeCompanionAppShortcutOptions,
   safariShortcutPresetCards,
   setCompanionAppShortcutFolderEnabled,
-  setCompanionAppShortcutAutoSwitchEnabled,
   setCompanionShortcutTabs,
   syncCompanionShortcutSubpage,
 } from "../../src/webserver/application/companion_shortcut_folder";
@@ -94,8 +92,9 @@ function shortcutEvent(overrides: Partial<KeyboardEvent>): Pick<KeyboardEvent,
 
 export function runCompanionShortcutFeatureTests(): void {
   const finder = { ...emptyCardConfig("companion"), entity: "com.apple.finder", options: "app_shortcuts,app_shortcuts_auto_switch" };
-  if (!companionAppShortcutFolderEnabled(finder) || !companionAppShortcutAutoSwitchEnabled(finder) ||
-      !cardTransferOwnsSubpage(finder)) throw new Error("Finder must own an optional app subpage");
+  if (!companionAppShortcutFolderEnabled(finder) || !cardTransferOwnsSubpage(finder)) {
+    throw new Error("Finder must own an optional app subpage");
+  }
   const finderPage = createCompanionShortcutSubpage(finder.entity);
   if (finderPage.buttons.length || finderPage.order.join() !== "B") {
     throw new Error("Finder should start with an empty editable folder page");
@@ -192,19 +191,14 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!companionAppShortcutFolderEnabled(safariFolderCard) || safariFolderCard.options !== "app_shortcuts") {
     throw new Error("Safari launch cards must retain the shortcut-folder option");
   }
-  if (companionAppShortcutAutoSwitchEnabled(safariFolderCard)) {
-    throw new Error("App subpage auto-switch must be off by default");
+  safariFolderCard.options = "app_shortcuts,app_shortcuts_auto_switch";
+  if (normalizeCompanionAppShortcutOptions(safariFolderCard) !== "app_shortcuts") {
+    throw new Error("Legacy auto-switch settings must normalize to always-open app subpages");
   }
-  setCompanionAppShortcutAutoSwitchEnabled(safariFolderCard, true);
-  if (!companionAppShortcutAutoSwitchEnabled(safariFolderCard) ||
-      String(safariFolderCard.options) !== "app_shortcuts,app_shortcuts_auto_switch" ||
-      normalizeCompanionAppShortcutOptions(safariFolderCard) !== "app_shortcuts,app_shortcuts_auto_switch") {
-    throw new Error("Safari app subpages must retain the auto-switch option");
-  }
+  safariFolderCard.options = "app_shortcuts,app_shortcuts_auto_switch";
   setCompanionAppShortcutFolderEnabled(safariFolderCard, false);
-  if (companionAppShortcutFolderEnabled(safariFolderCard) ||
-      companionAppShortcutAutoSwitchEnabled(safariFolderCard) || String(safariFolderCard.options) !== "") {
-    throw new Error("Disabling app subpages must also clear auto-switch");
+  if (companionAppShortcutFolderEnabled(safariFolderCard) || String(safariFolderCard.options) !== "") {
+    throw new Error("Disabling app subpages must clear the subpage option");
   }
   setCompanionAppShortcutFolderEnabled(safariFolderCard, true);
   if (companionShortcutFolderEditorAvailable(safariFolderCard, { ...safariFolderCard, options: "" })) {
@@ -237,12 +231,12 @@ export function runCompanionShortcutFeatureTests(): void {
       companionAppShortcutFolderEnabled(chromeFolderCard)) {
     throw new Error("Unsupported apps must not retain the shortcut-folder option");
   }
-  const invalidAutoSwitchCard = {
+  const legacyAutoSwitchCard = {
     ...safariFolderCard,
-    options: "app_shortcuts_auto_switch",
+    options: "app_shortcuts,app_shortcuts_auto_switch",
   };
-  if (normalizeCompanionAppShortcutOptions(invalidAutoSwitchCard) !== "") {
-    throw new Error("Auto-switch must require the app subpage option");
+  if (normalizeCompanionAppShortcutOptions(legacyAutoSwitchCard) !== "app_shortcuts") {
+    throw new Error("Legacy auto-switch settings must be removed while preserving the app subpage");
   }
   const codexFolderCard = {
     type: "companion", entity: CODEX_BUNDLE_ID, options: "",
