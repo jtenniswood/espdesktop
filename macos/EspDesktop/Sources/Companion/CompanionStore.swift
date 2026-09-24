@@ -692,21 +692,46 @@ final class CompanionStore: NSObject, ObservableObject {
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior)
         if performed, actionIdentifier.hasPrefix("webapp.") {
-            return await waitForWebAppFocus(actionIdentifier) ? "activated" : "performed"
+            return await waitForWebAppActivation(actionIdentifier) ? "activated" : "performed"
         }
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
     }
 
-    private func waitForWebAppFocus(_ actionIdentifier: String) async -> Bool {
+    private func waitForWebAppActivation(_ actionIdentifier: String) async -> Bool {
         guard actionIdentifier.hasPrefix("webapp."),
               companionWebAppFocusIDs.contains(String(actionIdentifier.dropFirst("webapp.".count))) else {
             return false
         }
+        let expectedBrowserBundleIdentifier: String? = {
+            let webAppID = String(actionIdentifier.dropFirst("webapp.".count))
+            guard let definition = remoteCatalogueStore.value.webApplications.first(where: { $0.id == webAppID }),
+                  let url = URL(string: definition.url),
+                  let browserURL = NSWorkspace.shared.urlForApplication(toOpen: url) else { return nil }
+            return Bundle(url: browserURL)?.bundleIdentifier
+        }()
         for _ in 0..<40 {
+            let frontmostBundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+            if Self.webAppActivationObserved(
+                actionIdentifier: actionIdentifier,
+                frontmostBundleIdentifier: frontmostBundleIdentifier,
+                expectedBrowserBundleIdentifier: expectedBrowserBundleIdentifier,
+                focusedActionIdentifiers: []
+            ) { return true }
             if focusedCompanionActionIdentifiers().contains(actionIdentifier) { return true }
             try? await Task.sleep(nanoseconds: 150_000_000)
         }
         return false
+    }
+
+    nonisolated static func webAppActivationObserved(
+        actionIdentifier: String,
+        frontmostBundleIdentifier: String?,
+        expectedBrowserBundleIdentifier: String?,
+        focusedActionIdentifiers: [String]
+    ) -> Bool {
+        focusedActionIdentifiers.contains(actionIdentifier) ||
+            (expectedBrowserBundleIdentifier != nil &&
+             frontmostBundleIdentifier == expectedBrowserBundleIdentifier)
     }
 
     nonisolated static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {

@@ -1134,6 +1134,7 @@ describe("browserless application contracts", () => {
     const backup = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_backup.ts"), "utf8");
     const hooks = fs.readFileSync(path.join(ROOT, "src/webserver/testing/app_test_hooks_config.ts"), "utf8");
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
+    const companion = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(persistence, /GlobalDescriptors|staticGlobal|liveGlobal|readonly globals/);
     assert.doesNotMatch(entry, /configPersistence\.globals/);
@@ -1153,6 +1154,7 @@ describe("browserless application contracts", () => {
     assert.match(persistence, /publishFocusRegistrations\?\.\(\)/);
     assert.match(entry, /connectFocusRegistrationPublisher\(\(\) =>/);
     assert.match(entry, /companionFocusRegistrationValues\(state\.buttons, state\.subpages\)/);
+    assert.doesNotMatch(companion, /saveFocusRegistrations|syncURLCardFocusTargets/);
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_RAW_CHUNK_FIELDS|saveButtonConfig|saveSubpageEntity|saveSubpageEntityLegacy|scheduleSliderSubpageMigration|subpageChunkShouldPost|subpageEntityKeys):/);
   });
 

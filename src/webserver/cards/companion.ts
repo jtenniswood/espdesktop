@@ -1,7 +1,7 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
-import { companionFocusRegistrationValues, createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
+import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
 import {
@@ -504,12 +504,6 @@ export function registerCompanionCardTypes(
         });
     }
 
-    function syncURLCardFocusTargets(extra?: any): void {
-        void catalogue.saveFocusRegistrations(companionFocusRegistrationValues(
-            Array.isArray(state.buttons) ? state.buttons : [], state.subpages, extra,
-        )).catch(() => { /* Companion may be offline; a later state refresh retries. */ });
-    }
-
     function applyCompanionPickerPreset(card: any, mode: string): void {
         if (!card) return;
         card.entity = companionEntityForMode(mode);
@@ -545,7 +539,6 @@ export function registerCompanionCardTypes(
         },
         renderSettings: function (panel?: HTMLElement, card?: any, slot?: any, helpers?: any) {
             normalizeCompanionCard(card);
-            syncURLCardFocusTargets(card);
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
@@ -1241,7 +1234,6 @@ export function registerCompanionCardTypes(
                     ? "Enter a complete http:// or https:// address."
                     : "Only http:// and https:// addresses are supported.";
                 helpers.saveField("sensor", card.sensor);
-                syncURLCardFocusTargets(card);
             }
             urlInput.addEventListener("input", saveUrl);
             urlInput.addEventListener("change", saveUrl);
