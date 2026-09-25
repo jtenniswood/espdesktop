@@ -445,9 +445,9 @@ inline void clock_bar_refresh_left_title() {
   const auto context = clock_bar_refresh_context();
   auto &labels = clock_bar_temperature_labels();
   if (!labels.empty() && labels[0]) {
-    const bool use_card_label_font = !clock_bar_companion_subpage_label().empty() &&
-                                     clock_bar_modal_label().empty();
-    const lv_font_t *title_font = use_card_label_font
+    const bool showing_app_title = !clock_bar_companion_subpage_label().empty() &&
+                                   clock_bar_modal_label().empty();
+    const lv_font_t *title_font = showing_app_title
         ? (clock_bar_companion_subpage_title_font()
             ? clock_bar_companion_subpage_title_font()
             : (clock_bar_temperature_default_font_owner() == labels[0]
