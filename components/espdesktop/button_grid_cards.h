@@ -229,8 +229,11 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
       }
     }
     lv_obj_set_size(image, target_side, target_side);
-    // Anchor the icon to the top-left of the card's padded content area.
-    lv_obj_set_pos(image, 0, 0);
+    // Match the label's left edge. Both children are positioned relative to
+    // the button's padded content area, so this keeps the icon inset equal to
+    // the label while the top edge uses the same content inset.
+    const lv_coord_t label_left = source.card_label ? lv_obj_get_x(source.card_label) : 0;
+    lv_obj_align(image, LV_ALIGN_TOP_LEFT, label_left, 0);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
     lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
 #else
