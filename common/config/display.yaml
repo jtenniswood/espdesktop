@@ -32,13 +32,13 @@ esphome:
       then:
         - lambda: |-
             clock_bar_enable_settings_access(id(display_time));
-            clock_bar_companion_subpage_title_font() = id(font_text_small)->get_lv_font();
+            clock_bar_companion_subpage_title_font() = id(font_text_subpage)->get_lv_font();
             navigation_subpage_clock_bar_refresh() = []() {
               navigation_refresh_subpage_label();
               lv_obj_set_style_text_font(
                   id(temperatures),
                   !clock_bar_companion_subpage_label().empty() && clock_bar_modal_label().empty()
-                      ? id(font_text_small)->get_lv_font()
+                      ? id(font_text_subpage)->get_lv_font()
                       : clock_bar_left_title().empty()
                           ? id(${label_font})->get_lv_font()
                           : id(${media_title_font})->get_lv_font(),
@@ -207,7 +207,7 @@ script:
           lv_obj_set_style_text_font(
               id(temperatures),
               companion_app_subpage && clock_bar_modal_label().empty()
-                  ? id(font_text_small)->get_lv_font()
+                  ? id(font_text_subpage)->get_lv_font()
                   : clock_bar_left_title().empty()
                       ? id(${label_font})->get_lv_font()
                       : id(${media_title_font})->get_lv_font(),
