@@ -178,27 +178,34 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   if (source.fill_card) {
     lv_obj_t *button = lv_obj_get_parent(image);
     lv_obj_update_layout(button);
+    const auto insets = espdesktop::app_icon::artwork_insets(
+        source.pixels + pixel_count * 2, esphome::companion::APP_ICON_SIDE);
+    const int canvas_side = esphome::companion::APP_ICON_SIDE;
+    const int artwork_width = std::max(1, canvas_side - insets.left - insets.right);
+    const int artwork_height = std::max(1, canvas_side - insets.top - insets.bottom);
+    const int pad_top = lv_obj_get_style_pad_top(button, LV_PART_MAIN);
+    const int available_width = std::max<int>(1, lv_obj_get_width(button) -
+        lv_obj_get_style_pad_left(button, LV_PART_MAIN) -
+        lv_obj_get_style_pad_right(button, LV_PART_MAIN));
+    const int available_height = std::max<int>(1, lv_obj_get_height(button) - 2 * pad_top);
+    // Size the visible artwork, not the transparent macOS canvas. Keep it
+    // square, left aligned and vertically centered within equal card margins.
+    const int target_side = std::max(1, std::min(
+        available_width * canvas_side / artwork_width,
+        available_height * canvas_side / artwork_height));
+    const int artwork_left = (insets.left * target_side + canvas_side / 2) / canvas_side;
+    const int artwork_top = (insets.top * target_side + canvas_side / 2) / canvas_side;
+    const int visible_height = (artwork_height * target_side + canvas_side / 2) / canvas_side;
+    lv_obj_set_size(image, target_side, target_side);
+    lv_obj_align(image, LV_ALIGN_TOP_LEFT, -artwork_left,
+                 (available_height - visible_height) / 2 - artwork_top);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-    // LVGL positions children against the parent's content area, which starts
-    // inside the button padding. Expand the image back to the button edges so
-    // Fill card matches the web preview's inset: 0 rendering.
-    const lv_coord_t pad_left = lv_obj_get_style_pad_left(button, LV_PART_MAIN);
-    const lv_coord_t pad_top = lv_obj_get_style_pad_top(button, LV_PART_MAIN);
-    lv_obj_set_pos(image, -pad_left, -pad_top);
-    lv_obj_set_size(image, lv_obj_get_width(button), lv_obj_get_height(button));
-    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_COVER);
+    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
 #else
-    const lv_coord_t button_width = lv_obj_get_width(button);
-    const lv_coord_t button_height = lv_obj_get_height(button);
-    const uint32_t target_side = static_cast<uint32_t>(std::max(button_width, button_height));
     const uint16_t zoom = static_cast<uint16_t>(std::min<uint32_t>(
-        (target_side * 256u + esphome::companion::APP_ICON_SIDE - 1u) /
-            esphome::companion::APP_ICON_SIDE,
+        (static_cast<uint32_t>(target_side) * 256u + canvas_side - 1u) / canvas_side,
         UINT16_MAX));
-    lv_obj_set_size(image, esphome::companion::APP_ICON_SIDE,
-                    esphome::companion::APP_ICON_SIDE);
     lv_img_set_zoom(image, zoom);
-    lv_obj_align(image, LV_ALIGN_CENTER, 0, 0);
 #endif
   } else {
     const lv_font_t *icon_font = source.fallback_icon

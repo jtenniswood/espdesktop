@@ -1,7 +1,7 @@
 import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
-import { appIconArtworkInsets } from "../model/app_icon_layout";
+import { appIconArtworkBounds } from "../model/app_icon_layout";
 import { escHtml } from "./ui_primitives";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -53,6 +53,8 @@ interface CompanionAppIconPreview {
     online: boolean;
     insetLeftPercent: number;
     insetTopPercent: number;
+    artworkWidthFraction: number;
+    artworkHeightFraction: number;
 }
 
 const companionAppIconCache = new Map<string, {
@@ -104,7 +106,7 @@ export function companionAppIconPreviewData(applicationId: string, backgroundCol
             image.data[output + 3] = bytes[pixelCount * 2 + index] ?? 0;
         }
         context.putImageData(image, 0, 0);
-        const insets = appIconArtworkInsets(bytes.subarray(pixelCount * 2), COMPANION_APP_ICON_SIDE);
+        const insets = appIconArtworkBounds(bytes.subarray(pixelCount * 2), COMPANION_APP_ICON_SIDE);
         const palette = (response.headers.get("X-EspDesktop-App-Icon-Palette") || "").split(",");
         const legacyDefaultColor = response.headers.get("X-EspDesktop-App-Icon-Default") || "";
         const legacyActiveColor = response.headers.get("X-EspDesktop-App-Icon-Active") || "";
@@ -121,6 +123,8 @@ export function companionAppIconPreviewData(applicationId: string, backgroundCol
             online,
             insetLeftPercent: insets.left * 100 / COMPANION_APP_ICON_SIDE,
             insetTopPercent: insets.top * 100 / COMPANION_APP_ICON_SIDE,
+            artworkWidthFraction: (COMPANION_APP_ICON_SIDE - insets.left - insets.right) / COMPANION_APP_ICON_SIDE,
+            artworkHeightFraction: (COMPANION_APP_ICON_SIDE - insets.top - insets.bottom) / COMPANION_APP_ICON_SIDE,
         };
     }).catch(function () { return null; }).then(function (value) {
         if (!value || !value.online) companionAppIconCache.delete(cacheKey);
@@ -139,13 +143,26 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const { isConfigLocked } = dependencies.shell;
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
-    // Percentages in width and height resolve against different card axes.
-    // Measure the available space once so the Medium image box stays square.
-    function resizeMediumAppIcon(button: Element): void {
-        const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon-medium");
+    const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
+    // Use a single measured side for square images at every card aspect ratio.
+    function resizeAppIcon(button: Element): void {
+        const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon-medium,.sp-companion-app-icon-fill");
         const view = document.defaultView;
         if (!icon || !view) return;
         const cardStyle = view.getComputedStyle(button);
+        if (icon.classList.contains("sp-companion-app-icon-fill")) {
+            const artwork = appIconArtwork.get(icon);
+            if (!artwork) return;
+            const padTop = parseFloat(cardStyle.paddingTop);
+            const width = Math.max(1, button.clientWidth - parseFloat(cardStyle.paddingLeft) - parseFloat(cardStyle.paddingRight));
+            const height = Math.max(1, button.clientHeight - 2 * padTop);
+            const side = Math.max(1, Math.min(width / artwork.artworkWidthFraction, height / artwork.artworkHeightFraction));
+            icon.style.width = side + "px";
+            icon.style.height = side + "px";
+            icon.style.left = (parseFloat(cardStyle.paddingLeft) - side * artwork.insetLeftPercent / 100) + "px";
+            icon.style.top = (padTop + (height - side * artwork.artworkHeightFraction) / 2 - side * artwork.insetTopPercent / 100) + "px";
+            return;
+        }
         const smallSide = parseFloat(view.getComputedStyle(icon).fontSize);
         const label = button.querySelector<HTMLElement>(".sp-btn-label");
         let labelHeight = 0;
@@ -160,7 +177,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         icon.style.setProperty("--sp-app-medium-icon-side", side + "px");
     }
     const appIconResizeObserver = typeof ResizeObserver === "function"
-        ? new ResizeObserver(entries => entries.forEach(entry => resizeMediumAppIcon(entry.target))) : null;
+        ? new ResizeObserver(entries => entries.forEach(entry => resizeAppIcon(entry.target))) : null;
     // ── Preview rendering (unified) ────────────────────────────────────────
     function previewHtmlValue(this: any, typePreview?: any, key?: any, fallback?: any) {
         return previewValue(typePreview, key, fallback);
@@ -318,11 +335,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         appIcon.alt = "";
                         appIcon.setAttribute("aria-hidden", "true");
                         appIcon.src = previewIcon.dataUrl;
+                        appIconArtwork.set(appIcon, previewIcon);
                         if (!fillCard) appIcon.style.transform =
                             "translate(-" + previewIcon.insetLeftPercent + "%, -" + previewIcon.insetTopPercent + "%)";
                         btn.appendChild(appIcon);
-                        if (mediumIcon) {
-                            resizeMediumAppIcon(btn);
+                        if (mediumIcon || fillCard) {
+                            resizeAppIcon(btn);
                             appIconResizeObserver?.observe(btn);
                         }
                         if (fallbackIcon) fallbackIcon.hidden = true;
