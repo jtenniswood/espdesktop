@@ -1361,8 +1361,7 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
   return companion_app_launch_card(p) &&
-         p.entity.rfind("webapp.", 0) != 0 &&
-         !cfg_option_token_present(p.options, "custom_icon");
+         p.entity.rfind("webapp.", 0) != 0;
 }
 
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
@@ -1425,7 +1424,6 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (!tabs.empty()) add_token("app_shortcuts_tabs=" + encode_compact_field(tabs));
   }
   if (p.type == "companion" && p.entity.rfind("shortcut.", 0) != 0) {
-    if (cfg_option_token_present(p.options, "custom_icon")) add_token("custom_icon");
     const std::string custom_color = cfg_option_value(p.options, "app_bg_color");
     if (custom_color.size() == 6 && std::all_of(custom_color.begin(), custom_color.end(),
         [](unsigned char ch) { return std::isxdigit(ch); })) {

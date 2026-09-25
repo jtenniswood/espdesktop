@@ -545,13 +545,13 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   appIconCard.options = "custom_icon";
   normalizeCompanionCard(appIconCard);
-  if (companionAppIconEnabled(appIconCard) || appIconCard.options !== "custom_icon") {
-    throw new Error("Choosing a custom app icon must be preserved while normalizing a card");
+  if (!companionAppIconEnabled(appIconCard) || appIconCard.options.includes("custom_icon")) {
+    throw new Error("Legacy custom-icon settings must normalize to the Mac app icon");
   }
   appIconCard.entity = "com.google.Chrome";
   appIconCard.options = normalizeCompanionAppOptions(appIconCard);
-  if (companionAppIconEnabled(appIconCard) || appIconCard.options !== "custom_icon") {
-    throw new Error("Changing apps must preserve the custom icon choice");
+  if (!companionAppIconEnabled(appIconCard) || appIconCard.options.includes("custom_icon")) {
+    throw new Error("Changing apps must continue using the Mac app icon");
   }
   const catalogue = [
     { id: "com.apple.Safari", label: "Safari" },

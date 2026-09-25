@@ -3016,7 +3016,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "name": "custom_icon",
         "label": "Use custom icon",
         "kind": "flag",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "app_shortcuts",

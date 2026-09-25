@@ -340,7 +340,7 @@ export function companionCardMode(card: any): CompanionCardModeId {
 }
 
 export function companionAppIconEnabled(card: any): boolean {
-    return companionCardMode(card) === "app" && !configOptionEnabled(card?.options, "custom_icon");
+    return companionCardMode(card) === "app";
 }
 
 export function normalizeCompanionAppOptions(card: any): string {
@@ -1423,7 +1423,6 @@ export function registerCompanionCardTypes(
                     entity: false,
                     icon: false,
                 });
-                const customIcon = configOptionEnabled(card.options, "custom_icon");
                 const labelToggle = helpers.toggleRow(
                     "Show label", helpers.idPrefix + "companion-app-label",
                     !configOptionEnabled(card.options, "app_hide_label"),
@@ -1434,14 +1433,6 @@ export function registerCompanionCardTypes(
                     helpers.saveField("options", card.options);
                     renderPreview();
                 });
-                const iconToggle = helpers.toggleRow(
-                    "Use Mac app icon", helpers.idPrefix + "companion-app-icon", !customIcon,
-                );
-                panel?.appendChild(iconToggle.row);
-                const iconPicker = helpers.renderCardIconPicker(
-                    panel, card, helpers, COMPANION_CARD_METADATA.icon,
-                );
-                iconPicker.style.display = customIcon ? "" : "none";
                 const iconSizeRow = document.createElement("div");
                 iconSizeRow.className = "sp-field-row sp-companion-app-icon-size";
                 const iconSizeLabel = document.createElement("label");
@@ -1561,12 +1552,6 @@ export function registerCompanionCardTypes(
                 iconSizeRow.appendChild(iconSizeLabel);
                 iconSizeRow.appendChild(iconSizeControl);
                 panel?.appendChild(iconSizeRow);
-                iconSizeRow.style.display = customIcon ? "none" : "";
-                iconToggle.input.addEventListener("change", function () {
-                    iconPicker.style.display = iconToggle.input.checked ? "none" : "";
-                    iconSizeRow.style.display = iconToggle.input.checked ? "" : "none";
-                    if (!iconToggle.input.checked) closeIconSizeList(false);
-                });
                 const palette = [
                     "B71C1C", "BF360C", "E65100", "F57F17", "827717", "33691E",
                     "C62828", "D84315", "EF6C00", "F9A825", "9E9D24", "558B2F",
@@ -1638,14 +1623,6 @@ export function registerCompanionCardTypes(
                 colourSettings.append(modeRow, swatchGrid);
                 panel?.appendChild(colourSettings);
                 updateColourControls();
-                iconToggle.input.addEventListener("change", function () {
-                    card.options = setConfigOption(card.options, "custom_icon", !iconToggle.input.checked);
-                    helpers.saveField("options", card.options);
-                    iconPicker.style.display = iconToggle.input.checked ? "none" : "";
-                    colourSettings.style.display = iconToggle.input.checked ? "" : "none";
-                    renderPreview();
-                });
-                colourSettings.style.display = iconToggle.input.checked ? "" : "none";
             } else {
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
             }

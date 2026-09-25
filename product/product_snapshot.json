@@ -5111,7 +5111,9 @@
             "name": "custom_icon",
             "label": "Use custom icon",
             "kind": "flag",
-            "omitDefault": true
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "app_shortcuts",
@@ -5193,6 +5195,14 @@
             "docsHidden": true
           },
           {
+            "name": "app_icon_medium",
+            "label": "Use medium app icon size",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "webapp_icon_title",
             "label": "Large icon with title",
             "kind": "flag",
@@ -5253,7 +5263,8 @@
             "webapp_icon_title",
             "app_bg_color",
             "app_hide_label",
-            "app_icon_fill"
+            "app_icon_fill",
+            "app_icon_medium"
           ],
           "optionHook": "normalize_date_time_options"
         },

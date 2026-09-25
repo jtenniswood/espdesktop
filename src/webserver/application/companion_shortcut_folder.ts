@@ -119,7 +119,9 @@ export function normalizeCompanionCardOptions(card: any): string {
     let options = normalizeCompanionAppShortcutOptions(card);
     if (companionSavedCardMode(card) !== "app") return options;
 
-    options = setConfigOption(options, "custom_icon", configOptionEnabled(card.options, "custom_icon"));
+    // App launch cards now always use the Mac app icon. Drop the legacy opt-out
+    // token while preserving other saved app appearance settings.
+    options = setConfigOption(options, "custom_icon", false);
     const customColor = configOptionValue(card.options, "app_bg_color");
     if (/^[0-9a-f]{6}$/i.test(customColor))
         options = setConfigOptionValue(options, "app_bg_color", customColor.toUpperCase());
