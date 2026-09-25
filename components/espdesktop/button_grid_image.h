@@ -14,6 +14,7 @@
 #include "cover_art.h"
 #include "../artwork_image/image_pipeline_policy.h"
 #include <cstring>
+#include <new>
 
 constexpr uint32_t IMAGE_CARD_STARTUP_RETRY_MS = 45000;
 constexpr uint32_t IMAGE_CARD_RETRY_INTERVAL_MS = 2000;
@@ -3104,15 +3105,75 @@ inline lv_obj_t *image_card_create_clock_bar_icon_container(lv_obj_t *parent) {
   return container;
 }
 
+#ifdef USE_COMPANION
+inline bool image_card_set_clock_bar_cached_app_icon(
+    lv_obj_t *widget, CompanionAppIconImageData *source,
+    const std::string &application_id) {
+  if (!widget || !source || !source->pixels || application_id.empty()) return false;
+  auto &store = esphome::companion::app_icon_store();
+  if (!store.begin() || !store.copy_pixels(
+          application_id, source->pixels, esphome::companion::APP_ICON_PIXEL_BYTES)) return false;
+  source->application_id = application_id;
+  source->companion_online = companion_connected();
+  if (!source->companion_online) {
+    constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
+                                   esphome::companion::APP_ICON_SIDE;
+    for (size_t i = 0; i < pixel_count; ++i) {
+      const uint16_t packed = static_cast<uint16_t>(source->pixels[i * 2]) |
+                              (static_cast<uint16_t>(source->pixels[i * 2 + 1]) << 8);
+      const uint8_t red5 = (packed >> 11) & 0x1F;
+      const uint8_t green6 = (packed >> 5) & 0x3F;
+      const uint8_t blue5 = packed & 0x1F;
+      const uint8_t red = (red5 << 3) | (red5 >> 2);
+      const uint8_t green = (green6 << 2) | (green6 >> 4);
+      const uint8_t blue = (blue5 << 3) | (blue5 >> 2);
+      const uint8_t gray = static_cast<uint8_t>(
+          (red * 54u + green * 183u + blue * 19u) >> 8);
+      const uint16_t gray565 = ((gray >> 3) << 11) | ((gray >> 2) << 5) | (gray >> 3);
+      source->pixels[i * 2] = static_cast<uint8_t>(gray565 & 0xFF);
+      source->pixels[i * 2 + 1] = static_cast<uint8_t>(gray565 >> 8);
+    }
+  }
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  source->descriptor.header.magic = LV_IMAGE_HEADER_MAGIC;
+  source->descriptor.header.cf = LV_COLOR_FORMAT_RGB565A8;
+  source->descriptor.header.w = esphome::companion::APP_ICON_SIDE;
+  source->descriptor.header.h = esphome::companion::APP_ICON_SIDE;
+  source->descriptor.header.stride = esphome::companion::APP_ICON_SIDE * 2;
+  source->descriptor.data_size = esphome::companion::APP_ICON_PIXEL_BYTES;
+  source->descriptor.data = source->pixels;
+  lv_image_set_src(widget, &source->descriptor);
+  lv_image_set_inner_align(widget, LV_IMAGE_ALIGN_CONTAIN);
+#else
+  source->descriptor.header.cf = LV_IMG_CF_TRUE_COLOR;
+  source->descriptor.header.w = esphome::companion::APP_ICON_SIDE;
+  source->descriptor.header.h = esphome::companion::APP_ICON_SIDE;
+  source->descriptor.data_size = static_cast<uint32_t>(esphome::companion::APP_ICON_SIDE) *
+                                 esphome::companion::APP_ICON_SIDE * 2u;
+  source->descriptor.data = source->pixels;
+  lv_img_set_src(widget, &source->descriptor);
+  const uint16_t zoom = static_cast<uint16_t>(
+      (20u * 256u + esphome::companion::APP_ICON_SIDE - 1u) /
+      esphome::companion::APP_ICON_SIDE);
+  lv_img_set_zoom(widget, zoom);
+#endif
+  return true;
+}
+#endif
+
 inline void image_card_set_clock_bar_companion_icon(
     const std::string &entity_id, const std::string &icon_name,
-    const std::string &source_url) {
+    const std::string &source_url, bool use_cached_app_icon) {
   auto &container_ref = clock_bar_companion_icon_widget();
   static ImageCardCtx *context = nullptr;
   static lv_obj_t *fallback = nullptr;
   static lv_obj_t *image_widget = nullptr;
+#ifdef USE_COMPANION
+  static CompanionAppIconImageData *app_icon_data = nullptr;
+#endif
   static std::string active_key;
-  const std::string key = entity_id + "|" + icon_name + "|" + source_url;
+  const std::string key = entity_id + "|" + icon_name + "|" + source_url +
+      (use_cached_app_icon ? "|cached-app-icon" : "");
   auto &labels = clock_bar_temperature_labels();
   lv_obj_t *parent = labels.empty() || !labels[0] ? nullptr : lv_obj_get_parent(labels[0]);
   if (entity_id.empty() || icon_name.empty() || !parent) {
@@ -3122,19 +3183,34 @@ inline void image_card_set_clock_bar_companion_icon(
     container_ref = nullptr;
     fallback = nullptr;
     image_widget = nullptr;
+#ifdef USE_COMPANION
+    delete app_icon_data;
+    app_icon_data = nullptr;
+#endif
     active_key.clear();
     clock_bar_refresh_left_title();
     return;
   }
+  bool same_key_ready = source_url.empty() || (context && context->active);
+#ifdef USE_COMPANION
+  if (source_url.empty() && use_cached_app_icon &&
+      (!app_icon_data || app_icon_data->companion_online != companion_connected()))
+    same_key_ready = false;
+#else
+  (void) use_cached_app_icon;
+#endif
   if (container_ref && lv_obj_is_valid(container_ref) &&
-      lv_obj_get_parent(container_ref) == parent && active_key == key &&
-      (source_url.empty() || (context && context->active))) {
+      lv_obj_get_parent(container_ref) == parent && active_key == key && same_key_ready) {
     clock_bar_refresh_left_title();
     return;
   }
 
   if (context && context->active) image_card_evict_optional_icon(context);
   if (container_ref && lv_obj_is_valid(container_ref)) lv_obj_del(container_ref);
+#ifdef USE_COMPANION
+  delete app_icon_data;
+  app_icon_data = nullptr;
+#endif
   context = nullptr;
   fallback = nullptr;
   image_widget = nullptr;
@@ -3148,6 +3224,30 @@ inline void image_card_set_clock_bar_companion_icon(
                              LV_PART_MAIN);
   lv_obj_center(fallback);
   lv_obj_clear_flag(fallback, LV_OBJ_FLAG_CLICKABLE);
+
+#ifdef USE_COMPANION
+  if (use_cached_app_icon && source_url.empty()) {
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+    image_widget = lv_image_create(container_ref);
+#else
+    image_widget = lv_img_create(container_ref);
+#endif
+    lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(image_widget, 20, 20);
+    lv_obj_center(image_widget);
+    lv_obj_add_flag(image_widget, LV_OBJ_FLAG_HIDDEN);
+    auto *candidate = new (std::nothrow) CompanionAppIconImageData();
+    if (candidate && image_card_set_clock_bar_cached_app_icon(
+            image_widget, candidate, entity_id)) {
+      app_icon_data = candidate;
+      lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(fallback, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      delete candidate;
+    }
+  }
+#endif
 
   if (!source_url.empty() &&
       source_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) == 0) {

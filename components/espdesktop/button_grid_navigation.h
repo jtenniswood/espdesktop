@@ -12,7 +12,7 @@
 inline void refresh_visible_image_cards();
 inline void image_card_set_clock_bar_companion_icon(
     const std::string &entity_id, const std::string &icon_name,
-    const std::string &source_url);
+    const std::string &source_url, bool use_cached_app_icon = false);
 inline void navigation_refresh_subpage_label();
 
 // ── Home Assistant-driven home-screen navigation ─────────────────────
@@ -309,7 +309,9 @@ inline void navigation_refresh_subpage_label() {
       ? (web_app ? "Web" : "Monitor") : config.icon;
   const std::string icon_url = web_app
       ? companion_web_app_icon_url(config.entity) : "";
-  image_card_set_clock_bar_companion_icon(config.entity, icon_name, icon_url);
+  image_card_set_clock_bar_companion_icon(
+      config.entity, icon_name, icon_url,
+      !web_app && companion_app_icon_enabled(config));
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(

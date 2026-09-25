@@ -364,6 +364,18 @@ inline std::string &clock_bar_modal_label() {
   static std::string label;
   return label;
 }
+inline const lv_font_t *&clock_bar_card_label_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+inline const lv_font_t *&clock_bar_temperature_default_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+inline lv_obj_t *&clock_bar_temperature_default_font_owner() {
+  static lv_obj_t *owner = nullptr;
+  return owner;
+}
 inline bool clock_bar_companion_icon_should_show() {
   return clock_bar_companion_icon_widget() &&
       !clock_bar_companion_subpage_label().empty() && clock_bar_modal_label().empty();
@@ -416,6 +428,13 @@ inline void clock_bar_refresh_left_title() {
   const auto context = clock_bar_refresh_context();
   auto &labels = clock_bar_temperature_labels();
   if (!labels.empty() && labels[0]) {
+    const bool use_card_label_font = !clock_bar_companion_subpage_label().empty() &&
+                                     clock_bar_modal_label().empty();
+    const lv_font_t *title_font = use_card_label_font && clock_bar_card_label_font()
+        ? clock_bar_card_label_font() :
+          (clock_bar_temperature_default_font_owner() == labels[0]
+              ? clock_bar_temperature_default_font() : nullptr);
+    if (title_font) lv_obj_set_style_text_font(labels[0], title_font, LV_PART_MAIN);
     lv_label_set_display_text(labels[0], clock_bar_left_title().c_str());
     clock_bar_update_left_text_width(labels[0]);
     if (clock_bar_left_title().empty()) lv_obj_add_flag(labels[0], LV_OBJ_FLAG_HIDDEN);
@@ -444,6 +463,18 @@ inline void set_clock_bar_temperature_labels(lv_obj_t **labels, size_t count) {
   for (size_t i = 0; labels && i < count; i++) {
     out.push_back(labels[i]);
   }
+  if (!out.empty() && out[0] && clock_bar_temperature_default_font_owner() != out[0]) {
+    clock_bar_temperature_default_font_owner() = out[0];
+    clock_bar_temperature_default_font() =
+        lv_obj_get_style_text_font(out[0], LV_PART_MAIN);
+  }
+}
+
+inline void clock_bar_set_card_label_font(const lv_font_t *font) {
+  if (!font || clock_bar_card_label_font() == font) return;
+  clock_bar_card_label_font() = font;
+  if (!clock_bar_companion_subpage_label().empty() && clock_bar_modal_label().empty())
+    clock_bar_refresh_left_title();
 }
 
 inline void clock_bar_set_widget_hidden(lv_obj_t *obj, bool hidden) {

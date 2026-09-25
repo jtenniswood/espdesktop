@@ -64,6 +64,8 @@ struct GridConfig {
 
 #include "button_grid_image.h"
 
+inline void navigation_refresh_subpage_label();
+
 inline void grid_log_memory(const char *stage) {
 #ifdef ESP_PLATFORM
   ESP_LOGI("sensors", "Phase 2 %s heap: internal=%u largest=%u psram=%u",
@@ -959,6 +961,8 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
                                 int col_span = 1) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto context = card_runtime_context(p);
+  if (s.text_lbl)
+    clock_bar_set_card_label_font(lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN));
   if (cfg.label_lines > 0) {
     apply_card_label_line_clamp(s.text_lbl, cfg, row_span);
   } else if (cfg.wrap_tall_labels && row_span > 1) {
@@ -1429,6 +1433,7 @@ inline void companion_refresh_cached_app_icon(const std::string &application_id)
     lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
     if (image) companion_apply_cached_app_icon(*source, image);
   }
+  navigation_refresh_subpage_label();
 }
 
 inline void companion_refresh_app_icon_connection_state(bool online) {
