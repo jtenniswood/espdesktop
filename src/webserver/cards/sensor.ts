@@ -18,6 +18,7 @@ export function registerSensorCardTypes(
     sensorOptions: ConfigSensorOptionsFeature,
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
+    homeAssistantSupported: () => boolean,
 ): void {
     const { renderButtonSettings } = cardUi;
     const { cardBadgeLabelHtml, cardSensorPreviewHtml, condField, toggleRow } = fields;
@@ -41,10 +42,11 @@ export function registerSensorCardTypes(
     var SENSOR_CARD_METADATA: any = {
         source: {
             label: "Source",
-            options: [
-                ["ha", "Home Assistant"],
-                [SENSOR_CARD_LOCAL_SENSOR, "Local Sensor"],
-            ],
+            options: function (this: any) {
+                return homeAssistantSupported()
+                    ? [[SENSOR_CARD_LOCAL_SENSOR, "Local Sensor"], ["ha", "Home Assistant"]]
+                    : [[SENSOR_CARD_LOCAL_SENSOR, "Local Sensor"]];
+            },
             value: function (this: any, b?: any) {
                 return sensorCardIsLocal(b) ? SENSOR_CARD_LOCAL_SENSOR : "ha";
             },
@@ -103,6 +105,7 @@ export function registerSensorCardTypes(
         cardMetadata: SENSOR_CARD_METADATA,
         onSelect: function (this: any, b?: any) {
             b.entity = "";
+            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
             b.icon_on = "Auto";
             if (!b.precision)
                 b.precision = "";
@@ -119,7 +122,8 @@ export function registerSensorCardTypes(
                 }),
             });
             var sourceButtons: any = sourceControl.buttons;
-            sourceButtons.ha.classList.toggle("active", !sensorCardIsLocal(b));
+            if (sourceButtons.ha)
+                sourceButtons.ha.classList.remove("active");
             sourceButtons[SENSOR_CARD_LOCAL_SENSOR].classList.toggle("active", sensorCardIsLocal(b));
             function setSource(this: any, value?: any) {
                 var fields: any = sensorCardModeController().selectSource(b, value);

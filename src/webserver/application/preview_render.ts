@@ -32,6 +32,7 @@ export interface PreviewRenderDependencies {
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked">;
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
+    readonly homeAssistantSupported: () => boolean;
 }
 export interface PreviewRenderFeature {
     render(): void;
@@ -87,6 +88,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             !!isSub,
             selectedTypeKey,
             connector,
+            dependencies.homeAssistantSupported(),
             state.editingSubpage === -1,
         );
     }

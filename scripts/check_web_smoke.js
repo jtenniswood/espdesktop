@@ -249,8 +249,8 @@ assert.strictEqual(
 );
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("image", false),
-  true,
-  "S3 exposes Camera Cards",
+  false,
+  "Home Assistant camera cards are hidden from the configurator",
 );
 assert.strictEqual(
   hostedSandbox.__ESPDESKTOP_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("media_cover_art", false),
@@ -491,20 +491,20 @@ const sceneWithStaleConfirmation = hooks.parseButtonConfig(hooks.serializeButton
   options: "confirm_on,confirm_message=Run bedtime?",
 }));
 assert.strictEqual(sceneWithStaleConfirmation.options, "", "non-script action cards drop script confirmation options");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), true);
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), true);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), false);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("local_sensor", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("local_sensor", true), false);
 const infoOnlyPickerKeys = Array.from(hooks.buttonTypePickerKeysForInfoOnly(true));
 assert(infoOnlyPickerKeys.includes("sensor"), "info-only displays can still add sensor cards");
-assert(infoOnlyPickerKeys.includes("weather"), "info-only displays can still add weather cards");
+assert(!infoOnlyPickerKeys.includes("weather"), "Home Assistant weather cards stay hidden");
 assert(!infoOnlyPickerKeys.includes(""), "info-only displays hide switch controls");
 assert(!infoOnlyPickerKeys.includes("subpage"), "info-only displays hide subpage cards");
 assert(!infoOnlyPickerKeys.includes("media"), "info-only displays hide media controls");
 const pickerOptions = Array.from(hooks.buttonTypePickerOptionsFor(false, null));
-assert(pickerOptions.length > 8, "main card picker exposes the visible card choices");
+assert(pickerOptions.length > 0, "main card picker retains available choices");
 for (const option of pickerOptions) {
   assert.strictEqual(typeof option.icon, "string", `${option.key}: picker option has an icon`);
   assert(option.icon.length > 0, `${option.key}: picker option icon is not empty`);
@@ -512,8 +512,7 @@ for (const option of pickerOptions) {
   assert(option.description.length > 0, `${option.key}: picker option description is not empty`);
 }
 const switchPickerOption = pickerOptions.find((option) => option.key === "");
-assert(switchPickerOption, "switch card appears in the main card picker");
-assert.strictEqual(switchPickerOption.icon, "toggle-switch", "switch picker option uses the expected icon");
+assert.strictEqual(switchPickerOption, undefined, "Home Assistant switch controls are hidden from the picker");
 const cardStylesSource = fs.readFileSync(
   path.join(ROOT, "src", "webserver", "application", "styles.ts"),
   "utf8",
@@ -534,7 +533,6 @@ assert(
   cardStylesSource.includes(".sp-image-preview-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad)"),
   "image card icons use the same top-left placement",
 );
-assert(/Toggle lights/.test(switchPickerOption.description), "switch picker option includes concise help text");
 const wifiSharePickerOption = pickerOptions.find((option) => option.key === "wifi_qr");
 assert.strictEqual(
   wifiSharePickerOption,
@@ -635,8 +633,8 @@ assert.deepStrictEqual(Array.from(hooks.alarmVisibleActions(hooks.parseButtonCon
 assert.deepStrictEqual(Array.from(hooks.alarmVisibleActions(hooks.parseButtonConfig(
   "alarm_control_panel.house;House;Security;Auto;;;alarm;;actions=away%7Chome%7Cnight%7Cvacation%7Cdisarm"
 ))), ["away", "home", "night"]);
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), true);
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), true);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), false);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_switch", false), false);
@@ -1383,8 +1381,8 @@ assert(subpageCompanionStatPreview.labelHtml.includes("mdi-chevron-right"), "Com
   assert(preview.labelHtml.includes("mdi-chevron-right"), `${label} subpage preset preview shows the chevron badge`);
 });
 
-assert(hooks.buttonTypePickerKeysFor(false).includes("lawn_mower"), "lawn mower cards are available in the main picker");
-assert(hooks.buttonTypePickerKeysFor(true).includes("lawn_mower"), "lawn mower cards are available in subpages");
+assert(!hooks.buttonTypePickerKeysFor(false).includes("lawn_mower"), "Home Assistant lawn mower cards stay hidden from the main picker");
+assert(!hooks.buttonTypePickerKeysFor(true).includes("lawn_mower"), "Home Assistant lawn mower cards stay hidden in subpages");
 assert.deepStrictEqual(plain(hooks.buttonTypeDefaultConfig("lawn_mower")), {
   entity: "",
   label: "",

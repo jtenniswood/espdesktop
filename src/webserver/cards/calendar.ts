@@ -13,10 +13,12 @@ export function registerCalendarCardTypes(
     registry: CardRegistry,
     dateTimeOptions: ConfigDateTimeOptionsFeature,
     fields: ControlsFieldsFeature,
+    homeAssistantSupported: () => boolean,
 ): void {
     const { cardBadgeLabelHtml, cardLargeNumbersHidePreviewLabel, cardSensorPreviewHtml } = fields;
     const {
         dateTimeCardTimeParts,
+        metadataForHomeAssistantSupport,
         metadata,
         monthNameForIndex,
         now,
@@ -31,14 +33,20 @@ export function registerCalendarCardTypes(
         defaultConfig: function () { return cardContractDefaultConfig("calendar"); },
         cardMetadata: metadata,
         onSelect: function (button?: any) {
-            const defaults: any = cardContractDefaultConfig("calendar");
+            // When Home Assistant is disabled, the shared Date & Time picker
+            // must create a local card even if the user saves without changing
+            // the filtered mode selector.
+            const defaults: any = cardContractDefaultConfig(
+                homeAssistantSupported() ? "calendar" : "clock",
+            );
             Object.keys(defaults).forEach(function (key) { button[key] = defaults[key]; });
             button.precision = button.precision === "datetime" ? "datetime" : "";
         },
         renderSettings: function (panel?: any, button?: any, _slot?: any, helpers?: any) {
             if (!button.entity) button.entity = "sensor.date";
             if (button.precision !== "datetime") button.precision = "";
-            helpers.renderCardModeSelector(panel, button, helpers, metadata);
+            const modeMetadata = metadataForHomeAssistantSupport(homeAssistantSupported());
+            helpers.renderCardModeSelector(panel, button, helpers, modeMetadata);
             helpers.renderCardLargeNumbersToggle(panel, button, helpers, metadata);
         },
         renderPreview: function (button?: any, helpers?: any) {

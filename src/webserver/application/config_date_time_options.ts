@@ -148,6 +148,17 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
         preview: { dateBadge: "calendar-month", timezoneBadge: "map-clock" },
     };
 
+    function metadataForHomeAssistantSupport(this: any, supported?: any) {
+        if (supported) return metadata;
+        return Object.assign({}, metadata, {
+            mode: Object.assign({}, metadata.mode, {
+                options: metadata.mode.options.filter(function (option?: any) {
+                    return option.value === "clock" || option.value === "timezone";
+                }),
+            }),
+        });
+    }
+
     return {
         appendTimezoneOption: dependencies.appendTimezoneOption,
         dateTimeCardMode,
@@ -156,6 +167,7 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
         dateTimeModeOptionValues,
         defaultTimezoneCardEntity,
         metadata,
+        metadataForHomeAssistantSupport,
         monthNameForIndex: dependencies.monthNameForIndex,
         now: dependencies.now,
         normalizeDateTimeCardMode,

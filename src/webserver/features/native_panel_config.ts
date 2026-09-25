@@ -30,6 +30,7 @@ export type NativePanelConfigSaveResult = "saved" | "unsupported" | "conflict" |
 export type NativePanelConfigCollection = "buttons" | "subpages" | "settings";
 
 interface Capabilities {
+  home_assistant_support?: unknown;
   configuration?: {
     read?: unknown;
     write?: unknown;
@@ -74,6 +75,7 @@ export class NativePanelConfigClient {
   private supported_ = false;
   private retryable_ = false;
   private confirmedUnsupported_ = false;
+  private homeAssistantSupportEnabled_ = false;
   private discovery_: Promise<boolean> | null = null;
 
   constructor(private readonly fetch_: NativePanelConfigFetch) {}
@@ -81,6 +83,7 @@ export class NativePanelConfigClient {
   supported(): boolean { return this.supported_; }
   retryable(): boolean { return this.retryable_; }
   confirmedUnsupported(): boolean { return this.confirmedUnsupported_; }
+  homeAssistantSupportEnabled(): boolean { return this.homeAssistantSupportEnabled_; }
 
   private retryDiscovery(): void {
     this.supported_ = false;
@@ -99,7 +102,12 @@ export class NativePanelConfigClient {
         this.retryable_ = response.status === 404 || response.status === 503;
         this.confirmedUnsupported_ = false;
         if (!response.ok) return false;
-        const supported = supportedCapabilities(await response.json());
+        const value = await response.json();
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          const homeAssistantSupport = (value as Capabilities).home_assistant_support;
+          this.homeAssistantSupportEnabled_ = homeAssistantSupport === true;
+        }
+        const supported = supportedCapabilities(value);
         this.confirmedUnsupported_ = supported === false;
         return supported === true;
       })

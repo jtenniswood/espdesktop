@@ -453,17 +453,21 @@ assert.deepStrictEqual(
   "10-inch Wifi card size menu adds 2x3 and 3x4 portrait sizes",
 );
 const transferredSensor = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
-  cards: [{ type: "sensor", entity: "sensor.office", label: "Office", size: 10 }],
-}, false);
+  cards: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office", size: 10 }],
+}, false, true);
 assert.strictEqual(transferredSensor.entries[0].size, 1, "card transfer downgrades unsupported 3x4 sensor size");
 assert.strictEqual(transferredSensor.warnings.cardResized, true, "card transfer reports normalized card sizes");
+assert.throws(() => tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
+  cards: [{ type: "sensor", entity: "sensor.office", label: "Office" }],
+}, false, false), /Home Assistant-backed cards are no longer available/,
+"Home Assistant card transfer remains blocked unless firmware opts in");
 const transferredCoverArt = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "media", sensor: "cover_art", entity: "media_player.office", label: "Cover Art", size: 10 }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredCoverArt.entries[0].size, 10, "card transfer keeps supported 3x4 cover art size");
 const transferredLandscapeCamera = hooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "image", entity: "camera.office", label: "Office", size: 11 }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredLandscapeCamera.entries[0].size, 11, "landscape 7-inch card transfer keeps supported Massive Wide camera size");
 const transferredSubpage = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{
@@ -473,10 +477,10 @@ const transferredSubpage = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
     subpage: {
       order: ["1p", "B"],
       back_label: "Back",
-      buttons: [{ type: "sensor", entity: "sensor.office", label: "Office" }],
+      buttons: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office" }],
     },
   }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredSubpage.warnings.subpageResized, true, "card transfer reports normalized subpage sizes");
 assert.strictEqual(
   Array.from(tenInchHooks.parseSubpageConfig(transferredSubpage.entries[0].subpageConfig).order).includes("1p"),
@@ -485,7 +489,7 @@ assert.strictEqual(
 );
 const transferredS3Camera = s3Hooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "image", entity: "camera.front_door", label: "Front Door", size: 1 }],
-}, false);
+}, false, true);
 assert.strictEqual(transferredS3Camera.entries[0].type, "image", "S3 card transfer accepts Camera Cards");
 const transferredS3CameraSubpage = s3Hooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{
@@ -498,7 +502,7 @@ const transferredS3CameraSubpage = s3Hooks.cardTransferEntriesFromEnvelopeForTes
       buttons: [{ type: "image", entity: "camera.front_door", label: "Front Door" }],
     },
   }],
-}, false);
+}, false, true);
 const transferredS3Subpage = s3Hooks.parseSubpageConfig(
   transferredS3CameraSubpage.entries[0].subpageConfig,
 );
@@ -1616,8 +1620,8 @@ assertButtonRoundTrip(hooks, "alarm vacation action button", {
   options: "pin_arm=0",
 }, false);
 
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), true, "alarm modal picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), true, "alarm card family visible in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), false, "alarm modal is hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), false, "alarm cards are hidden in subpages");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", false), false, "alarm actions hidden as a separate picker item");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", true), false, "alarm actions hidden as a separate subpage picker item");
 assert.strictEqual(
@@ -2298,8 +2302,8 @@ assert.strictEqual(
   hooks.normalizeLightControlOptions("light_tabs=bad%7Cpower%7Cpower"),
   "light_tabs=power",
   "invalid and duplicate light control tabs are removed");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", false), true, "lights picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", true), true, "lights picker visible in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", false), false, "lights are hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_brightness", true), false, "lights are hidden in subpages");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_switch", false), false, "light switch subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_switch", true), false, "light switch subtype hidden from subpage picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_temperature", false), false, "light temperature subtype hidden from top-level picker");
@@ -2307,7 +2311,7 @@ assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_temperature", true)
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_control", false), false, "full light control subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("light_control").hidden, true, "full light control is grouped under Lights");
 assert.strictEqual(hooks.defaultButtonTypeForPicker("light_brightness"), "light_control", "lights picker defaults to all controls");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate", false), true, "climate picker visible on parent page");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate", false), false, "climate controls are hidden from the picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate_control", false), false, "all controls climate subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("climate_control").label, "All Controls", "all controls climate subtype has its own label");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("climate_control").pickerKey, "climate", "all controls climate subtype is grouped under Climate");
@@ -2478,10 +2482,10 @@ assertButtonMigration(hooks, "fan card clears ignored fields", "fan.bedroom;Bedr
   type: "fan_direction",
 });
 
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), true, "fan picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), true, "fan picker visible in subpages");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", false), true, "image picker visible on parent page");
-assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", true), true, "image picker visible in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), false, "fan controls are hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), false, "fan controls are hidden in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", false), false, "Home Assistant image cards are hidden from the picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("image", true), false, "Home Assistant image cards are hidden in subpages");
 assert.deepStrictEqual(Array.from(hooks.imageModalModeValues()), ["fill", "fit"], "image modal mode values are contract-backed");
 assert.deepStrictEqual(Array.from(hooks.cardContractDomains("image")), ["camera", "image"], "image cards accept camera and image entities");
 assert.strictEqual(hooks.normalizeImageOptions("image_refresh=30,image_refresh_mode=timer,unknown=1"), "", "legacy image refresh options are dropped");

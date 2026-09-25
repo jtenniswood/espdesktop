@@ -154,10 +154,12 @@ function registerCards(context: ApplicationContext) {
     renderButtonSettings: (force?: boolean) => context.controllers.buttonSettings.render(force),
   };
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
-  registerActionCardTypes(registry, context.configuration.confirmationOptions, context.controllers.entityState, fields, cardUi);
+  registerActionCardTypes(registry, context.configuration.confirmationOptions, context.controllers.entityState, fields, cardUi,
+    () => context.configuration.native.homeAssistantSupportEnabled());
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
-  registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields);
+  registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields,
+    () => context.configuration.native.homeAssistantSupportEnabled());
   registerCompanionCardTypes(
     registry,
     !!context.device.profile.features?.companion,
@@ -179,7 +181,8 @@ function registerCards(context: ApplicationContext) {
     context.controllers.renderQueue,
     fields,
   );
-  registerClockCardTypes(registry, context.configuration.dateTimeOptions, fields);
+  registerClockCardTypes(registry, context.configuration.dateTimeOptions, fields,
+    () => context.configuration.native.homeAssistantSupportEnabled());
   registerDoorWindowCardTypes(registry, context.configuration.options, fields);
   registerFanCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
   registerGarageCardTypes(
@@ -211,7 +214,8 @@ function registerCards(context: ApplicationContext) {
   registerPresenceCardTypes(registry, context.configuration.options, fields);
   registerPushCardTypes(registry, fields);
   registerScreenLockCardTypes(registry, fields);
-  registerSensorCardTypes(registry, context.configuration.options, fields, cardUi);
+  registerSensorCardTypes(registry, context.configuration.options, fields, cardUi,
+    () => context.configuration.native.homeAssistantSupportEnabled());
   registerSliderCardTypes(
     registry,
     context.configuration.modalTabs,
@@ -223,7 +227,8 @@ function registerCards(context: ApplicationContext) {
   );
   registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
   registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);
-  registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields);
+  registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields,
+    () => context.configuration.native.homeAssistantSupportEnabled());
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, context.controllers.clockBarState, fields, cardUi);
   registerWeatherForecastCardTypes(registry, weatherCards, context.controllers.clockBarState, fields);
@@ -658,8 +663,10 @@ function composeApplicationContext(): ApplicationContext {
     shell,
     grid,
     selection,
+    homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
   });
   const clipboard = createPreviewClipboardFeature({
+    homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
     configPersistence: configurationPersistence,
     document: dom.document,
     layout,
@@ -702,6 +709,7 @@ function composeApplicationContext(): ApplicationContext {
     deleteButtons: (slots) => interactions.deleteButtons(slots),
   });
   interactions = createPreviewInteractionsFeature({
+    homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
     cardEditorDraft,
     configPersistence: configurationPersistence,
     layout,
@@ -727,6 +735,9 @@ function composeApplicationContext(): ApplicationContext {
     {
       homeAssistantEnabled: () => connectorsPage
         ? connectorsPage.homeAssistantCardPickerEnabled()
+        : true,
+      homeAssistantConfigured: () => connectorsPage
+        ? connectorsPage.homeAssistantConfigured()
         : true,
     },
   );
@@ -933,6 +944,7 @@ function composeApplicationContext(): ApplicationContext {
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
     dom, shell, fields, companionSection, !!layout.config.features?.companion,
+    () => nativePanelConfig.homeAssistantSupportEnabled(),
   );
   let temperatureHomeAssistantConnected = connectorsPage.homeAssistantConnected();
   connectorsPage.onStatusChange(() => {
@@ -945,10 +957,13 @@ function composeApplicationContext(): ApplicationContext {
     statusPreview.updateClockBarItemUi();
   });
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
+  let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
   connectorsPage.onStatusChange(() => {
     const enabled = connectorsPage.homeAssistantCardPickerEnabled();
-    if (enabled === pickerHomeAssistantEnabled) return;
+    const configured = connectorsPage.homeAssistantConfigured();
+    if (enabled === pickerHomeAssistantEnabled && configured === pickerHomeAssistantConfigured) return;
     pickerHomeAssistantEnabled = enabled;
+    pickerHomeAssistantConfigured = configured;
     buttonSettings.render();
   });
   settingsPage = createSettingsPageFeature(
