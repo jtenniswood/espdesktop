@@ -165,6 +165,7 @@ inline void lv_obj_set_style_bg_color(lv_obj_t *, int, lv_style_selector_t) {}
 inline void lv_obj_set_style_bg_grad_color(lv_obj_t *, lv_color_t, lv_style_selector_t) {}
 inline void lv_obj_set_style_bg_grad_dir(lv_obj_t *, int, lv_style_selector_t) {}
 inline void lv_obj_set_style_text_color(lv_obj_t *, lv_color_t, lv_style_selector_t) {}
+inline void lv_obj_set_style_text_font(lv_obj_t *, const lv_font_t *, lv_style_selector_t) {}
 inline void lv_obj_set_style_text_align(lv_obj_t *, int, lv_style_selector_t) {}
 inline lv_color_t lv_obj_get_style_text_color(lv_obj_t *, lv_style_selector_t) { return 0; }
 inline int lv_font_get_line_height(const lv_font_t *) { return 20; }
