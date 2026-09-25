@@ -231,7 +231,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
       const lv_coord_t max_height = std::max<lv_coord_t>(1,
           button_height - pad_top - pad_bottom - label_height - (label_height > 0 ? gap : 0));
       target_side = std::max<lv_coord_t>(1,
-          std::min<lv_coord_t>(small_side * 5 / 2, std::min(max_width, max_height)) * 9 / 10);
+          std::min<lv_coord_t>(small_side * 5 / 2, std::min(max_width, max_height)) * 85 / 100);
       if (source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)) {
         lv_label_set_long_mode(source.card_label, LV_LABEL_LONG_DOT);
         lv_obj_set_width(source.card_label, lv_pct(100));
