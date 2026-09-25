@@ -714,8 +714,8 @@ final class CompanionConnection: NSObject {
         }.sorted()
     }
 
-    nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: Int) -> Bool {
-        capabilityVersion >= CompanionCapabilities.version
+    nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: UInt32) -> Bool {
+        capabilityVersion >= UInt32(CompanionCapabilities.version)
     }
 
     func publishTimezone() {
