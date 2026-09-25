@@ -1434,8 +1434,9 @@ export function registerCompanionCardTypes(
                     renderPreview();
                 });
                 const iconSizeRow = document.createElement("div");
-                iconSizeRow.className = "sp-field-row sp-companion-app-icon-size";
+                iconSizeRow.className = "sp-companion-app-icon-size";
                 const iconSizeLabel = document.createElement("label");
+                iconSizeLabel.className = "sp-field-label";
                 const iconSizeControl = document.createElement("div");
                 iconSizeControl.className = "sp-companion-app-icon-size-control";
                 const iconSizeButton = document.createElement("button");

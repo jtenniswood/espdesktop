@@ -577,11 +577,13 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-color-row .sp-input{flex:1}" +
         ".sp-companion-app-colour-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}" +
         ".sp-companion-app-colour-mode .sp-action-btn[aria-pressed='true']{border-color:var(--accent);color:var(--accent)}" +
-        ".sp-companion-app-icon-size{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}" +
-        ".sp-companion-app-icon-size-control{position:relative;width:55%;max-width:260px}" +
+        ".sp-companion-app-icon-size{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:10px 0}" +
+        ".sp-companion-app-icon-size>.sp-field-label{margin:0}" +
+        ".sp-companion-app-icon-size-control{position:relative;width:100%;max-width:none}" +
         ".sp-companion-app-icon-size-button{display:flex;align-items:center;justify-content:space-between;gap:10px;" +
-        "width:100%;text-align:left;cursor:pointer;background-image:none}" +
-        ".sp-companion-app-icon-size-button .mdi{color:var(--text2);font-size:18px;flex-shrink:0}" +
+        "width:100%;min-height:46px;box-sizing:border-box;text-align:left;cursor:pointer;background-image:none}" +
+        ".sp-companion-app-icon-size-button .mdi{display:inline-flex;align-items:center;justify-content:center;" +
+        "width:18px;height:18px;line-height:1;color:var(--text2);font-size:18px;flex:0 0 18px;transform:translateY(1px)}" +
         ".sp-companion-app-icon-size-list{display:none;position:absolute;z-index:60;top:calc(100% + 4px);" +
         "left:0;right:0;padding:4px;background:var(--surface2);border:1px solid var(--border);" +
         "border-radius:10px;box-shadow:var(--shadow-3)}" +
