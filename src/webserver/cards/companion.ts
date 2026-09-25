@@ -1424,14 +1424,6 @@ export function registerCompanionCardTypes(
                     icon: false,
                 });
                 const customIcon = configOptionEnabled(card.options, "custom_icon");
-                const iconToggle = helpers.toggleRow(
-                    "Use Mac app icon", helpers.idPrefix + "companion-app-icon", !customIcon,
-                );
-                panel?.appendChild(iconToggle.row);
-                const iconPicker = helpers.renderCardIconPicker(
-                    panel, card, helpers, COMPANION_CARD_METADATA.icon,
-                );
-                iconPicker.style.display = customIcon ? "" : "none";
                 const labelToggle = helpers.toggleRow(
                     "Show label", helpers.idPrefix + "companion-app-label",
                     !configOptionEnabled(card.options, "app_hide_label"),
@@ -1442,6 +1434,14 @@ export function registerCompanionCardTypes(
                     helpers.saveField("options", card.options);
                     renderPreview();
                 });
+                const iconToggle = helpers.toggleRow(
+                    "Use Mac app icon", helpers.idPrefix + "companion-app-icon", !customIcon,
+                );
+                panel?.appendChild(iconToggle.row);
+                const iconPicker = helpers.renderCardIconPicker(
+                    panel, card, helpers, COMPANION_CARD_METADATA.icon,
+                );
+                iconPicker.style.display = customIcon ? "" : "none";
                 const iconSizeRow = document.createElement("div");
                 iconSizeRow.className = "sp-field-row sp-companion-app-icon-size";
                 const iconSizeLabel = document.createElement("label");
