@@ -24,16 +24,21 @@ int main() {
   const auto before = allocations;
   for (int i = 0; i < 1000; ++i) assert(first.companion_runtime().connected());
   assert(allocations == before); // Simple status reads never copy the catalogue.
+  const std::string remote_json(12000, 'x');
   std::vector<CompanionRemoteDefinition> definitions;
   definitions.reserve(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2);
   for (size_t i = 0; i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2; ++i)
     definitions.push_back({i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE ? "application" : "webapp",
-                           std::to_string(i), "", "{}"});
+                           std::to_string(i), i == COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE
+                               ? "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/icon.png" : "",
+                           remote_json});
   first.companion_runtime().set_remote_definitions(std::move(definitions));
   const auto before_snapshot = allocations;
   const auto snapshot = first.companion_runtime().snapshot();
   assert(allocations - before_snapshot < 16); // Snapshot reads omit the large remote definition catalogue.
   assert(snapshot.actions[0].id == "com.example.First");
+  const std::string icon_url = first.companion_runtime().remote_definition_icon_url("webapp", "128");
+  assert(icon_url == "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/icon.png");
   bool definitions_connected = false;
   bool has_more = false;
   assert(first.companion_runtime().remote_definitions_page(0, 4, definitions_connected, has_more).size() == 4);

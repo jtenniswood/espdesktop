@@ -34,6 +34,12 @@ esphome:
             clock_bar_enable_settings_access(id(display_time));
             navigation_subpage_clock_bar_refresh() = []() {
               navigation_refresh_subpage_label();
+              lv_obj_set_style_text_font(
+                  id(temperatures),
+                  clock_bar_left_title().empty()
+                      ? id(${label_font})->get_lv_font()
+                      : id(${media_title_font})->get_lv_font(),
+                  LV_PART_MAIN);
               refresh_clock_bar_temperature_label_values(
                   id(main_page)->obj,
                   clock_bar_should_show(
@@ -145,8 +151,6 @@ script:
           int clock_bar_item_width = ${clock_bar_item_gap};
           int clock_bar_right_x =
               clock_bar_480_square ? 4 : (clock_bar_screen_width >= 700 ? 8 : 6);
-          clock_bar_set_text_fonts(id(${label_font})->get_lv_font(),
-                                   id(${media_title_font})->get_lv_font());
           lv_obj_t *temperature_labels[] = {
             id(temperatures),
           };
@@ -193,6 +197,12 @@ script:
               clock_bar_right_x,
               clock_bar_icon_y,
               ${clock_bar_item_gap});
+          lv_obj_set_style_text_font(
+              id(temperatures),
+              clock_bar_left_title().empty()
+                  ? id(${label_font})->get_lv_font()
+                  : id(${media_title_font})->get_lv_font(),
+              LV_PART_MAIN);
 
           if (show_time) {
             lv_obj_clear_flag(id(display_time), LV_OBJ_FLAG_HIDDEN);

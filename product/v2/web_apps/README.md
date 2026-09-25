@@ -37,7 +37,7 @@ The manifest must list every top-level template JSON file in this folder exactly
 }
 ```
 
-- `id`: lowercase, hyphenated identifier. The display card entity is `webapp.<id>`.
+- `id`: lowercase, hyphenated identifier of at most 64 bytes. The display card entity is `webapp.<id>`.
 - `url`: HTTPS address the card opens in the Mac's default browser.
 - `matchHost`: lowercase host name from `url`, without a scheme or path.
 - `matchPath`: optional path prefix. When omitted, any path on that host matches. When set, it matches that path and its subpaths. Query strings and fragments do not affect a match.
