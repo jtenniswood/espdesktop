@@ -30,6 +30,10 @@ int main() {
     definitions.push_back({i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE ? "application" : "webapp",
                            std::to_string(i), "", "{}"});
   first.companion_runtime().set_remote_definitions(std::move(definitions));
+  const auto before_snapshot = allocations;
+  const auto snapshot = first.companion_runtime().snapshot();
+  assert(allocations - before_snapshot < 16); // Snapshot reads omit the large remote definition catalogue.
+  assert(snapshot.actions[0].id == "com.example.First");
   bool definitions_connected = false;
   bool has_more = false;
   assert(first.companion_runtime().remote_definitions_page(0, 4, definitions_connected, has_more).size() == 4);

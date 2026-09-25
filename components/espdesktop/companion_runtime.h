@@ -123,7 +123,6 @@ struct CompanionRuntimeSnapshot {
   bool connected{false};
   CompanionNowPlayingSnapshot now_playing;
   CompanionSystemMetricsSnapshot system_metrics;
-  std::vector<CompanionRemoteDefinition> remote_definitions;
   std::vector<CompanionURLFocusTarget> url_focus_targets;
   std::vector<std::string> web_app_focus_ids;
   uint32_t url_focus_targets_generation{0};
@@ -224,6 +223,15 @@ class CompanionRuntimeService {
     return {remote_definitions_.begin() + begin, remote_definitions_.begin() + end};
   }
 
+  std::string remote_definition_icon_url(const std::string &kind, const std::string &id) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto definition = std::find_if(remote_definitions_.begin(), remote_definitions_.end(),
+      [&kind, &id](const CompanionRemoteDefinition &candidate) {
+        return candidate.kind == kind && candidate.id == id;
+      });
+    return definition == remote_definitions_.end() ? std::string() : definition->icon_url;
+  }
+
   CompanionNowPlayingSnapshot now_playing() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return now_playing_;
@@ -241,8 +249,8 @@ class CompanionRuntimeService {
   CompanionRuntimeSnapshot snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
-            connected_, now_playing_, system_metrics_, remote_definitions_, url_focus_targets_,
-            web_app_focus_ids_, url_focus_targets_generation_};
+            connected_, now_playing_, system_metrics_, url_focus_targets_, web_app_focus_ids_,
+            url_focus_targets_generation_};
   }
 
   CompanionFocusTargetsState focus_targets_state() const {

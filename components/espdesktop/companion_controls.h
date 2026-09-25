@@ -266,13 +266,9 @@ inline std::string companion_web_app_icon_url(const std::string &action_id) {
   constexpr const char *prefix = "webapp.";
   if (action_id.rfind(prefix, 0) != 0) return "";
   const std::string id = action_id.substr(7);
-  const auto snapshot = companion_runtime_snapshot();
-  for (const auto &definition : snapshot.remote_definitions) {
-    if (definition.kind == "webapp" && definition.id == id &&
-        definition.icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) == 0) {
-      return definition.icon_url;
-    }
-  }
+  const std::string icon_url = companion_runtime_service().remote_definition_icon_url("webapp", id);
+  if (icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) == 0)
+    return icon_url;
   return companion_web_app_catalog::icon_url(id);
 }
 
