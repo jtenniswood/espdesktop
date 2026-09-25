@@ -159,7 +159,7 @@ script:
           clock_bar_left_icon_origin_x() =
               lv_obj_get_style_pad_left(id(main_page)->obj, LV_PART_MAIN);
           clock_bar_left_icon_origin_y() =
-              std::max(0, (clock_bar_reserved_height - CLOCK_BAR_COMPANION_ICON_SIZE) / 2);
+              std::max<int>(0, (clock_bar_reserved_height - CLOCK_BAR_COMPANION_ICON_SIZE) / 2);
           int clock_bar_item_width = ${clock_bar_item_gap};
           int clock_bar_right_x =
               clock_bar_480_square ? 4 : (clock_bar_screen_width >= 700 ? 8 : 6);
