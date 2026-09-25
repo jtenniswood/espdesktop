@@ -341,7 +341,12 @@ final class CompanionStore: NSObject, ObservableObject {
             return nil
         }
         let scale = min(CGFloat(pixelSide) / iconSize.width, CGFloat(pixelSide) / iconSize.height)
-        let fittedSize = NSSize(width: iconSize.width * scale, height: iconSize.height * scale)
+        // macOS app artwork includes generous transparent edge padding. Draw
+        // it slightly oversized so the visible icon aligns with the card
+        // label's inset while keeping the image centered in its square slot.
+        let artworkScale: CGFloat = 1.2
+        let fittedSize = NSSize(width: iconSize.width * scale * artworkScale,
+                                height: iconSize.height * scale * artworkScale)
         icon.draw(
             in: NSRect(x: (CGFloat(pixelSide) - fittedSize.width) / 2,
                        y: (CGFloat(pixelSide) - fittedSize.height) / 2,
