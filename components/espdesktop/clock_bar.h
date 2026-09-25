@@ -330,6 +330,21 @@ inline std::vector<lv_obj_t *> &clock_bar_temperature_labels() {
   return labels;
 }
 
+inline lv_obj_t *&clock_bar_companion_icon_widget() {
+  static lv_obj_t *widget = nullptr;
+  return widget;
+}
+
+inline int &clock_bar_left_title_origin_x() {
+  static int value = 12;
+  return value;
+}
+
+inline int &clock_bar_left_title_origin_y() {
+  static int value = 8;
+  return value;
+}
+
 inline std::string &clock_bar_companion_subpage_label() {
   static std::string label;
   return label;
@@ -348,6 +363,10 @@ inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
 inline std::string &clock_bar_modal_label() {
   static std::string label;
   return label;
+}
+inline bool clock_bar_companion_icon_should_show() {
+  return clock_bar_companion_icon_widget() &&
+      !clock_bar_companion_subpage_label().empty() && clock_bar_modal_label().empty();
 }
 inline const std::string &clock_bar_left_title() {
   return clock_bar_modal_label().empty() ? clock_bar_companion_subpage_label()
@@ -371,7 +390,26 @@ inline void refresh_clock_bar_temperature_label_values(
 inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   if (!label) return;
   const auto &widths = clock_bar_left_text_widths();
-  lv_obj_set_width(label, clock_bar_left_title().empty() ? widths.temperature : widths.title);
+  const int icon_space = clock_bar_companion_icon_should_show() ? 26 : 0;
+  const int width = clock_bar_left_title().empty()
+      ? widths.temperature : std::max(1, widths.title - icon_space);
+  lv_obj_set_width(label, width);
+  lv_obj_align(label, LV_ALIGN_TOP_LEFT,
+               clock_bar_left_title_origin_x() + icon_space,
+               clock_bar_left_title_origin_y());
+}
+
+inline void clock_bar_sync_companion_icon(bool visible) {
+  lv_obj_t *widget = clock_bar_companion_icon_widget();
+  if (!widget) return;
+  const bool show = visible && clock_bar_companion_icon_should_show();
+  if (show) lv_obj_clear_flag(widget, LV_OBJ_FLAG_HIDDEN);
+  else lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
+  if (show) {
+    lv_obj_set_pos(widget, clock_bar_left_title_origin_x(),
+                   clock_bar_left_title_origin_y());
+    lv_obj_move_foreground(widget);
+  }
 }
 inline void clock_bar_refresh_left_title() {
   const auto context = clock_bar_refresh_context();
@@ -381,6 +419,8 @@ inline void clock_bar_refresh_left_title() {
     clock_bar_update_left_text_width(labels[0]);
     if (clock_bar_left_title().empty()) lv_obj_add_flag(labels[0], LV_OBJ_FLAG_HIDDEN);
   }
+  clock_bar_sync_companion_icon(context.initialized && context.visible &&
+      clock_bar_active_on_button_grid_page(context.page));
   if (context.initialized) {
     refresh_clock_bar_temperature_label_values(context.page, context.visible,
         context.indoor_enabled, context.outdoor_enabled, context.indoor, context.outdoor);
@@ -505,6 +545,7 @@ inline void refresh_clock_bar_temperature_label_values(
       indoor_enabled, outdoor_enabled, indoor, outdoor};
   const bool show_on_screen =
       clock_bar_visible && clock_bar_active_on_button_grid_page(main_page_obj);
+  clock_bar_sync_companion_icon(show_on_screen);
   std::vector<lv_obj_t *> &labels = clock_bar_temperature_labels();
 
   if (!labels.empty()) clock_bar_update_left_text_width(labels[0]);
@@ -710,6 +751,8 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
   if (time_width > 96) time_width = 96;
 
   auto &left_widths = clock_bar_left_text_widths();
+  clock_bar_left_title_origin_x() = left_x;
+  clock_bar_left_title_origin_y() = label_y;
   left_widths.temperature = temperature_width;
   // Titles can use the free space up to the centered clock, rather than a
   // temperature-sized box. Retain a gap so text cannot run into the time.
@@ -726,6 +769,8 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
 
   if (temperature_label) {
     lv_obj_align(temperature_label, LV_ALIGN_TOP_LEFT, left_x, label_y);
+    clock_bar_update_left_text_width(temperature_label);
+    clock_bar_sync_companion_icon(temperature_visible || !clock_bar_left_title().empty());
     lv_obj_move_background(temperature_label);
   }
   if (display_time) {
