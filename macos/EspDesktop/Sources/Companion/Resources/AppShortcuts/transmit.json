@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.panic.Transmit",
+  "label": "Transmit",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Show Transfers",
+      "shortcut": "command+l",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Refresh",
+      "shortcut": "command+r",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Back",
+      "shortcut": "command+keybracketleft",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Forward",
+      "shortcut": "command+keybracketright",
+      "icon": "Application"
+    }
+  ]
+}

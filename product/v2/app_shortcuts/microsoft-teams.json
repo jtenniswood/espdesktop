@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "appId": "com.microsoft.teams2",
+  "label": "Microsoft Teams",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Go to Search .",
+      "shortcut": "command+e",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Start a new chat.",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Start a chat in a new window.",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Go to a specific chat or channel.",
+      "shortcut": "command+g",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Go to compose box.",
+      "shortcut": "command+r",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Jump to last read or newest message.",
+      "shortcut": "command+j",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Search current chat or channel messages.",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Send (expanded compose box).",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Attach file.",
+      "shortcut": "command+option+o",
+      "icon": "Application"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.adobe.Reader",
+  "label": "Adobe Acrobat Reader",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Zoom In tool (temporary selection)",
+      "shortcut": "command+space",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Find in document",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Move to the next search result and highlight…",
+      "shortcut": "command+g",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Pause reading out loud",
+      "shortcut": "command+shift+c",
+      "icon": "Application"
+    }
+  ]
+}

@@ -44,6 +44,8 @@ Supported shortcut strings use lowercase modifiers `command`, `control`, `option
 
 The current live files are useful examples too: Safari is in the standalone catalog; the other app templates provide shortcuts on their matching app subpages.
 
+Research-based starter templates cover the native apps in the shortcut research index. Each includes up to ten confirmed, highlighted shortcuts that this controller can send. Templates are app-subpage choices; system-wide Spotlight controls, terminal-only OpenCode bindings, and the separate browser-based Onshape page are not included as native app templates.
+
 ## Validate and generate
 
 ```sh

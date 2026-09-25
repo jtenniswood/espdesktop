@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.adobe.Photoshop",
+  "label": "Adobe Photoshop",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Redo",
+      "shortcut": "command+shift+z",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Deselect",
+      "shortcut": "command+d",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Free Transform",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "New layer via copy",
+      "shortcut": "command+j",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Create or release clipping mask",
+      "shortcut": "command+option+g",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Toggle Smart Guides",
+      "shortcut": "command+u",
+      "icon": "Application"
+    }
+  ]
+}

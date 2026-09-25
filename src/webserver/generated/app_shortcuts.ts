@@ -15,6 +15,618 @@ export interface AppShortcutApplication {
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {
     "version": 1,
+    "appId": "com.1password.1password",
+    "label": "1Password",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Lock 1Password",
+        "shortcut": "command+shift+l",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Search all items",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Copy username or primary field",
+        "shortcut": "command+c",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Copy password",
+        "shortcut": "command+shift+c",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Copy one-time password",
+        "shortcut": "command+option+c",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Open login website and fill credentials",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Create a new item",
+        "shortcut": "command+n",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.adobe.Reader",
+    "label": "Adobe Acrobat Reader",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Zoom In tool (temporary selection)",
+        "shortcut": "command+space",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Find in document",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Move to the next search result and highlight…",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Pause reading out loud",
+        "shortcut": "command+shift+c",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.adobe.illustrator",
+    "label": "Adobe Illustrator",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Redo",
+        "shortcut": "command+shift+z",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Cut",
+        "shortcut": "command+x",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Create a document without opening the New Doc…",
+        "shortcut": "command+option+n",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Save changes made to the document",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Open the Save As dialog box",
+        "shortcut": "command+shift+s",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Save a copy of the document",
+        "shortcut": "command+option+s",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Open the Save For Web dialog box",
+        "shortcut": "command+option+shift+s",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.adobe.LightroomCC",
+    "label": "Adobe Lightroom",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Cut",
+        "shortcut": "command+x",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Redo",
+        "shortcut": "command+shift+z",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Rotate Left (CCW)",
+        "shortcut": "command+keybracketleft",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Zoom In",
+        "shortcut": "command+keyequal",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Zoom Out",
+        "shortcut": "command+keyminus",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Preferences",
+        "shortcut": "command+keycomma",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Search",
+        "shortcut": "command+f",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.adobe.Photoshop",
+    "label": "Adobe Photoshop",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Redo",
+        "shortcut": "command+shift+z",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Deselect",
+        "shortcut": "command+d",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Free Transform",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "New layer via copy",
+        "shortcut": "command+j",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Create or release clipping mask",
+        "shortcut": "command+option+g",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Toggle Smart Guides",
+        "shortcut": "command+u",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.adobe.PremierePro",
+    "label": "Adobe Premiere Pro",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Project …",
+        "shortcut": "command+option+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "New Sequence…",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open Project...",
+        "shortcut": "command+o",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Save",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Save As...",
+        "shortcut": "command+shift+s",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Save a Copy...",
+        "shortcut": "command+option+s",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Import...",
+        "shortcut": "command+i",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Export Media",
+        "shortcut": "command+m",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Redo",
+        "shortcut": "command+shift+z",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.seriflabs.affinitydesigner2",
+    "label": "Affinity Designer",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Document",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "New from Clipboard",
+        "shortcut": "command+option+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Close Document/Close App (when no documents o…",
+        "shortcut": "command+w",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Close All Documents",
+        "shortcut": "command+option+w",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "New Pixel Layer",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Switch to Next View",
+        "shortcut": "command+keybackquote",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Select Next",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Select Previous",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.seriflabs.affinityphoto2",
+    "label": "Affinity Photo",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Document",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "New from Clipboard",
+        "shortcut": "command+option+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open Document",
+        "shortcut": "command+o",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Close Document/Close App (when no documents o…",
+        "shortcut": "command+w",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Close All Documents",
+        "shortcut": "command+option+w",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Save",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "New Layer",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Switch to Next View",
+        "shortcut": "command+keybackquote",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.seriflabs.affinitypublisher2",
+    "label": "Affinity Publisher",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Document",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Close Document/Close App (when no documents o…",
+        "shortcut": "command+w",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Close All Documents",
+        "shortcut": "command+option+w",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Find",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Switch to Next View",
+        "shortcut": "command+keybackquote",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Select Previous",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.runningwithcrayons.Alfred",
+    "label": "Alfred",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Show Alfred",
+        "shortcut": "option+space",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Action a numbered result",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open a selected file or app in its default app",
+        "shortcut": "command+o",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Search the current query in Finder",
+        "shortcut": "option+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Reveal a local file in Finder",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "company.thebrowser.Browser",
+    "label": "Arc",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open a new tab",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Close the current tab or window",
+        "shortcut": "command+w",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Reopen the last closed tab",
+        "shortcut": "command+shift+t",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Pin or unpin the current tab",
+        "shortcut": "command+d",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Change the current tab URL",
+        "shortcut": "command+l",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Show or hide the sidebar",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Go directly to tab N",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Switch between the five most recent tabs",
+        "shortcut": "control+tab",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Reload the webpage",
+        "shortcut": "command+r",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Find text on the webpage",
+        "shortcut": "command+f",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "org.audacityteam.audacity",
+    "label": "Audacity",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Add Label at Playback Position",
+        "shortcut": "command+m",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Move to Previous Label",
+        "shortcut": "option+left",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.bambulab.bambu-studio",
     "label": "BambuStudio",
     "catalog": false,
@@ -77,6 +689,74 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "9",
         "label": "Clone selected",
         "shortcut": "command+k",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "net.shinyfrog.bear",
+    "label": "Bear",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Heading levels 1–6",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Bold",
+        "shortcut": "command+b",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Insert link",
+        "shortcut": "command+k",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Unordered list",
+        "shortcut": "command+l",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Create todo",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Toggle todo completion",
+        "shortcut": "command+keyperiod",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Search current note",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Search note list",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "New note",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Quick Open",
+        "shortcut": "command+o",
         "icon": "Application"
       }
     ]
@@ -159,6 +839,106 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "com.openai.chat",
+    "label": "ChatGPT",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open command menu",
+        "shortcut": "command+shift+p",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Toggle sidebar",
+        "shortcut": "command+b",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "New chat",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Quick chat",
+        "shortcut": "command+option+n",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Find in chat",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Previous chat or tab",
+        "shortcut": "control+shift+tab",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Next chat or tab",
+        "shortcut": "control+tab",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Start voice chat",
+        "shortcut": "control+shift+v",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Open Chat Bar (ChatGPT Classic)",
+        "shortcut": "option+space",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Stop streaming response (ChatGPT Classic)",
+        "shortcut": "command+keyperiod",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.anthropic.claudefordesktop",
+    "label": "Claude Desktop",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open Quick Entry (alternative)",
+        "shortcut": "option+space",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Show Code-tab shortcuts",
+        "shortcut": "command+keyslash",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "New Code session",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Next Code session",
+        "shortcut": "control+tab",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.openai.codex",
     "label": "Codex",
     "catalog": false,
@@ -203,6 +983,176 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "6",
         "label": "Terminal",
         "shortcut": "control+keybackquote",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.todesktop.230313mzl4w4u92",
+    "label": "Cursor",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Toggle the Cursor side panel",
+        "shortcut": "command+i",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Open Inline Edit",
+        "shortcut": "command+k",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open the Command Palette",
+        "shortcut": "command+shift+p",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Force-send a message",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Cancel generation",
+        "shortcut": "command+shift+delete",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Add selected code to chat",
+        "shortcut": "command+shift+l",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.blackmagic-design.DaVinciResolve",
+    "label": "DaVinci Resolve",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Save project",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Redo",
+        "shortcut": "command+shift+z",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.hnc.Discord",
+    "label": "Discord",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open Keyboard Shortcuts menu",
+        "shortcut": "command+keyslash",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Search within the current channel",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Search across channels",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Open the Quick Switcher",
+        "shortcut": "command+k",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Mute or unmute microphone",
+        "shortcut": "command+shift+m",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Deafen or undeafen audio",
+        "shortcut": "command+shift+d",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Upload a file",
+        "shortcut": "command+shift+u",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.evernote.Evernote",
+    "label": "Evernote",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Search in Evernote",
+        "shortcut": "command+shift+k",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "New note",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "New notebook",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "New space",
+        "shortcut": "command+shift+s",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "New task",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "New event",
+        "shortcut": "command+e",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Search",
+        "shortcut": "command+k",
         "icon": "Application"
       }
     ]
@@ -317,6 +1267,112 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "com.apple.finder",
+    "label": "Finder",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open a new Finder window",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Go directly to a folder or path",
+        "shortcut": "command+shift+g",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Connect to a server",
+        "shortcut": "command+k",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Choose a Finder view",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Duplicate selected files",
+        "shortcut": "command+d",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Show Get Info",
+        "shortcut": "command+i",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Move the selected item to the Trash",
+        "shortcut": "command+delete",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "org.mozilla.firefox",
+    "label": "Firefox",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open file",
+        "shortcut": "command+o",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Reload page",
+        "shortcut": "command+r",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Force reload page",
+        "shortcut": "command+shift+r",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Print page",
+        "shortcut": "command+p",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Save page as",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Find in page",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Focus search bar",
+        "shortcut": "command+k",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.apple.freeform",
     "label": "Freeform",
     "catalog": false,
@@ -356,6 +1412,138 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Apply Underline format to selected text",
         "shortcut": "command+u",
         "icon": "Palette"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.garageband10",
+    "label": "GarageBand",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Toggle Snap to Grid",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Join regions or notes",
+        "shortcut": "command+j",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Split at playhead",
+        "shortcut": "command+t",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.github.GitHubClient",
+    "label": "GitHub Desktop",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Clone a repository from GitHub",
+        "shortcut": "command+shift+o",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Show a list of your repositories",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Push the latest commits to GitHub",
+        "shortcut": "command+p",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Pull down the latest changes from GitHub",
+        "shortcut": "command+shift+p",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Show all your changes before committing",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Show your commit history",
+        "shortcut": "command+2",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Commit changes when summary or description fi…",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Create a new branch",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Compare to an existing branch",
+        "shortcut": "command+shift+b",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Show the current pull request on GitHub",
+        "shortcut": "command+r",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.axosoft.gitkraken",
+    "label": "GitKraken",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create branch",
+        "shortcut": "command+b",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Search commits",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Search file to view history and blame",
+        "shortcut": "command+shift+h",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "New Tab",
+        "shortcut": "command+t",
+        "icon": "Application"
       }
     ]
   },
@@ -497,6 +1685,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "com.colliderli.iina",
+    "label": "IINA",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Halve playback speed",
+        "shortcut": "command+keybracketleft",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Double playback speed",
+        "shortcut": "command+keybracketright",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Decrease playback speed slightly",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Increase playback speed slightly",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Reset playback speed",
+        "shortcut": "command+keybackslash",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.iMovieApp",
+    "label": "iMovie",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Play the selected item full screen",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Create a new movie project",
+        "shortcut": "command+n",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.googlecode.iterm2",
     "label": "iTerm2",
     "catalog": false,
@@ -524,6 +1770,100 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Search the current session",
         "shortcut": "command+f",
         "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.iWork.Keynote",
+    "label": "Keynote",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Add a new slide layout (from Edit Slide Layou…",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Find the selected item in the presentation",
+        "shortcut": "command+e",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Insert a new line after the insertion point",
+        "shortcut": "control+o",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Find",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Find next (while in the Find window)",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Find previous (while in the Find window)",
+        "shortcut": "command+shift+g",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Open a new comment for the selected text, obj…",
+        "shortcut": "command+shift+k",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.logic10",
+    "label": "Logic Pro",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Record Into Cell",
+        "shortcut": "option+r",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Create Marker Without Rounding",
+        "shortcut": "control+option+keyquote",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Create Marker for Region/Marquee Selection",
+        "shortcut": "option+shift+keyquote",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Create Group for Selected Channel Strips/Tracks",
+        "shortcut": "command+control+g",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "New Empty Project",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "New from Template",
+        "shortcut": "command+n",
+        "icon": "Application"
       }
     ]
   },
@@ -693,6 +2033,268 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "com.microsoft.Excel",
+    "label": "Microsoft Excel",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open a new blank workbook.",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Create a new workbook from template.",
+        "shortcut": "command+shift+p",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Display the Find dialog box.",
+        "shortcut": "control+f",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Access search (when in a cell or when a cell…",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Start a new line in the same cell.",
+        "shortcut": "option+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Create a table.",
+        "shortcut": "command+t",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.microsoft.Outlook",
+    "label": "Microsoft Outlook",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create a new folder in the folder pane.",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Create a new email (in Mail view).",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Search the current folder",
+        "shortcut": "command+option+f",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Do an advanced search in Outlook (add Item Co…",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Find text within an item.",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Find the next instance of the text you search…",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Find the previous instance of the text you se…",
+        "shortcut": "command+shift+g",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Switch to the Search tab.",
+        "shortcut": "command+2",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.microsoft.Powerpoint",
+    "label": "Microsoft PowerPoint",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Save presentation",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Undo last action",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Copy selected content",
+        "shortcut": "command+c",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Find in presentation",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Find and replace",
+        "shortcut": "command+shift+h",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Add a new slide",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Start slideshow from beginning",
+        "shortcut": "command+shift+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Start slideshow from current slide",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Duplicate selected slide",
+        "shortcut": "command+shift+d",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.microsoft.teams2",
+    "label": "Microsoft Teams",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Go to Search .",
+        "shortcut": "command+e",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Start a new chat.",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Start a chat in a new window.",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Go to a specific chat or channel.",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Go to compose box.",
+        "shortcut": "command+r",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Jump to last read or newest message.",
+        "shortcut": "command+j",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Search current chat or channel messages.",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Send (expanded compose box).",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Attach file.",
+        "shortcut": "command+option+o",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.microsoft.Word",
+    "label": "Microsoft Word",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Find text (move focus to the Search in Docume…",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Display the Find and Replace pane.",
+        "shortcut": "control+h",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Create a hanging indent.",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Find the next occurrence of text.",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Find the previous occurrence of text.",
+        "shortcut": "command+shift+g",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.apple.Music",
     "label": "Music",
     "catalog": false,
@@ -775,6 +2377,236 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "notion.id",
+    "label": "Notion",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Search current page",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Open search / jump to page",
+        "shortcut": "command+p",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Copy page URL",
+        "shortcut": "command+l",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Go back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Go forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Toggle dark/light mode",
+        "shortcut": "command+shift+l",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Create new page",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Open new window",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Open new tab",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Insert link",
+        "shortcut": "command+k",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.iWork.Numbers",
+    "label": "Numbers",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Add a new sheet",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Find the selected item in the spreadsheet",
+        "shortcut": "command+e",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Insert a new line after the insertion point",
+        "shortcut": "control+o",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Find",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Find next (while in the Find window)",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Find previous (while in the Find window)",
+        "shortcut": "command+shift+g",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Open a new comment for the selected text, obj…",
+        "shortcut": "command+shift+k",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.obsproject.obs-studio",
+    "label": "OBS Studio",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Undo edit",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Redo edit",
+        "shortcut": "command+shift+z",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Copy source",
+        "shortcut": "command+c",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Paste source",
+        "shortcut": "command+v",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Edit transform",
+        "shortcut": "command+e",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Reset transform",
+        "shortcut": "command+r",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "md.obsidian",
+    "label": "Obsidian",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open the Command Palette",
+        "shortcut": "command+p",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Open the Quick Switcher",
+        "shortcut": "command+o",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open the selected Quick Switcher note in a ne…",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Search all files in the vault",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Toggle Reading view and Editing view",
+        "shortcut": "command+e",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Open a new tab",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Switch to the next tab",
+        "shortcut": "control+tab",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Switch to the previous tab",
+        "shortcut": "control+shift+tab",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Switch directly to a tab by position",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Reopen the recently closed tab",
+        "shortcut": "command+shift+t",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.orcaslicer.OrcaSlicer",
     "label": "OrcaSlicer",
     "catalog": false,
@@ -832,6 +2664,68 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Search",
         "shortcut": "control+f",
         "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.iWork.Pages",
+    "label": "Pages",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create a new document (open the template choo…",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Open the next tab in the sidebar",
+        "shortcut": "control+keybackquote",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open the previous tab in the sidebar",
+        "shortcut": "control+shift+keybackquote",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Insert a new line after the insertion point",
+        "shortcut": "control+o",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Find",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Find next (while in the Find window)",
+        "shortcut": "command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Find previous (while in the Find window)",
+        "shortcut": "command+shift+g",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Place the selected text in the Find & Replace…",
+        "shortcut": "command+e",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Open a new comment for the selected text, obj…",
+        "shortcut": "command+shift+k",
+        "icon": "Application"
       }
     ]
   },
@@ -1039,6 +2933,56 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "com.raycast.macos",
+    "label": "Raycast",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open or close Raycast (default global hotkey)",
+        "shortcut": "option+space",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Return to root search",
+        "shortcut": "command+escape",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open action panel",
+        "shortcut": "command+k",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Open settings",
+        "shortcut": "command+keycomma",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Submit a form",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Add selected result to favorites",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Open user guide",
+        "shortcut": "command+shift+keyslash",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.apple.reminders",
     "label": "Reminders",
     "catalog": false,
@@ -1122,6 +3066,118 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Close Tab",
         "shortcut": "command+w",
         "icon": "Close"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "org.whispersystems.signal-desktop",
+    "label": "Signal",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Navigate by section",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Start new chat",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Search",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Search in chat",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Focus composer",
+        "shortcut": "command+shift+t",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Expand composer",
+        "shortcut": "command+shift+k",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Send (in expanded composer)",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.bohemiancoding.sketch3",
+    "label": "Sketch",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "New document",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Save new or local document",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Save As",
+        "shortcut": "command+option+shift+s",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "New page",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Copy link to page or frame",
+        "shortcut": "command+shift+c",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Zoom out",
+        "shortcut": "command+keyminus",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Redo",
+        "shortcut": "command+shift+z",
+        "icon": "Application"
       }
     ]
   },
@@ -1247,6 +3303,144 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "com.culturedcode.ThingsMac",
+    "label": "Things 3",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New to-do",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "New to-dos from clipboard",
+        "shortcut": "command+v",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "New project",
+        "shortcut": "command+option+n",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Open Quick Entry with Autofill",
+        "shortcut": "control+option+space",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Save and close item",
+        "shortcut": "command+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Copy to-do or project",
+        "shortcut": "command+c",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Search the app",
+        "shortcut": "command+f",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Find in text",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.todoist.mac.Todoist",
+    "label": "Todoist",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open Quick Find",
+        "shortcut": "command+k",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Open Task Quick Add",
+        "shortcut": "command+n",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Create a new project",
+        "shortcut": "command+shift+p",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Create a new label",
+        "shortcut": "command+shift+l",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Create a new filter",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Open the Inbox",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Open Search",
+        "shortcut": "command+f",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.panic.Transmit",
+    "label": "Transmit",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Show Transfers",
+        "shortcut": "command+l",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Refresh",
+        "shortcut": "command+r",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.apple.TV",
     "label": "TV",
     "catalog": false,
@@ -1280,6 +3474,144 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Delete the selected playlist",
         "shortcut": "option+delete",
         "icon": "Play"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.microsoft.VSCode",
+    "label": "Visual Studio Code",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Show Command Palette",
+        "shortcut": "command+shift+p",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Quick Open, Go to File…",
+        "shortcut": "command+p",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "New window/instance",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Undo last cursor operation",
+        "shortcut": "command+u",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Open File...",
+        "shortcut": "command+o",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Save",
+        "shortcut": "command+s",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Save As...",
+        "shortcut": "command+shift+s",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Save All",
+        "shortcut": "command+option+s",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Show Search",
+        "shortcut": "command+shift+f",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Toggle Search details",
+        "shortcut": "command+shift+j",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "org.videolan.vlc",
+    "label": "VLC",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Toggle full screen",
+        "shortcut": "command+f",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "dev.warp.Warp-Stable",
+    "label": "Warp",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Command Search",
+        "shortcut": "control+r",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Focus terminal input",
+        "shortcut": "command+l",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Open Command Palette",
+        "shortcut": "command+p",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Copy selected command output",
+        "shortcut": "command+option+shift+c",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Clear blocks",
+        "shortcut": "command+k",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Open new tab",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Reopen closed tab",
+        "shortcut": "command+shift+t",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Close current tab",
+        "shortcut": "command+w",
+        "icon": "Application"
       }
     ]
   },

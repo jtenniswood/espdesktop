@@ -1,10 +1,49 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 2,
+  "catalogueVersion": 3,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
+      "path": "1password.json"
+    },
+    {
+      "path": "adobe-acrobat-reader.json"
+    },
+    {
+      "path": "adobe-illustrator.json"
+    },
+    {
+      "path": "adobe-lightroom.json"
+    },
+    {
+      "path": "adobe-photoshop.json"
+    },
+    {
+      "path": "adobe-premiere-pro.json"
+    },
+    {
+      "path": "affinity-designer.json"
+    },
+    {
+      "path": "affinity-photo.json"
+    },
+    {
+      "path": "affinity-publisher.json"
+    },
+    {
+      "path": "alfred.json"
+    },
+    {
+      "path": "arc.json"
+    },
+    {
+      "path": "audacity.json"
+    },
+    {
       "path": "bambu-studio.json"
+    },
+    {
+      "path": "bear.json"
     },
     {
       "path": "books.json"
@@ -13,7 +52,25 @@
       "path": "calendar.json"
     },
     {
+      "path": "chatgpt.json"
+    },
+    {
+      "path": "claude-desktop.json"
+    },
+    {
       "path": "codex.json"
+    },
+    {
+      "path": "cursor.json"
+    },
+    {
+      "path": "davinci-resolve.json"
+    },
+    {
+      "path": "discord.json"
+    },
+    {
+      "path": "evernote.json"
     },
     {
       "path": "facetime.json"
@@ -25,7 +82,22 @@
       "path": "final-cut-pro.json"
     },
     {
+      "path": "finder.json"
+    },
+    {
+      "path": "firefox.json"
+    },
+    {
       "path": "freeform.json"
+    },
+    {
+      "path": "garageband.json"
+    },
+    {
+      "path": "github-desktop.json"
+    },
+    {
+      "path": "gitkraken.json"
     },
     {
       "path": "google-chrome.json"
@@ -34,7 +106,19 @@
       "path": "hermes-agent.json"
     },
     {
+      "path": "iina.json"
+    },
+    {
+      "path": "imovie.json"
+    },
+    {
       "path": "iterm2.json"
+    },
+    {
+      "path": "keynote.json"
+    },
+    {
+      "path": "logic-pro.json"
     },
     {
       "path": "mail-plus-for-gmail.json"
@@ -49,13 +133,43 @@
       "path": "messages.json"
     },
     {
+      "path": "microsoft-excel.json"
+    },
+    {
+      "path": "microsoft-outlook.json"
+    },
+    {
+      "path": "microsoft-powerpoint.json"
+    },
+    {
+      "path": "microsoft-teams.json"
+    },
+    {
+      "path": "microsoft-word.json"
+    },
+    {
       "path": "music.json"
     },
     {
       "path": "notes.json"
     },
     {
+      "path": "notion.json"
+    },
+    {
+      "path": "numbers.json"
+    },
+    {
+      "path": "obs-studio.json"
+    },
+    {
+      "path": "obsidian.json"
+    },
+    {
       "path": "orca-slicer.json"
+    },
+    {
+      "path": "pages.json"
     },
     {
       "path": "photos.json"
@@ -73,10 +187,19 @@
       "path": "quicktime-player.json"
     },
     {
+      "path": "raycast.json"
+    },
+    {
       "path": "reminders.json"
     },
     {
       "path": "safari.json"
+    },
+    {
+      "path": "signal.json"
+    },
+    {
+      "path": "sketch.json"
     },
     {
       "path": "slack.json"
@@ -88,7 +211,25 @@
       "path": "telegram.json"
     },
     {
+      "path": "things-3.json"
+    },
+    {
+      "path": "todoist.json"
+    },
+    {
+      "path": "transmit.json"
+    },
+    {
       "path": "tv.json"
+    },
+    {
+      "path": "visual-studio-code.json"
+    },
+    {
+      "path": "vlc.json"
+    },
+    {
+      "path": "warp.json"
     },
     {
       "path": "whatsapp.json"

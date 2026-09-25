@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "notion.id",
+  "label": "Notion",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Search current page",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Open search / jump to page",
+      "shortcut": "command+p",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Copy page URL",
+      "shortcut": "command+l",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Go back",
+      "shortcut": "command+keybracketleft",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Go forward",
+      "shortcut": "command+keybracketright",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Toggle dark/light mode",
+      "shortcut": "command+shift+l",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Create new page",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Open new window",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Open new tab",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Insert link",
+      "shortcut": "command+k",
+      "icon": "Application"
+    }
+  ]
+}
