@@ -3019,9 +3019,30 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
   lv_obj_set_style_pad_all(widget, 0, LV_PART_MAIN);
   lv_obj_set_style_border_width(widget, 0, LV_PART_MAIN);
   lv_obj_set_style_bg_opa(widget, LV_OPA_TRANSP, LV_PART_MAIN);
-  const int icon_size = std::max(24, std::min(48, static_cast<int>(lv_obj_get_height(s.btn) * 0.42f)));
+  const bool icon_with_title = cfg_option_token_present(p.options, "webapp_icon_title");
+  const int button_width = static_cast<int>(lv_obj_get_width(s.btn));
+  const int button_height = static_cast<int>(lv_obj_get_height(s.btn));
+  const int icon_size = icon_with_title
+    ? std::max(24, std::min(static_cast<int>(button_width * 0.55f),
+                            static_cast<int>(button_height * 0.50f)))
+    : std::max(24, std::min(48, static_cast<int>(button_height * 0.42f)));
   lv_obj_set_size(widget, icon_size, icon_size);
-  lv_obj_align(widget, LV_ALIGN_CENTER, 0, s.text_lbl ? -4 : 0);
+  const lv_coord_t padding_left = lv_obj_get_style_pad_left(s.btn, LV_PART_MAIN);
+  const lv_coord_t padding_top = lv_obj_get_style_pad_top(s.btn, LV_PART_MAIN);
+  lv_obj_align(widget, icon_with_title ? LV_ALIGN_TOP_LEFT : LV_ALIGN_CENTER,
+               icon_with_title ? padding_left : 0,
+               icon_with_title ? padding_top : (s.text_lbl ? -4 : 0));
+  if (icon_with_title && s.text_lbl) {
+    const lv_coord_t padding_right = lv_obj_get_style_pad_right(s.btn, LV_PART_MAIN);
+    const lv_coord_t padding_bottom = lv_obj_get_style_pad_bottom(s.btn, LV_PART_MAIN);
+    lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_DOT);
+    lv_obj_set_width(s.text_lbl, std::max(1, button_width - padding_left - padding_right));
+    lv_obj_set_style_text_align(s.text_lbl, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
+    lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, padding_left, -padding_bottom);
+    lv_obj_move_foreground(s.text_lbl);
+  } else if (s.text_lbl) {
+    configure_button_label_wrap(s.text_lbl);
+  }
   lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
   ctx->widget = widget;
   ctx->btn = s.btn;

@@ -5161,6 +5161,12 @@
             "label": "Show capacity label",
             "kind": "flag",
             "omitDefault": true
+          },
+          {
+            "name": "webapp_icon_title",
+            "label": "Large icon with title",
+            "kind": "flag",
+            "omitDefault": true
           }
         ],
         "normalization": {
@@ -5212,7 +5218,8 @@
             "app_shortcuts_tabs",
             "app_shortcut_preset",
             "large_numbers",
-            "stat_labels_off"
+            "stat_labels_off",
+            "webapp_icon_title"
           ],
           "optionHook": "normalize_date_time_options"
         },

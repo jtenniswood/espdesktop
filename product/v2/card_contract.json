@@ -1958,6 +1958,12 @@
           "label": "Show capacity label",
           "kind": "flag",
           "omitDefault": true
+        },
+        {
+          "name": "webapp_icon_title",
+          "label": "Large icon with title",
+          "kind": "flag",
+          "omitDefault": true
         }
       ],
       "normalization": {
@@ -1973,7 +1979,7 @@
           "options": { "policy": "hook", "hook": "normalize_date_time_options" }
         },
         "unknownOptions": "drop",
-        "canonicalOptionOrder": ["app_shortcuts", "finder_open_behavior", "finder_open_override", "app_shortcuts_tabs", "app_shortcut_preset", "large_numbers", "stat_labels_off"],
+        "canonicalOptionOrder": ["app_shortcuts", "finder_open_behavior", "finder_open_override", "app_shortcuts_tabs", "app_shortcut_preset", "large_numbers", "stat_labels_off", "webapp_icon_title"],
         "optionHook": "normalize_date_time_options"
       },
       "default": {

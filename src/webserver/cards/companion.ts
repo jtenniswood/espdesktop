@@ -709,6 +709,14 @@ export function registerCompanionCardTypes(
                 ? card.entity.slice(COMPANION_WEB_APP_PREFIX.length) : "";
             webAppField.appendChild(webAppSelect);
             panel?.appendChild(webAppField);
+            const webAppIconTitle = helpers.toggleRow(
+                "Large icon with title", helpers.idPrefix + "companion-webapp-icon-title",
+                configOptionEnabled(card.options, "webapp_icon_title"));
+            webAppIconTitle.input.addEventListener("change", function (this: HTMLInputElement) {
+                card.options = setConfigOption(card.options, "webapp_icon_title", this.checked);
+                helpers.saveField("options", card.options);
+            });
+            panel?.appendChild(webAppIconTitle.row);
             helpers.markCardPrimaryField(webAppField, "entity");
             helpers.requireField(webAppSelect, "Choose a Web App before saving.", function () {
                 return initialMode === "webapp";
@@ -1171,6 +1179,7 @@ export function registerCompanionCardTypes(
                 webAppField.style.display = mode === "webapp" ? "" : "none";
                 appFieldLabel.textContent = "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
+                webAppIconTitle.row.style.display = mode === "webapp" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";

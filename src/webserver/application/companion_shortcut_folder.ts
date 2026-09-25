@@ -73,13 +73,17 @@ export function companionAppShortcutFolderEnabled(card: any): boolean {
 
 export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
+    const retainWebAppTitle = typeof card.entity === "string" && card.entity.startsWith("webapp.") &&
+        configOptionEnabled(card.options, "webapp_icon_title");
+    const finish = (options: string): string => retainWebAppTitle
+        ? setConfigOption(options, "webapp_icon_title", true) : options;
     const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
     if (presetMarker === COMPANION_SHORTCUT_CUSTOM_PRESET && companionShortcutActionIdValid(card.entity)) {
-        return setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker);
+        return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker));
     }
     const presetIdentity = companionShortcutPresetIdentity(card);
     if (presetIdentity && companionShortcutActionIdValid(card.entity)) {
-        return setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity);
+        return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity));
     }
     if (!companionShortcutFolderAppLabel(card.entity)) {
         const identifier = typeof card.entity === "string" ? card.entity : "";
@@ -87,9 +91,9 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
             /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$/.test(identifier);
         // A remote definition may arrive after saved cards have been parsed.
         // Keep its options intact so startup cannot migrate them away.
-        return mayBeRemoteApplication ? String(card.options || "") : "";
+        return finish(mayBeRemoteApplication ? String(card.options || "") : "");
     }
-    if (card.sensor) return "";
+    if (card.sensor) return finish("");
     const behavior = configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION);
     let options = card.entity === "com.apple.finder" &&
         (behavior === "same_window" || behavior === "new_window")
@@ -99,12 +103,12 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         COMPANION_APP_SHORTCUTS_OPTION,
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
-    if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return options;
+    if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return finish(options);
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :
         tabs.join("|") === defaults.join("|") ? "" : tabs.join("|");
-    return setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, value);
+    return finish(setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, value));
 }
 
 export function setCompanionAppShortcutFolderEnabled(card: any, enabled: boolean): void {

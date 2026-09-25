@@ -1390,12 +1390,20 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
 }
 
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {
+  std::string out;
+  if (p.entity.rfind("webapp.", 0) == 0 &&
+      cfg_option_token_present(p.options, "webapp_icon_title")) {
+    out = "webapp_icon_title";
+  }
   const std::string preset = companion_shortcut_preset_normalized(p);
   if (!preset.empty()) {
-    return "app_shortcut_preset=" + encode_compact_field(preset);
+    if (!out.empty()) out += ",";
+    out += "app_shortcut_preset=" + encode_compact_field(preset);
+    return out;
   }
-  if (!companion_app_shortcuts_enabled(p)) return "";
-  std::string out = "app_shortcuts";
+  if (!companion_app_shortcuts_enabled(p)) return out;
+  if (!out.empty()) out += ",";
+  out += "app_shortcuts";
   const std::string tabs = companion_app_shortcut_tabs_normalized(p);
   if (!tabs.empty()) {
     out += ",app_shortcuts_tabs=" + encode_compact_field(tabs);
