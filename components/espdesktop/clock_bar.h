@@ -360,6 +360,22 @@ inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
   return widths;
 }
 
+inline const lv_font_t *&clock_bar_body_text_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+
+inline const lv_font_t *&clock_bar_title_text_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+
+inline void clock_bar_set_text_fonts(const lv_font_t *body_font,
+                                     const lv_font_t *title_font) {
+  clock_bar_body_text_font() = body_font;
+  clock_bar_title_text_font() = title_font;
+}
+
 inline std::string &clock_bar_modal_label() {
   static std::string label;
   return label;
@@ -390,9 +406,13 @@ inline void refresh_clock_bar_temperature_label_values(
 inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   if (!label) return;
   const auto &widths = clock_bar_left_text_widths();
+  const bool showing_title = !clock_bar_left_title().empty();
   const int icon_space = clock_bar_companion_icon_should_show() ? 26 : 0;
-  const int width = clock_bar_left_title().empty()
+  const int width = !showing_title
       ? widths.temperature : std::max(1, widths.title - icon_space);
+  const lv_font_t *font = showing_title ? clock_bar_title_text_font()
+                                        : clock_bar_body_text_font();
+  if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
   lv_obj_set_width(label, width);
   lv_obj_align(label, LV_ALIGN_TOP_LEFT,
                clock_bar_left_title_origin_x() + icon_space,
@@ -774,7 +794,7 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
     lv_obj_move_background(temperature_label);
   }
   if (display_time) {
-    lv_obj_align(display_time, LV_ALIGN_TOP_MID, 0, label_y);
+    lv_obj_align(display_time, LV_ALIGN_TOP_RIGHT, -right_x, label_y);
     lv_obj_move_background(display_time);
   }
   if (network_status_button) {

@@ -31,7 +31,7 @@ esphome:
     - priority: -100
       then:
         - lambda: |-
-            clock_bar_enable_settings_access(id(network_status_button));
+            clock_bar_enable_settings_access(id(display_time));
             navigation_subpage_clock_bar_refresh() = []() {
               navigation_refresh_subpage_label();
               refresh_clock_bar_temperature_label_values(
@@ -129,8 +129,7 @@ script:
           bool reserve_clock_bar_space = visibility.reserve_space;
           bool visible = visibility.visible || pairing_onboarding;
           bool show_time = visibility.visible && id(clock_bar_time_enabled).state;
-          bool show_network = pairing_onboarding ||
-                              (visibility.visible && id(network_status_enabled).state);
+          const bool show_network = false;
           bool show_night_mode = visibility.visible && id(clock_bar_night_mode_enabled).state &&
                                  id(clock_bar_night_mode_active);
           int clock_bar_screen_width = clock_bar_current_screen_width(${screen_width});
@@ -146,6 +145,8 @@ script:
           int clock_bar_item_width = ${clock_bar_item_gap};
           int clock_bar_right_x =
               clock_bar_480_square ? 4 : (clock_bar_screen_width >= 700 ? 8 : 6);
+          clock_bar_set_text_fonts(id(${label_font})->get_lv_font(),
+                                   id(${media_title_font})->get_lv_font());
           lv_obj_t *temperature_labels[] = {
             id(temperatures),
           };
@@ -165,18 +166,18 @@ script:
             return;
           }
 
-          // Visible status icons pack leftwards from the screen edge. Seed the
-          // network glyph only when it is shown so a hidden network icon does
-          // not leave an empty slot before optional icons.
+          // The clock occupies the right edge. Optional status icons pack to
+          // its left so they cannot overlap the time.
           ClockBarRightIcons clock_bar_right_icons =
               clock_bar_right_icons_begin(clock_bar_right_x, 8);
-          if (show_network) {
-            int clock_bar_network_box = lv_obj_get_width(id(network_status_button));
+          if (show_time) {
+            int clock_bar_time_box = ${clock_bar_item_gap};
+            if (clock_bar_time_box < 62) clock_bar_time_box = 62;
+            if (clock_bar_time_box > 96) clock_bar_time_box = 96;
             clock_bar_right_icons_seed(
                 clock_bar_right_icons,
-                clock_bar_network_box,
-                clock_bar_glyph_width(id(network_status_icon_label),
-                                      clock_bar_network_box));
+                clock_bar_time_box,
+                clock_bar_time_box);
           }
 
           apply_clock_bar_fixed_layout(
