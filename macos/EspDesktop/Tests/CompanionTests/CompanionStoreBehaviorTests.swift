@@ -5,7 +5,7 @@ final class CompanionStoreBehaviorTests: XCTestCase {
     func testRemoteCatalogueDefinitionsRequireCapabilityVersionThree() {
         XCTAssertFalse(CompanionConnection.supportsRemoteCatalogueDefinitions(capabilityVersion: 2))
         XCTAssertTrue(CompanionConnection.supportsRemoteCatalogueDefinitions(
-            capabilityVersion: CompanionCapabilities.version
+            capabilityVersion: UInt32(CompanionCapabilities.version)
         ))
     }
 
