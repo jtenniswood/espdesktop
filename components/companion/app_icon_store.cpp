@@ -314,7 +314,9 @@ bool AppIconStore::write_slot_locked(uint16_t slot, const std::string &applicati
 
 bool AppIconStore::save(const std::string &application_id,
                         const std::array<uint8_t, 32> &hash,
-                        const uint8_t *pixels, size_t size) {
+                        const uint8_t *pixels, size_t size,
+                        std::string *evicted_application_id) {
+  if (evicted_application_id) evicted_application_id->clear();
 #ifdef USE_ESP32
   if (!pixels || size != APP_ICON_PIXEL_BYTES || !application_id_valid(application_id)) return false;
   std::array<uint8_t, 32> actual{};
@@ -333,14 +335,22 @@ bool AppIconStore::save(const std::string &application_id,
   int slot = free_slot_locked();
   if (slot < 0) slot = unreferenced_slot_locked();
   if (slot < 0) slot = old_slot;
+  std::string evicted_id;
+  if (slot >= 0 && slot != old_slot &&
+      read_header_locked(static_cast<uint16_t>(slot), &evicted_id, nullptr) &&
+      evicted_id == application_id) {
+    evicted_id.clear();
+  }
   if (slot < 0 || !write_slot_locked(static_cast<uint16_t>(slot), application_id, hash, pixels)) return false;
   if (old_slot >= 0 && old_slot != slot) erase_slot_locked(static_cast<uint16_t>(old_slot));
+  if (evicted_application_id) *evicted_application_id = std::move(evicted_id);
   return true;
 #else
   (void)application_id;
   (void)hash;
   (void)pixels;
   (void)size;
+  (void)evicted_application_id;
   return false;
 #endif
 }

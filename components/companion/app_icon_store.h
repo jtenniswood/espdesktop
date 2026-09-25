@@ -36,7 +36,7 @@ class AppIconStore {
                    size_t capacity);
   bool save(const std::string &application_id,
             const std::array<uint8_t, 32> &hash, const uint8_t *pixels,
-            size_t size);
+            size_t size, std::string *evicted_application_id = nullptr);
   bool remove(const std::string &application_id);
   bool clear_cache();
 

@@ -679,8 +679,16 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           this->app_icon_offset_ != APP_ICON_PIXEL_BYTES) return false;
       std::array<uint8_t, 32> actual{};
       mbedtls_sha256(this->app_icon_buffer_, APP_ICON_PIXEL_BYTES, actual.data(), 0);
+      std::string evicted_application_id;
       if (actual == this->app_icon_sha256_ &&
-          app_icon_store().save(payload->appId, actual, this->app_icon_buffer_, APP_ICON_PIXEL_BYTES)) {
+          app_icon_store().save(payload->appId, actual, this->app_icon_buffer_, APP_ICON_PIXEL_BYTES,
+                                &evicted_application_id)) {
+        if (!evicted_application_id.empty()) {
+          std::lock_guard<std::mutex> lock(app_icon_state_mutex);
+          requested_app_icons.erase(
+              std::remove(requested_app_icons.begin(), requested_app_icons.end(), evicted_application_id),
+              requested_app_icons.end());
+        }
         const std::string application_id = payload->appId;
         this->defer_session_([application_id] { companion_app_icon_ready(application_id); });
       } else {

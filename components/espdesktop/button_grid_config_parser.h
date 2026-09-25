@@ -1361,6 +1361,7 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
   return companion_app_launch_card(p) &&
+         p.entity.rfind("webapp.", 0) != 0 &&
          !cfg_option_token_present(p.options, "custom_icon");
 }
 
