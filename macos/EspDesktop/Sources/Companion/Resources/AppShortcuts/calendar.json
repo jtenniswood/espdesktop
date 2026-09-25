@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "com.apple.iCal",
+  "label": "Calendar",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Go to today’s date",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Go to a specific date",
+      "shortcut": "shift+command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Switch to Day view",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Switch to Week view",
+      "shortcut": "command+2",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Add a new calendar group",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "5",
+      "label": "Add a new subscribed calendar",
+      "shortcut": "option+command+s",
+      "icon": "Plus"
+    },
+    {
+      "id": "6",
+      "label": "Add a new event",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "7",
+      "label": "Search for events",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    }
+  ]
+}

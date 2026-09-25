@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "us.zoom.xos",
+  "label": "Zoom",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Join meeting",
+      "shortcut": "command+j",
+      "icon": "Video"
+    },
+    {
+      "id": "1",
+      "label": "Start/stop video",
+      "shortcut": "command+shift+v",
+      "icon": "Video"
+    },
+    {
+      "id": "2",
+      "label": "Pause or resume screen share",
+      "shortcut": "command+shift+t",
+      "icon": "Play"
+    },
+    {
+      "id": "3",
+      "label": "Pause/resume recording",
+      "shortcut": "command+shift+p",
+      "icon": "Play"
+    },
+    {
+      "id": "4",
+      "label": "Search in chat or channel",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "5",
+      "label": "Mute/unmute call",
+      "shortcut": "control+shift+m",
+      "icon": "Microphone"
+    },
+    {
+      "id": "6",
+      "label": "Global search",
+      "shortcut": "command+e",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "7",
+      "label": "Reset chat display size",
+      "shortcut": "command+0",
+      "icon": "Play"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.apple.Music",
+  "label": "Music",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Stop playing the selected song",
+      "shortcut": "command+keyperiod",
+      "icon": "Play"
+    },
+    {
+      "id": "1",
+      "label": "Create a new playlist",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Create a playlist from a selection of songs",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "3",
+      "label": "Create a new Smart Playlist",
+      "shortcut": "option+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "4",
+      "label": "Select the search field",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "5",
+      "label": "Search the iTunes Store",
+      "shortcut": "option+enter",
+      "icon": "Spotlight"
+    }
+  ]
+}

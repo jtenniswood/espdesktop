@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "org.mozilla.firefox",
+  "label": "Firefox",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open file",
+      "shortcut": "command+o",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Reload page",
+      "shortcut": "command+r",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Force reload page",
+      "shortcut": "command+shift+r",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Print page",
+      "shortcut": "command+p",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Save page as",
+      "shortcut": "command+s",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Find in page",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Focus search bar",
+      "shortcut": "command+k",
+      "icon": "Application"
+    }
+  ]
+}

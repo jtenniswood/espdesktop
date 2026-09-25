@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.todoist.mac.Todoist",
+  "label": "Todoist",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Quick Find",
+      "shortcut": "command+k",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Open Task Quick Add",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Create a new project",
+      "shortcut": "command+shift+p",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Create a new label",
+      "shortcut": "command+shift+l",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Create a new filter",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Open the Inbox",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Open Search",
+      "shortcut": "command+f",
+      "icon": "Application"
+    }
+  ]
+}

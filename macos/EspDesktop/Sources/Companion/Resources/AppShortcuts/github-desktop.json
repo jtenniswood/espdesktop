@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.github.GitHubClient",
+  "label": "GitHub Desktop",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Clone a repository from GitHub",
+      "shortcut": "command+shift+o",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Show a list of your repositories",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Push the latest commits to GitHub",
+      "shortcut": "command+p",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Pull down the latest changes from GitHub",
+      "shortcut": "command+shift+p",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Show all your changes before committing",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Show your commit history",
+      "shortcut": "command+2",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Commit changes when summary or description fi…",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Create a new branch",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Compare to an existing branch",
+      "shortcut": "command+shift+b",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Show the current pull request on GitHub",
+      "shortcut": "command+r",
+      "icon": "Application"
+    }
+  ]
+}

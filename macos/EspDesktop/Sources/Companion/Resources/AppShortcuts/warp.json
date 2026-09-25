@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "dev.warp.Warp-Stable",
+  "label": "Warp",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Command Search",
+      "shortcut": "control+r",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Focus terminal input",
+      "shortcut": "command+l",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open Command Palette",
+      "shortcut": "command+p",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Copy selected command output",
+      "shortcut": "command+option+shift+c",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Clear blocks",
+      "shortcut": "command+k",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Open new tab",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Reopen closed tab",
+      "shortcut": "command+shift+t",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Close current tab",
+      "shortcut": "command+w",
+      "icon": "Application"
+    }
+  ]
+}

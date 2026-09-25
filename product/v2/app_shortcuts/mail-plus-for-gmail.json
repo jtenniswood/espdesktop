@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "appId": "com.rockysandstudio.DeskApp-for-Gmail",
+  "label": "Mail Plus for Gmail",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Send message",
+      "shortcut": "command+enter",
+      "icon": "Message Video"
+    },
+    {
+      "id": "1",
+      "label": "Insert a link",
+      "shortcut": "command+k",
+      "icon": "Application"
+    }
+  ]
+}

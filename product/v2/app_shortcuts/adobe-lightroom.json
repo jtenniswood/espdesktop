@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.adobe.LightroomCC",
+  "label": "Adobe Lightroom",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Cut",
+      "shortcut": "command+x",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Copy",
+      "shortcut": "command+c",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Paste",
+      "shortcut": "command+v",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Redo",
+      "shortcut": "command+shift+z",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Rotate Left (CCW)",
+      "shortcut": "command+keybracketleft",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Zoom In",
+      "shortcut": "command+keyequal",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Zoom Out",
+      "shortcut": "command+keyminus",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Preferences",
+      "shortcut": "command+keycomma",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Search",
+      "shortcut": "command+f",
+      "icon": "Application"
+    }
+  ]
+}

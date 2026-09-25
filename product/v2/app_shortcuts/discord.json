@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.hnc.Discord",
+  "label": "Discord",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Keyboard Shortcuts menu",
+      "shortcut": "command+keyslash",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Search within the current channel",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Search across channels",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Open the Quick Switcher",
+      "shortcut": "command+k",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Mute or unmute microphone",
+      "shortcut": "command+shift+m",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Deafen or undeafen audio",
+      "shortcut": "command+shift+d",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Upload a file",
+      "shortcut": "command+shift+u",
+      "icon": "Application"
+    }
+  ]
+}

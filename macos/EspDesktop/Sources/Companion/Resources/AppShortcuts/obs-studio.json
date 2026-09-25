@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.obsproject.obs-studio",
+  "label": "OBS Studio",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Undo edit",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Redo edit",
+      "shortcut": "command+shift+z",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Copy source",
+      "shortcut": "command+c",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Paste source",
+      "shortcut": "command+v",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Edit transform",
+      "shortcut": "command+e",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Reset transform",
+      "shortcut": "command+r",
+      "icon": "Application"
+    }
+  ]
+}

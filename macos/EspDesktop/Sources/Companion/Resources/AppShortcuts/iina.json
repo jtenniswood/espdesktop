@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "com.colliderli.iina",
+  "label": "IINA",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Halve playback speed",
+      "shortcut": "command+keybracketleft",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Double playback speed",
+      "shortcut": "command+keybracketright",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Decrease playback speed slightly",
+      "shortcut": "command+option+keybracketleft",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Increase playback speed slightly",
+      "shortcut": "command+option+keybracketright",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Reset playback speed",
+      "shortcut": "command+keybackslash",
+      "icon": "Application"
+    }
+  ]
+}

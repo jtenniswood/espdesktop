@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.microsoft.VSCode",
+  "label": "Visual Studio Code",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Show Command Palette",
+      "shortcut": "command+shift+p",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Quick Open, Go to File…",
+      "shortcut": "command+p",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "New window/instance",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Undo last cursor operation",
+      "shortcut": "command+u",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Open File...",
+      "shortcut": "command+o",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Save",
+      "shortcut": "command+s",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Save As...",
+      "shortcut": "command+shift+s",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Save All",
+      "shortcut": "command+option+s",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Show Search",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Toggle Search details",
+      "shortcut": "command+shift+j",
+      "icon": "Application"
+    }
+  ]
+}

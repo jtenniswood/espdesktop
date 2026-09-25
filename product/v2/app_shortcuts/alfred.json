@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "com.runningwithcrayons.Alfred",
+  "label": "Alfred",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Show Alfred",
+      "shortcut": "option+space",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Action a numbered result",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open a selected file or app in its default app",
+      "shortcut": "command+o",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Search the current query in Finder",
+      "shortcut": "option+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Reveal a local file in Finder",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "ru.keepcoder.Telegram",
+  "label": "Telegram",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Quick search",
+      "shortcut": "command+k",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "1",
+      "label": "Search this chat",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "2",
+      "label": "Search all chats",
+      "shortcut": "shift+command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "3",
+      "label": "Previous chat",
+      "shortcut": "option+command+up",
+      "icon": "Chevron Up"
+    },
+    {
+      "id": "4",
+      "label": "Next chat",
+      "shortcut": "option+command+down",
+      "icon": "Chevron Down"
+    }
+  ]
+}

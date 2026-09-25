@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "appId": "com.apple.iMovieApp",
+  "label": "iMovie",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Play the selected item full screen",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Create a new movie project",
+      "shortcut": "command+n",
+      "icon": "Application"
+    }
+  ]
+}

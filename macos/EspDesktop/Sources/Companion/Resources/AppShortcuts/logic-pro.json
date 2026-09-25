@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.apple.logic10",
+  "label": "Logic Pro",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Record Into Cell",
+      "shortcut": "option+r",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Create Marker Without Rounding",
+      "shortcut": "control+option+keyquote",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Create Marker for Region/Marquee Selection",
+      "shortcut": "option+shift+keyquote",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Create Group for Selected Channel Strips/Tracks",
+      "shortcut": "command+control+g",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "New Empty Project",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "New from Template",
+      "shortcut": "command+n",
+      "icon": "Application"
+    }
+  ]
+}

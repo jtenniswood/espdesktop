@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "com.apple.Photos",
+  "label": "Photos",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Start or stop playing a video",
+      "shortcut": "option+space",
+      "icon": "Play"
+    },
+    {
+      "id": "1",
+      "label": "Find photos",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "2",
+      "label": "Create a new album",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "3",
+      "label": "Create a Smart Album",
+      "shortcut": "option+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "4",
+      "label": "Create a folder",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    }
+  ]
+}
