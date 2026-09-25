@@ -345,6 +345,11 @@ inline int &clock_bar_left_title_origin_y() {
   return value;
 }
 
+inline int &clock_bar_left_icon_origin_x() {
+  static int value = 0;
+  return value;
+}
+
 inline int &clock_bar_left_icon_origin_y() {
   static int value = 8;
   return value;
@@ -431,7 +436,7 @@ inline void clock_bar_sync_companion_icon(bool visible) {
   if (show) lv_obj_clear_flag(widget, LV_OBJ_FLAG_HIDDEN);
   else lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
   if (show) {
-    lv_obj_set_pos(widget, clock_bar_left_title_origin_x(),
+    lv_obj_set_pos(widget, clock_bar_left_icon_origin_x(),
                    clock_bar_left_icon_origin_y());
     lv_obj_move_foreground(widget);
   }

@@ -80,6 +80,12 @@ export function createCoreFeature(
             return scaledCqw(num, scale);
         });
     }
+    function horizontalPadding(this: any, value?: any) {
+        var parts = String(value || "0").trim().split(/\s+/);
+        if (parts.length === 4)
+            return parts[3];
+        return parts.length > 1 ? parts[1] : parts[0];
+    }
     function syncPreviewGridTop(this: any, layout?: any, scale?: any) {
         var grid: any = layoutSection(layout || activeLayout(), "grid");
         scale = scale || previewLayoutScale(layout || activeLayout());
@@ -100,6 +106,7 @@ export function createCoreFeature(
         var subpageBadge: any = layoutSection(layout, "subpageBadge");
         r.setProperty("--topbar-h", scaledCqw(topbar.height, scale));
         r.setProperty("--topbar-pad", scaledCqwText(topbar.padding, scale));
+        r.setProperty("--topbar-pad-x", scaledCqwText(horizontalPadding(topbar.padding), scale));
         r.setProperty("--topbar-fs", scaledCqw(topbar.fontSize, scale));
         if (topbar.clockFontSize)
             r.setProperty("--clock-fs", scaledCqw(topbar.clockFontSize, scale));
