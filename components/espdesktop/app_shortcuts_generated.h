@@ -146,10 +146,10 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.apple.QuickTimePlayerX") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.raycast.macos") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.apple.reminders") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
-  if (app == "com.apple.Safari") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "com.apple.Safari") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "org.whispersystems.signal-desktop") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.bohemiancoding.sketch3") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
-  if (app == "com.tinyspeck.slackmacgap") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "com.tinyspeck.slackmacgap") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "com.spotify.client") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "ru.keepcoder.Telegram") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
   if (app == "com.culturedcode.ThingsMac") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";

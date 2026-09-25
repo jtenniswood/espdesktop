@@ -2989,33 +2989,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Back",
+        "label": "Go back to the previous webpage",
         "shortcut": "command+keybracketleft",
         "icon": "Chevron Left"
       },
       {
         "id": "1",
-        "label": "Forward",
+        "label": "Go forward to the next webpage",
         "shortcut": "command+keybracketright",
         "icon": "Chevron Right"
       },
       {
         "id": "2",
-        "label": "Reload",
+        "label": "Reload the current webpage",
         "shortcut": "command+r",
         "icon": "Repeat"
       },
       {
         "id": "3",
-        "label": "New Tab",
+        "label": "Open a new tab",
         "shortcut": "command+t",
         "icon": "Plus"
       },
       {
         "id": "4",
-        "label": "Close Tab",
+        "label": "Close the active tab",
         "shortcut": "command+w",
         "icon": "Close"
+      },
+      {
+        "id": "5",
+        "label": "Search the current webpage",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "6",
+        "label": "Select the Smart Search field",
+        "shortcut": "command+l",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "7",
+        "label": "Show tab overview",
+        "shortcut": "command+shift+keybackslash",
+        "icon": "View Grid"
+      },
+      {
+        "id": "8",
+        "label": "Go to the next tab",
+        "shortcut": "control+tab",
+        "icon": "Tab"
+      },
+      {
+        "id": "9",
+        "label": "Go to the previous tab",
+        "shortcut": "control+shift+tab",
+        "icon": "Tab"
       }
     ]
   },
@@ -3139,33 +3169,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Compose",
+        "label": "Compose a new message",
         "shortcut": "command+n",
         "icon": "Message Video"
       },
       {
         "id": "1",
-        "label": "Search",
+        "label": "Start a search",
         "shortcut": "command+g",
         "icon": "Spotlight"
       },
       {
         "id": "2",
-        "label": "DMs",
+        "label": "Browse DMs",
         "shortcut": "command+shift+k",
         "icon": "Account"
       },
       {
         "id": "3",
-        "label": "Unread",
+        "label": "Jump to the most recent unread message",
         "shortcut": "command+j",
         "icon": "Bell"
       },
       {
         "id": "4",
-        "label": "All Unread",
+        "label": "Open the All Unread view",
         "shortcut": "command+shift+a",
         "icon": "View Headline"
+      },
+      {
+        "id": "5",
+        "label": "Search in the current conversation",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "6",
+        "label": "Show keyboard shortcuts",
+        "shortcut": "command+keyslash",
+        "icon": "Shortcut Command"
+      },
+      {
+        "id": "7",
+        "label": "Jump to the previous unread conversation",
+        "shortcut": "option+shift+up",
+        "icon": "Chevron Up"
+      },
+      {
+        "id": "8",
+        "label": "Jump to the next unread conversation",
+        "shortcut": "option+shift+down",
+        "icon": "Chevron Down"
+      },
+      {
+        "id": "9",
+        "label": "Jump to a channel or DM",
+        "shortcut": "command+k",
+        "icon": "Account"
       }
     ]
   },
