@@ -225,7 +225,7 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Safari Open URL cards must not retain the shortcut-folder option");
   }
   const chromeFolderCard = {
-    type: "companion", entity: "com.google.Chrome", options: "app_shortcuts",
+    type: "companion", entity: "com.example.UnknownApp", options: "app_shortcuts",
   };
   if (normalizeCompanionAppShortcutOptions(chromeFolderCard) !== "app_shortcuts" ||
       companionAppShortcutFolderEnabled(chromeFolderCard)) {
