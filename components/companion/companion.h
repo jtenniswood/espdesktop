@@ -4,6 +4,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/preferences.h"
 #include "session_state.h"
+#include "../espdesktop/companion_runtime.h"
 
 #include <esp_https_server.h>
 
@@ -30,6 +31,14 @@ struct CompanionIdentityPreference {
   uint8_t private_key[384]{};
   uint8_t credential[32]{};
   uint8_t paired{0};
+};
+
+struct CompanionFocusTargetsPreference {
+  uint32_t version{1};
+  uint8_t url_count{0};
+  uint8_t web_app_count{0};
+  char urls[64][129]{};
+  char web_app_ids[64][65]{};
 };
 
 class CompanionService final : public Component {
@@ -80,6 +89,9 @@ class CompanionService final : public Component {
   void update_authentication_deadline_();
   void set_connected_(bool connected, int closing_socket = -1);
   void publish_catalogue_();
+  void publish_focus_targets_();
+  void restore_focus_targets_();
+  void save_focus_targets_();
   bool invoke_(const std::string &action_id, const std::string &request_id,
                const std::string &folder_open_behavior);
   bool invoke_url_(const std::string &app_id, const std::string &encoded_url,
@@ -90,6 +102,7 @@ class CompanionService final : public Component {
 
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
+  ESPPreferenceObject focus_targets_preferences_;
   CompanionIdentityPreference identity_{};
   httpd_handle_t server_{nullptr};
   uint16_t port_{8443};
@@ -107,10 +120,17 @@ class CompanionService final : public Component {
   uint32_t artwork_generation_{0};
   std::array<uint8_t, 32> artwork_sha256_{};
   uint32_t now_playing_generation_{0};
+  std::atomic<uint32_t> focus_targets_generation_{0};
+  std::atomic<bool> focus_targets_supported_{false};
   bool now_playing_artwork_follows_{false};
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
+  std::vector<CompanionRemoteDefinition> remote_definitions_;
+  uint16_t application_definition_count_{0};
+  uint16_t web_app_definition_count_{0};
   uint32_t catalogue_generation_{0};
   uint16_t catalogue_next_page_{0};
+  uint32_t definitions_generation_{0};
+  uint16_t definitions_next_page_{0};
   std::atomic<uint32_t> disconnect_grace_expires_at_{0};
   std::atomic<bool> disconnect_expiry_queued_{false};
   struct UnauthenticatedSession {

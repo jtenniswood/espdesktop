@@ -14,6 +14,14 @@
     "macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift",
     "src/webserver/generated/app_shortcuts.ts",
     "components/espdesktop/app_shortcuts_generated.h",
+    "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/manifest.json",
+    "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/codex.json",
+    "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/safari.json",
+    "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/slack.json",
+    "src/webserver/generated/web_apps.ts",
+    "components/espdesktop/web_apps_generated.h",
+    "macos/EspDesktop/Sources/Companion/Resources/WebApps/manifest.json",
+    "macos/EspDesktop/Sources/Companion/Resources/WebApps/google-docs.json",
     "product/generated/companion_compatibility.json",
     "docs/reference/companion-compatibility.md"
   ]

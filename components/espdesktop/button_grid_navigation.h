@@ -12,6 +12,10 @@
 // Implemented by button_grid_image.h; navigation calls this when a subpage
 // becomes active after the S3 camera screensaver released image buffers.
 inline void refresh_visible_image_cards();
+inline void image_card_set_clock_bar_companion_icon(
+    const std::string &entity_id, const std::string &icon_name,
+    const std::string &source_url);
+inline void navigation_refresh_subpage_label();
 
 // ── Home Assistant-driven home-screen navigation ─────────────────────
 
@@ -85,6 +89,11 @@ inline lv_obj_t *&navigation_special_page_main_screen() {
   return screen;
 }
 
+inline std::vector<lv_obj_t *> &navigation_grid_screens() {
+  static std::vector<lv_obj_t *> screens;
+  return screens;
+}
+
 inline bool &navigation_special_page_back_button_marker() {
   static bool marker = false;
   return marker;
@@ -131,6 +140,7 @@ inline bool navigation_return_home(lv_obj_t *main_page_obj) {
   if (lv_scr_act() != main_page_obj) {
     lv_scr_load_anim(main_page_obj, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
   }
+  navigation_refresh_subpage_label();
   return true;
 }
 
@@ -161,16 +171,48 @@ inline bool navigation_open_special_page() {
   return true;
 }
 
+inline bool navigation_display_mode_allows_grid_gesture() {
+  espdesktop::EspDesktopAppCore *core =
+      espdesktop::active_espdesktop_app_core();
+  if (core == nullptr) return false;
+  const auto is_interactive_grid_mode = [](espdesktop::DisplayMode mode) {
+    return mode == espdesktop::DisplayMode::ACTIVE ||
+           mode == espdesktop::DisplayMode::DIMMED;
+  };
+  return is_interactive_grid_mode(core->display().current_mode()) &&
+         is_interactive_grid_mode(core->display().target_mode());
+}
+
 inline void navigation_grid_screen_gesture(lv_event_t *event) {
   if (event == nullptr || lv_event_get_code(event) != LV_EVENT_GESTURE) return;
   lv_indev_t *indev = lv_indev_active();
-  if (indev != nullptr && lv_indev_get_gesture_dir(indev) == LV_DIR_TOP) {
-    if (navigation_open_special_page()) lv_indev_wait_release(indev);
-  }
+  if (indev == nullptr || lv_indev_get_gesture_dir(indev) != LV_DIR_TOP ||
+      !navigation_display_mode_allows_grid_gesture() ||
+      screen_lock_enabled() || control_modal_active().overlay != nullptr ||
+      control_modal_nested_active().overlay != nullptr) return;
+
+  lv_obj_t *screen = lv_scr_act();
+  if (screen == nullptr ||
+      std::find(navigation_grid_screens().begin(), navigation_grid_screens().end(),
+                screen) == navigation_grid_screens().end()) return;
+
+  lv_point_t point{};
+  lv_point_t vector{};
+  lv_indev_get_point(indev, &point);
+  lv_indev_get_vect(indev, &vector);
+  const lv_coord_t screen_height = lv_obj_get_height(screen);
+  const lv_coord_t swipe_start_y = point.y - vector.y;
+  if (screen_height <= 0 || swipe_start_y < screen_height * 5 / 6) return;
+
+  if (navigation_open_special_page()) lv_indev_wait_release(indev);
 }
 
 inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
-  (void) screen;
+  if (screen == nullptr) return;
+  auto &screens = navigation_grid_screens();
+  if (std::find(screens.begin(), screens.end(), screen) == screens.end()) {
+    screens.push_back(screen);
+  }
   static std::vector<lv_indev_t *> registered_devices;
   lv_indev_t *indev = nullptr;
   while ((indev = lv_indev_get_next(indev)) != nullptr) {
@@ -205,7 +247,10 @@ inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
     }
   }
   grid_navigation_service().clear_subpages();
+  navigation_grid_screens().clear();
+  navigation_register_grid_screen_gesture(main_page_obj);
   clock_bar_clear_button_grid_pages();
+  navigation_refresh_subpage_label();
 }
 
 inline void navigation_register_home_target(int slot, int display_order,
@@ -229,6 +274,7 @@ inline std::function<void()> &navigation_subpage_clock_bar_refresh() {
 }
 
 inline void navigation_subpage_screen_changed(lv_event_t *) {
+  navigation_refresh_subpage_label();
   auto &refresh = navigation_subpage_clock_bar_refresh();
   if (refresh) refresh();
 }
@@ -363,8 +409,30 @@ inline std::string navigation_active_subpage_label() {
 }
 
 inline void navigation_refresh_subpage_label() {
-  set_clock_bar_companion_subpage_label(network_status_modal_ui().overlay
-      ? espdesktop_i18n(std::string("Settings")) : navigation_active_subpage_label());
+  if (network_status_modal_ui().overlay) {
+    set_clock_bar_companion_subpage_label(espdesktop_i18n(std::string("Settings")));
+    image_card_set_clock_bar_companion_icon("", "", "");
+    return;
+  }
+  set_clock_bar_companion_subpage_label(navigation_active_subpage_label());
+  const int slot = navigation_active_subpage_slot();
+  NavigationSubpageEntry *entry = navigation_find_slot(slot);
+  NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
+  if (!entry || entry->kind != "app_shortcuts" || !parent) {
+    image_card_set_clock_bar_companion_icon("", "", "");
+    return;
+  }
+  const ParsedCfg config = parse_cfg(parent->config);
+  if (!companion_app_shortcuts_enabled(config)) {
+    image_card_set_clock_bar_companion_icon("", "", "");
+    return;
+  }
+  const bool web_app = config.entity.rfind("webapp.", 0) == 0;
+  const std::string icon_name = config.icon.empty() || config.icon == "Auto"
+      ? (web_app ? "Web" : "Monitor") : config.icon;
+  const std::string icon_url = web_app
+      ? companion_web_app_icon_url(config.entity) : "";
+  image_card_set_clock_bar_companion_icon(config.entity, icon_name, icon_url);
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(

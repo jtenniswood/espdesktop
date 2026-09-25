@@ -120,11 +120,11 @@ def voice_substitution_lines(device: dict) -> list[str]:
     if device["slug"] == "esp32-p4-86":
         icon_offset_lines = [
             "      // These controls open different modals: space their full touch targets,",
-            "      // not just the narrower glyphs, with an 18px gap inside the 60px bar.",
+            "      // not just the narrower glyphs, with an 18px gap inside the clock bar.",
             "      clock_bar_right_icons = clock_bar_right_icons_begin(clock_bar_right_x, 18);",
-            "      if (show_network) {",
-            "        const int network_box = lv_obj_get_width(id(network_status_button));",
-            "        clock_bar_right_icons_seed(clock_bar_right_icons, network_box, network_box);",
+            "      if (show_time) {",
+            "        const int time_box = ${clock_bar_item_gap};",
+            "        clock_bar_right_icons_seed(clock_bar_right_icons, time_box, time_box);",
             "      }",
             "      const int voice_clock_bar_icon_x_box = lv_obj_get_width(id(voice_clock_bar_mute_button));",
             "      const int voice_clock_bar_icon_x = clock_bar_right_icons_next_x(",

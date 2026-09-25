@@ -39,6 +39,7 @@ def main() -> int:
         "action.result", "value.set", "value.state", "focus.changed",
         "timezone.changed", "now_playing", "system_metrics", "artwork.begin",
         "artwork.ack", "artwork.end", "artwork.abort", "artwork.request", "error",
+        "catalogue.definitions.page", "focus.targets",
     }
     require(set(message_ids) == required_messages, "the typed message registry is incomplete")
 
@@ -46,7 +47,9 @@ def main() -> int:
     require(manifest["source"] == str(CONTRACT.relative_to(ROOT)), "generated manifest source is wrong")
     require(manifest["generator"] == "python3 scripts/build.py companion", "generated command is wrong")
     outputs = [ROOT / path for path in manifest["outputs"]]
-    require(len(outputs) == 9 and all(path.is_file() for path in outputs), "generated outputs are missing")
+    require(len(outputs) >= 15 and all(path.is_file() for path in outputs), "generated outputs are missing")
+    require("product/v2/app_shortcuts/manifest.json" not in manifest["appShortcutSources"],
+            "the native app template manifest must not be treated as an application template")
 
     for output in outputs[:3]:
         text = output.read_text()

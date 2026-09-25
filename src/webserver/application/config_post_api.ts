@@ -13,6 +13,7 @@ import { serializedConfigContainsWifiSharing } from "../features/wifi_sharing_co
 export interface ConfigPersistenceFeature {
     connectCodec(codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">): void;
     connectRequestApi(requestApi: ApplicationApiFeature): void;
+    connectFocusRegistrationPublisher(publish: () => void): void;
     subpageEntityKeys(): string[];
     specialPageEntityKeys(): string[];
     saveButtonConfig(slot: number): Promise<any>;
@@ -33,11 +34,27 @@ export function createConfigPersistenceFeature(
     const { showBanner } = shell;
     let codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig"> | undefined;
     let requestApi: ApplicationApiFeature | undefined;
+    let publishFocusRegistrations: (() => void) | undefined;
     function connectCodec(value: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">) {
         codec = value;
     }
     function connectRequestApi(value: ApplicationApiFeature) {
         requestApi = value;
+    }
+    function connectFocusRegistrationPublisher(value: () => void) {
+        publishFocusRegistrations = value;
+    }
+    function afterSuccessfulSave(result: any): any {
+        const succeeded = result === "saved" || (result !== null && result !== undefined &&
+            result !== "failed" && result !== "unsupported" &&
+            !(typeof result === "object" && result.ok === false));
+        if (succeeded) publishFocusRegistrations?.();
+        return result;
+    }
+    function publishAfter(result: any): any {
+        return result && typeof result.then === "function"
+            ? result.then(afterSuccessfulSave)
+            : afterSuccessfulSave(result);
     }
     function requests(): ApplicationApiFeature {
         if (!requestApi)
@@ -78,13 +95,13 @@ export function createConfigPersistenceFeature(
         var b: any = state.buttons[slot - 1];
         var value: any = serializeButtonConfig(b);
         if (!isWifiSharingButton(b))
-            return requests().postText(entityNameForSlot("button_config", slot), value);
+            return publishAfter(requests().postText(entityNameForSlot("button_config", slot), value));
         var nativeSave: any = nativePanelConfig
             ? nativePanelConfig.writeText(entityNameForSlot("button_config", slot), value)
             : null;
         if (nativeSave)
-            return queueNativeSave(nativeSave, function () { return rejectLegacyWifiSharingSave(requests()); });
-        return Promise.resolve(rejectLegacyWifiSharingSave(requests()));
+            return publishAfter(queueNativeSave(nativeSave, function () { return rejectLegacyWifiSharingSave(requests()); }));
+        return publishAfter(Promise.resolve(rejectLegacyWifiSharingSave(requests())));
     }
     function saveButtonConfigAndOrder(this: any, slot?: any, order?: any) {
         var b: any = state.buttons[slot - 1];
@@ -101,10 +118,10 @@ export function createConfigPersistenceFeature(
                 .then(function () { return api.postTextLegacy(entityName("button_order"), order); });
         }
         if (nativeSave)
-            return queueNativeSave(nativeSave, saveLegacy);
+            return publishAfter(queueNativeSave(nativeSave, saveLegacy));
         var api: any = requests();
         api.postQueue = api.postQueue.then(saveLegacy);
-        return api.postQueue;
+        return publishAfter(api.postQueue);
     }
     function subpageEntityKeys(this: any) {
         var keys: any = ENTITY_CATALOG.groups.subpage_slot || [];
@@ -113,7 +130,7 @@ export function createConfigPersistenceFeature(
         return keys.slice(0, count);
     }
     function specialPageEntityKeys(this: any) {
-        return ENTITY_CATALOG.groups.special_page || [];
+        return Array.from(ENTITY_CATALOG.groups.special_page || []);
     }
     var SUBPAGE_RAW_CHUNK_FIELDS: any = ["main", "ext", "ext2", "ext3", "ext4", "ext5", "ext6", "ext7"];
     function subpageChunkShouldPost(this: any, slot?: any, keys?: any, chunks?: any, index?: any, previousPendingChunks?: any) {
@@ -181,11 +198,11 @@ export function createConfigPersistenceFeature(
                     api.postQueueError = true;
                 return result;
             });
-            return api.postQueue;
+            return publishAfter(api.postQueue);
         }
         if (serializedConfigContainsWifiSharing(full))
             return Promise.resolve(rejectLegacyWifiSharingSave(requests()));
-        return saveSubpageEntityLegacy(slot, full, true);
+        return publishAfter(saveSubpageEntityLegacy(slot, full, true));
     }
     function scheduleSliderSubpageMigration(this: any, slot?: any) {
         runtime.pendingSliderSubpageMigrations[slot] = true;
@@ -202,6 +219,7 @@ export function createConfigPersistenceFeature(
     return {
         connectCodec,
         connectRequestApi,
+        connectFocusRegistrationPublisher,
         subpageEntityKeys,
         specialPageEntityKeys,
         saveButtonConfig: (slot) => saveButtonConfig(slot),

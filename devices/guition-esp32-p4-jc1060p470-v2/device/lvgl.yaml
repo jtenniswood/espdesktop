@@ -25,17 +25,21 @@ lvgl:
           text_color: 0xFFFFFF
           hidden: true
 
-      # Clock (top-center, updated every minute by time.yaml)
+      # Clock (right aligned, updated every minute by time.yaml)
       - label:
           text: "--:--"
           id: display_time
           text_font: font_text_body
-          align: top_mid
+          align: top_right
           x: 0
           y: 8
           text_align: center
           text_color: 0xFFFFFF
+          clickable: true
           hidden: true
+          on_press:
+            then:
+              - script.execute: network_status_open_info
 
       # Network status (tappable, right side of clock bar)
       - obj:
@@ -60,9 +64,6 @@ lvgl:
                 align: center
                 text_align: center
                 text_color: 0xFFFFFF
-          on_press:
-            then:
-              - script.execute: network_status_open_info
 
       # Night mode indicator (schedule night period only). Starts hidden;
       # clock_bar_apply positions and reveals it beside the network icon, so the

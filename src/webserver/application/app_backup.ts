@@ -407,38 +407,51 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         const message = "This backup contains Wifi Sharing cards, which require current device firmware. Update the panel before restoring this backup.";
                         rejectBackup(message);
                     }
-                    return restoreLegacyLayoutDocument(nativeDocument, {
-                        slotCount: controllers.layout.numSlots,
-                        subpageEntityKeys: subpageEntityKeys(),
-                        entityName: entityName,
-                        entityNameForSlot: entityNameForSlot,
-                        splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
-                        postText: requestApi.postTextLegacy,
-                        readText: readLegacyText,
-                    }).then(function (result: any) {
-                        if (!result.ok) {
-                            requestApi.postQueueError = true;
-                            throw Object.assign(new Error(legacyRestoreFailureMessage(result)), {
-                                backupMessage: legacyRestoreFailureMessage(result),
-                            });
+                    const keys = specialPageEntityKeys();
+                    const specialPageValue = nativeDocument.settings.special_page || "";
+                    const specialPageEntities = Promise.all(keys.map((key) =>
+                        requestApi.getJsonFirst(
+                            requestApi.entityDetailPaths("text", [entityName(key)], "state"),
+                        )
+                    ));
+                    return specialPageEntities.then((available) => {
+                        const allSpecialPageEntitiesAvailable = available.every(Boolean);
+                        if (specialPageValue && !allSpecialPageEntitiesAvailable) {
+                            rejectBackup("This device does not support restoring the special page. Update its firmware and try again.");
                         }
-                        const keys = specialPageEntityKeys();
-                        const chunks = EspDesktopModel.splitSubpageConfigChunks(
-                            nativeDocument.settings.special_page || "", keys.length, 255,
-                        );
-                        if (!chunks) {
-                            rejectBackup("The special page is too large to restore.");
-                        }
-                        return Promise.all(keys.map((key, index) =>
-                            requestApi.postTextLegacy(entityName(key), chunks[index] || "")
-                        )).then(function (results: any[]) {
-                            if (!results.every(function (result: any) {
-                                return result !== null && result !== undefined &&
-                                    (typeof result.ok !== "boolean" || result.ok);
-                            })) {
-                                rejectBackup("The special page could not be restored to this device.");
+                        return restoreLegacyLayoutDocument(nativeDocument, {
+                            slotCount: controllers.layout.numSlots,
+                            subpageEntityKeys: subpageEntityKeys(),
+                            entityName: entityName,
+                            entityNameForSlot: entityNameForSlot,
+                            splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
+                            postText: requestApi.postTextLegacy,
+                            readText: readLegacyText,
+                        }).then(function (result: any) {
+                            if (!result.ok) {
+                                requestApi.postQueueError = true;
+                                throw Object.assign(new Error(legacyRestoreFailureMessage(result)), {
+                                    backupMessage: legacyRestoreFailureMessage(result),
+                                });
                             }
-                            return "legacy-fallback";
+                            if (!allSpecialPageEntitiesAvailable) return "legacy-fallback";
+                            const chunks = EspDesktopModel.splitSubpageConfigChunks(
+                                specialPageValue, keys.length, 255,
+                            );
+                            if (!chunks) {
+                                rejectBackup("The special page is too large to restore.");
+                            }
+                            return Promise.all(keys.map((key, index) =>
+                                requestApi.postTextLegacy(entityName(key), chunks[index] || "")
+                            )).then(function (results: any[]) {
+                                if (!results.every(function (result: any) {
+                                    return result !== null && result !== undefined &&
+                                        (typeof result.ok !== "boolean" || result.ok);
+                                })) {
+                                    rejectBackup("The special page could not be restored to this device.");
+                                }
+                                return "legacy-fallback";
+                            });
                         });
                     });
                 }

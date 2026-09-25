@@ -1,6 +1,6 @@
 import type { BackupFeature, BackupImportPlan, BackupTargetDevice } from "../features/backup";
 import { buttonConfigDisabledForDevice } from "../features/preview";
-import { decodePanelConfigBackupPayload } from "../model/panel_config";
+import { decodePanelConfig, decodePanelConfigBackupPayload } from "../model/panel_config";
 import type { ApplicationLayoutState } from "./application_context";
 import type { CardRegistry } from "./card_registry";
 import type { ConfigCodecFeature } from "./config_codec";
@@ -35,7 +35,9 @@ export function createBackupContractFeature(
             (subpage.buttons || []).forEach(assertButtonSupported);
         }
         const nativeSpecialPage = plan.config.native_config
-            ? decodePanelConfigBackupPayload(plan.config.native_config).settings.special_page
+            ? decodePanelConfig(
+                decodePanelConfigBackupPayload(plan.config.native_config),
+            ).settings.special_page
             : "";
         const specialPageConfig = typeof plan.config.settings?.special_page === "string"
             ? plan.config.settings.special_page : nativeSpecialPage;

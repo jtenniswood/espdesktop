@@ -87,6 +87,7 @@ struct ValueState {
 };
 struct FocusChanged {
   std::string actionId{};
+  std::optional<std::vector<std::string>> actionIds{};
 };
 struct TimezoneChanged {
   std::string identifier{};
@@ -149,6 +150,24 @@ struct ArtworkRequest {
 struct Error {
   std::string code{};
   std::optional<uint32_t> lastSequence{};
+};
+struct CatalogueDefinitionsPageItemsItem {
+  std::string kind{};
+  std::string json{};
+};
+struct CatalogueDefinitionsPage {
+  uint32_t generation{};
+  uint32_t page{};
+  bool complete{};
+  std::vector<CatalogueDefinitionsPageItemsItem> items{};
+};
+struct FocusTargetsItemsItem {
+  std::string id{};
+  std::string url{};
+};
+struct FocusTargets {
+  std::vector<FocusTargetsItemsItem> items{};
+  std::optional<std::vector<std::string>> webAppIDs{};
 };
 inline void encode(JsonObject root, const Hello &message) {
   root["type"] = "hello";
@@ -237,6 +256,12 @@ inline void encode(JsonObject root, const FocusChanged &message) {
   root["type"] = "focus.changed";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["actionId"] = message.actionId;
+  if (message.actionIds) {
+  auto values_actionIds = root["actionIds"].to<JsonArray>();
+  for (const auto &item : *message.actionIds) {
+    values_actionIds.add(item);
+  }
+  }
 }
 inline void encode(JsonObject root, const TimezoneChanged &message) {
   root["type"] = "timezone.changed";
@@ -324,7 +349,36 @@ inline void encode(JsonObject root, const Error &message) {
   root["code"] = message.code;
   if (message.lastSequence) root["lastSequence"] = *message.lastSequence;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, Error>;
+inline void encode(JsonObject root, const CatalogueDefinitionsPage &message) {
+  root["type"] = "catalogue.definitions.page";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["generation"] = message.generation;
+  root["page"] = message.page;
+  root["complete"] = message.complete;
+  auto values_items = root["items"].to<JsonArray>();
+  for (const auto &item : message.items) {
+    auto entry = values_items.add<JsonObject>();
+    entry["kind"] = item.kind;
+    entry["json"] = item.json;
+  }
+}
+inline void encode(JsonObject root, const FocusTargets &message) {
+  root["type"] = "focus.targets";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  auto values_items = root["items"].to<JsonArray>();
+  for (const auto &item : message.items) {
+    auto entry = values_items.add<JsonObject>();
+    entry["id"] = item.id;
+    entry["url"] = item.url;
+  }
+  if (message.webAppIDs) {
+  auto values_webAppIDs = root["webAppIDs"].to<JsonArray>();
+  for (const auto &item : *message.webAppIDs) {
+    values_webAppIDs.add(item);
+  }
+  }
+}
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, Error, CatalogueDefinitionsPage, FocusTargets>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -533,8 +587,20 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(string_valid(root["actionId"], 0, 96))) return std::nullopt;
     }
+    if (!root["actionIds"].isUnbound()) {
+      if (!(root["actionIds"].is<JsonArrayConst>() && root["actionIds"].size() <= 64)) return std::nullopt;
+      for (JsonVariantConst item : root["actionIds"].as<JsonArrayConst>()) {
+        if (!(string_valid(item, 1, 96))) return std::nullopt;
+      }
+    }
     FocusChanged result;
     result.actionId = root["actionId"].as<std::string>();
+    if (!root["actionIds"].isUnbound()) {
+    result.actionIds.emplace();
+    for (JsonVariantConst item : root["actionIds"].as<JsonArrayConst>()) {
+      result.actionIds->push_back(item.as<std::string>());
+    }
+    }
     return result;
   }
   if (type == "timezone.changed") {
@@ -762,6 +828,72 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     Error result;
     result.code = root["code"].as<std::string>();
     if (!root["lastSequence"].isUnbound()) result.lastSequence = root["lastSequence"].as<uint32_t>();
+    return result;
+  }
+  if (type == "catalogue.definitions.page") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["page"], 0, 65535, true))) return std::nullopt;
+    }
+    {
+      if (!(root["complete"].is<bool>())) return std::nullopt;
+    }
+    {
+      if (!(root["items"].is<JsonArrayConst>() && root["items"].size() <= 1)) return std::nullopt;
+      for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+        if (!(item.is<JsonObjectConst>())) return std::nullopt;
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["kind"], 5, 11) && (item.as<JsonObjectConst>()["kind"].as<std::string>() == "application" || item.as<JsonObjectConst>()["kind"].as<std::string>() == "webapp"))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["json"], 2, 12000))) return std::nullopt;
+        }
+      }
+    }
+    CatalogueDefinitionsPage result;
+    result.generation = root["generation"].as<uint32_t>();
+    result.page = root["page"].as<uint32_t>();
+    result.complete = root["complete"].as<bool>();
+    for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+      result.items.push_back({item["kind"].as<std::string>(), item["json"].as<std::string>()});
+    }
+    return result;
+  }
+  if (type == "focus.targets") {
+    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(root["items"].is<JsonArrayConst>() && root["items"].size() <= 64)) return std::nullopt;
+      for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+        if (!(item.is<JsonObjectConst>())) return std::nullopt;
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["id"], 1, 96))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["url"], 8, 128))) return std::nullopt;
+        }
+      }
+    }
+    if (!root["webAppIDs"].isUnbound()) {
+      if (!(root["webAppIDs"].is<JsonArrayConst>() && root["webAppIDs"].size() <= 64)) return std::nullopt;
+      for (JsonVariantConst item : root["webAppIDs"].as<JsonArrayConst>()) {
+        if (!(string_valid(item, 1, 64))) return std::nullopt;
+      }
+    }
+    FocusTargets result;
+    for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+      result.items.push_back({item["id"].as<std::string>(), item["url"].as<std::string>()});
+    }
+    if (!root["webAppIDs"].isUnbound()) {
+    result.webAppIDs.emplace();
+    for (JsonVariantConst item : root["webAppIDs"].as<JsonArrayConst>()) {
+      result.webAppIDs->push_back(item.as<std::string>());
+    }
+    }
     return result;
   }
   return std::nullopt;

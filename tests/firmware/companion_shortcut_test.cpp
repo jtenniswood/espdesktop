@@ -14,6 +14,14 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 using namespace esphome::companion;
 
 int main() {
+  assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
+  assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
+  assert(!companion_json_payload_valid("{}", 1));
+  assert(companion_remote_definition_capacity_available("application", 127, 0));
+  assert(companion_remote_definition_capacity_available("webapp", 128, 127));
+  assert(!companion_remote_definition_capacity_available("application", 128, 0));
+  assert(!companion_remote_definition_capacity_available("webapp", 128, 128));
+
   const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
   const std::vector<CompanionAction> folders = {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}};
   const auto added = finder_append_folder_tiles(page, {true, true, true, false}, folders);
@@ -81,7 +89,7 @@ int main() {
   safari_launch.options = "app_shortcuts,app_shortcuts_tabs=none";
   assert(companion_app_shortcut_tabs_normalized(safari_launch) == "none");
   safari_launch.options = "app_shortcuts,app_shortcuts_tabs=9%7C3%7C3%7C0";
-  assert(companion_app_shortcut_tabs_normalized(safari_launch) == "3|0");
+  assert(companion_app_shortcut_tabs_normalized(safari_launch) == "9|3|0");
   ParsedCfg codex_launch = safari_launch;
   codex_launch.entity = "com.openai.codex";
   assert(companion_app_shortcuts_enabled(codex_launch));
@@ -96,7 +104,7 @@ int main() {
   assert(companion_card_options_normalized(edited_preset) ==
          "app_shortcut_preset=com.apple.Safari%3A0");
   edited_preset.options = "app_shortcut_preset=com.apple.Safari%3A9";
-  assert(companion_shortcut_preset_normalized(edited_preset).empty());
+  assert(companion_shortcut_preset_normalized(edited_preset) == "com.apple.Safari:9");
   edited_preset.options = "app_shortcut_preset=custom";
   assert(companion_shortcut_preset_normalized(edited_preset) == "custom");
   safari_launch.sensor = "url.https%3A%2F%2Fexample.com";
@@ -124,6 +132,20 @@ int main() {
   assert(!companion_metric_card_should_disable(true, false));
 
   const std::string folder_action = "folder.00000000-0000-0000-0000-000000000001";
+  companion_set_focus_registrations({}, {"google-docs", "-invalid", "UPPER"});
+  assert(companion_runtime_snapshot().web_app_focus_ids == std::vector<std::string>{"google-docs"});
+  int focus_registration_updates = 0;
+  companion_runtime_service().focus_registrations_changed_handler = [&focus_registration_updates] {
+    ++focus_registration_updates;
+  };
+  const std::string focus_url = "https://example.com/";
+  const std::string focus_url_id = companion_url_card_focus_id(
+      "url." + companion_encode_url_focus_value(focus_url));
+  companion_set_focus_registrations({{focus_url_id, focus_url}}, {"google-docs"});
+  assert(focus_registration_updates == 1);
+  companion_set_focus_registrations({{focus_url_id, focus_url}}, {"google-docs"});
+  assert(focus_registration_updates == 1);
+  companion_runtime_service().focus_registrations_changed_handler = {};
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
   assert(companion_default_action_label("com.apple.Safari") == "Safari");
   std::string resolved_label;
@@ -222,6 +244,16 @@ int main() {
   companion_set_focused_action("com.apple.Safari");
   assert(!companion_action_focused("com.apple.finder"));
   assert(companion_consume_subpage_return_request());
+  companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs", "urlcard.0123456789abcdef"});
+  assert(companion_action_focused("com.apple.Safari"));
+  assert(companion_action_focused("webapp.google-docs"));
+  assert(companion_pending_auto_subpage_action() == "webapp.google-docs");
+  assert(companion_consume_subpage_return_request());
+  assert(companion_consume_auto_subpage_action("webapp.google-docs"));
+  companion_set_focused_actions({"com.apple.Safari"});
+  assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
+  assert(companion_consume_subpage_return_request());
+  assert(companion_consume_auto_subpage_action("com.apple.Safari"));
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
   assert(!companion_consume_subpage_return_request());
@@ -248,11 +280,10 @@ int main() {
   assert(companion_url_available("com.apple.Safari", url_config));
   assert(companion_url_available("com.google.Chrome", url_config));
   assert(companion_url_available("system.default_browser", url_config));
-  // Companion reports the focused app, not the page it currently shows, so a
-  // URL card must never inherit the app-launch card's checked state.
+  // A valid URL card can be matched against the active tab by its configured URL.
   companion_set_focused_application("com.apple.Safari");
   assert(companion_application_focused("com.apple.Safari"));
-  assert(!companion_card_focus_allowed(url_config));
+  assert(companion_card_focus_allowed(url_config));
   assert(companion_card_focus_allowed(""));
   assert(companion_action_available(folder_action));
   bool invoked = false;

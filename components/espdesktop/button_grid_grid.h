@@ -651,6 +651,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   }
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
+    image_card_bind_companion_webapp_icon(s, p, cfg);
     espdesktop::cards::basic_action_driver_attach_interaction(s, p, context);
     espdesktop::cards::basic_action_driver_refresh_layout(
       s, p, context, display, row_span, col_span);

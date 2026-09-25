@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "appId": "org.example.Editor",
+  "label": "Example Editor",
+  "catalog": true,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New Document",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Save",
+      "shortcut": "command+s",
+      "icon": "Check"
+    }
+  ]
+}

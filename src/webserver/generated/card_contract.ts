@@ -3066,6 +3066,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "label": "Show capacity label",
         "kind": "flag",
         "omitDefault": true
+      },
+      {
+        "name": "webapp_icon_title",
+        "label": "Large icon with title",
+        "kind": "flag",
+        "omitDefault": true
       }
     ],
     "normalization": {
@@ -3117,7 +3123,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "app_shortcuts_tabs",
         "app_shortcut_preset",
         "large_numbers",
-        "stat_labels_off"
+        "stat_labels_off",
+        "webapp_icon_title"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -4932,6 +4939,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "vacuum_mode": "vacuum_mode",
   "volume_max": "volume_max",
   "weather_mode": "weather_mode",
+  "webapp_icon_title": "webapp_icon_title",
   "webhook_headers": "webhook_headers",
   "wifi_tabs": "wifi_tabs"
 };
