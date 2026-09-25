@@ -170,6 +170,12 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
+        var specialPageEntry: any = document.createElement("button");
+        specialPageEntry.className = "sp-special-page-entry";
+        specialPageEntry.type = "button";
+        specialPageEntry.textContent = "Configure Special Page";
+        els.specialPageEntry = specialPageEntry;
+        page.appendChild(specialPageEntry);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =

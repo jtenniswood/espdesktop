@@ -81,7 +81,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         return cardTypePickerDetails(key || "", label || "");
     }
     function buttonTypePickerOptionList(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
-        return cardTypePickerOptions(dependencies.cards.definitions, dependencies.layout.config.disabledCardTypes || [], !!dependencies.layout.config.infoOnly, !!isSub, selectedTypeKey, connector, dependencies.homeAssistantSupported());
+        return cardTypePickerOptions(
+            dependencies.cards.definitions,
+            dependencies.layout.config.disabledCardTypes || [],
+            !!dependencies.layout.config.infoOnly,
+            !!isSub,
+            selectedTypeKey,
+            connector,
+            dependencies.homeAssistantSupported(),
+            state.editingSubpage === -1,
+        );
     }
     function buttonTypePickerKeys(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
         return buttonTypePickerOptionList(!!isSub, selectedTypeKey, connector).map(function (this: any, opt?: any) {

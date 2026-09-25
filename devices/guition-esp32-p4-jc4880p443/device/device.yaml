@@ -64,6 +64,7 @@ espdesktop:
     storage: card_images
     button_order: button_order
     button_on_color: button_on_color
+    special_page_chunks: [special_page_config, special_page_config_ext, special_page_config_ext_2, special_page_config_ext_3, special_page_config_ext_4, special_page_config_ext_5, special_page_config_ext_6, special_page_config_ext_7]
     buttons:
       - config: button_1_config
         subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3, subpage_1_config_ext_4, subpage_1_config_ext_5, subpage_1_config_ext_6, subpage_1_config_ext_7]

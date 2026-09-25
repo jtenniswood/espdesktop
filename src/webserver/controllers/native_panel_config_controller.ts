@@ -174,4 +174,10 @@ export class NativePanelConfigController {
       current, this.dependencies.deviceProfile(), "subpages", slot, value,
     ));
   }
+
+  writeSpecialPage(value: string): Promise<NativePanelConfigSaveOutcome> | null {
+    return this.schedule((current) => updateNativePanelConfigDocument(
+      current, this.dependencies.deviceProfile(), "settings", "special_page", value,
+    ));
+  }
 }

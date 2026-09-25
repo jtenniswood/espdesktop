@@ -252,6 +252,7 @@ def package_file_text(device: dict) -> str:
             "  # ---------------------------------------------------------------------------",
             include_line("colors", "!include ../../common/config/colors.yaml"),
             include_line("button_order", "!include ../../common/config/button_order.yaml"),
+            include_line("special_page", "!include ../../common/config/special_page.yaml"),
             include_line("display_config", "!include ../../common/config/display.yaml"),
             button_package_block(device).rstrip(),
             "  # ---------------------------------------------------------------------------",
@@ -416,6 +417,13 @@ def cfg_lines(device: dict) -> list[str]:
     else:
         lines.append(f"            cfg.cols = {device['cols']};")
     lines.append("            cfg.subpage_chevrons_enabled = id(subpage_chevrons_enabled).state;")
+    lines.append(
+        "            cfg.special_page_config = id(special_page_config).state + "
+        "id(special_page_config_ext).state + id(special_page_config_ext_2).state + "
+        "id(special_page_config_ext_3).state + id(special_page_config_ext_4).state + "
+        "id(special_page_config_ext_5).state + id(special_page_config_ext_6).state + "
+        "id(special_page_config_ext_7).state;"
+    )
     if device.get("info_only"):
         lines.append("            cfg.info_only = true;")
     if device.get("subpage_chevron_x", 0) != 0:

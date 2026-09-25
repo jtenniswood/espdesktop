@@ -232,13 +232,14 @@ export function cardTypePickerOptions(
   selectedTypeKey: string | null | undefined,
   connector: CardPickerConnector = "home_assistant",
   homeAssistantEnabled = false,
+  isSpecialPage = false,
 ): CardPickerOption[] {
   const options: CardPickerOption[] = [];
   let selectedUnsupported: { key: string; label: string } | null = null;
   const hasSelectedType = selectedTypeKey !== null && selectedTypeKey !== undefined;
   for (const [typeKey, definition] of Object.entries(definitions)) {
     const rawDefinition = definition as Record<string, unknown>;
-    const pickerKey = registryValue(rawDefinition, "pickerKey", "");
+    const pickerKey = String(registryValue(rawDefinition, "pickerKey", ""));
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
     const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
     const source = cardTypeConnector(typeKey);
@@ -260,7 +261,12 @@ export function cardTypePickerOptions(
       continue;
     }
     if (pickerKey && pickerKey !== typeKey) continue;
-    if (isSub && !allowInSubpage) continue;
+    // The standalone page accepts every card type, but must never contain a
+    // card that opens another page.
+    if (isSpecialPage && (
+      typeKey === "subpage" || typeKey === "companion_subpage" || pickerKey === "subpage"
+    )) continue;
+    if (isSub && !isSpecialPage && !allowInSubpage) continue;
     if (definition.isAvailable && !definition.isAvailable({ isSub }) && selectedTypeKey !== typeKey) continue;
     if (!cardTypeVisibleForConnector(typeKey, connector) && !localDateTimePicker && !localFolderPicker) continue;
     options.push({

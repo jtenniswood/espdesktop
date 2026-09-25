@@ -33,6 +33,10 @@ class PanelConfigTextBindings {
   void set_button_on_color(PanelConfigTextValue *button_on_color) {
     button_on_color_ = button_on_color;
   }
+  void set_special_page_chunks(
+      const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> &chunks) {
+    special_page_chunks_ = chunks;
+  }
   void set_button(
       uint8_t slot, PanelConfigTextValue *button,
       const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS>
@@ -43,6 +47,8 @@ class PanelConfigTextBindings {
                       size_t *document_size) const;
   bool persist_document(const uint8_t *document, size_t document_size);
   bool publish_document(const uint8_t *document, size_t document_size);
+  static bool write_value(PanelConfigTextValue *target, const char *value,
+                          size_t value_size, bool persist);
 
  private:
   struct ButtonSources {
@@ -52,12 +58,10 @@ class PanelConfigTextBindings {
 
   bool apply_document(const uint8_t *document, size_t document_size,
                       bool persist);
-  static bool write_value(PanelConfigTextValue *target, const char *value,
-                          size_t value_size, bool persist);
-
   std::string device_profile_;
   PanelConfigTextValue *button_order_{nullptr};
   PanelConfigTextValue *button_on_color_{nullptr};
+  std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> special_page_chunks_{};
   std::array<ButtonSources, PANEL_CONFIG_MAX_SLOT_COUNT> buttons_{};
 };
 

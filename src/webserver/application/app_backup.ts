@@ -68,7 +68,7 @@ export interface AppBackupControllers {
     readonly gridColsForImportedSettings: (settings: any) => number;
     readonly nativePanelConfig?: NativePanelConfigController;
     readonly codec: ConfigCodecFeature;
-    readonly configPersistence: Pick<ConfigPersistenceFeature, "subpageEntityKeys">;
+    readonly configPersistence: Pick<ConfigPersistenceFeature, "subpageEntityKeys" | "specialPageEntityKeys">;
     readonly backupContract: Pick<BackupContractFeature, "createBackupConfig" | "normalizeButtonConfig">;
     readonly runtime: UiRuntimeState;
     readonly core: Pick<CoreFeature, "syncPreviewOrientation">;
@@ -101,7 +101,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { syncAlarmDelayAudioUi, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
     const { render: renderPreview } = controllers.preview;
     const { render: renderButtonSettings } = controllers.buttonSettings;
-    const { subpageEntityKeys } = controllers.configPersistence;
+    const { subpageEntityKeys, specialPageEntityKeys } = controllers.configPersistence;
     const { createBackupConfig, normalizeButtonConfig: backupNormalizeButtonConfig } = controllers.backupContract;
     const { entityName, entityNameForSlot } = controllers.entityState;
     const { switchTab } = controllers.shell;
@@ -207,6 +207,16 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     function backupExportFileName(this: any, value?: any) {
         return backupExportController.fileName(controllers.layout.config.screenSize, value, controllers.identity?.backup());
     }
+    function backupSubpages(this: any) {
+        var pages: any = {};
+        for (var key in state.subpages) {
+            if (key !== "-1") pages[key] = state.subpages[key];
+        }
+        return pages;
+    }
+    function specialPageConfig(this: any) {
+        return state.subpages[-1] ? serializeSubpageConfig(state.subpages[-1]) : "";
+    }
     function normalizeImportedPanelSettings(this: any, settings?: any) {
         return controllers.normalizeImportedPanelSettings(settings);
     }
@@ -224,7 +234,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         return backupExportController.addNativeConfig(data, {
             "deviceProfile": controllers.layout.deviceId,
             "buttons": state.buttons,
-            "subpages": state.subpages,
+            "subpages": backupSubpages(),
+            "specialPage": specialPageConfig(),
             "buttonOrder": data.button_order,
             "buttonOnColor": data.button_on_color,
         });
@@ -245,8 +256,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             button_order: serializeGrid(state.grid),
             button_on_color: state.onColor,
             buttons: state.buttons,
-            subpages: state.subpages,
+            subpages: backupSubpages(),
             settings: {
+                special_page: specialPageConfig(),
                 indoor_temp_enable: state._indoorOn,
                 outdoor_temp_enable: state._outdoorOn,
                 clock_bar_temperature_entities: serializeClockBarTemperatureEntities(clockBarTemperatureEntities()),
@@ -370,6 +382,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     nativeDocument = EspDesktopModel.decodePanelConfig(
                         EspDesktopModel.decodePanelConfigBackupPayload(backedUpNativeConfig));
                 }
+                nativeDocument.settings.special_page = String(
+                    nativeDocument.settings.special_page || backupPlan.config.settings?.special_page || "");
                 nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
                 nativeDocument.settings.button_on_color = String(nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || "");
                 var parsedButtonOrder: any = EspDesktopModel.parseGridOrder(
@@ -393,22 +407,52 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         const message = "This backup contains Wifi Sharing cards, which require current device firmware. Update the panel before restoring this backup.";
                         rejectBackup(message);
                     }
-                    return restoreLegacyLayoutDocument(nativeDocument, {
-                        slotCount: controllers.layout.numSlots,
-                        subpageEntityKeys: subpageEntityKeys(),
-                        entityName: entityName,
-                        entityNameForSlot: entityNameForSlot,
-                        splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
-                        postText: requestApi.postTextLegacy,
-                        readText: readLegacyText,
-                    }).then(function (result: any) {
-                        if (!result.ok) {
-                            requestApi.postQueueError = true;
-                            throw Object.assign(new Error(legacyRestoreFailureMessage(result)), {
-                                backupMessage: legacyRestoreFailureMessage(result),
-                            });
+                    const keys = specialPageEntityKeys();
+                    const specialPageValue = nativeDocument.settings.special_page || "";
+                    const specialPageEntities = Promise.all(keys.map((key) =>
+                        requestApi.getJsonFirst(
+                            requestApi.entityDetailPaths("text", [entityName(key)], "state"),
+                        )
+                    ));
+                    return specialPageEntities.then((available) => {
+                        const allSpecialPageEntitiesAvailable = available.every(Boolean);
+                        if (specialPageValue && !allSpecialPageEntitiesAvailable) {
+                            rejectBackup("This device does not support restoring the special page. Update its firmware and try again.");
                         }
-                        return "legacy-fallback";
+                        return restoreLegacyLayoutDocument(nativeDocument, {
+                            slotCount: controllers.layout.numSlots,
+                            subpageEntityKeys: subpageEntityKeys(),
+                            entityName: entityName,
+                            entityNameForSlot: entityNameForSlot,
+                            splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
+                            postText: requestApi.postTextLegacy,
+                            readText: readLegacyText,
+                        }).then(function (result: any) {
+                            if (!result.ok) {
+                                requestApi.postQueueError = true;
+                                throw Object.assign(new Error(legacyRestoreFailureMessage(result)), {
+                                    backupMessage: legacyRestoreFailureMessage(result),
+                                });
+                            }
+                            if (!allSpecialPageEntitiesAvailable) return "legacy-fallback";
+                            const chunks = EspDesktopModel.splitSubpageConfigChunks(
+                                specialPageValue, keys.length, 255,
+                            );
+                            if (!chunks) {
+                                rejectBackup("The special page is too large to restore.");
+                            }
+                            return Promise.all(keys.map((key, index) =>
+                                requestApi.postTextLegacy(entityName(key), chunks[index] || "")
+                            )).then(function (results: any[]) {
+                                if (!results.every(function (result: any) {
+                                    return result !== null && result !== undefined &&
+                                        (typeof result.ok !== "boolean" || result.ok);
+                                })) {
+                                    rejectBackup("The special page could not be restored to this device.");
+                                }
+                                return "legacy-fallback";
+                            });
+                        });
                     });
                 }
                 await requestApi.postQueue;
@@ -454,6 +498,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         var canonicalSubpage: any = parseSubpageConfig(nativeDocument.subpages[Number(canonicalSubpageKey)] || "");
                         buildSubpageGrid(canonicalSubpage);
                         state.subpages[canonicalSubpageKey] = canonicalSubpage;
+                    }
+                    if (nativeDocument.settings.special_page) {
+                        var specialPage: any = parseSubpageConfig(nativeDocument.settings.special_page);
+                        buildSubpageGrid(specialPage);
+                        state.subpages[-1] = specialPage;
                     }
                     nativeDocument.settings.button_order = applyImportedButtonOrder(
                         nativeDocument.settings.button_order, {});

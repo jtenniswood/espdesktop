@@ -48,6 +48,38 @@ export const ENTITY_CATALOG = {
       "domain": "text",
       "template": "Subpage {slot} Config Ext 7"
     },
+    "special_page_config": {
+      "domain": "text",
+      "name": "Special Page Config"
+    },
+    "special_page_config_ext": {
+      "domain": "text",
+      "name": "Special Page Config Ext"
+    },
+    "special_page_config_ext_2": {
+      "domain": "text",
+      "name": "Special Page Config Ext 2"
+    },
+    "special_page_config_ext_3": {
+      "domain": "text",
+      "name": "Special Page Config Ext 3"
+    },
+    "special_page_config_ext_4": {
+      "domain": "text",
+      "name": "Special Page Config Ext 4"
+    },
+    "special_page_config_ext_5": {
+      "domain": "text",
+      "name": "Special Page Config Ext 5"
+    },
+    "special_page_config_ext_6": {
+      "domain": "text",
+      "name": "Special Page Config Ext 6"
+    },
+    "special_page_config_ext_7": {
+      "domain": "text",
+      "name": "Special Page Config Ext 7"
+    },
     "display_restart": {
       "domain": "button",
       "name": "Restart"
@@ -778,6 +810,16 @@ export const ENTITY_CATALOG = {
       "subpage_config_ext_5",
       "subpage_config_ext_6",
       "subpage_config_ext_7"
+    ],
+    "special_page": [
+      "special_page_config",
+      "special_page_config_ext",
+      "special_page_config_ext_2",
+      "special_page_config_ext_3",
+      "special_page_config_ext_4",
+      "special_page_config_ext_5",
+      "special_page_config_ext_6",
+      "special_page_config_ext_7"
     ],
     "settings": [
       "indoor_temp_enable",

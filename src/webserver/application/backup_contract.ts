@@ -1,5 +1,6 @@
 import type { BackupFeature, BackupImportPlan, BackupTargetDevice } from "../features/backup";
 import { buttonConfigDisabledForDevice } from "../features/preview";
+import { decodePanelConfig, decodePanelConfigBackupPayload } from "../model/panel_config";
 import type { ApplicationLayoutState } from "./application_context";
 import type { CardRegistry } from "./card_registry";
 import type { ConfigCodecFeature } from "./config_codec";
@@ -32,6 +33,23 @@ export function createBackupContractFeature(
         for (const serialized of Object.values(plan.config.subpages || {})) {
             const subpage = codec.parseSubpageConfig(serialized);
             (subpage.buttons || []).forEach(assertButtonSupported);
+        }
+        const nativeSpecialPage = plan.config.native_config
+            ? decodePanelConfig(
+                decodePanelConfigBackupPayload(plan.config.native_config),
+            ).settings.special_page
+            : "";
+        const specialPageConfig = typeof plan.config.settings?.special_page === "string"
+            ? plan.config.settings.special_page : nativeSpecialPage;
+        if (specialPageConfig) {
+            const specialPage = codec.parseSubpageConfig(specialPageConfig);
+            if (specialPage.buttons?.some((button: any) =>
+                button?.type === "subpage" || button?.type === "companion_subpage")) {
+                const error = new Error("The special page cannot contain subpage cards.") as Error & { backupMessage?: string };
+                error.backupMessage = error.message;
+                throw error;
+            }
+            (specialPage.buttons || []).forEach(assertButtonSupported);
         }
         return plan;
     };
