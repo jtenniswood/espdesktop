@@ -335,6 +335,11 @@ inline lv_obj_t *&clock_bar_companion_icon_widget() {
   return widget;
 }
 
+inline lv_obj_t *&clock_bar_time_widget() {
+  static lv_obj_t *widget = nullptr;
+  return widget;
+}
+
 inline int &clock_bar_left_title_origin_x() {
   static int value = 12;
   return value;
@@ -616,6 +621,11 @@ inline void refresh_clock_bar_temperature_label_values(
     return;
   }
 
+  // The home clock owns the left slot; temperature updates must not overlap it.
+  if (clock_bar_time_widget() && !lv_obj_has_flag(clock_bar_time_widget(), LV_OBJ_FLAG_HIDDEN)) {
+    for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
+    return;
+  }
   // The left label also holds subpage titles, which do not require Home Assistant.
   const auto configured = clock_bar_home_assistant_configured_provider();
   if (!configured || !configured()) {
@@ -806,14 +816,13 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
   clock_bar_left_title_origin_x() = left_x;
   clock_bar_left_title_origin_y() = label_y;
   left_widths.temperature = temperature_width;
-  // Titles can use the free space up to the centered clock, rather than a
-  // temperature-sized box. Retain a gap so text cannot run into the time.
+  // Keep titles in the left portion of the bar, clear of status controls.
   const int title_width = (clock_bar_current_screen_width(480) - time_width) / 2 - left_x - 8;
   left_widths.title = title_width > 0 ? title_width : temperature_width;
   clock_bar_prepare_text_label(
       temperature_label, temperature_width, LV_TEXT_ALIGN_LEFT);
   clock_bar_update_left_text_width(temperature_label);
-  clock_bar_prepare_text_label(display_time, time_width, LV_TEXT_ALIGN_CENTER);
+  clock_bar_prepare_text_label(display_time, time_width, LV_TEXT_ALIGN_LEFT);
 
   clock_bar_set_widget_hidden(temperature_label, !temperature_visible);
   clock_bar_set_widget_hidden(display_time, !time_visible);
@@ -826,7 +835,7 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
     lv_obj_move_background(temperature_label);
   }
   if (display_time) {
-    lv_obj_align(display_time, LV_ALIGN_TOP_RIGHT, -right_x, label_y);
+    lv_obj_align(display_time, LV_ALIGN_TOP_LEFT, left_x, label_y);
     lv_obj_move_background(display_time);
   }
   if (network_status_button) {
