@@ -75,8 +75,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-clockbar-section{height:100%;min-width:0;flex:1;display:flex;align-items:center;gap:.4cqw;position:relative}" +
         ".sp-clockbar-left{justify-content:flex-start}.sp-clockbar-middle{justify-content:center}.sp-clockbar-right{justify-content:flex-end}" +
         ".sp-clockbar-subpage-title,.sp-temp,.sp-clock,.sp-btn-label{font-size:var(--btn-label);line-height:1.2;color:#fff;font-weight:var(--btn-label-weight,400)}" +
-        ".sp-clockbar-subpage-title{display:flex;align-items:center;gap:.4cqw;white-space:nowrap;overflow:hidden;min-width:0}" +
-        ".sp-clockbar-subpage-icon{width:2.2em;height:2.2em;flex:none;object-fit:contain;border-radius:22%}" +
+        ".sp-clockbar-subpage-title{display:flex;align-items:center;gap:.4cqw;font-size:.82em;white-space:nowrap;overflow:hidden;min-width:0}" +
+        ".sp-clockbar-subpage-icon{width:1.8em;height:1.8em;flex:none;object-fit:contain;border-radius:22%}" +
         ".sp-clockbar-subpage-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}" +
         ".sp-clockbar-item{height:min(36px,calc(100% - .45cqw));min-height:0;min-width:28px;border:1px solid transparent;border-radius:calc(var(--topbar-fs)*.3);" +
         "background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 calc(var(--topbar-fs)*.28);" +

@@ -87,7 +87,7 @@ export function createCoreFeature(
         var gridTop: any = clockBarVisibleInPreview() ? grid.top : compactTop;
         const parent = state.editingSubpage != null ? state.buttons[state.editingSubpage - 1] : null;
         if (clockBarVisibleInPreview() && companionAppShortcutFolderEnabled(parent) && isFinite(Number(grid.top)))
-            gridTop = Number(grid.top) * 1.4;
+            gridTop = Number(grid.top);
         document.documentElement.style.setProperty("--grid-top", scaledCqw(gridTop, scale));
     }
     function syncPreviewStyleVars(this: any, layout?: any, scale?: any) {

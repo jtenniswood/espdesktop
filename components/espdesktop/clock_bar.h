@@ -360,7 +360,7 @@ struct ClockBarLeftTextWidths {
   int title = 176;
 };
 
-constexpr lv_coord_t CLOCK_BAR_COMPANION_ICON_SIZE = 48;
+constexpr lv_coord_t CLOCK_BAR_COMPANION_ICON_SIZE = 32;
 
 inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
   static ClockBarLeftTextWidths widths;
@@ -372,6 +372,10 @@ inline std::string &clock_bar_modal_label() {
   return label;
 }
 inline const lv_font_t *&clock_bar_card_label_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+inline const lv_font_t *&clock_bar_companion_subpage_title_font() {
   static const lv_font_t *font = nullptr;
   return font;
 }
@@ -439,8 +443,10 @@ inline void clock_bar_refresh_left_title() {
     const bool use_card_label_font = !clock_bar_companion_subpage_label().empty() &&
                                      clock_bar_modal_label().empty();
     const lv_font_t *title_font = use_card_label_font
-        ? (clock_bar_temperature_default_font_owner() == labels[0]
-            ? clock_bar_temperature_default_font() : clock_bar_card_label_font())
+        ? (clock_bar_companion_subpage_title_font()
+            ? clock_bar_companion_subpage_title_font()
+            : (clock_bar_temperature_default_font_owner() == labels[0]
+                ? clock_bar_temperature_default_font() : clock_bar_card_label_font()))
         : (clock_bar_temperature_default_font_owner() == labels[0]
             ? clock_bar_temperature_default_font() : nullptr);
     if (title_font) lv_obj_set_style_text_font(labels[0], title_font, LV_PART_MAIN);

@@ -32,13 +32,16 @@ esphome:
       then:
         - lambda: |-
             clock_bar_enable_settings_access(id(display_time));
+            clock_bar_companion_subpage_title_font() = id(font_text_small)->get_lv_font();
             navigation_subpage_clock_bar_refresh() = []() {
               navigation_refresh_subpage_label();
               lv_obj_set_style_text_font(
                   id(temperatures),
-                  clock_bar_left_title().empty()
-                      ? id(${label_font})->get_lv_font()
-                      : id(${media_title_font})->get_lv_font(),
+                  !clock_bar_companion_subpage_label().empty() && clock_bar_modal_label().empty()
+                      ? id(font_text_small)->get_lv_font()
+                      : clock_bar_left_title().empty()
+                          ? id(${label_font})->get_lv_font()
+                          : id(${media_title_font})->get_lv_font(),
                   LV_PART_MAIN);
               refresh_clock_bar_temperature_label_values(
                   id(main_page)->obj,
@@ -145,22 +148,13 @@ script:
           bool clock_bar_device_480_square =
               ${screen_width} == 480 && ${screen_height} == 480;
           const bool companion_app_subpage = !clock_bar_companion_subpage_label().empty();
-          const int clock_bar_reserved_height = companion_app_subpage
-              ? (${main_page_pad_top} * 7 / 5) : ${main_page_pad_top};
-          const lv_font_t *clock_bar_body_font = id(font_text_body)->get_lv_font();
+          const int clock_bar_reserved_height = ${main_page_pad_top};
+          clock_bar_companion_subpage_title_font() = id(font_text_small)->get_lv_font();
           int clock_bar_label_y = ${main_page_pad_top} / 5;
-          if (companion_app_subpage && clock_bar_body_font) {
-            clock_bar_label_y =
-                (clock_bar_reserved_height - static_cast<int>(clock_bar_body_font->line_height)) / 2;
-            if (clock_bar_label_y < 0) clock_bar_label_y = 0;
-          }
           int clock_bar_icon_y =
-              (clock_bar_reserved_height - (companion_app_subpage
-                  ? CLOCK_BAR_COMPANION_ICON_SIZE
-                  : lv_obj_get_height(id(network_status_button)))) / 2;
+              (clock_bar_reserved_height - lv_obj_get_height(id(network_status_button))) / 2;
           if (clock_bar_icon_y < 0) clock_bar_icon_y = 0;
-          clock_bar_left_icon_origin_y() = companion_app_subpage
-              ? clock_bar_icon_y : clock_bar_label_y;
+          clock_bar_left_icon_origin_y() = clock_bar_label_y;
           int clock_bar_item_width = ${clock_bar_item_gap};
           int clock_bar_right_x =
               clock_bar_480_square ? 4 : (clock_bar_screen_width >= 700 ? 8 : 6);
@@ -213,7 +207,7 @@ script:
           lv_obj_set_style_text_font(
               id(temperatures),
               companion_app_subpage && clock_bar_modal_label().empty()
-                  ? clock_bar_body_font
+                  ? id(font_text_small)->get_lv_font()
                   : clock_bar_left_title().empty()
                       ? id(${label_font})->get_lv_font()
                       : id(${media_title_font})->get_lv_font(),
