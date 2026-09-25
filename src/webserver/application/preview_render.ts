@@ -173,7 +173,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const width = button.clientWidth - parseFloat(cardStyle.paddingLeft) - parseFloat(cardStyle.paddingRight);
         const height = button.clientHeight - parseFloat(cardStyle.paddingTop) - parseFloat(cardStyle.paddingBottom) -
             labelHeight - (labelHeight > 0 ? Math.max(3, smallSide / 8) : 0);
-        const side = Math.max(1, Math.min(smallSide * 2.5, width, height));
+        const side = Math.max(1, Math.min(smallSide * 2.5, width, height) * 0.9);
         icon.style.setProperty("--sp-app-medium-icon-side", side + "px");
     }
     const appIconResizeObserver = typeof ResizeObserver === "function"
