@@ -266,6 +266,11 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+r",
     "shortcut.command+t",
     "shortcut.command+w",
+    "shortcut.command+f",
+    "shortcut.command+l",
+    "shortcut.command+shift+keybackslash",
+    "shortcut.control+tab",
+    "shortcut.control+shift+tab",
   ];
   if (safariPreset.map((card) => card.entity).join("|") !== expectedSafariShortcuts.join("|")) {
     throw new Error("Safari shortcut defaults changed");
@@ -312,6 +317,11 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+shift+k",
     "shortcut.command+j",
     "shortcut.command+shift+a",
+    "shortcut.command+f",
+    "shortcut.command+keyslash",
+    "shortcut.option+shift+up",
+    "shortcut.option+shift+down",
+    "shortcut.command+k",
   ];
   if (slackPreset.map((card) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
     throw new Error("Slack shortcut defaults changed");
@@ -319,7 +329,11 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!slackPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Slack presets must contain only Companion keyboard shortcuts");
   }
-  const expectedSlackLabels = ["Compose", "Search", "DMs", "Unread", "All Unread"];
+  const expectedSlackLabels = [
+    "Compose a new message", "Start a search", "Browse DMs", "Jump to most recent unread",
+    "Open the All Unread view", "Search this conversation", "Show keyboard shortcuts",
+    "Previous unread conversation", "Next unread conversation", "Quick switch to channel or DM",
+  ];
   if (slackPreset.map((card) => card.label).join("|") !== expectedSlackLabels.join("|")) {
     throw new Error("Slack shortcut labels should stay short");
   }
@@ -336,7 +350,7 @@ export function runCompanionShortcutFeatureTests(): void {
     }
   }
   const safariSubpage = createSafariShortcutSubpage();
-  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== "B|1|2|3|4|5") {
+  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10") {
     throw new Error("Safari app subpage layout changed");
   }
   setCompanionShortcutTabs(safariFolderCard, ["3", "0"]);
@@ -345,13 +359,15 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("App subpage shortcut choices must retain their enabled order");
   }
   const selectedSafariSubpage = createSafariShortcutSubpage();
+  syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3", "4"], selectedSafariSubpage);
+  selectedSafariSubpage.order = ["B", "1", "2", "3", "4", "5"];
   selectedSafariSubpage.buttons[0].label = "Previous";
   selectedSafariSubpage.buttons.push({
     ...selectedSafariSubpage.buttons[0], entity: "shortcut.command+l", label: "Custom",
   });
   selectedSafariSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["3", "0"], selectedSafariSubpage);
-  if (selectedSafariSubpage.buttons.map((card: any) => card.label).join("|") !== "New Tab|Previous|Custom" ||
+  if (selectedSafariSubpage.buttons.map((card: any) => card.label).join("|") !== "Open a new tab|Previous|Custom" ||
       selectedSafariSubpage.order.join("|") !== "B|1|2||||3" ||
       companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, selectedSafariSubpage).join("|") !== "3|0") {
     throw new Error("Changing shortcut choices must preserve custom cards and edited preset cards: " +
@@ -376,6 +392,8 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Turning an edited shortcut off and on must not create a duplicate preset");
   }
   const crossAppSubpage = createSafariShortcutSubpage();
+  syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3", "4"], crossAppSubpage);
+  crossAppSubpage.order = ["B", "1", "2", "3", "4", "5"];
   crossAppSubpage.buttons.push({ ...codexPreset[2], label: "Pasted Browser" });
   crossAppSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0"], crossAppSubpage);
@@ -385,6 +403,8 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Shortcut cards pasted from another app must remain custom content");
   }
   const duplicatedPresetSubpage = createSafariShortcutSubpage();
+  syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3", "4"], duplicatedPresetSubpage);
+  duplicatedPresetSubpage.order = ["B", "1", "2", "3", "4", "5"];
   duplicatedPresetSubpage.buttons.push({ ...duplicatedPresetSubpage.buttons[0], label: "Copied Back" });
   duplicatedPresetSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["1", "2", "3", "4"], duplicatedPresetSubpage);
@@ -429,7 +449,7 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Codex app subpage layout changed");
   }
   const slackSubpage = createSlackShortcutSubpage();
-  if (slackSubpage.backLabel !== "Back" || slackSubpage.order.join("|") !== "B|1|2|3|4|5" ||
+  if (slackSubpage.backLabel !== "Back" || slackSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10" ||
       slackSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
     throw new Error("Slack app subpage layout changed");
   }

@@ -3187,7 +3187,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "3",
-        "label": "Jump to the most recent unread message",
+        "label": "Jump to most recent unread",
         "shortcut": "command+j",
         "icon": "Bell"
       },
@@ -3199,7 +3199,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "5",
-        "label": "Search in the current conversation",
+        "label": "Search this conversation",
         "shortcut": "command+f",
         "icon": "Spotlight"
       },
@@ -3211,19 +3211,19 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "7",
-        "label": "Jump to the previous unread conversation",
+        "label": "Previous unread conversation",
         "shortcut": "option+shift+up",
         "icon": "Chevron Up"
       },
       {
         "id": "8",
-        "label": "Jump to the next unread conversation",
+        "label": "Next unread conversation",
         "shortcut": "option+shift+down",
         "icon": "Chevron Down"
       },
       {
         "id": "9",
-        "label": "Jump to a channel or DM",
+        "label": "Quick switch to channel or DM",
         "shortcut": "command+k",
         "icon": "Account"
       }
