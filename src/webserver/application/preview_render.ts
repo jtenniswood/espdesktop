@@ -139,6 +139,28 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const { isConfigLocked } = dependencies.shell;
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
+    // Percentages in width and height resolve against different card axes.
+    // Measure the available space once so the Medium image box stays square.
+    function resizeMediumAppIcon(button: Element): void {
+        const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon-medium");
+        const view = document.defaultView;
+        if (!icon || !view) return;
+        const cardStyle = view.getComputedStyle(button);
+        const smallSide = parseFloat(view.getComputedStyle(icon).fontSize);
+        const label = button.querySelector<HTMLElement>(".sp-btn-label");
+        let labelHeight = 0;
+        if (label && !icon.classList.contains("sp-companion-app-icon-medium-no-label")) {
+            const labelStyle = view.getComputedStyle(label);
+            labelHeight = parseFloat(labelStyle.lineHeight) || parseFloat(labelStyle.fontSize) * 1.2;
+        }
+        const width = button.clientWidth - parseFloat(cardStyle.paddingLeft) - parseFloat(cardStyle.paddingRight);
+        const height = button.clientHeight - parseFloat(cardStyle.paddingTop) - parseFloat(cardStyle.paddingBottom) -
+            labelHeight - (labelHeight > 0 ? Math.max(3, smallSide / 8) : 0);
+        const side = Math.max(1, Math.min(smallSide * 2.5, width, height));
+        icon.style.setProperty("--sp-app-medium-icon-side", side + "px");
+    }
+    const appIconResizeObserver = typeof ResizeObserver === "function"
+        ? new ResizeObserver(entries => entries.forEach(entry => resizeMediumAppIcon(entry.target))) : null;
     // ── Preview rendering (unified) ────────────────────────────────────────
     function previewHtmlValue(this: any, typePreview?: any, key?: any, fallback?: any) {
         return previewValue(typePreview, key, fallback);
@@ -178,6 +200,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         return buttonTypePickerKeys(!!isSub, null).indexOf(key) >= 0;
     }
     function renderPreview(this: any) {
+        appIconResizeObserver?.disconnect();
         dependencies.updateClockBarItemUi();
         var main: any = els.previewMain;
         main.innerHTML = "";
@@ -298,6 +321,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         if (!fillCard) appIcon.style.transform =
                             "translate(-" + previewIcon.insetLeftPercent + "%, -" + previewIcon.insetTopPercent + "%)";
                         btn.appendChild(appIcon);
+                        if (mediumIcon) {
+                            resizeMediumAppIcon(btn);
+                            appIconResizeObserver?.observe(btn);
+                        }
                         if (fallbackIcon) fallbackIcon.hidden = true;
                         if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor &&
                             (backgroundColor || state.appIconAutoColourGenerationEnabled)) {
