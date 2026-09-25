@@ -68,6 +68,11 @@ import { createButtonSettingsSelectionFeature, type ButtonSettingsSelectionFeatu
 import { createButtonSettingsRenderQueueFeature } from "./application/button_settings_render_queue";
 import { createButtonSettingsIconPickerFeature } from "./application/button_settings_icon_picker";
 import { createButtonSettingsFeature, type ButtonSettingsFeature } from "./application/button_settings";
+import {
+  APP_ICON_AUTO_COLOUR_GENERATION_SETTING,
+  APP_ICON_CUSTOM_COLOUR_CONTROL_SETTING,
+  panelSettingEnabled,
+} from "./model/app_icon_color_settings";
 import { createPreviewGridPlacementFeature } from "./application/preview_grid_placement";
 import { createPreviewContextMenuFeature, type PreviewContextMenuFeature } from "./application/preview_context_menu";
 import { createPreviewClipboardFeature } from "./application/preview_clipboard";
@@ -970,8 +975,29 @@ function composeApplicationContext(): ApplicationContext {
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
-    systemSection, preview, connectorsPage,
+    systemSection, preview, connectorsPage, nativePanelConfig,
   );
+  void nativePanelConfig.readSettings().then((settings) => {
+    const customColourControlEnabled = panelSettingEnabled(
+      settings[APP_ICON_CUSTOM_COLOUR_CONTROL_SETTING],
+    );
+    const autoColourGenerationEnabled = panelSettingEnabled(
+      settings[APP_ICON_AUTO_COLOUR_GENERATION_SETTING],
+    );
+    const appIconColourSettingsChanged =
+      state.appIconCustomColourControlEnabled !== customColourControlEnabled ||
+      state.appIconAutoColourGenerationEnabled !== autoColourGenerationEnabled;
+    state.appIconCustomColourControlEnabled = customColourControlEnabled;
+    state.appIconAutoColourGenerationEnabled = autoColourGenerationEnabled;
+    if (runtime.els.appIconCustomColourControlToggle)
+      runtime.els.appIconCustomColourControlToggle.checked = state.appIconCustomColourControlEnabled;
+    if (runtime.els.appIconAutoColourGenerationToggle)
+      runtime.els.appIconAutoColourGenerationToggle.checked = state.appIconAutoColourGenerationEnabled;
+    if (appIconColourSettingsChanged) {
+      preview.render();
+      buttonSettings.render();
+    }
+  });
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,

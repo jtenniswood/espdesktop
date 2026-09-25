@@ -74,8 +74,11 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-topbar.sp-hidden{display:none}" +
         ".sp-clockbar-section{height:100%;min-width:0;flex:1;display:flex;align-items:center;gap:.4cqw;position:relative}" +
         ".sp-clockbar-left{justify-content:flex-start}.sp-clockbar-middle{justify-content:center}.sp-clockbar-right{justify-content:flex-end}" +
-        ".sp-clockbar-subpage-title,.sp-temp,.sp-clock,.sp-btn-label{font-size:var(--btn-label);line-height:1.2;color:#fff;font-weight:var(--btn-label-weight,400)}" +
-        ".sp-clockbar-subpage-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}" +
+        ".sp-clockbar-subpage-title,.sp-clockbar-subpage-label,.sp-temp,.sp-clock,.sp-btn-label{font-size:var(--btn-label);line-height:1.2;color:#fff;font-weight:var(--btn-label-weight,400)}" +
+        ".sp-clockbar-subpage-title{display:flex;align-items:center;gap:.4cqw;white-space:nowrap;overflow:hidden;min-width:0}" +
+        ".sp-clockbar-subpage-icon{font-size:.92rem;width:1.8em;height:1.8em;flex:none;object-fit:contain;border-radius:22%;" +
+        "transform:translateX(calc(var(--grid-left) - var(--topbar-pad-x)))}" +
+        ".sp-clockbar-subpage-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}" +
         ".sp-clockbar-item{height:min(36px,calc(100% - .45cqw));min-height:0;min-width:28px;border:1px solid transparent;border-radius:calc(var(--topbar-fs)*.3);" +
         "background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 calc(var(--topbar-fs)*.28);" +
         "box-sizing:border-box;cursor:pointer;font:inherit;line-height:1;pointer-events:auto;transition:background .2s,border-color .2s,opacity .2s}" +
@@ -110,6 +113,13 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-wifi-qr-card.sp-btn-max-tall .sp-wifi-qr-preview,.sp-wifi-qr-card.sp-btn-portrait-large .sp-wifi-qr-preview{width:97%;height:97%}" +
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:#fff;z-index:1}" +
+        ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:22%}" +
+        ".sp-btn-icon.sp-companion-app-icon-medium{left:var(--btn-pad);top:var(--btn-pad);" +
+        "width:var(--sp-app-medium-icon-side,var(--btn-icon));height:var(--sp-app-medium-icon-side,var(--btn-icon));object-fit:contain}" +
+        ".sp-btn-icon.sp-companion-app-icon-fill{object-fit:contain;border-radius:0;z-index:0}" +
+        ".sp-btn.sp-companion-app-icon-medium-card>.sp-btn-label{max-height:calc(var(--btn-label)*1.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+        ".sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label,.sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label-row{position:relative;z-index:1}" +
+        ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;filter:none}" +
         ".sp-btn>.sp-btn-label,.sp-btn>.sp-btn-label-row{margin-top:auto}" +
         ".sp-media-group-active{box-shadow:inset 0 0 0 3px var(--accent)}" +
         ".sp-btn-label{display:block;max-height:var(--btn-label-max-height);overflow:hidden;word-break:break-word;min-height:0}" +
@@ -566,6 +576,27 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-color-swatch input{position:absolute;inset:-8px;width:calc(100% + 16px);" +
         "height:calc(100% + 16px);cursor:pointer;opacity:0}" +
         ".sp-color-row .sp-input{flex:1}" +
+        ".sp-companion-app-colour-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}" +
+        ".sp-companion-app-colour-mode .sp-action-btn[aria-pressed='true']{border-color:var(--accent);color:var(--accent)}" +
+        ".sp-companion-app-icon-size{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:10px 0}" +
+        ".sp-companion-app-icon-size>.sp-field-label{margin:0}" +
+        ".sp-companion-app-icon-size-control{position:relative;width:100%;max-width:none}" +
+        ".sp-companion-app-icon-size-button{display:flex;align-items:center;justify-content:space-between;gap:10px;" +
+        "width:100%;min-height:46px;box-sizing:border-box;text-align:left;cursor:pointer;background-image:none}" +
+        ".sp-companion-app-icon-size-button .mdi{display:inline-flex;align-items:center;justify-content:center;" +
+        "width:18px;height:18px;line-height:1;color:var(--text2);font-size:18px;flex:0 0 18px;transform:translateY(1px)}" +
+        ".sp-companion-app-icon-size-list{display:none;position:absolute;z-index:60;top:calc(100% + 4px);" +
+        "left:0;right:0;padding:4px;background:var(--surface2);border:1px solid var(--border);" +
+        "border-radius:10px;box-shadow:var(--shadow-3)}" +
+        ".sp-companion-app-icon-size-control.sp-open .sp-companion-app-icon-size-list{display:block}" +
+        ".sp-companion-app-icon-size-option{display:block;width:100%;padding:9px 10px;border:0;border-radius:7px;" +
+        "background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}" +
+        ".sp-companion-app-icon-size-option:hover,.sp-companion-app-icon-size-option:focus-visible," +
+        ".sp-companion-app-icon-size-option.sp-active{background:var(--accent-soft);outline:none}" +
+        ".sp-companion-app-colour-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}" +
+        ".sp-companion-app-colour-swatch{aspect-ratio:1;border:2px solid rgba(255,255,255,.22);border-radius:8px;cursor:pointer}" +
+        ".sp-companion-app-colour-swatch:hover{transform:scale(1.06);border-color:var(--text)}" +
+        ".sp-companion-app-colour-swatch[aria-pressed='true']{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-number-row{display:flex;align-items:center;gap:8px;margin-bottom:16px}" +
         ".sp-number-row:last-child{margin-bottom:0}" +
         ".sp-number{width:80px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);" +

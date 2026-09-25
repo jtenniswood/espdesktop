@@ -12,6 +12,8 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
     if (webChanged) COMPANION_WEB_APPS.splice(0, COMPANION_WEB_APPS.length, ...webApps);
     return shortcutChanged || webChanged;
 }
+
+import { companionSavedCardMode } from "../model/companion_card_codec";
 import {
     configOptionEnabled,
     configOptionValue,
@@ -109,6 +111,26 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     const value = tabs.length === 0 ? "none" :
         tabs.join("|") === defaults.join("|") ? "" : tabs.join("|");
     return finish(setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, value));
+}
+
+/** Normalize the saved options owned by each Companion card mode. */
+export function normalizeCompanionCardOptions(card: any): string {
+    if (!card || card.type !== "companion") return "";
+    let options = normalizeCompanionAppShortcutOptions(card);
+    if (companionSavedCardMode(card) !== "app") return options;
+
+    // App launch cards now always use the Mac app icon. Drop the legacy opt-out
+    // token while preserving other saved app appearance settings.
+    options = setConfigOption(options, "custom_icon", false);
+    const customColor = configOptionValue(card.options, "app_bg_color");
+    if (/^[0-9a-f]{6}$/i.test(customColor))
+        options = setConfigOptionValue(options, "app_bg_color", customColor.toUpperCase());
+    if (!card.sensor) {
+        options = setConfigOption(options, "app_hide_label", configOptionEnabled(card.options, "app_hide_label"));
+        options = setConfigOption(options, "app_icon_fill", configOptionEnabled(card.options, "app_icon_fill"));
+        options = setConfigOption(options, "app_icon_medium", configOptionEnabled(card.options, "app_icon_medium"));
+    }
+    return options;
 }
 
 export function setCompanionAppShortcutFolderEnabled(card: any, enabled: boolean): void {

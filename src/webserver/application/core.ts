@@ -2,6 +2,7 @@ import * as EspDesktopModel from "../model";
 import type { ApplicationLayoutState } from "./application_context";
 import type { AppState } from "../state/types";
 import type { UiRuntimeState } from "./state";
+import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 
 export interface CoreFeatureDependencies {
     readonly state: AppState;
@@ -79,11 +80,20 @@ export function createCoreFeature(
             return scaledCqw(num, scale);
         });
     }
+    function horizontalPadding(this: any, value?: any) {
+        var parts = String(value || "0").trim().split(/\s+/);
+        if (parts.length === 4)
+            return parts[3];
+        return parts.length > 1 ? parts[1] : parts[0];
+    }
     function syncPreviewGridTop(this: any, layout?: any, scale?: any) {
         var grid: any = layoutSection(layout || activeLayout(), "grid");
         scale = scale || previewLayoutScale(layout || activeLayout());
         var compactTop: any = grid.compactTop != null ? grid.compactTop : grid.bottom;
         var gridTop: any = clockBarVisibleInPreview() ? grid.top : compactTop;
+        const parent = state.editingSubpage != null ? state.buttons[state.editingSubpage - 1] : null;
+        if (clockBarVisibleInPreview() && companionAppShortcutFolderEnabled(parent) && isFinite(Number(grid.top)))
+            gridTop = Number(grid.top);
         document.documentElement.style.setProperty("--grid-top", scaledCqw(gridTop, scale));
     }
     function syncPreviewStyleVars(this: any, layout?: any, scale?: any) {
@@ -96,6 +106,7 @@ export function createCoreFeature(
         var subpageBadge: any = layoutSection(layout, "subpageBadge");
         r.setProperty("--topbar-h", scaledCqw(topbar.height, scale));
         r.setProperty("--topbar-pad", scaledCqwText(topbar.padding, scale));
+        r.setProperty("--topbar-pad-x", scaledCqwText(horizontalPadding(topbar.padding), scale));
         r.setProperty("--topbar-fs", scaledCqw(topbar.fontSize, scale));
         if (topbar.clockFontSize)
             r.setProperty("--clock-fs", scaledCqw(topbar.clockFontSize, scale));

@@ -2,7 +2,7 @@
 
 Companion is a local connector and must remain independent of Home Assistant's
 API, cards, and runtime. Its product contract is authored in
-`product/v2/companion_capabilities.json`; `python3 scripts/build.py companion`
+`product/v2/companion_capabilities.json`; `python3 scripts/build.py all`
 generates the matching C++, TypeScript, Swift, and output manifest.
 
 ## App shortcut definitions
@@ -47,7 +47,7 @@ testing with matching firmware and Companion builds.
 The authored protocol includes payload fields, bounds, conditional requirements,
 message direction and legal session states. Generated C++ and Swift decoders
 validate messages before dispatch. Both test suites consume
-`compatibility/fixtures/companion_protocol_v3.json`, including malformed and
+`compatibility/fixtures/companion_protocol_v4.json`, including malformed and
 wrong-session cases. Protocol v3 remains the wire format.
 
 `EspDesktopAppCore` owns Companion runtime state, wiring callbacks, pending

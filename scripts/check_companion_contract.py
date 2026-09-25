@@ -26,8 +26,7 @@ def main() -> int:
     message_ids = [message["id"] for message in messages]
     mode_ids = [mode["id"] for mode in contract["cardModes"]]
 
-    require(protocol["version"] == 3, "the reset transport must remain protocol v3")
-    require(protocol["path"] == "/companion/v3", "the v3 endpoint changed unexpectedly")
+    require(protocol["path"].endswith(f"/v{protocol['version']}"), "protocol path and version disagree")
     require(len(message_ids) == len(set(message_ids)), "protocol message IDs are not unique")
     require(len(mode_ids) == len(set(mode_ids)), "card mode IDs are not unique")
     require(security["pairingAuthorization"] == "device_web_access", "pairing must follow device web authorization")
@@ -38,8 +37,10 @@ def main() -> int:
         "capabilities", "catalogue.request", "catalogue.page", "action.invoke",
         "action.result", "value.set", "value.state", "focus.changed",
         "timezone.changed", "now_playing", "system_metrics", "artwork.begin",
-        "artwork.ack", "artwork.end", "artwork.abort", "artwork.request", "error",
-        "catalogue.definitions.page", "focus.targets",
+        "artwork.ack", "artwork.end", "artwork.abort", "artwork.request",
+        "app_icon.request", "app_icon.begin", "app_icon.unchanged",
+        "app_icon.unavailable", "app_icon.ack", "app_icon.end",
+        "app_icon.abort", "error", "catalogue.definitions.page", "focus.targets",
     }
     require(set(message_ids) == required_messages, "the typed message registry is incomplete")
 

@@ -6,10 +6,13 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 3 as const;
-export const COMPANION_PROTOCOL_VERSION = 3 as const;
-export const COMPANION_PROTOCOL_PATH = "/companion/v3" as const;
+export const COMPANION_CAPABILITY_VERSION = 5 as const;
+export const COMPANION_PROTOCOL_VERSION = 4 as const;
+export const COMPANION_PROTOCOL_PATH = "/companion/v4" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
+export const COMPANION_APP_ICON_SIDE = 240 as const;
+export const COMPANION_APP_ICONS_CAPABILITY = "app_icons" as const;
+export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = "app_icons_alpha" as const;
 export const COMPANION_CARD_MODES = [
   {
     id: "app",
@@ -22,12 +25,6 @@ export const COMPANION_CARD_MODES = [
     label: "Keyboard shortcut",
     capability: "keyboard_shortcuts",
     defaultIcon: "Shortcut Command"
-  },
-  {
-    id: "webapp",
-    label: "Web App",
-    capability: "applications",
-    defaultIcon: "Web"
   },
   {
     id: "url",
@@ -52,6 +49,12 @@ export const COMPANION_CARD_MODES = [
     label: "Window control",
     capability: "window_actions",
     defaultIcon: "Monitor"
+  },
+  {
+    id: "webapp",
+    label: "Web App",
+    capability: "applications",
+    defaultIcon: "Web"
   }
 ] as const satisfies readonly CompanionCardMode[];
 export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = [
@@ -158,6 +161,41 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
   {
     id: "artwork.request",
     direction: "panel_to_mac",
+    authorization: "session"
+  },
+  {
+    id: "app_icon.request",
+    direction: "panel_to_mac",
+    authorization: "session"
+  },
+  {
+    id: "app_icon.begin",
+    direction: "mac_to_panel",
+    authorization: "session"
+  },
+  {
+    id: "app_icon.unchanged",
+    direction: "mac_to_panel",
+    authorization: "session"
+  },
+  {
+    id: "app_icon.unavailable",
+    direction: "mac_to_panel",
+    authorization: "session"
+  },
+  {
+    id: "app_icon.ack",
+    direction: "panel_to_mac",
+    authorization: "session"
+  },
+  {
+    id: "app_icon.end",
+    direction: "mac_to_panel",
+    authorization: "session"
+  },
+  {
+    id: "app_icon.abort",
+    direction: "bidirectional",
     authorization: "session"
   },
   {

@@ -46,7 +46,7 @@ import { normalizeSavedConfigLightControl } from "../generated/saved_config_ligh
 import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
 import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
 import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
-import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
+import { normalizeCompanionCardOptions } from "./companion_shortcut_folder";
 import type { CardRegistry } from "./card_registry";
 import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
 import type { ConfigMediaOptionsFeature } from "./config_media_options";
@@ -669,7 +669,7 @@ export function createConfigCodecFeature(
                 options = copyLargeNumbersOption("", options);
                 if (configOptionEnabled(b?.options, "stat_labels_off"))
                     options = options ? options + ",stat_labels_off" : "stat_labels_off";
-            } else options = normalizeCompanionAppShortcutOptions({
+            } else options = normalizeCompanionCardOptions({
                     ...(b || {}),
                     type,
                     entity: b && b.entity,

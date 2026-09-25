@@ -14,6 +14,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "app_icon_store.h"
 
 namespace esphome::companion {
 
@@ -60,6 +61,8 @@ class CompanionService final : public Component {
   bool paired() const;
   void revoke_pairing();
   void request_now_playing_artwork();
+  void request_app_icon(const std::string &application_id);
+  void refresh_app_icons_after_cache_clear();
 
  protected:
   void advertise_discovery_();
@@ -79,6 +82,7 @@ class CompanionService final : public Component {
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
   void handle_binary_(int socket_fd, const uint8_t *data, size_t size);
+  void reset_app_icon_transfer_();
   void reset_artwork_transfer_(const char *reason = nullptr, bool notify = false);
   void send_artwork_ack_(uint32_t generation, size_t next_offset);
   void expire_now_playing_();
@@ -138,6 +142,13 @@ class CompanionService final : public Component {
     uint32_t expires_at{0};
   };
   std::array<UnauthenticatedSession, 2> unauthenticated_sessions_{};
+  RAMAllocator<uint8_t> app_icon_allocator_{RAMAllocator<uint8_t>::ALLOC_EXTERNAL};
+  uint8_t *app_icon_buffer_{nullptr};
+  std::string app_icon_application_id_;
+  std::array<uint8_t, 32> app_icon_sha256_{};
+  uint32_t app_icon_generation_{0};
+  size_t app_icon_offset_{0};
+  std::atomic<bool> app_icons_supported_{false};
   std::atomic<uint32_t> authentication_expires_at_{0};
   std::atomic<bool> authentication_expiry_queued_{false};
 };
@@ -149,5 +160,9 @@ std::string companion_pairing_code();
 bool companion_pairing_active();
 void revoke_companion_pairing();
 void request_companion_now_playing_artwork();
+void request_app_icon(const std::string &application_id);
+void sync_app_icon_references(const std::vector<std::string> &application_ids);
+bool clear_companion_app_icon_cache();
+void companion_app_icon_ready(const std::string &application_id);
 
 }  // namespace esphome::companion

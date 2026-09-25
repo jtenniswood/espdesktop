@@ -7,6 +7,7 @@
 #include <vector>
 
 struct lv_event_t;
+using lv_coord_t = int;
 struct lv_font_t {};
 struct lv_obj_t {
   std::string text;
@@ -16,6 +17,7 @@ struct lv_obj_t {
   bool hidden = false;
   void (*delete_callback)(lv_event_t *) = nullptr;
   int callbacks = 0;
+  const lv_font_t *font = nullptr;
 };
 struct lv_event_t { lv_obj_t *target; };
 struct BtnSlot { lv_obj_t *btn; lv_obj_t *text_lbl; };
@@ -29,7 +31,8 @@ void lv_obj_add_event_cb(lv_obj_t *obj, void (*callback)(lv_event_t *), int, voi
 }
 constexpr int LV_OBJ_FLAG_HIDDEN = 1;
 void lv_obj_set_width(lv_obj_t *obj, int width) { obj->width = width; }
-void lv_obj_set_style_text_font(lv_obj_t *, const lv_font_t *, int) {}
+void lv_obj_set_style_text_font(lv_obj_t *obj, const lv_font_t *font, int) { obj->font = font; }
+const lv_font_t *lv_obj_get_style_text_font(lv_obj_t *obj, int) { return obj->font; }
 void lv_obj_align(lv_obj_t *obj, int, int x, int y) { obj->x = x; obj->y = y; }
 void lv_obj_set_pos(lv_obj_t *obj, int x, int y) { obj->x = x; obj->y = y; }
 void lv_obj_move_foreground(lv_obj_t *) {}
@@ -62,7 +65,12 @@ int main() {
   assert(control_modal_card_labels().empty());
 
   clock_bar_home_assistant_configured_provider() = []() { return true; };
+  lv_font_t clock_font, temperature_font, card_font;
+  lv_obj_t clock;
+  clock.font = &clock_font;
+  clock_bar_companion_subpage_title_font() = lv_obj_get_style_text_font(&clock, LV_PART_MAIN);
   lv_obj_t left;
+  left.font = &temperature_font;
   lv_obj_t *labels[] = {&left};
   set_clock_bar_temperature_labels(labels, 1);
   auto refresh = [&](bool visible, bool temperature, float value) {
@@ -80,6 +88,9 @@ int main() {
   assert(left.width == clock_bar_left_text_widths().temperature);
 
   set_clock_bar_companion_subpage_label("Upstairs");
+  assert(left.font == clock.font);
+  clock_bar_set_card_label_font(&card_font);
+  assert(left.font == clock.font);
   set_clock_bar_modal_label("Bedroom speaker");
   set_clock_bar_companion_subpage_label("Upstairs");
   refresh(true, true, 22);
@@ -88,7 +99,9 @@ int main() {
   assert(left.text == "Bedroom light");
   set_clock_bar_modal_label("");
   assert(left.text == "Upstairs");
+  assert(left.font == clock.font);
   set_clock_bar_companion_subpage_label("");
+  assert(left.font == &temperature_font);
   assert(left.text.find("22") != std::string::npos);
 
   // A hidden temperature slot still supports titles, then hides on close.

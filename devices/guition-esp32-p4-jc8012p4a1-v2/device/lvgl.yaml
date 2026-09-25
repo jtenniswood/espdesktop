@@ -25,21 +25,18 @@ lvgl:
           text_color: 0xFFFFFF
           hidden: true
 
-      # Clock (right aligned, updated every minute by time.yaml)
+      # Clock (home screen, left aligned, updated every minute by time.yaml)
       - label:
           text: "--:--"
           id: display_time
           text_font: font_text_body
-          align: top_right
+          align: top_left
           x: 0
           y: 5
-          text_align: center
+          text_align: left
           text_color: 0xFFFFFF
-          clickable: true
+          clickable: false
           hidden: true
-          on_press:
-            then:
-              - script.execute: network_status_open_info
 
       # Network status (tappable, right side of clock bar)
       - obj:
@@ -56,6 +53,9 @@ lvgl:
           scrollbar_mode: "off"
           clickable: true
           hidden: true
+          on_press:
+            then:
+              - script.execute: network_status_open_info
           widgets:
             - label:
                 id: network_status_icon_label

@@ -6,6 +6,8 @@ import {
   companionApplicationActionIdCanSave,
   companionApplicationActionIdValid,
   companionCardMode,
+  companionAppIconEnabled,
+  normalizeCompanionAppOptions,
   companionFolderActionIdCanSave,
   companionFolderActions,
   companionEntityForMode,
@@ -535,6 +537,21 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionCardMode({ entity: folderAction, sensor: "" }) !== "folder" ||
       companionCardMode({ entity: "com.apple.finder", sensor: "" }) !== "app") {
     throw new Error("Folder actions must use the folder subtype and Finder must use the app subtype");
+  }
+  const appIconCard: any = { entity: "com.apple.finder", sensor: "", options: "" };
+  normalizeCompanionCard(appIconCard);
+  if (!companionAppIconEnabled(appIconCard)) {
+    throw new Error("Companion app cards must default to the enabled app icon");
+  }
+  appIconCard.options = "custom_icon";
+  normalizeCompanionCard(appIconCard);
+  if (!companionAppIconEnabled(appIconCard) || appIconCard.options.includes("custom_icon")) {
+    throw new Error("Legacy custom-icon settings must normalize to the Mac app icon");
+  }
+  appIconCard.entity = "com.google.Chrome";
+  appIconCard.options = normalizeCompanionAppOptions(appIconCard);
+  if (!companionAppIconEnabled(appIconCard) || appIconCard.options.includes("custom_icon")) {
+    throw new Error("Changing apps must continue using the Mac app icon");
   }
   const catalogue = [
     { id: "com.apple.Safari", label: "Safari" },

@@ -316,6 +316,75 @@ final class CompanionStore: NSObject, ObservableObject {
         availableApps.filter { approvedApplicationIdentifiers.contains($0.bundleIdentifier) }
     }
 
+    func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data? {
+        guard let application = launchableApps().first(where: { $0.bundleIdentifier == bundleIdentifier }) else {
+            return nil
+        }
+        let icon = NSWorkspace.shared.icon(forFile: application.url.path)
+        guard [CompanionCapabilities.appIconSide, CompanionCapabilities.appIconLegacySide].contains(pixelSide) else { return nil }
+        guard let bitmap = NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: pixelSide, pixelsHigh: pixelSide,
+                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+                isPlanar: false, colorSpaceName: .deviceRGB,
+                bytesPerRow: 0, bitsPerPixel: 0
+              ), let context = NSGraphicsContext(bitmapImageRep: bitmap) else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = context
+        context.imageInterpolation = .high
+        context.compositingOperation = .copy
+        NSColor.clear.setFill()
+        NSBezierPath(rect: NSRect(x: 0, y: 0, width: pixelSide, height: pixelSide)).fill()
+        context.compositingOperation = .sourceOver
+        let iconSize = icon.size
+        guard iconSize.width > 0, iconSize.height > 0 else {
+            NSGraphicsContext.restoreGraphicsState()
+            return nil
+        }
+        let scale = min(CGFloat(pixelSide) / iconSize.width, CGFloat(pixelSide) / iconSize.height)
+        // macOS app artwork includes generous transparent edge padding. Draw
+        // it slightly oversized so the visible icon aligns with the card
+        // label's inset while keeping the image centered in its square slot.
+        let artworkScale: CGFloat = 1.2
+        let fittedSize = NSSize(width: iconSize.width * scale * artworkScale,
+                                height: iconSize.height * scale * artworkScale)
+        // Ask AppKit for a high-resolution representation before the final
+        // downsample, rather than magnifying a small cached workspace image.
+        var sourceRect = NSRect(x: 0, y: 0, width: max(512, pixelSide * 2),
+                                height: max(512, pixelSide * 2))
+        let renderingIcon = icon.cgImage(forProposedRect: &sourceRect, context: nil, hints: nil)
+            .map { NSImage(cgImage: $0, size: iconSize) } ?? icon
+        renderingIcon.draw(
+            in: NSRect(x: (CGFloat(pixelSide) - fittedSize.width) / 2,
+                       y: (CGFloat(pixelSide) - fittedSize.height) / 2,
+                       width: fittedSize.width, height: fittedSize.height),
+            from: .zero, operation: .sourceOver, fraction: 1,
+            respectFlipped: true, hints: nil
+        )
+        context.flushGraphics()
+        NSGraphicsContext.restoreGraphicsState()
+        let pixelCount = pixelSide * pixelSide
+        var pixels = Data(count: pixelCount * 3)
+        for y in 0..<pixelSide {
+            for x in 0..<pixelSide {
+                guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB) else { return nil }
+                let pixel = y * pixelSide + x
+                let alpha = UInt8((color.alphaComponent * 255).rounded())
+                // Keep a useful matte in the RGB plane for older panel firmware,
+                // while RGB565A8 panels use the alpha plane for clean rounded edges.
+                let matte: CGFloat = alpha == 0 ? 0.16 : 0
+                let red = UInt16(((alpha == 0 ? matte : color.redComponent) * 255).rounded())
+                let green = UInt16(((alpha == 0 ? matte : color.greenComponent) * 255).rounded())
+                let blue = UInt16(((alpha == 0 ? matte : color.blueComponent) * 255).rounded())
+                let rgb565 = ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3)
+                let colorOffset = pixel * 2
+                pixels[colorOffset] = UInt8(rgb565 & 0xff)
+                pixels[colorOffset + 1] = UInt8(rgb565 >> 8)
+                pixels[pixelCount * 2 + pixel] = alpha
+            }
+        }
+        return pixels
+    }
+
     func applicationIsApproved(_ application: LaunchableApp) -> Bool {
         approvedApplicationIdentifiers.contains(application.bundleIdentifier)
     }

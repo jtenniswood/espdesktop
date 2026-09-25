@@ -186,6 +186,7 @@ class CompanionRuntimeService {
   CompanionPairingProvider pairing_provider;
   std::function<void()> begin_pairing;
   std::function<void()> revoke_pairing;
+  std::function<bool()> clear_app_icon_cache;
   CompanionNowPlayingHandler now_playing_handler;
   CompanionConnectionChangedHandler connection_changed_handler;
   CompanionArtworkHandler artwork_handler;

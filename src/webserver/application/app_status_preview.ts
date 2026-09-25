@@ -5,6 +5,12 @@ import type { CoreFeature } from "./core";
 import type { ApplicationLayoutState } from "./application_context";
 import type { EnvironmentStateFeature } from "./environment_state";
 import type { ClockBarFeature } from "./clock_bar_state";
+import { companionSavedCardMode } from "../model/companion_card_codec";
+import {
+    companionAppShortcutFolderEnabled,
+    companionShortcutFolderAppLabel,
+} from "./companion_shortcut_folder";
+import { companionAppIconPreviewData } from "./preview_render";
 
 export interface AppStatusPreviewFeature {
     getTzId(timezone?: any): any;
@@ -161,7 +167,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         if (isClockBarTemperatureItem(item))
             return "left";
         if (item === "time")
-            return "middle";
+            return "left";
         if (item === "voice")
             return "right";
         if (item === "network")
@@ -236,8 +242,8 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         if (!els.clockBarSections)
             return;
         var layout: any = {
-            left: clockBar.temperatureAvailable() ? ["temperature"] : [],
-            middle: ["time"],
+            left: state.editingSubpage == null ? ["time"] : [],
+            middle: [],
             right: voiceServicesUiState().clockBarItemVisible ? ["voice", "network"] : ["network"],
         };
         els.clockBarItems = {};
@@ -254,10 +260,26 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
                 const parent = state.buttons[state.editingSubpage - 1];
                 const title = document.createElement("span");
                 title.className = "sp-clockbar-subpage-title";
-                title.textContent = String(parent?.label || "").trim() || "Subpage";
-                title.title = title.textContent;
+                const appName = companionShortcutFolderAppLabel(parent?.entity);
+                const label = document.createElement("span");
+                label.className = "sp-clockbar-subpage-label";
+                label.textContent = String(parent?.label || "").trim() || appName || "Subpage";
+                title.title = label.textContent;
+                title.appendChild(label);
                 container.className = "sp-clockbar-section sp-clockbar-left";
                 container.appendChild(title);
+                if (parent && companionAppShortcutFolderEnabled(parent) &&
+                    companionSavedCardMode(parent) === "app" && parent.entity) {
+                    void companionAppIconPreviewData(parent.entity, "", document).then(function (previewIcon) {
+                        if (!previewIcon || !title.isConnected) return;
+                        const icon = document.createElement("img");
+                        icon.className = "sp-clockbar-subpage-icon";
+                        icon.alt = "";
+                        icon.setAttribute("aria-hidden", "true");
+                        icon.src = previewIcon.dataUrl;
+                        title.prepend(icon);
+                    });
+                }
                 return;
             }
             var rendered: any = 0;

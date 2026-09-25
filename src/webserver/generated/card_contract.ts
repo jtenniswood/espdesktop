@@ -3013,6 +3013,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "domains": [],
     "options": [
       {
+        "name": "custom_icon",
+        "label": "Use custom icon",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "app_shortcuts",
         "label": "App Subpage",
         "kind": "flag",
@@ -3068,6 +3076,38 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": true
       },
       {
+        "name": "app_bg_color",
+        "label": "App background colour",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "app_hide_label",
+        "label": "Hide app label",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "app_icon_fill",
+        "label": "Fill card with app icon",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "app_icon_medium",
+        "label": "Use medium app icon size",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "webapp_icon_title",
         "label": "Large icon with title",
         "kind": "flag",
@@ -3117,6 +3157,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       "unknownOptions": "drop",
       "canonicalOptionOrder": [
+        "custom_icon",
         "app_shortcuts",
         "finder_open_behavior",
         "finder_open_override",
@@ -3124,7 +3165,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "app_shortcut_preset",
         "large_numbers",
         "stat_labels_off",
-        "webapp_icon_title"
+        "webapp_icon_title",
+        "app_bg_color",
+        "app_hide_label",
+        "app_icon_fill",
+        "app_icon_medium"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -4871,6 +4916,10 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "actions": "actions",
   "active_color": "active_color",
   "alarm_card_type": "alarm_card_type",
+  "app_bg_color": "app_bg_color",
+  "app_hide_label": "app_hide_label",
+  "app_icon_fill": "app_icon_fill",
+  "app_icon_medium": "app_icon_medium",
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
@@ -4887,6 +4936,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "cover_mode": "cover_mode",
   "cover_position": "cover_position",
   "cover_tabs": "cover_tabs",
+  "custom_icon": "custom_icon",
   "date_time_mode": "date_time_mode",
   "fan_light_entity": "fan_light_entity",
   "fan_tabs": "fan_tabs",

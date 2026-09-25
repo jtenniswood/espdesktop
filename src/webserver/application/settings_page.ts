@@ -35,12 +35,18 @@ import type { SettingsCoverArtSectionFeature } from "./settings_cover_art_sectio
 import type { SettingsSystemSectionFeature } from "./settings_system_section";
 import type { PreviewRenderFeature } from "./preview_render";
 import type { ConnectorsPageFeature } from "./connectors_page";
+import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
+import {
+    APP_ICON_AUTO_COLOUR_GENERATION_SETTING,
+    APP_ICON_CUSTOM_COLOUR_CONTROL_SETTING,
+    panelSettingEnabled,
+} from "../model/app_icon_color_settings";
 
 export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, nativePanelConfig: Pick<NativePanelConfigController, "writeSetting">): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { appendSettingsSection, buildAlarmDelayAudioSettingsCard, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -112,6 +118,41 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         languageBody.appendChild(languageField);
         var languageCard: any = makeCollapsibleCard("Language", languageBody, true);
         els.setLanguage = languageSelect;
+        var appIconColourBody: any = document.createElement("div");
+        var customColourToggle = toggleRow(
+            "Show custom colour control", "sp-set-app-icon-custom-colour",
+            state.appIconCustomColourControlEnabled,
+        );
+        els.appIconCustomColourControlToggle = customColourToggle.input;
+        customColourToggle.input.addEventListener("change", function (this: any) {
+            state.appIconCustomColourControlEnabled = customColourToggle.input.checked;
+            void nativePanelConfig.writeSetting(
+                APP_ICON_CUSTOM_COLOUR_CONTROL_SETTING,
+                String(state.appIconCustomColourControlEnabled),
+            );
+            renderPreview();
+        });
+        appIconColourBody.appendChild(customColourToggle.row);
+        var automaticColourToggle = toggleRow(
+            "Use automatically suggested colours", "sp-set-app-icon-auto-colour",
+            state.appIconAutoColourGenerationEnabled,
+        );
+        els.appIconAutoColourGenerationToggle = automaticColourToggle.input;
+        automaticColourToggle.input.addEventListener("change", function (this: any) {
+            state.appIconAutoColourGenerationEnabled = automaticColourToggle.input.checked;
+            void nativePanelConfig.writeSetting(
+                APP_ICON_AUTO_COLOUR_GENERATION_SETTING,
+                String(state.appIconAutoColourGenerationEnabled),
+            );
+            renderPreview();
+        });
+        appIconColourBody.appendChild(automaticColourToggle.row);
+        var appIconColourHelp: any = document.createElement("p");
+        appIconColourHelp.className = "sp-help-text";
+        appIconColourHelp.textContent = "When automatic colours are off, app cards use the normal button colours unless a custom colour is already saved for that card. Hiding the custom control keeps saved colours in place.";
+        appIconColourBody.appendChild(appIconColourHelp);
+        var appIconColourCard: any = makeCollapsibleCard("App icon colours", appIconColourBody, true);
+        appIconColourCard.hidden = !layout.config.features?.companion;
         var blBody: any = document.createElement("div");
         var brightnessModeSegment: any = segmentControl([
             ["manual", "Manual"],
@@ -623,6 +664,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         ]);
         appendSettingsSection(config, "Preferences", [
             languageCard,
+            appIconColourCard,
             timeSettingsCard,
             temperatureCard,
         ]);

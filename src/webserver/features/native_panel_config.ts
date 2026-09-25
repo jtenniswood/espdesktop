@@ -143,12 +143,13 @@ export class NativePanelConfigClient {
         const generation = current.headers.get("ETag");
         if (!generation) return "failed";
         const currentDocument = decodePanelConfig(new Uint8Array(await current.arrayBuffer()));
-        const next = await this.fetch_("/api/v1/config", {
+        const queryGeneration = generation.replace(/^\"|\"$/g, "");
+        const next = await this.fetch_(`/api/v1/config/generation/${encodeURIComponent(queryGeneration)}`, {
           method: "PUT",
           cache: "no-store",
           headers: {
             "Content-Type": "application/vnd.espdesktop.panel-config",
-            "If-Match": generation,
+            "X-Panel-Config-Generation": queryGeneration,
           },
           body: encodePanelConfig(update(currentDocument)),
         });
@@ -168,6 +169,17 @@ export class NativePanelConfigClient {
       }
     }
     return "conflict";
+  }
+
+  async load(): Promise<PanelConfigDocument | null> {
+    if (!await this.discover()) return null;
+    try {
+      const response = await this.fetch_("/api/v1/config", { cache: "no-store" });
+      if (!response.ok) return null;
+      return decodePanelConfig(new Uint8Array(await response.arrayBuffer()));
+    } catch {
+      return null;
+    }
   }
 }
 

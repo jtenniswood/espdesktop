@@ -4,9 +4,18 @@
 #include "panel_config_http_etag.h"
 
 int main() {
+  using espdesktop::configuration::parse_panel_config_generation;
   using espdesktop::configuration::parse_panel_config_etag;
   uint32_t generation = 0;
   const bool passed =
+      parse_panel_config_generation("0", &generation) && generation == 0 &&
+      parse_panel_config_generation("4294967295", &generation) &&
+      generation == UINT32_MAX &&
+      !parse_panel_config_generation("", &generation) &&
+      !parse_panel_config_generation("7x", &generation) &&
+      !parse_panel_config_generation("4294967296", &generation) &&
+      !parse_panel_config_generation(nullptr, &generation) &&
+      !parse_panel_config_generation("1", nullptr) &&
       parse_panel_config_etag("\"0\"", &generation) && generation == 0 &&
       parse_panel_config_etag("\"4294967295\"", &generation) &&
       generation == UINT32_MAX &&
