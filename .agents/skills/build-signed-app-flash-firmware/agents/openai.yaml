@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build, Flash, and Install Locally"
+  short_description: "Build signed Mac app and flash a test display"
+  default_prompt: "Use $build-signed-app-flash-firmware to build the signed Mac app, flash the requested display, and replace the installed copy."

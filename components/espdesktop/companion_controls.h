@@ -17,6 +17,7 @@
 
 #include "companion_capabilities_generated.h"
 #include "companion_runtime_access.h"
+#include "web_apps_generated.h"
 #include "companion_pairing_policy.h"
 #include "companion_timezone.h"
 #include "i18n_generated.h"
@@ -245,6 +246,72 @@ inline CompanionPairingProvider &companion_pairing_provider() {
   return companion_runtime_service().pairing_provider;
 }
 
+inline void companion_set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
+  size_t application_count = 0;
+  size_t web_app_count = 0;
+  definitions.erase(std::remove_if(definitions.begin(), definitions.end(),
+    [&application_count, &web_app_count](const CompanionRemoteDefinition &definition) {
+      if ((definition.kind != "application" && definition.kind != "webapp") ||
+          definition.json.empty() || definition.json.size() > 12000 ||
+          !companion_remote_definition_capacity_available(definition.kind, application_count, web_app_count))
+        return true;
+      if (definition.kind == "application") ++application_count;
+      else ++web_app_count;
+      return false;
+    }), definitions.end());
+  companion_runtime_service().set_remote_definitions(std::move(definitions));
+}
+
+inline std::string companion_web_app_icon_url(const std::string &action_id) {
+  constexpr const char *prefix = "webapp.";
+  if (action_id.rfind(prefix, 0) != 0) return "";
+  const std::string id = action_id.substr(7);
+  const std::string icon_url = companion_runtime_service().remote_definition_icon_url("webapp", id);
+  if (icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) == 0)
+    return icon_url;
+  return companion_web_app_catalog::icon_url(id);
+}
+
+inline std::string companion_url_card_focus_id(const std::string &url_config);
+
+inline std::string companion_encode_url_focus_value(const std::string &url) {
+  static constexpr char digits[] = "0123456789ABCDEF";
+  std::string encoded;
+  encoded.reserve(url.size() * 3);
+  for (unsigned char byte : url) {
+    const bool safe = (byte >= 'A' && byte <= 'Z') || (byte >= 'a' && byte <= 'z') ||
+      (byte >= '0' && byte <= '9') || std::string("-_.!~*'()").find(static_cast<char>(byte)) != std::string::npos;
+    if (safe) encoded.push_back(static_cast<char>(byte));
+    else { encoded.push_back('%'); encoded.push_back(digits[byte >> 4]); encoded.push_back(digits[byte & 15]); }
+  }
+  return encoded;
+}
+
+inline bool companion_url_focus_target_valid(const std::string &id, const std::string &url) {
+  if (id.rfind("urlcard.", 0) != 0 || id.size() != 24 || url.size() < 8 || url.size() > 128 ||
+      id != companion_url_card_focus_id("url." + companion_encode_url_focus_value(url))) return false;
+  const auto scheme_end = url.find("://");
+  if (scheme_end == std::string::npos) return false;
+  const std::string scheme = url.substr(0, scheme_end);
+  if (scheme != "http" && scheme != "https") return false;
+  const auto authority_end = url.find_first_of("/?#", scheme_end + 3);
+  const std::string authority = url.substr(scheme_end + 3, authority_end == std::string::npos ? std::string::npos : authority_end - scheme_end - 3);
+  return !authority.empty() && authority.find('@') == std::string::npos;
+}
+
+inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarget> targets,
+                                               std::vector<std::string> web_app_ids) {
+  targets.erase(std::remove_if(targets.begin(), targets.end(), [](const auto &target) {
+    return !companion_url_focus_target_valid(target.id, target.url);
+  }), targets.end());
+  web_app_ids.erase(std::remove_if(web_app_ids.begin(), web_app_ids.end(), [](const auto &id) {
+    return id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
+      return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+    });
+  }), web_app_ids.end());
+  companion_runtime_service().set_focus_registrations(std::move(targets), std::move(web_app_ids));
+}
+
 inline void companion_set_actions(std::vector<CompanionAction> actions) {
   actions.erase(std::remove_if(actions.begin(), actions.end(),
     [](const CompanionAction &action) {
@@ -295,6 +362,14 @@ inline void companion_set_focused_action(std::string action_id) {
   if (should_return_from_subpage) companion_subpage_return_requested().store(true);
 }
 
+inline void companion_set_focused_actions(std::vector<std::string> action_ids) {
+  for (auto &action_id : action_ids)
+    if (action_id.size() > 96) action_id.clear();
+  const bool should_return_from_subpage =
+    companion_runtime_service().set_focused_actions(std::move(action_ids));
+  if (should_return_from_subpage) companion_subpage_return_requested().store(true);
+}
+
 inline std::atomic<bool> &companion_subpage_return_requested() {
   return companion_runtime_service().subpage_return_requested;
 }
@@ -312,12 +387,14 @@ inline bool companion_consume_auto_subpage_action(const std::string &action_id) 
 }
 
 inline bool companion_action_focused(const std::string &action_id) {
-  if (action_id.empty() ||
-      action_id.rfind("shortcut.", 0) == 0 || action_id.rfind("media.", 0) == 0) return false;
+  if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
+      action_id.rfind("media.", 0) == 0) return false;
   const auto snapshot = companion_runtime_snapshot();
-  return snapshot.connected && (snapshot.focused_action_id == action_id ||
-    (action_id == "com.apple.finder" &&
-     companion_focus_application_id(snapshot.focused_action_id) == action_id));
+  if (!snapshot.connected) return false;
+  if (std::find(snapshot.focused_action_ids.begin(), snapshot.focused_action_ids.end(), action_id) !=
+      snapshot.focused_action_ids.end()) return true;
+  return action_id == "com.apple.finder" &&
+    companion_focus_application_id(snapshot.focused_action_id) == action_id;
 }
 
 inline void companion_set_focused_application(std::string application_id) {
@@ -508,7 +585,20 @@ inline std::string companion_default_action_label(const std::string &action_id,
   const std::string window_label = companion_window_action_label(action_id);
   if (!window_label.empty()) return window_label;
   if (!companion_encoded_url(url_config).empty()) return espdesktop_i18n("Open URL");
+  const auto snapshot = companion_runtime_snapshot();
+  const auto action = std::find_if(snapshot.actions.begin(), snapshot.actions.end(),
+    [&action_id](const CompanionAction &candidate) { return candidate.id == action_id; });
+  if (action != snapshot.actions.end() && !action->label.empty()) return action->label;
   return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
+}
+
+inline std::string companion_default_action_label_with_fallback(
+    const std::string &action_id, const std::string &url_config,
+    std::string &resolved_label) {
+  std::string label = companion_default_action_label(action_id, url_config);
+  if (label == action_id && !resolved_label.empty()) return resolved_label;
+  resolved_label = label;
+  return label;
 }
 
 inline bool companion_metric_card_should_disable(bool connected, bool preserve_navigation) {
@@ -520,8 +610,21 @@ inline bool companion_url_available(const std::string &app_id, const std::string
   return companion_connected() && !companion_encoded_url(url_config).empty();
 }
 
+inline std::string companion_url_card_focus_id(const std::string &url_config) {
+  const std::string encoded = companion_encoded_url(url_config);
+  if (encoded.empty()) return "";
+  uint64_t hash = UINT64_C(14695981039346656037);
+  for (unsigned char byte : encoded) {
+    hash ^= byte;
+    hash *= UINT64_C(1099511628211);
+  }
+  char result[32];
+  snprintf(result, sizeof(result), "urlcard.%016llx", static_cast<unsigned long long>(hash));
+  return result;
+}
+
 inline bool companion_card_focus_allowed(const std::string &url_config) {
-  return url_config.empty();
+  return url_config.empty() || !companion_encoded_url(url_config).empty();
 }
 
 #ifdef USE_LVGL
@@ -537,6 +640,8 @@ struct CompanionCardRef {
   int precision{0};
   bool metric_description{true};
   bool preserve_navigation{false};
+  bool dynamic_default_label{false};
+  std::string resolved_default_label;
 };
 
 struct CompanionSliderRef {
@@ -557,7 +662,8 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
     lv_obj_clear_state(button, LV_STATE_CHECKED);
     return;
   }
-  if (companion_action_active(action_id)) lv_obj_add_state(button, LV_STATE_CHECKED);
+  const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
+  if (companion_action_active(focus_id)) lv_obj_add_state(button, LV_STATE_CHECKED);
   else lv_obj_clear_state(button, LV_STATE_CHECKED);
 }
 
@@ -622,7 +728,8 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
 
 inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                                  const std::string &url_config = "",
-                                 lv_obj_t *text_label = nullptr) {
+                                 lv_obj_t *text_label = nullptr,
+                                 bool dynamic_default_label = false) {
   if (!button) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
@@ -630,8 +737,16 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   });
   if (existing != refs.end()) {
     if (companion_metric_key_valid(action_id) && !existing->metric_key.empty()) return;
+    if (existing->action_id != action_id || existing->url_config != url_config) {
+      existing->resolved_default_label.clear();
+    }
     existing->action_id = action_id;
     existing->url_config = url_config;
+    existing->dynamic_default_label = dynamic_default_label;
+    if (dynamic_default_label) {
+      (void) companion_default_action_label_with_fallback(
+        action_id, url_config, existing->resolved_default_label);
+    }
     // The periodic config tracker does not have the label pointer. Preserve
     // the pointer registered while the card was rendered so state updates can
     // continue replacing the Play/Pause label.
@@ -642,7 +757,13 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->unit_label = nullptr;
     return;
   }
-  refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false});
+  std::string resolved_default_label;
+  if (dynamic_default_label) {
+    (void) companion_default_action_label_with_fallback(
+      action_id, url_config, resolved_default_label);
+  }
+  refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
+                  false, dynamic_default_label, resolved_default_label});
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
 }
 
@@ -708,6 +829,13 @@ inline void companion_refresh_cards_if_requested() {
       ++it;
       continue;
     }
+    if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
+      // A disconnected Companion temporarily has no action catalogue. Keep
+      // the friendly name seen before the outage instead of showing its ID.
+      const std::string label = companion_default_action_label_with_fallback(
+        it->action_id, it->url_config, it->resolved_default_label);
+      lv_label_set_display_text(it->text_label, label.c_str());
+    }
     const bool available = it->url_config.empty()
       ? companion_action_available(it->action_id)
       : companion_url_available(it->action_id, it->url_config);
@@ -744,7 +872,8 @@ inline void companion_refresh_cards_if_requested() {
   }
 }
 #else
-inline void companion_track_card(void *, const std::string &, const std::string & = "", void * = nullptr) {}
+inline void companion_track_card(void *, const std::string &, const std::string & = "",
+                                 void * = nullptr, bool = false) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "") {}
@@ -820,39 +949,152 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     if (request->method() != HTTP_GET) return false;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const auto url = request->url_to(url_buf);
-    return url == "/companion/actions" || url == "/companion/networks";
+    return url == "/companion/actions" || url == "/companion/networks" ||
+           url == "/companion/definitions";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
     if (!companion_authorize_web_request(request)) return;
     std::string json = "[";
     bool first = true;
-    const auto snapshot = companion_runtime_snapshot();
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
-    const bool networks = request->url_to(url_buf) == "/companion/networks";
-    if (snapshot.connected && networks) {
-      for (const auto &network : snapshot.system_metrics.network_interfaces) {
+    const std::string requested_url = request->url_to(url_buf);
+    const bool networks = requested_url == "/companion/networks";
+    const bool definitions = requested_url == "/companion/definitions";
+    auto &runtime = companion_runtime_service();
+    const bool connected = runtime.connected();
+    if (definitions) {
+      constexpr size_t page_size = 4;
+      constexpr size_t maximum_pages = 64;
+      size_t page = 0;
+      httpd_req_t *req = *request;
+      char query[64] = {};
+      char page_text[16] = {};
+      if (httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK &&
+          httpd_query_key_value(query, "page", page_text, sizeof(page_text)) == ESP_OK) {
+        if (page_text[0] == '\0') {
+          httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+          return;
+        }
+        for (const char *digit = page_text; *digit; ++digit) {
+          if (*digit < '0' || *digit > '9' || page >= maximum_pages) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+            return;
+          }
+          page = page * 10 + static_cast<size_t>(*digit - '0');
+        }
+      }
+      if (page >= maximum_pages) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+        return;
+      }
+      bool definitions_connected = false;
+      bool has_more = false;
+      const auto entries = runtime.remote_definitions_page(page * page_size, page_size,
+                                                           definitions_connected, has_more);
+      json = "{\"page\":" + std::to_string(page) + ",\"hasMore\":" +
+        (has_more ? "true" : "false") + ",\"definitions\":[";
+      if (definitions_connected) {
+        for (const auto &definition : entries) {
+          if (!first) json += ",";
+          first = false;
+          json += "{\"kind\":\"" + companion_json_escape(definition.kind) +
+            "\",\"definition\":" + definition.json + "}";
+        }
+      }
+      json += "]}";
+    } else if (connected && networks) {
+      const auto metrics = runtime.system_metrics();
+      for (const auto &network : metrics.network_interfaces) {
         if (!first) json += ",";
         first = false;
         json += "{\"id\":\"" + companion_json_escape(network.id) +
           "\",\"label\":\"" + companion_json_escape(network.label) + "\"}";
       }
     }
-    if (snapshot.connected && !networks) {
-      for (const auto &action : snapshot.actions) {
+    if (connected && !networks && !definitions) {
+      for (const auto &action : runtime.actions()) {
         if (!first) json += ",";
         first = false;
         json += "{\"id\":\"" + companion_json_escape(action.id) +
           "\",\"label\":\"" + companion_json_escape(action.label) + "\"}";
       }
     }
-    json += "]";
+    if (!definitions) json += "]";
     httpd_req_t *req = *request;
     httpd_resp_set_status(req, "200 OK");
     httpd_resp_set_type(req, "application/json");
     httpd_resp_set_hdr(req, "Cache-Control", "no-store");
     httpd_resp_send(req, json.c_str(), HTTPD_RESP_USE_STRLEN);
   }
+};
+
+class CompanionFocusTargetsHandler final : public esphome::web_server_idf::AsyncWebHandler {
+ public:
+  bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
+    if (request->method() != HTTP_POST) return false;
+    char path[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    return request->url_to(path) == "/companion/focus-targets";
+  }
+  size_t maximumBodySize() const override { return body_.size(); }
+  bool canReceiveBody(esphome::web_server_idf::AsyncWebServerRequest *request) override {
+    received_ = expected_ = 0;
+    valid_ = companion_authorize_web_request(request);
+    return valid_;
+  }
+  void handleBody(esphome::web_server_idf::AsyncWebServerRequest *, uint8_t *data,
+                  size_t len, size_t index, size_t total) override {
+    if (index == 0) { received_ = 0; expected_ = total; valid_ = total > 0 && total <= body_.size(); }
+    if (!valid_ || data == nullptr || index != received_ || len > body_.size() - received_) { valid_ = false; return; }
+    std::memcpy(body_.data() + received_, data, len);
+    received_ += len;
+  }
+  void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
+    if (!companion_authorize_web_request(request)) return;
+    const auto content_type = request->get_header("Content-Type");
+    std::vector<CompanionURLFocusTarget> targets;
+    std::vector<std::string> web_app_ids;
+    const bool parsed = content_type.has_value() && *content_type == "application/json" &&
+      valid_ && received_ == expected_ && esphome::json::parse_json(body_.data(), received_, [&](JsonObject root) {
+        if (!root["targets"].is<JsonArrayConst>()) return false;
+        const JsonArrayConst items = root["targets"].as<JsonArrayConst>();
+        if (items.size() > 64) return false;
+        for (JsonVariantConst value : items) {
+          if (!value.is<JsonObjectConst>()) return false;
+          const JsonObjectConst item = value.as<JsonObjectConst>();
+          if (!item["id"].is<const char *>() || !item["url"].is<const char *>()) return false;
+          const std::string id = item["id"].as<const char *>();
+          const std::string url = item["url"].as<const char *>();
+          if (!companion_url_focus_target_valid(id, url)) return false;
+          targets.push_back({id, url});
+        }
+        if (!root["webAppIDs"].isUnbound()) {
+          if (!root["webAppIDs"].is<JsonArrayConst>()) return false;
+          const JsonArrayConst ids = root["webAppIDs"].as<JsonArrayConst>();
+          if (ids.size() > 64) return false;
+          for (JsonVariantConst value : ids) {
+            if (!value.is<const char *>()) return false;
+            const std::string id = value.as<const char *>();
+            if (id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
+                  return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+                })) return false;
+            web_app_ids.push_back(id);
+          }
+        }
+        return true;
+      });
+    valid_ = false;
+    httpd_req_t *raw = *request;
+    if (!parsed) { httpd_resp_send_err(raw, HTTPD_400_BAD_REQUEST, "Invalid Companion focus targets"); return; }
+    companion_set_focus_registrations(std::move(targets), std::move(web_app_ids));
+    httpd_resp_set_type(raw, "application/json");
+    httpd_resp_set_hdr(raw, "Cache-Control", "no-store");
+    httpd_resp_send(raw, "{\"saved\":true}", HTTPD_RESP_USE_STRLEN);
+  }
+ private:
+  std::array<uint8_t, 16384> body_{};
+  size_t received_{0}, expected_{0};
+  bool valid_{false};
 };
 
 inline std::string companion_pairing_json(const CompanionPairingSnapshot &snapshot) {
@@ -928,6 +1170,7 @@ inline void register_companion_actions_endpoint(
   static bool registered = false;
   if (registered) return;
   server.addHandler(new CompanionActionsHandler());
+  server.addHandler(new CompanionFocusTargetsHandler());
   server.addHandler(new CompanionPairingHandler());
   server.addHandler(new CompanionPairingResetHandler());
   registered = true;

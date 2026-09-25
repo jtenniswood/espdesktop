@@ -35,6 +35,7 @@ export interface ConnectorsPageFeature {
     homeAssistantCardPickerEnabled(): boolean;
     companionConfigured(): boolean;
     onStatusChange(callback: () => void): void;
+    onCompanionConnectionChange(callback: (connected: boolean) => void): void;
 }
 
 export function homeAssistantConnectorStatusText(state: HomeAssistantConnectorState): string {
@@ -98,8 +99,10 @@ export function createConnectorsPageFeature(
     let configContainer: HTMLElement | null = null;
     let unavailableMessage: HTMLElement | null = null;
     let current: ConnectorsStatus | null = null;
+    let lastCompanionConnection: boolean | null = null;
     let statusEndpointAvailable = false;
     const statusListeners: Array<() => void> = [];
+    const companionConnectionListeners: Array<(connected: boolean) => void> = [];
     let timer: number | null = null;
     let refreshInProgress = false;
 
@@ -145,6 +148,11 @@ export function createConnectorsPageFeature(
             configContainer.insertBefore(homeAssistantCard, companionCard ?? null);
         }
         if (homeAssistantCard) setHidden(homeAssistantCard, !homeAssistantSupported());
+        if (lastCompanionConnection === null || lastCompanionConnection !== value.mac_companion.connected) {
+            lastCompanionConnection = value.mac_companion.connected;
+            companionConnectionListeners.forEach((listener) =>
+                listener(value.mac_companion.connected));
+        }
         if (homeAssistantCard && companionCard) {
             const companionFirst = value.mac_companion.paired && !value.home_assistant.configured;
             const first = companionFirst ? companionCard : homeAssistantCard;
@@ -387,6 +395,10 @@ export function createConnectorsPageFeature(
         statusListeners.push(callback);
     }
 
+    function onCompanionConnectionChange(callback: (connected: boolean) => void): void {
+        companionConnectionListeners.push(callback);
+    }
+
     return {
         buildPage,
         start,
@@ -396,5 +408,6 @@ export function createConnectorsPageFeature(
         homeAssistantCardPickerEnabled,
         companionConfigured,
         onStatusChange,
+        onCompanionConnectionChange,
     };
 }

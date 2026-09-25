@@ -33,7 +33,12 @@ export function registerCalendarCardTypes(
         defaultConfig: function () { return cardContractDefaultConfig("calendar"); },
         cardMetadata: metadata,
         onSelect: function (button?: any) {
-            const defaults: any = cardContractDefaultConfig("calendar");
+            // When Home Assistant is disabled, the shared Date & Time picker
+            // must create a local card even if the user saves without changing
+            // the filtered mode selector.
+            const defaults: any = cardContractDefaultConfig(
+                homeAssistantSupported() ? "calendar" : "clock",
+            );
             Object.keys(defaults).forEach(function (key) { button[key] = defaults[key]; });
             button.precision = button.precision === "datetime" ? "datetime" : "";
         },

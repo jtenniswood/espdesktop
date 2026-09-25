@@ -71,7 +71,7 @@ WEB_ASSET_LEGACY_BUNDLE_PATH = f"bundles/{WEB_ASSET_LEGACY_BUNDLE_ID}/www.js"
 # possible without reaching the MDI CDN. Product Model icon codepoints are
 # read directly from product/v2/icons.json below.
 WEB_FIXED_MDI_ICON_CODEPOINTS = {
-    "alarm": "F0020", "album": "F0025", "api": "F109B", "arrow-expand-all": "F004C",
+    "alarm": "F0020", "album": "F0025", "api": "F109B", "application": "F08C6", "arrow-expand-all": "F004C",
     "arrow-top-right": "F005C", "blur": "F00B5", "calendar": "F00ED", "calendar-clock": "F00F0",
     "calendar-month": "F0E17", "cancel": "F073A", "card": "F0B6F", "card-outline": "F0B76",
     "chip": "F061A", "clipboard-outline": "F014C", "clock": "F0954", "code-json": "F0626",
@@ -928,6 +928,7 @@ def gen_companion_capabilities_swift(data):
 def sync_companion_capabilities(check_only=False):
     from companion_protocol_codegen import outputs as protocol_outputs
     from app_shortcuts_codegen import outputs as shortcut_outputs
+    from web_apps_codegen import outputs as web_app_outputs
     from companion_release import compatibility
     data = load_companion_capabilities_data()
     outputs = [
@@ -937,6 +938,7 @@ def sync_companion_capabilities(check_only=False):
     ]
     outputs.extend(protocol_outputs(ROOT, data))
     outputs.extend(shortcut_outputs(ROOT))
+    outputs.extend(web_app_outputs(ROOT))
     release_compatibility = compatibility(ROOT)
     outputs.append((ROOT / "product/generated/companion_compatibility.json", json.dumps(release_compatibility, indent=2) + "\n"))
     outputs.append((ROOT / "docs/reference/companion-compatibility.md",
@@ -951,7 +953,7 @@ def sync_companion_capabilities(check_only=False):
         "physical device validation. Independent Mac/firmware release delivery is not yet enabled.\n"))
     manifest = {
         "source": str(COMPANION_CAPABILITIES_JSON.relative_to(ROOT)),
-        "appShortcutSources": [str(path.relative_to(ROOT)) for path in sorted((ROOT / "product/v2/app_shortcuts").glob("*.json"))],
+        "appShortcutSources": [str(path.relative_to(ROOT)) for path in sorted((ROOT / "product/v2/app_shortcuts").glob("*.json")) if path.name != "manifest.json"],
         "generator": "python3 scripts/build.py companion",
         "outputs": [str(path.relative_to(ROOT)) for path, _content in outputs],
     }

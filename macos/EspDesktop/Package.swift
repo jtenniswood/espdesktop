@@ -18,7 +18,11 @@ let package = Package(
             name: "Companion",
             dependencies: ["MediaRemoteShim", .product(name: "Sparkle", package: "Sparkle")],
             path: "Sources/Companion",
-            resources: [.process("Resources")],
+            resources: [
+                .copy("Resources/AppShortcuts"),
+                .copy("Resources/WebApps"),
+                .copy("Resources/buy-me-a-coffee-button.png"),
+            ],
             linkerSettings: [
                 .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
                 .linkedFramework("IOKit"),

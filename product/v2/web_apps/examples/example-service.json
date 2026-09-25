@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "example-service",
+  "label": "Example Service",
+  "url": "https://example.com/workspace/",
+  "matchHost": "example.com",
+  "matchPath": "/workspace",
+  "icon": "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/web_apps/icons/google-docs.png",
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New item",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Search",
+      "shortcut": "command+f",
+      "icon": "Application"
+    }
+  ]
+}

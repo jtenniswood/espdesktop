@@ -37,6 +37,7 @@ void lv_obj_del(lv_obj_t *screen) {
 struct NavigationService { void clear_subpages() { entries.clear(); } } service;
 auto &grid_navigation_service() { return service; }
 void clock_bar_clear_button_grid_pages() {}
+void navigation_refresh_subpage_label() {}
 ''' + header[start:end] + r'''
 int main() {
   for (int rebuild = 0; rebuild < 5; ++rebuild) {

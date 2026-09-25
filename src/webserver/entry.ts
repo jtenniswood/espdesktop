@@ -2,6 +2,7 @@ import { resetAwareFetch } from "./api/reset_session";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
 import { createDeviceApi } from "./api/device_api";
+import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
 import * as AppInstance from "./state/app_instance";
 import { state } from "./state/app_instance";
@@ -170,6 +171,7 @@ function registerCards(context: ApplicationContext) {
     context.configuration.codec,
     context.controllers.selection,
     context.layout.numSlots,
+    context.controllers.connectorsPage,
   );
   registerClimateCardTypes(
     registry,
@@ -540,6 +542,12 @@ function composeApplicationContext(): ApplicationContext {
     renderButtonSettings: () => buttonSettings.render(),
     postOrder: (value) => { void requestApi.postText(entityState.entityName("button_order"), value); },
   });
+  const focusTargetCatalogue = createCompanionCatalogue(dom.fetch);
+  configurationPersistence.connectFocusRegistrationPublisher(() => {
+    void focusTargetCatalogue.saveFocusRegistrations(
+      companionFocusRegistrationValues(state.buttons, state.subpages),
+    ).catch(() => { /* Keep card editing available when Companion is offline. */ });
+  });
   stateLoader = createStateLoaderFeature(
     runtime,
     layout,
@@ -554,6 +562,11 @@ function composeApplicationContext(): ApplicationContext {
     {
       subpageEntityKeys: configurationPersistence.subpageEntityKeys,
       connectEvents: () => appEvents.connect(),
+      publishCompanionURLTargets: () => {
+        void focusTargetCatalogue.saveFocusRegistrations(
+          companionFocusRegistrationValues(state.buttons, state.subpages),
+        ).catch(() => { /* Keep saved card editing available when Companion is offline. */ });
+      },
     },
   );
   const clockBar = createClockBarController();
@@ -1047,6 +1060,7 @@ function composeApplicationContext(): ApplicationContext {
     contextMenu,
     interactions,
     buttonSettings,
+    connectorsPage,
     app,
     dom,
     cards,

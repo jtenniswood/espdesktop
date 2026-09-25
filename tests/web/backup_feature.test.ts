@@ -82,7 +82,7 @@ function companionCapabilityCards(): CardConfig[] {
       label: "Safari",
       icon: "Monitor",
       type: "companion",
-      options: "app_shortcuts,app_shortcuts_auto_switch",
+      options: "app_shortcuts",
     }),
     cloneCardConfig({
       entity: "shortcut.command+shift+s",

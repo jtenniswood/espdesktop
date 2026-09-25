@@ -697,9 +697,9 @@
       "web": {
         "registration": "calendar",
         "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
         },
         "preview": {
           "available": true,
@@ -2559,7 +2559,7 @@
       "web": {
         "registration": "subpage",
         "picker": {
-          "main": false,
+          "main": true,
           "subpage": false,
           "infoOnly": false
         },

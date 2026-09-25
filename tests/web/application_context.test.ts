@@ -101,6 +101,7 @@ export function runApplicationContextTests(): void {
   const contextMenu = {} as any;
   const interactions = {} as any;
   const buttonSettings = {} as any;
+  const connectorsPage = {} as any;
   const app = {} as any;
   const state = { grid: [] } as any;
   const runtime = {} as any;
@@ -183,6 +184,7 @@ export function runApplicationContextTests(): void {
     contextMenu,
     interactions,
     buttonSettings,
+    connectorsPage,
     app,
     dom,
     cards,
@@ -207,6 +209,7 @@ export function runApplicationContextTests(): void {
   equal(context.controllers.configEvents, configEvents, "context owns configuration event matching");
   equal(context.controllers.stateEventHandlers, stateEventHandlers, "context owns state event handling");
   equal(context.controllers.appEvents, appEvents, "context owns event-stream reconnect behavior");
+  equal(context.controllers.connectorsPage, connectorsPage, "context owns connector connection status");
   equal(context.controllers.statusPreview, statusPreview, "context owns status and connectivity preview behavior");
   equal(context.controllers.grid, grid, "context owns grid and card-order behavior");
   equal(context.layout.numSlots, 12, "context initializes slot count");

@@ -5114,12 +5114,6 @@
             "omitDefault": true
           },
           {
-            "name": "app_shortcuts_auto_switch",
-            "label": "Auto switch to subpage",
-            "kind": "flag",
-            "omitDefault": true
-          },
-          {
             "name": "finder_open_behavior",
             "label": "Finder Folder Open Behavior",
             "kind": "choice",
@@ -5165,6 +5159,12 @@
           {
             "name": "stat_labels_off",
             "label": "Show capacity label",
+            "kind": "flag",
+            "omitDefault": true
+          },
+          {
+            "name": "webapp_icon_title",
+            "label": "Large icon with title",
             "kind": "flag",
             "omitDefault": true
           }
@@ -5213,13 +5213,13 @@
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
             "app_shortcuts",
-            "app_shortcuts_auto_switch",
             "finder_open_behavior",
             "finder_open_override",
             "app_shortcuts_tabs",
             "app_shortcut_preset",
             "large_numbers",
-            "stat_labels_off"
+            "stat_labels_off",
+            "webapp_icon_title"
           ],
           "optionHook": "normalize_date_time_options"
         },

@@ -19,6 +19,7 @@ describe("browserless application contracts", () => {
   const { runClipboardFeatureTests } = loadTypescriptTest("tests/web/clipboard_feature.test.ts");
   const { runCompanionPairingFeatureTests, runCompanionCopyTests } = loadTypescriptTest("tests/web/companion_pairing_feature.test.ts");
   const { runCompanionShortcutFeatureTests } = loadTypescriptTest("tests/web/companion_shortcut_feature.test.ts");
+  const { runCompanionCatalogueTests } = loadTypescriptTest("tests/web/companion_catalogue.test.ts");
   const { runConnectorsFeatureTests } = loadTypescriptTest("tests/web/connectors_feature.test.ts");
   const { runApplicationContextTests } = loadTypescriptTest("tests/web/application_context.test.ts");
   const { runDeviceApiTests } = loadTypescriptTest("tests/web/device_api.test.ts");
@@ -42,10 +43,9 @@ describe("browserless application contracts", () => {
   test("captures and formats Companion keyboard shortcuts", () => {
     runCompanionShortcutFeatureTests();
   });
+  test("loads remote Companion templates and registers URL-card focus targets", runCompanionCatalogueTests);
 
-  test("models connector onboarding and card sources", () => {
-    runConnectorsFeatureTests();
-  });
+  test("models connector onboarding and card sources", runConnectorsFeatureTests);
 
   test("gates Home Assistant connector setup behind firmware opt-in and keeps Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
@@ -722,12 +722,15 @@ describe("browserless application contracts", () => {
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
-    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,?\s*\);/);
+    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,?\s*\);/);
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
+    assert.match(card, /createCompanionCatalogueMonitor\(\s*\(\) => loadCompanionActions\(true\)/);
+    assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)/);
     assert.match(card, /renderModalTabSettings\(appSubpageDisclosure\.section/);
     assert.match(card, /_appShortcutDisabledTabs = companionShortcutTabs\(card\)/);
     assert.match(card, /setCompanionShortcutTabs\(card, card\._appShortcutDisabledTabs\)/);
-    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*appendChild\(autoSwitchField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderModalTabSettings/);
+    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderModalTabSettings/);
+    assert.doesNotMatch(card, /autoSwitchField|Auto switch to subpage/);
     assert.match(styles, /\.sp-app-subpage-options-divider\{/);
     assert.match(card, /No free subpage space\. Remove a custom card before enabling another shortcut\./);
     assert.match(card, /changedFromSavedApp = card\.entity !== savedParent\?\.entity/);
@@ -1144,6 +1147,7 @@ describe("browserless application contracts", () => {
     const backup = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_backup.ts"), "utf8");
     const hooks = fs.readFileSync(path.join(ROOT, "src/webserver/testing/app_test_hooks_config.ts"), "utf8");
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
+    const companion = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(persistence, /GlobalDescriptors|staticGlobal|liveGlobal|readonly globals/);
     assert.doesNotMatch(entry, /configPersistence\.globals/);
@@ -1152,14 +1156,27 @@ describe("browserless application contracts", () => {
     assert.match(hooks, /ConfigPersistenceFeature/);
     assert.match(entry, /createConfigCodecFeature\([\s\S]*configurationPersistence/);
     assert.match(entry, /configPersistence: configurationPersistence/);
-    assert.match(persistence, /return requests\(\)\.postText\(entityNameForSlot\("button_config", slot\)/);
+    assert.match(persistence, /publishAfter\(requests\(\)\.postText\(entityNameForSlot\("button_config", slot\)/);
     assert.match(buttonSettings, /saveBtn\.addEventListener\("click", async function/);
     assert.match(buttonSettings, /if \(await applySettingsDraft\(\)\)/);
     assert.match(buttonSettings, /restoreDraftState\(\);[\s\S]*return false/);
     assert.match(buttonSettings, /configPersistence\.saveButtonConfigAndOrder\(slot, serializeGrid\(state\.grid\)\)/);
     assert.match(persistence, /nativePanelConfig\.writeButtonAndOrder/);
     assert.match(persistence, /Wifi Sharing requires current device firmware/);
+    assert.match(persistence, /connectFocusRegistrationPublisher/);
+    assert.match(persistence, /publishFocusRegistrations\?\.\(\)/);
+    assert.match(entry, /connectFocusRegistrationPublisher\(\(\) =>/);
+    assert.match(entry, /companionFocusRegistrationValues\(state\.buttons, state\.subpages\)/);
+    assert.doesNotMatch(companion, /saveFocusRegistrations|syncURLCardFocusTargets/);
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_RAW_CHUNK_FIELDS|saveButtonConfig|saveSubpageEntity|saveSubpageEntityLegacy|scheduleSliderSubpageMigration|subpageChunkShouldPost|subpageEntityKeys):/);
+  });
+
+  test("offers Web Apps directly in the Companion card picker", () => {
+    const companion = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
+    const preview = fs.readFileSync(path.join(ROOT, "src/webserver/features/preview.ts"), "utf8");
+    assert.match(companion, /\["companion_webapp", "Web App", "webapp"\]/);
+    assert.match(preview, /companion_webapp: \{ icon: "web"/);
+    assert.match(preview, /companion_webapp: "companion"/);
   });
 
   test("composes the backup contract without compatibility globals", () => {

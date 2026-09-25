@@ -6,7 +6,7 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 2 as const;
+export const COMPANION_CAPABILITY_VERSION = 3 as const;
 export const COMPANION_PROTOCOL_VERSION = 3 as const;
 export const COMPANION_PROTOCOL_PATH = "/companion/v3" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
@@ -22,6 +22,12 @@ export const COMPANION_CARD_MODES = [
     label: "Keyboard shortcut",
     capability: "keyboard_shortcuts",
     defaultIcon: "Shortcut Command"
+  },
+  {
+    id: "webapp",
+    label: "Web App",
+    capability: "applications",
+    defaultIcon: "Web"
   },
   {
     id: "url",
@@ -158,6 +164,16 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
     id: "error",
     direction: "bidirectional",
     authorization: "public"
+  },
+  {
+    id: "catalogue.definitions.page",
+    direction: "mac_to_panel",
+    authorization: "session"
+  },
+  {
+    id: "focus.targets",
+    direction: "panel_to_mac",
+    authorization: "session"
   }
 ];
 export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [

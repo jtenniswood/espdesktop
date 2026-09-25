@@ -86,6 +86,8 @@ struct ImageCardCtx {
   bool access_token_request_pending = false;
   bool camera_refresh_pending = false;
   bool media_artwork = false;
+  bool remote_icon = false;
+  lv_obj_t *fallback_icon_label = nullptr;
   bool media_artwork_suppressed = false;
   bool media_artwork_refresh_forced = false;
   lv_obj_t *media_overlay = nullptr;
@@ -134,6 +136,11 @@ inline ImageCardCtx *image_card_contexts() {
 inline bool &image_card_pipeline_suspended_state() {
   static bool suspended = false;
   return suspended;
+}
+
+inline GridConfig &image_card_pool_grid_config() {
+  static GridConfig config{};
+  return config;
 }
 
 inline bool image_card_pipeline_suspended() {
@@ -841,7 +848,12 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
   } else {
     image_card_set_widget_source(ctx->widget, ctx->image);
     lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_move_background(ctx->widget);
+    if (ctx->remote_icon) {
+      lv_obj_move_foreground(ctx->widget);
+      if (ctx->fallback_icon_label) lv_obj_add_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_move_background(ctx->widget);
+    }
     lv_obj_invalidate(ctx->widget);
     if (ctx->btn) lv_obj_invalidate(ctx->btn);
     notify_dashboard_content_changed();
@@ -1001,6 +1013,7 @@ inline void image_card_bind_modal_callbacks(
 inline void image_card_hide_modal();
 
 inline void reset_image_card_pool(const GridConfig &cfg) {
+  image_card_pool_grid_config() = cfg;
   if (control_modal_active().kind == ControlModalKind::IMAGE_CARD) {
     control_modal_close_active();
   }
@@ -1067,6 +1080,8 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
     contexts[i].access_token_request_pending = false;
     contexts[i].camera_refresh_pending = false;
     contexts[i].media_artwork = false;
+    contexts[i].remote_icon = false;
+    contexts[i].fallback_icon_label = nullptr;
     contexts[i].media_artwork_suppressed = false;
     contexts[i].media_artwork_refresh_forced = false;
     contexts[i].media_overlay = nullptr;
@@ -1095,11 +1110,45 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
   }
 }
 
+inline void image_card_evict_optional_icon(ImageCardCtx *ctx) {
+  if (!ctx || !ctx->active || !ctx->remote_icon) return;
+  if (ctx->image && ctx->image->request_is_active()) ctx->image->cancel_update();
+  image_card_release_download_slot(ctx);
+  if (ctx->image) ctx->image->release();
+  image_card_clear_widget_source(ctx->widget);
+  if (ctx->widget) lv_obj_add_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+  if (ctx->fallback_icon_label) lv_obj_clear_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+  ctx->active = false;
+  ctx->image_ready = false;
+  ctx->requested_once = false;
+  ctx->remote_icon = false;
+  ctx->widget = nullptr;
+  ctx->btn = nullptr;
+  ctx->loading_widget = nullptr;
+  ctx->loading_label = nullptr;
+  ctx->fallback_icon_label = nullptr;
+  ctx->entity_id.clear();
+  ctx->cached_entity_id.clear();
+  ctx->source_url.clear();
+  ctx->url.clear();
+  ctx->modal_url.clear();
+  ctx->modal_source_url.clear();
+}
+
 inline ImageCardCtx *acquire_image_card_context(const GridConfig &cfg,
-                                                const std::string &entity_id) {
+                                                const std::string &entity_id,
+                                                bool optional_icon = false) {
   ImageCardCtx *contexts = image_card_contexts();
   int count = cfg.image_card_image_count;
   if (count > IMAGE_CARD_MAX_CONTEXTS) count = IMAGE_CARD_MAX_CONTEXTS;
+  if (optional_icon) {
+    int free_count = 0;
+    for (int i = 0; i < count; i++)
+      if (!contexts[i].active && contexts[i].image) ++free_count;
+    // Web App icons are decorative. Keep at least one image downloader free
+    // for camera and image cards; these can still render their fallback glyph.
+    if (free_count <= 1) return nullptr;
+  }
   ImageCardCtx *selected = nullptr;
   for (int i = 0; i < count; i++) {
     if (!contexts[i].active && contexts[i].image && contexts[i].image_ready &&
@@ -1114,6 +1163,14 @@ inline ImageCardCtx *acquire_image_card_context(const GridConfig &cfg,
         selected = &contexts[i];
         break;
       }
+    }
+  }
+  if (!selected && !optional_icon) {
+    for (int i = 0; i < count; i++) {
+      if (!contexts[i].active || !contexts[i].remote_icon) continue;
+      image_card_evict_optional_icon(&contexts[i]);
+      selected = &contexts[i];
+      break;
     }
   }
   if (!selected) return nullptr;
@@ -2951,6 +3008,207 @@ inline void image_card_resume_pipeline() {
            reload_count);
 }
 
+inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p,
+                                                   const GridConfig &cfg) {
+  if (p.type != "companion" || p.entity.rfind("webapp.", 0) != 0) return false;
+  const std::string source = companion_web_app_icon_url(p.entity);
+  if (source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return false;
+  ImageCardCtx *ctx = acquire_image_card_context(cfg, p.entity, true);
+  if (!ctx || !ctx->image || !s.btn) return false;
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  lv_obj_t *widget = lv_image_create(s.btn);
+#else
+  lv_obj_t *widget = lv_img_create(s.btn);
+#endif
+  lv_obj_clear_flag(widget, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(widget, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_style_pad_all(widget, 0, LV_PART_MAIN);
+  lv_obj_set_style_border_width(widget, 0, LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(widget, LV_OPA_TRANSP, LV_PART_MAIN);
+  const bool icon_with_title = cfg_option_token_present(p.options, "webapp_icon_title");
+  const int button_width = static_cast<int>(lv_obj_get_width(s.btn));
+  const int button_height = static_cast<int>(lv_obj_get_height(s.btn));
+  const int icon_size = icon_with_title
+    ? std::max(24, std::min(static_cast<int>(button_width * 0.55f),
+                            static_cast<int>(button_height * 0.50f)))
+    : std::max(24, std::min(48, static_cast<int>(button_height * 0.42f)));
+  lv_obj_set_size(widget, icon_size, icon_size);
+  const lv_coord_t padding_left = lv_obj_get_style_pad_left(s.btn, LV_PART_MAIN);
+  const lv_coord_t padding_top = lv_obj_get_style_pad_top(s.btn, LV_PART_MAIN);
+  lv_obj_align(widget, icon_with_title ? LV_ALIGN_TOP_LEFT : LV_ALIGN_CENTER,
+               icon_with_title ? padding_left : 0,
+               icon_with_title ? padding_top : (s.text_lbl ? -4 : 0));
+  if (icon_with_title && s.text_lbl) {
+    const lv_coord_t padding_right = lv_obj_get_style_pad_right(s.btn, LV_PART_MAIN);
+    const lv_coord_t padding_bottom = lv_obj_get_style_pad_bottom(s.btn, LV_PART_MAIN);
+    lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_DOT);
+    lv_obj_set_width(s.text_lbl, std::max(1, button_width - padding_left - padding_right));
+    lv_obj_set_style_text_align(s.text_lbl, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
+    lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, padding_left, -padding_bottom);
+    lv_obj_move_foreground(s.text_lbl);
+  } else if (s.text_lbl) {
+    configure_button_label_wrap(s.text_lbl);
+  }
+  lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
+  ctx->widget = widget;
+  ctx->btn = s.btn;
+  ctx->loading_widget = nullptr;
+  ctx->loading_label = nullptr;
+  ctx->icon_font = image_card_icon_font_for_slot(s);
+  ctx->label_font = image_card_label_font_for_slot(s);
+  ctx->entity_id = p.entity;
+  ctx->camera_name.clear();
+  ctx->source_url = source;
+  ctx->base_url.clear();
+  ctx->base_url_provider = nullptr;
+  ctx->begin_display_takeover = nullptr;
+  ctx->end_display_takeover = nullptr;
+  ctx->modal_fit = false;
+  ctx->media_artwork = false;
+  ctx->remote_icon = true;
+  ctx->fallback_icon_label = s.icon_lbl;
+  ctx->media_artwork_suppressed = false;
+  ctx->media_artwork_refresh_forced = false;
+  ctx->media_artwork_refresh.reset();
+  ctx->media_overlay = nullptr;
+  ctx->pending_fallback_picture.clear();
+  ctx->media_artwork_retry_mask = 0;
+  ctx->media_artwork_timeout_retries = 0;
+  ctx->diagnostics_enabled = cfg.image_card_diagnostics;
+  ctx->retry_deadline_ms = esphome::millis() + IMAGE_CARD_STARTUP_RETRY_MS;
+  ctx->width_compensation_percent = cfg.width_compensation_percent;
+  ctx->media_artwork_width_compensation_percent = 100;
+  ctx->show_label = false;
+  ctx->image->set_target_size(icon_size, icon_size);
+  image_card_log_diagnostics(ctx, "bind-companion-webapp-icon");
+  image_card_request_source_url(ctx, true);
+  if (ctx->image_ready) {
+    image_card_set_widget_source(ctx->widget, ctx->image);
+    lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(ctx->widget);
+    if (ctx->fallback_icon_label) lv_obj_add_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+  }
+  return true;
+}
+
+inline lv_obj_t *image_card_create_clock_bar_icon_container(lv_obj_t *parent) {
+  if (!parent) return nullptr;
+  lv_obj_t *container = lv_obj_create(parent);
+  lv_obj_set_size(container, 20, 20);
+  lv_obj_clear_flag(container, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(container, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_style_pad_all(container, 0, LV_PART_MAIN);
+  lv_obj_set_style_border_width(container, 0, LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(container, LV_OPA_TRANSP, LV_PART_MAIN);
+  return container;
+}
+
+inline void image_card_set_clock_bar_companion_icon(
+    const std::string &entity_id, const std::string &icon_name,
+    const std::string &source_url) {
+  auto &container_ref = clock_bar_companion_icon_widget();
+  static ImageCardCtx *context = nullptr;
+  static lv_obj_t *fallback = nullptr;
+  static lv_obj_t *image_widget = nullptr;
+  static std::string active_key;
+  const std::string key = entity_id + "|" + icon_name + "|" + source_url;
+  auto &labels = clock_bar_temperature_labels();
+  lv_obj_t *parent = labels.empty() || !labels[0] ? nullptr : lv_obj_get_parent(labels[0]);
+  if (entity_id.empty() || icon_name.empty() || !parent) {
+    if (context && context->active) image_card_evict_optional_icon(context);
+    context = nullptr;
+    if (container_ref && lv_obj_is_valid(container_ref)) lv_obj_del(container_ref);
+    container_ref = nullptr;
+    fallback = nullptr;
+    image_widget = nullptr;
+    active_key.clear();
+    clock_bar_refresh_left_title();
+    return;
+  }
+  if (container_ref && lv_obj_is_valid(container_ref) &&
+      lv_obj_get_parent(container_ref) == parent && active_key == key &&
+      (source_url.empty() || (context && context->active))) {
+    clock_bar_refresh_left_title();
+    return;
+  }
+
+  if (context && context->active) image_card_evict_optional_icon(context);
+  if (container_ref && lv_obj_is_valid(container_ref)) lv_obj_del(container_ref);
+  context = nullptr;
+  fallback = nullptr;
+  image_widget = nullptr;
+  active_key = key;
+  container_ref = image_card_create_clock_bar_icon_container(parent);
+  if (!container_ref) return;
+
+  fallback = lv_label_create(container_ref);
+  lv_label_set_display_text(fallback, find_icon(icon_name.c_str()));
+  lv_obj_set_style_text_font(fallback, image_card_pool_grid_config().icon_font,
+                             LV_PART_MAIN);
+  lv_obj_center(fallback);
+  lv_obj_clear_flag(fallback, LV_OBJ_FLAG_CLICKABLE);
+
+  if (!source_url.empty() &&
+      source_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) == 0) {
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+    image_widget = lv_image_create(container_ref);
+#else
+    image_widget = lv_img_create(container_ref);
+#endif
+    lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(image_widget, 20, 20);
+    lv_obj_center(image_widget);
+    lv_obj_add_flag(image_widget, LV_OBJ_FLAG_HIDDEN);
+    context = acquire_image_card_context(image_card_pool_grid_config(),
+        "clockbar:" + entity_id, true);
+    if (context && context->image) {
+      context->widget = image_widget;
+      context->btn = container_ref;
+      context->loading_widget = nullptr;
+      context->loading_label = nullptr;
+      context->icon_font = image_card_pool_grid_config().icon_font;
+      context->label_font = nullptr;
+      context->entity_id = "clockbar:" + entity_id;
+      context->camera_name.clear();
+      context->base_url.clear();
+      context->base_url_provider = nullptr;
+      context->source_url = source_url;
+      context->begin_display_takeover = nullptr;
+      context->end_display_takeover = nullptr;
+      context->retry_deadline_ms = 0;
+      context->next_picture_retry_ms = 0;
+      context->next_download_retry_ms = 0;
+      context->show_label = false;
+      context->modal_fit = false;
+      context->diagnostics_enabled = false;
+      context->access_token_request_pending = false;
+      context->camera_refresh_pending = false;
+      context->media_artwork = false;
+      context->remote_icon = true;
+      context->fallback_icon_label = fallback;
+      context->media_artwork_suppressed = false;
+      context->media_artwork_refresh_forced = false;
+      context->media_overlay = nullptr;
+      context->media_overlay_artwork_tint = false;
+      context->pending_fallback_picture.clear();
+      context->media_artwork_retry_mask = 0;
+      context->media_artwork_timeout_retries = 0;
+      context->camera_download_errors = 0;
+      context->camera_retry_after_ms = 0;
+      context->camera_entity_unavailable = false;
+      context->image->set_target_size(20, 20);
+      if (context->image_ready) {
+        image_card_set_widget_source(context->widget, context->image);
+        lv_obj_add_flag(fallback, LV_OBJ_FLAG_HIDDEN);
+      } else {
+        image_card_request_source_url(context, true);
+      }
+    }
+  }
+  clock_bar_refresh_left_title();
+}
+
 inline bool image_card_bind_runtime(BtnSlot &s, const ParsedCfg &p,
                                     const GridConfig &cfg,
                                     bool bind_click_handler = false) {
@@ -3001,6 +3259,8 @@ inline bool image_card_bind_runtime(BtnSlot &s, const ParsedCfg &p,
   ctx->end_display_takeover = cfg.end_display_takeover;
   ctx->modal_fit = image_card_modal_fit_enabled(p);
   ctx->media_artwork = false;
+  ctx->remote_icon = false;
+  ctx->fallback_icon_label = nullptr;
   ctx->media_artwork_suppressed = false;
   ctx->media_artwork_refresh_forced = false;
   ctx->media_artwork_refresh.reset();

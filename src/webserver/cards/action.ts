@@ -48,9 +48,13 @@ export function registerActionCardTypes(
         mode: {
             label: "Type",
             idSuffix: "action",
-            options: ACTION_CARD_ACTIONS.filter(function (this: any, action?: any) {
-                return homeAssistantSupported() || actionCardIsLocal(action.value);
-            }),
+            options: function (this: any) {
+                return homeAssistantSupported()
+                    ? ACTION_CARD_ACTIONS
+                    : ACTION_CARD_ACTIONS.filter(function (this: any, action?: any) {
+                        return actionCardIsLocal(action.value);
+                    });
+            },
             value: function (this: any, b?: any) {
                 return b.sensor || "scene.turn_on";
             },

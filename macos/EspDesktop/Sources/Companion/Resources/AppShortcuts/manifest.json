@@ -1,0 +1,10 @@
+{
+  "formatVersion": 1,
+  "catalogueVersion": 1,
+  "minimumCompanionVersion": "1.0.0",
+  "entries": [
+    { "path": "codex.json" },
+    { "path": "safari.json" },
+    { "path": "slack.json" }
+  ]
+}

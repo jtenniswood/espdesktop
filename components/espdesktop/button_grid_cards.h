@@ -182,7 +182,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon("Monitor") : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
-  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl);
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
   if (available) {
     set_card_disabled_state(s.btn, false);
     apply_push_button_transition(s.btn);
