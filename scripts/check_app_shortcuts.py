@@ -132,6 +132,11 @@ class WebAppTests(unittest.TestCase):
             shutil.copy2(source / 'icons/google-docs.png', directory / 'icons/google-docs.png')
             template_path = directory / 'google-docs.json'
             template = json.loads(template_path.read_text())
+            template['id'] = 'a' * 65
+            template_path.write_text(json.dumps(template))
+            with self.assertRaisesRegex(ValueError, 'identifier of at most 64 bytes'):
+                load_web_apps(root)
+            template['id'] = 'google-docs'
             template['label'] = 'W' * 49
             template_path.write_text(json.dumps(template))
             with self.assertRaisesRegex(ValueError, 'label must contain 1–48 bytes'):

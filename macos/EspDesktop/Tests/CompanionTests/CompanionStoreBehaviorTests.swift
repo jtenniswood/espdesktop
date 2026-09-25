@@ -13,18 +13,14 @@ final class CompanionStoreBehaviorTests: XCTestCase {
         )
     }
 
-    func testWebAppActivationAllowsTheDefaultBrowserWhenTabFocusCannotBeRead() {
+    func testWebAppActivationRequiresTheRequestedTabToBeFocused() {
         XCTAssertTrue(CompanionStore.webAppActivationObserved(
             actionIdentifier: "webapp.google-docs",
-            frontmostBundleIdentifier: "org.mozilla.firefox",
-            expectedBrowserBundleIdentifier: "org.mozilla.firefox",
-            focusedActionIdentifiers: ["org.mozilla.firefox"]
+            focusedActionIdentifiers: ["org.mozilla.firefox", "webapp.google-docs"]
         ))
         XCTAssertFalse(CompanionStore.webAppActivationObserved(
             actionIdentifier: "webapp.google-docs",
-            frontmostBundleIdentifier: "com.apple.finder",
-            expectedBrowserBundleIdentifier: "org.mozilla.firefox",
-            focusedActionIdentifiers: ["com.apple.finder"]
+            focusedActionIdentifiers: ["org.mozilla.firefox"]
         ))
     }
 }

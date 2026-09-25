@@ -22,8 +22,9 @@ def load_web_apps(root: Path):
             raise ValueError(f"{path.name}: expected version, id, label, url, matchHost, icon, shortcuts, and optional matchPath")
         if type(app["version"]) is not int or app["version"] != 1:
             raise ValueError(f"{path.name}: version must be 1")
-        if not isinstance(app["id"], str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", app["id"]):
-            raise ValueError(f"{path.name}: id must be a lowercase hyphenated identifier")
+        if (not isinstance(app["id"], str) or len(app["id"].encode("utf-8")) > 64 or
+                not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", app["id"])):
+            raise ValueError(f"{path.name}: id must be a lowercase hyphenated identifier of at most 64 bytes")
         if app["id"] in seen:
             raise ValueError(f"{path.name}: duplicate Web App id {app['id']}")
         seen.add(app["id"])

@@ -347,6 +347,7 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { remoteCatalogueStore.value }
+    func configuredWebAppIDs() -> [String] { companionWebAppFocusIDs.sorted() }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
               (application.bundleIdentifier == "com.apple.finder" ||
@@ -702,22 +703,12 @@ final class CompanionStore: NSObject, ObservableObject {
               companionWebAppFocusIDs.contains(String(actionIdentifier.dropFirst("webapp.".count))) else {
             return false
         }
-        let expectedBrowserBundleIdentifier: String? = {
-            let webAppID = String(actionIdentifier.dropFirst("webapp.".count))
-            guard let definition = remoteCatalogueStore.value.webApplications.first(where: { $0.id == webAppID }),
-                  let url = URL(string: definition.url),
-                  let browserURL = NSWorkspace.shared.urlForApplication(toOpen: url) else { return nil }
-            return Bundle(url: browserURL)?.bundleIdentifier
-        }()
         for _ in 0..<40 {
-            let frontmostBundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+            let focusedActionIdentifiers = focusedCompanionActionIdentifiers()
             if Self.webAppActivationObserved(
                 actionIdentifier: actionIdentifier,
-                frontmostBundleIdentifier: frontmostBundleIdentifier,
-                expectedBrowserBundleIdentifier: expectedBrowserBundleIdentifier,
-                focusedActionIdentifiers: []
+                focusedActionIdentifiers: focusedActionIdentifiers
             ) { return true }
-            if focusedCompanionActionIdentifiers().contains(actionIdentifier) { return true }
             try? await Task.sleep(nanoseconds: 150_000_000)
         }
         return false
@@ -725,13 +716,9 @@ final class CompanionStore: NSObject, ObservableObject {
 
     nonisolated static func webAppActivationObserved(
         actionIdentifier: String,
-        frontmostBundleIdentifier: String?,
-        expectedBrowserBundleIdentifier: String?,
         focusedActionIdentifiers: [String]
     ) -> Bool {
-        focusedActionIdentifiers.contains(actionIdentifier) ||
-            (expectedBrowserBundleIdentifier != nil &&
-             frontmostBundleIdentifier == expectedBrowserBundleIdentifier)
+        focusedActionIdentifiers.contains(actionIdentifier)
     }
 
     nonisolated static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {
