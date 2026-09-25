@@ -36,8 +36,8 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   if (requestedConnectorFromSearch("?tab=settings") !== null) {
     throw new Error("Unrelated deep links must not select a connector");
   }
-  if (connectorOnboardingComplete(status())) {
-    throw new Error("An unconfigured display must remain in onboarding");
+  if (!connectorOnboardingComplete(status())) {
+    throw new Error("An unconfigured display must remain usable without an external connector");
   }
   if (!connectorOnboardingComplete(status({
     home_assistant: {
@@ -47,7 +47,7 @@ export async function runConnectorsFeatureTests(): Promise<void> {
       actions_confirmed: true,
     },
   }))) {
-    throw new Error("A configured Home Assistant connector must complete onboarding while offline");
+    throw new Error("A configured Home Assistant connector must not be required for onboarding");
   }
   if (!connectorOnboardingComplete(status({
     mac_companion: {
@@ -87,10 +87,10 @@ export async function runConnectorsFeatureTests(): Promise<void> {
     },
   });
   if (!homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
-    throw new Error("Older firmware without connector status must retain Home Assistant cards");
+    throw new Error("The Home Assistant picker stays usable on older firmware without status reporting");
   }
   if (homeAssistantPickerAvailable(offlineHomeAssistant, true)) {
-    throw new Error("New firmware must hide Home Assistant cards while its connector is offline");
+    throw new Error("New firmware hides Home Assistant cards while its connector is offline");
   }
   const connectedHomeAssistant = status({
     home_assistant: {
@@ -101,7 +101,7 @@ export async function runConnectorsFeatureTests(): Promise<void> {
     },
   });
   if (!homeAssistantPickerAvailable(connectedHomeAssistant, true)) {
-    throw new Error("New firmware must show Home Assistant cards while its connector is connected");
+    throw new Error("Home Assistant cards should be available while its connector is connected");
   }
 
   const statuses = [
@@ -127,6 +127,7 @@ export async function runConnectorsFeatureTests(): Promise<void> {
     {} as any,
     {} as any,
     true,
+    () => false,
   );
   const transitions: boolean[] = [];
   feature.onCompanionConnectionChange((connected) => transitions.push(connected));

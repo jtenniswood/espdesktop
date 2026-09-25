@@ -20,6 +20,8 @@ A subpage is an extra screen opened from a **Subpage** card. Use it to group rel
 
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 
+Home Assistant type presets are available after a Home Assistant connection is configured. Until then, Subpage cards stay as regular **Folder** pages.
+
 ## Organise Cards
 
 Drag cards to change their order. To move or copy a card between the home screen and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty space on the destination page and choose **Paste**.

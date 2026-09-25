@@ -32,6 +32,7 @@ export interface PreviewRenderDependencies {
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked">;
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
+    readonly homeAssistantSupported: () => boolean;
 }
 export interface PreviewRenderFeature {
     render(): void;
@@ -80,7 +81,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         return cardTypePickerDetails(key || "", label || "");
     }
     function buttonTypePickerOptionList(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
-        return cardTypePickerOptions(dependencies.cards.definitions, dependencies.layout.config.disabledCardTypes || [], !!dependencies.layout.config.infoOnly, !!isSub, selectedTypeKey, connector);
+        return cardTypePickerOptions(dependencies.cards.definitions, dependencies.layout.config.disabledCardTypes || [], !!dependencies.layout.config.infoOnly, !!isSub, selectedTypeKey, connector, dependencies.homeAssistantSupported());
     }
     function buttonTypePickerKeys(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
         return buttonTypePickerOptionList(!!isSub, selectedTypeKey, connector).map(function (this: any, opt?: any) {

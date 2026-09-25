@@ -84,6 +84,8 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
     return response(200, document, "\"7\"");
   });
   equal(await client.discover(), true, "native capabilities are detected");
+  equal(client.homeAssistantSupportEnabled(), false,
+    "Home Assistant support stays disabled unless firmware advertises explicit opt-in");
   equal(await client.save((current) => ({ ...current, settings: { ...current.settings, button_order: "1d" } })), "saved", "guarded native save succeeds");
   const put = requests.find((entry) => entry.request?.method === "PUT");
   equal(put?.request?.headers?.["If-Match"], "\"7\"", "native save uses the document generation");
@@ -192,6 +194,18 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
   equal(malformedVersionClient.confirmedUnsupported(), false,
     "a malformed version list is not mistaken for older firmware");
 
+  const homeAssistantEnabledClient = createNativePanelConfigClient(async () => ({
+    ...response(200),
+    json: async () => ({
+      home_assistant_support: true,
+      configuration: { read: false, write: false, document_versions: [] },
+    }),
+  }));
+  equal(await homeAssistantEnabledClient.discover(), false,
+    "Home Assistant capability can be read even without native config support");
+  equal(homeAssistantEnabledClient.homeAssistantSupportEnabled(), true,
+    "an explicit firmware capability enables Home Assistant support");
+
   let nativeInitializationComplete = false;
   const reconnectingClient = createNativePanelConfigClient(async (path, request) => {
     if (path === "/api/v1/capabilities") {
@@ -224,6 +238,32 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
     "a restarted panel no longer uses stale native capability state");
   equal(restartedClient.retryable(), true,
     "a restarted panel retries native discovery when its endpoint is temporarily missing");
+
+  let startupCapabilityRequests = 0;
+  const startupRetryController = new NativePanelConfigController({
+    fetch: async () => ++startupCapabilityRequests === 1
+      ? { ...response(503), json: async () => ({}) }
+      : {
+        ...response(200),
+        json: async () => ({
+          home_assistant_support: true,
+          configuration: { read: true, write: true, document_versions: [1] },
+        }),
+      },
+    deviceProfile: () => "panel-a",
+    slotCount: () => 2,
+    entityName: (name: string) => name,
+    entityNameForSlot: (name: string, slot: number) => `${name}_${slot}`,
+    normalizeHexColor: (value: string) => value,
+    showBanner: () => undefined,
+    delay: (callback: () => void) => { callback(); return 0 as any; },
+  });
+  equal(await startupRetryController.waitForDiscovery(), true,
+    "startup capability discovery retries a temporary 503 before deciding Home Assistant is disabled");
+  equal(startupRetryController.homeAssistantSupportEnabled(), true,
+    "the retry exposes the opt-in after deferred capability initialization completes");
+  equal(startupCapabilityRequests, 2,
+    "startup discovery repeats the capabilities request once the deferred endpoint is ready");
 
   const savedDescriptors = new Map<string, PropertyDescriptor | undefined>();
   const saveDescriptor = (name: string): void => {

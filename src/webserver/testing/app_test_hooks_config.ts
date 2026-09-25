@@ -500,8 +500,8 @@ export function installAppTestHooksConfig(
                 var visible: any = buttonTypeVisibleInPicker(key, !!isSub);
                 return visible;
             },
-            cardTransferEntriesFromEnvelopeForTest: function (this: any, envelope?: any, targetIsSubpage?: any) {
-                return clipboardEntriesFromCardTransfer(envelope, !!targetIsSubpage);
+            cardTransferEntriesFromEnvelopeForTest: function (this: any, envelope?: any, targetIsSubpage?: any, homeAssistantEnabled?: any) {
+                return clipboardEntriesFromCardTransfer(envelope, !!targetIsSubpage, !!homeAssistantEnabled);
             },
             buttonTypePickerKeysForInfoOnly: function (this: any, enabled?: any, selectedTypeKey?: any) {
                 var oldInfoOnly: any = layout.config.infoOnly;

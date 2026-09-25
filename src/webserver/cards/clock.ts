@@ -15,9 +15,10 @@ export function registerClockCardTypes(
     registry: CardRegistry,
     dateTimeOptions: ConfigDateTimeOptionsFeature,
     fields: ControlsFieldsFeature,
+    homeAssistantSupported: () => boolean,
 ): void {
     const { cardLargeNumbersHidePreviewLabel, cardSensorPreviewHtml } = fields;
-    const { dateTimeCardTimeParts, metadata } = dateTimeOptions;
+    const { dateTimeCardTimeParts, metadata, metadataForHomeAssistantSupport } = dateTimeOptions;
     // Read-only local clock card: displays the panel's local time only.
     registry.register("clock", {
         label: function (this: any) { return cardContractCardLabel("clock"); },
@@ -42,7 +43,7 @@ export function registerClockCardTypes(
             b.sensor = "";
             b.unit = "";
             b.precision = "";
-            helpers.renderCardModeSelector(panel, b, helpers, metadata);
+            helpers.renderCardModeSelector(panel, b, helpers, metadataForHomeAssistantSupport(homeAssistantSupported()));
             helpers.renderCardLargeNumbersToggle(panel, b, helpers, metadata);
         },
         renderPreview: function (this: any, b?: any, helpers?: any) {

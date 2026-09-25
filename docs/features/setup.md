@@ -30,8 +30,6 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 Use the setup page's backup controls to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
 
-The **Connectors** tab shows your connection status. It provides setup steps for a new connection, a short reconnect check when offline, and Home Assistant actions permission guidance after connecting.
-
-Home Assistant settings appear only while the Home Assistant connector is connected. When it disconnects, **Cover Art Screen Saver**, the **Home Assistant** modes in **Screensaver** and **Night Schedule**, **Home Assistant Settings**, and the clock-bar temperature control are hidden. Saved settings return when Home Assistant reconnects. Use the **Connectors** tab to check or restore the connection.
+The **Connectors** tab provides setup and status for Mac Companion. The EspDesktop configurator does not offer Home Assistant setup or new Home Assistant-backed cards, even if Home Assistant is already connected. Home Assistant cards already saved on a display remain in its layout.
 
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).
