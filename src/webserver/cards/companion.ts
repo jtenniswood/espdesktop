@@ -1445,28 +1445,127 @@ export function registerCompanionCardTypes(
                 const iconSizeRow = document.createElement("div");
                 iconSizeRow.className = "sp-field-row sp-companion-app-icon-size";
                 const iconSizeLabel = document.createElement("label");
-                const iconSizeSelect = document.createElement("select");
-                iconSizeSelect.id = helpers.idPrefix + "companion-app-icon-size";
-                iconSizeSelect.className = "sp-input";
-                iconSizeLabel.htmlFor = iconSizeSelect.id;
-                iconSizeLabel.textContent = "Mac app icon";
-                iconSizeSelect.setAttribute("aria-label", "Mac app icon size");
-                iconSizeSelect.innerHTML = '<option value="small">Small</option><option value="medium">Medium</option><option value="fill">Fill card</option>';
-                iconSizeSelect.value = configOptionEnabled(card.options, "app_icon_fill")
+                const iconSizeControl = document.createElement("div");
+                iconSizeControl.className = "sp-companion-app-icon-size-control";
+                const iconSizeButton = document.createElement("button");
+                iconSizeButton.type = "button";
+                iconSizeButton.id = helpers.idPrefix + "companion-app-icon-size";
+                iconSizeButton.className = "sp-select sp-companion-app-icon-size-button";
+                iconSizeButton.setAttribute("role", "combobox");
+                iconSizeButton.setAttribute("aria-haspopup", "listbox");
+                iconSizeButton.setAttribute("aria-expanded", "false");
+                iconSizeButton.setAttribute("aria-label", "Mac app icon size");
+                const iconSizeValue = document.createElement("span");
+                const iconSizeChevron = document.createElement("span");
+                iconSizeChevron.className = "mdi mdi-chevron-down";
+                iconSizeChevron.setAttribute("aria-hidden", "true");
+                iconSizeButton.append(iconSizeValue, iconSizeChevron);
+                const iconSizeList = document.createElement("div");
+                iconSizeList.className = "sp-companion-app-icon-size-list";
+                iconSizeList.id = iconSizeButton.id + "-options";
+                iconSizeList.setAttribute("role", "listbox");
+                iconSizeButton.setAttribute("aria-controls", iconSizeList.id);
+                const iconSizeOptions = [
+                    { value: "small", label: "Small" },
+                    { value: "medium", label: "Medium" },
+                    { value: "fill", label: "Large" },
+                ];
+                let selectedIconSize = configOptionEnabled(card.options, "app_icon_fill")
                     ? "fill" : configOptionEnabled(card.options, "app_icon_medium") ? "medium" : "small";
+                const iconSizeOptionButtons = iconSizeOptions.map(function (option) {
+                    const optionButton = document.createElement("button");
+                    optionButton.type = "button";
+                    optionButton.className = "sp-companion-app-icon-size-option";
+                    optionButton.textContent = option.label;
+                    optionButton.setAttribute("role", "option");
+                    optionButton.dataset.value = option.value;
+                    optionButton.addEventListener("mousedown", function (event) {
+                        event.preventDefault();
+                    });
+                    iconSizeList.appendChild(optionButton);
+                    return optionButton;
+                });
+                let closeOnOutsidePointer: (event: Event) => void;
+                const closeIconSizeList = function (restoreFocus: boolean) {
+                    iconSizeControl.classList.remove("sp-open");
+                    iconSizeButton.setAttribute("aria-expanded", "false");
+                    document.removeEventListener("pointerdown", closeOnOutsidePointer);
+                    if (restoreFocus) iconSizeButton.focus();
+                };
+                const openIconSizeList = function () {
+                    iconSizeControl.classList.add("sp-open");
+                    iconSizeButton.setAttribute("aria-expanded", "true");
+                    document.addEventListener("pointerdown", closeOnOutsidePointer);
+                };
+                closeOnOutsidePointer = function (event: Event) {
+                    if (!iconSizeControl.contains(event.target as Node)) closeIconSizeList(false);
+                };
+                const updateIconSizeSelection = function (value: string) {
+                    selectedIconSize = value;
+                    iconSizeValue.textContent = iconSizeOptions.find(function (option) {
+                        return option.value === value;
+                    })?.label || "Small";
+                    iconSizeOptionButtons.forEach(function (optionButton) {
+                        const selected = optionButton.dataset.value === value;
+                        optionButton.classList.toggle("sp-active", selected);
+                        optionButton.setAttribute("aria-selected", String(selected));
+                    });
+                };
+                updateIconSizeSelection(selectedIconSize);
+                iconSizeOptionButtons.forEach(function (optionButton) {
+                    optionButton.addEventListener("click", function () {
+                        const value = optionButton.dataset.value || "small";
+                        updateIconSizeSelection(value);
+                        card.options = setConfigOption(card.options, "app_icon_fill", value === "fill");
+                        card.options = setConfigOption(card.options, "app_icon_medium", value === "medium");
+                        helpers.saveField("options", card.options);
+                        renderPreview();
+                        closeIconSizeList(true);
+                    });
+                    optionButton.addEventListener("keydown", function (event) {
+                        const index = iconSizeOptionButtons.indexOf(optionButton);
+                        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                            event.preventDefault();
+                            const direction = event.key === "ArrowDown" ? 1 : -1;
+                            iconSizeOptionButtons[(index + direction + iconSizeOptionButtons.length) %
+                                iconSizeOptionButtons.length].focus();
+                        } else if (event.key === "Escape") {
+                            event.preventDefault();
+                            closeIconSizeList(true);
+                        }
+                    });
+                });
+                iconSizeButton.addEventListener("click", function () {
+                    const open = !iconSizeControl.classList.contains("sp-open");
+                    if (open) openIconSizeList();
+                    else closeIconSizeList(false);
+                });
+                iconSizeButton.addEventListener("keydown", function (event) {
+                    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                        event.preventDefault();
+                        openIconSizeList();
+                        const selectedIndex = iconSizeOptions.findIndex(function (option) {
+                            return option.value === selectedIconSize;
+                        });
+                        const index = event.key === "ArrowDown"
+                            ? Math.max(0, selectedIndex) : Math.max(0, selectedIndex);
+                        iconSizeOptionButtons[index].focus();
+                    } else if (event.key === "Escape" && iconSizeControl.classList.contains("sp-open")) {
+                        event.preventDefault();
+                        closeIconSizeList(false);
+                    }
+                });
+                iconSizeControl.append(iconSizeButton, iconSizeList);
+                iconSizeLabel.textContent = "Mac app icon";
+                iconSizeLabel.htmlFor = iconSizeButton.id;
                 iconSizeRow.appendChild(iconSizeLabel);
-                iconSizeRow.appendChild(iconSizeSelect);
+                iconSizeRow.appendChild(iconSizeControl);
                 panel?.appendChild(iconSizeRow);
                 iconSizeRow.style.display = customIcon ? "none" : "";
-                iconSizeSelect.addEventListener("change", function () {
-                    card.options = setConfigOption(card.options, "app_icon_fill", iconSizeSelect.value === "fill");
-                    card.options = setConfigOption(card.options, "app_icon_medium", iconSizeSelect.value === "medium");
-                    helpers.saveField("options", card.options);
-                    renderPreview();
-                });
                 iconToggle.input.addEventListener("change", function () {
                     iconPicker.style.display = iconToggle.input.checked ? "none" : "";
                     iconSizeRow.style.display = iconToggle.input.checked ? "" : "none";
+                    if (!iconToggle.input.checked) closeIconSizeList(false);
                 });
                 const palette = [
                     "B71C1C", "BF360C", "E65100", "F57F17", "827717", "33691E",
