@@ -11,12 +11,17 @@ struct CompanionWindowActionCapability {
 }
 
 enum CompanionCapabilities {
-    static let version = 3
-    static let protocolVersion = 3
-    static let protocolPath = "/companion/v3"
+    static let version = 4
+    static let protocolVersion = 4
+    static let protocolPath = "/companion/v4"
     static let maximumTextFrameBytes = 16384
     static let maximumArtworkBytes = 262144
     static let artworkChunkBytes = 12288
+    static let appIconChunkBytes = 4096
+    static let appIconSide = 144
+    static let appIconPixelBytes = 62208
+    static let appIconsCapability = "app_icons"
+    static let appIconsAlphaCapability = "app_icons_alpha"
     static let pairingWindowSeconds = 900
     static let protocolMessages: Set<String> = [
         "hello",
@@ -40,6 +45,13 @@ enum CompanionCapabilities {
         "artwork.end",
         "artwork.abort",
         "artwork.request",
+        "app_icon.request",
+        "app_icon.begin",
+        "app_icon.unchanged",
+        "app_icon.unavailable",
+        "app_icon.ack",
+        "app_icon.end",
+        "app_icon.abort",
         "error",
         "catalogue.definitions.page",
         "focus.targets",
@@ -47,11 +59,11 @@ enum CompanionCapabilities {
     static let cardModes: [String: String] = [
         "app": "Applications",
         "shortcut": "Keyboard shortcut",
-        "webapp": "Web App",
         "url": "Open URL",
         "folder": "Open folder",
         "stats": "Stats",
         "window": "Window control",
+        "webapp": "Web App",
     ]
     static let windowActions: [String: CompanionWindowActionCapability] = [
         "window.close": .init(key: "w", flags: [.maskCommand], minimumMacOS: 13, menuPaths: []),

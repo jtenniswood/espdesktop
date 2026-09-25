@@ -4,6 +4,303 @@
 
 #include "button_grid_datetime_cards.h"
 #include "companion_controls.h"
+#ifdef USE_COMPANION
+#include "../companion/app_icon_store.h"
+#include "cover_art.h"
+#include "panel_config_text_bindings.h"
+#include "esphome/core/version.h"
+
+template<typename T>
+inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr);
+
+namespace esphome::companion {
+void request_app_icon(const std::string &application_id);
+}
+
+struct CompanionAppIconImageData {
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  lv_image_dsc_t descriptor{};
+#else
+  lv_img_dsc_t descriptor{};
+#endif
+  esphome::RAMAllocator<uint8_t> pixel_allocator{
+      esphome::RAMAllocator<uint8_t>::ALLOC_EXTERNAL};
+  uint8_t *pixels = pixel_allocator.allocate(esphome::companion::APP_ICON_PIXEL_BYTES);
+  lv_obj_t *fallback_icon = nullptr;
+  lv_obj_t *card_label = nullptr;
+  std::string application_id;
+  espdesktop::cover_art::AccentPalette accent_palette{};
+  espdesktop::cover_art::AccentColor accent_color{};
+  uint32_t custom_background_rgb = 0;
+  std::string custom_background_option;
+  uint32_t fallback_default_rgb = 0;
+  uint32_t fallback_active_rgb = 0;
+  int color_correction_red_percent = 100;
+  int color_correction_green_percent = 100;
+  int color_correction_blue_percent = 100;
+  bool app_icon_mode = false;
+  bool companion_online = false;
+  bool custom_background = false;
+  bool image_loaded = false;
+  bool card_palette_ready = false;
+  bool palette_applied = false;
+  bool fill_card = false;
+
+  ~CompanionAppIconImageData() {
+    if (pixels) pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
+  }
+};
+
+inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner);
+inline void companion_refresh_cached_app_icon(const std::string &application_id);
+
+inline void companion_apply_app_icon_card_palette(
+    CompanionAppIconImageData &source, lv_obj_t *button) {
+  if (!button || !source.card_palette_ready) return;
+  const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
+                          source.accent_palette.valid;
+  const uint32_t default_rgb = use_accent
+      ? source.accent_palette.default_rgb : source.fallback_default_rgb;
+  const uint32_t active_rgb = use_accent
+      ? source.accent_palette.active_rgb : source.fallback_active_rgb;
+  lv_obj_set_style_bg_color(
+      button, lv_color_hex(default_rgb),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+  lv_obj_set_style_bg_color(
+      button, lv_color_hex(active_rgb),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
+  lv_obj_set_style_bg_color(
+      button, lv_color_hex(active_rgb),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+  source.palette_applied = true;
+}
+
+inline void companion_update_app_icon_card_palette(
+    CompanionAppIconImageData &source, lv_obj_t *button, bool app_icon_mode,
+    uint32_t fallback_default_rgb, uint32_t fallback_active_rgb,
+    int correction_red_percent, int correction_green_percent,
+    int correction_blue_percent, const std::string &custom_color,
+    bool companion_online) {
+  source.app_icon_mode = app_icon_mode;
+  source.companion_online = companion_online;
+  source.fallback_default_rgb = fallback_default_rgb;
+  source.fallback_active_rgb = fallback_active_rgb;
+  source.color_correction_red_percent = correction_red_percent;
+  source.color_correction_green_percent = correction_green_percent;
+  source.color_correction_blue_percent = correction_blue_percent;
+  source.card_palette_ready = true;
+  source.custom_background_option = custom_color;
+  source.custom_background = custom_color.size() == 6;
+  source.custom_background_rgb = 0;
+  if (source.custom_background) {
+    for (const char ch : custom_color) {
+      source.custom_background_rgb <<= 4;
+      if (ch >= '0' && ch <= '9') source.custom_background_rgb |= ch - '0';
+      else if (ch >= 'a' && ch <= 'f') source.custom_background_rgb |= ch - 'a' + 10;
+      else if (ch >= 'A' && ch <= 'F') source.custom_background_rgb |= ch - 'A' + 10;
+      else { source.custom_background = false; source.custom_background_rgb = 0; break; }
+    }
+  }
+  if (app_icon_mode && source.image_loaded && companion_online) {
+    source.accent_palette = source.custom_background
+        ? espdesktop::cover_art::make_app_icon_custom_palette(
+              source.custom_background_rgb, correction_red_percent,
+              correction_green_percent, correction_blue_percent)
+        : espdesktop::configuration::companion_app_icon_auto_colour_generation_enabled()
+            ? espdesktop::cover_art::make_app_icon_accent_palette(
+              source.accent_color, correction_red_percent,
+              correction_green_percent, correction_blue_percent)
+            : espdesktop::cover_art::AccentPalette{};
+  } else {
+    source.accent_palette = {};
+  }
+  companion_apply_app_icon_card_palette(source, button);
+}
+
+inline void companion_refresh_app_icon_connection_state(bool online);
+
+inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
+  if (!image || !source.pixels || source.application_id.empty() ||
+      !esphome::companion::app_icon_store().copy_pixels(
+          source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES)) {
+    source.image_loaded = false;
+    source.accent_palette = {};
+    if (image) lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
+    if (source.fallback_icon) lv_obj_clear_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
+    companion_apply_app_icon_card_palette(source, image ? lv_obj_get_parent(image) : nullptr);
+    return false;
+  }
+  source.image_loaded = true;
+  source.accent_color = espdesktop::cover_art::extract_accent_color_rgb565a8(
+      source.pixels, esphome::companion::APP_ICON_SIDE,
+      esphome::companion::APP_ICON_SIDE);
+  constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
+                                 esphome::companion::APP_ICON_SIDE;
+  for (size_t i = 0; i < pixel_count; ++i) {
+    const uint16_t packed = static_cast<uint16_t>(source.pixels[i * 2]) |
+                            (static_cast<uint16_t>(source.pixels[i * 2 + 1]) << 8);
+    const uint8_t red5 = (packed >> 11) & 0x1F;
+    const uint8_t green6 = (packed >> 5) & 0x3F;
+    const uint8_t blue5 = packed & 0x1F;
+    const uint8_t red = (red5 << 3) | (red5 >> 2);
+    const uint8_t green = (green6 << 2) | (green6 >> 4);
+    const uint8_t blue = (blue5 << 3) | (blue5 >> 2);
+    if (!source.companion_online) {
+      const uint8_t gray = static_cast<uint8_t>((red * 54u + green * 183u + blue * 19u) >> 8);
+      const uint16_t gray565 = ((gray >> 3) << 11) | ((gray >> 2) << 5) | (gray >> 3);
+      source.pixels[i * 2] = static_cast<uint8_t>(gray565 & 0xFF);
+      source.pixels[i * 2 + 1] = static_cast<uint8_t>(gray565 >> 8);
+    }
+  }
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  source.descriptor.header.magic = LV_IMAGE_HEADER_MAGIC;
+  source.descriptor.header.cf = LV_COLOR_FORMAT_RGB565A8;
+  source.descriptor.header.w = esphome::companion::APP_ICON_SIDE;
+  source.descriptor.header.h = esphome::companion::APP_ICON_SIDE;
+  source.descriptor.header.stride = esphome::companion::APP_ICON_SIDE * 2;
+  source.descriptor.data_size = esphome::companion::APP_ICON_PIXEL_BYTES;
+  source.descriptor.data = source.pixels;
+  lv_image_set_src(image, &source.descriptor);
+#else
+  source.descriptor.header.cf = LV_IMG_CF_TRUE_COLOR;
+  source.descriptor.header.w = esphome::companion::APP_ICON_SIDE;
+  source.descriptor.header.h = esphome::companion::APP_ICON_SIDE;
+  source.descriptor.data_size = static_cast<uint32_t>(esphome::companion::APP_ICON_SIDE) *
+                                esphome::companion::APP_ICON_SIDE * 2u;
+  source.descriptor.data = source.pixels;
+  lv_img_set_src(image, &source.descriptor);
+#endif
+  if (source.fill_card) {
+    lv_obj_t *button = lv_obj_get_parent(image);
+    lv_obj_update_layout(button);
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+    // LVGL positions children against the parent's content area, which starts
+    // inside the button padding. Expand the image back to the button edges so
+    // Fill card matches the web preview's inset: 0 rendering.
+    const lv_coord_t pad_left = lv_obj_get_style_pad_left(button, LV_PART_MAIN);
+    const lv_coord_t pad_top = lv_obj_get_style_pad_top(button, LV_PART_MAIN);
+    lv_obj_set_pos(image, -pad_left, -pad_top);
+    lv_obj_set_size(image, lv_obj_get_width(button), lv_obj_get_height(button));
+    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_COVER);
+#else
+    const lv_coord_t button_width = lv_obj_get_width(button);
+    const lv_coord_t button_height = lv_obj_get_height(button);
+    const uint32_t target_side = static_cast<uint32_t>(std::max(button_width, button_height));
+    const uint16_t zoom = static_cast<uint16_t>(std::min<uint32_t>(
+        (target_side * 256u + esphome::companion::APP_ICON_SIDE - 1u) /
+            esphome::companion::APP_ICON_SIDE,
+        UINT16_MAX));
+    lv_obj_set_size(image, esphome::companion::APP_ICON_SIDE,
+                    esphome::companion::APP_ICON_SIDE);
+    lv_img_set_zoom(image, zoom);
+    lv_obj_align(image, LV_ALIGN_CENTER, 0, 0);
+#endif
+  } else {
+    const lv_font_t *icon_font = source.fallback_icon
+        ? lv_obj_get_style_text_font(source.fallback_icon, LV_PART_MAIN) : nullptr;
+    const lv_coord_t target_side = icon_font ? icon_font->line_height : 48;
+    lv_obj_set_size(image, target_side, target_side);
+    lv_obj_align(image, LV_ALIGN_TOP_LEFT, 0, 0);
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
+#else
+    const uint16_t zoom = static_cast<uint16_t>(std::min<uint32_t>(
+        (static_cast<uint32_t>(target_side) * 256u + esphome::companion::APP_ICON_SIDE - 1u) /
+            esphome::companion::APP_ICON_SIDE,
+        UINT16_MAX));
+    lv_img_set_zoom(image, zoom);
+#endif
+  }
+  lv_obj_clear_flag(image, LV_OBJ_FLAG_HIDDEN);
+  if (source.fallback_icon) lv_obj_add_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
+  if (source.fill_card && source.card_label) lv_obj_move_foreground(source.card_label);
+  source.accent_palette = source.app_icon_mode && source.companion_online
+      ? (source.custom_background
+          ? espdesktop::cover_art::make_app_icon_custom_palette(
+                source.custom_background_rgb, source.color_correction_red_percent,
+                source.color_correction_green_percent, source.color_correction_blue_percent)
+          : espdesktop::configuration::companion_app_icon_auto_colour_generation_enabled()
+              ? espdesktop::cover_art::make_app_icon_accent_palette(
+                source.accent_color, source.color_correction_red_percent,
+                source.color_correction_green_percent, source.color_correction_blue_percent)
+              : espdesktop::cover_art::AccentPalette{})
+      : espdesktop::cover_art::AccentPalette{};
+  companion_apply_app_icon_card_palette(source, lv_obj_get_parent(image));
+  return true;
+}
+
+inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
+                                          bool fill_card = false) {
+  if (!slot.btn || !slot.icon_lbl) return;
+  esphome::companion::app_icon_store().begin();
+  if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
+  if (!slot.app_icon_img) {
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+    slot.app_icon_img = lv_image_create(slot.btn);
+#else
+    slot.app_icon_img = lv_img_create(slot.btn);
+#endif
+    lv_obj_add_flag(slot.app_icon_img, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(slot.app_icon_img, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(slot.app_icon_img, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_pad_all(slot.app_icon_img, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_width(slot.app_icon_img, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(slot.app_icon_img, LV_OPA_TRANSP, LV_PART_MAIN);
+  }
+  auto *source = static_cast<CompanionAppIconImageData *>(lv_obj_get_user_data(slot.app_icon_img));
+  if (!source) {
+    source = grid_track_runtime_allocation(slot.btn, new CompanionAppIconImageData());
+    lv_obj_set_user_data(slot.app_icon_img, source);
+  }
+  if (!source) return;
+  source->application_id = application_id;
+  source->fallback_icon = slot.icon_lbl;
+  source->card_label = slot.text_lbl;
+  source->app_icon_mode = true;
+  source->companion_online = companion_connected();
+  source->fill_card = fill_card;
+  companion_apply_cached_app_icon(*source, slot.app_icon_img);
+}
+
+inline void companion_disable_card_app_icon_palette(BtnSlot &slot) {
+  if (!slot.btn) return;
+  if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
+  if (!slot.app_icon_img) return;
+  auto *source = static_cast<CompanionAppIconImageData *>(
+      lv_obj_get_user_data(slot.app_icon_img));
+  if (source) {
+    source->app_icon_mode = false;
+    source->accent_palette = {};
+  }
+}
+
+inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
+  if (!slot.btn) return;
+  if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
+  if (!slot.app_icon_img) return;
+  auto *source = static_cast<CompanionAppIconImageData *>(
+      lv_obj_get_user_data(slot.app_icon_img));
+  if (!source || !source->palette_applied) return;
+  lv_obj_remove_local_style_prop(
+      slot.btn, LV_STYLE_BG_COLOR,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+  lv_obj_remove_local_style_prop(
+      slot.btn, LV_STYLE_BG_COLOR,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
+  lv_obj_remove_local_style_prop(
+      slot.btn, LV_STYLE_BG_COLOR,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+  source->palette_applied = false;
+  source->app_icon_mode = false;
+  source->accent_palette = {};
+}
+#endif
 
 inline void apply_push_button_transition(lv_obj_t *btn);
 inline void clear_push_button_transition(lv_obj_t *btn);
@@ -153,6 +450,7 @@ inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p);
 
 inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                  uint32_t sensor_color = TERTIARY_GREY) {
+  lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   if (companion_metric_key_valid(p.entity)) {
     lv_label_set_display_text(s.icon_lbl, find_icon(companion_metric_icon(p.entity)));
     lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -179,9 +477,28 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   std::string label = p.label.empty()
     ? companion_default_action_label(p.entity, p.sensor) : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
+  if (companion_app_launch_card(p) &&
+      cfg_option_token_present(p.options, "app_hide_label")) {
+    lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
+  }
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon("Monitor") : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
+  if (companion_app_icon_enabled(p)) {
+#ifdef USE_COMPANION
+    companion_set_card_icon_image(
+        s, p.entity, cfg_option_token_present(p.options, "app_icon_fill"));
+    esphome::companion::request_app_icon(p.entity);
+#endif
+  } else if (s.app_icon_img) {
+    lv_obj_add_flag(s.app_icon_img, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+#ifdef USE_COMPANION
+    companion_disable_card_app_icon_palette(s);
+#endif
+  }
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
   if (available) {
     set_card_disabled_state(s.btn, false);

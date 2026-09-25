@@ -25,7 +25,8 @@ class CompanionReleaseTests(unittest.TestCase):
             record = manifest(firmware, companion, revision, version)
             self.assertEqual(record['supportedDevices'], ['guition-esp32-s3-4848s040'])
             self.assertEqual(len(record['artifacts']), 4)
-            self.assertEqual(record['supportedCombinations'], [{'firmwareProtocol': 3, 'companionProtocol': 3}])
+            protocol = compatibility()['protocolVersion']
+            self.assertEqual(record['supportedCombinations'], [{'firmwareProtocol': protocol, 'companionProtocol': protocol}])
             path.write_text(json.dumps(record))
             verify(path, firmware, companion, revision, version)
             prerelease_version = 'v9.8.7-beta.1'

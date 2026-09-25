@@ -52,6 +52,7 @@ import {
     syncFinderFolderSelection,
     addFinderFolderTiles,
     createCompanionShortcutSubpage,
+    normalizeCompanionCardOptions,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
     setCompanionAppShortcutFolderEnabled,
@@ -338,6 +339,18 @@ export function companionCardMode(card: any): CompanionCardModeId {
     return decodeCompanionCard(card || {}).mode;
 }
 
+export function companionAppIconEnabled(card: any): boolean {
+    return companionCardMode(card) === "app" && !configOptionEnabled(card?.options, "custom_icon");
+}
+
+export function normalizeCompanionAppOptions(card: any): string {
+    return normalizeCompanionCardOptions(card);
+}
+
+function companionAppLaunchCard(card: any): boolean {
+    return companionCardMode(card) === "app" && !String(card?.sensor || "");
+}
+
 export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "webapp") return COMPANION_WEB_APP_PREFIX;
@@ -441,9 +454,9 @@ export function normalizeCompanionCard(card: any): void {
         }
         return;
     }
-    card.options = normalizeCompanionAppShortcutOptions(card);
-    card.icon_on = "Auto";
     const mode = companionCardMode(card);
+    card.options = normalizeCompanionAppOptions(card);
+    card.icon_on = "Auto";
     if (!card.icon || card.icon === "Auto" ||
         (card.icon === "Monitor" && mode !== "app") ||
         (card.icon === "Folder" && mode === "folder")) {
@@ -465,7 +478,7 @@ export function registerCompanionCardTypes(
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
 ): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
-    const { renderButtonSettings } = cardUi;
+    const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     let companionApplications: readonly CompanionAction[] = [];
@@ -501,6 +514,7 @@ export function registerCompanionCardTypes(
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
             else companionCatalogueMonitor.stop();
+            document.dispatchEvent(new Event("espdesktop:app-icon-cache-cleared"));
         });
     }
 
@@ -1373,7 +1387,7 @@ export function registerCompanionCardTypes(
                     card._appShortcutAppChanged = changedFromSavedApp;
                     card._modalSettingsOpen = true;
                 }
-                card.options = normalizeCompanionAppShortcutOptions(card);
+                card.options = normalizeCompanionAppOptions(card);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 if (nextLabel !== currentLabel) {
@@ -1404,7 +1418,136 @@ export function registerCompanionCardTypes(
                     helpers.saveField("label", nextLabel);
                 }
             });
-            helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+            if (initialMode === "app") {
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
+                    entity: false,
+                    icon: false,
+                });
+                const customIcon = configOptionEnabled(card.options, "custom_icon");
+                const iconToggle = helpers.toggleRow(
+                    "Use Mac app icon", helpers.idPrefix + "companion-app-icon", !customIcon,
+                );
+                panel?.appendChild(iconToggle.row);
+                const iconPicker = helpers.renderCardIconPicker(
+                    panel, card, helpers, COMPANION_CARD_METADATA.icon,
+                );
+                iconPicker.style.display = customIcon ? "" : "none";
+                const labelToggle = helpers.toggleRow(
+                    "Show label", helpers.idPrefix + "companion-app-label",
+                    !configOptionEnabled(card.options, "app_hide_label"),
+                );
+                panel?.appendChild(labelToggle.row);
+                labelToggle.input.addEventListener("change", function () {
+                    card.options = setConfigOption(card.options, "app_hide_label", !labelToggle.input.checked);
+                    helpers.saveField("options", card.options);
+                    renderPreview();
+                });
+                const iconSizeRow = document.createElement("div");
+                iconSizeRow.className = "sp-field-row sp-companion-app-icon-size";
+                const iconSizeLabel = document.createElement("label");
+                const iconSizeSelect = document.createElement("select");
+                iconSizeSelect.id = helpers.idPrefix + "companion-app-icon-size";
+                iconSizeSelect.className = "sp-input";
+                iconSizeLabel.htmlFor = iconSizeSelect.id;
+                iconSizeLabel.textContent = "Mac app icon";
+                iconSizeSelect.setAttribute("aria-label", "Mac app icon size");
+                iconSizeSelect.innerHTML = '<option value="small">Small</option><option value="fill">Fill card</option>';
+                iconSizeSelect.value = configOptionEnabled(card.options, "app_icon_fill") ? "fill" : "small";
+                iconSizeRow.appendChild(iconSizeLabel);
+                iconSizeRow.appendChild(iconSizeSelect);
+                panel?.appendChild(iconSizeRow);
+                iconSizeRow.style.display = customIcon ? "none" : "";
+                iconSizeSelect.addEventListener("change", function () {
+                    card.options = setConfigOption(card.options, "app_icon_fill", iconSizeSelect.value === "fill");
+                    helpers.saveField("options", card.options);
+                    renderPreview();
+                });
+                iconToggle.input.addEventListener("change", function () {
+                    iconPicker.style.display = iconToggle.input.checked ? "none" : "";
+                    iconSizeRow.style.display = iconToggle.input.checked ? "" : "none";
+                });
+                const palette = [
+                    "B71C1C", "BF360C", "E65100", "F57F17", "827717", "33691E",
+                    "C62828", "D84315", "EF6C00", "F9A825", "9E9D24", "558B2F",
+                    "AD1457", "C2185B", "6A1B9A", "4527A0", "283593", "1565C0",
+                    "880E4F", "4A148C", "311B92", "1A237E", "0D47A1", "01579B",
+                    "006064", "00838F", "00695C", "00796B", "2E7D32", "1B5E20",
+                    "37474F", "455A64", "546E7A", "5D4037", "4E342E", "616161",
+                ];
+                const colourSettings = document.createElement("div");
+                colourSettings.className = "sp-companion-app-colour-settings";
+                const modeRow = document.createElement("div");
+                modeRow.className = "sp-companion-app-colour-mode";
+                const suggestedButton = document.createElement("button");
+                suggestedButton.type = "button";
+                suggestedButton.className = "sp-action-btn";
+                suggestedButton.textContent = "Suggested colour";
+                const customButton = document.createElement("button");
+                customButton.type = "button";
+                customButton.className = "sp-action-btn";
+                customButton.textContent = "Choose colour";
+                const swatchGrid = document.createElement("div");
+                swatchGrid.className = "sp-companion-app-colour-grid";
+                swatchGrid.setAttribute("role", "group");
+                swatchGrid.setAttribute("aria-label", "Card background colour");
+                const updateColourControls = function () {
+                    const custom = /^[0-9A-F]{6}$/.test(configOptionValue(card.options, "app_bg_color").toUpperCase());
+                    const showCustomControl = state.appIconCustomColourControlEnabled;
+                    const useAutomaticColour = state.appIconAutoColourGenerationEnabled;
+                    customButton.hidden = !showCustomControl;
+                    suggestedButton.hidden = !useAutomaticColour;
+                    modeRow.hidden = !showCustomControl && !useAutomaticColour;
+                    swatchGrid.hidden = !custom || !showCustomControl;
+                    suggestedButton.setAttribute("aria-pressed", String(!custom));
+                    customButton.setAttribute("aria-pressed", String(custom));
+                    const selected = configOptionValue(card.options, "app_bg_color").toUpperCase();
+                    swatchGrid.querySelectorAll("button").forEach(function (item) {
+                        item.setAttribute("aria-pressed", String(item.getAttribute("data-color") === selected));
+                    });
+                };
+                palette.forEach(function (colour) {
+                    const swatch = document.createElement("button");
+                    swatch.type = "button";
+                    swatch.className = "sp-companion-app-colour-swatch";
+                    swatch.style.backgroundColor = "#" + colour;
+                    swatch.setAttribute("data-color", colour);
+                    swatch.setAttribute("aria-label", "Use #" + colour + " background");
+                    swatch.addEventListener("click", function () {
+                        card.options = setConfigOptionValue(card.options, "app_bg_color", colour);
+                        helpers.saveField("options", card.options);
+                        updateColourControls();
+                        renderPreview();
+                    });
+                    swatchGrid.appendChild(swatch);
+                });
+                suggestedButton.addEventListener("click", function () {
+                    card.options = setConfigOptionValue(card.options, "app_bg_color", "");
+                    helpers.saveField("options", card.options);
+                    updateColourControls();
+                    renderPreview();
+                });
+                customButton.addEventListener("click", function () {
+                    if (!/^[0-9A-F]{6}$/.test(configOptionValue(card.options, "app_bg_color").toUpperCase()))
+                        card.options = setConfigOptionValue(card.options, "app_bg_color", palette[0]);
+                    helpers.saveField("options", card.options);
+                    updateColourControls();
+                    renderPreview();
+                });
+                modeRow.append(suggestedButton, customButton);
+                colourSettings.append(modeRow, swatchGrid);
+                panel?.appendChild(colourSettings);
+                updateColourControls();
+                iconToggle.input.addEventListener("change", function () {
+                    card.options = setConfigOption(card.options, "custom_icon", !iconToggle.input.checked);
+                    helpers.saveField("options", card.options);
+                    iconPicker.style.display = iconToggle.input.checked ? "none" : "";
+                    colourSettings.style.display = iconToggle.input.checked ? "" : "none";
+                    renderPreview();
+                });
+                colourSettings.style.display = iconToggle.input.checked ? "" : "none";
+            } else {
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+            }
             if (companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";
@@ -1449,11 +1592,29 @@ export function registerCompanionCardTypes(
                 iconFallback: companionSubtypeDefaultIcon(mode, card.entity),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
+            if (companionAppIconEnabled(card)) {
+                preview.appIconId = card.entity;
+                preview.appIconFill = configOptionEnabled(card.options, "app_icon_fill");
+                const background = configOptionValue(card.options, "app_bg_color").toUpperCase();
+                if (/^[0-9A-F]{6}$/.test(background)) preview.appIconBackgroundColor = background;
+                preview.iconHtml = preview.iconHtml.replace(
+                    "sp-btn-icon ", "sp-btn-icon sp-companion-app-icon-fallback ",
+                );
+            }
+            const hideAppLaunchLabel = companionAppLaunchCard(card) &&
+                configOptionEnabled(card.options, "app_hide_label");
             if (companionAppShortcutFolderEnabled(card)) {
-                const label = card.label || appLabel || card.entity || "Safari";
-                preview.labelHtml = '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
-                    helpers.escHtml(label) +
-                    '</span><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
+                if (hideAppLaunchLabel) {
+                    preview.labelHtml =
+                        '<span class="sp-btn-label-row"><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
+                } else {
+                    const label = card.label || appLabel || card.entity || "Safari";
+                    preview.labelHtml = '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
+                        helpers.escHtml(label) +
+                        '</span><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
+                }
+            } else if (hideAppLaunchLabel) {
+                preview.labelHtml = "";
             }
             return preview;
         },

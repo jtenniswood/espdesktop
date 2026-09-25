@@ -367,11 +367,16 @@ def load_companion_capabilities_data():
         raise BuildError("Companion protocol requires a positive version")
     if not isinstance(protocol.get("path"), str) or not protocol["path"].startswith("/companion/"):
         raise BuildError("Companion protocol path must be under /companion/")
-    for key in ("maximumTextFrameBytes", "maximumArtworkBytes", "artworkChunkBytes"):
+    for key in ("maximumTextFrameBytes", "maximumArtworkBytes", "artworkChunkBytes", "appIconChunkBytes", "appIconSide"):
         if not isinstance(protocol.get(key), int) or protocol[key] < 1:
             raise BuildError(f"Companion protocol requires a positive {key}")
+    for key in ("appIconsCapability", "appIconsAlphaCapability"):
+        if not isinstance(protocol.get(key), str) or not protocol[key]:
+            raise BuildError(f"Companion protocol requires an {key} string")
     if protocol["artworkChunkBytes"] > protocol["maximumArtworkBytes"]:
         raise BuildError("Companion artwork chunks cannot exceed the maximum artwork size")
+    if protocol["appIconChunkBytes"] > 4096:
+        raise BuildError("Companion app icon chunks cannot exceed 4096 bytes")
     messages = protocol.get("messages")
     message_ids = [item.get("id") for item in messages] if isinstance(messages, list) else []
     if not message_ids or any(not isinstance(item, str) or not item for item in message_ids) or len(message_ids) != len(set(message_ids)):
@@ -811,6 +816,9 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_PROTOCOL_VERSION = {protocol['version']} as const;\n"
         f"export const COMPANION_PROTOCOL_PATH = {json.dumps(protocol['path'])} as const;\n"
         f"export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = {protocol['maximumTextFrameBytes']} as const;\n"
+        f"export const COMPANION_APP_ICON_SIDE = {protocol['appIconSide']} as const;\n"
+        f"export const COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])} as const;\n"
+        f"export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])} as const;\n"
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
         f"export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = {companion_ts_literal([{key: item[key] for key in ('id', 'label', 'group')} for item in data['windowActions']])};\n"
@@ -838,6 +846,11 @@ def gen_companion_capabilities_h(data):
         f"constexpr size_t COMPANION_MAXIMUM_TEXT_FRAME_BYTES = {protocol['maximumTextFrameBytes']};\n",
         f"constexpr size_t COMPANION_MAXIMUM_ARTWORK_BYTES = {protocol['maximumArtworkBytes']};\n",
         f"constexpr size_t COMPANION_ARTWORK_CHUNK_BYTES = {protocol['artworkChunkBytes']};\n",
+        f"constexpr size_t COMPANION_APP_ICON_CHUNK_BYTES = {protocol['appIconChunkBytes']};\n",
+        f"constexpr size_t COMPANION_APP_ICON_SIDE = {protocol['appIconSide']};\n",
+        f"constexpr size_t COMPANION_APP_ICON_PIXEL_BYTES = {protocol['appIconSide'] * protocol['appIconSide'] * 3};\n",
+        f"constexpr const char *COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])};\n",
+        f"constexpr const char *COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])};\n",
         f"constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = {data['security']['pairingWindowSeconds']};\n\n",
         f"constexpr bool COMPANION_BROWSER_STARTS_PAIRING = {str(data['security']['pairingAuthorization'] == 'device_web_access').lower()};\n",
         f"constexpr bool COMPANION_BROWSER_EXPOSES_PAIRING_CODE = {str(data['security']['browserExposesPairingCode']).lower()};\n",
@@ -900,6 +913,11 @@ def gen_companion_capabilities_swift(data):
         f"    static let maximumTextFrameBytes = {data['protocol']['maximumTextFrameBytes']}\n",
         f"    static let maximumArtworkBytes = {data['protocol']['maximumArtworkBytes']}\n",
         f"    static let artworkChunkBytes = {data['protocol']['artworkChunkBytes']}\n",
+        f"    static let appIconChunkBytes = {data['protocol']['appIconChunkBytes']}\n",
+        f"    static let appIconSide = {data['protocol']['appIconSide']}\n",
+        f"    static let appIconPixelBytes = {data['protocol']['appIconSide'] * data['protocol']['appIconSide'] * 3}\n",
+        f"    static let appIconsCapability = {json.dumps(data['protocol']['appIconsCapability'])}\n",
+        f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
         f"    static let pairingWindowSeconds = {data['security']['pairingWindowSeconds']}\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]

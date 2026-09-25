@@ -9,6 +9,25 @@ namespace {
 
 constexpr char BUTTON_ORDER_KEY[] = "button_order";
 constexpr char BUTTON_ON_COLOR_KEY[] = "button_on_color";
+constexpr char APP_ICON_CUSTOM_COLOUR_CONTROL_KEY[] =
+    "companion_app_custom_colour_control";
+constexpr char APP_ICON_AUTO_COLOUR_GENERATION_KEY[] =
+    "companion_app_auto_colour_generation";
+
+bool setting_boolean(const PanelConfigRecord &record, bool *value) {
+  if (value == nullptr || record.value == nullptr) return false;
+  if (record.value_size == 4 &&
+      std::memcmp(record.value, "true", 4) == 0) {
+    *value = true;
+    return true;
+  }
+  if (record.value_size == 5 &&
+      std::memcmp(record.value, "false", 5) == 0) {
+    *value = false;
+    return true;
+  }
+  return false;
+}
 
 bool append_text(std::array<uint8_t, PANEL_CONFIG_MAX_RECORD_BODY_BYTES - 1>
                      *output,
@@ -94,6 +113,22 @@ bool PanelConfigTextBindings::write_document(uint8_t *output,
           button_on_color_->value().size()) != PanelConfigStatus::OK) {
     return false;
   }
+  if (!app_icon_custom_colour_control_enabled_ &&
+      writer.append_setting(
+          reinterpret_cast<const uint8_t *>(APP_ICON_CUSTOM_COLOUR_CONTROL_KEY),
+          sizeof(APP_ICON_CUSTOM_COLOUR_CONTROL_KEY) - 1,
+          reinterpret_cast<const uint8_t *>("false"), 5) !=
+          PanelConfigStatus::OK) {
+    return false;
+  }
+  if (!app_icon_auto_colour_generation_enabled_ &&
+      writer.append_setting(
+          reinterpret_cast<const uint8_t *>(APP_ICON_AUTO_COLOUR_GENERATION_KEY),
+          sizeof(APP_ICON_AUTO_COLOUR_GENERATION_KEY) - 1,
+          reinterpret_cast<const uint8_t *>("false"), 5) !=
+          PanelConfigStatus::OK) {
+    return false;
+  }
   return writer.finish(document_size) == PanelConfigStatus::OK;
 }
 
@@ -123,6 +158,8 @@ bool PanelConfigTextBindings::write_value(PanelConfigTextValue *target,
 bool PanelConfigTextBindings::apply_document(const uint8_t *document,
                                              size_t document_size,
                                              bool persist) {
+  const bool previous_auto_colour_enabled =
+      companion_app_icon_auto_colour_generation_enabled();
   PanelConfigReader reader(document, document_size);
   if (reader.begin() != PanelConfigStatus::OK) return false;
 
@@ -130,6 +167,8 @@ bool PanelConfigTextBindings::apply_document(const uint8_t *document,
   uint32_t subpage_slots = 0;
   bool has_button_order = false;
   bool has_button_on_color = false;
+  app_icon_custom_colour_control_enabled_ = true;
+  app_icon_auto_colour_generation_enabled_ = true;
   PanelConfigRecord record;
   PanelConfigStatus status = PanelConfigStatus::OK;
   while ((status = reader.next(&record)) == PanelConfigStatus::OK) {
@@ -184,9 +223,27 @@ bool PanelConfigTextBindings::apply_document(const uint8_t *document,
         return false;
       }
       has_button_on_color = true;
+    } else if (record.type == PanelConfigRecordType::SETTING &&
+               record.key_size == sizeof(APP_ICON_CUSTOM_COLOUR_CONTROL_KEY) - 1 &&
+               std::memcmp(record.key, APP_ICON_CUSTOM_COLOUR_CONTROL_KEY,
+                           record.key_size) == 0) {
+      if (!setting_boolean(record, &app_icon_custom_colour_control_enabled_))
+        return false;
+    } else if (record.type == PanelConfigRecordType::SETTING &&
+               record.key_size == sizeof(APP_ICON_AUTO_COLOUR_GENERATION_KEY) - 1 &&
+               std::memcmp(record.key, APP_ICON_AUTO_COLOUR_GENERATION_KEY,
+                           record.key_size) == 0) {
+      if (!setting_boolean(record, &app_icon_auto_colour_generation_enabled_))
+        return false;
     }
   }
   if (status != PanelConfigStatus::END) return false;
+  companion_app_icon_auto_colour_generation_enabled() =
+      app_icon_auto_colour_generation_enabled_;
+  if (previous_auto_colour_enabled != app_icon_auto_colour_generation_enabled_ &&
+      companion_app_icon_colour_settings_changed_handler()) {
+    companion_app_icon_colour_settings_changed_handler()();
+  }
 
   if (!has_button_order && !write_value(button_order_, "", 0, persist))
     return false;

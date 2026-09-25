@@ -1351,6 +1351,19 @@ inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
          p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
 }
 
+inline bool companion_app_launch_card(const ParsedCfg &p) {
+  return p.type == "companion" && !p.entity.empty() && p.sensor.empty() &&
+         p.entity.rfind("folder.", 0) != 0 &&
+         p.entity.rfind("shortcut.", 0) != 0 &&
+         p.entity.rfind("window.", 0) != 0 &&
+         p.entity.rfind("stat.", 0) != 0;
+}
+
+inline bool companion_app_icon_enabled(const ParsedCfg &p) {
+  return companion_app_launch_card(p) &&
+         !cfg_option_token_present(p.options, "custom_icon");
+}
+
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
   if (p.entity.rfind("folder.", 0) == 0 &&
       cfg_option_value(p.options, "finder_open_behavior") == "same_window") {
@@ -1401,12 +1414,26 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     out += "app_shortcut_preset=" + encode_compact_field(preset);
     return out;
   }
-  if (!companion_app_shortcuts_enabled(p)) return out;
-  if (!out.empty()) out += ",";
-  out += "app_shortcuts";
-  const std::string tabs = companion_app_shortcut_tabs_normalized(p);
-  if (!tabs.empty()) {
-    out += ",app_shortcuts_tabs=" + encode_compact_field(tabs);
+  const auto add_token = [&out](const std::string &token) {
+    if (!out.empty()) out += ",";
+    out += token;
+  };
+  if (companion_app_shortcuts_enabled(p)) {
+    add_token("app_shortcuts");
+    const std::string tabs = companion_app_shortcut_tabs_normalized(p);
+    if (!tabs.empty()) add_token("app_shortcuts_tabs=" + encode_compact_field(tabs));
+  }
+  if (p.type == "companion" && p.entity.rfind("shortcut.", 0) != 0) {
+    if (cfg_option_token_present(p.options, "custom_icon")) add_token("custom_icon");
+    const std::string custom_color = cfg_option_value(p.options, "app_bg_color");
+    if (custom_color.size() == 6 && std::all_of(custom_color.begin(), custom_color.end(),
+        [](unsigned char ch) { return std::isxdigit(ch); })) {
+      add_token("app_bg_color=" + custom_color);
+    }
+    if (companion_app_launch_card(p)) {
+      if (cfg_option_token_present(p.options, "app_hide_label")) add_token("app_hide_label");
+      if (cfg_option_token_present(p.options, "app_icon_fill")) add_token("app_icon_fill");
+    }
   }
   return out;
 }

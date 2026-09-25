@@ -31,6 +31,12 @@ target_compile_options(companion_now_playing_protocol_test PRIVATE -Wall -Wextra
 target_include_directories(companion_now_playing_protocol_test PRIVATE ../../components/companion)
 add_test(NAME companion_now_playing_protocol_test COMMAND companion_now_playing_protocol_test)
 
+add_executable(app_icon_accent_color_test app_icon_accent_color_test.cpp)
+target_compile_features(app_icon_accent_color_test PRIVATE cxx_std_17)
+target_compile_options(app_icon_accent_color_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(app_icon_accent_color_test PRIVATE ../../components/espdesktop)
+add_test(NAME app_icon_accent_color_test COMMAND app_icon_accent_color_test)
+
 add_executable(companion_session_state_test companion_session_state_test.cpp)
 target_compile_features(companion_session_state_test PRIVATE cxx_std_17)
 target_compile_options(companion_session_state_test PRIVATE -Wall -Wextra -Werror)
@@ -53,7 +59,7 @@ target_compile_options(companion_protocol_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(companion_protocol_test PRIVATE ../../components/espdesktop)
 target_link_libraries(companion_protocol_test PRIVATE ArduinoJson)
 add_test(NAME companion_protocol_test COMMAND companion_protocol_test
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../compatibility/fixtures/companion_protocol_v3.json)
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../compatibility/fixtures/companion_protocol_v4.json)
 
 add_executable(companion_pairing_policy_test companion_pairing_policy_test.cpp)
 target_compile_features(companion_pairing_policy_test PRIVATE cxx_std_17)

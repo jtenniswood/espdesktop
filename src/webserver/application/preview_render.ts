@@ -1,5 +1,6 @@
 import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
+import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { escHtml } from "./ui_primitives";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -42,6 +43,83 @@ export interface PreviewRenderFeature {
     pickerOptions(isSubpage?: any, selectedTypeKey?: any, connector?: CardPickerConnector): any[];
     pickerKeys(isSubpage?: any, selectedTypeKey?: any, connector?: CardPickerConnector): any[];
     typeVisibleInPicker(key?: any, isSubpage?: any): boolean;
+}
+
+const companionAppIconCache = new Map<string, {
+    expiresAt: number;
+    result: Promise<{ dataUrl: string; defaultColor: string; activeColor: string; online: boolean } | null>;
+}>();
+
+function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document): Promise<{
+    dataUrl: string;
+    defaultColor: string;
+    activeColor: string;
+    online: boolean;
+} | null> {
+    const cacheKey = applicationId + ":" + backgroundColor;
+    const cached = companionAppIconCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.result;
+    if (typeof fetch !== "function") return Promise.resolve(null);
+    const query = "appId=" + encodeURIComponent(applicationId) +
+        (backgroundColor ? "&background=" + encodeURIComponent(backgroundColor) : "");
+    const result = fetch("/companion/app-icon?" + query, {
+        credentials: "same-origin",
+        cache: "no-store",
+    }).then(async function (response) {
+        if (!response.ok) return null;
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        const pixelCount = COMPANION_APP_ICON_SIDE * COMPANION_APP_ICON_SIDE;
+        if (bytes.length !== pixelCount * 3) return null;
+        const canvas = document.createElement("canvas");
+        canvas.width = COMPANION_APP_ICON_SIDE;
+        canvas.height = COMPANION_APP_ICON_SIDE;
+        const context = canvas.getContext("2d");
+        if (!context) return null;
+        const image = context.createImageData(COMPANION_APP_ICON_SIDE, COMPANION_APP_ICON_SIDE);
+        const online = response.headers.get("X-EspDesktop-Companion-Online") === "true";
+        for (let index = 0; index < pixelCount; index++) {
+            const packed = (bytes[index * 2] ?? 0) | ((bytes[index * 2 + 1] ?? 0) << 8);
+            const red = (packed >> 11) & 0x1f;
+            const green = (packed >> 5) & 0x3f;
+            const blue = packed & 0x1f;
+            const output = index * 4;
+            const sourceRed = (red << 3) | (red >> 2);
+            const sourceGreen = (green << 2) | (green >> 4);
+            const sourceBlue = (blue << 3) | (blue >> 2);
+            if (online) {
+                image.data[output] = sourceRed;
+                image.data[output + 1] = sourceGreen;
+                image.data[output + 2] = sourceBlue;
+            } else {
+                const gray = (sourceRed * 54 + sourceGreen * 183 + sourceBlue * 19) >> 8;
+                image.data[output] = gray;
+                image.data[output + 1] = gray;
+                image.data[output + 2] = gray;
+            }
+            image.data[output + 3] = bytes[pixelCount * 2 + index] ?? 0;
+        }
+        context.putImageData(image, 0, 0);
+        const palette = (response.headers.get("X-EspDesktop-App-Icon-Palette") || "").split(",");
+        const legacyDefaultColor = response.headers.get("X-EspDesktop-App-Icon-Default") || "";
+        const legacyActiveColor = response.headers.get("X-EspDesktop-App-Icon-Active") || "";
+        const defaultColor = palette[0] || legacyDefaultColor;
+        const activeColor = palette[1] || legacyActiveColor;
+        const validDefaultColor = /^[0-9a-f]{6}$/i.test(defaultColor)
+            ? defaultColor : "";
+        const validActiveColor = /^[0-9a-f]{6}$/i.test(activeColor)
+            ? activeColor : validDefaultColor;
+        return {
+            dataUrl: canvas.toDataURL("image/png"),
+            defaultColor: validDefaultColor,
+            activeColor: validActiveColor,
+            online,
+        };
+    }).catch(function () { return null; }).then(function (value) {
+        if (!value || !value.online) companionAppIconCache.delete(cacheKey);
+        return value;
+    });
+    companionAppIconCache.set(cacheKey, { expiresAt: Date.now() + 5 * 60 * 1000, result });
+    return result;
 }
 
 export function createPreviewRenderFeature(dependencies: PreviewRenderDependencies): PreviewRenderFeature {
@@ -153,7 +231,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var typePreview: any = previewTypeDef && previewTypeDef.renderPreview
                     ? previewTypeDef.renderPreview(b, { escHtml: escHtml, cardSize: slotSz || 1 })
                     : null;
-                var btn: any = document.createElement("div");
+                const btn: any = document.createElement("div");
                 btn.className = "sp-btn" +
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
@@ -180,6 +258,41 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         iconHtml +
                         labelHtml;
                 main.appendChild(btn);
+                if (typePreview && typeof typePreview.appIconId === "string" &&
+                    typePreview.appIconId.length > 0) {
+                    const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
+                    const applicationId = typePreview.appIconId;
+                    const backgroundColor = typeof typePreview.appIconBackgroundColor === "string"
+                        ? typePreview.appIconBackgroundColor : "";
+                    const fillCard = typePreview.appIconFill === true;
+                    const loadAppIcon = function (attempt: number): void {
+                        void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
+                            if (!btn.isConnected) return;
+                            if (!previewIcon) {
+                                if (attempt < 12) window.setTimeout(function () {
+                                    loadAppIcon(attempt + 1);
+                                }, Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
+                                return;
+                            }
+                        const appIcon = document.createElement("img");
+                        appIcon.className = "sp-btn-icon sp-companion-app-icon" +
+                            (fillCard ? " sp-companion-app-icon-fill" : "");
+                        if (fillCard) btn.classList.add("sp-companion-app-icon-fill-card");
+                        appIcon.alt = "";
+                        appIcon.setAttribute("aria-hidden", "true");
+                        appIcon.src = previewIcon.dataUrl;
+                        btn.appendChild(appIcon);
+                        if (fallbackIcon) fallbackIcon.hidden = true;
+                        if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor &&
+                            (backgroundColor || state.appIconAutoColourGenerationEnabled)) {
+                            btn.style.backgroundColor = "#" + previewIcon.defaultColor;
+                            btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
+                            btn.classList.add("sp-companion-app-icon-card");
+                        }
+                        });
+                    };
+                    loadAppIcon(0);
+                }
             }
             else {
                 var empty: any = document.createElement("div");
@@ -191,6 +304,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         renderSelectionBar(c);
     }
+    document.addEventListener("espdesktop:app-icon-cache-cleared", function () {
+        companionAppIconCache.clear();
+        renderPreview();
+    });
     return {
         render: renderPreview,
         registryValue: buttonTypeRegistryValue,

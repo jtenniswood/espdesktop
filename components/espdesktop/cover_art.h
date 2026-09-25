@@ -133,9 +133,23 @@ struct AccentColor {
   bool valid{false};
 };
 
+inline AccentColor extract_accent_color_rgb565_weighted(
+    const uint8_t *data, const uint8_t *alpha, int image_width,
+    int image_height, bool big_endian, int content_x, int content_y,
+    int content_width, int content_height);
+
 inline AccentColor extract_accent_color_rgb565(
     const uint8_t *data, int image_width, int image_height, bool big_endian,
     int content_x, int content_y, int content_width, int content_height) {
+  return extract_accent_color_rgb565_weighted(
+      data, nullptr, image_width, image_height, big_endian,
+      content_x, content_y, content_width, content_height);
+}
+
+inline AccentColor extract_accent_color_rgb565_weighted(
+    const uint8_t *data, const uint8_t *alpha, int image_width,
+    int image_height, bool big_endian, int content_x, int content_y,
+    int content_width, int content_height) {
   if (!data || image_width <= 0 || image_height <= 0) return {};
   if (content_width <= 0 || content_height <= 0 || content_x < 0 || content_y < 0 ||
       content_x > image_width - content_width ||
@@ -155,6 +169,9 @@ inline AccentColor extract_accent_color_rgb565(
 
   for (int y = content_y + step_y / 2; y < content_y + content_height; y += step_y) {
     for (int x = content_x + step_x / 2; x < content_x + content_width; x += step_x) {
+      const size_t pixel_index = static_cast<size_t>(y) * image_width + x;
+      const uint8_t pixel_alpha = alpha ? alpha[pixel_index] : 255;
+      if (pixel_alpha == 0) continue;
       const size_t offset = (static_cast<size_t>(y) * image_width + x) * 2u;
       const uint16_t pixel = big_endian
         ? (static_cast<uint16_t>(data[offset]) << 8) | data[offset + 1]
@@ -168,7 +185,8 @@ inline AccentColor extract_accent_color_rgb565(
       const int maximum = std::max(red, std::max(green, blue));
       const int minimum = std::min(red, std::min(green, blue));
       const int saturation = maximum - minimum;
-      const int weight = saturation * saturation + 1;
+      const int64_t weight =
+          static_cast<int64_t>(saturation * saturation + 1) * pixel_alpha;
       red_weighted += static_cast<int64_t>(red) * weight;
       green_weighted += static_cast<int64_t>(green) * weight;
       blue_weighted += static_cast<int64_t>(blue) * weight;
@@ -184,12 +202,157 @@ inline AccentColor extract_accent_color_rgb565(
   };
 }
 
+inline AccentColor extract_accent_color_rgb565a8(
+    const uint8_t *data, int image_width, int image_height,
+    bool big_endian = false) {
+  if (image_width <= 0 || image_height <= 0) return {};
+  const uint8_t *alpha = data
+      ? data + static_cast<size_t>(image_width) * image_height * 2u
+      : nullptr;
+  return extract_accent_color_rgb565_weighted(
+      data, alpha, image_width, image_height, big_endian,
+      0, 0, image_width, image_height);
+}
+
 inline AccentColor darken_accent_color(AccentColor color) {
   if (!color.valid) return {};
   color.red = static_cast<uint8_t>(color.red / 3);
   color.green = static_cast<uint8_t>(color.green / 3);
   color.blue = static_cast<uint8_t>(color.blue / 3);
   return color;
+}
+
+struct AccentPalette {
+  uint32_t default_rgb{0};
+  uint32_t active_rgb{0};
+  bool neutral{false};
+  bool valid{false};
+};
+
+constexpr double WHITE_TEXT_MIN_CONTRAST = 4.5;
+constexpr int APP_ICON_NEAR_BLACK_MAX = 32;
+constexpr int APP_ICON_NEUTRAL_SPREAD_MAX = 24;
+
+inline uint32_t accent_rgb(const AccentColor &color) {
+  return (static_cast<uint32_t>(color.red) << 16) |
+         (static_cast<uint32_t>(color.green) << 8) | color.blue;
+}
+
+inline uint32_t accent_display_corrected_rgb(uint32_t rgb, int red_percent,
+                                              int green_percent,
+                                              int blue_percent) {
+  const auto corrected = [](uint8_t channel, int percent) {
+    const int clamped_percent = std::max(0, std::min(percent, 400));
+    return static_cast<uint8_t>(std::min(255, channel * clamped_percent / 100));
+  };
+  return (static_cast<uint32_t>(corrected((rgb >> 16) & 0xFF, red_percent) << 16)) |
+         (static_cast<uint32_t>(corrected((rgb >> 8) & 0xFF, green_percent) << 8)) |
+         corrected(rgb & 0xFF, blue_percent);
+}
+
+inline double accent_srgb_linear_channel(uint8_t channel) {
+  const double value = channel / 255.0;
+  return value <= 0.04045 ? value / 12.92
+                          : std::pow((value + 0.055) / 1.055, 2.4);
+}
+
+inline double accent_white_text_contrast(uint32_t corrected_rgb) {
+  const double red = accent_srgb_linear_channel((corrected_rgb >> 16) & 0xFF);
+  const double green = accent_srgb_linear_channel((corrected_rgb >> 8) & 0xFF);
+  const double blue = accent_srgb_linear_channel(corrected_rgb & 0xFF);
+  const double luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  return 1.05 / (luminance + 0.05);
+}
+
+inline uint32_t scale_accent_rgb(uint32_t rgb, int scale_percent) {
+  const int clamped_scale = std::max(0, std::min(scale_percent, 100));
+  const auto scale = [clamped_scale](uint8_t channel) {
+    return static_cast<uint8_t>(channel * clamped_scale / 100);
+  };
+  return (static_cast<uint32_t>(scale((rgb >> 16) & 0xFF) << 16)) |
+         (static_cast<uint32_t>(scale((rgb >> 8) & 0xFF) << 8)) |
+         scale(rgb & 0xFF);
+}
+
+inline uint32_t accent_darkest_readable_rgb(uint32_t candidate_rgb,
+                                           int red_percent,
+                                           int green_percent,
+                                           int blue_percent) {
+  int low = 0;
+  int high = 100;
+  while (low < high) {
+    const int middle = (low + high + 1) / 2;
+    const uint32_t corrected = accent_display_corrected_rgb(
+        scale_accent_rgb(candidate_rgb, middle), red_percent, green_percent,
+        blue_percent);
+    if (accent_white_text_contrast(corrected) >= WHITE_TEXT_MIN_CONTRAST)
+      low = middle;
+    else
+      high = middle - 1;
+  }
+  return accent_display_corrected_rgb(
+      scale_accent_rgb(candidate_rgb, low), red_percent, green_percent,
+      blue_percent);
+}
+
+inline uint32_t accent_brightest_readable_neutral_rgb(int red_percent,
+                                                      int green_percent,
+                                                      int blue_percent) {
+  int low = 0;
+  int high = 255;
+  while (low < high) {
+    const int middle = (low + high + 1) / 2;
+    const uint32_t neutral = (middle << 16) | (middle << 8) | middle;
+    const uint32_t corrected = accent_display_corrected_rgb(
+        neutral, red_percent, green_percent, blue_percent);
+    if (accent_white_text_contrast(corrected) >= WHITE_TEXT_MIN_CONTRAST)
+      low = middle;
+    else
+      high = middle - 1;
+  }
+  const uint32_t neutral = (low << 16) | (low << 8) | low;
+  return accent_display_corrected_rgb(neutral, red_percent, green_percent,
+                                      blue_percent);
+}
+
+inline AccentPalette make_app_icon_accent_palette(
+    const AccentColor &accent, int red_percent = 100, int green_percent = 100,
+    int blue_percent = 100) {
+  if (!accent.valid) return {};
+  const int maximum = std::max(accent.red, std::max(accent.green, accent.blue));
+  const int minimum = std::min(accent.red, std::min(accent.green, accent.blue));
+  const bool neutral = maximum <= APP_ICON_NEAR_BLACK_MAX ||
+                       maximum - minimum <= APP_ICON_NEUTRAL_SPREAD_MAX;
+  const uint32_t active_rgb = neutral
+      ? accent_brightest_readable_neutral_rgb(red_percent, green_percent,
+                                              blue_percent)
+      : accent_darkest_readable_rgb(accent_rgb(accent), red_percent,
+                                    green_percent, blue_percent);
+  // Keep the normal card state vivid too. The active color has already been
+  // corrected and checked against white text, so scaling it down preserves
+  // its hue and contrast while leaving a clear, brighter focused state.
+  constexpr int DEFAULT_APP_ICON_COLOR_SCALE_PERCENT = 82;
+  const uint32_t default_rgb =
+      scale_accent_rgb(active_rgb, DEFAULT_APP_ICON_COLOR_SCALE_PERCENT);
+  return {default_rgb, active_rgb, neutral, true};
+}
+
+inline AccentPalette make_app_icon_custom_palette(
+    uint32_t color_rgb, int red_percent = 100, int green_percent = 100,
+    int blue_percent = 100) {
+  constexpr int DEFAULT_APP_ICON_COLOR_SCALE_PERCENT = 82;
+  const int maximum = std::max((color_rgb >> 16) & 0xFF,
+      std::max((color_rgb >> 8) & 0xFF, color_rgb & 0xFF));
+  const int minimum = std::min((color_rgb >> 16) & 0xFF,
+      std::min((color_rgb >> 8) & 0xFF, color_rgb & 0xFF));
+  const uint32_t active_rgb = accent_darkest_readable_rgb(
+      color_rgb, red_percent, green_percent, blue_percent);
+  const uint32_t default_rgb = scale_accent_rgb(
+      active_rgb, DEFAULT_APP_ICON_COLOR_SCALE_PERCENT);
+  return {default_rgb, active_rgb,
+          maximum <= APP_ICON_NEAR_BLACK_MAX ||
+              maximum - minimum <= APP_ICON_NEUTRAL_SPREAD_MAX,
+          true};
 }
 
 struct RuntimeState {

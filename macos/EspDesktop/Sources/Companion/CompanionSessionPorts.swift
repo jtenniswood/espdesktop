@@ -18,6 +18,7 @@ protocol CompanionSessionPreferences: AnyObject {
 protocol CompanionSessionResources: AnyObject {
     func folderActions() -> [ApprovedFolder]
     func launchableApps() -> [LaunchableApp]
+    func appIconPixels(bundleIdentifier: String) -> Data?
     func focusedCompanionActionIdentifier() -> String
     func focusedCompanionActionIdentifiers() -> [String]
     func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String])

@@ -134,6 +134,37 @@ struct CardPalette {
   uint32_t sensor_val = TERTIARY_GREY;
 };
 
+#ifdef USE_COMPANION
+inline void grid_update_companion_app_icon_palette(
+    BtnSlot &slot, const ParsedCfg &config, const CardPalette &palette,
+    const DisplayProfile &display) {
+  if (!slot.btn) return;
+  if (!slot.app_icon_img)
+    slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
+  if (!slot.app_icon_img) return;
+  auto *source = static_cast<CompanionAppIconImageData *>(
+      lv_obj_get_user_data(slot.app_icon_img));
+  if (!source) return;
+  static bool connection_observer_registered = false;
+  if (!connection_observer_registered) {
+    add_companion_connection_changed_observer([](bool online) {
+      companion_refresh_app_icon_connection_state(online);
+    });
+    connection_observer_registered = true;
+  }
+  espdesktop::configuration::companion_app_icon_colour_settings_changed_handler() = []() {
+    companion_refresh_app_icon_connection_state(companion_connected());
+  };
+  companion_update_app_icon_card_palette(
+      *source, slot.btn, companion_app_icon_enabled(config),
+      palette.has_off ? palette.off_val : SECONDARY_GREY,
+      palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR,
+      display.color.red_percent, display.color.green_percent,
+      display.color.blue_percent, cfg_option_value(config.options, "app_bg_color"),
+      companion_connected());
+}
+#endif
+
 template<typename T>
 inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr);
 
@@ -289,8 +320,15 @@ inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
 }
 
 inline bool card_slot_static_child(const BtnSlot &s, lv_obj_t *child) {
-  return child == s.icon_lbl || child == s.sensor_container ||
-         child == s.text_lbl || child == s.subpage_lbl;
+  const bool is_static_child = child == s.icon_lbl || child == s.sensor_container ||
+                               child == s.text_lbl || child == s.subpage_lbl;
+#ifdef USE_COMPANION
+  return is_static_child || child == s.app_icon_img ||
+         (s.app_icon_img == nullptr &&
+          child == grid_find_companion_app_icon_image(s.btn));
+#else
+  return is_static_child;
+#endif
 }
 
 inline void reset_card_slot_dynamic_children(BtnSlot &s) {
@@ -301,6 +339,10 @@ inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   set_card_disabled_state(s.btn, false);
   lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);
   if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+#ifdef USE_COMPANION
+  if (!s.app_icon_img) s.app_icon_img = grid_find_companion_app_icon_image(s.btn);
+  if (s.app_icon_img) lv_obj_add_flag(s.app_icon_img, LV_OBJ_FLAG_HIDDEN);
+#endif
   if (s.sensor_container) lv_obj_set_user_data(s.sensor_container, nullptr);
   if (s.text_lbl) {
     lv_obj_set_style_bg_opa(s.text_lbl, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -551,6 +593,9 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   espdesktop::cards::alarm_driver_cleanup(s, p, context);
   espdesktop::cards::media_driver_cleanup(s, p, context);
   reset_card_slot_dynamic_children(s);
+#ifdef USE_COMPANION
+  companion_reset_card_app_icon_palette(s);
+#endif
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
   apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
@@ -650,6 +695,10 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   }
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
+#ifdef USE_COMPANION
+    if (p.type == "companion")
+      grid_update_companion_app_icon_palette(s, p, palette, display);
+#endif
     image_card_bind_companion_webapp_icon(s, p, cfg);
     espdesktop::cards::basic_action_driver_attach_interaction(s, p, context);
     espdesktop::cards::basic_action_driver_refresh_layout(
@@ -1341,6 +1390,57 @@ inline void grid_delete_runtime_ptr(void *ptr) {
   delete static_cast<T *>(ptr);
 }
 
+#ifdef USE_COMPANION
+inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
+  if (!owner) return nullptr;
+  void *image_data = nullptr;
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.owner == owner &&
+        allocation.deleter == grid_delete_runtime_ptr<CompanionAppIconImageData>) {
+      image_data = allocation.ptr;
+      break;
+    }
+  }
+  if (!image_data) return nullptr;
+  const int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(owner));
+  for (int32_t i = 0; i < count; i++) {
+    lv_obj_t *child = lv_obj_get_child(owner, i);
+    if (child && lv_obj_get_user_data(child) == image_data) return child;
+  }
+  return nullptr;
+}
+
+inline void companion_refresh_cached_app_icon(const std::string &application_id) {
+  esphome::companion::app_icon_store().begin();
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->app_icon_mode ||
+        (!application_id.empty() && source->application_id != application_id)) continue;
+    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    if (image) companion_apply_cached_app_icon(*source, image);
+  }
+}
+
+inline void companion_refresh_app_icon_connection_state(bool online) {
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->app_icon_mode) continue;
+    source->companion_online = online;
+    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    if (image && source->image_loaded) {
+      // Reload the unmodified cached pixels before switching between the
+      // monochrome offline icon and the original-color online icon.
+      companion_apply_cached_app_icon(*source, image);
+    } else {
+      source->accent_palette = {};
+      companion_apply_app_icon_card_palette(*source, allocation.owner);
+    }
+  }
+}
+#endif
+
 inline void grid_prepare_timer_visual_reset(lv_obj_t *owner) {
   for (const auto &allocation : grid_runtime_allocations()) {
     if (allocation.owner == owner &&
@@ -1488,7 +1588,8 @@ inline void grid_prepare_media_runtime_for_visual_reset(lv_obj_t *owner) {
 
 inline void grid_release_runtime_allocations(
     lv_obj_t *owner, void *preserve_primary = nullptr,
-    void *preserve_secondary = nullptr) {
+    void *preserve_secondary = nullptr,
+    void *preserve_tertiary = nullptr) {
   if (owner == nullptr) return;
   std::vector<GridRuntimeAllocation> &allocations = grid_runtime_allocations();
   size_t write_index = 0;
@@ -1500,7 +1601,8 @@ inline void grid_release_runtime_allocations(
       // persistent Phase 1 widgets; deleting them here leaves LVGL user_data
       // pointing at freed memory before the media driver rebinds subscriptions.
       if (allocation.ptr == preserve_primary ||
-          allocation.ptr == preserve_secondary) {
+          allocation.ptr == preserve_secondary ||
+          allocation.ptr == preserve_tertiary) {
         if (write_index != read_index) allocations[write_index] = allocation;
         write_index++;
         continue;
@@ -1769,7 +1871,14 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
   if (slots == nullptr) return;
   for (int i = 0; i < slot_count; i++) {
     void *visual_context = nullptr;
+    void *media_context = nullptr;
     void *slider_context = nullptr;
+#ifdef USE_COMPANION
+    if (!slots[i].app_icon_img)
+      slots[i].app_icon_img = grid_find_companion_app_icon_image(slots[i].btn);
+    if (slots[i].app_icon_img != nullptr)
+      visual_context = lv_obj_get_user_data(slots[i].app_icon_img);
+#endif
     ParsedCfg config = parse_cfg(slots[i].config->state);
     const auto context = card_runtime_context(config);
     if (espdesktop::cards::media_driver_matches(context) &&
@@ -1778,7 +1887,8 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
       if (mode == "now_playing" || mode == "cover_art") {
         MediaNowPlayingCtx *now_playing = static_cast<MediaNowPlayingCtx *>(
           lv_obj_get_user_data(slots[i].sensor_container));
-        visual_context = now_playing;
+        media_context = now_playing;
+        if (!visual_context) visual_context = now_playing;
         if (now_playing != nullptr && now_playing->progress_slider != nullptr) {
           slider_context = lv_obj_get_user_data(now_playing->progress_slider);
         }
@@ -1790,7 +1900,7 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
       }
     }
     grid_release_runtime_allocations(
-      slots[i].btn, visual_context, slider_context);
+      slots[i].btn, visual_context, media_context, slider_context);
   }
 }
 

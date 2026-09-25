@@ -16,7 +16,7 @@ private final class AuthenticationChallengeCompletion: @unchecked Sendable {
 
 private final class CompanionSessionDelegate: NSObject, URLSessionDelegate, URLSessionWebSocketDelegate, @unchecked Sendable {
     var onOpen: ((URLSessionWebSocketTask) -> Void)?
-    var onClose: ((URLSessionWebSocketTask) -> Void)?
+    var onClose: ((URLSessionWebSocketTask, String) -> Void)?
     var onChallenge: ((URLAuthenticationChallenge, AuthenticationChallengeCompletion) -> Void)?
 
     func urlSession(_: URLSession, webSocketTask: URLSessionWebSocketTask,
@@ -25,8 +25,10 @@ private final class CompanionSessionDelegate: NSObject, URLSessionDelegate, URLS
     }
 
     func urlSession(_: URLSession, webSocketTask: URLSessionWebSocketTask,
-                    didCloseWith _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
-        onClose?(webSocketTask)
+                    didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        let detail = reason.flatMap { String(data: $0, encoding: .utf8) }
+        let suffix = detail.map { $0.isEmpty ? "" : ", reason: \($0)" } ?? ""
+        onClose?(webSocketTask, "WebSocket closed with code \(closeCode.rawValue)\(suffix)")
     }
 
     func urlSession(_: URLSession, didReceive challenge: URLAuthenticationChallenge,
@@ -61,11 +63,19 @@ final class CompanionConnection: NSObject {
     private var shouldReconnect = false
     private var hasTerminalConnectionError = false
     private var sessionAuthenticated = false
+    private var supportsAlphaAppIcons = false
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
     private var artworkData: Data?
     private var artworkGeneration: UInt32 = 0
     private var artworkOffset = 0
+    private var deferredArtwork: (generation: UInt32, data: Data, sha256: String?)?
+    private var appIconData: Data?
+    private var appIconIdentifier = ""
+    private var activeAppIconRequest: CompanionWireAppIconRequest?
+    private var appIconGeneration: UInt32 = 0
+    private var appIconOffset = 0
+    private var pendingAppIconRequests: [CompanionWireAppIconRequest] = []
     private var lastArtworkGeneration: UInt32 = 0
     private var lastArtworkSHA256: String?
     private var lastFocusedActionIdentifiers: [String]?
@@ -82,8 +92,8 @@ final class CompanionConnection: NSObject {
         delegate.onOpen = { [weak self] task in
             Task { @MainActor [weak self] in self?.connectionDidOpen(task) }
         }
-        delegate.onClose = { [weak self] task in
-            Task { @MainActor [weak self] in self?.handleConnectionFailure(for: task) }
+        delegate.onClose = { [weak self] task, reason in
+            Task { @MainActor [weak self] in self?.handleConnectionFailure(for: task, reason: reason) }
         }
         delegate.onChallenge = { [weak self] challenge, completion in
             Task { @MainActor [weak self] in
@@ -166,9 +176,11 @@ final class CompanionConnection: NSObject {
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        supportsAlphaAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
+        resetAppIconTransferState(clearPendingRequests: true)
         resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
@@ -207,7 +219,7 @@ final class CompanionConnection: NSObject {
                 self.hasTerminalConnectionError = true
                 self.shouldReconnect = false
                 self.updateConnectionStatus("Unlock the Mac or allow Keychain access to reconnect", state: .failed, recovery: "Unlock your Mac and allow EspDesktop to access Keychain, then try again.")
-                self.handleConnectionFailure(for: webSocketTask)
+                self.handleConnectionFailure(for: webSocketTask, reason: "Authentication credential unavailable")
                 return
             }
             let sequence = self.nextAuthenticationSequence()
@@ -282,7 +294,7 @@ final class CompanionConnection: NSObject {
                     if case .string(let value) = message { self.handle(value) }
                 } catch {
                     guard !Task.isCancelled else { return }
-                    self.handleConnectionFailure(for: task)
+                    self.handleConnectionFailure(for: task, reason: "Receive failed: \(error.localizedDescription)")
                     return
                 }
             }
@@ -299,7 +311,7 @@ final class CompanionConnection: NSObject {
             } else {
                 self.updateConnectionStatus("Display did not respond — reconnecting…", state: .reconnecting)
             }
-            self.handleConnectionFailure(for: task)
+            self.handleConnectionFailure(for: task, reason: "Authentication timed out")
         }
     }
 
@@ -310,23 +322,26 @@ final class CompanionConnection: NSObject {
                 try? await Task.sleep(for: .seconds(15))
                 guard !Task.isCancelled, let self, self.task === task else { return }
                 task.sendPing { [weak self, weak task = task] error in
-                    guard error != nil else { return }
+                    guard let error else { return }
+                    let reason = "WebSocket heartbeat failed: \(error.localizedDescription)"
                     Task { @MainActor [weak self, weak task = task] in
                         guard let self, let task else { return }
-                        self.handleConnectionFailure(for: task)
+                        self.handleConnectionFailure(for: task, reason: reason)
                     }
                 }
             }
         }
     }
 
-    private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask) {
+    private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
             updateConnectionStatus("Pairing failed — try again", state: .failed)
         }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
@@ -346,8 +361,17 @@ final class CompanionConnection: NSObject {
         artworkData = nil
         artworkGeneration = 0
         artworkOffset = 0
+        deferredArtwork = nil
         lastArtworkGeneration = 0
         lastArtworkSHA256 = nil
+    }
+
+    private func resetAppIconTransferState(clearPendingRequests: Bool = false) {
+        appIconData = nil
+        appIconIdentifier = ""
+        activeAppIconRequest = nil
+        appIconOffset = 0
+        if clearPendingRequests { pendingAppIconRequests.removeAll() }
     }
 
     private func scheduleReconnect() {
@@ -426,6 +450,7 @@ final class CompanionConnection: NSObject {
             guard case .authenticate = mode, authenticationRequestOutstanding else { return false }
             authenticationRequestOutstanding = false
             sessionAuthenticated = true
+            supportsAlphaAppIcons = payload.capabilityVersion >= 4
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -493,6 +518,30 @@ final class CompanionConnection: NSObject {
                                    "status": opened ? "opened" : "not_allowed"])
                 }
             } else { return false }
+        case .appIconRequest(let payload):
+            guard sessionAuthenticated else { return false }
+            if let data = artworkData {
+                deferredArtwork = (artworkGeneration, data, lastArtworkSHA256)
+                sendJSON(["type": "artwork.abort", "generation": artworkGeneration])
+                artworkData = nil
+                artworkGeneration = 0
+                artworkOffset = 0
+            }
+            if !pendingAppIconRequests.contains(where: { $0.appId == payload.appId }) {
+                pendingAppIconRequests.append(payload)
+            }
+            processNextAppIconRequest()
+        case .appIconAck(let payload):
+            guard sessionAuthenticated else { return false }
+            if payload.generation == appIconGeneration, Int(payload.nextOffset) == appIconOffset {
+                sendNextAppIconChunk()
+            }
+        case .appIconAbort:
+            guard sessionAuthenticated else { return false }
+            appIconData = nil
+            appIconIdentifier = ""
+            appIconOffset = 0
+            processNextAppIconRequest()
         case .valueSet(let payload):
             guard sessionAuthenticated else { return false }
             let requestIdentifier = payload.requestId
@@ -528,6 +577,7 @@ final class CompanionConnection: NSObject {
         case .artworkAbort:
             guard sessionAuthenticated else { return false }
             resetArtworkTransferState()
+            processNextAppIconRequest()
         case .artworkRequest(let payload):
             guard sessionAuthenticated else { return false }
             onEvent?(.artworkRequested(payload.generation))
@@ -545,7 +595,15 @@ final class CompanionConnection: NSObject {
         if artworkData != nil && (shouldSendArtwork || snapshot.generation != artworkGeneration) {
             sendJSON(["type": "artwork.abort", "generation": artworkGeneration])
             artworkData = nil
+            artworkGeneration = 0
             artworkOffset = 0
+        }
+        if !hasArtwork {
+            deferredArtwork = nil
+            lastArtworkGeneration = 0
+            lastArtworkSHA256 = nil
+        } else if let deferredArtwork, deferredArtwork.generation != snapshot.generation {
+            self.deferredArtwork = nil
         }
         var message: [String: Any] = [
             "type": "now_playing", "generation": snapshot.generation,
@@ -558,16 +616,17 @@ final class CompanionConnection: NSObject {
         ]
         if shouldSendArtwork, let artworkHash { message["artworkSHA256"] = artworkHash }
         sendJSON(message)
-        guard shouldSendArtwork, let artwork = snapshot.artworkJPEG else { return }
-        artworkData = nil
-        artworkOffset = 0
-        artworkGeneration = snapshot.generation
-        artworkData = artwork
+        guard shouldSendArtwork, let artwork = snapshot.artworkJPEG else {
+            processNextAppIconRequest()
+            return
+        }
         lastArtworkGeneration = snapshot.generation
         lastArtworkSHA256 = artworkHash
-        sendJSON(["type": "artwork.begin", "generation": snapshot.generation,
-                  "byteLength": artwork.count, "sha256": artworkHash ?? "",
-                  "mimeType": "image/jpeg"])
+        if appIconData != nil || !pendingAppIconRequests.isEmpty {
+            deferredArtwork = (snapshot.generation, artwork, artworkHash)
+            return
+        }
+        startArtworkTransfer(data: artwork, generation: snapshot.generation, sha256: artworkHash)
     }
 
     func publishSystemMetrics(_ snapshot: CompanionSystemMetricsSnapshot, force: Bool = false) {
@@ -609,6 +668,7 @@ final class CompanionConnection: NSObject {
             sendJSON(["type": "artwork.end", "generation": artworkGeneration])
             self.artworkData = nil
             artworkOffset = 0
+            processNextAppIconRequest()
             return
         }
         let end = min(artworkOffset + Self.artworkChunkBytes, artworkData.count)
@@ -625,8 +685,90 @@ final class CompanionConnection: NSObject {
             Task { @MainActor [weak self, weak sendingTask] in
                 guard let self, let sendingTask, self.task === sendingTask else { return }
                 self.resetArtworkTransferState()
+                self.processNextAppIconRequest()
             }
         }
+    }
+
+    private func startArtworkTransfer(data: Data, generation: UInt32, sha256: String?) {
+        artworkData = data
+        artworkGeneration = generation
+        artworkOffset = 0
+        let hash = sha256 ?? SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        sendJSON(["type": "artwork.begin", "generation": generation,
+                  "byteLength": data.count, "sha256": hash, "mimeType": "image/jpeg"])
+    }
+
+    private func sendNextAppIconChunk() {
+        guard let data = appIconData else { return }
+        if appIconOffset >= data.count {
+            sendJSON(["type": "app_icon.end", "appId": appIconIdentifier,
+                      "generation": appIconGeneration])
+            resetAppIconTransferState()
+            processNextAppIconRequest()
+            return
+        }
+        let end = min(appIconOffset + CompanionCapabilities.appIconChunkBytes, data.count)
+        var frame = Data("ICON".utf8)
+        var generation = appIconGeneration.bigEndian
+        var offset = UInt32(appIconOffset).bigEndian
+        withUnsafeBytes(of: &generation) { frame.append(contentsOf: $0) }
+        withUnsafeBytes(of: &offset) { frame.append(contentsOf: $0) }
+        frame.append(data[appIconOffset..<end])
+        appIconOffset = end
+        guard let sendingTask = task else {
+            resetAppIconTransferState(clearPendingRequests: true)
+            return
+        }
+        sendingTask.send(.data(frame)) { [weak self, weak sendingTask] error in
+            guard error != nil else { return }
+            Task { @MainActor [weak self, weak sendingTask] in
+                guard let self, let sendingTask, self.task === sendingTask else { return }
+                self.handleConnectionFailure(for: sendingTask, reason: "App icon chunk send failed")
+            }
+        }
+    }
+
+    private func processNextAppIconRequest() {
+        guard sessionAuthenticated, artworkData == nil, appIconData == nil else { return }
+        if !pendingAppIconRequests.isEmpty {
+            handleAppIconRequest(pendingAppIconRequests.removeFirst())
+            return
+        }
+        if let deferredArtwork {
+            self.deferredArtwork = nil
+            startArtworkTransfer(data: deferredArtwork.data,
+                                 generation: deferredArtwork.generation,
+                                 sha256: deferredArtwork.sha256)
+        }
+    }
+
+    private func handleAppIconRequest(_ payload: CompanionWireAppIconRequest) {
+        guard supportsAlphaAppIcons,
+              resources.launchableApps().contains(where: { $0.bundleIdentifier == payload.appId }),
+              let pixels = resources.appIconPixels(bundleIdentifier: payload.appId),
+              pixels.count == CompanionCapabilities.appIconPixelBytes else {
+            sendJSON(["type": "app_icon.unavailable", "appId": payload.appId])
+            processNextAppIconRequest()
+            return
+        }
+        let transferPixels = pixels
+        let transferFormat = "rgb565a8"
+        let hash = SHA256.hash(data: transferPixels).map { String(format: "%02x", $0) }.joined()
+        if payload.sha256 == hash {
+            sendJSON(["type": "app_icon.unchanged", "appId": payload.appId, "sha256": hash])
+            processNextAppIconRequest()
+            return
+        }
+        appIconGeneration &+= 1
+        if appIconGeneration == 0 { appIconGeneration = 1 }
+        appIconIdentifier = payload.appId
+        activeAppIconRequest = payload
+        appIconData = transferPixels
+        appIconOffset = 0
+        sendJSON(["type": "app_icon.begin", "appId": payload.appId,
+                  "generation": appIconGeneration, "byteLength": transferPixels.count,
+                  "sha256": hash, "format": transferFormat])
     }
 
     private func sendJSON(_ object: [String: Any]) {
@@ -650,6 +792,8 @@ final class CompanionConnection: NSObject {
         )
         var capabilities = supportedWindowActions
         capabilities.append("keyboard_shortcuts")
+        capabilities.append(CompanionCapabilities.appIconsCapability)
+        capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append("url_card_focus")
         sendJSON(["type": "capabilities", "values": capabilities])
         // Bundle identifiers are stable and opaque to the browser layout editor;
@@ -748,10 +892,11 @@ final class CompanionConnection: NSObject {
     private func send(_ value: String) {
         guard let activeTask = task else { return }
         activeTask.send(.string(value)) { [weak self, weak activeTask] error in
-            guard error != nil else { return }
+            guard let error else { return }
+            let reason = "Send failed: \(error.localizedDescription)"
             Task { @MainActor [weak self, weak activeTask] in
                 guard let self, let activeTask, self.task === activeTask else { return }
-                self.handleConnectionFailure(for: activeTask)
+                self.handleConnectionFailure(for: activeTask, reason: reason)
             }
         }
     }

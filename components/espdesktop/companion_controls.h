@@ -141,6 +141,16 @@ inline void register_companion_connection_changed_handler(
   companion_connection_changed_handler() = std::move(handler);
 }
 
+inline std::vector<CompanionConnectionChangedHandler> &companion_connection_changed_observers() {
+  static std::vector<CompanionConnectionChangedHandler> observers;
+  return observers;
+}
+
+inline void add_companion_connection_changed_observer(
+    CompanionConnectionChangedHandler handler) {
+  if (handler) companion_connection_changed_observers().push_back(std::move(handler));
+}
+
 inline CompanionArtworkHandler &companion_artwork_handler() {
   return companion_runtime_service().artwork_handler;
 }
@@ -441,6 +451,8 @@ inline void companion_set_connected(bool connected) {
   }
   auto &connection_changed = companion_connection_changed_handler();
   if (connection_changed) connection_changed(connected);
+  for (const auto &observer : companion_connection_changed_observers())
+    if (observer) observer(connected);
 }
 
 inline void register_companion_action_sender(CompanionActionSender sender) {
@@ -1165,6 +1177,27 @@ class CompanionPairingResetHandler : public esphome::web_server_idf::AsyncWebHan
   }
 };
 
+class CompanionAppIconCacheClearHandler : public esphome::web_server_idf::AsyncWebHandler {
+ public:
+  bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
+    if (request->method() != HTTP_POST) return false;
+    char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    return request->url_to(url_buf) == "/companion/app-icons/clear";
+  }
+
+  void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
+    if (!companion_authorize_web_request(request)) return;
+    auto &clear_cache = companion_runtime_service().clear_app_icon_cache;
+    const bool cleared = clear_cache && clear_cache();
+    httpd_req_t *raw_request = *request;
+    httpd_resp_set_status(raw_request, cleared ? "200 OK" : "503 Service Unavailable");
+    httpd_resp_set_type(raw_request, "application/json");
+    httpd_resp_set_hdr(raw_request, "Cache-Control", "no-store");
+    const char *body = cleared ? "{\"cleared\":true}" : "{\"cleared\":false}";
+    httpd_resp_send(raw_request, body, HTTPD_RESP_USE_STRLEN);
+  }
+};
+
 inline void register_companion_actions_endpoint(
     esphome::web_server_idf::AsyncWebServer &server) {
   static bool registered = false;
@@ -1173,6 +1206,7 @@ inline void register_companion_actions_endpoint(
   server.addHandler(new CompanionFocusTargetsHandler());
   server.addHandler(new CompanionPairingHandler());
   server.addHandler(new CompanionPairingResetHandler());
+  server.addHandler(new CompanionAppIconCacheClearHandler());
   registered = true;
 }
 

@@ -2,7 +2,7 @@
   {
     "name": "hello",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "hello"
     },
     "direction": "panel_to_mac",
@@ -12,7 +12,7 @@
   {
     "name": "pair request",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "pair.request",
       "code": "ABCD-EFGH"
     },
@@ -23,7 +23,7 @@
   {
     "name": "pair accepted",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "pair.accepted",
       "credential": "0101010101010101010101010101010101010101010101010101010101010101"
     },
@@ -34,7 +34,7 @@
   {
     "name": "authentication",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "auth.request",
       "sequence": 4,
       "nonce": "a-nonce",
@@ -47,7 +47,7 @@
   {
     "name": "authenticated",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "auth.accepted",
       "capabilityVersion": 2
     },
@@ -58,7 +58,7 @@
   {
     "name": "capabilities",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "capabilities",
       "values": [
         "keyboard_shortcuts",
@@ -72,7 +72,7 @@
   {
     "name": "catalogue request",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "catalogue.request"
     },
     "direction": "panel_to_mac",
@@ -82,7 +82,7 @@
   {
     "name": "catalogue page",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "catalogue.page",
       "generation": 1,
       "page": 0,
@@ -90,7 +90,7 @@
       "items": [
         {
           "id": "com.example.App",
-          "label": "Caf\u00e9"
+          "label": "Café"
         }
       ]
     },
@@ -101,7 +101,7 @@
   {
     "name": "launch action",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "action.invoke",
       "kind": "action",
       "requestId": "r1",
@@ -114,7 +114,7 @@
   {
     "name": "url action",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "action.invoke",
       "kind": "url",
       "requestId": "r2",
@@ -128,7 +128,7 @@
   {
     "name": "action result",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "action.result",
       "requestId": "r1",
       "status": "activated"
@@ -140,7 +140,7 @@
   {
     "name": "set volume",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -153,7 +153,7 @@
   {
     "name": "volume",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.state",
       "controlId": "media.output_volume",
       "available": true,
@@ -166,7 +166,7 @@
   {
     "name": "unavailable volume",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.state",
       "controlId": "media.input_volume",
       "available": false
@@ -178,7 +178,7 @@
   {
     "name": "no focus",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "focus.changed",
       "actionId": ""
     },
@@ -189,7 +189,7 @@
   {
     "name": "timezone",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "timezone.changed",
       "identifier": "Europe/London"
     },
@@ -200,7 +200,7 @@
   {
     "name": "now playing",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "now_playing",
       "generation": 1,
       "applicationIdentifier": "app",
@@ -222,7 +222,7 @@
   {
     "name": "statistics",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "cpuUsagePercent": 20.2,
@@ -238,7 +238,7 @@
   {
     "name": "unavailable statistics",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "available": false
@@ -250,7 +250,7 @@
   {
     "name": "artwork begin",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.begin",
       "generation": 1,
       "byteLength": 1024,
@@ -264,7 +264,7 @@
   {
     "name": "artwork ack",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.ack",
       "generation": 1,
       "nextOffset": 1024
@@ -276,7 +276,7 @@
   {
     "name": "artwork end",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.end",
       "generation": 1
     },
@@ -287,7 +287,7 @@
   {
     "name": "artwork abort",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.abort",
       "generation": 1
     },
@@ -298,7 +298,7 @@
   {
     "name": "artwork request",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.request",
       "generation": 1
     },
@@ -307,9 +307,33 @@
     "valid": true
   },
   {
+    "name": "app icon chunk ack",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.ack",
+      "generation": 1,
+      "nextOffset": 4096
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app icon complete",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.end",
+      "appId": "com.example.App",
+      "generation": 1
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
     "name": "error",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "error",
       "code": "authentication_sequence",
       "lastSequence": 100
@@ -321,7 +345,7 @@
   {
     "name": "wrong protocol",
     "message": {
-      "protocol": 4,
+      "protocol": 3,
       "type": "hello"
     },
     "direction": "panel_to_mac",
@@ -341,7 +365,7 @@
   {
     "name": "unknown type",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "future.command"
     },
     "direction": "panel_to_mac",
@@ -351,7 +375,7 @@
   {
     "name": "pair acceptance outside pairing",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "pair.accepted",
       "credential": "0101010101010101010101010101010101010101010101010101010101010101"
     },
@@ -362,7 +386,7 @@
   {
     "name": "unsolicited auth acceptance",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "auth.accepted",
       "capabilityVersion": 2
     },
@@ -373,7 +397,7 @@
   {
     "name": "command before authentication",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -386,7 +410,7 @@
   {
     "name": "wrong direction",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -399,7 +423,7 @@
   {
     "name": "invalid volume True",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -412,7 +436,7 @@
   {
     "name": "invalid volume '50'",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -425,7 +449,7 @@
   {
     "name": "invalid volume None",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -438,7 +462,7 @@
   {
     "name": "invalid volume -1",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -451,7 +475,7 @@
   {
     "name": "invalid volume 101",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -464,7 +488,7 @@
   {
     "name": "invalid volume 50.5",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.set",
       "requestId": "v1",
       "controlId": "media.output_volume",
@@ -477,7 +501,7 @@
   {
     "name": "missing action id",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "action.invoke",
       "kind": "action",
       "requestId": "r1"
@@ -489,7 +513,7 @@
   {
     "name": "missing url",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "action.invoke",
       "kind": "url",
       "requestId": "r2",
@@ -502,7 +526,7 @@
   {
     "name": "oversized request",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "action.invoke",
       "kind": "action",
       "requestId": "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
@@ -515,7 +539,7 @@
   {
     "name": "embedded NUL",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "action.invoke",
       "kind": "action",
       "requestId": "r1",
@@ -528,7 +552,7 @@
   {
     "name": "missing available volume",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "value.state",
       "controlId": "media.output_volume",
       "available": true
@@ -540,7 +564,7 @@
   {
     "name": "missing available metrics",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "memoryUsagePercent": 33,
@@ -555,7 +579,7 @@
   {
     "name": "invalid optional metric",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "cpuUsagePercent": 20.2,
@@ -571,7 +595,7 @@
   {
     "name": "metrics above range",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "cpuUsagePercent": 101,
@@ -587,7 +611,7 @@
   {
     "name": "oversized page",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "catalogue.page",
       "generation": 1,
       "page": 0,
@@ -798,7 +822,7 @@
   {
     "name": "invalid page entry",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "catalogue.page",
       "generation": 1,
       "page": 0,
@@ -817,7 +841,7 @@
   {
     "name": "fractional page",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "catalogue.page",
       "generation": 1,
       "page": 0.5,
@@ -825,7 +849,7 @@
       "items": [
         {
           "id": "com.example.App",
-          "label": "Caf\u00e9"
+          "label": "Café"
         }
       ]
     },
@@ -836,13 +860,13 @@
   {
     "name": "oversized utf8 text",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "now_playing",
       "generation": 1,
       "applicationIdentifier": "app",
       "applicationName": "App",
       "contentIdentifier": "song",
-      "title": "\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9",
+      "title": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
       "artist": "Artist",
       "album": "Album",
       "state": "playing",
@@ -858,7 +882,7 @@
   {
     "name": "unknown playback state",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "now_playing",
       "generation": 1,
       "applicationIdentifier": "app",
@@ -880,7 +904,7 @@
   {
     "name": "negative duration",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "now_playing",
       "generation": 1,
       "applicationIdentifier": "app",
@@ -902,7 +926,7 @@
   {
     "name": "oversized artwork",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.begin",
       "generation": 1,
       "byteLength": 262145,
@@ -916,7 +940,7 @@
   {
     "name": "invalid hash",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.begin",
       "generation": 1,
       "byteLength": 1024,
@@ -930,7 +954,7 @@
   {
     "name": "zero generation",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.end",
       "generation": 0
     },
@@ -941,7 +965,7 @@
   {
     "name": "negative offset",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.ack",
       "generation": 1,
       "nextOffset": -1
@@ -953,7 +977,7 @@
   {
     "name": "generation overflow",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "artwork.end",
       "generation": 4294967296
     },
@@ -964,7 +988,7 @@
   {
     "name": "statistics-network-devices",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "cpuUsagePercent": 20.2,
@@ -992,7 +1016,7 @@
   {
     "name": "statistics-network-devices-null",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "cpuUsagePercent": 20.2,
@@ -1009,7 +1033,7 @@
   {
     "name": "statistics-network-device-missing-address",
     "message": {
-      "protocol": 3,
+      "protocol": 4,
       "type": "system_metrics",
       "generation": 1,
       "cpuUsagePercent": 20.2,
@@ -1027,5 +1051,90 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": false
+  },
+  {
+    "name": "app icon request",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.request",
+      "appId": "com.example.App"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app icon begin",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.begin",
+      "appId": "com.example.App",
+      "generation": 1,
+      "byteLength": 62208,
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "format": "rgb565a8"
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app icon unchanged",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.unchanged",
+      "appId": "com.example.App",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app icon unavailable",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.unavailable",
+      "appId": "com.example.App"
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app icon ack",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.ack",
+      "generation": 1,
+      "nextOffset": 4096
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app icon end",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.end",
+      "appId": "com.example.App",
+      "generation": 1
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app icon abort",
+    "message": {
+      "protocol": 4,
+      "type": "app_icon.abort",
+      "appId": "com.example.App",
+      "generation": 1
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
   }
 ]
