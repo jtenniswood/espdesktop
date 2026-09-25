@@ -29,7 +29,7 @@ substitutions:
   media_title_font: font_text_title
   unit_font: font_text_body
   sensor_value_font: font_number_value
-  padding: 18px
+  padding: 21px
   radius: 12px
   main_page_card_gap: "15"
   main_page_pad_top: "60"
