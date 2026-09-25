@@ -111,8 +111,10 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:#fff;z-index:1}" +
         ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:22%}" +
-        ".sp-btn-icon.sp-companion-app-icon-medium{width:min(calc(var(--btn-icon)*2),calc(100% - var(--btn-pad)*2));" +
-        "height:min(calc(var(--btn-icon)*2),calc(100% - var(--btn-pad)*2 - var(--btn-label)*1.2 - max(4px,calc(var(--btn-icon)*.25))));object-fit:contain}" +
+        ".sp-btn-icon.sp-companion-app-icon-medium{left:var(--btn-pad);top:var(--btn-pad);" +
+        "width:min(calc(var(--btn-icon)*2.5),calc(100% - var(--btn-pad)*2));" +
+        "height:min(calc(var(--btn-icon)*2.5),calc(100% - var(--btn-pad)*2 - var(--btn-label)*1.2 - max(3px,calc(var(--btn-icon)*.125))));object-fit:contain}" +
+        ".sp-btn-icon.sp-companion-app-icon-medium-no-label{height:min(calc(var(--btn-icon)*2.5),calc(100% - var(--btn-pad)*2))}" +
         ".sp-btn-icon.sp-companion-app-icon-fill{inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;z-index:0}" +
         ".sp-btn.sp-companion-app-icon-medium-card>.sp-btn-label{max-height:calc(var(--btn-label)*1.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
         ".sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label,.sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label-row{position:relative;z-index:1}" +

@@ -266,6 +266,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         ? typePreview.appIconBackgroundColor : "";
                     const fillCard = typePreview.appIconFill === true;
                     const mediumIcon = !fillCard && typePreview.appIconMedium === true;
+                    const mediumIconLabelHidden = mediumIcon && typePreview.appIconLabelHidden === true;
                     const loadAppIcon = function (attempt: number): void {
                         void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
                             if (!btn.isConnected) return;
@@ -277,7 +278,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                             }
                         const appIcon = document.createElement("img");
                         appIcon.className = "sp-btn-icon sp-companion-app-icon" +
-                            (fillCard ? " sp-companion-app-icon-fill" : mediumIcon ? " sp-companion-app-icon-medium" : "");
+                            (fillCard ? " sp-companion-app-icon-fill" : mediumIcon
+                                ? " sp-companion-app-icon-medium" +
+                                    (mediumIconLabelHidden ? " sp-companion-app-icon-medium-no-label" : "")
+                                : "");
                         if (fillCard) btn.classList.add("sp-companion-app-icon-fill-card");
                         else if (mediumIcon) btn.classList.add("sp-companion-app-icon-medium-card");
                         appIcon.alt = "";

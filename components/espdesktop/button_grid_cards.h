@@ -213,7 +213,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
       const lv_coord_t pad_right = lv_obj_get_style_pad_right(button, LV_PART_MAIN);
       const lv_coord_t pad_top = lv_obj_get_style_pad_top(button, LV_PART_MAIN);
       const lv_coord_t pad_bottom = lv_obj_get_style_pad_bottom(button, LV_PART_MAIN);
-      const lv_coord_t gap = std::max<lv_coord_t>(4, small_side / 4);
+      const lv_coord_t gap = std::max<lv_coord_t>(3, small_side / 8);
       lv_coord_t label_height = 0;
       if (source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)) {
         const lv_font_t *label_font = lv_obj_get_style_text_font(source.card_label, LV_PART_MAIN);
@@ -222,14 +222,15 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
       const lv_coord_t max_width = std::max<lv_coord_t>(1, button_width - pad_left - pad_right);
       const lv_coord_t max_height = std::max<lv_coord_t>(1,
           button_height - pad_top - pad_bottom - label_height - (label_height > 0 ? gap : 0));
-      target_side = std::min<lv_coord_t>(small_side * 2, std::min(max_width, max_height));
+      target_side = std::min<lv_coord_t>(small_side * 5 / 2, std::min(max_width, max_height));
       if (source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)) {
         lv_label_set_long_mode(source.card_label, LV_LABEL_LONG_DOT);
         lv_obj_set_width(source.card_label, lv_pct(100));
       }
     }
     lv_obj_set_size(image, target_side, target_side);
-    lv_obj_align(image, LV_ALIGN_TOP_LEFT, 0, 0);
+    // Anchor the icon to the top-left of the card's padded content area.
+    lv_obj_set_pos(image, 0, 0);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
     lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
 #else

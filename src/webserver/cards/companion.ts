@@ -1674,6 +1674,8 @@ export function registerCompanionCardTypes(
                 preview.appIconId = card.entity;
                 preview.appIconFill = configOptionEnabled(card.options, "app_icon_fill");
                 preview.appIconMedium = !preview.appIconFill && configOptionEnabled(card.options, "app_icon_medium");
+                preview.appIconLabelHidden = companionAppLaunchCard(card) &&
+                    configOptionEnabled(card.options, "app_hide_label");
                 const background = configOptionValue(card.options, "app_bg_color").toUpperCase();
                 if (/^[0-9A-F]{6}$/.test(background)) preview.appIconBackgroundColor = background;
                 preview.iconHtml = preview.iconHtml.replace(
