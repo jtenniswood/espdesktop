@@ -149,8 +149,8 @@ export function runCompanionShortcutFeatureTests(): void {
   const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
   if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 6 || new Set(companionModes.map(([mode]) => mode)).size !== 6 ||
-      !companionCardModeValid("window") || companionCardModeValid("home_assistant") ||
+  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
+      !companionCardModeValid("window") || !companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
@@ -227,9 +227,17 @@ export function runCompanionShortcutFeatureTests(): void {
   const chromeFolderCard = {
     type: "companion", entity: "com.google.Chrome", options: "app_shortcuts",
   };
-  if (normalizeCompanionAppShortcutOptions(chromeFolderCard) !== "" ||
+  if (normalizeCompanionAppShortcutOptions(chromeFolderCard) !== "app_shortcuts" ||
       companionAppShortcutFolderEnabled(chromeFolderCard)) {
-    throw new Error("Unsupported apps must not retain the shortcut-folder option");
+    throw new Error("Unknown app options must stay dormant until its remote definition is loaded");
+  }
+  for (const entity of ["com.example.FutureEditor", "webapp.future-editor"]) {
+    const remotelyDefinedCard = {
+      type: "companion", entity, options: "app_shortcuts,app_shortcuts_tabs=0|1",
+    };
+    if (normalizeCompanionAppShortcutOptions(remotelyDefinedCard) !== remotelyDefinedCard.options) {
+      throw new Error("Initial config parsing must preserve options for a remotely defined app");
+    }
   }
   const legacyAutoSwitchCard = {
     ...safariFolderCard,

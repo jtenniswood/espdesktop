@@ -369,6 +369,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_TIME_UNIT = "time_unit";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VACUUM_MODE = "vacuum_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VOLUME_MAX = "volume_max";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEATHER_MODE = "weather_mode";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBAPP_ICON_TITLE = "webapp_icon_title";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBHOOK_HEADERS = "webhook_headers";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WIFI_TABS = "wifi_tabs";
 constexpr const char *CARD_CONTRACT_GARAGE_LABEL_DISPLAY_DEFAULT = "label";

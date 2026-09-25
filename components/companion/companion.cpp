@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <memory>
+#include <new>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -98,6 +100,12 @@ void CompanionService::setup() {
   }
   this->sequence_preferences_ =
       global_preferences->make_preference<uint32_t>(fnv1a_hash("companion_auth_sequence"));
+  this->focus_targets_preferences_ = global_preferences->make_preference<CompanionFocusTargetsPreference>(
+      fnv1a_hash("companion_focus_targets"));
+  this->restore_focus_targets_();
+  companion_runtime_service().focus_registrations_changed_handler = [this] {
+    this->save_focus_targets_();
+  };
   if (!this->identity_.paired || !this->sequence_preferences_.load(&this->last_sequence_))
     this->last_sequence_ = 0;
   register_companion_action_sender([this](const std::string &action, const std::string &request,
@@ -141,6 +149,10 @@ void CompanionService::setup() {
 
 void CompanionService::loop() {
   companion_expire_action_results(millis());
+  const auto focus_targets = companion_runtime_service().focus_targets_state();
+  if (focus_targets.connected && this->focus_targets_supported_.load() &&
+      focus_targets.generation != this->focus_targets_generation_.load())
+    this->publish_focus_targets_();
   {
     std::lock_guard<std::mutex> lock(this->pairing_mutex_);
     if (!this->pairing_code_.empty() && static_cast<int32_t>(millis() - this->pairing_expires_at_) >= 0) {
@@ -495,6 +507,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::Capabilities>(&*decoded)) {
       bool keyboard_actions = false;
       bool keyboard_actions_capability_received = false;
+      bool focus_targets_supported = false;
       std::vector<std::string> window_actions;
       for (const auto &capability : payload->values) {
         if (capability == "keyboard_shortcuts") {
@@ -503,14 +516,18 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         } else if (capability == "keyboard_shortcuts_unavailable") {
           keyboard_actions = false;
           keyboard_actions_capability_received = true;
+        } else if (capability == "url_card_focus") {
+          focus_targets_supported = true;
         } else if (companion_window_action_valid(capability)) {
           window_actions.push_back(capability);
         }
       }
-      this->defer_session_([keyboard_actions, keyboard_actions_capability_received,
+      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported,
                             window_actions = std::move(window_actions)]() mutable {
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         companion_set_window_actions(std::move(window_actions));
+        this->focus_targets_supported_.store(focus_targets_supported);
+        if (focus_targets_supported) this->focus_targets_generation_.store(0xFFFFFFFFu);
       });
       return true;
     }
@@ -544,6 +561,52 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::CatalogueDefinitionsPage>(&*decoded)) {
+      const uint32_t generation = payload->generation;
+      const uint16_t page = payload->page;
+      if (generation == 0 || (page != 0 && generation != this->definitions_generation_) ||
+          page != (page == 0 ? 0 : this->definitions_next_page_)) return false;
+      if (page == 0) {
+        this->remote_definitions_.clear();
+        this->application_definition_count_ = 0;
+        this->web_app_definition_count_ = 0;
+        this->definitions_generation_ = generation;
+        this->definitions_next_page_ = 0;
+      }
+      for (const auto &item : payload->items) {
+        const std::string kind = item.kind;
+        const std::string json = item.json;
+        const bool is_application = kind == "application";
+        const bool is_web_app = kind == "webapp";
+        if (companion_remote_definition_capacity_available(kind, this->application_definition_count_,
+                                                           this->web_app_definition_count_) &&
+            companion_json_payload_valid(json, 12000)) {
+          JsonDocument document;
+          const auto error = deserializeJson(document, json);
+          const std::string id = kind == "webapp"
+            ? document["id"].as<std::string>() : document["appId"].as<std::string>();
+          const std::string icon_url = kind == "webapp"
+            ? document["icon"].as<std::string>() : std::string();
+          if (error || id.empty() || id.size() > 96 ||
+              (kind == "webapp" && icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0)) {
+            continue;
+          }
+          this->remote_definitions_.push_back({kind, id, icon_url, json});
+          if (is_application) ++this->application_definition_count_;
+          else ++this->web_app_definition_count_;
+        }
+      }
+      this->definitions_next_page_ = page + 1;
+      if (payload->complete) {
+        auto definitions = std::move(this->remote_definitions_);
+        this->remote_definitions_.clear();
+        this->defer_session_([definitions = std::move(definitions)]() mutable {
+          companion_set_remote_definitions(std::move(definitions));
+        });
+      }
+      return true;
+    }
+
     if (const auto *payload = std::get_if<companion_protocol::ActionResult>(&*decoded)) {
       const std::string request_id = payload->requestId;
       const std::string status = payload->status;
@@ -568,7 +631,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::FocusChanged>(&*decoded)) {
       const std::string action_id = payload->actionId;
       if (!action_id.empty() && !safe_field(action_id, 96)) return false;
-      this->defer_session_([action_id] { companion_set_focused_action(action_id); });
+      std::vector<std::string> action_ids = payload->actionIds.value_or(std::vector<std::string>{});
+      if (action_ids.empty() && !action_id.empty()) action_ids.push_back(action_id);
+      if (action_ids.size() > 64 || std::any_of(action_ids.begin(), action_ids.end(),
+          [](const std::string &value) { return !safe_field(value, 96); })) return false;
+      this->defer_session_([action_ids = std::move(action_ids)]() mutable {
+        companion_set_focused_actions(std::move(action_ids));
+      });
       return true;
     }
 
@@ -865,8 +934,11 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
   }
   if (connected) {
     this->now_playing_generation_ = 0;
+    this->focus_targets_generation_ = 0xFFFFFFFFu;
+    this->focus_targets_supported_ = false;
     this->disconnect_grace_expires_at_.store(0);
   } else {
+    this->focus_targets_supported_ = false;
     this->reset_artwork_transfer_("connection closed");
     this->disconnect_grace_expires_at_.store(millis() + NOW_PLAYING_RECONNECT_GRACE_MS);
   }
@@ -887,6 +959,76 @@ void CompanionService::publish_catalogue_() {
   this->send_(this->session_.authenticated_socket(),
               "{\"type\":\"catalogue.request\",\"protocol\":" +
               std::to_string(COMPANION_PROTOCOL_VERSION) + "}");
+}
+
+void CompanionService::publish_focus_targets_() {
+  if (!this->focus_targets_supported_.load()) return;
+  const int socket_fd = this->session_.authenticated_socket();
+  if (socket_fd < 0) return;
+  const auto snapshot = companion_runtime_snapshot();
+  companion_protocol::FocusTargets payload;
+  for (const auto &target : snapshot.url_focus_targets) {
+    if (!safe_field(target.id, 96) || target.url.size() < 8 || target.url.size() > 128) continue;
+    payload.items.push_back({target.id, target.url});
+  }
+  payload.webAppIDs = snapshot.web_app_focus_ids;
+  if (this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
+        companion_protocol::encode(root, payload);
+      }))) {
+    this->focus_targets_generation_.store(snapshot.url_focus_targets_generation);
+  }
+}
+
+void CompanionService::restore_focus_targets_() {
+  auto stored = std::unique_ptr<CompanionFocusTargetsPreference>(
+      new (std::nothrow) CompanionFocusTargetsPreference{});
+  if (!stored || !this->focus_targets_preferences_.load(stored.get()) || stored->version != 1 ||
+      stored->url_count > 64 || stored->web_app_count > 64) return;
+  std::vector<CompanionURLFocusTarget> targets;
+  std::vector<std::string> web_app_ids;
+  targets.reserve(stored->url_count);
+  web_app_ids.reserve(stored->web_app_count);
+  for (size_t i = 0; i < stored->url_count; ++i) {
+    const char *value = stored->urls[i];
+    const auto *end = static_cast<const char *>(std::memchr(value, '\0', sizeof(stored->urls[i])));
+    if (!end) continue;
+    const std::string url(value, static_cast<size_t>(end - value));
+    const std::string id = companion_url_card_focus_id(
+        "url." + companion_encode_url_focus_value(url));
+    if (companion_url_focus_target_valid(id, url)) targets.push_back({id, url});
+  }
+  for (size_t i = 0; i < stored->web_app_count; ++i) {
+    const char *value = stored->web_app_ids[i];
+    const auto *end = static_cast<const char *>(std::memchr(value, '\0', sizeof(stored->web_app_ids[i])));
+    if (end) web_app_ids.emplace_back(value, static_cast<size_t>(end - value));
+  }
+  companion_set_focus_registrations(std::move(targets), std::move(web_app_ids));
+}
+
+void CompanionService::save_focus_targets_() {
+  const auto snapshot = companion_runtime_snapshot();
+  auto stored = std::unique_ptr<CompanionFocusTargetsPreference>(
+      new (std::nothrow) CompanionFocusTargetsPreference{});
+  if (!stored) {
+    ESP_LOGW(TAG, "Could not allocate Companion browser focus registration storage");
+    return;
+  }
+  size_t url_count = 0;
+  for (const auto &target : snapshot.url_focus_targets) {
+    if (url_count >= 64 || !companion_url_focus_target_valid(target.id, target.url)) continue;
+    std::memcpy(stored->urls[url_count], target.url.c_str(), target.url.size() + 1);
+    ++url_count;
+  }
+  size_t web_app_count = 0;
+  for (const auto &id : snapshot.web_app_focus_ids) {
+    if (web_app_count >= 64 || id.empty() || id.size() > 64) continue;
+    std::memcpy(stored->web_app_ids[web_app_count], id.c_str(), id.size() + 1);
+    ++web_app_count;
+  }
+  stored->url_count = static_cast<uint8_t>(url_count);
+  stored->web_app_count = static_cast<uint8_t>(web_app_count);
+  if (!this->focus_targets_preferences_.save(stored.get()))
+    ESP_LOGW(TAG, "Could not persist Companion browser focus registrations");
 }
 
 bool CompanionService::invoke_(const std::string &action_id, const std::string &request_id,

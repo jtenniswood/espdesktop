@@ -21,6 +21,7 @@ import type { GridMigrationFeature } from "./grid_migration";
 export interface StateLoaderDependencies {
     readonly subpageEntityKeys: () => string[];
     readonly connectEvents: () => void;
+    readonly publishCompanionURLTargets?: () => void;
 }
 
 export interface StateLoaderFeature {
@@ -130,7 +131,9 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
             clearTimeout(runtime.sliderMigrationTimer as any);
             runtime.pendingSliderSubpageMigrations = {};
             loadStateItems(settingsStateEntities(), handleState, 2).then(function (this: any) {
-                loadStateItems(subpageStateEntities(), handleState, 2);
+                loadStateItems(subpageStateEntities(), handleState, 2).then(function (this: any) {
+                    dependencies.publishCompanionURLTargets?.();
+                });
             });
         });
     }

@@ -1,25 +1,26 @@
-# App shortcut files
+# Native Mac app shortcut catalogues
 
-Each `*.json` file defines one Mac application's keyboard shortcuts. `python3 scripts/build.py companion` discovers every file in this directory and generates the browser catalog and firmware lookup tables. Adding an app does not require app-specific TypeScript or C++ registration. These definitions are packaged into EspDesktop builds; they are not downloaded by a running display or installed by uploading a JSON file.
+This folder contains the editable templates used for native Mac app shortcuts. The Mac Companion reads `manifest.json` and its listed templates from the EspDesktop GitHub repository at launch and reconnect. It sends the validated definitions to the paired display, where the web configurator uses them to build app subpages and shortcut choices. The display does not fetch GitHub directly.
 
-To add an app, copy an existing file such as `safari.json` to a short, descriptive filename, then update its app identity, label, and shortcuts. Keep each app in its own file.
+EspDesktop builds also bundle a starter copy for offline use. `python3 scripts/build.py companion` regenerates that starter copy and the browser/firmware lookup tables from the live catalogue files. A merged template update is fetched by existing Mac Companion installations without a new app release.
 
-## Match the exact Mac app
+## Add or update a native app
 
-`appId` must be the app's exact macOS bundle identifier (`CFBundleIdentifier`). The Mac Companion catalog uses this identifier when it lists approved apps. Matching is by this identifier, not by the `.app` filename or the visible name, so two apps with the same display name can still have separate definitions.
+1. Copy [`examples/example-editor.json`](examples/example-editor.json) to a new top-level JSON file in this folder. The examples directory is reference material and is not part of the live catalogue.
+2. Set `appId` to the app's exact macOS bundle identifier (`CFBundleIdentifier`). For example, find it in Terminal with:
 
-To look up an app's bundle identifier, replace the example path with the app's actual location and run this in Terminal:
+   ```sh
+   /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
+     "/Applications/Your App.app/Contents/Info.plist"
+   ```
 
-```sh
-/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
-  "/Applications/Your App.app/Contents/Info.plist"
-```
+3. Add shortcuts in the order you want them shown. Use the field rules below and keep existing shortcut IDs stable.
+4. Add the new template filename to `manifest.json` and increment `catalogueVersion` whenever a template or the manifest changes. Keep `formatVersion` at `1` unless the manifest structure changes. Raise `minimumCompanionVersion` only when the new data needs a newer Companion reader.
+5. Run the validation and generation commands below, then submit the template, manifest, and generated outputs together in a PR.
 
-Copy the returned value exactly into `appId`. Set `label` to the name users see in the Companion app list; it is a friendly label and does not control matching. If the app is not in `/Applications`, use its actual `.app` path.
+The manifest must list every top-level template JSON file in this folder exactly once. Keep examples in the `examples/` subfolder; do not add them to the manifest.
 
-For example, Safari's bundle identifier is `com.apple.Safari`. A definition with that `appId` applies to the Safari app, even if the JSON file has a different filename. The app must be approved in the Mac Companion app to use its Applications card and app subpage.
-
-## File format
+## Template fields
 
 ```json
 {
@@ -28,67 +29,33 @@ For example, Safari's bundle identifier is `com.apple.Safari`. A definition with
   "label": "Example Editor",
   "catalog": true,
   "shortcuts": [
-    {
-      "id": "0",
-      "label": "New Document",
-      "shortcut": "command+n",
-      "icon": "Plus"
-    }
+    { "id": "0", "label": "New Document", "shortcut": "command+n", "icon": "Plus" }
   ]
 }
 ```
 
-| Field | Meaning |
-| --- | --- |
-| `version` | File format version; currently `1`. |
-| `appId` | Unique Mac bundle identifier, at most 96 bytes. |
-| `label` | App name shown in the editor and on unlabelled app subpages, at most 48 bytes. |
-| `catalog` | `true` includes this app in the standalone **Shortcut Catalog** picker. `false` keeps its presets available to matching app subpages only. |
-| `shortcuts` | Between 1 and 64 entries, in the desired display order. Existing subpage capacity checks still apply. |
-| Shortcut `id` | Permanent numeric string from `"0"` to `"999"`, unique within the app. This is an identity, not a position in the list. |
-| Shortcut `label` | Short card name, at most 48 bytes. |
-| Shortcut `shortcut` | Modifier/key combination, without the `shortcut.` prefix. |
-| Shortcut `icon` | Exact icon name from `product/v2/icons.json`, such as `Plus` or `Chevron Left`. |
+- `appId`: exact bundle ID, used to match the approved Mac app.
+- `label`: app name shown in Companion; up to 48 bytes.
+- `catalog`: set to `true` to include these shortcuts in the standalone **Shortcut Catalog** picker. Set to `false` to offer them only on that app's subpage.
+- `shortcuts`: 1–64 items. IDs are permanent numeric strings from `"0"` to `"999"`; keep an ID when renaming or reordering a shortcut, and never reuse a removed ID.
+- Each shortcut's `icon` must be a name from `product/v2/icons.json`.
 
-Every valid app file supplies templates for the matching **Applications → App subpage**. The `catalog` flag controls only whether those same templates can be selected as standalone **Companion → Keyboard shortcut** cards. For example, the current Safari file is in the standalone catalog; Codex and Slack are currently subpage-only.
+Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 
-## Stable shortcut IDs
+The current live files are useful examples too: Safari is in the standalone catalog; Codex and Slack provide app-subpage presets only.
 
-Keep an existing shortcut's `id` when renaming it or moving it in the file. Give each new shortcut an unused ID; gaps are fine. Never reuse a removed ID for a different action. The Safari, Codex, and Slack IDs were kept when their earlier definitions were imported into this format.
+## Validate and generate
 
-Changing a definition does not overwrite existing saved card key combinations, labels, or icons. Removing a definition leaves saved cards usable as custom shortcuts. Saved subpages keep each user's chosen order and edited cards. Review removals carefully because those entries will no longer be selectable as presets.
+```sh
+python3 scripts/build.py companion icons www
+python3 scripts/build.py --check
+python3 scripts/check_app_shortcuts.py
+npm run check:types
+npm run test:web-unit
+```
 
-## Supported keys
+Do not edit `src/webserver/generated/app_shortcuts.ts`, `components/espdesktop/app_shortcuts_generated.h`, or the generated Mac resource copies directly. If you add an icon name, first add it to `product/v2/icons.json` and its gallery group in `docs/.vitepress/theme/components/IconGallery.vue`, then run `python3 scripts/check_product_snapshot.py --update` and the generation commands above.
 
-Use lowercase modifiers `command`, `control`, `option`, and `shift`, joined with `+`, followed by one key. Include at least Command, Control, or Option; do not repeat a modifier. For example: `command+shift+t` or `control+tab`.
+Existing user-saved shortcut cards and app subpages keep their own labels, key combinations, icons, and order. A template update changes new choices and generated defaults; it does not rewrite saved user layouts. Removing a template also leaves saved custom shortcuts usable.
 
-Supported keys:
-
-- Letters `a`–`z`, digits `0`–`9`, and `f1`–`f20`.
-- `space`, `enter`, `tab`, `escape`, `delete`, `forwarddelete`.
-- `left`, `right`, `up`, `down`, `home`, `end`, `pageup`, `pagedown`.
-- `keycomma`, `keyperiod`, `keyslash`, `keysemicolon`, `keyquote`, `keybackslash`, `keyminus`, `keyequal`, `keybracketleft`, `keybracketright`, `keybackquote`.
-
-Shortcuts replay keyboard input in the active Mac app. A catalog entry does not launch its app or run a shell command. Verify the combination in the target application and note any keyboard-layout or app-version requirements in the contribution's PR.
-
-## Submit a template through a PR
-
-1. Add one JSON file to `product/v2/app_shortcuts/`, using the format above. Choose `catalog: true` for standalone card choices, or `false` if the shortcuts should appear only on that app's subpage.
-2. Use the exact bundle identifier and existing icon names. Keep existing numeric shortcut IDs stable.
-3. From the repository root, generate and check the shared outputs:
-
-   ```sh
-   python3 scripts/build.py companion icons www
-   python3 scripts/build.py --check
-   python3 scripts/check_app_shortcuts.py
-   npm run check:types
-   npm run test:web-unit
-   ```
-
-4. Include the new JSON file and generated outputs in the PR. In the PR description, name the app/version and macOS version, identify the bundle ID, and say which combinations you confirmed in the app.
-
-CI checks the file format and generated output. After the PR is reviewed and merged, the normal Companion and web asset build automatically discovers the new file and packages its templates. No one needs to edit an app registration list. The catalog is build-time data rather than a live download, so the new template reaches users with the next build or release that includes it; an open or unmerged PR is not installed on displays.
-
-Do not edit `src/webserver/generated/app_shortcuts.ts` or `components/espdesktop/app_shortcuts_generated.h` directly. If adding a new icon, add its pinned definition to `product/v2/icons.json` and its gallery group in `docs/.vitepress/theme/components/IconGallery.vue` before building, then run `python3 scripts/check_product_snapshot.py --update`. Choosing an existing icon avoids these extra steps.
-
-Test on a supported display with matching firmware and web assets: select the app and shortcut, save and reload, check its name/icon, and tap the card with the intended Mac app at the front. Also test its app subpage and existing saved shortcuts. Automated validation does not establish that a shortcut performs the intended action in the application.
+For a test display, select the app and a shortcut, save and reload, check its name and icon, then tap it with the intended Mac app at the front. Also check the app subpage and existing saved shortcuts. Automated checks do not confirm that a binding performs the intended action in the target app.

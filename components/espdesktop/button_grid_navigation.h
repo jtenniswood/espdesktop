@@ -10,6 +10,10 @@
 // Implemented by button_grid_image.h; navigation calls this when a subpage
 // becomes active after the S3 camera screensaver released image buffers.
 inline void refresh_visible_image_cards();
+inline void image_card_set_clock_bar_companion_icon(
+    const std::string &entity_id, const std::string &icon_name,
+    const std::string &source_url);
+inline void navigation_refresh_subpage_label();
 
 // ── Home Assistant-driven home-screen navigation ─────────────────────
 
@@ -105,6 +109,7 @@ inline bool navigation_return_home(lv_obj_t *main_page_obj) {
   if (lv_scr_act() != main_page_obj) {
     lv_scr_load_anim(main_page_obj, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
   }
+  navigation_refresh_subpage_label();
   return true;
 }
 
@@ -129,6 +134,7 @@ inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   }
   grid_navigation_service().clear_subpages();
   clock_bar_clear_button_grid_pages();
+  navigation_refresh_subpage_label();
 }
 
 inline void navigation_register_home_target(int slot, int display_order,
@@ -152,6 +158,7 @@ inline std::function<void()> &navigation_subpage_clock_bar_refresh() {
 }
 
 inline void navigation_subpage_screen_changed(lv_event_t *) {
+  navigation_refresh_subpage_label();
   auto &refresh = navigation_subpage_clock_bar_refresh();
   if (refresh) refresh();
 }
@@ -279,8 +286,30 @@ inline std::string navigation_active_subpage_label() {
 }
 
 inline void navigation_refresh_subpage_label() {
-  set_clock_bar_companion_subpage_label(network_status_modal_ui().overlay
-      ? espdesktop_i18n(std::string("Settings")) : navigation_active_subpage_label());
+  if (network_status_modal_ui().overlay) {
+    set_clock_bar_companion_subpage_label(espdesktop_i18n(std::string("Settings")));
+    image_card_set_clock_bar_companion_icon("", "", "");
+    return;
+  }
+  set_clock_bar_companion_subpage_label(navigation_active_subpage_label());
+  const int slot = navigation_active_subpage_slot();
+  NavigationSubpageEntry *entry = navigation_find_slot(slot);
+  NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
+  if (!entry || entry->kind != "app_shortcuts" || !parent) {
+    image_card_set_clock_bar_companion_icon("", "", "");
+    return;
+  }
+  const ParsedCfg config = parse_cfg(parent->config);
+  if (!companion_app_shortcuts_enabled(config)) {
+    image_card_set_clock_bar_companion_icon("", "", "");
+    return;
+  }
+  const bool web_app = config.entity.rfind("webapp.", 0) == 0;
+  const std::string icon_name = config.icon.empty() || config.icon == "Auto"
+      ? (web_app ? "Web" : "Monitor") : config.icon;
+  const std::string icon_url = web_app
+      ? companion_web_app_icon_url(config.entity) : "";
+  image_card_set_clock_bar_companion_icon(config.entity, icon_name, icon_url);
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(

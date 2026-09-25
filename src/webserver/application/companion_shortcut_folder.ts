@@ -1,5 +1,17 @@
-import { COMPANION_SHORTCUT_APPS } from "../generated/app_shortcuts";
-export { COMPANION_SHORTCUT_APPS } from "../generated/app_shortcuts";
+import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS } from "../generated/app_shortcuts";
+import { COMPANION_WEB_APPS as BUNDLED_WEB_APPS } from "../generated/web_apps";
+import type { AppShortcutApplication } from "../generated/app_shortcuts";
+import type { WebAppDefinition } from "../generated/web_apps";
+export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
+export const COMPANION_WEB_APPS: WebAppDefinition[] = [...BUNDLED_WEB_APPS];
+
+export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[], webApps: readonly WebAppDefinition[]): boolean {
+    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(apps);
+    const webChanged = JSON.stringify(COMPANION_WEB_APPS) !== JSON.stringify(webApps);
+    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...apps);
+    if (webChanged) COMPANION_WEB_APPS.splice(0, COMPANION_WEB_APPS.length, ...webApps);
+    return shortcutChanged || webChanged;
+}
 import {
     configOptionEnabled,
     configOptionValue,
@@ -46,9 +58,11 @@ export interface CompanionShortcutTabDefinition {
 
 export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): string {
     if (bundleIdentifier === "com.apple.finder") return "Finder";
-    return typeof bundleIdentifier === "string"
-        ? COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.label || ""
-        : "";
+    if (typeof bundleIdentifier !== "string") return "";
+    if (bundleIdentifier.startsWith("webapp.")) {
+        return COMPANION_WEB_APPS.find((app) => "webapp." + app.id === bundleIdentifier)?.label || "";
+    }
+    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.label || "";
 }
 
 export function companionAppShortcutFolderEnabled(card: any): boolean {
@@ -59,15 +73,27 @@ export function companionAppShortcutFolderEnabled(card: any): boolean {
 
 export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
+    const retainWebAppTitle = typeof card.entity === "string" && card.entity.startsWith("webapp.") &&
+        configOptionEnabled(card.options, "webapp_icon_title");
+    const finish = (options: string): string => retainWebAppTitle
+        ? setConfigOption(options, "webapp_icon_title", true) : options;
     const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
     if (presetMarker === COMPANION_SHORTCUT_CUSTOM_PRESET && companionShortcutActionIdValid(card.entity)) {
-        return setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker);
+        return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker));
     }
     const presetIdentity = companionShortcutPresetIdentity(card);
     if (presetIdentity && companionShortcutActionIdValid(card.entity)) {
-        return setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity);
+        return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity));
     }
-    if (!companionShortcutFolderAppLabel(card.entity) || card.sensor) return "";
+    if (!companionShortcutFolderAppLabel(card.entity)) {
+        const identifier = typeof card.entity === "string" ? card.entity : "";
+        const mayBeRemoteApplication = identifier.startsWith("webapp.") ||
+            /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$/.test(identifier);
+        // A remote definition may arrive after saved cards have been parsed.
+        // Keep its options intact so startup cannot migrate them away.
+        return finish(mayBeRemoteApplication ? String(card.options || "") : "");
+    }
+    if (card.sensor) return finish("");
     const behavior = configOptionValue(card.options, FINDER_OPEN_BEHAVIOR_OPTION);
     let options = card.entity === "com.apple.finder" &&
         (behavior === "same_window" || behavior === "new_window")
@@ -77,12 +103,12 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         COMPANION_APP_SHORTCUTS_OPTION,
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
-    if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return options;
+    if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return finish(options);
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :
         tabs.join("|") === defaults.join("|") ? "" : tabs.join("|");
-    return setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, value);
+    return finish(setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, value));
 }
 
 export function setCompanionAppShortcutFolderEnabled(card: any, enabled: boolean): void {
@@ -133,8 +159,11 @@ export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOp
 }
 
 export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
-    const app = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier);
-    return (app?.shortcuts || []).map((item) => ({ value: item.id, label: item.label }));
+    const appShortcuts = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.shortcuts;
+    const webAppShortcuts = bundleIdentifier.startsWith("webapp.")
+        ? COMPANION_WEB_APPS.find((app) => "webapp." + app.id === bundleIdentifier)?.shortcuts
+        : COMPANION_WEB_APPS.find((app) => app.id === bundleIdentifier)?.shortcuts;
+    return (appShortcuts || webAppShortcuts || []).map((item) => ({ value: item.id, label: item.label }));
 }
 
 export function companionShortcutDefaultTabs(bundleIdentifier: string): string[] {
@@ -219,7 +248,7 @@ function shortcutCard(entity: string, label: string, icon: string): CompanionSho
 }
 
 function companionShortcutPresetKey(bundleIdentifier: string, index: number): string {
-    const id = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.shortcuts[index]?.id;
+    const id = companionShortcutTabDefinitions(bundleIdentifier)[index]?.value;
     return id == null ? "" : bundleIdentifier + ":" + id;
 }
 
@@ -245,8 +274,7 @@ function companionShortcutPresetIdentity(card: any): string {
     if (!match) return "";
     const bundleIdentifier = match[1] || "";
     const id = match[2];
-    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.shortcuts.some((item) => item.id === id)
-        ? raw : "";
+    return companionShortcutTabDefinitions(bundleIdentifier).some((item) => item.value === id) ? raw : "";
 }
 
 export function safariShortcutPresetCards(): CompanionShortcutPresetCard[] {
@@ -263,7 +291,9 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {
     const app = COMPANION_SHORTCUT_APPS.find((candidate) => candidate.appId === bundleIdentifier);
-    return markCompanionShortcutPresets(bundleIdentifier, (app?.shortcuts || []).map((item) =>
+    const webAppId = bundleIdentifier.replace(/^webapp\./, "");
+    const webApp = COMPANION_WEB_APPS.find((candidate) => candidate.id === webAppId);
+    return markCompanionShortcutPresets(bundleIdentifier, (app?.shortcuts || webApp?.shortcuts || []).map((item) =>
         shortcutCard(COMPANION_SHORTCUT_PREFIX + item.shortcut, item.label, item.icon)));
 }
 
