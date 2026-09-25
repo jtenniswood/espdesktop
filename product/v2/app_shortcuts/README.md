@@ -42,7 +42,7 @@ The manifest must list every top-level template JSON file in this folder exactly
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 
-The current live files are useful examples too: Safari is in the standalone catalog; Codex and Slack provide app-subpage presets only.
+The current live files are useful examples too: Safari is in the standalone catalog; the other app templates provide shortcuts on their matching app subpages.
 
 ## Validate and generate
 
