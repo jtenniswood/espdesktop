@@ -549,6 +549,7 @@ function composeApplicationContext(): ApplicationContext {
     gridMigration,
     {
       subpageEntityKeys: configurationPersistence.subpageEntityKeys,
+      specialPageEntityKeys: configurationPersistence.specialPageEntityKeys,
       connectEvents: () => appEvents.connect(),
     },
   );

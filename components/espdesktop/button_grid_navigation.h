@@ -3,6 +3,8 @@
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 #include <functional>
+#include <algorithm>
+#include <vector>
 
 #include "grid_navigation_service.h"
 #include "espdesktop_app_core.h"
@@ -37,6 +39,15 @@ struct NavigationSubpageEntry {
   std::vector<Card> cards;
 };
 
+inline NavigationSubpageEntry *navigation_find_slot(int slot);
+inline void navigation_register_subpage(int slot, int display_order,
+                                        const std::string &kind,
+                                        lv_obj_t *screen);
+inline void navigation_register_grid_screen_gesture(lv_obj_t *screen);
+
+// Keep the standalone page outside the range of home-card-owned subpages.
+constexpr int NAVIGATION_SPECIAL_PAGE_SLOT = MAX_GRID_SLOTS + 1;
+
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry);
 
 using ButtonGridNavigationService =
@@ -62,6 +73,21 @@ inline std::vector<NavigationHomeTargetEntry> &navigation_home_targets() {
 
 inline std::vector<NavigationSubpageEntry> &navigation_subpages() {
   return grid_navigation_service().subpages();
+}
+
+inline lv_obj_t *&navigation_special_page_previous_screen() {
+  static lv_obj_t *screen = nullptr;
+  return screen;
+}
+
+inline lv_obj_t *&navigation_special_page_main_screen() {
+  static lv_obj_t *screen = nullptr;
+  return screen;
+}
+
+inline bool &navigation_special_page_back_button_marker() {
+  static bool marker = false;
+  return marker;
 }
 
 inline std::string navigation_trim(const std::string &value) {
@@ -106,6 +132,57 @@ inline bool navigation_return_home(lv_obj_t *main_page_obj) {
     lv_scr_load_anim(main_page_obj, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
   }
   return true;
+}
+
+inline bool navigation_return_from_special_page() {
+  navigation_hide_modals();
+  lv_obj_t *previous = navigation_special_page_previous_screen();
+  navigation_special_page_previous_screen() = nullptr;
+  if (previous == nullptr || !lv_obj_is_valid(previous)) {
+    previous = navigation_special_page_main_screen();
+    if (previous == nullptr || !lv_obj_is_valid(previous)) return false;
+  }
+  if (lv_scr_act() != previous) {
+    lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  }
+  refresh_visible_image_cards();
+  return true;
+}
+
+inline bool navigation_open_special_page() {
+  NavigationSubpageEntry *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+  if (entry == nullptr || entry->screen == nullptr) return false;
+  if (lv_scr_act() != entry->screen) {
+    navigation_special_page_previous_screen() = lv_scr_act();
+    navigation_hide_modals();
+    lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    refresh_visible_image_cards();
+  }
+  return true;
+}
+
+inline void navigation_grid_screen_gesture(lv_event_t *event) {
+  if (event == nullptr || lv_event_get_code(event) != LV_EVENT_GESTURE) return;
+  lv_indev_t *indev = lv_indev_active();
+  if (indev != nullptr && lv_indev_get_gesture_dir(indev) == LV_DIR_TOP) {
+    if (navigation_open_special_page()) lv_indev_wait_release(indev);
+  }
+}
+
+inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
+  (void) screen;
+  static std::vector<lv_indev_t *> registered_devices;
+  lv_indev_t *indev = nullptr;
+  while ((indev = lv_indev_get_next(indev)) != nullptr) {
+    if (lv_indev_get_type(indev) != LV_INDEV_TYPE_POINTER ||
+        std::find(registered_devices.begin(), registered_devices.end(), indev) !=
+            registered_devices.end()) {
+      continue;
+    }
+    lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
+                          LV_EVENT_GESTURE, nullptr);
+    registered_devices.push_back(indev);
+  }
 }
 
 inline void navigation_clear_home_targets() {
@@ -173,6 +250,13 @@ inline void navigation_register_subpage(int slot, int display_order,
                       LV_EVENT_SCREEN_LOADED, nullptr);
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,
                       LV_EVENT_SCREEN_UNLOADED, nullptr);
+}
+
+inline void navigation_register_special_page(lv_obj_t *screen,
+                                             lv_obj_t *main_page_obj) {
+  navigation_special_page_main_screen() = main_page_obj;
+  navigation_register_subpage(NAVIGATION_SPECIAL_PAGE_SLOT, 0, "special", screen);
+  navigation_register_grid_screen_gesture(screen);
 }
 
 inline int navigation_slot_from_target(const std::string &target) {

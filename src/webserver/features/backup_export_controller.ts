@@ -10,6 +10,7 @@ export interface BackupNativeConfigSource {
   readonly deviceProfile: string;
   readonly buttons: readonly CardConfig[];
   readonly subpages: Readonly<Record<string, unknown>>;
+  readonly specialPage?: string;
   readonly buttonOrder?: string;
   readonly buttonOnColor?: string;
 }
@@ -78,6 +79,7 @@ export function createBackupExportController(
       settings: {
         button_order: source.buttonOrder || backup.button_order || "",
         button_on_color: source.buttonOnColor || backup.button_on_color || "",
+        special_page: source.specialPage || "",
       },
     }));
     return backup as Backup & { native_config: PanelConfigBackupPayload };
