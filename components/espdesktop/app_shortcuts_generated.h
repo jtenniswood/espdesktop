@@ -29,7 +29,6 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.apple.FaceTime") return "FaceTime";
   if (app == "com.figma.Desktop") return "Figma";
   if (app == "com.apple.FinalCut") return "Final Cut Pro";
-  if (app == "com.apple.finder") return "Finder";
   if (app == "org.mozilla.firefox") return "Firefox";
   if (app == "com.apple.freeform") return "Freeform";
   if (app == "com.apple.garageband10") return "GarageBand";
@@ -111,7 +110,6 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.apple.FaceTime") return id == "0" || id == "1";
   if (app == "com.figma.Desktop") return id == "0" || id == "1" || id == "2" || id == "3";
   if (app == "com.apple.FinalCut") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
-  if (app == "com.apple.finder") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "org.mozilla.firefox") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.apple.freeform") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.apple.garageband10") return id == "0" || id == "1" || id == "2" || id == "3";

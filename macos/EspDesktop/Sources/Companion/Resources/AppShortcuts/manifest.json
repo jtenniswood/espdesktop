@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 3,
+  "catalogueVersion": 4,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -80,9 +80,6 @@
     },
     {
       "path": "final-cut-pro.json"
-    },
-    {
-      "path": "finder.json"
     },
     {
       "path": "firefox.json"
