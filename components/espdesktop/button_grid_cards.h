@@ -45,6 +45,7 @@ struct CompanionAppIconImageData {
   bool card_palette_ready = false;
   bool palette_applied = false;
   bool fill_card = false;
+  bool medium_icon = false;
 
   ~CompanionAppIconImageData() {
     if (pixels) pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
@@ -201,7 +202,32 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   } else {
     const lv_font_t *icon_font = source.fallback_icon
         ? lv_obj_get_style_text_font(source.fallback_icon, LV_PART_MAIN) : nullptr;
-    const lv_coord_t target_side = icon_font ? icon_font->line_height : 48;
+    const lv_coord_t small_side = icon_font ? icon_font->line_height : 48;
+    lv_coord_t target_side = small_side;
+    if (source.medium_icon) {
+      lv_obj_t *button = lv_obj_get_parent(image);
+      lv_obj_update_layout(button);
+      const lv_coord_t button_width = lv_obj_get_width(button);
+      const lv_coord_t button_height = lv_obj_get_height(button);
+      const lv_coord_t pad_left = lv_obj_get_style_pad_left(button, LV_PART_MAIN);
+      const lv_coord_t pad_right = lv_obj_get_style_pad_right(button, LV_PART_MAIN);
+      const lv_coord_t pad_top = lv_obj_get_style_pad_top(button, LV_PART_MAIN);
+      const lv_coord_t pad_bottom = lv_obj_get_style_pad_bottom(button, LV_PART_MAIN);
+      const lv_coord_t gap = std::max<lv_coord_t>(4, small_side / 4);
+      lv_coord_t label_height = 0;
+      if (source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)) {
+        const lv_font_t *label_font = lv_obj_get_style_text_font(source.card_label, LV_PART_MAIN);
+        label_height = label_font && label_font->line_height > 0 ? label_font->line_height : 16;
+      }
+      const lv_coord_t max_width = std::max<lv_coord_t>(1, button_width - pad_left - pad_right);
+      const lv_coord_t max_height = std::max<lv_coord_t>(1,
+          button_height - pad_top - pad_bottom - label_height - (label_height > 0 ? gap : 0));
+      target_side = std::min<lv_coord_t>(small_side * 2, std::min(max_width, max_height));
+      if (source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)) {
+        lv_label_set_long_mode(source.card_label, LV_LABEL_LONG_DOT);
+        lv_obj_set_width(source.card_label, lv_pct(100));
+      }
+    }
     lv_obj_set_size(image, target_side, target_side);
     lv_obj_align(image, LV_ALIGN_TOP_LEFT, 0, 0);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
@@ -233,7 +259,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
 }
 
 inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
-                                          bool fill_card = false) {
+                                          bool fill_card = false, bool medium_icon = false) {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -262,6 +288,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
   source->fill_card = fill_card;
+  source->medium_icon = medium_icon && !fill_card;
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
 }
 
@@ -483,13 +510,22 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   }
+  const bool medium_app_icon = companion_app_launch_card(p) &&
+      companion_app_icon_enabled(p) &&
+      !cfg_option_token_present(p.options, "app_icon_fill") &&
+      cfg_option_token_present(p.options, "app_icon_medium");
+  if (companion_app_launch_card(p)) {
+    lv_label_set_long_mode(s.text_lbl, medium_app_icon ? LV_LABEL_LONG_DOT : LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(s.text_lbl, lv_pct(100));
+  }
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon("Monitor") : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
   if (companion_app_icon_enabled(p)) {
 #ifdef USE_COMPANION
     companion_set_card_icon_image(
-        s, p.entity, cfg_option_token_present(p.options, "app_icon_fill"));
+        s, p.entity, cfg_option_token_present(p.options, "app_icon_fill"),
+        cfg_option_token_present(p.options, "app_icon_medium"));
     esphome::companion::request_app_icon(p.entity);
 #endif
   } else if (s.app_icon_img) {

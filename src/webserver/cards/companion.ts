@@ -1451,14 +1451,16 @@ export function registerCompanionCardTypes(
                 iconSizeLabel.htmlFor = iconSizeSelect.id;
                 iconSizeLabel.textContent = "Mac app icon";
                 iconSizeSelect.setAttribute("aria-label", "Mac app icon size");
-                iconSizeSelect.innerHTML = '<option value="small">Small</option><option value="fill">Fill card</option>';
-                iconSizeSelect.value = configOptionEnabled(card.options, "app_icon_fill") ? "fill" : "small";
+                iconSizeSelect.innerHTML = '<option value="small">Small</option><option value="medium">Medium</option><option value="fill">Fill card</option>';
+                iconSizeSelect.value = configOptionEnabled(card.options, "app_icon_fill")
+                    ? "fill" : configOptionEnabled(card.options, "app_icon_medium") ? "medium" : "small";
                 iconSizeRow.appendChild(iconSizeLabel);
                 iconSizeRow.appendChild(iconSizeSelect);
                 panel?.appendChild(iconSizeRow);
                 iconSizeRow.style.display = customIcon ? "none" : "";
                 iconSizeSelect.addEventListener("change", function () {
                     card.options = setConfigOption(card.options, "app_icon_fill", iconSizeSelect.value === "fill");
+                    card.options = setConfigOption(card.options, "app_icon_medium", iconSizeSelect.value === "medium");
                     helpers.saveField("options", card.options);
                     renderPreview();
                 });
@@ -1595,6 +1597,7 @@ export function registerCompanionCardTypes(
             if (companionAppIconEnabled(card)) {
                 preview.appIconId = card.entity;
                 preview.appIconFill = configOptionEnabled(card.options, "app_icon_fill");
+                preview.appIconMedium = !preview.appIconFill && configOptionEnabled(card.options, "app_icon_medium");
                 const background = configOptionValue(card.options, "app_bg_color").toUpperCase();
                 if (/^[0-9A-F]{6}$/.test(background)) preview.appIconBackgroundColor = background;
                 preview.iconHtml = preview.iconHtml.replace(

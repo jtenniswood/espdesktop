@@ -3098,6 +3098,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "docsHidden": true
       },
       {
+        "name": "app_icon_medium",
+        "label": "Use medium app icon size",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "webapp_icon_title",
         "label": "Large icon with title",
         "kind": "flag",
@@ -3158,7 +3166,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "webapp_icon_title",
         "app_bg_color",
         "app_hide_label",
-        "app_icon_fill"
+        "app_icon_fill",
+        "app_icon_medium"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -4908,6 +4917,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_bg_color": "app_bg_color",
   "app_hide_label": "app_hide_label",
   "app_icon_fill": "app_icon_fill",
+  "app_icon_medium": "app_icon_medium",
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
