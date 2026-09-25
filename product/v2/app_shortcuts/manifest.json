@@ -1,10 +1,103 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 1,
+  "catalogueVersion": 2,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
-    { "path": "codex.json" },
-    { "path": "safari.json" },
-    { "path": "slack.json" }
+    {
+      "path": "bambu-studio.json"
+    },
+    {
+      "path": "books.json"
+    },
+    {
+      "path": "calendar.json"
+    },
+    {
+      "path": "codex.json"
+    },
+    {
+      "path": "facetime.json"
+    },
+    {
+      "path": "figma.json"
+    },
+    {
+      "path": "final-cut-pro.json"
+    },
+    {
+      "path": "freeform.json"
+    },
+    {
+      "path": "google-chrome.json"
+    },
+    {
+      "path": "hermes-agent.json"
+    },
+    {
+      "path": "iterm2.json"
+    },
+    {
+      "path": "mail-plus-for-gmail.json"
+    },
+    {
+      "path": "mail.json"
+    },
+    {
+      "path": "maps.json"
+    },
+    {
+      "path": "messages.json"
+    },
+    {
+      "path": "music.json"
+    },
+    {
+      "path": "notes.json"
+    },
+    {
+      "path": "orca-slicer.json"
+    },
+    {
+      "path": "photos.json"
+    },
+    {
+      "path": "pixelmator-pro.json"
+    },
+    {
+      "path": "podcasts.json"
+    },
+    {
+      "path": "preview.json"
+    },
+    {
+      "path": "quicktime-player.json"
+    },
+    {
+      "path": "reminders.json"
+    },
+    {
+      "path": "safari.json"
+    },
+    {
+      "path": "slack.json"
+    },
+    {
+      "path": "spotify.json"
+    },
+    {
+      "path": "telegram.json"
+    },
+    {
+      "path": "tv.json"
+    },
+    {
+      "path": "whatsapp.json"
+    },
+    {
+      "path": "xcode.json"
+    },
+    {
+      "path": "zoom.json"
+    }
   ]
 }

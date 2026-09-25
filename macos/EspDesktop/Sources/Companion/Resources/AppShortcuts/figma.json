@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.figma.Desktop",
+  "label": "Figma",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Actions menu",
+      "shortcut": "command+k",
+      "icon": "Folder"
+    },
+    {
+      "id": "1",
+      "label": "Frame selection",
+      "shortcut": "option+command+g",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Duplicate selection",
+      "shortcut": "command+d",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Create component",
+      "shortcut": "option+command+k",
+      "icon": "Plus"
+    }
+  ]
+}

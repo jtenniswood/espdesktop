@@ -3,15 +3,73 @@
 #include <string>
 namespace companion_shortcut_catalog {
 inline const char *app_label(const std::string &app) {
+  if (app == "com.bambulab.bambu-studio") return "BambuStudio";
+  if (app == "com.apple.iBooksX") return "Books";
+  if (app == "com.apple.iCal") return "Calendar";
   if (app == "com.openai.codex") return "Codex";
+  if (app == "com.apple.FaceTime") return "FaceTime";
+  if (app == "com.figma.Desktop") return "Figma";
+  if (app == "com.apple.FinalCut") return "Final Cut Pro";
+  if (app == "com.apple.freeform") return "Freeform";
+  if (app == "com.google.Chrome") return "Google Chrome";
+  if (app == "com.nousresearch.hermes") return "Hermes";
+  if (app == "com.googlecode.iterm2") return "iTerm2";
+  if (app == "com.apple.mail") return "Mail";
+  if (app == "com.rockysandstudio.DeskApp-for-Gmail") return "Mail Plus for Gmail";
+  if (app == "com.apple.Maps") return "Maps";
+  if (app == "com.apple.MobileSMS") return "Messages";
+  if (app == "com.apple.Music") return "Music";
+  if (app == "com.apple.Notes") return "Notes";
+  if (app == "com.orcaslicer.OrcaSlicer") return "OrcaSlicer";
+  if (app == "com.apple.Photos") return "Photos";
+  if (app == "com.pixelmatorteam.pixelmator.x") return "Pixelmator Pro";
+  if (app == "com.apple.podcasts") return "Podcasts";
+  if (app == "com.apple.Preview") return "Preview";
+  if (app == "com.apple.QuickTimePlayerX") return "QuickTime Player";
+  if (app == "com.apple.reminders") return "Reminders";
   if (app == "com.apple.Safari") return "Safari";
   if (app == "com.tinyspeck.slackmacgap") return "Slack";
+  if (app == "com.spotify.client") return "Spotify";
+  if (app == "ru.keepcoder.Telegram") return "Telegram";
+  if (app == "com.apple.TV") return "TV";
+  if (app == "net.whatsapp.WhatsApp") return "WhatsApp";
+  if (app == "com.apple.dt.Xcode") return "Xcode";
+  if (app == "us.zoom.xos") return "Zoom";
   return "";
 }
 inline bool has_shortcut(const std::string &app, const std::string &id) {
+  if (app == "com.bambulab.bambu-studio") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
+  if (app == "com.apple.iBooksX") return id == "0" || id == "1";
+  if (app == "com.apple.iCal") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.openai.codex") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
+  if (app == "com.apple.FaceTime") return id == "0" || id == "1";
+  if (app == "com.figma.Desktop") return id == "0" || id == "1" || id == "2" || id == "3";
+  if (app == "com.apple.FinalCut") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
+  if (app == "com.apple.freeform") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
+  if (app == "com.google.Chrome") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
+  if (app == "com.nousresearch.hermes") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
+  if (app == "com.googlecode.iterm2") return id == "0" || id == "1" || id == "2" || id == "3";
+  if (app == "com.apple.mail") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
+  if (app == "com.rockysandstudio.DeskApp-for-Gmail") return id == "0" || id == "1";
+  if (app == "com.apple.Maps") return id == "0" || id == "1" || id == "2" || id == "3";
+  if (app == "com.apple.MobileSMS") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
+  if (app == "com.apple.Music") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
+  if (app == "com.apple.Notes") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "com.orcaslicer.OrcaSlicer") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
+  if (app == "com.apple.Photos") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "com.pixelmatorteam.pixelmator.x") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
+  if (app == "com.apple.podcasts") return id == "0" || id == "1" || id == "2" || id == "3";
+  if (app == "com.apple.Preview") return id == "0" || id == "1" || id == "2" || id == "3";
+  if (app == "com.apple.QuickTimePlayerX") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
+  if (app == "com.apple.reminders") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.apple.Safari") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
   if (app == "com.tinyspeck.slackmacgap") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "com.spotify.client") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
+  if (app == "ru.keepcoder.Telegram") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "com.apple.TV") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "net.whatsapp.WhatsApp") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
+  if (app == "com.apple.dt.Xcode") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
+  if (app == "us.zoom.xos") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   return false;
 }
 }  // namespace companion_shortcut_catalog

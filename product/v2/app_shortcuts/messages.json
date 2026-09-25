@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.apple.MobileSMS",
+  "label": "Messages",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Start a new message",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Show conversations from known senders",
+      "shortcut": "control+command+2",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Show conversations from unknown senders",
+      "shortcut": "control+command+3",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Search all conversations",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "4",
+      "label": "Go to the first unpinned conversation",
+      "shortcut": "option+command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Select the next conversation",
+      "shortcut": "control+tab",
+      "icon": "Chevron Right"
+    },
+    {
+      "id": "6",
+      "label": "Select the previous conversation",
+      "shortcut": "control+shift+tab",
+      "icon": "Chevron Left"
+    }
+  ]
+}

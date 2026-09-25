@@ -15,6 +15,150 @@ export interface AppShortcutApplication {
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {
     "version": 1,
+    "appId": "com.bambulab.bambu-studio",
+    "label": "BambuStudio",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Project",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Open Project",
+        "shortcut": "command+o",
+        "icon": "Folder"
+      },
+      {
+        "id": "2",
+        "label": "Save Project",
+        "shortcut": "command+s",
+        "icon": "Download"
+      },
+      {
+        "id": "3",
+        "label": "Import geometry",
+        "shortcut": "command+i",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Slice plate",
+        "shortcut": "command+r",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Print plate",
+        "shortcut": "command+shift+g",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Select all objects",
+        "shortcut": "command+a",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "8",
+        "label": "Redo",
+        "shortcut": "command+shift+z",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "9",
+        "label": "Clone selected",
+        "shortcut": "command+k",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.iBooksX",
+    "label": "Books",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Add a new collection to your library",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Search books",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.iCal",
+    "label": "Calendar",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Go to today’s date",
+        "shortcut": "command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Go to a specific date",
+        "shortcut": "shift+command+t",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Switch to Day view",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Switch to Week view",
+        "shortcut": "command+2",
+        "icon": "Application"
+      },
+      {
+        "id": "4",
+        "label": "Add a new calendar group",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "5",
+        "label": "Add a new subscribed calendar",
+        "shortcut": "option+command+s",
+        "icon": "Plus"
+      },
+      {
+        "id": "6",
+        "label": "Add a new event",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "7",
+        "label": "Search for events",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.openai.codex",
     "label": "Codex",
     "catalog": false,
@@ -60,6 +204,886 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Terminal",
         "shortcut": "control+keybackquote",
         "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.FaceTime",
+    "label": "FaceTime",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Toggle full screen",
+        "shortcut": "control+command+f",
+        "icon": "Video"
+      },
+      {
+        "id": "1",
+        "label": "Switch call orientation",
+        "shortcut": "command+r",
+        "icon": "Video"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.figma.Desktop",
+    "label": "Figma",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open Actions menu",
+        "shortcut": "command+k",
+        "icon": "Folder"
+      },
+      {
+        "id": "1",
+        "label": "Frame selection",
+        "shortcut": "option+command+g",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Duplicate selection",
+        "shortcut": "command+d",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Create component",
+        "shortcut": "option+command+k",
+        "icon": "Plus"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.FinalCut",
+    "label": "Final Cut Pro",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open an existing library or a new library",
+        "shortcut": "command+o",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Create audition from timeline clip",
+        "shortcut": "option+y",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Create audition from selection",
+        "shortcut": "command+y",
+        "icon": "Plus"
+      },
+      {
+        "id": "3",
+        "label": "Create storyline from selection",
+        "shortcut": "command+g",
+        "icon": "Plus"
+      },
+      {
+        "id": "4",
+        "label": "Create compound clip",
+        "shortcut": "option+g",
+        "icon": "Plus"
+      },
+      {
+        "id": "5",
+        "label": "Delete selection",
+        "shortcut": "command+delete",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "6",
+        "label": "Create a new project",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "7",
+        "label": "Reveal the selected event clip’s source media",
+        "shortcut": "shift+command+r",
+        "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.freeform",
+    "label": "Freeform",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create a new board",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Create a copy of a board (duplicate)",
+        "shortcut": "shift+command+d",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Search boards",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "3",
+        "label": "Apply Bold format to selected text",
+        "shortcut": "command+b",
+        "icon": "Palette"
+      },
+      {
+        "id": "4",
+        "label": "Apply Italic format to selected text",
+        "shortcut": "command+i",
+        "icon": "Palette"
+      },
+      {
+        "id": "5",
+        "label": "Apply Underline format to selected text",
+        "shortcut": "command+u",
+        "icon": "Palette"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.google.Chrome",
+    "label": "Google Chrome",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open a new window",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Open a new window in Incognito mode",
+        "shortcut": "command+shift+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Open a new tab, and jump to it",
+        "shortcut": "command+t",
+        "icon": "Tab"
+      },
+      {
+        "id": "3",
+        "label": "Open the Find Bar to search the current page",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "4",
+        "label": "Jump to the next match to your Find Bar search",
+        "shortcut": "command+g",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "5",
+        "label": "Jump to the previous match to your Find Bar",
+        "shortcut": "command+shift+g",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "6",
+        "label": "When Find Bar is open, search for selected text",
+        "shortcut": "command+e",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "7",
+        "label": "Save your current webpage as a bookmark",
+        "shortcut": "command+d",
+        "icon": "Download"
+      },
+      {
+        "id": "8",
+        "label": "Save all open tabs as bookmarks in a new folder",
+        "shortcut": "command+shift+d",
+        "icon": "Tab"
+      },
+      {
+        "id": "9",
+        "label": "Search the web",
+        "shortcut": "command+option+f",
+        "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.nousresearch.hermes",
+    "label": "Hermes",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open Command Palette",
+        "shortcut": "command+k",
+        "icon": "Folder"
+      },
+      {
+        "id": "1",
+        "label": "Start a new session",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Search sessions",
+        "shortcut": "command+shift+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "3",
+        "label": "Open a new session tab",
+        "shortcut": "command+t",
+        "icon": "Tab"
+      },
+      {
+        "id": "4",
+        "label": "Next session tab",
+        "shortcut": "control+tab",
+        "icon": "Tab"
+      },
+      {
+        "id": "5",
+        "label": "Jump to recent session by position",
+        "shortcut": "control+9",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Toggle left sidebar",
+        "shortcut": "command+b",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Toggle right sidebar",
+        "shortcut": "command+j",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Find in chat transcript",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "9",
+        "label": "Open Quick Entry",
+        "shortcut": "command+shift+space",
+        "icon": "Folder"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.googlecode.iterm2",
+    "label": "iTerm2",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Split vertically",
+        "shortcut": "command+d",
+        "icon": "Video"
+      },
+      {
+        "id": "1",
+        "label": "Split horizontally",
+        "shortcut": "command+shift+d",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Maximize or restore the active pane",
+        "shortcut": "command+shift+enter",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Search the current session",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.mail",
+    "label": "Mail",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Start a new email",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Open a new Mail viewer window",
+        "shortcut": "option+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Open a new tab in the Mail viewer window",
+        "shortcut": "option+shift+command+n",
+        "icon": "Tab"
+      },
+      {
+        "id": "3",
+        "label": "Show the Reply-To address field in your email",
+        "shortcut": "option+command+r",
+        "icon": "Message Video"
+      },
+      {
+        "id": "4",
+        "label": "Get new emails",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "5",
+        "label": "Send emails",
+        "shortcut": "shift+command+d",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Unsend email",
+        "shortcut": "command+z",
+        "icon": "Application"
+      },
+      {
+        "id": "7",
+        "label": "Reply to the selected email",
+        "shortcut": "command+r",
+        "icon": "Message Video"
+      },
+      {
+        "id": "8",
+        "label": "Archive emails",
+        "shortcut": "control+command+a",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.rockysandstudio.DeskApp-for-Gmail",
+    "label": "Mail Plus for Gmail",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Send message",
+        "shortcut": "command+enter",
+        "icon": "Message Video"
+      },
+      {
+        "id": "1",
+        "label": "Insert a link",
+        "shortcut": "command+k",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Maps",
+    "label": "Maps",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Switch to explore view",
+        "shortcut": "command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Switch to driving view",
+        "shortcut": "command+2",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Switch to public transport view",
+        "shortcut": "command+3",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Switch to satellite view",
+        "shortcut": "command+4",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.MobileSMS",
+    "label": "Messages",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Start a new message",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Show conversations from known senders",
+        "shortcut": "control+command+2",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Show conversations from unknown senders",
+        "shortcut": "control+command+3",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Search all conversations",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "4",
+        "label": "Go to the first unpinned conversation",
+        "shortcut": "option+command+1",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Select the next conversation",
+        "shortcut": "control+tab",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "6",
+        "label": "Select the previous conversation",
+        "shortcut": "control+shift+tab",
+        "icon": "Chevron Left"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Music",
+    "label": "Music",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Stop playing the selected song",
+        "shortcut": "command+keyperiod",
+        "icon": "Play"
+      },
+      {
+        "id": "1",
+        "label": "Create a new playlist",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Create a playlist from a selection of songs",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "3",
+        "label": "Create a new Smart Playlist",
+        "shortcut": "option+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "4",
+        "label": "Select the search field",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "5",
+        "label": "Search the iTunes Store",
+        "shortcut": "option+enter",
+        "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Notes",
+    "label": "Notes",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create a new note",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Create a new folder",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Search all notes",
+        "shortcut": "option+command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "3",
+        "label": "Apply Checklist format",
+        "shortcut": "shift+command+l",
+        "icon": "Palette"
+      },
+      {
+        "id": "4",
+        "label": "Add a new paragraph in a cell",
+        "shortcut": "option+enter",
+        "icon": "Plus"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.orcaslicer.OrcaSlicer",
+    "label": "OrcaSlicer",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Project",
+        "shortcut": "control+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Open Project",
+        "shortcut": "control+o",
+        "icon": "Folder"
+      },
+      {
+        "id": "2",
+        "label": "Save Project",
+        "shortcut": "control+s",
+        "icon": "Download"
+      },
+      {
+        "id": "3",
+        "label": "Save Project as",
+        "shortcut": "control+shift+s",
+        "icon": "Download"
+      },
+      {
+        "id": "4",
+        "label": "Import geometry data from STL/STEP/3MF/OBJ/AMF",
+        "shortcut": "control+i",
+        "icon": "Folder"
+      },
+      {
+        "id": "5",
+        "label": "Slice plate",
+        "shortcut": "control+r",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Export plate sliced file",
+        "shortcut": "control+g",
+        "icon": "Folder"
+      },
+      {
+        "id": "7",
+        "label": "Print plate",
+        "shortcut": "control+shift+g",
+        "icon": "Application"
+      },
+      {
+        "id": "8",
+        "label": "Search",
+        "shortcut": "control+f",
+        "icon": "Spotlight"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Photos",
+    "label": "Photos",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Start or stop playing a video",
+        "shortcut": "option+space",
+        "icon": "Play"
+      },
+      {
+        "id": "1",
+        "label": "Find photos",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "2",
+        "label": "Create a new album",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "3",
+        "label": "Create a Smart Album",
+        "shortcut": "option+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "4",
+        "label": "Create a folder",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.pixelmatorteam.pixelmator.x",
+    "label": "Pixelmator Pro",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create a new image or template",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Open an image",
+        "shortcut": "command+o",
+        "icon": "Folder"
+      },
+      {
+        "id": "2",
+        "label": "Save an image",
+        "shortcut": "command+s",
+        "icon": "Download"
+      },
+      {
+        "id": "3",
+        "label": "Export an image",
+        "shortcut": "command+e",
+        "icon": "Download"
+      },
+      {
+        "id": "4",
+        "label": "Undo",
+        "shortcut": "command+z",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "5",
+        "label": "Deselect",
+        "shortcut": "command+d",
+        "icon": "Application"
+      },
+      {
+        "id": "6",
+        "label": "Fit image to window",
+        "shortcut": "command+0",
+        "icon": "Window Open"
+      },
+      {
+        "id": "7",
+        "label": "Create an empty layer",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.podcasts",
+    "label": "Podcasts",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create a new station",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Refresh RSS feed updates",
+        "shortcut": "command+r",
+        "icon": "Repeat"
+      },
+      {
+        "id": "2",
+        "label": "Search your library or all podcasts",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "3",
+        "label": "Go to the Show page for the current podcast",
+        "shortcut": "command+l",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Preview",
+    "label": "Preview",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Go to next tab",
+        "shortcut": "control+tab",
+        "icon": "Tab"
+      },
+      {
+        "id": "1",
+        "label": "Go to previous tab",
+        "shortcut": "shift+control+tab",
+        "icon": "Tab"
+      },
+      {
+        "id": "2",
+        "label": "Move to next document in the window",
+        "shortcut": "option+pagedown",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "3",
+        "label": "Move to previous document in the window",
+        "shortcut": "option+pageup",
+        "icon": "Chevron Left"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.QuickTimePlayerX",
+    "label": "QuickTime Player",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New movie recording",
+        "shortcut": "option+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "New audio recording",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "New screen recording",
+        "shortcut": "control+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "3",
+        "label": "Play or pause all movies",
+        "shortcut": "command+enter",
+        "icon": "Play"
+      },
+      {
+        "id": "4",
+        "label": "Display movie at actual size",
+        "shortcut": "command+1",
+        "icon": "Play"
+      },
+      {
+        "id": "5",
+        "label": "Display the movie in panoramic mode",
+        "shortcut": "command+5",
+        "icon": "Play"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.reminders",
+    "label": "Reminders",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New reminder",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "New List",
+        "shortcut": "shift+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "New section",
+        "shortcut": "option+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "3",
+        "label": "New section with selection",
+        "shortcut": "control+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "4",
+        "label": "Mark a reminder completed or incomplete",
+        "shortcut": "shift+command+c",
+        "icon": "Application"
+      },
+      {
+        "id": "5",
+        "label": "Set due date to this weekend",
+        "shortcut": "command+k",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "6",
+        "label": "Set reminder as due next week",
+        "shortcut": "option+command+k",
+        "icon": "Chevron Right"
       }
     ]
   },
@@ -136,6 +1160,300 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "All Unread",
         "shortcut": "command+shift+a",
         "icon": "View Headline"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.spotify.client",
+    "label": "Spotify",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Open Search",
+        "shortcut": "command+k",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "1",
+        "label": "Select All",
+        "shortcut": "command+a",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Go to Playlists",
+        "shortcut": "option+shift+1",
+        "icon": "Play"
+      },
+      {
+        "id": "3",
+        "label": "Go to Now Playing",
+        "shortcut": "option+shift+j",
+        "icon": "Play"
+      },
+      {
+        "id": "4",
+        "label": "Open Context Menu",
+        "shortcut": "option+j",
+        "icon": "Folder"
+      },
+      {
+        "id": "5",
+        "label": "Toggle Now Playing View Sidebar",
+        "shortcut": "option+shift+r",
+        "icon": "Play"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "ru.keepcoder.Telegram",
+    "label": "Telegram",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Quick search",
+        "shortcut": "command+k",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "1",
+        "label": "Search this chat",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "2",
+        "label": "Search all chats",
+        "shortcut": "shift+command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "3",
+        "label": "Previous chat",
+        "shortcut": "option+command+up",
+        "icon": "Chevron Up"
+      },
+      {
+        "id": "4",
+        "label": "Next chat",
+        "shortcut": "option+command+down",
+        "icon": "Chevron Down"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.TV",
+    "label": "TV",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Create a new playlist",
+        "shortcut": "command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "1",
+        "label": "Create a new Smart Playlist",
+        "shortcut": "option+command+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "2",
+        "label": "Refresh playlist",
+        "shortcut": "command+r",
+        "icon": "Repeat"
+      },
+      {
+        "id": "3",
+        "label": "Import a video file",
+        "shortcut": "command+o",
+        "icon": "Folder"
+      },
+      {
+        "id": "4",
+        "label": "Delete the selected playlist",
+        "shortcut": "option+delete",
+        "icon": "Play"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "net.whatsapp.WhatsApp",
+    "label": "WhatsApp",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Mark a chat unread",
+        "shortcut": "command+control+shift+u",
+        "icon": "Message Video"
+      },
+      {
+        "id": "1",
+        "label": "Mute a chat",
+        "shortcut": "command+control+shift+m",
+        "icon": "Message Video"
+      },
+      {
+        "id": "2",
+        "label": "Archive a chat",
+        "shortcut": "command+control+shift+e",
+        "icon": "Message Video"
+      },
+      {
+        "id": "3",
+        "label": "Pin a chat",
+        "shortcut": "command+control+shift+p",
+        "icon": "Message Video"
+      },
+      {
+        "id": "4",
+        "label": "Start a new chat",
+        "shortcut": "command+control+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "5",
+        "label": "Start a new group",
+        "shortcut": "command+control+shift+n",
+        "icon": "Plus"
+      },
+      {
+        "id": "6",
+        "label": "Open the emoji panel",
+        "shortcut": "command+control+e",
+        "icon": "Folder"
+      },
+      {
+        "id": "7",
+        "label": "Open Extended Search",
+        "shortcut": "command+k",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "8",
+        "label": "Lock WhatsApp",
+        "shortcut": "command+control+l",
+        "icon": "Application"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.dt.Xcode",
+    "label": "Xcode",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Build the current scheme",
+        "shortcut": "command+b",
+        "icon": "Application"
+      },
+      {
+        "id": "1",
+        "label": "Run the current scheme",
+        "shortcut": "command+r",
+        "icon": "Application"
+      },
+      {
+        "id": "2",
+        "label": "Test the current scheme",
+        "shortcut": "command+u",
+        "icon": "Application"
+      },
+      {
+        "id": "3",
+        "label": "Open Quickly",
+        "shortcut": "command+shift+o",
+        "icon": "Folder"
+      },
+      {
+        "id": "4",
+        "label": "Open Quick Actions",
+        "shortcut": "command+shift+a",
+        "icon": "Folder"
+      },
+      {
+        "id": "5",
+        "label": "Find in the workspace",
+        "shortcut": "command+shift+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "6",
+        "label": "Reveal the current file in the Project navigator",
+        "shortcut": "command+shift+j",
+        "icon": "Folder"
+      },
+      {
+        "id": "7",
+        "label": "Open the Report navigator",
+        "shortcut": "command+9",
+        "icon": "Folder"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "us.zoom.xos",
+    "label": "Zoom",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Join meeting",
+        "shortcut": "command+j",
+        "icon": "Video"
+      },
+      {
+        "id": "1",
+        "label": "Start/stop video",
+        "shortcut": "command+shift+v",
+        "icon": "Video"
+      },
+      {
+        "id": "2",
+        "label": "Pause or resume screen share",
+        "shortcut": "command+shift+t",
+        "icon": "Play"
+      },
+      {
+        "id": "3",
+        "label": "Pause/resume recording",
+        "shortcut": "command+shift+p",
+        "icon": "Play"
+      },
+      {
+        "id": "4",
+        "label": "Search in chat or channel",
+        "shortcut": "command+f",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "5",
+        "label": "Mute/unmute call",
+        "shortcut": "control+shift+m",
+        "icon": "Microphone"
+      },
+      {
+        "id": "6",
+        "label": "Global search",
+        "shortcut": "command+e",
+        "icon": "Spotlight"
+      },
+      {
+        "id": "7",
+        "label": "Reset chat display size",
+        "shortcut": "command+0",
+        "icon": "Play"
       }
     ]
   }
