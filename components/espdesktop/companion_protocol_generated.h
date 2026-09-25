@@ -87,6 +87,7 @@ struct ValueState {
 };
 struct FocusChanged {
   std::string actionId{};
+  std::optional<std::vector<std::string>> actionIds{};
 };
 struct TimezoneChanged {
   std::string identifier{};
@@ -285,6 +286,12 @@ inline void encode(JsonObject root, const FocusChanged &message) {
   root["type"] = "focus.changed";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["actionId"] = message.actionId;
+  if (message.actionIds) {
+  auto values_actionIds = root["actionIds"].to<JsonArray>();
+  for (const auto &item : *message.actionIds) {
+    values_actionIds.add(item);
+  }
+  }
 }
 inline void encode(JsonObject root, const TimezoneChanged &message) {
   root["type"] = "timezone.changed";
@@ -654,8 +661,20 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(string_valid(root["actionId"], 0, 96))) return std::nullopt;
     }
+    if (!root["actionIds"].isUnbound()) {
+      if (!(root["actionIds"].is<JsonArrayConst>() && root["actionIds"].size() <= 64)) return std::nullopt;
+      for (JsonVariantConst item : root["actionIds"].as<JsonArrayConst>()) {
+        if (!(string_valid(item, 1, 96))) return std::nullopt;
+      }
+    }
     FocusChanged result;
     result.actionId = root["actionId"].as<std::string>();
+    if (!root["actionIds"].isUnbound()) {
+    result.actionIds.emplace();
+    for (JsonVariantConst item : root["actionIds"].as<JsonArrayConst>()) {
+      result.actionIds->push_back(item.as<std::string>());
+    }
+    }
     return result;
   }
   if (type == "timezone.changed") {

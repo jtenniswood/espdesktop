@@ -3042,7 +3042,8 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
     const lv_coord_t padding_right = lv_obj_get_style_pad_right(s.btn, LV_PART_MAIN);
     const lv_coord_t padding_bottom = lv_obj_get_style_pad_bottom(s.btn, LV_PART_MAIN);
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_DOT);
-    lv_obj_set_width(s.text_lbl, std::max(1, button_width - padding_left - padding_right));
+    lv_obj_set_width(s.text_lbl, std::max(1, button_width - static_cast<int>(padding_left) -
+                                                   static_cast<int>(padding_right)));
     lv_obj_set_style_text_align(s.text_lbl, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, padding_left, -padding_bottom);
     lv_obj_move_foreground(s.text_lbl);

@@ -336,6 +336,16 @@
             "type": "string",
             "minLength": 0,
             "maxLength": 96
+          },
+          "actionIds": {
+            "type": "array",
+            "optional": true,
+            "maxItems": 64,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96
+            }
           }
         },
         "states": [

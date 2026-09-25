@@ -187,6 +187,18 @@
     "valid": true
   },
   {
+    "name": "multiple focused apps",
+    "message": {
+      "protocol": 4,
+      "type": "focus.changed",
+      "actionId": "com.apple.Safari",
+      "actionIds": ["com.apple.Safari", "com.apple.finder"]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
     "name": "timezone",
     "message": {
       "protocol": 4,
