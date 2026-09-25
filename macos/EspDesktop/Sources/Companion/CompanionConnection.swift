@@ -64,6 +64,7 @@ final class CompanionConnection: NSObject {
     private var hasTerminalConnectionError = false
     private var sessionAuthenticated = false
     private var supportsAlphaAppIcons = false
+    private var supportsHighResolutionAppIcons = false
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
     private var artworkData: Data?
@@ -177,6 +178,7 @@ final class CompanionConnection: NSObject {
         connectionGeneration &+= 1
         sessionAuthenticated = false
         supportsAlphaAppIcons = false
+        supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
@@ -451,6 +453,7 @@ final class CompanionConnection: NSObject {
             authenticationRequestOutstanding = false
             sessionAuthenticated = true
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
+            supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -744,10 +747,12 @@ final class CompanionConnection: NSObject {
     }
 
     private func handleAppIconRequest(_ payload: CompanionWireAppIconRequest) {
+        let pixelSide = supportsHighResolutionAppIcons
+            ? CompanionCapabilities.appIconSide : CompanionCapabilities.appIconLegacySide
         guard supportsAlphaAppIcons,
               resources.launchableApps().contains(where: { $0.bundleIdentifier == payload.appId }),
-              let pixels = resources.appIconPixels(bundleIdentifier: payload.appId),
-              pixels.count == CompanionCapabilities.appIconPixelBytes else {
+              let pixels = resources.appIconPixels(bundleIdentifier: payload.appId, pixelSide: pixelSide),
+              pixels.count == pixelSide * pixelSide * 3 else {
             sendJSON(["type": "app_icon.unavailable", "appId": payload.appId])
             processNextAppIconRequest()
             return
@@ -794,6 +799,7 @@ final class CompanionConnection: NSObject {
         capabilities.append("keyboard_shortcuts")
         capabilities.append(CompanionCapabilities.appIconsCapability)
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
+        capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
         sendJSON(["type": "capabilities", "values": capabilities])
         // Bundle identifiers are stable and opaque to the browser layout editor;

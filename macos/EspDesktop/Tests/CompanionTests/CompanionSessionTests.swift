@@ -16,7 +16,7 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
     func rememberPairingAccount(_ account: String) { pairingAccount = account }
     func folderActions() -> [ApprovedFolder] { [] }
     func launchableApps() -> [LaunchableApp] { [] }
-    func appIconPixels(bundleIdentifier: String) -> Data? { nil }
+    func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data? { nil }
     func focusedCompanionActionIdentifier() -> String { "" }
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String { "not_allowed" }
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool { false }

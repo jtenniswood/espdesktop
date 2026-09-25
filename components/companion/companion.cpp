@@ -534,6 +534,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool keyboard_actions_capability_received = false;
       bool app_icons_supported = false;
       bool app_icons_alpha_supported = false;
+      bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
       std::vector<std::string> window_actions;
       for (const auto &capability : payload->values) {
@@ -541,6 +542,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           app_icons_supported = true;
         } else if (capability == COMPANION_APP_ICONS_ALPHA_CAPABILITY) {
           app_icons_alpha_supported = true;
+        } else if (capability == COMPANION_APP_ICONS_HIGH_RESOLUTION_CAPABILITY) {
+          app_icons_high_resolution_supported = true;
         } else if (capability == "keyboard_shortcuts") {
           keyboard_actions = true;
           keyboard_actions_capability_received = true;
@@ -553,7 +556,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           window_actions.push_back(capability);
         }
       }
-      this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported);
+      this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
+                                       app_icons_high_resolution_supported);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported,
                             window_actions = std::move(window_actions)]() mutable {
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);

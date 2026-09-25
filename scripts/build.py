@@ -367,10 +367,10 @@ def load_companion_capabilities_data():
         raise BuildError("Companion protocol requires a positive version")
     if not isinstance(protocol.get("path"), str) or not protocol["path"].startswith("/companion/"):
         raise BuildError("Companion protocol path must be under /companion/")
-    for key in ("maximumTextFrameBytes", "maximumArtworkBytes", "artworkChunkBytes", "appIconChunkBytes", "appIconSide"):
+    for key in ("maximumTextFrameBytes", "maximumArtworkBytes", "artworkChunkBytes", "appIconChunkBytes", "appIconSide", "appIconLegacySide"):
         if not isinstance(protocol.get(key), int) or protocol[key] < 1:
             raise BuildError(f"Companion protocol requires a positive {key}")
-    for key in ("appIconsCapability", "appIconsAlphaCapability"):
+    for key in ("appIconsCapability", "appIconsAlphaCapability", "appIconsHighResolutionCapability"):
         if not isinstance(protocol.get(key), str) or not protocol[key]:
             raise BuildError(f"Companion protocol requires an {key} string")
     if protocol["artworkChunkBytes"] > protocol["maximumArtworkBytes"]:
@@ -851,6 +851,7 @@ def gen_companion_capabilities_h(data):
         f"constexpr size_t COMPANION_APP_ICON_PIXEL_BYTES = {protocol['appIconSide'] * protocol['appIconSide'] * 3};\n",
         f"constexpr const char *COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])};\n",
         f"constexpr const char *COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])};\n",
+        f"constexpr const char *COMPANION_APP_ICONS_HIGH_RESOLUTION_CAPABILITY = {json.dumps(protocol['appIconsHighResolutionCapability'])};\n",
         f"constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = {data['security']['pairingWindowSeconds']};\n\n",
         f"constexpr bool COMPANION_BROWSER_STARTS_PAIRING = {str(data['security']['pairingAuthorization'] == 'device_web_access').lower()};\n",
         f"constexpr bool COMPANION_BROWSER_EXPOSES_PAIRING_CODE = {str(data['security']['browserExposesPairingCode']).lower()};\n",
@@ -915,9 +916,11 @@ def gen_companion_capabilities_swift(data):
         f"    static let artworkChunkBytes = {data['protocol']['artworkChunkBytes']}\n",
         f"    static let appIconChunkBytes = {data['protocol']['appIconChunkBytes']}\n",
         f"    static let appIconSide = {data['protocol']['appIconSide']}\n",
+        f"    static let appIconLegacySide = {data['protocol']['appIconLegacySide']}\n",
         f"    static let appIconPixelBytes = {data['protocol']['appIconSide'] * data['protocol']['appIconSide'] * 3}\n",
         f"    static let appIconsCapability = {json.dumps(data['protocol']['appIconsCapability'])}\n",
         f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
+        f"    static let appIconsHighResolutionCapability = {json.dumps(data['protocol']['appIconsHighResolutionCapability'])}\n",
         f"    static let pairingWindowSeconds = {data['security']['pairingWindowSeconds']}\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]

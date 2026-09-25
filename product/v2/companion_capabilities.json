@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -7,7 +7,7 @@
     "maximumArtworkBytes": 262144,
     "artworkChunkBytes": 12288,
     "appIconChunkBytes": 4096,
-    "appIconSide": 144,
+    "appIconSide": 240,
     "appIconsCapability": "app_icons",
     "appIconsAlphaCapability": "app_icons_alpha",
     "messages": [
@@ -697,7 +697,7 @@
           "byteLength": {
             "type": "integer",
             "minimum": 62208,
-            "maximum": 62208
+            "maximum": 172800
           },
           "sha256": {
             "type": "string",
@@ -767,7 +767,7 @@
           "nextOffset": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 62208
+            "maximum": 172800
           }
         },
         "states": [
@@ -923,7 +923,9 @@
           "connected"
         ]
       }
-    ]
+    ],
+    "appIconLegacySide": 144,
+    "appIconsHighResolutionCapability": "app_icons_240"
   },
   "security": {
     "pairingAuthorization": "device_web_access",

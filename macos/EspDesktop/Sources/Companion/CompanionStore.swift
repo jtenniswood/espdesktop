@@ -316,12 +316,12 @@ final class CompanionStore: NSObject, ObservableObject {
         availableApps.filter { approvedApplicationIdentifiers.contains($0.bundleIdentifier) }
     }
 
-    func appIconPixels(bundleIdentifier: String) -> Data? {
+    func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data? {
         guard let application = launchableApps().first(where: { $0.bundleIdentifier == bundleIdentifier }) else {
             return nil
         }
         let icon = NSWorkspace.shared.icon(forFile: application.url.path)
-        let pixelSide = CompanionCapabilities.appIconSide
+        guard [CompanionCapabilities.appIconSide, CompanionCapabilities.appIconLegacySide].contains(pixelSide) else { return nil }
         guard let bitmap = NSBitmapImageRep(
                 bitmapDataPlanes: nil, pixelsWide: pixelSide, pixelsHigh: pixelSide,
                 bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
@@ -347,7 +347,13 @@ final class CompanionStore: NSObject, ObservableObject {
         let artworkScale: CGFloat = 1.2
         let fittedSize = NSSize(width: iconSize.width * scale * artworkScale,
                                 height: iconSize.height * scale * artworkScale)
-        icon.draw(
+        // Ask AppKit for a high-resolution representation before the final
+        // downsample, rather than magnifying a small cached workspace image.
+        var sourceRect = NSRect(x: 0, y: 0, width: max(512, pixelSide * 2),
+                                height: max(512, pixelSide * 2))
+        let renderingIcon = icon.cgImage(forProposedRect: &sourceRect, context: nil, hints: nil)
+            .map { NSImage(cgImage: $0, size: iconSize) } ?? icon
+        renderingIcon.draw(
             in: NSRect(x: (CGFloat(pixelSide) - fittedSize.width) / 2,
                        y: (CGFloat(pixelSide) - fittedSize.height) / 2,
                        width: fittedSize.width, height: fittedSize.height),

@@ -12,6 +12,7 @@
 namespace esphome::companion {
 
 constexpr uint16_t APP_ICON_SIDE = COMPANION_APP_ICON_SIDE;
+static_assert(APP_ICON_SIDE <= 255, "App icon cache dimensions use one byte");
 constexpr size_t APP_ICON_PIXEL_BYTES =
     COMPANION_APP_ICON_PIXEL_BYTES;
 // Each cache record includes a 256-byte header and is aligned to flash erase sectors.

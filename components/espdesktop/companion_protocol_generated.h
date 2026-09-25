@@ -915,7 +915,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
     }
     {
-      if (!(number_valid(root["byteLength"], 62208, 62208, true))) return std::nullopt;
+      if (!(number_valid(root["byteLength"], 62208, 172800, true))) return std::nullopt;
     }
     {
       if (!(string_valid(root["sha256"], 64, 64) && hex_valid(root["sha256"]))) return std::nullopt;
@@ -962,7 +962,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
     }
     {
-      if (!(number_valid(root["nextOffset"], 0, 62208, true))) return std::nullopt;
+      if (!(number_valid(root["nextOffset"], 0, 172800, true))) return std::nullopt;
     }
     AppIconAck result;
     result.generation = root["generation"].as<uint32_t>();

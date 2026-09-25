@@ -94,7 +94,7 @@ bool AppIconStore::read_header_locked(
   const size_t offset = partition_offset_ + static_cast<size_t>(slot) * APP_ICON_RECORD_BYTES;
   if (esp_partition_read(partition, offset, header.data(), header.size()) != ESP_OK ||
       std::memcmp(header.data(), kRecordMagic, sizeof(kRecordMagic)) != 0 ||
-      header[4] != 4 || header[5] == 0 ||
+      header[4] != 5 || header[5] == 0 ||
       header[5] > APP_ICON_MAX_APPLICATION_ID_BYTES ||
       header[6] != APP_ICON_SIDE || header[7] != APP_ICON_SIDE) return false;
   if (application_id) {
@@ -286,7 +286,7 @@ bool AppIconStore::write_slot_locked(uint16_t slot, const std::string &applicati
                           APP_ICON_PIXEL_BYTES) != ESP_OK) return false;
   std::array<uint8_t, kRecordHeaderBytes> header{};
   header.fill(0xFF);
-  header[4] = 4;
+  header[4] = 5;
   header[5] = static_cast<uint8_t>(application_id.size());
   header[6] = APP_ICON_SIDE;
   header[7] = APP_ICON_SIDE;
