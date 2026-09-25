@@ -961,8 +961,15 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
                                 int col_span = 1) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto context = card_runtime_context(p);
-  if (s.text_lbl)
-    clock_bar_set_card_label_font(lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN));
+  if (s.text_lbl) {
+    // Card labels inherit their font from the button theme. Read the font from
+    // the themed button itself so the subpage title follows the exact font
+    // selected for card labels on this display.
+    const lv_font_t *card_label_font = s.btn
+        ? lv_obj_get_style_text_font(s.btn, LV_PART_MAIN)
+        : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN);
+    clock_bar_set_card_label_font(card_label_font);
+  }
   if (cfg.label_lines > 0) {
     apply_card_label_line_clamp(s.text_lbl, cfg, row_span);
   } else if (cfg.wrap_tall_labels && row_span > 1) {

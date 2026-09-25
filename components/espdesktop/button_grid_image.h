@@ -3096,7 +3096,8 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
 inline lv_obj_t *image_card_create_clock_bar_icon_container(lv_obj_t *parent) {
   if (!parent) return nullptr;
   lv_obj_t *container = lv_obj_create(parent);
-  lv_obj_set_size(container, 20, 20);
+  lv_obj_set_size(container, CLOCK_BAR_COMPANION_ICON_SIZE,
+                  CLOCK_BAR_COMPANION_ICON_SIZE);
   lv_obj_clear_flag(container, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_clear_flag(container, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_style_pad_all(container, 0, LV_PART_MAIN);
@@ -3153,7 +3154,7 @@ inline bool image_card_set_clock_bar_cached_app_icon(
   source->descriptor.data = source->pixels;
   lv_img_set_src(widget, &source->descriptor);
   const uint16_t zoom = static_cast<uint16_t>(
-      (20u * 256u + esphome::companion::APP_ICON_SIDE - 1u) /
+      (CLOCK_BAR_COMPANION_ICON_SIZE * 256u + esphome::companion::APP_ICON_SIDE - 1u) /
       esphome::companion::APP_ICON_SIDE);
   lv_img_set_zoom(widget, zoom);
 #endif
@@ -3234,7 +3235,8 @@ inline void image_card_set_clock_bar_companion_icon(
 #endif
     lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_size(image_widget, 20, 20);
+    lv_obj_set_size(image_widget, CLOCK_BAR_COMPANION_ICON_SIZE,
+                    CLOCK_BAR_COMPANION_ICON_SIZE);
     lv_obj_center(image_widget);
     lv_obj_add_flag(image_widget, LV_OBJ_FLAG_HIDDEN);
     auto *candidate = new (std::nothrow) CompanionAppIconImageData();
@@ -3258,7 +3260,8 @@ inline void image_card_set_clock_bar_companion_icon(
 #endif
     lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(image_widget, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_size(image_widget, 20, 20);
+    lv_obj_set_size(image_widget, CLOCK_BAR_COMPANION_ICON_SIZE,
+                    CLOCK_BAR_COMPANION_ICON_SIZE);
     lv_obj_center(image_widget);
     lv_obj_add_flag(image_widget, LV_OBJ_FLAG_HIDDEN);
     context = acquire_image_card_context(image_card_pool_grid_config(),

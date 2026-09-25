@@ -355,6 +355,8 @@ struct ClockBarLeftTextWidths {
   int title = 176;
 };
 
+constexpr lv_coord_t CLOCK_BAR_COMPANION_ICON_SIZE = 32;
+
 inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
   static ClockBarLeftTextWidths widths;
   return widths;
@@ -403,7 +405,8 @@ inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   if (!label) return;
   const auto &widths = clock_bar_left_text_widths();
   const bool showing_title = !clock_bar_left_title().empty();
-  const int icon_space = clock_bar_companion_icon_should_show() ? 26 : 0;
+  const int icon_space = clock_bar_companion_icon_should_show()
+      ? CLOCK_BAR_COMPANION_ICON_SIZE + 8 : 0;
   const int width = !showing_title
       ? widths.temperature : std::max(1, widths.title - icon_space);
   lv_obj_set_width(label, width);
