@@ -190,8 +190,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2647150,
-    "gzip": 1064715,
+    "minified": 2647178,
+    "gzip": 1064713,
     "gzipTolerance": 9216
   }
 }
