@@ -268,7 +268,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
                 title.appendChild(label);
                 container.className = "sp-clockbar-section sp-clockbar-left";
                 container.appendChild(title);
-                if (companionAppShortcutFolderEnabled(parent) &&
+                if (parent && companionAppShortcutFolderEnabled(parent) &&
                     companionSavedCardMode(parent) === "app" && parent.entity) {
                     void companionAppIconPreviewData(parent.entity, "", document).then(function (previewIcon) {
                         if (!previewIcon || !title.isConnected) return;

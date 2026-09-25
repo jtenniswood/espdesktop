@@ -1520,7 +1520,7 @@ export function registerCompanionCardTypes(
                             event.preventDefault();
                             const direction = event.key === "ArrowDown" ? 1 : -1;
                             iconSizeOptionButtons[(index + direction + iconSizeOptionButtons.length) %
-                                iconSizeOptionButtons.length].focus();
+                                iconSizeOptionButtons.length]?.focus();
                         } else if (event.key === "Escape") {
                             event.preventDefault();
                             closeIconSizeList(true);
@@ -1541,7 +1541,7 @@ export function registerCompanionCardTypes(
                         });
                         const index = event.key === "ArrowDown"
                             ? Math.max(0, selectedIndex) : Math.max(0, selectedIndex);
-                        iconSizeOptionButtons[index].focus();
+                        iconSizeOptionButtons[index]?.focus();
                     } else if (event.key === "Escape" && iconSizeControl.classList.contains("sp-open")) {
                         event.preventDefault();
                         closeIconSizeList(false);

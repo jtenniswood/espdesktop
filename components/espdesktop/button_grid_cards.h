@@ -6,6 +6,7 @@
 #include "companion_controls.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
+#include "app_icon_layout.h"
 #include "cover_art.h"
 #include "panel_config_text_bindings.h"
 #include "esphome/core/version.h"
@@ -229,11 +230,17 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
       }
     }
     lv_obj_set_size(image, target_side, target_side);
-    // Match the label's left edge. Both children are positioned relative to
-    // the button's padded content area, so this keeps the icon inset equal to
-    // the label while the top edge uses the same content inset.
-    const lv_coord_t label_left = source.card_label ? lv_obj_get_x(source.card_label) : 0;
-    lv_obj_align(image, LV_ALIGN_TOP_LEFT, label_left, 0);
+    // The card already supplies the same padding as the label. Compensate for
+    // padding inside the cached image so its visible artwork shares that inset.
+    const auto insets = espdesktop::app_icon::artwork_insets(
+        source.pixels + pixel_count * 2, esphome::companion::APP_ICON_SIDE);
+    const lv_coord_t artwork_left =
+        (insets.left * target_side + esphome::companion::APP_ICON_SIDE / 2) /
+        esphome::companion::APP_ICON_SIDE;
+    const lv_coord_t artwork_top =
+        (insets.top * target_side + esphome::companion::APP_ICON_SIDE / 2) /
+        esphome::companion::APP_ICON_SIDE;
+    lv_obj_align(image, LV_ALIGN_TOP_LEFT, -artwork_left, -artwork_top);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
     lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
 #else

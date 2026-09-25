@@ -1,6 +1,7 @@
 import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
+import { appIconArtworkInsets } from "../model/app_icon_layout";
 import { escHtml } from "./ui_primitives";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -45,17 +46,21 @@ export interface PreviewRenderFeature {
     typeVisibleInPicker(key?: any, isSubpage?: any): boolean;
 }
 
-const companionAppIconCache = new Map<string, {
-    expiresAt: number;
-    result: Promise<{ dataUrl: string; defaultColor: string; activeColor: string; online: boolean } | null>;
-}>();
-
-export function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document): Promise<{
+interface CompanionAppIconPreview {
     dataUrl: string;
     defaultColor: string;
     activeColor: string;
     online: boolean;
-} | null> {
+    insetLeftPercent: number;
+    insetTopPercent: number;
+}
+
+const companionAppIconCache = new Map<string, {
+    expiresAt: number;
+    result: Promise<CompanionAppIconPreview | null>;
+}>();
+
+export function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document): Promise<CompanionAppIconPreview | null> {
     const cacheKey = applicationId + ":" + backgroundColor;
     const cached = companionAppIconCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) return cached.result;
@@ -99,6 +104,7 @@ export function companionAppIconPreviewData(applicationId: string, backgroundCol
             image.data[output + 3] = bytes[pixelCount * 2 + index] ?? 0;
         }
         context.putImageData(image, 0, 0);
+        const insets = appIconArtworkInsets(bytes.subarray(pixelCount * 2), COMPANION_APP_ICON_SIDE);
         const palette = (response.headers.get("X-EspDesktop-App-Icon-Palette") || "").split(",");
         const legacyDefaultColor = response.headers.get("X-EspDesktop-App-Icon-Default") || "";
         const legacyActiveColor = response.headers.get("X-EspDesktop-App-Icon-Active") || "";
@@ -113,6 +119,8 @@ export function companionAppIconPreviewData(applicationId: string, backgroundCol
             defaultColor: validDefaultColor,
             activeColor: validActiveColor,
             online,
+            insetLeftPercent: insets.left * 100 / COMPANION_APP_ICON_SIDE,
+            insetTopPercent: insets.top * 100 / COMPANION_APP_ICON_SIDE,
         };
     }).catch(function () { return null; }).then(function (value) {
         if (!value || !value.online) companionAppIconCache.delete(cacheKey);
@@ -287,6 +295,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         appIcon.alt = "";
                         appIcon.setAttribute("aria-hidden", "true");
                         appIcon.src = previewIcon.dataUrl;
+                        if (!fillCard) appIcon.style.transform =
+                            "translate(-" + previewIcon.insetLeftPercent + "%, -" + previewIcon.insetTopPercent + "%)";
                         btn.appendChild(appIcon);
                         if (fallbackIcon) fallbackIcon.hidden = true;
                         if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor &&
