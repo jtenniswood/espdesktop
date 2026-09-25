@@ -50,7 +50,7 @@ const companionAppIconCache = new Map<string, {
     result: Promise<{ dataUrl: string; defaultColor: string; activeColor: string; online: boolean } | null>;
 }>();
 
-function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document): Promise<{
+export function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document): Promise<{
     dataUrl: string;
     defaultColor: string;
     activeColor: string;

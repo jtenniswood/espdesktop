@@ -345,6 +345,11 @@ inline int &clock_bar_left_title_origin_y() {
   return value;
 }
 
+inline int &clock_bar_left_icon_origin_y() {
+  static int value = 8;
+  return value;
+}
+
 inline std::string &clock_bar_companion_subpage_label() {
   static std::string label;
   return label;
@@ -355,7 +360,7 @@ struct ClockBarLeftTextWidths {
   int title = 176;
 };
 
-constexpr lv_coord_t CLOCK_BAR_COMPANION_ICON_SIZE = 32;
+constexpr lv_coord_t CLOCK_BAR_COMPANION_ICON_SIZE = 48;
 
 inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
   static ClockBarLeftTextWidths widths;
@@ -423,7 +428,7 @@ inline void clock_bar_sync_companion_icon(bool visible) {
   else lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
   if (show) {
     lv_obj_set_pos(widget, clock_bar_left_title_origin_x(),
-                   clock_bar_left_title_origin_y());
+                   clock_bar_left_icon_origin_y());
     lv_obj_move_foreground(widget);
   }
 }
@@ -433,10 +438,11 @@ inline void clock_bar_refresh_left_title() {
   if (!labels.empty() && labels[0]) {
     const bool use_card_label_font = !clock_bar_companion_subpage_label().empty() &&
                                      clock_bar_modal_label().empty();
-    const lv_font_t *title_font = use_card_label_font && clock_bar_card_label_font()
-        ? clock_bar_card_label_font() :
-          (clock_bar_temperature_default_font_owner() == labels[0]
-              ? clock_bar_temperature_default_font() : nullptr);
+    const lv_font_t *title_font = use_card_label_font
+        ? (clock_bar_temperature_default_font_owner() == labels[0]
+            ? clock_bar_temperature_default_font() : clock_bar_card_label_font())
+        : (clock_bar_temperature_default_font_owner() == labels[0]
+            ? clock_bar_temperature_default_font() : nullptr);
     if (title_font) lv_obj_set_style_text_font(labels[0], title_font, LV_PART_MAIN);
     lv_label_set_display_text(labels[0], clock_bar_left_title().c_str());
     clock_bar_update_left_text_width(labels[0]);
