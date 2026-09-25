@@ -11,7 +11,7 @@ struct CompanionWindowActionCapability {
 }
 
 enum CompanionCapabilities {
-    static let version = 2
+    static let version = 3
     static let protocolVersion = 3
     static let protocolPath = "/companion/v3"
     static let maximumTextFrameBytes = 16384

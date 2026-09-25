@@ -61,6 +61,7 @@ final class CompanionConnection: NSObject {
     private var shouldReconnect = false
     private var hasTerminalConnectionError = false
     private var sessionAuthenticated = false
+    private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
     private var artworkData: Data?
     private var artworkGeneration: UInt32 = 0
@@ -165,6 +166,7 @@ final class CompanionConnection: NSObject {
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        remoteCatalogueDefinitionsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetArtworkTransferState()
@@ -325,6 +327,7 @@ final class CompanionConnection: NSObject {
         }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        remoteCatalogueDefinitionsSupported = false
         resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
@@ -442,6 +445,9 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Connected to \(preferences.panelHost)", state: .connected)
             let capabilityVersion = payload.capabilityVersion
             onEvent?(.capabilities(systemMetrics: capabilityVersion >= 2))
+            remoteCatalogueDefinitionsSupported = Self.supportsRemoteCatalogueDefinitions(
+                capabilityVersion: capabilityVersion
+            )
             if let task { startHeartbeat(for: task) }
             publishTimezone()
             publishCatalogue()
@@ -676,26 +682,28 @@ final class CompanionConnection: NSObject {
             sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
                       "page": page, "complete": page == pages.count - 1, "items": items])
         }
-        let definitions = catalogues
-        let payloads: [(String, Data)] = definitions.applications.compactMap { app in
-            guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
-            return ("application", data)
-        } + definitions.webApplications.compactMap { app in
-            guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
-            return ("webapp", data)
-        }
-        let definitionPages = max(payloads.count, 1)
-        definitionGeneration &+= 1
-        if definitionGeneration == 0 { definitionGeneration = 1 }
-        for page in 0..<definitionPages {
-            let items: [[String: String]]
-            if page < payloads.count, let json = String(data: payloads[page].1, encoding: .utf8) {
-                items = [["kind": payloads[page].0, "json": json]]
-            } else {
-                items = []
+        if remoteCatalogueDefinitionsSupported {
+            let definitions = catalogues
+            let payloads: [(String, Data)] = definitions.applications.compactMap { app in
+                guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
+                return ("application", data)
+            } + definitions.webApplications.compactMap { app in
+                guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
+                return ("webapp", data)
             }
-            sendJSON(["type": "catalogue.definitions.page", "generation": definitionGeneration,
-                      "page": page, "complete": page == definitionPages - 1, "items": items])
+            let definitionPages = max(payloads.count, 1)
+            definitionGeneration &+= 1
+            if definitionGeneration == 0 { definitionGeneration = 1 }
+            for page in 0..<definitionPages {
+                let items: [[String: String]]
+                if page < payloads.count, let json = String(data: payloads[page].1, encoding: .utf8) {
+                    items = [["kind": payloads[page].0, "json": json]]
+                } else {
+                    items = []
+                }
+                sendJSON(["type": "catalogue.definitions.page", "generation": definitionGeneration,
+                          "page": page, "complete": page == definitionPages - 1, "items": items])
+            }
         }
         publishFocusedAction()
     }
@@ -704,6 +712,10 @@ final class CompanionConnection: NSObject {
         CompanionCapabilities.windowActions.compactMap { identifier, capability in
             capability.minimumMacOS <= version.majorVersion ? identifier : nil
         }.sorted()
+    }
+
+    nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: Int) -> Bool {
+        capabilityVersion >= CompanionCapabilities.version
     }
 
     func publishTimezone() {

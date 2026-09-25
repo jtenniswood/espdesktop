@@ -129,7 +129,7 @@ script:
           bool reserve_clock_bar_space = visibility.reserve_space;
           bool visible = visibility.visible || pairing_onboarding;
           bool show_time = visibility.visible && id(clock_bar_time_enabled).state;
-          const bool show_network = false;
+          const bool show_network = pairing_onboarding;
           bool show_night_mode = visibility.visible && id(clock_bar_night_mode_enabled).state &&
                                  id(clock_bar_night_mode_active);
           int clock_bar_screen_width = clock_bar_current_screen_width(${screen_width});

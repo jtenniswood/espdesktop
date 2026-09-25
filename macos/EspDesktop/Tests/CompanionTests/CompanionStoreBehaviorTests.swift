@@ -2,6 +2,13 @@ import XCTest
 @testable import Companion
 
 final class CompanionStoreBehaviorTests: XCTestCase {
+    func testRemoteCatalogueDefinitionsRequireCapabilityVersionThree() {
+        XCTAssertFalse(CompanionConnection.supportsRemoteCatalogueDefinitions(capabilityVersion: 2))
+        XCTAssertTrue(CompanionConnection.supportsRemoteCatalogueDefinitions(
+            capabilityVersion: CompanionCapabilities.version
+        ))
+    }
+
     func testWebAppOpenDoesNotReportActivationBeforeBrowserFocusIsObserved() {
         XCTAssertEqual(
             CompanionStore.actionResultStatus(actionIdentifier: "webapp.google-docs", performed: true),
