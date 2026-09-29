@@ -321,6 +321,7 @@ async function installRoutes(context, slug, options = {}) {
         contentType: "application/json",
         body: JSON.stringify({
           api: { version: 1 },
+          home_assistant_support: options.homeAssistantSupport === true,
           reset: options.resetState ? { modes: ["customization", "factory"], status: "/api/v1/reset" } : undefined,
           identity: options.identityState ? { version: 1 } : undefined,
           configuration: { read: true, write: true, document_versions: [1] },
@@ -339,6 +340,7 @@ async function installRoutes(context, slug, options = {}) {
         contentType: "application/json",
         body: JSON.stringify({
           api: { version: 1 },
+          home_assistant_support: options.homeAssistantSupport === true,
           reset: options.resetState ? { modes: ["customization", "factory"], status: "/api/v1/reset" } : undefined,
           identity: options.identityState ? { version: 1 } : undefined,
           configuration: { read: false, write: false, document_versions: [] },
@@ -2029,11 +2031,11 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
     const temperature = document.querySelector(".sp-temp");
     const networkIcon = document.querySelector(".sp-network-preview");
     const topbar = document.querySelector(".sp-topbar");
-    if (!cardLabel || !clock || !temperature || !networkIcon || !topbar)
+    if (!cardLabel || !clock || !networkIcon || !topbar)
       return null;
     const cardStyle = getComputedStyle(cardLabel);
     const clockStyle = getComputedStyle(clock);
-    const temperatureStyle = getComputedStyle(temperature);
+    const temperatureStyle = temperature ? getComputedStyle(temperature) : null;
     const networkStyle = getComputedStyle(networkIcon);
     const networkGlyphStyle = getComputedStyle(networkIcon, "::before");
     const iconRect = networkIcon.getBoundingClientRect();
@@ -2044,8 +2046,8 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
       cardFontWeight: cardStyle.fontWeight,
       clockFontSize: clockStyle.fontSize,
       clockFontWeight: clockStyle.fontWeight,
-      temperatureFontSize: temperatureStyle.fontSize,
-      temperatureFontWeight: temperatureStyle.fontWeight,
+      temperatureFontSize: temperatureStyle ? temperatureStyle.fontSize : null,
+      temperatureFontWeight: temperatureStyle ? temperatureStyle.fontWeight : null,
       iconFontSize: networkStyle.fontSize,
       glyphFontSize: networkGlyphStyle.fontSize,
       iconHeight: iconRect.height,
@@ -2060,21 +2062,25 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
     metrics.cardFontSize,
     `${label}: clock font size matches card labels`,
   );
-  assert.strictEqual(
-    metrics.temperatureFontSize,
-    metrics.cardFontSize,
-    `${label}: temperature font size matches card labels`,
-  );
+  if (metrics.temperatureFontSize !== null) {
+    assert.strictEqual(
+      metrics.temperatureFontSize,
+      metrics.cardFontSize,
+      `${label}: temperature font size matches card labels`,
+    );
+  }
   assert.strictEqual(
     metrics.clockFontWeight,
     metrics.cardFontWeight,
     `${label}: clock font weight matches card labels`,
   );
-  assert.strictEqual(
-    metrics.temperatureFontWeight,
-    metrics.cardFontWeight,
-    `${label}: temperature font weight matches card labels`,
-  );
+  if (metrics.temperatureFontWeight !== null) {
+    assert.strictEqual(
+      metrics.temperatureFontWeight,
+      metrics.cardFontWeight,
+      `${label}: temperature font weight matches card labels`,
+    );
+  }
   assert.strictEqual(
     metrics.iconFontSize,
     metrics.cardFontSize,
@@ -2355,7 +2361,7 @@ async function assertMobileDeviceViewport(browser, testCase) {
   }
 }
 
-async function assertEmptyCellSettings(page, posts, label) {
+async function assertEmptyCellSettings(page, posts, label, testCase) {
   const emptyCell = page
     .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
     .first();
@@ -2397,16 +2403,20 @@ async function assertEmptyCellSettings(page, posts, label) {
     `${label}: card choices do not display connector source labels`,
   );
   const pickerTabs = page.locator(".sp-card-type-tab");
-  assert(
-    (await pickerTabs.count()) <= 1,
-    `${label}: the picker has no Home Assistant source tab`,
-  );
-  if ((await pickerTabs.count()) === 1) {
+  if (testCase.companionSupported) {
     assert.deepStrictEqual(
       await pickerTabs.allTextContents(),
-      ["Mac Companion"],
-      `${label}: Companion-capable picker exposes only Mac Companion`,
+      ["Home Assistant", "Mac Companion"],
+      `${label}: opted-in picker exposes its available connectors`,
     );
+  } else {
+    assert.strictEqual(
+      await pickerTabs.count(),
+      0,
+      `${label}: a single connector does not need source tabs`,
+    );
+  }
+  if (testCase.companionSupported) {
     assert(
       await page.getByRole("button", { name: "Webhook card type" }).isVisible(),
       `${label}: shared webhook card appears in the Companion picker`,
@@ -2418,13 +2428,13 @@ async function assertEmptyCellSettings(page, posts, label) {
   const homeAssistantSwitchAvailable = (await switchTypeOption.count()) > 0;
   assert.strictEqual(
     homeAssistantSwitchAvailable,
-    false,
-    `${label}: Home Assistant Switch cards are not available in the add-card picker`,
+    true,
+    `${label}: opted-in Home Assistant Switch cards are available in the add-card picker`,
   );
   assert.strictEqual(
     await page.getByRole("button", { name: "Trigger card type" }).count(),
-    0,
-    `${label}: Home Assistant event Trigger cards are not available in the add-card picker`,
+    1,
+    `${label}: opted-in Home Assistant event Trigger cards are available in the add-card picker`,
   );
   assert.strictEqual(
     await page.locator("#sp-inp-type").count(),
@@ -2566,8 +2576,8 @@ async function assertConnectorsManagement(page, testCase) {
   await page.waitForSelector("#sp-connectors.sp-page.active");
   assert.strictEqual(
     await page.locator("#sp-connectors").getByRole("heading", { name: "Home Assistant", exact: true }).count(),
-    0,
-    `${testCase.name}: Connectors tab hides Home Assistant setup`,
+    1,
+    `${testCase.name}: opted-in Home Assistant support is available in Connectors`,
   );
   if (testCase.companionSupported) {
     assert(
@@ -2576,8 +2586,8 @@ async function assertConnectorsManagement(page, testCase) {
     );
   } else {
     assert(
-      await page.locator("#sp-connectors").getByText("No external connectors are available on this display.").isVisible(),
-      `${testCase.name}: unsupported profiles show a useful local connector state`,
+      await page.locator("#sp-connectors .sp-companion-heading").count() === 0,
+      `${testCase.name}: unsupported profiles hide Mac Companion setup`,
     );
   }
   assert.strictEqual(
@@ -2612,13 +2622,13 @@ async function assertNewMediaCardDefaults(page, posts, label) {
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
   assert.strictEqual(
     await page.getByRole("button", { name: "Media card type" }).count(),
-    0,
-    `${label}: Home Assistant Media cards are not available to add`,
+    1,
+    `${label}: opted-in Home Assistant Media cards are available to add`,
   );
   assert.strictEqual(
     await page.locator('[data-card-type="calendar"]').count(),
-    0,
-    `${label}: Home Assistant-only card types stay out of the picker`,
+    1,
+    `${label}: opted-in Home Assistant-only card types are available in the picker`,
   );
 
   await page.locator(".sp-settings-close").click();
@@ -5196,7 +5206,31 @@ async function seedNativeDocument(page, nativeState) {
   await page.waitForSelector('.sp-main [data-slot="2"]');
 }
 
-async function assertWifiSharingHidesHomeAssistantControls(page, label) {
+async function assertWifiSharingHidesHomeAssistantControls(browser, testCase) {
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, {
+    homeAssistantSupport: false,
+    nativeState: nativeConfigState(testCase.slug),
+  });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
+      waitUntil: "domcontentloaded",
+    });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(
+      () => window.__eventSources && window.__eventSources.length > 0,
+    );
+    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
+    await page.waitForSelector(".sp-main > .sp-btn");
+    await assertWifiSharingGuestControlsHidden(page, testCase.name);
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertWifiSharingGuestControlsHidden(page, label) {
   await page.getByRole("tab", { name: "Screen" }).click();
   const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
   assert(await emptyCell.count(), `${label}: guest Wi-Fi test needs an empty slot`);
@@ -5217,7 +5251,17 @@ async function assertWifiSharingHidesHomeAssistantControls(page, label) {
 async function assertNativeProfileJourney(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState });
+  await installRoutes(context, testCase.slug, {
+    nativeState,
+    homeAssistantSupport: true,
+    connectorsStatus: {
+      onboarding_complete: true,
+      home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
+      mac_companion: testCase.slug === "guition-esp32-s3-4848s040"
+        ? { available: true, configured: true, paired: true, connected: true }
+        : { available: false, configured: false, paired: false, connected: false },
+    },
+  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -5231,44 +5275,46 @@ async function assertNativeProfileJourney(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await seedNativeDocument(page, nativeState);
-    if (testCase.exerciseInteractions) await assertWifiSharingHidesHomeAssistantControls(page, testCase.name);
+    if (testCase.exerciseInteractions) await assertWifiSharingHidesHomeAssistantControls(browser, testCase);
 
     await assertSubpageTitleTypography(page, testCase.name);
 
-    const sensor = page.locator('.sp-main [data-slot="2"]');
+    const card = page.locator('.sp-main [data-slot="1"]');
     assert(
-      (await sensor.textContent()).includes("Energy"),
-      `${testCase.name}: sensor preview renders before editing`,
+      (await card.textContent()).includes("Kitchen"),
+      `${testCase.name}: card preview renders before editing`,
     );
-    await sensor.click();
+    await card.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
-    const cardSettings = page
-      .locator(".sp-settings-modal .sp-disclosure")
-      .filter({ hasText: "Card Settings" })
-      .first();
     if (!(await page.locator("#sp-inp-label").isVisible())) {
-      await cardSettings.locator(".sp-disclosure-button").click();
+      await page
+        .locator(".sp-settings-modal .sp-disclosure")
+        .filter({ hasText: "Card Settings" })
+        .first()
+        .locator(".sp-disclosure-button")
+        .click();
     }
+    await page.locator("#sp-inp-label").waitFor({ state: "visible" });
     const editedLabel = `Accepted ${testCase.slug}`;
     await page.locator("#sp-inp-label").fill(editedLabel);
     const beforeSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await page.waitForFunction(
-      (label) => document.querySelector('.sp-main [data-slot="2"]')?.textContent?.includes(label),
+      (label) => document.querySelector('.sp-main [data-slot="1"]')?.textContent?.includes(label),
       editedLabel,
     );
     await waitForNativeState(
       nativeState,
       () => nativeState.puts.length > beforeSave &&
-        panelConfigLabel(nativeState.document, 2) === editedLabel,
-      `${testCase.name}: native sensor save`,
+        panelConfigLabel(nativeState.document, 1) === editedLabel,
+      `${testCase.name}: native card save`,
     );
     assert.strictEqual(
-      panelConfigLabel(nativeState.document, 2),
+      panelConfigLabel(nativeState.document, 1),
       editedLabel,
-      `${testCase.name}: sensor edit saves through native PanelConfig ` +
-        `(PUT labels: ${nativeState.puts.map((put) => panelConfigLabel(put.document, 2)).join(" -> ")})`,
+      `${testCase.name}: card edit saves through native PanelConfig ` +
+        `(PUT labels: ${nativeState.puts.map((put) => panelConfigLabel(put.document, 1)).join(" -> ")})`,
     );
 
     const sourceCount = await page.evaluate(() => window.__eventSources.length);
@@ -5280,8 +5326,8 @@ async function assertNativeProfileJourney(browser, testCase) {
     );
     await seedNativeDocument(page, nativeState);
     assert(
-      (await page.locator('.sp-main [data-slot="2"]').textContent()).includes(editedLabel),
-      `${testCase.name}: reconnect reloads the saved sensor card`,
+      (await page.locator('.sp-main [data-slot="1"]').textContent()).includes(editedLabel),
+      `${testCase.name}: reconnect reloads the saved card`,
     );
 
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -5291,8 +5337,8 @@ async function assertNativeProfileJourney(browser, testCase) {
     );
     await seedNativeDocument(page, nativeState);
     assert(
-      (await page.locator('.sp-main [data-slot="2"]').textContent()).includes(editedLabel),
-      `${testCase.name}: reload retains the native sensor edit`,
+      (await page.locator('.sp-main [data-slot="1"]').textContent()).includes(editedLabel),
+      `${testCase.name}: reload retains the native card edit`,
     );
 
     await openBackupControls(page);
@@ -5964,8 +6010,8 @@ async function assertTimerEntityValidation(page) {
   await page.locator(".sp-main .sp-empty-cell").first().click();
   assert.strictEqual(
     await page.getByRole("button", { name: "Timer card type", exact: true }).count(),
-    0,
-    "Home Assistant timer cards are not available in the add-card picker",
+    1,
+    "Opted-in Home Assistant timer cards are available in the add-card picker",
   );
   await page.locator(".sp-settings-close").click();
   await page.waitForFunction(() =>
@@ -5974,13 +6020,16 @@ async function assertTimerEntityValidation(page) {
 
 async function runCase(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, testCase.slug === "guition-esp32-s3-4848s040" ? {
+  await installRoutes(context, testCase.slug, {
+    homeAssistantSupport: true,
     connectorsStatus: {
       onboarding_complete: true,
       home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
-      mac_companion: { available: true, configured: true, paired: true, connected: true },
+      mac_companion: testCase.slug === "guition-esp32-s3-4848s040"
+        ? { available: true, configured: true, paired: true, connected: true }
+        : { available: false, configured: false, paired: false, connected: false },
     },
-  } : {});
+  });
   const page = await context.newPage();
   const errors = [];
   const posts = [];
@@ -6086,7 +6135,7 @@ async function runCase(browser, testCase) {
       await assertOnlyLocalActionsAvailable(page, posts, testCase.name);
     }
     await assertInternalControlsPanel(page, posts, testCase.name);
-    await assertEmptyCellSettings(page, posts, testCase.name);
+    await assertEmptyCellSettings(page, posts, testCase.name, testCase);
     await assertNewMediaCardDefaults(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {
       await assertClockBarEditorSmoke(page, posts, testCase.name);
