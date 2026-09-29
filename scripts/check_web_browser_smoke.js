@@ -2570,8 +2570,12 @@ async function assertEmptyCellSettings(page, posts, label, testCase) {
 async function assertConnectorsManagement(page, testCase) {
   await page.getByRole("tab", { name: "Connectors" }).click();
   await page.waitForSelector("#sp-connectors.sp-page.active");
+  const homeAssistantHeading = page
+    .locator("#sp-connectors")
+    .getByRole("heading", { name: "Home Assistant", exact: true });
+  await homeAssistantHeading.waitFor({ state: "visible" });
   assert.strictEqual(
-    await page.locator("#sp-connectors").getByRole("heading", { name: "Home Assistant", exact: true }).count(),
+    await homeAssistantHeading.count(),
     1,
     `${testCase.name}: opted-in Home Assistant support is available in Connectors`,
   );
