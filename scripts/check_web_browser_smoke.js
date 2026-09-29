@@ -5230,6 +5230,34 @@ async function assertWifiSharingHidesHomeAssistantControls(browser, testCase) {
   }
 }
 
+async function assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase) {
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { homeAssistantSupport: false });
+  const page = await context.newPage();
+  const posts = [];
+  page.on("request", (request) => {
+    const requestUrl = new URL(request.url());
+    if (request.method() === "POST" && requestUrl.hostname === "espdesktop.test") {
+      posts.push(postRecord(request.url()));
+    }
+  });
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
+      waitUntil: "domcontentloaded",
+    });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(
+      () => window.__eventSources && window.__eventSources.length > 0,
+    );
+    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
+    await page.waitForSelector(".sp-main > .sp-btn");
+    await assertOnlyLocalActionsAvailable(page, posts, testCase.name);
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertWifiSharingGuestControlsHidden(page, label) {
   await page.getByRole("tab", { name: "Screen" }).click();
   const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
@@ -6132,7 +6160,7 @@ async function runCase(browser, testCase) {
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
       await assertFanOptionalLightSettings(page, testCase.name);
       await assertWebhookSettingsPanel(page, posts, testCase.name);
-      await assertOnlyLocalActionsAvailable(page, posts, testCase.name);
+      await assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase);
     }
     await assertInternalControlsPanel(page, posts, testCase.name);
     await assertEmptyCellSettings(page, posts, testCase.name, testCase);
