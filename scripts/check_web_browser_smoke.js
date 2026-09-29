@@ -5824,8 +5824,8 @@ async function assertLegacyProfileFallback(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
-    await page.waitForSelector('.sp-main [data-slot="2"]');
-    await page.locator('.sp-main [data-slot="2"]').click();
+    await page.waitForSelector('.sp-main [data-slot="1"]');
+    await page.locator('.sp-main [data-slot="1"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     const cardSettings = page
       .locator(".sp-settings-modal .sp-disclosure")
@@ -5840,8 +5840,8 @@ async function assertLegacyProfileFallback(browser, testCase) {
     await waitForAnyPost(
       posts,
       [
-        { domain: "text", name: "button_2_config", action: "set" },
-        { domain: "text", name: "Button 2 Config", action: "set" },
+        { domain: "text", name: "button_1_config", action: "set" },
+        { domain: "text", name: "Button 1 Config", action: "set" },
       ],
       `${testCase.name}: unsupported native API falls back to legacy save`,
       before,
