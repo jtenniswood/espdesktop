@@ -2031,11 +2031,11 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
     const temperature = document.querySelector(".sp-temp");
     const networkIcon = document.querySelector(".sp-network-preview");
     const topbar = document.querySelector(".sp-topbar");
-    if (!cardLabel || !clock || !networkIcon || !topbar)
+    if (!cardLabel || !clock || !temperature || !networkIcon || !topbar)
       return null;
     const cardStyle = getComputedStyle(cardLabel);
     const clockStyle = getComputedStyle(clock);
-    const temperatureStyle = temperature ? getComputedStyle(temperature) : null;
+    const temperatureStyle = getComputedStyle(temperature);
     const networkStyle = getComputedStyle(networkIcon);
     const networkGlyphStyle = getComputedStyle(networkIcon, "::before");
     const iconRect = networkIcon.getBoundingClientRect();
@@ -2062,25 +2062,21 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
     metrics.cardFontSize,
     `${label}: clock font size matches card labels`,
   );
-  if (metrics.temperatureFontSize !== null) {
-    assert.strictEqual(
-      metrics.temperatureFontSize,
-      metrics.cardFontSize,
-      `${label}: temperature font size matches card labels`,
-    );
-  }
+  assert.strictEqual(
+    metrics.temperatureFontSize,
+    metrics.cardFontSize,
+    `${label}: temperature font size matches card labels`,
+  );
   assert.strictEqual(
     metrics.clockFontWeight,
     metrics.cardFontWeight,
     `${label}: clock font weight matches card labels`,
   );
-  if (metrics.temperatureFontWeight !== null) {
-    assert.strictEqual(
-      metrics.temperatureFontWeight,
-      metrics.cardFontWeight,
-      `${label}: temperature font weight matches card labels`,
-    );
-  }
+  assert.strictEqual(
+    metrics.temperatureFontWeight,
+    metrics.cardFontWeight,
+    `${label}: temperature font weight matches card labels`,
+  );
   assert.strictEqual(
     metrics.iconFontSize,
     metrics.cardFontSize,
