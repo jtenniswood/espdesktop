@@ -523,7 +523,7 @@ export function createControlsFieldsFeature(
     function renderCardSegmentControl(this: any, panel?: any, b?: any, helpers?: any, metadata?: any) {
         metadata = metadata || {};
         var segment: any = metadata.segment || metadata;
-        var control: any = helpers.segmentControl(segment.options || [], cardMetadataValue(segment.value, b, helpers) || "", function (this: any, value?: any, button?: any) {
+        var control: any = helpers.segmentControl(cardMetadataValue(segment.options, b, helpers) || [], cardMetadataValue(segment.value, b, helpers) || "", function (this: any, value?: any, button?: any) {
             if (segment.onSelect)
                 segment.onSelect(b, helpers, value, button, control);
         });
