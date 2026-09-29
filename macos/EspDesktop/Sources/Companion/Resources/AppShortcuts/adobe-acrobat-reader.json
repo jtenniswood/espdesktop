@@ -5,12 +5,6 @@
   "catalog": false,
   "shortcuts": [
     {
-      "id": "0",
-      "label": "Zoom In tool (temporary selection)",
-      "shortcut": "command+space",
-      "icon": "Application"
-    },
-    {
       "id": "1",
       "label": "Find in document",
       "shortcut": "command+f",

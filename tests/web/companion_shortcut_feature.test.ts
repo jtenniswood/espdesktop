@@ -47,6 +47,9 @@ import {
   companionShortcutFolderEditorAvailable,
   companionShortcutSelectionMatchesSavedParent,
   companionShortcutTabs,
+  companionShortcutTabsForCapacity,
+  companionShortcutFolderAppLabel,
+  companionShortcutTabDefinitions,
   companionShortcutTabsFitSubpage,
   companionShortcutTabsFromSubpage,
   SAFARI_BUNDLE_ID,
@@ -98,6 +101,15 @@ export function runCompanionShortcutFeatureTests(): void {
   const finderPage = createCompanionShortcutSubpage(finder.entity);
   if (finderPage.buttons.length || finderPage.order.join() !== "B") {
     throw new Error("Finder should start with an empty editable folder page");
+  }
+  if (companionShortcutFolderAppLabel("com.adobe.PremierePro.25") !== "Adobe Premiere Pro" ||
+      companionShortcutTabDefinitions("com.adobe.PremierePro.25").length !== 10 ||
+      companionShortcutFolderAppLabel("com.adobe.PremierePro.beta") !== "") {
+    throw new Error("Premiere Pro app versions must match only numeric bundle ID suffixes");
+  }
+  if (companionShortcutTabsForCapacity(["0", "1", "2", "3"], 3).join() !== "0,1" ||
+      companionShortcutTabsForCapacity(["0"], 1).length !== 0) {
+    throw new Error("Shortcut defaults must leave one subpage slot for Back");
   }
   const inheritedFolder = { ...emptyCardConfig("companion"), entity: "folder.projects" };
   if (!inheritFinderOpenBehaviorForCard(inheritedFolder, "same_window") ||

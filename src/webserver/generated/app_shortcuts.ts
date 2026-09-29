@@ -70,12 +70,6 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "catalog": false,
     "shortcuts": [
       {
-        "id": "0",
-        "label": "Zoom In tool (temporary selection)",
-        "shortcut": "command+space",
-        "icon": "Application"
-      },
-      {
         "id": "1",
         "label": "Find in document",
         "shortcut": "command+f",
@@ -265,12 +259,6 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "5",
         "label": "Create or release clipping mask",
         "shortcut": "command+option+g",
-        "icon": "Application"
-      },
-      {
-        "id": "6",
-        "label": "Toggle Smart Guides",
-        "shortcut": "command+u",
         "icon": "Application"
       }
     ]
@@ -2564,55 +2552,55 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       {
         "id": "0",
         "label": "New Project",
-        "shortcut": "control+n",
+        "shortcut": "command+n",
         "icon": "Plus"
       },
       {
         "id": "1",
         "label": "Open Project",
-        "shortcut": "control+o",
+        "shortcut": "command+o",
         "icon": "Folder"
       },
       {
         "id": "2",
         "label": "Save Project",
-        "shortcut": "control+s",
+        "shortcut": "command+s",
         "icon": "Download"
       },
       {
         "id": "3",
         "label": "Save Project as",
-        "shortcut": "control+shift+s",
+        "shortcut": "command+shift+s",
         "icon": "Download"
       },
       {
         "id": "4",
         "label": "Import geometry data from STL/STEP/3MF/OBJ/AMF",
-        "shortcut": "control+i",
+        "shortcut": "command+i",
         "icon": "Folder"
       },
       {
         "id": "5",
         "label": "Slice plate",
-        "shortcut": "control+r",
+        "shortcut": "command+r",
         "icon": "Application"
       },
       {
         "id": "6",
         "label": "Export plate sliced file",
-        "shortcut": "control+g",
+        "shortcut": "command+g",
         "icon": "Folder"
       },
       {
         "id": "7",
         "label": "Print plate",
-        "shortcut": "control+shift+g",
+        "shortcut": "command+shift+g",
         "icon": "Application"
       },
       {
         "id": "8",
         "label": "Search",
-        "shortcut": "control+f",
+        "shortcut": "command+f",
         "icon": "Spotlight"
       }
     ]

@@ -39,12 +39,6 @@
       "label": "Create or release clipping mask",
       "shortcut": "command+option+g",
       "icon": "Application"
-    },
-    {
-      "id": "6",
-      "label": "Toggle Smart Guides",
-      "shortcut": "command+u",
-      "icon": "Application"
     }
   ]
 }
