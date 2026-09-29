@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.adobe.PremierePro",
+  "label": "Adobe Premiere Pro",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New Project …",
+      "shortcut": "command+option+n",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "New Sequence…",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open Project...",
+      "shortcut": "command+o",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Save",
+      "shortcut": "command+s",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Save As...",
+      "shortcut": "command+shift+s",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Save a Copy...",
+      "shortcut": "command+option+s",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Import...",
+      "shortcut": "command+i",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Export Media",
+      "shortcut": "command+m",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Redo",
+      "shortcut": "command+shift+z",
+      "icon": "Application"
+    }
+  ]
+}

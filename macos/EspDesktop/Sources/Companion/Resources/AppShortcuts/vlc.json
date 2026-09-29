@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "appId": "org.videolan.vlc",
+  "label": "VLC",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Toggle full screen",
+      "shortcut": "command+f",
+      "icon": "Application"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.seriflabs.affinitypublisher2",
+  "label": "Affinity Publisher",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New Document",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Close Document/Close App (when no documents o…",
+      "shortcut": "command+w",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Close All Documents",
+      "shortcut": "command+option+w",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Find",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Switch to Next View",
+      "shortcut": "command+keybackquote",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Select Previous",
+      "shortcut": "command+option+keybracketleft",
+      "icon": "Application"
+    }
+  ]
+}

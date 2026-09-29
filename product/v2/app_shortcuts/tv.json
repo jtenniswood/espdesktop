@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "com.apple.TV",
+  "label": "TV",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create a new playlist",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Create a new Smart Playlist",
+      "shortcut": "option+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Refresh playlist",
+      "shortcut": "command+r",
+      "icon": "Repeat"
+    },
+    {
+      "id": "3",
+      "label": "Import a video file",
+      "shortcut": "command+o",
+      "icon": "Folder"
+    },
+    {
+      "id": "4",
+      "label": "Delete the selected playlist",
+      "shortcut": "option+delete",
+      "icon": "Play"
+    }
+  ]
+}

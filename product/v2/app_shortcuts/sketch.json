@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "appId": "com.bohemiancoding.sketch3",
+  "label": "Sketch",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "New document",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Save new or local document",
+      "shortcut": "command+s",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Save As",
+      "shortcut": "command+option+shift+s",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "New page",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Copy link to page or frame",
+      "shortcut": "command+shift+c",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Zoom out",
+      "shortcut": "command+keyminus",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Redo",
+      "shortcut": "command+shift+z",
+      "icon": "Application"
+    }
+  ]
+}

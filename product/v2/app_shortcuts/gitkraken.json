@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.axosoft.gitkraken",
+  "label": "GitKraken",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create branch",
+      "shortcut": "command+b",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Search commits",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Search file to view history and blame",
+      "shortcut": "command+shift+h",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "New Tab",
+      "shortcut": "command+t",
+      "icon": "Application"
+    }
+  ]
+}

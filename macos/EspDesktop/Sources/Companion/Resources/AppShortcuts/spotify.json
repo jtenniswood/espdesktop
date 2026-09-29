@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.spotify.client",
+  "label": "Spotify",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Search",
+      "shortcut": "command+k",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "1",
+      "label": "Select All",
+      "shortcut": "command+a",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Go to Playlists",
+      "shortcut": "option+shift+1",
+      "icon": "Play"
+    },
+    {
+      "id": "3",
+      "label": "Go to Now Playing",
+      "shortcut": "option+shift+j",
+      "icon": "Play"
+    },
+    {
+      "id": "4",
+      "label": "Open Context Menu",
+      "shortcut": "option+j",
+      "icon": "Folder"
+    },
+    {
+      "id": "5",
+      "label": "Toggle Now Playing View Sidebar",
+      "shortcut": "option+shift+r",
+      "icon": "Play"
+    }
+  ]
+}

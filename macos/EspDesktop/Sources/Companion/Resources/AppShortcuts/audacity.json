@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "appId": "org.audacityteam.audacity",
+  "label": "Audacity",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Add Label at Playback Position",
+      "shortcut": "command+m",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Move to Previous Label",
+      "shortcut": "option+left",
+      "icon": "Application"
+    }
+  ]
+}

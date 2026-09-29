@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "com.apple.FinalCut",
+  "label": "Final Cut Pro",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open an existing library or a new library",
+      "shortcut": "command+o",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Create audition from timeline clip",
+      "shortcut": "option+y",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Create audition from selection",
+      "shortcut": "command+y",
+      "icon": "Plus"
+    },
+    {
+      "id": "3",
+      "label": "Create storyline from selection",
+      "shortcut": "command+g",
+      "icon": "Plus"
+    },
+    {
+      "id": "4",
+      "label": "Create compound clip",
+      "shortcut": "option+g",
+      "icon": "Plus"
+    },
+    {
+      "id": "5",
+      "label": "Delete selection",
+      "shortcut": "command+delete",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "6",
+      "label": "Create a new project",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "7",
+      "label": "Reveal the selected event clip’s source media",
+      "shortcut": "shift+command+r",
+      "icon": "Spotlight"
+    }
+  ]
+}

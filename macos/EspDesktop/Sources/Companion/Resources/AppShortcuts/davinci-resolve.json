@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "appId": "com.blackmagic-design.DaVinciResolve",
+  "label": "DaVinci Resolve",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Save project",
+      "shortcut": "command+s",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Redo",
+      "shortcut": "command+shift+z",
+      "icon": "Application"
+    }
+  ]
+}

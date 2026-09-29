@@ -44,6 +44,7 @@ import {
     companionShortcutSelectionMatchesSavedParent,
     companionShortcutTabDefinitions,
     companionShortcutTabs,
+    companionShortcutTabsForCapacity,
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
     replaceCompanionDefinitions,
@@ -1146,7 +1147,9 @@ export function registerCompanionCardTypes(
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
                 modalTabs.renderModalTabSettings(appSubpageDisclosure.section, card, helpers, {
                     definitions: function () { return companionShortcutTabDefinitions(card.entity); },
-                    tabs: companionShortcutTabs,
+                    tabs: (button: any) => companionShortcutTabsForCapacity(
+                        companionShortcutTabs(button), maxSlots,
+                    ),
                     normalizeOptions: function (options: string) {
                         return normalizeCompanionAppShortcutOptions({ ...card, options });
                     },
@@ -1487,7 +1490,8 @@ export function registerCompanionCardTypes(
             } : null;
             let subpage = source && !appChanged
                 ? card.entity === "com.apple.finder" ? source : syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
-                : createCompanionShortcutSubpage(card.entity, companionShortcutTabs(card));
+                : createCompanionShortcutSubpage(card.entity,
+                    companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots));
             if (card.entity === "com.apple.finder") {
                 codec.buildSubpageGrid(subpage);
                 const folders = companionFolderActions(await loadCompanionActions(true));

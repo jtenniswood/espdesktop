@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.nousresearch.hermes",
+  "label": "Hermes",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Command Palette",
+      "shortcut": "command+k",
+      "icon": "Folder"
+    },
+    {
+      "id": "1",
+      "label": "Start a new session",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Search sessions",
+      "shortcut": "command+shift+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "3",
+      "label": "Open a new session tab",
+      "shortcut": "command+t",
+      "icon": "Tab"
+    },
+    {
+      "id": "4",
+      "label": "Next session tab",
+      "shortcut": "control+tab",
+      "icon": "Tab"
+    },
+    {
+      "id": "5",
+      "label": "Jump to recent session by position",
+      "shortcut": "control+9",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Toggle left sidebar",
+      "shortcut": "command+b",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Toggle right sidebar",
+      "shortcut": "command+j",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Find in chat transcript",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "9",
+      "label": "Open Quick Entry",
+      "shortcut": "command+shift+space",
+      "icon": "Folder"
+    }
+  ]
+}

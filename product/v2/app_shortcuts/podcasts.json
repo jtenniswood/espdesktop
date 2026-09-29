@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.apple.podcasts",
+  "label": "Podcasts",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create a new station",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Refresh RSS feed updates",
+      "shortcut": "command+r",
+      "icon": "Repeat"
+    },
+    {
+      "id": "2",
+      "label": "Search your library or all podcasts",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "3",
+      "label": "Go to the Show page for the current podcast",
+      "shortcut": "command+l",
+      "icon": "Application"
+    }
+  ]
+}

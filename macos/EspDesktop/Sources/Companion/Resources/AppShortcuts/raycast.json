@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.raycast.macos",
+  "label": "Raycast",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open or close Raycast (default global hotkey)",
+      "shortcut": "option+space",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Return to root search",
+      "shortcut": "command+escape",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open action panel",
+      "shortcut": "command+k",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Open settings",
+      "shortcut": "command+keycomma",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Submit a form",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Add selected result to favorites",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Open user guide",
+      "shortcut": "command+shift+keyslash",
+      "icon": "Application"
+    }
+  ]
+}

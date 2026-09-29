@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "md.obsidian",
+  "label": "Obsidian",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open the Command Palette",
+      "shortcut": "command+p",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Open the Quick Switcher",
+      "shortcut": "command+o",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open the selected Quick Switcher note in a ne…",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Search all files in the vault",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Toggle Reading view and Editing view",
+      "shortcut": "command+e",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Open a new tab",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Switch to the next tab",
+      "shortcut": "control+tab",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Switch to the previous tab",
+      "shortcut": "control+shift+tab",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Switch directly to a tab by position",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Reopen the recently closed tab",
+      "shortcut": "command+shift+t",
+      "icon": "Application"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "com.microsoft.Outlook",
+  "label": "Microsoft Outlook",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create a new folder in the folder pane.",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Create a new email (in Mail view).",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Search the current folder",
+      "shortcut": "command+option+f",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Do an advanced search in Outlook (add Item Co…",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Find text within an item.",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Find the next instance of the text you search…",
+      "shortcut": "command+g",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Find the previous instance of the text you se…",
+      "shortcut": "command+shift+g",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Switch to the Search tab.",
+      "shortcut": "command+2",
+      "icon": "Application"
+    }
+  ]
+}

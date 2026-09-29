@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.googlecode.iterm2",
+  "label": "iTerm2",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Split vertically",
+      "shortcut": "command+d",
+      "icon": "Video"
+    },
+    {
+      "id": "1",
+      "label": "Split horizontally",
+      "shortcut": "command+shift+d",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Maximize or restore the active pane",
+      "shortcut": "command+shift+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Search the current session",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    }
+  ]
+}

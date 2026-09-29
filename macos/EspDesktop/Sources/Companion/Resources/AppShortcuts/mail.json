@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "appId": "com.apple.mail",
+  "label": "Mail",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Start a new email",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Open a new Mail viewer window",
+      "shortcut": "option+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Open a new tab in the Mail viewer window",
+      "shortcut": "option+shift+command+n",
+      "icon": "Tab"
+    },
+    {
+      "id": "3",
+      "label": "Show the Reply-To address field in your email",
+      "shortcut": "option+command+r",
+      "icon": "Message Video"
+    },
+    {
+      "id": "4",
+      "label": "Get new emails",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "5",
+      "label": "Send emails",
+      "shortcut": "shift+command+d",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Unsend email",
+      "shortcut": "command+z",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Reply to the selected email",
+      "shortcut": "command+r",
+      "icon": "Message Video"
+    },
+    {
+      "id": "8",
+      "label": "Archive emails",
+      "shortcut": "control+command+a",
+      "icon": "Application"
+    }
+  ]
+}
