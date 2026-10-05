@@ -22,7 +22,7 @@ class AppShortcutTests(unittest.TestCase):
         apps = load_apps(ROOT)
         self.assertEqual([app['label'] for app in apps if app['catalog']], ['Safari'])
         safari = next(app for app in apps if app['appId'] == 'com.apple.Safari')
-        self.assertEqual([item['id'] for item in safari['shortcuts']], ['0', '1', '2', '3', '4'])
+        self.assertEqual([item['id'] for item in safari['shortcuts']], [str(index) for index in range(10)])
         self.assertEqual(safari['shortcuts'][2]['shortcut'], 'command+r')
 
     def test_invalid_definitions(self):

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.apple.reminders",
+  "label": "Reminders",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New reminder",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "New List",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "New section",
+      "shortcut": "option+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "3",
+      "label": "New section with selection",
+      "shortcut": "control+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "4",
+      "label": "Mark a reminder completed or incomplete",
+      "shortcut": "shift+command+c",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Set due date to this weekend",
+      "shortcut": "command+k",
+      "icon": "Chevron Right"
+    },
+    {
+      "id": "6",
+      "label": "Set reminder as due next week",
+      "shortcut": "option+command+k",
+      "icon": "Chevron Right"
+    }
+  ]
+}

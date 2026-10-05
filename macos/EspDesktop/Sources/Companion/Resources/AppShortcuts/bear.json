@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "net.shinyfrog.bear",
+  "label": "Bear",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Heading levels 1–6",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Bold",
+      "shortcut": "command+b",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Insert link",
+      "shortcut": "command+k",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Unordered list",
+      "shortcut": "command+l",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Create todo",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Toggle todo completion",
+      "shortcut": "command+keyperiod",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Search current note",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Search note list",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "New note",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Quick Open",
+      "shortcut": "command+o",
+      "icon": "Application"
+    }
+  ]
+}

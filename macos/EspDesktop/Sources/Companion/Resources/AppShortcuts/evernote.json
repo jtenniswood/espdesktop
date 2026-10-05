@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "com.evernote.Evernote",
+  "label": "Evernote",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Search in Evernote",
+      "shortcut": "command+shift+k",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "New note",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "New notebook",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "New space",
+      "shortcut": "command+shift+s",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "New task",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "New event",
+      "shortcut": "command+e",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Search",
+      "shortcut": "command+k",
+      "icon": "Application"
+    }
+  ]
+}

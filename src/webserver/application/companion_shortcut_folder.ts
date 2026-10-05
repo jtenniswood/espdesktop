@@ -62,7 +62,13 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
     if (bundleIdentifier.startsWith("webapp.")) {
         return COMPANION_WEB_APPS.find((app) => "webapp." + app.id === bundleIdentifier)?.label || "";
     }
-    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.label || "";
+    return companionShortcutApp(bundleIdentifier)?.label || "";
+}
+
+function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
+    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier ||
+        (app.appId === "com.adobe.PremierePro" &&
+            /^com\.adobe\.PremierePro\.\d+$/.test(bundleIdentifier)));
 }
 
 export function companionAppShortcutFolderEnabled(card: any): boolean {
@@ -159,7 +165,7 @@ export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOp
 }
 
 export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
-    const appShortcuts = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.shortcuts;
+    const appShortcuts = companionShortcutApp(bundleIdentifier)?.shortcuts;
     const webAppShortcuts = bundleIdentifier.startsWith("webapp.")
         ? COMPANION_WEB_APPS.find((app) => "webapp." + app.id === bundleIdentifier)?.shortcuts
         : COMPANION_WEB_APPS.find((app) => app.id === bundleIdentifier)?.shortcuts;
@@ -290,7 +296,7 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {
-    const app = COMPANION_SHORTCUT_APPS.find((candidate) => candidate.appId === bundleIdentifier);
+    const app = companionShortcutApp(bundleIdentifier);
     const webAppId = bundleIdentifier.replace(/^webapp\./, "");
     const webApp = COMPANION_WEB_APPS.find((candidate) => candidate.id === webAppId);
     return markCompanionShortcutPresets(bundleIdentifier, (app?.shortcuts || webApp?.shortcuts || []).map((item) =>
@@ -310,6 +316,10 @@ export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: 
         sizes: {},
         backLabel: "Back",
     };
+}
+
+export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlots: number): string[] {
+    return tabs.slice(0, Math.max(0, maxSlots - 1));
 }
 
 export function finderFolderTabs(subpage: any): string[] {

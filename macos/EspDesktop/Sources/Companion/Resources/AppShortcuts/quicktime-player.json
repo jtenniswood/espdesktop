@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.apple.QuickTimePlayerX",
+  "label": "QuickTime Player",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New movie recording",
+      "shortcut": "option+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "New audio recording",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "New screen recording",
+      "shortcut": "control+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "3",
+      "label": "Play or pause all movies",
+      "shortcut": "command+enter",
+      "icon": "Play"
+    },
+    {
+      "id": "4",
+      "label": "Display movie at actual size",
+      "shortcut": "command+1",
+      "icon": "Play"
+    },
+    {
+      "id": "5",
+      "label": "Display the movie in panoramic mode",
+      "shortcut": "command+5",
+      "icon": "Play"
+    }
+  ]
+}

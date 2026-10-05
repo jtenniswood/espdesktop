@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appId": "com.apple.Notes",
+  "label": "Notes",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create a new note",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Create a new folder",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Search all notes",
+      "shortcut": "option+command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "3",
+      "label": "Apply Checklist format",
+      "shortcut": "shift+command+l",
+      "icon": "Palette"
+    },
+    {
+      "id": "4",
+      "label": "Add a new paragraph in a cell",
+      "shortcut": "option+enter",
+      "icon": "Plus"
+    }
+  ]
+}

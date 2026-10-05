@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "appId": "com.apple.FaceTime",
+  "label": "FaceTime",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Toggle full screen",
+      "shortcut": "control+command+f",
+      "icon": "Video"
+    },
+    {
+      "id": "1",
+      "label": "Switch call orientation",
+      "shortcut": "command+r",
+      "icon": "Video"
+    }
+  ]
+}

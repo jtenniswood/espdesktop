@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "com.seriflabs.affinityphoto2",
+  "label": "Affinity Photo",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New Document",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "New from Clipboard",
+      "shortcut": "command+option+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open Document",
+      "shortcut": "command+o",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Close Document/Close App (when no documents o…",
+      "shortcut": "command+w",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Close All Documents",
+      "shortcut": "command+option+w",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Save",
+      "shortcut": "command+s",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "New Layer",
+      "shortcut": "command+shift+n",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Switch to Next View",
+      "shortcut": "command+keybackquote",
+      "icon": "Application"
+    }
+  ]
+}

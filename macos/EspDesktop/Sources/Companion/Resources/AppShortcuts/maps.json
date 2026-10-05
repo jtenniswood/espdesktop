@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.apple.Maps",
+  "label": "Maps",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Switch to explore view",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Switch to driving view",
+      "shortcut": "command+2",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Switch to public transport view",
+      "shortcut": "command+3",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Switch to satellite view",
+      "shortcut": "command+4",
+      "icon": "Application"
+    }
+  ]
+}

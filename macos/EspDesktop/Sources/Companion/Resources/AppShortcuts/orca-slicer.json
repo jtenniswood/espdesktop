@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "appId": "com.orcaslicer.OrcaSlicer",
+  "label": "OrcaSlicer",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New Project",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Open Project",
+      "shortcut": "command+o",
+      "icon": "Folder"
+    },
+    {
+      "id": "2",
+      "label": "Save Project",
+      "shortcut": "command+s",
+      "icon": "Download"
+    },
+    {
+      "id": "3",
+      "label": "Save Project as",
+      "shortcut": "command+shift+s",
+      "icon": "Download"
+    },
+    {
+      "id": "4",
+      "label": "Import geometry data from STL/STEP/3MF/OBJ/AMF",
+      "shortcut": "command+i",
+      "icon": "Folder"
+    },
+    {
+      "id": "5",
+      "label": "Slice plate",
+      "shortcut": "command+r",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Export plate sliced file",
+      "shortcut": "command+g",
+      "icon": "Folder"
+    },
+    {
+      "id": "7",
+      "label": "Print plate",
+      "shortcut": "command+shift+g",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Search",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    }
+  ]
+}

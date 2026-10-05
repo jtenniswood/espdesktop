@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.openai.chat",
+  "label": "ChatGPT",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open command menu",
+      "shortcut": "command+shift+p",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Toggle sidebar",
+      "shortcut": "command+b",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "New chat",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Quick chat",
+      "shortcut": "command+option+n",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Find in chat",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Previous chat or tab",
+      "shortcut": "control+shift+tab",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Next chat or tab",
+      "shortcut": "control+tab",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Start voice chat",
+      "shortcut": "control+shift+v",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Open Chat Bar (ChatGPT Classic)",
+      "shortcut": "option+space",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Stop streaming response (ChatGPT Classic)",
+      "shortcut": "command+keyperiod",
+      "icon": "Application"
+    }
+  ]
+}

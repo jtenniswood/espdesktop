@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "com.culturedcode.ThingsMac",
+  "label": "Things 3",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New to-do",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "New to-dos from clipboard",
+      "shortcut": "command+v",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "New project",
+      "shortcut": "command+option+n",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Open Quick Entry with Autofill",
+      "shortcut": "control+option+space",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Save and close item",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Copy to-do or project",
+      "shortcut": "command+c",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Search the app",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Find in text",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    }
+  ]
+}
