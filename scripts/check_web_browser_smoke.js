@@ -5715,6 +5715,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
   };
   await installRoutes(context, testCase.slug, {
     connectorsStatus: connectorStatus,
+    homeAssistantSupport: true,
   });
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -5729,9 +5730,9 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.getByRole("tab", { name: "Connectors" }).click();
     assert.strictEqual(
-      await page.locator("#sp-connectors").getByRole("heading", { name: "Home Assistant", exact: true }).count(),
-      0,
-      "A configured Home Assistant connection does not show connector setup",
+      await page.locator("#sp-connectors").getByText("Connect your display", { exact: true }).isVisible(),
+      false,
+      "A configured Home Assistant connection hides first-time setup instructions",
     );
     await page.getByRole("tab", { name: "Settings" }).click();
     const coverArtCard = page.locator("#sp-settings .card").filter({
@@ -5760,14 +5761,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await screensaverCard.locator(".card-header").click();
     const haMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
     assert(!(await haMode.isVisible()), "Offline HA hides Screensaver mode");
-    const status = {
-      onboarding_complete: true,
-      home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
-      mac_companion: { available: true, configured: true, paired: true, connected: true },
-    };
-    await context.route("**/connectors/status", route => route.fulfill({
-      status: 200, contentType: "application/json", body: JSON.stringify(status),
-    }));
+    connectorStatus.home_assistant.connected = true;
     await coverArtCard.waitFor({ state: "visible" });
     assert.strictEqual(await temperatureControl.count(), 1, "Reconnecting restores the temperature control");
     assert(await haSettingsCard.isVisible(), "Reconnecting restores Home Assistant settings");
@@ -5781,7 +5775,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     assert(await page.locator("#sp-set-schedule-presence").isVisible(), "HA schedule exposes its sensor");
     const posts = [];
     page.on("request", request => { if (request.method() === "POST") posts.push(request.url()); });
-    status.home_assistant.connected = false;
+    connectorStatus.home_assistant.connected = false;
     await coverArtCard.waitFor({ state: "hidden" });
     await haSettingsCard.waitFor({ state: "hidden" });
     assert.strictEqual(await temperatureControl.count(), 0, "Disconnecting removes the temperature control");
@@ -5794,7 +5788,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     assert(!(await page.locator("#sp-set-presence").isVisible()), "Device updates cannot reveal the offline screensaver sensor");
     assert(await screensaverCard.getByRole("button", { name: "Disabled", exact: true }).evaluate(el => el.classList.contains("active")),
       "Offline saved HA mode displays the available Disabled tab");
-    status.home_assistant.connected = true;
+    connectorStatus.home_assistant.connected = true;
     await coverArtCard.waitFor({ state: "visible" });
     assert(await haMode.evaluate(el => el.classList.contains("active")), "Reconnecting restores the saved screensaver selection");
     assert(await scheduleHaMode.evaluate(el => el.classList.contains("active")), "Reconnecting restores the saved schedule selection");
@@ -5804,8 +5798,8 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await temperatureControl.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "visible" });
-    status.home_assistant.connected = false;
-    status.home_assistant.configured = false;
+    connectorStatus.home_assistant.connected = false;
+    connectorStatus.home_assistant.configured = false;
     await temperatureControl.waitFor({ state: "detached" });
     await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "hidden" });
     assert(!(await page.locator(".sp-selection-bar").textContent()).includes("Temperature selected"),
