@@ -5473,7 +5473,15 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await action.isDisabled(), true, "choose an app first");
     assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
     await app.selectOption("com.apple.Safari");
-    assert.strictEqual(await action.locator("option").count(), 6, "five Safari shortcuts plus placeholder");
+    const safariShortcutCount = JSON.parse(fs.readFileSync(
+      path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
+      "utf8",
+    )).shortcuts.length;
+    assert.strictEqual(
+      await action.locator("option").count(),
+      safariShortcutCount + 1,
+      "Safari catalog shortcuts plus placeholder",
+    );
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
@@ -5587,12 +5595,18 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const appSubpage = panels.filter({ hasText: "App Subpage" }).first();
     await appSubpage.locator(".sp-disclosure-button").click();
     const rows = appSubpage.locator(".sp-light-tab-row");
+    const safariShortcuts = JSON.parse(fs.readFileSync(
+      path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
+      "utf8",
+    )).shortcuts;
+    const safariShortcutLabel = (id) =>
+      safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
     assert.deepStrictEqual(
       await rows.locator(".sp-light-tab-label").allTextContents(),
-      ["Back", "Forward", "Reload", "New Tab", "Close Tab"],
+      safariShortcuts.map((shortcut) => shortcut.label),
       `${testCase.name}: Safari should expose its reorderable shortcut list`,
     );
-    await page.getByRole("button", { name: "Move New Tab up" }).click();
+    await page.getByRole("button", { name: `Move ${safariShortcutLabel(3)} up` }).click();
     assert.strictEqual(
       await appSubpage.locator(".sp-disclosure-button").getAttribute("aria-expanded"),
       "true",
@@ -5606,7 +5620,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     );
     assert.deepStrictEqual(
       await appSubpage.locator(".sp-light-tab-label").allTextContents(),
-      ["Back", "New Tab", "Reload", "Close Tab", "Forward"],
+      [0, 3, 2, 4, 5, 6, 7, 1, 8, 9].map(safariShortcutLabel),
       `${testCase.name}: disabled shortcuts should follow enabled shortcuts after rerender`,
     );
     const beforeSave = nativeState.puts.length;
@@ -5614,7 +5628,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await waitForNativeState(
       nativeState,
       () => nativeState.puts.length > beforeSave &&
-        String(nativeState.document.buttons[1] || "").includes("app_shortcuts_tabs=0%7C3%7C2%7C4"),
+        String(nativeState.document.buttons[1] || "").includes("app_shortcuts_tabs=0%7C3%7C2%7C4%7C5%7C6%7C7"),
       `${testCase.name}: shortcut selection save`,
     );
     const subpage = String(nativeState.document.subpages && nativeState.document.subpages[1] || "");
@@ -5623,6 +5637,9 @@ async function assertCompanionShortcutSettings(browser, testCase) {
         subpage.includes("shortcut.command+t") &&
         subpage.includes("shortcut.command+r") &&
         subpage.includes("shortcut.command+w") &&
+        subpage.includes("shortcut.command+f") &&
+        subpage.includes("shortcut.command+l") &&
+        subpage.includes("shortcut.command+shift+keybackslash") &&
         !subpage.includes("shortcut.command+keybracketright"),
       `${testCase.name}: saving should generate only enabled shortcuts`,
     );
@@ -5698,6 +5715,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
   };
   await installRoutes(context, testCase.slug, {
     connectorsStatus: connectorStatus,
+    homeAssistantSupport: true,
   });
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -5712,9 +5730,9 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
     await page.getByRole("tab", { name: "Connectors" }).click();
     assert.strictEqual(
-      await page.locator("#sp-connectors").getByRole("heading", { name: "Home Assistant", exact: true }).count(),
-      0,
-      "A configured Home Assistant connection does not show connector setup",
+      await page.locator("#sp-connectors").getByText("Connect your display", { exact: true }).isVisible(),
+      false,
+      "A configured Home Assistant connection hides first-time setup instructions",
     );
     await page.getByRole("tab", { name: "Settings" }).click();
     const coverArtCard = page.locator("#sp-settings .card").filter({
@@ -5743,14 +5761,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await screensaverCard.locator(".card-header").click();
     const haMode = screensaverCard.getByRole("button", { name: "Home Assistant", exact: true, includeHidden: true });
     assert(!(await haMode.isVisible()), "Offline HA hides Screensaver mode");
-    const status = {
-      onboarding_complete: true,
-      home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
-      mac_companion: { available: true, configured: true, paired: true, connected: true },
-    };
-    await context.route("**/connectors/status", route => route.fulfill({
-      status: 200, contentType: "application/json", body: JSON.stringify(status),
-    }));
+    connectorStatus.home_assistant.connected = true;
     await coverArtCard.waitFor({ state: "visible" });
     assert.strictEqual(await temperatureControl.count(), 1, "Reconnecting restores the temperature control");
     assert(await haSettingsCard.isVisible(), "Reconnecting restores Home Assistant settings");
@@ -5764,7 +5775,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     assert(await page.locator("#sp-set-schedule-presence").isVisible(), "HA schedule exposes its sensor");
     const posts = [];
     page.on("request", request => { if (request.method() === "POST") posts.push(request.url()); });
-    status.home_assistant.connected = false;
+    connectorStatus.home_assistant.connected = false;
     await coverArtCard.waitFor({ state: "hidden" });
     await haSettingsCard.waitFor({ state: "hidden" });
     assert.strictEqual(await temperatureControl.count(), 0, "Disconnecting removes the temperature control");
@@ -5777,7 +5788,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     assert(!(await page.locator("#sp-set-presence").isVisible()), "Device updates cannot reveal the offline screensaver sensor");
     assert(await screensaverCard.getByRole("button", { name: "Disabled", exact: true }).evaluate(el => el.classList.contains("active")),
       "Offline saved HA mode displays the available Disabled tab");
-    status.home_assistant.connected = true;
+    connectorStatus.home_assistant.connected = true;
     await coverArtCard.waitFor({ state: "visible" });
     assert(await haMode.evaluate(el => el.classList.contains("active")), "Reconnecting restores the saved screensaver selection");
     assert(await scheduleHaMode.evaluate(el => el.classList.contains("active")), "Reconnecting restores the saved schedule selection");
@@ -5787,8 +5798,8 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await temperatureControl.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "visible" });
-    status.home_assistant.connected = false;
-    status.home_assistant.configured = false;
+    connectorStatus.home_assistant.connected = false;
+    connectorStatus.home_assistant.configured = false;
     await temperatureControl.waitFor({ state: "detached" });
     await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "hidden" });
     assert(!(await page.locator(".sp-selection-bar").textContent()).includes("Temperature selected"),
