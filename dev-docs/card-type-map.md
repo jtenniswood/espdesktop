@@ -135,3 +135,5 @@ This table is generated from the card contract and typed `registry.register(...)
 <!-- END GENERATED CARD TYPE MAP -->
 
 Camera refresh defaults to Off. Periodic refresh applies to the expanded view at 5, 10 or 30 seconds. On activity uses a binary sensor or event entity and refreshes visible images every five seconds for 30 seconds, extending the window after another activation. Hidden pages, other modals and screensavers stop downloads without replaying old activity on return. Home Assistant image entities refresh on image-update timestamp changes rather than credential rotation; errors retain the last image and back off. Companion web-app icon loading retains its existing behavior.
+
+Image-entity unavailable states clear the revision baseline. Recovery with the same timestamp still requests a fresh image; repeated healthy timestamps remain deduplicated for subscription callbacks and retained-state reads.
