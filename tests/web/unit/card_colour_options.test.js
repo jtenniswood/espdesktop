@@ -48,3 +48,14 @@ test("card colours survive other editor option changes", () => {
     assert(normalize().includes(colour));
   }
 });
+
+test("retired Companion playback cards clear saved colours along with their fields", () => {
+  const codec = loadCodec();
+  for (const entity of ["media.play_pause", "media.previous", "media.next"]) {
+    const card = codec.parseButtonConfig([entity, "Old playback", "Play", "Pause", "legacy", "old", "companion", "old", "card_off_color=6633B9"].join(";"));
+    for (const field of ["entity", "label", "sensor", "unit", "type", "precision", "options"]) assert.equal(card[field], "", entity + "/" + field);
+    for (const field of ["icon", "icon_on"]) assert.equal(card[field], "Auto", entity + "/" + field);
+    const restored = codec.parseButtonConfig(codec.serializeButtonConfig(card));
+    for (const field of ["entity", "type", "options"]) assert.equal(restored[field], "", entity + "/restored/" + field);
+  }
+});

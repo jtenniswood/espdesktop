@@ -470,6 +470,7 @@ export function createConfigCodecFeature(
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
             for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
+            cardColorOptions = "";
         }
         if (b)
             b.options = withoutCardColorOptions(b.options || "");
