@@ -3123,13 +3123,13 @@
         "tests/firmware/media_display_text_test.cpp"
       ],
       "branch": "normalize-media-display-text",
-      "revision": "2729945b2",
+      "revision": "2729945b2db3f05054c319d385a26294207d7c58",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/147",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
-          "revision": "27dcbdc89",
+          "revision": "27dcbdc89ae8a29b5d6ff0d21d50d6f44dfdc748",
           "esphome": "2026.9.1",
           "status": "passed",
           "log": "/private/tmp/2031-firmware-s3.log"
@@ -3137,7 +3137,7 @@
         {
           "device": "guition-esp32-s3-4848s040",
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
-          "revision": "11791ae29",
+          "revision": "11791ae29314aed7c97f09a6f9571007b88a8023",
           "esphome": "2026.9.1",
           "status": "passed",
           "log": "/private/tmp/2031-external-firmware-s3.log"
@@ -4137,7 +4137,7 @@
         "src/webserver/application/preview_context_menu.ts"
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/145",
-      "revision": "42667ce1c",
+      "revision": "42667ce1c36bace80a8f9742b2dfd88db65e1ed1",
       "latestPortRevision": "42667ce1c36bace80a8f9742b2dfd88db65e1ed1",
       "branch": "expand-image-card-sizes",
       "destinationBaseBranch": "main"
@@ -5111,7 +5111,7 @@
       ],
       "branch": "fix-scheduled-display-wake",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/152",
-      "revision": "98d8ad3e7",
+      "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -5616,7 +5616,7 @@
       ],
       "branch": "square-grid-large-card-sizes",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/148",
-      "revision": "39eaebc80",
+      "revision": "39eaebc80000e91d857f3fbb2402b9bc7aaf3c5c",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/145",
       "latestPortRevision": "39eaebc80000e91d857f3fbb2402b9bc7aaf3c5c",
       "destinationBaseBranch": "expand-image-card-sizes"
@@ -6205,7 +6205,7 @@
         "scripts/check_cover_art_contract.py"
       ],
       "branch": "enlarge-p4-playback-controls",
-      "revision": "b695c6f93",
+      "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142",
       "firmwareBuilds": [
         {
@@ -6699,13 +6699,13 @@
       ],
       "branch": "show-artwork-over-clock",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142",
-      "revision": "ff4576898",
+      "revision": "ff4576898346b170a3e1072013b2391c58e2b6b6",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/149",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
-          "revision": "ff4576898",
+          "revision": "ff4576898346b170a3e1072013b2391c58e2b6b6",
           "esphome": "2026.9.1",
           "status": "passed",
           "log": "/private/tmp/2127-firmware-s3.log"
@@ -7631,12 +7631,12 @@
         "tests/firmware/display_schedule_test.cpp.in"
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/151",
-      "revision": "d48ee4ff6",
+      "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
-          "revision": "158f27e56",
+          "revision": "158f27e56e0377848546d837d886aa3643bc811f",
           "esphome": "2026.9.1",
           "status": "passed",
           "log": "/private/tmp/2136-firmware-s3.log"
