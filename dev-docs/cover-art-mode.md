@@ -68,3 +68,5 @@ track changing during download, stop during retry, reconnect, external-input
 takeover, rotation, and rapid play/pause changes.
 
 Closing a modal after an artwork wake restarts Show After once the display settles on the normal active screen. Open modals and alarm takeovers prevent the restart. Companion artwork can restart the delay without a Home Assistant media-player entity.
+
+For timer/sensor screensavers with playback sleep prevention off, ordinary modal closure leaves the normal idle timeout in charge. A manual dismissal of existing artwork still restarts Show After.

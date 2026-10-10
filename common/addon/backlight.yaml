@@ -450,6 +450,10 @@ script:
                      id(cover_art_media_playing) &&
                      (id(cover_art_companion_source_active) ||
                       !id(cover_art_media_player_entity).state.empty()) &&
+                     (id(cover_art_manual_pause_until_ms) != 0 ||
+                      id(media_player_sleep_prevention_enabled).state ||
+                      (id(screensaver_mode).state != "timer" &&
+                       id(screensaver_mode).state != "sensor")) &&
                      display.target_mode_is(espdesktop::DisplayMode::ACTIVE) &&
                      !display.takeover_active(espdesktop::DisplayTakeoverKind::INTERACTIVE) &&
                      !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL) &&

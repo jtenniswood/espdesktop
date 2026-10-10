@@ -22,7 +22,9 @@ source = r'''
 using namespace espdesktop;
 struct App { DisplayModeController controller; auto &display() { return controller; } } espdesktop_app;
 struct Toggle { bool state; } cover_art_screensaver_enabled{true};
-struct Text { std::string state; } cover_art_media_player_entity{"media_player.test"};
+struct Text { std::string state; } cover_art_media_player_entity{"media_player.test"}, screensaver_mode{"off"};
+Toggle media_player_sleep_prevention_enabled{false};
+uint32_t cover_art_manual_pause_until_ms = 0;
 bool cover_art_media_playing = true, cover_art_companion_source_active = false, alarm = false;
 bool alarm_display_takeover_active() { return alarm; }
 #define id(x) x
@@ -36,6 +38,8 @@ void reset() {
   cover_art_screensaver_enabled.state = true;
   cover_art_media_playing = true; cover_art_companion_source_active = false;
   cover_art_media_player_entity.state = "media_player.test"; alarm = false;
+  screensaver_mode.state = "off"; media_player_sleep_prevention_enabled.state = false;
+  cover_art_manual_pause_until_ms = 0;
 }
 int main() {
   reset(); assert(rearm());
@@ -44,6 +48,12 @@ int main() {
   cover_art_companion_source_active = true; assert(rearm());
   cover_art_media_playing = false; assert(!rearm());
   reset(); cover_art_screensaver_enabled.state = false; assert(!rearm());
+  for (auto mode : {"timer", "sensor"}) {
+    reset(); screensaver_mode.state = mode; assert(!rearm());
+    cover_art_manual_pause_until_ms = 1; assert(rearm());
+    cover_art_manual_pause_until_ms = 0;
+    media_player_sleep_prevention_enabled.state = true; assert(rearm());
+  }
   for (auto kind : {DisplayTakeoverKind::INTERACTIVE, DisplayTakeoverKind::CRITICAL}) {
     reset(); auto &display = espdesktop_app.display();
     display.begin_takeover(kind); assert(!rearm());
