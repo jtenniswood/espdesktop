@@ -7154,6 +7154,23 @@
           "log": "/private/tmp/2146-review-wave-1376c83cc-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "c6a678b4800eab576992d301f443848189c5f170",
+          "status": "passed",
+          "log": "/private/tmp/2146-c6a678b48-final-verified-esp32-p4-86.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
         }
       ],
       "latestPortRevision": "c6a678b4800eab576992d301f443848189c5f170",
