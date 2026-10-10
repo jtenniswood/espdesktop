@@ -118,11 +118,18 @@ void HomeAssistantEndpointResolver::begin_selection(bool recovery) {
   if (discovered.ambiguous) ESP_LOGW(TAG, "Ambiguous Home Assistant discovery; using configured fallback");
   if (discovered.invalid_internal_url) ESP_LOGW(TAG, "Rejected malformed Home Assistant internal URL");
   candidates_ = discovered.candidates;
-  if (recovery && !origin_.empty() && !discovered.ambiguous) {
-    candidates_.erase(std::remove_if(candidates_.begin(), candidates_.end(), [&](const Candidate &c) {
+  if (!origin_.empty() && !discovered.ambiguous) {
+    const bool already_discovered = std::any_of(candidates_.begin(), candidates_.end(), [&](const Candidate &c) {
       return c.origin == origin_;
-    }), candidates_.end());
-    candidates_.insert(candidates_.begin(), {origin_, source_, "rechecking selected endpoint"});
+    });
+    if (recovery || !already_discovered) {
+      candidates_.erase(std::remove_if(candidates_.begin(), candidates_.end(), [&](const Candidate &c) {
+        return c.origin == origin_;
+      }), candidates_.end());
+      auto position = recovery ? candidates_.begin() : std::find_if(candidates_.begin(), candidates_.end(),
+          [](const Candidate &c) { return c.source == Source::FALLBACK; });
+      candidates_.insert(position, {origin_, source_, "rechecking selected endpoint"});
+    }
   }
   ++selection_generation_;
   recovery_ = recovery;

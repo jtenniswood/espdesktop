@@ -142,6 +142,22 @@ int main() {
   assert(replaced_resolver.origin().empty());
   assert(replaced_resolver.generation() != old_connection);
 
+  FakeProbe same_peer_probe;
+  HomeAssistantEndpointResolver same_peer(&same_peer_probe); same_peer.setup();
+  same_peer.configure("Automatic", "http", 8123, "10.20.30.40");
+  same_peer.accept_discovery({server}); same_peer.loop();
+  same_peer_probe.reply(EndpointProbeOutcome::READY, 200); same_peer.loop();
+  assert(same_peer.origin() == "https://10.20.30.40:9443");
+  const auto verified_generation = same_peer.generation();
+  same_peer.invalidate_connection(); same_peer.accept_discovery({}); same_peer.loop();
+  assert(same_peer.generation() != verified_generation);
+  assert(same_peer_probe.calls.back() == "https://10.20.30.40:9443");
+  same_peer_probe.reply(EndpointProbeOutcome::READY, 200); same_peer.loop();
+  assert(same_peer.origin() == "https://10.20.30.40:9443" && same_peer.health() == "Connection checked");
+  same_peer.configure("Automatic", "http", 8123, "10.20.30.41");
+  same_peer.accept_discovery({}); same_peer.loop();
+  assert(same_peer_probe.calls.back() == "http://10.20.30.41:8123");
+
   // Switching out of Manual must never retain its deselected token destination,
   // even when the API peer is unchanged and background probe allocation fails.
   FakeProbe unavailable_probe; unavailable_probe.available = false;
