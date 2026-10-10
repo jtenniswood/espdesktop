@@ -102,6 +102,13 @@ int main() {
   ctx.title = cover_art_title = "Next track";
   assert(media_control_title_text(&ctx) == "Next track");
   assert(cover_title() == "Next track");
+  ctx.artist.clear(); ctx.friendly_name = u8"📺"; ctx.label = "Living room";
+  assert(media_control_artist_text(&ctx) == "Living room");
+  assert(ctx.friendly_name == u8"📺");
+  ctx.friendly_name = u8"Ｌiving room 📺";
+  assert(media_control_artist_text(&ctx) == "Living room");
+  ctx.label = "Fallback";
+  assert(media_control_artist_text(&ctx) == "Living room");
   cover_art_external_input_active = true;
   cover_art_media_source = u8"ＨＤＭＩ １ &#x1F4FA;";
   assert(cover_title() == "HDMI 1");

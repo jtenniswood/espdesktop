@@ -2508,8 +2508,8 @@ inline std::string media_control_artist_text(MediaControlCtx *ctx) {
     return "";
   }
   if (!artist.empty()) return artist;
-  if (!ctx->friendly_name.empty())
-    return espdesktop::media::normalize_media_display_text(ctx->friendly_name);
+  const std::string friendly_name = espdesktop::media::normalize_media_display_text(ctx->friendly_name);
+  if (!friendly_name.empty()) return friendly_name;
   return espdesktop::media::normalize_media_display_text(ctx->label);
 }
 
