@@ -3791,8 +3791,8 @@
       "title": "Remove local voice and alarm audio services",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2073",
       "mergeSha": "2f8d6e892912506440e0efb4f09c7c1400610bf3",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Removed P4-86 local Voice Services/alarm delay audio, controls and obsolete docs/assets, preserving visual countdowns, external HA media, Mac Companion artwork and protected remote navigation. Full fast checks passed (74 firmware host,172 web), actual P4-86 Chromium acceptance and docs/site links passed. Four representative builds queued; no physical device testing. Depends on destination PR156 remote navigation.",
       "changedFiles": [
         "builds/esp32-p4-86.yaml",
         "common/addon/backlight.yaml",
@@ -3896,7 +3896,10 @@
         "tests/firmware/CMakeLists.txt",
         "tests/firmware/alarm_delay_audio_test.cpp",
         "tests/firmware/fixtures/issue1854-cover-art.json"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/168",
+      "branch": "remove-local-voice-alarm-audio",
+      "revision": "464bae166bf4f546df5bb427422118065b0522a2"
     },
     {
       "body": "This adds independent **Tile Display** and **Tap Action** settings to Now Playing cards, so users can choose how a tile looks and what tapping it does.\n\nFor example, a tile can show playback progress while tapping anywhere toggles play/pause.\n\n| Setting | Options |\n|---|---|\n| Tile Display | Track Info, Progress, Playback State |\n| Tap Action | None, Play/Pause, Seek |\n\nSeek is available when Progress is selected. The progress fill uses the configured highlight colour while playing, advances in real time, and holds its position in grey when paused.\n\nThe change applies to the main grid and subpages. Documentation and regression tests cover the new settings, saved configurations, progress updates, and tap behavior.\n\n### Compatibility\n\nExisting saved cards and backups are supported without requiring users to recreate their cards. Display settings and explicit tap choices are preserved through saving and restoring. Legacy progress tiles default to Play/Pause; users can select Seek to seek through the title tile.\n\nAn optional embedded-editor package is included for testing unpublished branches with the matching web UI.\n\n### Validation\n\nThe web build, TypeScript checks, configuration tests, and focused compiled firmware regression tests pass. Full firmware compilation across all supported devices has not been completed.\n\nThe progress display and paused appearance have been tested on a Guition 4848S040.\n\n### Screenshot\n\n![Now Playing configuration with separate Tile Display and Tap Action settings](https://raw.githubusercontent.com/gage006/espcontrol/915a6df19b1bb3d140c45743f9f9d6f6ac9ac28d/docs/public/images/now-playing-settings.png)\n\nWould you be interested in including this configuration split? I'm happy to adjust the labels or behavior to fit the project's direction. ",
@@ -5146,7 +5149,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2109",
       "mergeSha": "0f53a59d322bf7e3f59eb8ec35728bdcdeb674c1",
       "disposition": "Ported",
-      "evidence": "Browser OTA platform and truthful installed-version/timeout/error handling ported, preserving destination credential-free downloads, authenticated upload, Dev Build label and V3/disabled-update guards. Browser regression exposed source pending-transfer cancellation; explicit transfer ownership fixed and actual asynchronous download/upload/status regression passed. Full fast72 host/173 web/product/generated checks, P4-86 Chromium acceptance and docs passed. Final S3/7P4/4.3P4/P4-86 compiles queued. No physical upload/flash. Source2156 follow-up pause API port in progress separately. Fresh authentication review is outstanding: standard release profiles lack web_server auth and must not expose unrestricted browser OTA. Fix is required before merge/device testing; research underway, no auth fix committed yet.",
+      "evidence": "Browser OTA platform and truthful installed-version/timeout/error handling ported, preserving destination credential-free downloads, authenticated upload, Dev Build label and V3/disabled-update guards. Browser regression exposed source pending-transfer cancellation; explicit transfer ownership fixed and actual asynchronous download/upload/status regression passed. Full fast72 host/173 web/product/generated checks, P4-86 Chromium acceptance and docs passed. Final S3/7P4/4.3P4/P4-86 compiles queued. No physical upload/flash. Source2156 follow-up pause API port in progress separately. Owner explicitly chose unauthenticated browser installation; the authentication review finding is accepted by owner, with no mitigation claimed. The uncommitted approval prototype was removed; original published revision remains unchanged.",
       "changedFiles": [
         "common/addon/firmware_update.yaml",
         "docs/features/firmware-updates.md",
@@ -5200,7 +5203,7 @@
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "Needs action",
+      "reviewStatus": "Authentication finding accepted by owner",
       "reviewThreads": [
         "PRRT_kwDOUR8kMs6rFdGL"
       ]
@@ -6349,8 +6352,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 46,
-    "Needs review": 14
+    "Ported": 47,
+    "Needs review": 13
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
