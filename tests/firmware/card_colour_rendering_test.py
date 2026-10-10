@@ -175,7 +175,7 @@ source += r'''
 int main() {
   for (const ThemePalette *theme : {&DARK_THEME, &LIGHT_THEME}) {
     set_active_theme_palette(*theme);
-    for (uint32_t background : {0xFFEC16u, 0x88C440u, 0xFFFFFFu, 0x00BCD4u}) {
+    for (uint32_t background : {0xFFEC16u, 0x88C440u, 0xFFFFFFu, 0x00BCD4u, 0x9D9D9Du}) {
       // A selected media speaker row must use contrast on its actual fill.
       lv_obj_t row_button, name, icon, volume;
       MediaControlCtx media{background};
@@ -194,7 +194,8 @@ int main() {
       // Cover-art fallbacks preserve a calibrated custom fill through themes.
       lv_obj_t card, idle, title, artist, music;
       card.children = {&music, &idle, &title, &artist};
-      apply_button_colors(&card, true, 0xFFFFFF, true, 0xFFEC16);
+      const uint32_t active_background = lighter_card_color(background);
+      apply_button_colors(&card, true, active_background, true, background);
       ImageCardCtx art;
       MediaNowPlayingCtx cover{&card, &music, &idle, &title, &artist, &art};
       cover.custom_fallback_background = true;
@@ -203,12 +204,26 @@ int main() {
         art.artwork_visible = visible;
         media_cover_art_apply_theme(&cover, *theme);
         assert(card.background[0] == background);
-        // Press/release must leave owner-assigned artwork/fallback text intact.
+        // Artwork keeps white overlays; fallbacks follow the active shade.
         for (int event : {LV_EVENT_PRESSED, LV_EVENT_RELEASED, LV_EVENT_PRESS_LOST}) {
+          if (event == LV_EVENT_PRESSED) lv_obj_add_state(&card, LV_STATE_PRESSED);
+          else lv_obj_clear_state(&card, LV_STATE_PRESSED);
           send_event(&card, event);
-          for (auto *label : {&music, &idle, &title, &artist})
-            assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : readable_text_color_for_bg(background)));
+          const uint32_t expected = visible ? CARD_ACCENT_TEXT_COLOR
+              : (event == LV_EVENT_PRESSED ? display_text_color_for_bg(active_background)
+                                          : readable_text_color_for_bg(background));
+          for (auto *label : {&music, &idle, &title, &artist}) {
+            assert(label->text[0] == expected);
+            assert(lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2) == visible);
+          }
         }
+        // Metadata/theme refresh while checked must preserve current fallback contrast.
+        lv_obj_add_state(&card, LV_STATE_CHECKED);
+        media_cover_art_apply_theme(&cover, *theme);
+        for (auto *label : {&music, &idle, &title, &artist})
+          assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : display_text_color_for_bg(active_background)));
+        lv_obj_clear_state(&card, LV_STATE_CHECKED);
+        media_cover_art_apply_theme(&cover, *theme);
         for (auto *label : {&card, &music, &idle, &title, &artist})
           assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : readable_text_color_for_bg(background)));
       }
