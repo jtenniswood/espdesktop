@@ -1035,19 +1035,18 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: let the playback-start event activate cover art before mirrored playback state settles")
     sync_text_body = yaml_script_body(text, "cover_art_sync_track_text")
     source_display_normalized = sync_text_body is not None and re.search(
-        r"normalize_display_text\(\s*decode_html_entities\(id\(cover_art_media_source\)\)\)",
-        sync_text_body,
-    )
-    title_display_normalized = sync_text_body is not None and re.search(
         r"const std::string title\s*=\s*espdesktop::media::normalize_media_display_text\(\s*"
-        r"id\(cover_art_title\)\);",
-        sync_text_body,
-    ) and "normalize_display_text(title)" in sync_text_body
-    artist_display_normalized = sync_text_body is not None and re.search(
-        r"normalize_display_text\(\s*espdesktop::media::normalize_media_display_text\(\s*"
-        r"id\(cover_art_artist\)\)\)",
+        r"id\(cover_art_external_input_active\) && !id\(cover_art_media_source\)\.empty\(\)\s*"
+        r"\? decode_html_entities\(id\(cover_art_media_source\)\)\s*"
+        r": id\(cover_art_title\)\);",
         sync_text_body,
     )
+    title_display_normalized = source_display_normalized and "normalize_display_text(title)" in sync_text_body
+    artist_display_normalized = sync_text_body is not None and re.search(
+        r"const std::string artist\s*=\s*espdesktop::media::normalize_media_display_text\(\s*"
+        r"id\(cover_art_artist\)\);",
+        sync_text_body,
+    ) and "normalize_display_text(artist)" in sync_text_body
     if sync_text_body is not None and (
         not title_display_normalized
         or not artist_display_normalized
@@ -5951,11 +5950,12 @@ def run_self_test() -> int:
         "  - id: cover_art_sync_track_text\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          const std::string title = espdesktop::media::normalize_media_display_text(id(cover_art_title));\n"
+        "          const std::string title = espdesktop::media::normalize_media_display_text(\n"
+        "            id(cover_art_external_input_active) && !id(cover_art_media_source).empty()\n"
+        "              ? decode_html_entities(id(cover_art_media_source)) : id(cover_art_title));\n"
         "          return normalize_display_text(title);\n"
-        "          return normalize_display_text(espdesktop::media::normalize_media_display_text(id(cover_art_artist)));\n"
-        "          return normalize_display_text(\n"
-        "            decode_html_entities(id(cover_art_media_source)));\n"
+        "          const std::string artist = espdesktop::media::normalize_media_display_text(id(cover_art_artist));\n"
+        "          return normalize_display_text(artist);\n"
         "  - id: cover_art_resolve_home_assistant_base_url\n"
         "    then:\n"
         "      - lambda: |-\n"
