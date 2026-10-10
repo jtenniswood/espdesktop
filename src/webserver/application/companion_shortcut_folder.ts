@@ -17,6 +17,7 @@ import {
     configOptionValue,
     setConfigOption,
     setConfigOptionValue,
+    preserveCardColorOptions,
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { isBackOrderToken } from "../model/subpage";
@@ -81,8 +82,8 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
     const retainWebAppTitle = typeof card.entity === "string" && card.entity.startsWith("webapp.") &&
         configOptionEnabled(card.options, "webapp_icon_title");
-    const finish = (options: string): string => retainWebAppTitle
-        ? setConfigOption(options, "webapp_icon_title", true) : options;
+    const finish = (options: string): string => preserveCardColorOptions(card.options,
+        retainWebAppTitle ? setConfigOption(options, "webapp_icon_title", true) : options);
     const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
     if (presetMarker === COMPANION_SHORTCUT_CUSTOM_PRESET && companionShortcutActionIdValid(card.entity)) {
         return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker));
