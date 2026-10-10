@@ -62,7 +62,7 @@ jobs:
           "${PYTHON_VENV}/bin/python" -m pip install \
             --disable-pip-version-check \
             --no-cache-dir \
-            "PyYAML==6.0.2"
+            "PyYAML==6.0.3"
           PYTHON_SITE_PACKAGES="$("${PYTHON_VENV}/bin/python" -c 'import site; print(site.getsitepackages()[0])')"
           echo "PATH=${PYTHON_VENV}/bin:${PATH}" >> "${GITHUB_ENV}"
           echo "PYTHONPATH=${PYTHON_SITE_PACKAGES}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
