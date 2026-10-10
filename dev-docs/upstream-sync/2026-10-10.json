@@ -2727,18 +2727,20 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "ee394c28530dc3bba7f977305eb1c36e04d425b7",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "ee394c28530dc3bba7f977305eb1c36e04d425b7",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -2785,42 +2787,47 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "f297abd6fc21fdca497de7f1e770dbd7ebea33db",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "f297abd6fc21fdca497de7f1e770dbd7ebea33db",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "f297abd6fc21fdca497de7f1e770dbd7ebea33db",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3108,18 +3115,20 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "7b1eb0daa509bcac31085d259619cca1e5711df7",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "7b1eb0daa509bcac31085d259619cca1e5711df7",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3166,42 +3175,47 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "32f17fd53dfcbf39a709fca54ae9879dde9af5d8",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "32f17fd53dfcbf39a709fca54ae9879dde9af5d8",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "32f17fd53dfcbf39a709fca54ae9879dde9af5d8",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3388,18 +3402,20 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "aca86ee226967ac4f1547d0a3742f2914d13e4c7",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "aca86ee226967ac4f1547d0a3742f2914d13e4c7",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3446,42 +3462,47 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "b80ba9a00e8665fec12263d0c4a40ff11994d53d",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "b80ba9a00e8665fec12263d0c4a40ff11994d53d",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "b80ba9a00e8665fec12263d0c4a40ff11994d53d",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3669,26 +3690,29 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "5c7a2a4ee552c9ef22137aefdb565173d05125f0",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "5c7a2a4ee552c9ef22137aefdb565173d05125f0",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "5c7a2a4ee552c9ef22137aefdb565173d05125f0",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3735,34 +3759,38 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "8f2c85c56f742d3fdd70fc0d8c9029c7779777ce",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "8f2c85c56f742d3fdd70fc0d8c9029c7779777ce",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-verified-8f2c85c56-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3803,23 +3831,25 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "0f2567de27ecc1d09a054e3715ec5bb87773af04",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-verified-8f2c85c56-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "0f2567de27ecc1d09a054e3715ec5bb87773af04",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2067-verified-0f2567de2-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "7b11a09f935ecea2d84c6601e46ee13f70da27d6",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2067-verified-8f2c85c56-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -3827,7 +3857,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "7b11a09f935ecea2d84c6601e46ee13f70da27d6",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2067-verified-0f2567de2-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -4001,39 +4031,43 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "464bae166bf4f546df5bb427422118065b0522a2",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-esp32-p4-86.log",
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "464bae166bf4f546df5bb427422118065b0522a2",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "464bae166bf4f546df5bb427422118065b0522a2",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "464bae166bf4f546df5bb427422118065b0522a2",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2073-final-camera-clock-firmware-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
@@ -4402,26 +4436,29 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "60af9f12cc2c89a842367431700a969260d9a51e",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "60af9f12cc2c89a842367431700a969260d9a51e",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "60af9f12cc2c89a842367431700a969260d9a51e",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -5791,7 +5828,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2156-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -5799,7 +5836,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2156-visibility-navigation-final-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -5895,14 +5932,35 @@
       "title": "Fix 7-inch portrait cover-art playback button shape",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2160",
       "mergeSha": "4b9aa4bceb3a5669d34964a589ca1608dc48f742",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Immediate rotation compensation axis before Cover Art layout for both 7-inch versions. Depends on destination PR146 playback controls. Actual production YAML rotation, startup, icon and text regressions passed; full fast checks passed (74 firmware host, 172 web tests). Two firmware compiles queued; physical testing pending.",
       "changedFiles": [
         "devices/guition-esp32-p4-jc1060p470-v2/device/device.yaml",
         "devices/guition-esp32-p4-jc1060p470/device/device.yaml",
         "scripts/check_tasks_data.py",
         "tests/firmware/CMakeLists.txt",
         "tests/firmware/cover_art_rotation_test.py"
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/171",
+      "branch": "fix-7inch-portrait-playback",
+      "revision": "de979d5df3ac2239aaf28ba71e78e05a384ee7ae",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "de979d5df3ac2239aaf28ba71e78e05a384ee7ae",
+          "status": "planned",
+          "log": "/private/tmp/2160-final-revision-de979d5df-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
+          "revision": "de979d5df3ac2239aaf28ba71e78e05a384ee7ae",
+          "status": "planned",
+          "log": "/private/tmp/2160-final-revision-de979d5df-guition-esp32-p4-jc1060p470-v2.log",
+          "device": "guition-esp32-p4-jc1060p470-v2",
+          "esphome": "2026.9.1"
+        }
       ]
     },
     {
@@ -5917,7 +5975,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2159",
       "mergeSha": "482194d6bb522c3cc38057b72b465a0e113325de",
       "disposition": "Ported",
-      "evidence": "3x6/18-visible-card portrait firmware and web preview, retaining full20-card saved landscape configuration. Generator/profile/deferred startup corrections retained; additionally fixed remaining upstream high-ID subpage and trailing-only sparse-order findings. Full fast72 host/172 web checks, actual V3 Chromium acceptance and docs passed. V3 full firmware compile queued; physical testing pending.",
+      "evidence": "3x6/18-visible-card portrait firmware and web preview, retaining full20-card saved landscape configuration. Generator/profile/deferred startup corrections retained; additionally fixed remaining upstream high-ID subpage and trailing-only sparse-order findings. Full fast72 host/172 web checks, actual V3 Chromium acceptance and docs passed. V3 full firmware compile queued; physical testing pending. Latest firmware reads configured20-token order before applying18-cell home capacity, and subpage rebuild normalizes atactive18 whilepreserving20serialization. Production parser regressions, fullfast72/172 and freshV3browser acceptance passed. Both review findings resolved; finalcompile updated.",
       "changedFiles": [
         "devices/guition-esp32-p4-jc8012p4a1-v3/device/lvgl.yaml",
         "devices/guition-esp32-p4-jc8012p4a1-v3/device/sensors.yaml",
@@ -5946,17 +6004,27 @@
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/170",
       "branch": "improve-10inch-v3-portrait-grid",
-      "revision": "330dba2edf371bf034a260e1b606bc5417d82f08",
+      "revision": "a1712b9c4dc2d09d414855238d4c295e9d4171aa",
       "firmwareBuilds": [
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
           "revision": "330dba2edf371bf034a260e1b606bc5417d82f08",
+          "status": "superseded",
+          "log": "/private/tmp/2159-final-camera-clock-firmware-guition-esp32-p4-jc8012p4a1-v3.log",
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "esphome": "2026.9.1",
+          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+          "revision": "a1712b9c4dc2d09d414855238d4c295e9d4171aa",
           "status": "planned",
           "log": "/private/tmp/2159-final-camera-clock-firmware-guition-esp32-p4-jc8012p4a1-v3.log",
           "device": "guition-esp32-p4-jc8012p4a1-v3",
           "esphome": "2026.9.1"
         }
-      ]
+      ],
+      "reviewStatus": "Known review findings addressed"
     },
     {
       "body": "This PR contains the following updates:\n\n| Package | Change | [Age](https://docs.renovatebot.com/merge-confidence/) | [Confidence](https://docs.renovatebot.com/merge-confidence/) |\n|---|---|---|---|\n| [playwright](https://playwright.dev) ([source](https://redirect.github.com/microsoft/playwright)) | [`1.63.0` \u2192 `1.64.0`](https://renovatebot.com/diffs/npm/playwright/1.63.0/1.64.0) | ![age](https://developer.mend.io/api/mc/badges/age/npm/playwright/1.64.0?slim=true) | ![confidence](https://developer.mend.io/api/mc/badges/confidence/npm/playwright/1.63.0/1.64.0?slim=true) |\n\n---\n\n### Release Notes\n\n<details>\n<summary>microsoft/playwright (playwright)</summary>\n\n### [`v1.64.0`](https://redirect.github.com/microsoft/playwright/releases/tag/v1.64.0)\n\n[Compare Source](https://redirect.github.com/microsoft/playwright/compare/v1.63.0...v1.64.0)\n\n#### \ud83e\uddf0 WebMCP\n\nNew [page.webmcp](https://playwright.dev/docs/api/class-page#page-webmcp) and [frame.webmcp](https://playwright.dev/docs/api/class-frame#frame-webmcp) give access to the tools that a page registers through the experimental [WebMCP](https://playwright.dev/docs/api/class-webmcp) browser API, so you can test them like any other part of your app:\n\n```js\nconst browser = await chromium.launch({ args: ['--enable-features=WebMCP'] });\nconst page = await browser.newPage();\nawait page.goto('https://example.com');\n\nfor (const tool of await page.webmcp.tools())\n  console.log(tool.name, tool.description);\n\nconst result = await page.webmcp.callTool('add', { a: 2, b: 40 });\nconsole.log(result.content[0].text); // \"42\"\n```\n\n[Playwright MCP](https://playwright.dev/docs/getting-started-mcp) also supports WebMCP by default, with page-defined tools offered to the agent as `webmcp_<tool>`. Pass `--no-webmcp` to opt out.\n\n[`playwright-cli`](https://playwright.dev/docs/getting-started-cli) exposes them as well:\n\n```bash\nplaywright-cli webmcp-list\nplaywright-cli webmcp-call search_catalog --params '{\"query\":\"cats\"}'\n```\n\n#### \ud83c\udfac Better videos\n\nVideos can now be recorded at a custom frame rate, and the decorations for actions are styled with plain CSS:\n\n```js\n// playwright.config.ts\nimport { defineConfig } from '@playwright/test';\n\nexport default defineConfig({\n  use: {\n    video: {\n      mode: 'on',\n      size: { width: 1920, height: 1080 },\n      fps: 60,\n      show: {\n        actions: {\n          style: {\n            point: 'width: 20px; height: 20px; border-radius: 50%; background: red',\n            highlight: 'outline: 2px solid #&#8203;333; background: rgba(0, 128, 255, .15)',\n            title: 'font-size: 16px',\n          },\n        },\n      },\n    },\n  },\n});\n```\n\n- New `fps` option in [testOptions.video](https://playwright.dev/docs/api/class-testoptions#test-options-video), [`recordVideo`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-record-video) and\n  [screencast.start()](https://playwright.dev/docs/api/class-screencast#screencast-start). Firefox and WebKit currently capture up to 25 frames per second.\n- New [`style`](https://playwright.dev/docs/api/class-screencast#screencast-show-actions-option-style) option takes CSS declarations for the `point` marker, the target\n  `highlight` and the action `title`. It replaces the `fontSize` option, which is now deprecated.\n- The cursor stays visible at the last action point, survives navigations and travels along a natural, eased path.\n- Videos are encoded with VP9 instead of VP8, which takes less CPU and produces smaller files of the same or better\n  quality.\n- All video options are also available in [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) and [`playwright-cli`](https://playwright.dev/docs/getting-started-cli).\n\n#### \ud83c\udfaf Test runner\n\n- New [testProject.default](https://playwright.dev/docs/api/class-testproject#test-project-default) option keeps a project in the config without running it by default. You can configure every browser you care about, and let a plain `npx playwright test` run just your favourite one:\n\n  ```js\n  // playwright.config.ts\n  import { defineConfig, devices } from '@playwright/test';\n\n  export default defineConfig({\n    projects: [\n      { name: 'chromium', use: devices['Desktop Chrome'] },\n      { name: 'firefox', use: devices['Desktop Firefox'], default: false },\n      { name: 'webkit', use: devices['Desktop Safari'], default: false },\n    ],\n  });\n  ```\n\n  ```bash\n  npx playwright test                     # runs chromium only\n  npx playwright test --project=firefox   # runs firefox\n  npx playwright test --project=\"*\"       # runs all three, for example on CI\n  ```\n\n- New `--shuffle` command line option schedules tests in a random order, which helps to find tests that accidentally depend on each other.\n\n  ```bash\n  npx playwright test --shuffle\n  # Running 42 tests using 4 workers, shuffle seed 271828182\n  # ...\n\n  # Pass the seed to reproduce the same order.\n  npx playwright test --shuffle 271828182\n  ```\n\n- New `lock` option in [test.describe.configure()](https://playwright.dev/docs/api/class-test#test-describe-configure) adds [test locks](https://playwright.dev/docs/test-parallel#test-locks) to all tests in a file or a group:\n\n  ```js\n  test.describe.configure({ lock: 'user-settings' });\n  ```\n\n- New `type` option of `toHaveScreenshot` in [testConfig.expect](https://playwright.dev/docs/api/class-testconfig#test-config-expect) stores all unnamed screenshots as WebP:\n\n  ```js\n  // playwright.config.ts\n  export default defineConfig({\n    expect: {\n      toHaveScreenshot: { type: 'webp' },\n    },\n  });\n  ```\n\n#### \ud83e\ude86 Locator.within()\n\nNew [locator.within()](https://playwright.dev/docs/api/class-locator#locator-within) combines two locators that you already have, reading in the natural order \u2014\n\"this button, within that dialog\":\n\n```js\nconst saveButton = page.getByRole('button', { name: 'Save' });\nconst dialog = page.getByTestId('settings-dialog');\n\nawait saveButton.within(dialog).click();\n```\n\nRelative locators such as [locator.nth()](https://playwright.dev/docs/api/class-locator#locator-nth) or [locator.first()](https://playwright.dev/docs/api/class-locator#locator-first) are resolved inside each parent\nseparately, which makes column-like queries straightforward:\n\n```js\n// The third cell of every row, not the third cell in the table.\nconst thirdColumn = page.getByRole('cell').nth(2).within(page.getByRole('row'));\nawait expect(thirdColumn).toHaveText(['Apple', 'Banana', 'Cherry']);\n```\n\n#### New APIs\n\n- New [page.getByRef()](https://playwright.dev/docs/api/class-page#page-get-by-ref) locates an element by its aria ref, such as `e2`, reported by [page.ariaSnapshot()](https://playwright.dev/docs/api/class-page#page-aria-snapshot) in the `'ai'` mode.\n- New option [`includeShadow`](https://playwright.dev/docs/api/class-page#page-content-option-include-shadow) in [page.content()](https://playwright.dev/docs/api/class-page#page-content) and [frame.content()](https://playwright.dev/docs/api/class-frame#frame-content) serializes open shadow roots as [declarative shadow DOM](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM#declaratively_with_html).\n- New option [`signCount`](https://playwright.dev/docs/api/class-credentials#credentials-create-option-sign-count) sets the initial signature counter of a virtual credential. [credentials.create()](https://playwright.dev/docs/api/class-credentials#credentials-create) and [credentials.get()](https://playwright.dev/docs/api/class-credentials#credentials-get) return the current `signCount`, and it is saved and restored together with the credentials in the storage state.\n- New [fullConfig.filteredProjects](https://playwright.dev/docs/api/class-fullconfig#full-config-filtered-projects) lists the projects that were selected to run after applying the `--project` filter. It is available in global setup and reporters.\n- New [apiRequestContext.addCookies()](https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-add-cookies), [apiRequestContext.cookies()](https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-cookies) and [apiRequestContext.clearCookies()](https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-clear-cookies) manage cookies of a request context, mirroring the [BrowserContext](https://playwright.dev/docs/api/class-browsercontext) methods:\n\n  ```js\n  await request.addCookies([{ name: 'session-id', value: '42', url: 'https://example.com' }]);\n  console.log(await request.cookies('https://example.com'));\n  await request.clearCookies({ name: 'session-id' });\n  ```\n\n#### Breaking changes \u26a0\ufe0f\n\n- `screen` property is now forwarded from the [device descriptors](https://playwright.dev/docs/emulation#devices). If you use `...devices['Desktop Chrome']` and alike, `window.screen` and media queries now see the emulated screen size. You can opt-out by explicitly setting `screen` to `undefined`:\n\n  ```js\n  // playwright.config.ts\n  export default defineConfig({\n    use: {\n      ...devices['Desktop Chrome'],\n      screen: undefined,\n    },\n  });\n  ```\n\n- JSX in your test files now follows your `tsconfig.json`. Playwright compiles JSX in test files according to the `jsx`, `jsxFactory`, `jsxFragmentFactory` and `jsxImportSource` [tsconfig options](https://playwright.dev/docs/test-typescript#tsconfig-jsx-options), and defaults to the automatic runtime from `react/jsx-runtime`.\n\n- `--update-snapshots=missing` now passes the test run. Tests that only create missing snapshots now pass in the `'missing'` mode of [testConfig.updateSnapshots](https://playwright.dev/docs/api/class-testconfig#test-config-update-snapshots), so that CI can generate new snapshots and verify the existing ones in a single run. The mode used when the option is not specified is now called `'default'` and behaves as before: missing snapshots are written and the test fails.\n\n- Elements inside hidden iframes are considered hidden. Elements inside an iframe that is not visible, for example with `visibility: hidden`, are now considered hidden by actions, [locator.isVisible()](https://playwright.dev/docs/api/class-locator#locator-is-visible) and [expect(locator).toBeVisible()](https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-visible).\n\n#### Browser Versions\n\n- Chromium 156.0.8078.4\n- Mozilla Firefox 157.0\n- WebKit 27.2\n\nThis version was also tested against the following stable channels:\n\n- Google Chrome 155\n- Microsoft Edge 155\n\n</details>\n\n---\n\n### Configuration\n\n\ud83d\udcc5 **Schedule**: (in timezone Europe/London)\n\n- Branch creation\n  - At any time (no schedule defined)\n- Automerge\n  - At any time (no schedule defined)\n\n\ud83d\udea6 **Automerge**: Disabled by config. Please merge this manually once you are satisfied.\n\n\u267b **Rebasing**: Whenever PR is behind base branch, or you tick the rebase/retry checkbox.\n\n\ud83d\udd15 **Ignore**: Close this PR and you won't be reminded about this update again.\n\n---\n\n - [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check this box\n\n---\n\nThis PR was generated by [Mend Renovate](https://mend.io/renovate/). View the [repository job log](https://developer.mend.io/github/jtenniswood/espcontrol).\n<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMzQuMSIsInVwZGF0ZWRJblZlciI6IjQ0LjEzNC4xIiwidGFyZ2V0QnJhbmNoIjoibWFpbiIsImxhYmVscyI6W119-->\n",
@@ -6557,8 +6625,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 49,
-    "Needs review": 11
+    "Ported": 50,
+    "Needs review": 10
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
