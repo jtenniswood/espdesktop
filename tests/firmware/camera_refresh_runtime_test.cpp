@@ -190,6 +190,18 @@ int main() {
     assert(tile_requests == 1); // First frame still loads with an idle activity window.
   }
   reset();
+  lv_obj_t revision_widget = 0;
+  reset(); ctx.entity_id = "image.test"; ctx.widget = &revision_widget;
+  ctx.revision.observe("failed-revision"); image_card_request_source_url(&ctx);
+  image_card_handle_download_error(&ctx);
+  assert(ctx.refresh_schedule.failures == 1 && ctx.revision_retry_ms != 0);
+  esphome::now = ctx.revision_retry_ms; image_card_request_source_url(&ctx);
+  tile.active = false; image_card_apply_downloaded(&ctx);
+  assert(ctx.revision_retry_ms == 0 && ctx.refresh_schedule.failures == 0);
+  ctx.revision.observe("next-revision"); image_card_request_source_url(&ctx);
+  image_card_handle_download_error(&ctx);
+  assert(ctx.refresh_schedule.failures == 1); // Successful revisions break a failure streak.
+  reset();
   // Maintenance can open periodic mode while the initial ordinary request runs.
   ctx.entity_id = "camera.test"; ctx.image_ready = false;
   ctx.last_download_completed_ms = 0;
