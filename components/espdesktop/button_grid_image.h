@@ -2057,6 +2057,7 @@ inline void image_card_apply_entity_state(ImageCardCtx *ctx,
     return;
   }
   if (recovered) {
+    ctx->explicit_picture_refresh = true;
     ctx->camera_download_errors = 0;
     ctx->camera_retry_after_ms = 0;
     ctx->last_download_completed_ms = 0;
