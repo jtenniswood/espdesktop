@@ -59,7 +59,7 @@
       "temperatureDegreeSymbol": true,
       "subpageChevron": true,
       "timezone": "Europe/London (GMT+0)",
-      "temperatureUnit": "°F",
+      "temperatureUnit": "\u00b0F",
       "language": "en",
       "clockFormat": "12h",
       "hasNtpServer1": false,
@@ -99,7 +99,8 @@
       "screensaverMetadataEntity": "",
       "metadataOverlay": false,
       "screensaverCameraImageMode": "Fit",
-      "clockOverlay": false
+      "clockOverlay": false,
+      "coverArtPlaybackControl": true
     },
     "screenInput": {
       "brightness_day": 80,
@@ -190,8 +191,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2676767,
-    "gzip": 1073772,
+    "minified": 2678287,
+    "gzip": 1066850,
     "gzipTolerance": 9216
   }
 }

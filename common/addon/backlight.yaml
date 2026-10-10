@@ -537,6 +537,14 @@ script:
             id(cover_art_playback_started).execute();
           }
 
+          // A retained pause is valid only while this presentation remains
+          // visible. Schedule, manual sleep, and modal takeovers end the session.
+          if (!controller.target_mode_is(espdesktop::DisplayMode::COVER_ART)) {
+            if (id(cover_art_playback_control).retains_pause(id(cover_art_active_media_player_entity))) {
+              controller.clear(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK);
+            }
+            id(cover_art_playback_control).reset();
+          }
           auto transition = controller.resolve();
           const bool migrated_target =
               transition.target_mode == espdesktop::DisplayMode::ACTIVE ||
