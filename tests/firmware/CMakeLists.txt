@@ -578,3 +578,6 @@ target_compile_options(home_assistant_endpoint_probe_test PRIVATE -Wall -Wextra 
 target_compile_definitions(home_assistant_endpoint_probe_test PRIVATE USE_ESP_IDF)
 target_include_directories(home_assistant_endpoint_probe_test PRIVATE endpoint_idf_stubs endpoint_stubs ../../components/espdesktop)
 add_test(NAME home_assistant_endpoint_probe_test COMMAND home_assistant_endpoint_probe_test)
+
+add_test(NAME owned_artwork_transfer_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/owned_artwork_transfer_test.py ${CMAKE_CXX_COMPILER})
