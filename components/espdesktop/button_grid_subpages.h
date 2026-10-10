@@ -519,8 +519,8 @@ inline void subscribe_climate_subpage_parent_indicator(
 
 // Parse subpage order CSV; "B"/"Bd"/"Bw"/"Bb"/"Bt"/"Bx" tokens mark the back button position
 inline void parse_subpage_order(const std::string &order_str, int num_slots, int num_btns,
-                                SubpageOrder &result) {
-  int slot_limit = bounded_grid_slots(num_slots);
+                                SubpageOrder &result, int configured_slots = 0) {
+  int slot_limit = bounded_grid_slots(configured_slots > 0 ? configured_slots : num_slots);
   int btn_limit = bounded_grid_slots(num_btns);
   for (int i = 0; i < MAX_GRID_SLOTS; i++) {
     result.row_span[i] = 1;
@@ -558,6 +558,26 @@ inline void parse_subpage_order(const std::string &order_str, int num_slots, int
     gp2++;
     st2 = cm + 1;
   }
+  const int active = bounded_grid_slots(num_slots);
+  if (active >= slot_limit) return;
+  bool compact = result.has_back_token && result.back_pos >= active;
+  for (int i = active; i < slot_limit; ++i) compact |= result.positions[i] > 0;
+  if (!compact) return;
+  int positions[MAX_GRID_SLOTS] = {};
+  int count = 0;
+  bool back_placed = false;
+  for (int i = 0; i < slot_limit; ++i) {
+    if (result.has_back_token && i == result.back_pos) {
+      result.back_pos = count;
+      ++count;
+      back_placed = true;
+    } else if (result.positions[i] > 0) {
+      // Reserve a visible cell for the explicit or implicit Back control.
+      const int limit = active - ((!result.has_back_token || !back_placed) ? 1 : 0);
+      if (count < limit) positions[count++] = result.positions[i];
+    }
+  }
+  memcpy(result.positions, positions, sizeof(positions));
 }
 
 inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
