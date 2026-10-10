@@ -353,7 +353,7 @@ int main() {
   image_card_preempt_active_tile_for_modal();
   assert(tile.cancelled && !ctx.scheduled_tile_request && !ctx.download_queued);
   assert(!ctx.refresh_schedule.in_flight &&
-         ctx.next_download_retry_ms == esphome::now + IMAGE_CARD_MODAL_REFRESH_DELAY_MS);
+         ctx.next_download_retry_ms == 0);
   ctx.modal = true;
   ctx.refresh_schedule.enter_expanded(esphome::now, true);
   image_card_refresh_due();

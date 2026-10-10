@@ -3048,7 +3048,7 @@ async function assertCameraRefreshSettings(page, posts, label) {
   assert.strictEqual(await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Modal Settings" })
     .locator("#sp-inp-image-refresh-mode").count(), 0,
     `${label}: refresh controls must sit outside Modal Settings`);
-  assert(await page.getByText("Activity refreshes the visible card or expanded image", { exact: false }).count() === 1);
+  assert(await page.getByText("On activity refreshes them every 5 seconds", { exact: false }).count() === 1);
   assert.strictEqual(await mode.inputValue(), "off", `${label}: camera refresh is opt-in`);
   assert(!(await interval.isVisible()));
   await mode.selectOption("periodic");

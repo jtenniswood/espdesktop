@@ -183,8 +183,12 @@ inline void image_card_preempt_active_tile_for_modal() {
     const bool scheduled_request = candidate->scheduled_tile_request;
     candidate->scheduled_tile_request = false;
     if (scheduled_request) candidate->refresh_schedule.in_flight = false;
-    if (!candidate->source_url.empty())
+    if (scheduled_request) {
+      // The schedule remains the sole retry owner for a preempted refresh.
+      candidate->next_download_retry_ms = 0;
+    } else if (!candidate->source_url.empty()) {
       candidate->next_download_retry_ms = esphome::millis() + IMAGE_CARD_MODAL_REFRESH_DELAY_MS;
+    }
     return;
   }
 }
