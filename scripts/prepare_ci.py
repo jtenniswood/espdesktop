@@ -51,19 +51,18 @@ def prepare(run=run_command) -> int:
         return code
     if code:
         failures.append(DOCS_BUILD)
-        print("Browser installer check skipped because the docs build failed.")
+    # EspDesktop's browser suite builds the editor directly, independently of docs.
+    code = run(BROWSER_INSTALL, ROOT)
+    if code == 130:
+        return code
+    if code:
+        failures.append(BROWSER_INSTALL)
     else:
-        code = run(BROWSER_INSTALL, ROOT)
+        code = run(BROWSER_CHECK, ROOT)
         if code == 130:
             return code
         if code:
-            failures.append(BROWSER_INSTALL)
-        else:
-            code = run(BROWSER_CHECK, ROOT)
-            if code == 130:
-                return code
-            if code:
-                failures.append(BROWSER_CHECK)
+            failures.append(BROWSER_CHECK)
     if failures:
         print("\nChecks requiring attention:")
         for command in failures:
@@ -93,7 +92,8 @@ def self_test() -> None:
     check({CHECKS[0]: 1, CHECKS[1]: 1}, all_commands, 1)
     check({CHECKS[0]: 130}, list(PREPARE) + [CHECKS[0]], 130)
     check({BROWSER_INSTALL: 1}, all_commands[:-1], 1)
-    check({DOCS_BUILD: 1}, all_commands[:-2], 1)
+    check({DOCS_BUILD: 1}, all_commands, 1)
+    check({DOCS_BUILD: 1, BROWSER_CHECK: 1}, all_commands, 1)
     print("CI preparation self-test passed.")
 
 
