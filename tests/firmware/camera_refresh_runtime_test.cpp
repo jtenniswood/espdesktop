@@ -36,6 +36,9 @@ struct FakeImage {
 };
 struct ImageCardCtx {
   bool active = true, media_artwork = false, image_ready = true;
+  bool diagnostics_enabled = false, remote_icon = false;
+  lv_obj_t *fallback_icon_label = nullptr;
+  uint32_t camera_retry_after_ms = 0;
   bool access_token_request_pending = false, explicit_picture_refresh = false;
   bool download_active = false, visible = true, modal = false;
   bool scheduled_tile_request = false, download_queued = false, requested_once = false;
@@ -121,7 +124,15 @@ bool image_card_queue_modal_source_request(ImageCardCtx *ctx) {
   return true;
 }
 void image_card_cancel_modal_request_timer() {}
-void image_card_apply_downloaded(ImageCardCtx *) {}
+void image_card_sync_media_artwork_visibility(ImageCardCtx *) {}
+void image_card_set_widget_source(lv_obj_t *, FakeImage *) {}
+constexpr int LV_OBJ_FLAG_HIDDEN = 1;
+void lv_obj_clear_flag(lv_obj_t *, int) {}
+void lv_obj_add_flag(lv_obj_t *, int) {}
+void lv_obj_move_foreground(lv_obj_t *) {}
+void lv_obj_move_background(lv_obj_t *) {}
+void lv_obj_invalidate(lv_obj_t *) {}
+void notify_dashboard_content_changed() {}
 void image_card_request_current_picture(ImageCardCtx *) {}
 #include "camera_refresh_runtime_functions.h"
 
@@ -149,6 +160,23 @@ void finish_tile() {
 int main() {
   reset();
   auto &ctx = contexts[0];
+  // Maintenance can open periodic mode while the initial ordinary request runs.
+  ctx.entity_id = "camera.test"; ctx.image_ready = false;
+  ctx.last_download_completed_ms = 0;
+  ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::PERIODIC;
+  ctx.refresh_schedule.interval_ms = 10000;
+  lv_obj_t test_widget = 0; ctx.widget = &test_widget;
+  image_card_request_source_url(&ctx);
+  assert(tile_requests == 1 && !ctx.scheduled_tile_request);
+  esphome::now += 250; image_card_refresh_due();
+  assert(ctx.refresh_schedule.open && tile_requests == 1);
+  esphome::now += 750; tile.active = false;
+  image_card_apply_downloaded(&ctx);
+  assert(ctx.refresh_schedule.next_due == esphome::now + 10000);
+  image_card_refresh_due(); assert(tile_requests == 1);
+  esphome::now += 9999; image_card_refresh_due(); assert(tile_requests == 1);
+  ++esphome::now; image_card_refresh_due(); assert(tile_requests == 2);
+  reset();
   ctx.revision.observe("hidden"); ctx.visible = false;
   image_card_handle_picture(&ctx, ctx.source_url);
   assert(tile_requests == 0);
