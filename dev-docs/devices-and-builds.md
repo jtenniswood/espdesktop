@@ -116,11 +116,12 @@ builds/<slug>.factory.yaml
 Release checks validate that these outputs stay aligned with device profiles and
 public firmware expectations.
 
-Release preflight checks the complete generated task before preparing
-version-specific web assets. The later release check graph uses validation
+Release preflight checks the complete generated task and checked-in web asset
+manifest before preparing version-specific web assets. The later release check graph uses validation
 tooling from the workflow revision with `--root` pointing at the tagged source,
 and records that earlier generated validation through
-`--preverified-task generated`. Other checks run against the prepared assets.
+`--preverified-task generated --preverified-task web-asset-manifest`. Other
+checks run against the prepared assets.
 
 ## Device Build Flags
 
