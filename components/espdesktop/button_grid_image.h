@@ -862,6 +862,10 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
   }
   ctx->image_ready = true;
   ctx->revision.tile_applied = ctx->revision.tile_requested;
+  if (!ctx->media_artwork && ctx->entity_id.rfind("image.", 0) == 0) {
+    ctx->revision_retry_ms = 0;
+    ctx->refresh_schedule.failures = 0;
+  }
   ctx->camera_download_errors = 0;
   ctx->camera_retry_after_ms = 0;
   image_card_release_download_slot(ctx);
