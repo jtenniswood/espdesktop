@@ -6662,10 +6662,48 @@ async function assertHomeAssistantConnectorLayout(browser) {
   }
 }
 
+async function assertColourSwatches(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { homeAssistantSupport: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), seededEvents());
+    await page.getByRole("tab", { name: "Settings" }).click();
+    const primary = page.locator("#sp-set-on-color");
+    if (!await primary.isVisible()) await page.getByText("Appearance", { exact: true }).click();
+    assert.strictEqual(await primary.locator("button").count(), 21, "20 presets plus the existing custom colour");
+    assert.strictEqual(await primary.locator('[data-color="0073FF"]').getAttribute("aria-pressed"), "true");
+    await primary.locator('[data-color="00BCD4"]').click();
+    assert.strictEqual(await primary.locator('[data-color="00BCD4"]').getAttribute("aria-pressed"), "true");
+    await page.getByRole("tab", { name: "Screen" }).click();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    const colours = page.locator('.sp-settings-modal .sp-card-color-presets');
+    assert.strictEqual(await colours.locator("button").count(), 20);
+    await colours.locator('[data-color="6633B9"]').click();
+    assert.strictEqual(await colours.locator('[data-color="6633B9"]').getAttribute("aria-pressed"), "true");
+    await page.getByRole("button", { name: "Reset colours to defaults", exact: true }).click();
+    assert.strictEqual(await colours.locator('[aria-pressed="true"]').count(), 0);
+    assert.deepStrictEqual(errors, []);
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await chromium.launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
+      await assertColourSwatches(browser);
+      console.log("Card and Appearance colour swatch browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_RESET_ONLY === "1") {
       await assertResetControls(browser);
       console.log("Factory reset confirmation browser checks passed.");
