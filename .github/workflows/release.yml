@@ -136,6 +136,17 @@ jobs:
             mkdir -p "docs/public/webserver/$(dirname "${BUNDLE_PATH}")"
             curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
               -o "docs/public/webserver/${BUNDLE_PATH}"
+            # Verify imported bytes before generating or pre-verifying release assets.
+            python3 - "${BUNDLE_PATH}" <<'PY'
+          import hashlib
+          from pathlib import Path
+          import sys
+          downloaded = Path("docs/public/webserver") / sys.argv[1]
+          expected = downloaded.parent.name
+          actual = hashlib.sha256(downloaded.read_bytes()).hexdigest()
+          if actual != expected:
+              raise SystemExit("Published legacy web bundle does not match its content-addressed path")
+          PY
             export ESPDESKTOP_LEGACY_WEB_MANIFEST="${LEGACY_WEB_MANIFEST}"
             export ESPDESKTOP_LEGACY_FIRMWARE_VERSION="${LEGACY_STABLE_TAG}"
             echo "ESPDESKTOP_LEGACY_WEB_MANIFEST=${LEGACY_WEB_MANIFEST}" >> "$GITHUB_ENV"
