@@ -474,6 +474,24 @@ inline lv_obj_t *image_card_loading_label(lv_obj_t *loading_widget) {
   return lv_obj_get_child(loading_widget, 1);
 }
 
+// Refresh only placeholder chrome; the image object and photo pixels remain
+// content-owned. This also covers unconfigured/oversubscribed cards with no ctx.
+inline void image_card_refresh_placeholder_theme(lv_obj_t *button,
+                                                 uint32_t background,
+                                                 uint32_t foreground) {
+  if (!button) return;
+  for (uint32_t i = 0; i < lv_obj_get_child_cnt(button); ++i) {
+    lv_obj_t *image = lv_obj_get_child(button, i);
+    if (!image || !lv_obj_check_type(image, &lv_image_class)) continue;
+    lv_obj_t *loading = image_card_loading_widget(image);
+    if (!loading) continue;
+    lv_obj_set_style_bg_color(loading, lv_color_hex(background), LV_PART_MAIN);
+    for (lv_obj_t *label : {image_card_loading_icon(loading), image_card_loading_label(loading)}) {
+      if (label) lv_obj_set_style_text_color(label, lv_color_hex(foreground), LV_PART_MAIN);
+    }
+  }
+}
+
 inline void image_card_set_configured_label_visible(lv_obj_t *loading_widget,
                                                      bool visible);
 

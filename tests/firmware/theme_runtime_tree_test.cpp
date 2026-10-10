@@ -47,6 +47,7 @@ struct lv_event_t { lv_obj_t *target; };
 using lv_event_cb_t = void (*)(lv_event_t *);
 
 struct lv_obj_t {
+  void *user_data = nullptr;
   const lv_obj_class_t *type = &lv_obj_class;
   lv_color_t background{0};
   lv_color_t text{0};
@@ -137,11 +138,13 @@ int bounded_grid_slots(int count) {
   assert(count >= 0 && count <= MAX_GRID_SLOTS);
   return count;
 }
+void *lv_obj_get_user_data(lv_obj_t *object) { return object->user_data; }
+inline void image_card_refresh_placeholder_theme(lv_obj_t *, uint32_t, uint32_t);
 struct BtnSlot { lv_obj_t *btn = nullptr; };
 struct TestSubpage {
   lv_obj_t *screen = nullptr;
   lv_obj_t *back_button = nullptr;
-  struct Card { bool neutral_background; lv_obj_t *button; bool sensor_surface = false; bool secondary_surface = false; };
+  struct Card { bool neutral_background; lv_obj_t *button; bool sensor_surface = false; bool secondary_surface = false; bool image_card = false; };
   std::vector<Card> cards;
 };
 std::vector<TestSubpage> &navigation_subpages() {
@@ -974,6 +977,23 @@ int main() {
   test_sensor_state_refresh();
   test_pressed_overflow_recovery();
   test_content_collisions();
+  // Unbound Camera placeholders follow the palette without repainting photos.
+  lv_obj_t home_page, subpage, button, image, loading, icon, label;
+  image.type = &lv_image_class; image.background = lv_color_hex(0x123456);
+  image.user_data = &loading; loading.children = {&icon, &label}; button.children = {&image, &loading};
+  ThemeGridTargets placeholders; placeholders.main_page = &home_page;
+  placeholders.count = 1; placeholders.buttons[0] = &button; placeholders.image_cards[0] = true;
+  for (const auto *palette : {&LIGHT_THEME, &DARK_THEME}) {
+    theme_apply_grid(&placeholders, *palette);
+    assert(loading.background.full == palette->surface_secondary);
+    assert(icon.text.full == palette->text_primary && label.text.full == palette->text_primary);
+    assert(image.background.full == 0x123456 && image.user_data == &loading);
+  }
+  navigation_subpages().push_back({&subpage, nullptr, {{false, &button, false, false, true}}});
+  placeholders.count = 0; theme_apply_grid(&placeholders, LIGHT_THEME);
+  assert(loading.background.full == LIGHT_THEME.surface_secondary && label.text.full == LIGHT_THEME.text_primary);
+  assert(image.background.full == 0x123456);
+  navigation_subpages().clear();
   test_registry_exhaustion();
   for (auto &binding : theme_refresh_bindings()) binding = {};
   lv_obj_t time_label, voice_label;

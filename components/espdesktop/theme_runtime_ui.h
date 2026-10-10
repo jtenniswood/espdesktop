@@ -11,6 +11,7 @@ struct ThemeGridTargets {
   bool neutral_buttons[MAX_GRID_SLOTS]{};
   bool sensor_surfaces[MAX_GRID_SLOTS]{};
   bool secondary_surfaces[MAX_GRID_SLOTS]{};
+  bool image_cards[MAX_GRID_SLOTS]{};
   int count = 0;
   int red_percent = 100;
   int green_percent = 100;
@@ -70,6 +71,8 @@ inline void theme_apply_grid(void *context, const ThemePalette &theme) {
   const ThemeTreeCorrection correction = {targets.red_percent, targets.green_percent,
                                           targets.blue_percent};
   for (int i = 0; i < targets.count; ++i) {
+    if (targets.image_cards[i]) image_card_refresh_placeholder_theme(
+        targets.buttons[i], theme_grid_correct_color(theme.surface_secondary, targets), theme.text_primary);
     const bool sensor_surface = targets.sensor_surfaces[i];
     if ((targets.neutral_buttons[i] || sensor_surface) && targets.buttons[i]) {
       const bool accent_state = lv_obj_has_state(targets.buttons[i], LV_STATE_CHECKED) ||
@@ -86,6 +89,8 @@ inline void theme_apply_grid(void *context, const ThemePalette &theme) {
     theme_restyle_tree(entry.back_button, theme_refresh_previous(), theme, false, correction);
     theme_apply_grid_button(entry.back_button, neutral, theme);
     for (auto &card : entry.cards) {
+      if (card.image_card) image_card_refresh_placeholder_theme(
+          card.button, theme_grid_correct_color(theme.surface_secondary, targets), theme.text_primary);
       const bool sensor_surface = card.sensor_surface;
       if ((card.neutral_background || sensor_surface) && card.button) {
         const bool accent_state = lv_obj_has_state(card.button, LV_STATE_CHECKED) ||
@@ -104,7 +109,8 @@ inline void register_theme_grid(lv_obj_t *main_page, BtnSlot *slots,
                                 const bool *sensor_surfaces,
                                 int red_percent, int green_percent,
                                 int blue_percent,
-                                const bool *secondary_surfaces = nullptr) {
+                                const bool *secondary_surfaces = nullptr,
+                                const bool *image_cards = nullptr) {
   if (!main_page || !slots || !neutral_buttons || !sensor_surfaces) return;
   auto &targets = theme_grid_targets();
   const bool new_owner = targets.main_page != main_page;
@@ -118,9 +124,11 @@ inline void register_theme_grid(lv_obj_t *main_page, BtnSlot *slots,
     targets.neutral_buttons[i] = neutral_buttons[i];
     targets.sensor_surfaces[i] = sensor_surfaces[i];
     targets.secondary_surfaces[i] = secondary_surfaces && secondary_surfaces[i];
+    targets.image_cards[i] = image_cards && image_cards[i];
   }
   for (int i = targets.count; i < MAX_GRID_SLOTS; ++i) {
     targets.buttons[i] = nullptr;
+    targets.image_cards[i] = false;
     targets.sensor_surfaces[i] = false;
     targets.secondary_surfaces[i] = false;
   }
