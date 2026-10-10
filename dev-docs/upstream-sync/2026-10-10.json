@@ -7202,7 +7202,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2109",
       "mergeSha": "0f53a59d322bf7e3f59eb8ec35728bdcdeb674c1",
       "disposition": "Ported",
-      "evidence": "Browser OTA platform and truthful installed-version/timeout/error handling ported, preserving destination credential-free downloads, authenticated upload, Dev Build label and V3/disabled-update guards. Firmware validation is complete for the 4 recorded device builds at 5134211dd. Physical device testing remains pending. Earlier checks and fixes are retained in the JSON validation history.",
+      "evidence": "Browser OTA installation and truthful version, timeout and error feedback ported. Installs remain without authentication as explicitly chosen by the owner; no authentication mitigation is claimed. Firmware validation is complete for the 4 recorded device builds at 5134211dd. Physical device testing remains pending. Earlier checks and fixes are retained in the JSON validation history.",
       "changedFiles": [
         "common/addon/firmware_update.yaml",
         "docs/features/firmware-updates.md",
@@ -8928,23 +8928,51 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v2.factory.yaml",
           "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc8012p4a1-v2.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "31c3956b4646b3d3d3c616e8f8ac08d128bf43017f95a08139768d6af3d9003b",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "4106b17bc9ca1780ce3aa0e20377e3355224e6d22e15f89bd5cff89ce0ca2fe0",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc8012p4a1-v2",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/429abff9259ffdbf57c77925e365e1da838a6a41e00ea47691b79c6f681c07b6.log.gz",
+          "logSha256": "429abff9259ffdbf57c77925e365e1da838a6a41e00ea47691b79c6f681c07b6",
+          "archiveSha256": "95a22e3f049f4c0f4b57bf07b3a810b6f913e92bd0caa731e2606b5fdd35c12d"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
           "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc8012p4a1-v3.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "31c3956b4646b3d3d3c616e8f8ac08d128bf43017f95a08139768d6af3d9003b",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "4106b17bc9ca1780ce3aa0e20377e3355224e6d22e15f89bd5cff89ce0ca2fe0",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc8012p4a1-v3",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/85b381c363ea03dfa8bd83af8abb18ab9a1a2c6c4f406f471db15de3716344af.log.gz",
+          "logSha256": "85b381c363ea03dfa8bd83af8abb18ab9a1a2c6c4f406f471db15de3716344af",
+          "archiveSha256": "a463f4e55b9824587fc51d69515561039a6150dcb3d77288be8c89bf099fc1e5"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2168-2fe34027a-declaration-final-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
