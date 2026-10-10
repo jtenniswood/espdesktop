@@ -2490,8 +2490,8 @@
       "title": "Match new card configuration to the edit panel",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2058",
       "mergeSha": "71a0e6316759b76abcfb79ff2eadf76edf60f27e",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Already present",
+      "evidence": "Destination commit 08e9d5fe2 removed the new-card type dropdown; 31d73702c supplies shared new/saved card titles. button_settings.ts uses cardSettingsTitle for both; chooseCardType browser regression asserts no #sp-inp-type.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "docs/features/setup.md",
@@ -2514,8 +2514,8 @@
       "title": "Add awning icons",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2059",
       "mergeSha": "13c93467d1e7fbf347b7b0ee9a4c0125e37cd369",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "common/assets/icon_glyphs.yaml",
         "compatibility/fixtures/web_migration_baseline.json",
@@ -2528,7 +2528,8 @@
         "product/product_snapshot.json",
         "product/v2/icons.json",
         "src/webserver/generated/icons.ts"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/127"
     },
     {
       "body": "## Summary\n\nThe 4-inch ESP32-S3 display is 480\u00d7480, but its camera modal request was capped at 320 px on the long side. Raise the constrained modal target to 480 px so the downloaded image can match the modal panel's native resolution. Existing memory availability checks still gate the request.\n\nUpdate the S3 screen guide and the policy's expected constrained target.\n\n## Validation\n\n- `git diff --check` passed.\n- Firmware tests/builds and physical display testing were not run. Please verify a camera modal on a 4-inch 4848S040, including behavior when available memory is low.\n",
@@ -2542,7 +2543,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2061",
       "mergeSha": "fa28e9e26e3edb2867379e3a14b86895be5d5384",
       "disposition": "Ported",
-      "evidence": "Separate ready-for-review port. Targeted checks passed; device testing pending where applicable.",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "components/artwork_image/image_pipeline_policy.h",
         "docs/screens/4848s040.md",
@@ -2837,8 +2838,8 @@
       "title": "Use working Sonos speaker discovery template",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2072",
       "mergeSha": "9a23d2bf272e59c8b0267178b21647b1c1a3ed50",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Not applicable",
+      "evidence": "Source updates the Sonos speaker-group public guide, which EspDesktop deliberately retired with its Mac-focused documentation in #77/#79. No corresponding published destination setup guide to patch.",
       "changedFiles": [
         "docs/features/speaker-groups.md"
       ]
@@ -3140,14 +3141,15 @@
       "title": "Halve vertical spacing inside settings panels",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2085",
       "mergeSha": "558c2784bb7cb219721eb026b4cdd5b83b87ecf2",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "docs/public/webserver/bundles/5b5062d6c3e6a948d79d6e1c5370be2f329b0d2af1582c63edcf43bdf09fd39c/www.js",
         "docs/public/webserver/embedded/www.js",
         "docs/public/webserver/web-assets.json",
         "src/webserver/application/styles.ts"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/129"
     },
     {
       "body": "## Summary\n\nAdds a read-only Battery card for Home Assistant sensors. It shows a rounded percentage and a charge-dependent icon on the home screen and subpages, with an unknown icon and `--%` for unavailable or invalid readings.\n\n## Practical impact\n\nThe card has a Battery Entity picker and an illustrative percentage preview. It uses the current Product Model, declarative normalization, typed web registry, and shared firmware lifecycle. Compact code `BT` preserves the existing `B` fan-switch encoding. It needs no new icons or fonts.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nAdds the Battery guide, setup/reference entries, and generated capability/developer documentation.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n\nPassed `npm run check:product`, `npm run check:fast` (including all 71 host firmware tests), `npm run check:web-browser-smoke` (all eight layouts), and `npm run docs:build`. The new tests cover Battery selection/preview, normalization, compact-code compatibility, invalid readings, range limits, and stale subscriptions. Host tests used GCC 15 and the pinned ESPHome Python dependencies.\n\nFull ESPHome device compile results are pending.\n\n- [x] Device testing is required before merge.\n\nAffected displays: all supported ESP32-P4 and ESP32-S3 panels.\n\n## Notes for testing\n\nAdd a Battery card on the home screen and in a subpage; save, reload, and restart. Change the Home Assistant sensor through 0, 5, 15, 50, 95, and 100 percent, then unavailable and a fractional value. Confirm the icon/percentage updates, no tap action, and recovery after a Home Assistant reconnect. Check existing fan cards still load correctly.\n\n## PR status\n\n- [x] Checks running or waiting.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -3212,7 +3214,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2093",
       "mergeSha": "0935ffe14c1e19753312a49f15fa0daf0939d71e",
       "disposition": "Ported",
-      "evidence": "Separate ready-for-review port. Targeted checks passed; device testing pending where applicable.",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "components/espcontrol/button_grid_confirm.h",
         "tests/firmware/CMakeLists.txt",
@@ -3595,11 +3597,12 @@
       "title": "Cover number slider boundary cases",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2103",
       "mergeSha": "b4526ae87d3a2c018545d6906b639b1c5487fe19",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "tests/firmware/number_slider_policy_test.cpp"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/128"
     },
     {
       "body": "This PR contains the following updates:\n\n| Package | Update | Change |\n|---|---|---|\n| [esphome/esphome](https://redirect.github.com/esphome/esphome) | patch | `2026.9.0` \u2192 `2026.9.1` |\n\n---\n\n### Release Notes\n\n<details>\n<summary>esphome/esphome (esphome/esphome)</summary>\n\n### [`v2026.9.1`](https://redirect.github.com/esphome/esphome/releases/tag/2026.9.1)\n\n[Compare Source](https://redirect.github.com/esphome/esphome/compare/2026.9.0b4...2026.9.1)\n\n- \\[mipi\\_dsi] Let IDF pick the DPHY PLL reference clock [esphome#18984](https://redirect.github.com/esphome/esphome/pull/18984) by [@&#8203;elwinloomis](https://redirect.github.com/elwinloomis)\n- \\[ota] Skip the web\\_server plaintext warning when web\\_server ota is disabled [esphome#19348](https://redirect.github.com/esphome/esphome/pull/19348) by [@&#8203;bdraco](https://redirect.github.com/bdraco)\n- \\[mixer] Don't discard a start request while reaping a stopped task [esphome#19368](https://redirect.github.com/esphome/esphome/pull/19368) by [@&#8203;rexmoriarty](https://redirect.github.com/rexmoriarty)\n- \\[esp32]\\[rp2] Print the previous boot crash report before the logger reads it [esphome#19351](https://redirect.github.com/esphome/esphome/pull/19351) by [@&#8203;bdraco](https://redirect.github.com/bdraco)\n- \\[espidf] Switch the Windows console to UTF-8 while idf.py runs [esphome#19352](https://redirect.github.com/esphome/esphome/pull/19352) by [@&#8203;bdraco](https://redirect.github.com/bdraco)\n- \\[esp32\\_hosted] Fix ESP32-P4 build without wifi, espnow or BLE [esphome#19374](https://redirect.github.com/esphome/esphome/pull/19374) by [@&#8203;bdraco](https://redirect.github.com/bdraco)\n- \\[esphome] Keep the OTA encryption key without the api server so safe mode uploads work [esphome#19349](https://redirect.github.com/esphome/esphome/pull/19349) by [@&#8203;bdraco](https://redirect.github.com/bdraco)\n- \\[esp32] Disable newlib nano printf formatting on ESP32-C2 [esphome#19418](https://redirect.github.com/esphome/esphome/pull/19418) by [@&#8203;swoboda1337](https://redirect.github.com/swoboda1337)\n- \\[web\\_server] Mask the value of a password text entity, not only its state [esphome#19385](https://redirect.github.com/esphome/esphome/pull/19385) by [@&#8203;bdraco](https://redirect.github.com/bdraco)\n- \\[nrf52] set WDT timeout to 30sec for Adafruit bootloader [esphome#19596](https://redirect.github.com/esphome/esphome/pull/19596) by [@&#8203;tomaszduda23](https://redirect.github.com/tomaszduda23)\n- \\[mipi\\_spi] Fix reversion in dc/cs sequence for spi\\_16 [esphome#19745](https://redirect.github.com/esphome/esphome/pull/19745) by [@&#8203;clydebarrow](https://redirect.github.com/clydebarrow)\n- \\[lvgl] Honor esphome build\\_flags when generating lv\\_conf.h [esphome#19743](https://redirect.github.com/esphome/esphome/pull/19743) by [@&#8203;SulimanAbdulrazzaq](https://redirect.github.com/SulimanAbdulrazzaq)\n- \\[ethernet] Move received frames to PSRAM on SPI ethernet chips [esphome#19377](https://redirect.github.com/esphome/esphome/pull/19377) by [@&#8203;bdraco](https://redirect.github.com/bdraco)\n\n</details>\n\n---\n\n### Configuration\n\n\ud83d\udcc5 **Schedule**: (in timezone Europe/London)\n\n- Branch creation\n  - \"before 9am\"\n- Automerge\n  - At any time (no schedule defined)\n\n\ud83d\udea6 **Automerge**: Disabled by config. Please merge this manually once you are satisfied.\n\n\u267b **Rebasing**: Whenever PR is behind base branch, or you tick the rebase/retry checkbox.\n\n\ud83d\udd15 **Ignore**: Close this PR and you won't be reminded about this update again.\n\n---\n\n - [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check this box\n\n---\n\nThis PR was generated by [Mend Renovate](https://mend.io/renovate/). View the [repository job log](https://developer.mend.io/github/jtenniswood/espcontrol).\n<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMTIuMCIsInVwZGF0ZWRJblZlciI6IjQ0LjExMi4wIiwidGFyZ2V0QnJhbmNoIjoibWFpbiIsImxhYmVscyI6W119-->\n",
@@ -3649,7 +3652,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2128",
       "mergeSha": "b1ff696c5ff262a54a14124db8be8db185b694cc",
       "disposition": "Ported",
-      "evidence": "Separate ready-for-review port. Targeted checks passed; device testing pending where applicable.",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "devices/guition-esp32-s3-4848s040/device/device.yaml",
         "docs/screens/4848s040.md"
@@ -3744,7 +3747,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2134",
       "mergeSha": "6ea558cfb7af4d987d78c906da399e9210ea349d",
       "disposition": "Ported",
-      "evidence": "Separate ready-for-review port. Targeted checks passed; device testing pending where applicable.",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         ".agents/skills/clean-complete-branches/SKILL.md",
         ".agents/skills/clean-merged-branch-folders/SKILL.md",
@@ -3820,11 +3823,12 @@
       "title": "Fix fan speed slider on first modal open",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2138",
       "mergeSha": "60abfdaa7a79401b142d6d6ceea8d98f0422b8f6",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "components/espcontrol/button_grid_fan.h"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/132"
     },
     {
       "body": "This PR contains the following updates:\n\n| Package | Change | [Age](https://docs.renovatebot.com/merge-confidence/) | [Confidence](https://docs.renovatebot.com/merge-confidence/) |\n|---|---|---|---|\n| [postcss](https://postcss.org/) ([source](https://redirect.github.com/postcss/postcss)) | [`8.5.28` \u2192 `8.5.29`](https://renovatebot.com/diffs/npm/postcss/8.5.28/8.5.29) | ![age](https://developer.mend.io/api/mc/badges/age/npm/postcss/8.5.29?slim=true) | ![confidence](https://developer.mend.io/api/mc/badges/confidence/npm/postcss/8.5.28/8.5.29?slim=true) |\n\n---\n\n### Release Notes\n\n<details>\n<summary>postcss/postcss (postcss)</summary>\n\n### [`v8.5.29`](https://redirect.github.com/postcss/postcss/blob/HEAD/CHANGELOG.md#8529)\n\n[Compare Source](https://redirect.github.com/postcss/postcss/compare/8.5.28...8.5.29)\n\n- Improved `</style>` escaping (by [@&#8203;choudhryfrompak](https://redirect.github.com/choudhryfrompak)).\n- Fixed comments support in `list.comma()` and `list.space()` (by [@&#8203;00200200](https://redirect.github.com/00200200)).\n- Fixed semicolon and custom property (by [@&#8203;wahidrizka](https://redirect.github.com/wahidrizka)).\n\n</details>\n\n---\n\n### Configuration\n\n\ud83d\udcc5 **Schedule**: (in timezone Europe/London)\n\n- Branch creation\n  - At any time (no schedule defined)\n- Automerge\n  - At any time (no schedule defined)\n\n\ud83d\udea6 **Automerge**: Disabled by config. Please merge this manually once you are satisfied.\n\n\u267b **Rebasing**: Whenever PR becomes conflicted, or you tick the rebase/retry checkbox.\n\n\ud83d\udd15 **Ignore**: Close this PR and you won't be reminded about this update again.\n\n---\n\n - [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check this box\n\n---\n\nThis PR was generated by [Mend Renovate](https://mend.io/renovate/). View the [repository job log](https://developer.mend.io/github/jtenniswood/espcontrol).\n<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMjUuMSIsInVwZGF0ZWRJblZlciI6IjQ0LjEzNC4xIiwidGFyZ2V0QnJhbmNoIjoibWFpbiIsImxhYmVscyI6W119-->\n",
@@ -3837,11 +3841,12 @@
       "title": "Update dependency postcss to v8.5.29",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2139",
       "mergeSha": "ebec00bd1c660771a6641316b9b002154f9f5658",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "package-lock.json"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/131"
     },
     {
       "body": "## Summary\n\nLimit local speaker playback and Sendspin to the 4-inch ESP32-P4-86. The other seven device profiles stop advertising a local speaker or automatically connecting to Music Assistant as Sendspin players.\n\nAdding speaker output in #2095 also enabled Sendspin's global high-performance networking settings. Logs from the original 10.1-inch JC8012P4A1 show internal-memory allocation failures during artwork downloads. Removing the unused audio pipelines restores the smaller network defaults on the affected profiles while keeping the P4-86 audio configuration unchanged.\n\n## Practical impact\n\n- Remove speaker package/pin entries from the seven source device profiles and regenerate their packages, catalogue, manifest, and product snapshot.\n- Remove their Sendspin component imports and restore the previous socket budgets. Delete the unused S3 external-amplifier package and restore S3 UART0 serial logging.\n- Only the P4-86 retains local audio output, Home Assistant announcements, and native Sendspin playback. Media cards that control external Home Assistant players continue to use the existing shared UI.\n- This is independent of the cover-art downloader/scaler improvements in #2143.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes: The speaker playback guide and guide index now identify the 4-inch P4-86 as the only profile with local audio output; obsolete S3 amplifier wiring instructions were removed.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\n- ESPHome 2026.9.1 validation and C++ generation passed for all eight production device profiles and the V3 test factory configuration.\n- Inspected generated defines and component instances: speaker output and Sendspin are present only on P4-86. Compared its device/profile/audio files against main: unchanged.\n- Device catalogue/model/schema, generated manifest/packages/snapshot, profile/matrix/API, Home Assistant binding, and firmware-release checks passed.\n- Full generated-output check and documentation build/link checks passed.\n- Original JC8012P4A1 factory compile passed at `a8c6ae4d0` with ESPHome 2026.9.1 / ESP-IDF 5.5.5. Generated SDK configuration confirms TCP send/receive buffers of 5760 bytes and a per-socket receive queue of six, replacing the larger Sendspin-requested values.\n\nAffected display/device:\n\n- Removed local audio: Guition 7-inch JC1060P470 V1/V2, 4.3-inch JC4880P443, 10.1-inch JC8012P4A1 V1/V2/V3, and 4-inch S3 4848S040.\n- Retained local audio: 4-inch ESP32-P4-86; include a playback regression check.\n\n## Notes for testing\n\nTo test independently of main, set your existing GitHub device package `ref` and top-level `espcontrol_component_ref` substitution to `limit-speaker-output-to-p4-86`, then compile and flash the configuration for your actual display.\n\n1. On an affected device, confirm normal boot, Home Assistant connectivity, screen layout, touch/navigation, and external media-player controls.\n2. On the original 10-inch panel, change tracks repeatedly with cover art visible and check for SDIO allocation failures, lost Wi-Fi responses, or disconnects. Compare to the supplied logs. Artwork resizing improvements are separately covered by #2143.\n3. Confirm the removed device no longer connects as a Sendspin player or exposes its local Speaker entity. Previously registered entities may remain unavailable in Home Assistant until removed there.\n4. On S3, confirm UART0 serial logs work again.\n5. On P4-86, confirm local announcements, media browsing/playback, volume, Music Assistant Sendspin playback, and amplifier shutdown still work.\n\nPhysical-device validation at `a8c6ae4d0`: dev firmware compiled and uploaded successfully to the 10-inch P4 V1, 7-inch P4 V1, 4-inch P4-86, 4.3-inch P4, and 4-inch S3. All five responded after reboot. The user explicitly confirmed the tested firmware works, including 10-inch cover art and touch responsiveness. This confirmation does not claim exhaustive audio regression testing on P4-86.\n\nAll eight device builds and the firmware compile gate passed in CI at `a8c6ae4d0`. The current candidate, `6689b943b`, brings in the latest main with only a documentation dependency lockfile update. Firmware source and generated outputs are unchanged. Local `npm run docs:build` and `python3 scripts/build.py --check` passed after this update; fresh CI is running, and confirmation for the updated candidate is pending.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Ready for device test.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -3959,14 +3964,15 @@
       "title": "Ignore \"None\" picture attributes instead of caching them as artwork URLs",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2147",
       "mergeSha": "bfe4a39f034615ddb938dde8b963b66a3d250bd2",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "components/espcontrol/artwork_controller.h",
         "components/espcontrol/button_grid_image.h",
         "tests/firmware/artwork_controller_test.cpp"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/130"
     },
     {
       "body": "## Purpose\nMove the hardware version dropdown chevron in from the field edge and keep option text clear of it.\n\n## Change\nReplace the browser-native arrow with a CSS chevron positioned consistently inside the select field.\n\n## Checks\n- `git diff --check` passed.\n- No automated or browser preview checks were run.\n\n## User testing\nReview the hardware version dropdown on the install page in both light and dark themes.",
@@ -4128,8 +4134,8 @@
       "title": "Remove USB and BOOT mode section from installer page",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2157",
       "mergeSha": "fdb9f3bb76d5417ad423e4193c8cc33f2ec4a5eb",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Already present",
+      "evidence": "Current EspDesktop installation guide has no USB installation and BOOT mode section to remove; the source change concerns unsupported 10-inch V3 public installation guidance.",
       "changedFiles": [
         "docs/getting-started/install.md"
       ]
@@ -4267,11 +4273,12 @@
       "title": "Update dependency playwright to v1.64.0",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2169",
       "mergeSha": "c7a69c5db72a4b3354af884e906ba2ed74ef5322",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "package-lock.json"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/134"
     },
     {
       "body": "## Summary\n\nFix GSL3680 touchscreen startup on the 10-inch JC8012P4A1 panels. Issue #2166 reports successful I2C writes followed by a zero running marker, after which touch is permanently disabled.\n\nThe driver now configures the board firmware's three-contact scan count at register `0x80`, performs the hardware reset before that configuration, and uses four-byte firmware page selectors. It verifies uploaded firmware where controller RAM reads are supported, waits up to 300ms for the complete running marker, and retries initialization once. Controllers that NACK executable RAM reads still have to pass the running-marker check; readback mismatches and other bus errors remain failures. Network diagnostics report whether firmware is verified and running.\n\nRelated to #2166. The startup-register diagnosis is supported by Linux's Silead driver and a hardware-confirmed JC8012P4A1 fix in [AgentDeck](https://github.com/puritysb/AgentDeck/blob/master/docs/devlog/entries/2026-07-29-03-ips10-gsl3680-scan-core.md); the fix is now confirmed working on a maintainer's V3 panel.\n\n## Practical impact\n\n- Panels that acknowledge register writes but fail to start now receive the corrected scan configuration and four-byte firmware page selectors.\n- A slow or transient startup gets a bounded recovery attempt. Corrupted firmware and persistent failures still disable touch and report the failing stage.\n- This shared driver affects the 10-inch V1, V2 and V3 panels. Other display models use different touch drivers.\n\n## Documentation decision\n\n- [ ] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [x] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\nThis restores existing touch behavior without adding configuration or changing installation steps. The component README documents the corrected boot sequence and diagnostic behavior; the PR summary provides the release-facing bug-fix explanation.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- Guition JC8012P4A1 V3 at `192.168.6.103`, confirmed from network logs as ESP32-P4 revision 3.2. Also regression-test 10-inch V1 and V2 hardware before a release.\n\nAutomated validation:\n\n- `npm run prepare:ci` with Node.js 24 and ESPHome 2026.9.1: passed all 48 CI check tasks, 77 firmware tests, docs build and mocked-Web-Serial installer checks.\n- The production-driver startup regression test passes with this branch and fails against the original main driver at the simulated acknowledged-but-non-starting controller.\n- Tests cover complete firmware readback, ignored short page selectors, delayed startup, corrupt firmware, a transient verification failure, persistent zero status, I2C errors, and a controller that NACKs RAM reads both with and without a valid running marker.\n- V3 `dev.yaml` compiled with pinned ESPHome 2026.9.1 in the repository's Docker environment and installed through native OTA from PR head `97325d981c3c`. The panel responded after reboot, and the user confirmed touch works on this updated revision. Sleep/wake and full power-off cold starts were not separately confirmed.\n\n## Notes for testing\n\nStarting from the automated guidance: verify normal boot without repeated restarts, correct screen rendering, and touch/navigation. Only GSL3680-based 10-inch panels need flashing for this change.\n\n1. Test V3 using this branch's `devices/guition-esp32-p4-jc8012p4a1-v3/dev.yaml` and the pinned wrapper: `python3 scripts/local_esphome.py devices/guition-esp32-p4-jc8012p4a1-v3/dev.yaml run --device YOUR_PANEL_IP --no-logs`. Provide your existing ignored local secrets file as documented in the flash workflow.\n2. Read startup/network logs. Expect `GSL3680 touchscreen: running marker confirmed`. Firmware RAM readback may report verified or unavailable; there must be no failed touchscreen component or firmware readback mismatch.\n3. Touch the centre and all corners, finish Home Assistant setup with Done where applicable, open a subpage, and check sleep/wake.\n4. Repeat several full power-off cold starts and retain the full startup log if any attempt fails.\n5. Repeat on V1/V2 using their matching device configuration. A successful compile or network diagnostic is not confirmation of physical touch.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -4285,7 +4292,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2171",
       "mergeSha": "18a216370274e8c168fd89a12e8fd22581cbece3",
       "disposition": "Ported",
-      "evidence": "Separate ready-for-review port. Targeted checks passed; device testing pending where applicable.",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "components/gsl3680/README.md",
         "components/gsl3680/gsl3680.cpp",
@@ -4498,14 +4505,15 @@
       "title": "Keep All Controls fan tile labels visible",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2183",
       "mergeSha": "19a8ca55dd5c1a03f06481148293b180f97f775a",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
       "changedFiles": [
         "components/espcontrol/button_grid_fan.h",
         "docs/card-types/fans.md",
         "tests/firmware/CMakeLists.txt",
         "tests/firmware/fan_control_label_test.py"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/133"
     },
     {
       "body": "## Summary\n\nImprove first-time WiFi setup and recovery using the provisioning changes from [Espframe PR #257](https://github.com/jtenniswood/espframe/pull/257), adapted to EspControl's components and settings UI.\n\n## Practical impact\n\n- Ethernet-only configurations compile without a WiFi component: the reset component includes the WiFi header only when USE_WIFI is enabled. This addresses the outstanding build review comment.\n\n- Development and adopted device packages now enable the captive portal through shared connectivity configuration. Previously the flashed 7-inch development firmware enabled an AP but omitted the setup DNS server, scan form and credential-save route. Package-expansion regressions cover all nine development and ten factory entry points.\n- The hotspot setup page uses EspControl's dark cards, labels, inputs and Save button, with an Available Networks list and manual SSID entry. Styles are embedded in gzip/Brotli firmware assets, so setup works offline. Device/MAC headings and the OTA upload panel are removed from this page.\n- Saving credentials shows **WiFi details saved**, followed by instructions to reconnect the phone/computer to home WiFi and continue on the display. The confirmation is served directly without redirects, scripts or external requests.\n- Setup DNS explicitly uses IPv4 even when station IPv6 is enabled, and correctly reports omitted authority/EDNS records. OS probes retain ESPHome's standard HTTP 200 portal response. Setup responses use no-cache headers.\n- USB Improv provisioning is enabled for setup profiles. The default hotspot is now `EspControl_XXXX`, using the last four hexadecimal characters of the device MAC address (for example, a MAC ending in `F3:6A` gives `EspControl_F36A`). Custom AP names and passwords are preserved. The initial loading screen, WiFi setup screen and language refresh show the actual AP name, followed by instructions to visit `192.168.4.1` in a browser. The new wording is included in all 22 display languages.\n- Complete reset erases saved WiFi and the Home Assistant API key, and disables compiled-in WiFi before the network component starts. A dedicated ResetBoot component keeps this action independent of package on_boot merging. New credentials provisioned through the hotspot or USB remain selected after subsequent reboots; Partial reset preserves the active WiFi preference.\n- The full-reset confirmation includes the WiFi/API-key warning, backup reminder and a labeled input. The red Complete reset button stays disabled until the user types exactly RESET. Cancel, Escape and invalid input do not send a reset request.\n\nMixed mapping/list on_boot handlers allowed later screen packages to replace the WiFi reset initializer. The 7-inch hardware test exposed this: stored preferences were erased, but compiled WiFi was restored. Reset startup and default hotspot naming now run in the registered ResetBoot component before WiFi starts. An ESPHome code-generation regression reproduces the package replacement and checks that the reset component remains registered.\n\nThe imported component retains ESPHome 2026.9.1's scan filtering, credential storage and provisioning endpoints, with upstream licenses and local changes documented in its README. Deployed S3 configurations retain their smaller setup configuration.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\nInstallation and troubleshooting describe the saved confirmation, USB provisioning, custom hotspots and reset behavior. Manual installation requires ESPHome 2026.9.1 or newer. The local captive portal README records upstream attribution, regeneration and regression checks.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAutomated checks:\n\n- Review fix: the production WiFi reset/AP regression and real ESPHome reset-startup code-generation regression passed. A complete 7-inch JC1060P470 V1 Ethernet-only build with ESPHome 2026.9.1 passed; its generated configuration has USE_ETHERNET, no USE_WIFI, and no generated WiFi header. This was a compile check; Ethernet hardware was not flashed or tested.\n\n- Latest setup wording/hotspot update: all 19 product checks passed, firmware translations are in sync, and firmware Home Assistant binding validation/self-tests passed. The production reset/AP regression passed with the expected `EspControl_F36A` name and custom AP/password preservation.\n\n- `python3 scripts/check_tasks.py run ci --no-cache --jobs 4`: all 49 tasks passed for the preceding captive-portal revision, including 85 host firmware tests, web checks, type checking and generated-file validation.\n- `python3 scripts/check_tasks.py run-task wifi-setup`: generated asset checks, real UDP DNS with IPv6 off/on, modeled factory-reset/reprovision/three-reboot/partial-reset/storage-failure checks, custom AP/password preservation, and browser checks at 320/360/640 pixels.\n- ESPHome 2026.9.1 configuration validation passed for all ten factory profiles, including the experimental 10-inch V3 profile. Real ESPHome code-generation tests verify registered reset startup survives replacement of on_boot actions. This is not a full compile of every profile.\n- The latest 7-inch JC1060P470 V1 development firmware fully compiled with ESPHome 2026.9.1; generated defines confirm USE_CAPTIVE_PORTAL is enabled. The S3 factory profile compiled for the preceding reset-startup change. Hosted firmware checks are running.\n- `npm run docs:build`: passed, including internal links and anchors.\n- Focused reset browser tests passed: typed confirmation, invalid/lowercase/space-padded text, editing/reopening the dialog, Cancel/Escape, a narrow 320px viewport, and a single factory-reset request. Hosted checks are running for the updated head.\n\nAffected display/device, if applicable:\n\n- All supported displays: 10-inch JC8012P4A1 V1/V2/V3; 7-inch JC1060P470 V1/V2; 4.3-inch JC4880P443 original/V3; 4-inch P4-86; and 4-inch S3 4848S040. The preceding captive-portal enablement (55e9b55fc) was uploaded successfully over OTA to the 7-inch V1 at 192.168.6.102 on 2026-10-09. ESPHome reported OTA success, and the display responded to both post-reboot ping checks. The user confirmed on 2026-10-09 that Complete reset followed by WiFi setup and reconnection worked on the 7-inch V1 before the latest wording/name update. The latest wording/name revision (d1ef2a759) fully compiled and was flashed over OTA to the same 7-inch V1; ESPHome reported success and both post-reboot ping checks passed. The user also confirmed on 2026-10-09 that the updated setup message and EspControl_XXXX hotspot naming work on the 7-inch V1. Repeated-reboot, Partial reset and other-device physical testing have not been separately confirmed.\n\n## Notes for testing\n\nSave a backup before testing a complete reset. Install this branch independently of main with ESPHome 2026.9.1: set the device package's `ref` and the `espcontrol_component_ref` substitution to `improve-wifi-setup`, keeping the package file for your exact device and hardware revision. Compile and flash that configuration using your usual USB/OTA method.\n\n1. Confirm normal boot, display navigation and Home Assistant connectivity.\n2. On first setup or after Complete reset, connect a phone/computer to the hotspot shown on the display. Confirm the default hotspot is `EspControl_XXXX` with the last four MAC characters. The display should read \u201cConnect to the WiFi hotspot '[AP NAME]' to configure your network.\u201d followed by \u201cThen visit 192.168.4.1 in your browser\u201d. Confirm automatic sign-in opens the styled Available Networks form; also check `http://192.168.4.1` directly.\n3. Select a network or enter it manually, enter the password and save. Confirm the saved page tells you to reconnect to home WiFi, then complete setup on the display.\n4. Confirm Complete reset stays disabled until exactly RESET is typed; test Cancel and Escape. With firmware containing compiled WiFi for network A, perform Complete reset and provision network B. Reboot three times and confirm the display continues using B. Partial reset should also retain B. Complete reset and WiFi setup/reconnection are user-confirmed on the 7-inch V1. The three-reboot, Partial reset and individual dialog-interaction checks have not been separately confirmed; the host regression uses modeled NVS/WiFi.\n5. If using a custom hotspot name/password, confirm both survive. When installing over USB, check the browser installer's WiFi provisioning option if offered.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -4800,11 +4808,11 @@
     }
   ],
   "counts": {
-    "Already present": 70,
-    "Not applicable": 9,
+    "Already present": 72,
+    "Not applicable": 10,
     "Closed without merging": 9,
-    "Needs review": 59,
-    "Ported": 5
+    "Needs review": 48,
+    "Ported": 13
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports."
 }
