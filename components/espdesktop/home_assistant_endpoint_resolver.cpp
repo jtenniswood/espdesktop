@@ -252,6 +252,9 @@ void HomeAssistantEndpointResolver::report_download(const std::string &origin,
     uint32_t generation, int status, bool success, bool transport_failure) {
   if (mode_ != Mode::AUTOMATIC || origin != origin_ || generation != origin_generation_) return;
   if (success) {
+    verified_peer_ = client_address_;
+    verified_origin_ = origin_;
+    verified_source_ = source_;
     const bool recovered = !healthy_ || selecting_;
     healthy_ = true;
     health_ = "Images received";

@@ -245,4 +245,23 @@ int main() {
   changed_probe.reply(EndpointProbeOutcome::READY, 200); changed.loop();
   assert(changed.origin() == replacement.internal_url);
 
+  // An authenticated image proves a route even if its manifest requires auth.
+  FakeProbe image_verified_probe;
+  HomeAssistantEndpointResolver image_verified(&image_verified_probe); image_verified.setup();
+  image_verified.configure("Automatic", "http", 8123, "10.20.30.40");
+  image_verified.accept_discovery({server}); image_verified.loop();
+  image_verified_probe.reply(EndpointProbeOutcome::ACCESS_DENIED, 403); image_verified.loop();
+  assert(image_verified.origin() == server.internal_url);
+  image_verified.report_download(image_verified.origin(), image_verified.generation(), 200, true, false);
+  assert(image_verified.health() == "Images received");
+  image_verified.configure("Automatic", "http", 8123, "");
+  assert(image_verified.origin().empty());
+  image_verified.invalidate_connection("10.20.30.40");
+  image_verified.configure("Automatic", "http", 8123, "10.20.30.40");
+  image_verified.accept_discovery({}); image_verified.loop();
+  assert(image_verified.origin() == server.internal_url);
+  assert(image_verified_probe.calls.back() == server.internal_url);
+  image_verified_probe.reply(EndpointProbeOutcome::READY, 200); image_verified.loop();
+  assert(image_verified.source() == Source::AUTOMATIC);
+
 }
