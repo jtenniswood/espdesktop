@@ -340,11 +340,12 @@ int main() {
   assert(!modal.overlay && allocations.empty() && current_page == &other_page);
   // Releasing an unrelated grid owner must not dismiss critical alarm controls.
   alarm = true;
+  assert(!test_rebuild_ready());
   alarm_control_open_modal(&first);
   allocations.push_back({&two, &second, [](void *) { assert(modal.overlay); }});
   grid_release_runtime_allocations(&two);
   assert(modal.overlay && modal.kind == ControlModalKind::ALARM_CONTROL && allocations.empty());
-  alarm = false; navigation_hide_modals();
+  alarm = false; assert(test_rebuild_ready()); navigation_hide_modals();
   active_subpage_slot = 3; current_page = &other_page; locked = true;
   assert(!espdesktop_close_subpage(&home));
   assert(active_subpage_slot == 3 && current_page == &other_page);
