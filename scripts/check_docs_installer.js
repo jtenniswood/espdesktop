@@ -78,7 +78,9 @@ async function checkBrowser() {
     });
     await page.addInitScript(() => {
       // A cancelled port selection loads the real dialog without touching hardware.
-      Object.defineProperty(navigator, 'serial', { value: { requestPort: async () => undefined } });
+      Object.defineProperty(navigator, 'serial', { value: { requestPort: async () => {
+        throw new DOMException('Port selection canceled', 'NotFoundError');
+      } } });
     });
     // Public EspDesktop setup targets the supported S3, without a P4 picker.
     const expected = '/espdesktop/firmware/guition-esp32-s3-4848s040/manifest.json';
@@ -90,7 +92,10 @@ async function checkBrowser() {
       assert.equal(await install.getAttribute('manifest'), expected);
       assert.equal(await page.locator('.esp-install-selector').count(), 0);
       await install.locator('button[slot="activate"]').click();
-      await page.waitForFunction(() => !!customElements.get('ewt-install-dialog'));
+      const canceled = page.locator('ewt-no-port-picked-dialog');
+      await canceled.getByText('No port selected', { exact: true }).waitFor({ state: 'visible' });
+      await canceled.getByText('Cancel', { exact: true }).click();
+      await canceled.waitFor({ state: 'detached' });
     }
     await page.goto(`${base}/espdesktop/getting-started/install`);
     await assertSupportedInstaller();
