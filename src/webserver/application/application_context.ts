@@ -82,6 +82,7 @@ export interface ApplicationLayoutState {
   config: DeviceConfig;
   numSlots: number;
   totalSlots: number;
+  previewSlots: number;
   gridCols: number;
   gridRows: number;
 }
@@ -277,6 +278,7 @@ export function createApplicationLayoutState(
     config,
     numSlots: config.slots,
     totalSlots: config.slots,
+    previewSlots: config.slots,
     gridCols: config.cols,
     gridRows: config.rows,
   };
