@@ -8,6 +8,7 @@ on:
       - 'devices/manifest.json'
       - 'scripts/check_public_firmware.py'
       - 'scripts/check_docs_site.py'
+      - 'scripts/check_docs_installer.js'
       - 'scripts/build.py'
       - 'scripts/prepare_release_web_assets.py'
       - 'scripts/prune_actions_cache.sh'
@@ -130,6 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       has_stable: ${{ steps.stable.outputs.has_stable }}
+      has_firmware: ${{ steps.upload_firmware.outputs['artifact-id'] != '' }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -392,6 +394,7 @@ jobs:
           if [ "$MISSING" = true ]; then exit 1; fi
 
       - name: Upload firmware artifact
+        id: upload_firmware
         if: hashFiles('firmware/**') != ''
         uses: actions/upload-artifact@v7
         with:
@@ -420,8 +423,8 @@ jobs:
           path: dist
 
       - name: Download firmware artifact
+        if: needs.download-firmware.outputs.has_firmware == 'true'
         uses: actions/download-artifact@v8
-        continue-on-error: true
         with:
           name: firmware
           path: dist/firmware
