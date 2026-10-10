@@ -2488,7 +2488,10 @@
           "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2045-firmware-s3.log"
+          "log": "/private/tmp/2045-firmware-s3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/813d33435c69af7f04272c1e003644a1d7764aad50c61cc0dd0e23f22b61ec1a.log.gz",
+          "logSha256": "813d33435c69af7f04272c1e003644a1d7764aad50c61cc0dd0e23f22b61ec1a",
+          "archiveSha256": "d464154628da60eb7fc7dfc47d3bddc9d8d8ab632db6a3b2c4e0f5eaf191e16d"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -2496,7 +2499,10 @@
           "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2045-firmware-p4.log"
+          "log": "/private/tmp/2045-firmware-p4.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/2aa777a61f943a9e519edb8970dc07dd7892c06af20db4a2eb2d75f42ec67b17.log.gz",
+          "logSha256": "2aa777a61f943a9e519edb8970dc07dd7892c06af20db4a2eb2d75f42ec67b17",
+          "archiveSha256": "b079416cd7b90861dbed6486eb9b03f6e7661626b8ec9dd94109598387c06a01"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -2504,7 +2510,10 @@
           "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2045-firmware-p43.log"
+          "log": "/private/tmp/2045-firmware-p43.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/ef5e0140d61408bea0b967941a4e5ba7a79ea88fc7db1e5ed8083db5db574c3c.log.gz",
+          "logSha256": "ef5e0140d61408bea0b967941a4e5ba7a79ea88fc7db1e5ed8083db5db574c3c",
+          "archiveSha256": "d4460ea551ef2993bd0d3e60c7a3d124880f6af9bc910b7a1d1d74510ae382b6"
         }
       ],
       "latestPortRevision": "2d082fc427e5896c0bfade1910aa33078b07a064",
@@ -2574,7 +2583,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/9ba7c99edca14865dc4ef7d3e617e524a1d6d67948e4c51151de87cf51e763dc.log.gz",
+          "logSha256": "9ba7c99edca14865dc4ef7d3e617e524a1d6d67948e4c51151de87cf51e763dc",
+          "archiveSha256": "4a1a5477a6b5d731cf2d8a944263a81377733233fb1bfda07258cb312882e2d7"
         }
       ],
       "latestPortRevision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5",
@@ -2607,7 +2619,10 @@
           "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2061-firmware-build.log"
+          "log": "/private/tmp/2061-firmware-build.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f6f3ecd5703a6493d0268cf87de2324908791c2eb03e0323f63c1b9fa9d700ab.log.gz",
+          "logSha256": "f6f3ecd5703a6493d0268cf87de2324908791c2eb03e0323f63c1b9fa9d700ab",
+          "archiveSha256": "fadf6da135175a5afc2707f42a6c677eaa642c49f467513c7de8735dd63f8aed"
         }
       ],
       "latestPortRevision": "1109e6ee24cd033ea594300ccab59fb5431edc2c",
@@ -2692,7 +2707,10 @@
             "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b4503700a7e8ee4e783b354931ebc2d9a721ba4a7e0b28a79d68ad3f106aa5dc.log.gz",
+          "logSha256": "b4503700a7e8ee4e783b354931ebc2d9a721ba4a7e0b28a79d68ad3f106aa5dc",
+          "archiveSha256": "6a04666ef953d70234922b9b9658743e6add110aa597e3b6999d537bb05890d5"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -2722,7 +2740,10 @@
             "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/17afb68e4b408d023f68c57972096a2014226d597dfc6f33abc1300f86292c52.log.gz",
+          "logSha256": "17afb68e4b408d023f68c57972096a2014226d597dfc6f33abc1300f86292c52",
+          "archiveSha256": "e1cb2097580663527aede738fb79d8bb8f96f15b3778b6b7f90fb69eb84d3292"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -2736,7 +2757,10 @@
             "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/a80bc46ab5b31805d20f21ef86e6a6b88670b59530d8aa31439392a5e00be603.log.gz",
+          "logSha256": "a80bc46ab5b31805d20f21ef86e6a6b88670b59530d8aa31439392a5e00be603",
+          "archiveSha256": "30e8cf2f0b66d09621910885c701d7ac0d9c2d499158c57a97f81ae8462a5502"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -2745,7 +2769,7 @@
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -2754,7 +2778,7 @@
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -2768,7 +2792,10 @@
             "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/179a364eb416dc78ad237afc36737ecfa7272003cf55a9fcfd9db7beb3536018.log.gz",
+          "logSha256": "179a364eb416dc78ad237afc36737ecfa7272003cf55a9fcfd9db7beb3536018",
+          "archiveSha256": "988edf3f1b696b440393e146bf9d0bf4ba86c0fb0245670f2a1bb9bfc87d859b"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -2782,7 +2809,10 @@
             "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c1062d80f6f2b9c32dc2ada1bf9b60e21e2bb55b6755537f2d43414be6a304bd.log.gz",
+          "logSha256": "c1062d80f6f2b9c32dc2ada1bf9b60e21e2bb55b6755537f2d43414be6a304bd",
+          "archiveSha256": "b491006550729ed42927ab49f7bc487b2fc98f3cb1a780fbcd7eb3c400f2de07"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -2796,7 +2826,10 @@
             "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/6e321544264b1d2031cfb41720d6f5b16469631eef61a6983cd6c07591b4b0cc.log.gz",
+          "logSha256": "6e321544264b1d2031cfb41720d6f5b16469631eef61a6983cd6c07591b4b0cc",
+          "archiveSha256": "6a1b2e1a8bfd789d31be61288abf37338faab89b47b59f545de190256c813012"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -2805,7 +2838,7 @@
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -2814,7 +2847,7 @@
           "log": "/private/tmp/2008-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -2823,7 +2856,7 @@
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -2832,7 +2865,7 @@
           "log": "/private/tmp/2008-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -2841,7 +2874,7 @@
           "log": "/private/tmp/2008-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -2855,7 +2888,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f323ae334a618cf8d6094128460552200a4bf63c34695f70100ea3b7b676fce2.log.gz",
+          "logSha256": "f323ae334a618cf8d6094128460552200a4bf63c34695f70100ea3b7b676fce2",
+          "archiveSha256": "10ac61714e0a0219f8935367e145415b7ec06167c906a745088fe450da2b8039"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -2869,7 +2905,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/9ae1ae60def374ffad2439858b5e93e6ab60a4991377923c321d1dfb36558e7c.log.gz",
+          "logSha256": "9ae1ae60def374ffad2439858b5e93e6ab60a4991377923c321d1dfb36558e7c",
+          "archiveSha256": "4dff34700ad0051d86413e7eca0c3f58c67cd0d513d104c3939c85012e9a6fd7"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -2883,7 +2922,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c6ef093aab5f9d1779c1105ee6d6737bbd571728db39cf0cd8b477279d4c4f83.log.gz",
+          "logSha256": "c6ef093aab5f9d1779c1105ee6d6737bbd571728db39cf0cd8b477279d4c4f83",
+          "archiveSha256": "5c740ac974188722ed5c737a6f32ccade260adde3b7054625e58a32a83f2b9bf"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -2897,7 +2939,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/31a626e032136e891a1d19ff77d2998935c1257e0f49108f9c84ea8ccb7afb0c.log.gz",
+          "logSha256": "31a626e032136e891a1d19ff77d2998935c1257e0f49108f9c84ea8ccb7afb0c",
+          "archiveSha256": "469e28998a00383553af8b10d73d0a6dc6381f4cc50be85847630b6f518d42b4"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -2911,7 +2956,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b417049f34fc916d2034dfc3fd4fc6dff759aeb2ede0658f1b8f89f7d196e087.log.gz",
+          "logSha256": "b417049f34fc916d2034dfc3fd4fc6dff759aeb2ede0658f1b8f89f7d196e087",
+          "archiveSha256": "76dcd0e06097f4ba048add5b86d757bd70a1b593e5dd0566372c2cd48e1dcb9c"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3021,7 +3069,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/33213366d2a539f39af40b6cd3c4d53fdc2bce1a795ba6c4d23378f2c431c266.log.gz",
+          "logSha256": "33213366d2a539f39af40b6cd3c4d53fdc2bce1a795ba6c4d23378f2c431c266",
+          "archiveSha256": "ab2bf6440731de61033b9bd25cb0ef73d4fafcf995f196e6d7059b317ed5819b"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3035,7 +3086,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b5655af060a146f04badf45afd5fee790773dbabe29454d922ffef534a314f9a.log.gz",
+          "logSha256": "b5655af060a146f04badf45afd5fee790773dbabe29454d922ffef534a314f9a",
+          "archiveSha256": "dcee406729a24568a6d9e8c866918ae09300987c8a60fd81a0ba6e0b852ff91c"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3049,7 +3103,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8590f44d2ced547b75eb0cfa5565d3439ff37232e9a5c948bdc9ca755e3dc7f7.log.gz",
+          "logSha256": "8590f44d2ced547b75eb0cfa5565d3439ff37232e9a5c948bdc9ca755e3dc7f7",
+          "archiveSha256": "dd9e058786521299a2600b43798588859bbdad66c9132b12e645817d7dfbe0a7"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3066,7 +3123,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/674e28390bc2c2a0a7f5374ddb33dad43ec6441cde527e7719b3d3b150555f10.log.gz",
+          "logSha256": "674e28390bc2c2a0a7f5374ddb33dad43ec6441cde527e7719b3d3b150555f10",
+          "archiveSha256": "92c694c0c9654b807cffebc9bf3f73b2460eed3bf6a80ac23217a03ed9122bf4"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3132,7 +3192,10 @@
           "revision": "27dcbdc89ae8a29b5d6ff0d21d50d6f44dfdc748",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2031-firmware-s3.log"
+          "log": "/private/tmp/2031-firmware-s3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d2073e524595e2ae82643e618c86ef8d5c23731db3ebf5b770d1a4f18fda4805.log.gz",
+          "logSha256": "d2073e524595e2ae82643e618c86ef8d5c23731db3ebf5b770d1a4f18fda4805",
+          "archiveSha256": "cd2c6c342d55171924bf50ffcf8f003371402bed6d3a262d178929a7c114d925"
         },
         {
           "device": "guition-esp32-s3-4848s040",
@@ -3140,7 +3203,10 @@
           "revision": "11791ae29314aed7c97f09a6f9571007b88a8023",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2031-external-firmware-s3.log"
+          "log": "/private/tmp/2031-external-firmware-s3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/11ccbe2b4d4453be35abfa256206f656ef38a498b79f3c263b4dd2da6def2256.log.gz",
+          "logSha256": "11ccbe2b4d4453be35abfa256206f656ef38a498b79f3c263b4dd2da6def2256",
+          "archiveSha256": "2d97d9a9d81b39a75a14c2ac959fe19fddd1b6cdf8e255e06361d32d65a8da73"
         },
         {
           "device": "guition-esp32-s3-4848s040",
@@ -3154,7 +3220,10 @@
             "button_grid_media.h": "302281be15e4845d91beb8989b63569bf48e26e043c4114357036355f9985e37",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/33c4a9d71e4d7c7d7fbe442e4ee29aecb35db5d894cd85e0649b98097e8f5aea.log.gz",
+          "logSha256": "33c4a9d71e4d7c7d7fbe442e4ee29aecb35db5d894cd85e0649b98097e8f5aea",
+          "archiveSha256": "8a94a4bc346d17416c7646c75362480ac3404b7d28b00114b71da98262aa72ff"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -3168,7 +3237,10 @@
             "button_grid_media.h": "302281be15e4845d91beb8989b63569bf48e26e043c4114357036355f9985e37",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/83e4b14b9e3b2fa669d571970516418ff801bdad84c1c432cbfd029f75ed069b.log.gz",
+          "logSha256": "83e4b14b9e3b2fa669d571970516418ff801bdad84c1c432cbfd029f75ed069b",
+          "archiveSha256": "3034b3cb05468c10943e8ee4b4485ab644d2561ae3bf823639df92b37211f56c"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -3182,7 +3254,10 @@
             "button_grid_media.h": "302281be15e4845d91beb8989b63569bf48e26e043c4114357036355f9985e37",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/6681258abf2ea5b508ce1e8ccde2f05d10779e77a9ac9a8e6649c805e79ad604.log.gz",
+          "logSha256": "6681258abf2ea5b508ce1e8ccde2f05d10779e77a9ac9a8e6649c805e79ad604",
+          "archiveSha256": "dc16e72e899ea0b2bd5e601a217e62eec1034e3c46a3b6e3eef579251270ae98"
         }
       ],
       "latestPortRevision": "2729945b2db3f05054c319d385a26294207d7c58",
@@ -3257,7 +3332,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/2c54d00ffb1471ddc7f543a7823757ce27d84e6dbbc9a990f0e2d0b451396167.log.gz",
+          "logSha256": "2c54d00ffb1471ddc7f543a7823757ce27d84e6dbbc9a990f0e2d0b451396167",
+          "archiveSha256": "f4d00de53e3dd7667998df28cf276cb3749a9722567e8bf27e6efa7c464d0483"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -3271,7 +3349,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/579f6dfaba07cfcdb81205f46a4e21db0fde1236c8fe216730e8992fc8b78ece.log.gz",
+          "logSha256": "579f6dfaba07cfcdb81205f46a4e21db0fde1236c8fe216730e8992fc8b78ece",
+          "archiveSha256": "e162041678b46c27af862082d598091976aedb531aa86d68b4eb8425a3809f1c"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -3293,7 +3374,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d7edb91a6dcb0fead6ba3eb8b12e7859d0dccb090fa10d38977df6498cf1e3d5.log.gz",
+          "logSha256": "d7edb91a6dcb0fead6ba3eb8b12e7859d0dccb090fa10d38977df6498cf1e3d5",
+          "archiveSha256": "4bdb553da9d0ebf3dbeadeec94a8b39285210fb66cbe0741af47d6830b744e78"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3302,7 +3386,7 @@
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3311,7 +3395,7 @@
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3325,7 +3409,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/edc37e5987fbdb132810754bc8cdd40a976fad3005007f941680d8ee99540def.log.gz",
+          "logSha256": "edc37e5987fbdb132810754bc8cdd40a976fad3005007f941680d8ee99540def",
+          "archiveSha256": "3f09a2f424b96f09b865fcfcb08e70d0b67a502ba248139f4456c5c09b4b9f13"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3339,7 +3426,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/7a544ca2c916b019c3b81f7e98e51d65dd4b8c85cc67e4cb2f8c27392dd69c78.log.gz",
+          "logSha256": "7a544ca2c916b019c3b81f7e98e51d65dd4b8c85cc67e4cb2f8c27392dd69c78",
+          "archiveSha256": "4ff717224d04c115a1cb97b2eeb1b1ab4c578291eb19ac7b087e3b1dfe1497b9"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3353,7 +3443,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/0d8e4d981e13a923cf078d499ca92f7daedb55ac87388c64e16c01eaa2a522ab.log.gz",
+          "logSha256": "0d8e4d981e13a923cf078d499ca92f7daedb55ac87388c64e16c01eaa2a522ab",
+          "archiveSha256": "b524771c777e9622277be59b661bce9bdbd5d08f70241b3d06238535d096626a"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3362,7 +3455,7 @@
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3371,7 +3464,7 @@
           "log": "/private/tmp/1920-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3380,7 +3473,7 @@
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3389,7 +3482,7 @@
           "log": "/private/tmp/1920-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3398,7 +3491,7 @@
           "log": "/private/tmp/1920-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3412,7 +3505,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/a2ef5e8268a9f623bba77995b8f649627842bf4f04160db827b8912ca41b3c67.log.gz",
+          "logSha256": "a2ef5e8268a9f623bba77995b8f649627842bf4f04160db827b8912ca41b3c67",
+          "archiveSha256": "5310eb5d6cbd6692b4b2ad7751a9efe2e6c4d0a74a99b516aac46735ffe66a25"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3426,7 +3522,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/04f31d91e7630ed97c13ecc446d625753b16f2e50617f196646bab901376ebcc.log.gz",
+          "logSha256": "04f31d91e7630ed97c13ecc446d625753b16f2e50617f196646bab901376ebcc",
+          "archiveSha256": "f6bb330ab56b051fb4b88412f9fc91e1b957467934be21f43b864678abfa6cd9"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3440,7 +3539,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/4632b389ec58f7cd52cc72786fcde0107a60fea24ea6a4f4ea016d3a01f6ebae.log.gz",
+          "logSha256": "4632b389ec58f7cd52cc72786fcde0107a60fea24ea6a4f4ea016d3a01f6ebae",
+          "archiveSha256": "81fbe3834f2e8acafa4211371ec8ef4d7d7dd4ae0e1438f1a8ed9e6be5a69fe7"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3454,7 +3556,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/bc4886c9357425aea43d6b29da1eb3ffdfe0faa3c8a9c74d81ad14b08a7e9023.log.gz",
+          "logSha256": "bc4886c9357425aea43d6b29da1eb3ffdfe0faa3c8a9c74d81ad14b08a7e9023",
+          "archiveSha256": "7884d7ddc1f925a6b90b1f1a0f1adaec7c15786af1c152c53a1e2b4b8058f989"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3468,7 +3573,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/992036ea5d91de621e4e1ed7b6f8baa3481ee95dfa0662835edc5dd736841a4f.log.gz",
+          "logSha256": "992036ea5d91de621e4e1ed7b6f8baa3481ee95dfa0662835edc5dd736841a4f",
+          "archiveSha256": "838a6a8ff27efff1136f5ef57fc26464612525b4a0feb030b28d74f808436419"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3530,7 +3638,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d68ad833745aeaf51931fe0850dbdd30727c44af0a384bd1eeba7288ab576727.log.gz",
+          "logSha256": "d68ad833745aeaf51931fe0850dbdd30727c44af0a384bd1eeba7288ab576727",
+          "archiveSha256": "8d3f0a28ff3dadcb4d548d60644933ac56e383e00a03e6a3052ab7b037be6ec7"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3544,7 +3655,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/307966e0fc882f58c941e281c92adef33f2d7cee8330517ba038bf739488e34d.log.gz",
+          "logSha256": "307966e0fc882f58c941e281c92adef33f2d7cee8330517ba038bf739488e34d",
+          "archiveSha256": "f1bf1220c83f8ebf37d053e59f9df566bf260d872a131d7ff8dd30694ed0aab6"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3566,7 +3680,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d2cf950a84d5d93b7ad5a6af7b400488dc7a9aaa6266fc4868c1142cf73bcba7.log.gz",
+          "logSha256": "d2cf950a84d5d93b7ad5a6af7b400488dc7a9aaa6266fc4868c1142cf73bcba7",
+          "archiveSha256": "9540a60b598cafe349436d46dfa2bd566651013b508683f16620795f8c59fee9"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3596,7 +3713,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/536582c3892dbdc715d1f23e866d460341ce466fbc77adbfffaebd10e3f63ddd.log.gz",
+          "logSha256": "536582c3892dbdc715d1f23e866d460341ce466fbc77adbfffaebd10e3f63ddd",
+          "archiveSha256": "ea4d99c506828585e6f8b10568be905be976372e501a378796e1bb6b03cb11a8"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3610,7 +3730,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/7831555d00d0625e3f128fc64a80cd32585f61a10f17fb845619eb2faaf9619f.log.gz",
+          "logSha256": "7831555d00d0625e3f128fc64a80cd32585f61a10f17fb845619eb2faaf9619f",
+          "archiveSha256": "4841d61332e33a38c5a052dbe445dabb3d18341603415c9cbb9db45a5cc67c4d"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3627,7 +3750,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/1046b9258dee408a325ac232d72dc73c16972ad55108df9a02d16b442b6c1d7d.log.gz",
+          "logSha256": "1046b9258dee408a325ac232d72dc73c16972ad55108df9a02d16b442b6c1d7d",
+          "archiveSha256": "a8da96af6eda7f9b868d43148487d6dbda8a16662bc58f5d7081f6fdb68a757e"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3707,7 +3833,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/de6c04c844fde5fa20744a243cf1488b677723d544c0c11d41062cba896eb778.log.gz",
+          "logSha256": "de6c04c844fde5fa20744a243cf1488b677723d544c0c11d41062cba896eb778",
+          "archiveSha256": "360aacd914532e83d694c80cdd67fbfb2969b503bd6a8b11580b396b47c68542"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -3737,7 +3866,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/686493ca95a979c7559b9128fd7a7d3acb934afe66ec24b68ddf8890bc44a546.log.gz",
+          "logSha256": "686493ca95a979c7559b9128fd7a7d3acb934afe66ec24b68ddf8890bc44a546",
+          "archiveSha256": "83731fb44fbd91a454a42fd6675a26e40fbaa121413214d83c5bd5c6a999044a"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -3751,7 +3883,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/91aa5c3a4ee2713eec597033a130fc53fb2667b343f35e4842971de471f20fa2.log.gz",
+          "logSha256": "91aa5c3a4ee2713eec597033a130fc53fb2667b343f35e4842971de471f20fa2",
+          "archiveSha256": "6cf32990dd0f89a8298a0dbdb45e9ae14fe17f8a3e9f9159e90c701cc6516d99"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3760,7 +3895,7 @@
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3769,7 +3904,7 @@
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3783,7 +3918,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d07b008a48f81a292cb7c230372bb7136fdcc09a86bd7692dde0a9f849cc8140.log.gz",
+          "logSha256": "d07b008a48f81a292cb7c230372bb7136fdcc09a86bd7692dde0a9f849cc8140",
+          "archiveSha256": "bdb0658ecaa6b1eb213ca0ae28223edb7067b02d285569d04addf04b8f70acb8"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3797,7 +3935,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8e35eba1bc3385fa943018eb7d58a54bae15b3b21f5c08d4db5cdca14660033e.log.gz",
+          "logSha256": "8e35eba1bc3385fa943018eb7d58a54bae15b3b21f5c08d4db5cdca14660033e",
+          "archiveSha256": "2eb06b276d8ca4de0e55f16bd7be890ab5fd3b21dd017679200c359e77901ebb"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3811,7 +3952,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/39a6fa8799223f5e3b2f429cf3d95fb6c9a0415abb09b136ba46e1af18c264bb.log.gz",
+          "logSha256": "39a6fa8799223f5e3b2f429cf3d95fb6c9a0415abb09b136ba46e1af18c264bb",
+          "archiveSha256": "776446dfc7b45032aca65ca35efbee02af5d5f25028dc853b92aa783d3aad63b"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3820,7 +3964,7 @@
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3829,7 +3973,7 @@
           "log": "/private/tmp/2062-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3838,7 +3982,7 @@
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3847,7 +3991,7 @@
           "log": "/private/tmp/2062-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3856,7 +4000,7 @@
           "log": "/private/tmp/2062-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3870,7 +4014,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/86c3a5ed7ae20f808bb0f940bd9e7df88b7cc005feec3061ccd3918aa8eb4037.log.gz",
+          "logSha256": "86c3a5ed7ae20f808bb0f940bd9e7df88b7cc005feec3061ccd3918aa8eb4037",
+          "archiveSha256": "939523124842a272f9d084a7422dcff8bf50aa32ff15c5e80c307f2237587d01"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3884,7 +4031,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f4364570011aba833ba79698ad13ea0c7484f3abfa356d451d6c545bbe93a1d6.log.gz",
+          "logSha256": "f4364570011aba833ba79698ad13ea0c7484f3abfa356d451d6c545bbe93a1d6",
+          "archiveSha256": "6208abc0e266a56205f4b305a0859e20deac2a18646b8857692b8e901026bd65"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -3898,7 +4048,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/5fba9ee83e27a873d3aef669df25c19f71660d701f5b78cb3eaee6b11288256a.log.gz",
+          "logSha256": "5fba9ee83e27a873d3aef669df25c19f71660d701f5b78cb3eaee6b11288256a",
+          "archiveSha256": "c8043cc0310c7c59f9d31aa7f5dced8cdbe3cdc4537a731ffdee7588a3c4adc6"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3912,7 +4065,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/643de5c3c33b968f61ae9d9f3f581b4562d0d52e1b27a18352a28ff03c0133d9.log.gz",
+          "logSha256": "643de5c3c33b968f61ae9d9f3f581b4562d0d52e1b27a18352a28ff03c0133d9",
+          "archiveSha256": "e7e2e2b45ad2971553779426d454422486abfc6d5f51d65294ef44e99661b34a"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -3926,7 +4082,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/51aa153d0a9cf2ccee61669feba8457ccd0be5fd02cc51097558d9b234d75184.log.gz",
+          "logSha256": "51aa153d0a9cf2ccee61669feba8457ccd0be5fd02cc51097558d9b234d75184",
+          "archiveSha256": "1e08cc6505af752402b90f9f1b63380d998231ca6b6294d8297480ef94d557d8"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4012,7 +4171,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8ee54b5d9d76466dcbe76e852d16d9b9f2518179deebedb58d6ff62c1e17a9fe.log.gz",
+          "logSha256": "8ee54b5d9d76466dcbe76e852d16d9b9f2518179deebedb58d6ff62c1e17a9fe",
+          "archiveSha256": "0cb9947f35c3c6ad74c69d763c9eeed4d27b0dd93f95cd87230b95a392405e5d"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4042,7 +4204,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/2905072869b8aec492c7c6d696b99b18cff751f6cd4f34ecbcabe97b6194836c.log.gz",
+          "logSha256": "2905072869b8aec492c7c6d696b99b18cff751f6cd4f34ecbcabe97b6194836c",
+          "archiveSha256": "34ffdec1bf3a23395935818b7beb779d0c40f0bf38a3f826ec6418570c5e5c28"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4056,7 +4221,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/061acaadea288f7bca04a76fc878135b6044ad66d75527d66ac3de22d96e33c2.log.gz",
+          "logSha256": "061acaadea288f7bca04a76fc878135b6044ad66d75527d66ac3de22d96e33c2",
+          "archiveSha256": "eb3fd378ec48ac5af7a7f22139aeb2aab546897ab5b4fa3bfd951d7284bb0a86"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4073,7 +4241,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b9315fba30c94486c1697e31d9cd3964e7508860eb4701f490937c671c132ef3.log.gz",
+          "logSha256": "b9315fba30c94486c1697e31d9cd3964e7508860eb4701f490937c671c132ef3",
+          "archiveSha256": "b1caa21f7144969148fbfa3d7087fee8aa37b2befb54c7345c1b6cee88fab2bd"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4090,7 +4261,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/ca71a1e6d4b4aeb382fedf240c966332b811dd6550bb0c76bd6f3a862e3d9f22.log.gz",
+          "logSha256": "ca71a1e6d4b4aeb382fedf240c966332b811dd6550bb0c76bd6f3a862e3d9f22",
+          "archiveSha256": "faff202cfa23496425f2233cd3b079def30425b599480459121fef9f95ee7d92"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4107,7 +4281,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/9bc631e19a9e98b9dc7becc5d5ba0e76d3883bca9d64a3777ea6132e7cfbccf0.log.gz",
+          "logSha256": "9bc631e19a9e98b9dc7becc5d5ba0e76d3883bca9d64a3777ea6132e7cfbccf0",
+          "archiveSha256": "2edb018c4b8cec65cc75537fcd094bb978e470e7599a15cb7cbac9ca33ec5e6c"
         }
       ],
       "latestPortRevision": "f0e592807c9a2ef4d01c5f1578e7e047683780a5",
@@ -4228,7 +4405,7 @@
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4237,7 +4414,7 @@
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4246,7 +4423,7 @@
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4260,7 +4437,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d115ebba5cb92593ecf4f567297265fd5144ebfa5596d91aeaad8d1cdb557d9b.log.gz",
+          "logSha256": "d115ebba5cb92593ecf4f567297265fd5144ebfa5596d91aeaad8d1cdb557d9b",
+          "archiveSha256": "c76767d000c7d63f850b4bc98add78cdd5b4208605b6f7fb70a536d1a345cff9"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4274,7 +4454,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/5a232ec789ccde947071af9585ebe97befd643274e23cbfacb88d7c4660e817b.log.gz",
+          "logSha256": "5a232ec789ccde947071af9585ebe97befd643274e23cbfacb88d7c4660e817b",
+          "archiveSha256": "8fc01c11bd24ffe1bd217fa1d63e3fc9a4354826eae215abe47473a9e06d7469"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4288,7 +4471,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/9e28280c258838d441a619c386ff5b712aba640df801b39312af5f365c796d15.log.gz",
+          "logSha256": "9e28280c258838d441a619c386ff5b712aba640df801b39312af5f365c796d15",
+          "archiveSha256": "12a42319b331c78561a7a7d47bb3512981796e6f35885e2c533995147dac8a22"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4297,7 +4483,7 @@
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4306,7 +4492,7 @@
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4315,7 +4501,7 @@
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4324,7 +4510,7 @@
           "log": "/private/tmp/2067-verified-8f2c85c56-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4338,7 +4524,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d350d3f01d4be7d2ceab8cff50637d2f6aa4d4719130f8a58ed972c2a5f053bc.log.gz",
+          "logSha256": "d350d3f01d4be7d2ceab8cff50637d2f6aa4d4719130f8a58ed972c2a5f053bc",
+          "archiveSha256": "a99247193d5755377b4ddb174ccb63c447686ebc663e1ecb2e89c2368901e2ba"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4352,7 +4541,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/9c9b328422c14831531a1c93a8a325e719533768ed8611835deed759d392d194.log.gz",
+          "logSha256": "9c9b328422c14831531a1c93a8a325e719533768ed8611835deed759d392d194",
+          "archiveSha256": "bc36f02efd7d7b7dcbf35db6e5111b045909aca4edf550206f571af1db6e5f84"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4366,7 +4558,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/fc40203891eee23b5bd24c47d30c1297c6c06348f7c2886f7101d4ec7e12f218.log.gz",
+          "logSha256": "fc40203891eee23b5bd24c47d30c1297c6c06348f7c2886f7101d4ec7e12f218",
+          "archiveSha256": "2f6e889d7d929fec8f75498f7d66169a07881e0afb8c48f8d7a3e8b556b096d1"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4375,7 +4570,7 @@
           "log": "/private/tmp/2067-verified-8f2c85c56-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4384,7 +4579,7 @@
           "log": "/private/tmp/2067-verified-0f2567de2-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4398,7 +4593,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f068eea76bf36db6d72d2ad0956decc24afb6b081b6e4bcce11899c57516ad82.log.gz",
+          "logSha256": "f068eea76bf36db6d72d2ad0956decc24afb6b081b6e4bcce11899c57516ad82",
+          "archiveSha256": "84585656805ad63cb067cf439456f065d28b646243d1061d43c4d69ade01d47b"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4412,7 +4610,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c5ab76ed4b1ac0acd5c223b9313ba99f84f392a79e82da0443bdc9490020b33b.log.gz",
+          "logSha256": "c5ab76ed4b1ac0acd5c223b9313ba99f84f392a79e82da0443bdc9490020b33b",
+          "archiveSha256": "0ed2147ac02f5e20fa820cd43e2e380c2e849dcf5e825442d6ebe592ac7ce626"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4506,7 +4707,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/712d22472521d17bece25a00ad609c002f26c2bad9a3e634b1006d2d4f5ebd08.log.gz",
+          "logSha256": "712d22472521d17bece25a00ad609c002f26c2bad9a3e634b1006d2d4f5ebd08",
+          "archiveSha256": "e41a5b81a4acfaf81d6046b045160f9cb52cd52438c85234592da518af1618c8"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4520,7 +4724,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/645afc39d4579fe7113031f233922bccdda203206db076331601e661a0861657.log.gz",
+          "logSha256": "645afc39d4579fe7113031f233922bccdda203206db076331601e661a0861657",
+          "archiveSha256": "97066c4929a72e45f9a25b4c3e8b082c792006a8ee24e02b79135c6b01137e12"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4534,7 +4741,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8da007e95d73584dbfa3e0aafe7982b4adf85b2c2e5c3ffd501dcfe9e9286adb.log.gz",
+          "logSha256": "8da007e95d73584dbfa3e0aafe7982b4adf85b2c2e5c3ffd501dcfe9e9286adb",
+          "archiveSha256": "16fa5f6d50d7a9ab7ac0fec3e7b670d1f5f8076953a676313c716e3147f9d87a"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4727,7 +4937,7 @@
           "log": "/private/tmp/2073-final-camera-clock-firmware-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4736,7 +4946,7 @@
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4745,7 +4955,7 @@
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4754,7 +4964,7 @@
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -4762,7 +4972,10 @@
           "status": "failed",
           "log": "/private/tmp/2073-final-camera-clock-firmware-esp32-p4-86.log",
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/115e2b0fb388b5de8bd61161db030bb4cf78e9840469938e5f060319ab3cd0f3.log.gz",
+          "logSha256": "115e2b0fb388b5de8bd61161db030bb4cf78e9840469938e5f060319ab3cd0f3",
+          "archiveSha256": "5f28dc381b1d4d710fccf02e03a446f15ef6cd5e5a94b0d842cd0f133e20a3fe"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4835,7 +5048,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/98ef53204977e22e20c61cc6c74e07accae5e3d4fccbf253dc650159005cc328.log.gz",
+          "logSha256": "98ef53204977e22e20c61cc6c74e07accae5e3d4fccbf253dc650159005cc328",
+          "archiveSha256": "d3fd1eec4c6aedcf467d3f786dad75fd3a6cb53b4e93ede8dbdade81b2c0028c"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4849,7 +5065,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f35956558bbe72f7b73c3f61868472ad64a252696ed444b4e7d47059189cd304.log.gz",
+          "logSha256": "f35956558bbe72f7b73c3f61868472ad64a252696ed444b4e7d47059189cd304",
+          "archiveSha256": "3f92b4c191a17abc22a9b08069a251dfe0875b517537dd53bea517215bf67190"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4879,7 +5098,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/448deecff84883507f2989b06aa16339062afa3c22c0bb7818a57dabbc7eebf7.log.gz",
+          "logSha256": "448deecff84883507f2989b06aa16339062afa3c22c0bb7818a57dabbc7eebf7",
+          "archiveSha256": "3fb71f19c682f6de0c8f006e5656fb93aab67a07261d6b15b06bb27e5549912a"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -4893,7 +5115,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c0f644609332db6b77bba70f291d8b6fd7461fc0772c3451b81c02d516d8b576.log.gz",
+          "logSha256": "c0f644609332db6b77bba70f291d8b6fd7461fc0772c3451b81c02d516d8b576",
+          "archiveSha256": "fc186f47d04d8e5e131b0fe8c9e00ff0df2bb6966cc7eb273bd7f1462f2ed27c"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -4987,7 +5212,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/57b76d5ffe7184b851e52008d956305c97d4a2aff53d325d2a41a3ab7ee7f10e.log.gz",
+          "logSha256": "57b76d5ffe7184b851e52008d956305c97d4a2aff53d325d2a41a3ab7ee7f10e",
+          "archiveSha256": "8e832cfec0646f61681882b099ca7884b8b53ba7c358faaa847e92af8aff8dbb"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -5001,7 +5229,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c2a10ece0bbaa87b3af199da46816d68acba499419a23b6f6c6f5de9b2090875.log.gz",
+          "logSha256": "c2a10ece0bbaa87b3af199da46816d68acba499419a23b6f6c6f5de9b2090875",
+          "archiveSha256": "ad7fdce2da59e8096783153966f1367d90f077052df901117816e539e429aec7"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -5015,7 +5246,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/637015d082e5da7faa2d007ed5e25712711c513a369553567acf5567e5db4606.log.gz",
+          "logSha256": "637015d082e5da7faa2d007ed5e25712711c513a369553567acf5567e5db4606",
+          "archiveSha256": "7670af384326bf5296f959626c8f96d66f12c554ce7777e94816c00c61c71e00"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -5029,7 +5263,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/e496008c467794ceb6350f012025d78e46cfe2f87e6b1bbe890032091f8a2119.log.gz",
+          "logSha256": "e496008c467794ceb6350f012025d78e46cfe2f87e6b1bbe890032091f8a2119",
+          "archiveSha256": "51ca24e33ed9f386eac7774613569863d2981b53aaf9849cfa9cac5714ab6165"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -5119,7 +5356,10 @@
           "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/1792-firmware-guition-esp32-s3-4848s040.log"
+          "log": "/private/tmp/1792-firmware-guition-esp32-s3-4848s040.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d20985c641bd7ed6102ec3cc3c041d9472ebc712bc917c7cfbfd02e5b9de6f8c.log.gz",
+          "logSha256": "d20985c641bd7ed6102ec3cc3c041d9472ebc712bc917c7cfbfd02e5b9de6f8c",
+          "archiveSha256": "7b3628c66e85cbd152e3b234ae58ea3bbe8f2671441fd9979920980ddaa40818"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -5127,7 +5367,10 @@
           "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/1792-firmware-guition-esp32-p4-jc1060p470.log"
+          "log": "/private/tmp/1792-firmware-guition-esp32-p4-jc1060p470.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/37eb5db2b48868317822d6b07f4295e5818c70775d71e0105f62ded4bde0eb6f.log.gz",
+          "logSha256": "37eb5db2b48868317822d6b07f4295e5818c70775d71e0105f62ded4bde0eb6f",
+          "archiveSha256": "d9d0eeea040f88c08d04b1699236022da5239c2c9df28ef531c0a8e08ecfd2c7"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -5135,7 +5378,10 @@
           "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/1792-firmware-guition-esp32-p4-jc4880p443.log"
+          "log": "/private/tmp/1792-firmware-guition-esp32-p4-jc4880p443.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/1ccee5f5f5708eb2bc50d7f208e2384b46c184de847fa55cc6f03d98e5eb59d4.log.gz",
+          "logSha256": "1ccee5f5f5708eb2bc50d7f208e2384b46c184de847fa55cc6f03d98e5eb59d4",
+          "archiveSha256": "53f73110ce269b72d99605340b8b3f31d6c0b7aae653b23ed1acd1daff8a90e7"
         }
       ],
       "latestPortRevision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
@@ -5217,7 +5463,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/16dc9d22b76da181a99d270ef6fbc58fe992c251ce0c2b587871401b840f0693.log.gz",
+          "logSha256": "16dc9d22b76da181a99d270ef6fbc58fe992c251ce0c2b587871401b840f0693",
+          "archiveSha256": "5f1428e2f1aa6d0311c52f9b94d040d07a0eda58fe6db4769beeb4031441efd4"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -5231,7 +5480,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b346f0e4f8fb35cea09c04560fe34c011ac57da6e6b55bdacf5dfff716cfcc02.log.gz",
+          "logSha256": "b346f0e4f8fb35cea09c04560fe34c011ac57da6e6b55bdacf5dfff716cfcc02",
+          "archiveSha256": "07f1b2ae582a5ff7faecceb1d6ce431422b212966705610494c970ea36a72d4d"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -5245,7 +5497,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/7c544b29f4e74059896a40130114d66b56a311538e33f0a9b032ef9d75490787.log.gz",
+          "logSha256": "7c544b29f4e74059896a40130114d66b56a311538e33f0a9b032ef9d75490787",
+          "archiveSha256": "b0754b4b55815baeb52e86e8badc54a49086f7afc2d24d2415e23ae1a298b945"
         }
       ],
       "latestPortRevision": "d44c137570a7483daa6f7109848353c85e08b6f6",
@@ -5382,7 +5637,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d2d6264b88ddda5ecd2799cbaec35356614cda01d18e1e73f43819e98004b465.log.gz",
+          "logSha256": "d2d6264b88ddda5ecd2799cbaec35356614cda01d18e1e73f43819e98004b465",
+          "archiveSha256": "c978c7368b3fc7d0f9a1a30832721a84d0f1d8ab01d19cd584df9bdab48ffa14"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -5396,7 +5654,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/966d6dfeb0bb0c924dbebbde9ac7c9b1ae9aba3d2015fb8382c43644037d4cf0.log.gz",
+          "logSha256": "966d6dfeb0bb0c924dbebbde9ac7c9b1ae9aba3d2015fb8382c43644037d4cf0",
+          "archiveSha256": "fd0bbc2277969f8c374331d838e39141b13a998ac0ce27079f7af00408c4a280"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -5410,7 +5671,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/ffc3068f888c19428a885960f84fc50e24b0af3418ff41b1c31d42a3ae9e0165.log.gz",
+          "logSha256": "ffc3068f888c19428a885960f84fc50e24b0af3418ff41b1c31d42a3ae9e0165",
+          "archiveSha256": "2e9de54e39fb03bef1175c8fb9f6ff4f1514c12d0b728f4cc8c63ef842cfa5ce"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -5427,7 +5691,7 @@
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -5436,7 +5700,7 @@
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -5445,7 +5709,7 @@
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -5459,7 +5723,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/15850a39c91499f6c40085872d1c229c002f63ad7c032b3c0aea845a3acfcfea.log.gz",
+          "logSha256": "15850a39c91499f6c40085872d1c229c002f63ad7c032b3c0aea845a3acfcfea",
+          "archiveSha256": "9a7782dbf03350744e7e26a8e10f692ed7db30d3892caf8636beb8b6ad01ac8f"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -5473,7 +5740,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/583203752b058a1e045293cad6ab4a7e43e4fea119b8768a0a6a637e1a415b4a.log.gz",
+          "logSha256": "583203752b058a1e045293cad6ab4a7e43e4fea119b8768a0a6a637e1a415b4a",
+          "archiveSha256": "32d246a837bebd87bd8f1be0eb9363323ccc6f1e00ab29666a19de1da5abb6c0"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -5487,7 +5757,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/44fefb177d0a78e5137792c33bbc5c184ed857b67a91bacb6321c24ed9600201.log.gz",
+          "logSha256": "44fefb177d0a78e5137792c33bbc5c184ed857b67a91bacb6321c24ed9600201",
+          "archiveSha256": "2c11a673cc6fa1c226b18564d8960a24a621eaf247cafd909f298dbd4534a0a9"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -5501,7 +5774,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/18e79061e1fc61d19dfd2f60815a2d43981e0647d4af553d0d78b287c0288155.log.gz",
+          "logSha256": "18e79061e1fc61d19dfd2f60815a2d43981e0647d4af553d0d78b287c0288155",
+          "archiveSha256": "a24872dfdcb9e1d765b25823b26726d53f6570336282c8ff9dc4027f99a0806e"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -5515,7 +5791,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/952f4aac494797205fdb0470af388fc957d4d8e7390fa490aa2ab7ad8f2b38ab.log.gz",
+          "logSha256": "952f4aac494797205fdb0470af388fc957d4d8e7390fa490aa2ab7ad8f2b38ab",
+          "archiveSha256": "6edaf182481910ae559bd84f444aab0596b1910ed3038df979534973163597b9"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -5529,7 +5808,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/58d12c68122338d01812aa473db5c08a5bcfea4df1ff914f7d8b7a1cfd2ab7a9.log.gz",
+          "logSha256": "58d12c68122338d01812aa473db5c08a5bcfea4df1ff914f7d8b7a1cfd2ab7a9",
+          "archiveSha256": "ec4985d082c50052c39b653b8c6f5a2d3e1b75c288686ae393e532a60b4dd633"
         }
       ],
       "reviewStatus": "Addressed",
@@ -5584,7 +5866,10 @@
           "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2093-firmware-build.log"
+          "log": "/private/tmp/2093-firmware-build.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/07645cb3273bf5fd617b04826ed3918950c10db6c422d015ccf55c9122421a47.log.gz",
+          "logSha256": "07645cb3273bf5fd617b04826ed3918950c10db6c422d015ccf55c9122421a47",
+          "archiveSha256": "3d13a4de233de5a45e364ff8c99ab8153b93673d6e3e120fa1af9ddbbcd698f7"
         }
       ],
       "latestPortRevision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3",
@@ -5648,7 +5933,10 @@
           "revision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2094-firmware-s3.log"
+          "log": "/private/tmp/2094-firmware-s3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b2a0cc478f0fe08f08e0cdea020f693564e4466ba1f345eddbd565e739b6c0fb.log.gz",
+          "logSha256": "b2a0cc478f0fe08f08e0cdea020f693564e4466ba1f345eddbd565e739b6c0fb",
+          "archiveSha256": "cdcedbe55f10422d9fe7fe34b1684d2d45428da48f4ebc4b2052b56f74cb5fc5"
         }
       ],
       "latestPortRevision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
@@ -5715,7 +6003,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/03291e1ff2907a5e9a3d22101e71c536d512091bc63ef312b90247b47793d38a.log.gz",
+          "logSha256": "03291e1ff2907a5e9a3d22101e71c536d512091bc63ef312b90247b47793d38a",
+          "archiveSha256": "0befa250d0710d82bbf81bcd6ace374929f0b941240e503ab8b48a29bfdcf36c"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -5729,7 +6020,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8cb47825db01d2977de29e393d1d75216ce19a1a6e0c13274a82c4fb024c7978.log.gz",
+          "logSha256": "8cb47825db01d2977de29e393d1d75216ce19a1a6e0c13274a82c4fb024c7978",
+          "archiveSha256": "21f6654844728b972febf2ea40363f97050af3fd0f3f3ec2956b2a61f95dd46f"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -5743,7 +6037,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/6e558abbc37b2e473d162eb81bbf012373311eaa966fc106d9e2696f5c670167.log.gz",
+          "logSha256": "6e558abbc37b2e473d162eb81bbf012373311eaa966fc106d9e2696f5c670167",
+          "archiveSha256": "89e945d2b1a387341147c333e574f79b4561593a4dffe8decf5b53aee66f92c2"
         }
       ],
       "latestPortRevision": "c055bb06a76c5adca7cb7c7eceb822ad29227e4e",
@@ -6002,7 +6299,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/39ab4e14c7df388aa8bbf59401c02700271a2f62e8d5146c3ce3bf0762647a9c.log.gz",
+          "logSha256": "39ab4e14c7df388aa8bbf59401c02700271a2f62e8d5146c3ce3bf0762647a9c",
+          "archiveSha256": "f1f2f3f2ef8ead297a50d431d7335fcf765d5c2b071d057ead5cab4134e02494"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
@@ -6016,7 +6316,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470-v2",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/82dc6c74860203cb3072482837cb11f88009e9709e545d764d30513b8a3b12a9.log.gz",
+          "logSha256": "82dc6c74860203cb3072482837cb11f88009e9709e545d764d30513b8a3b12a9",
+          "archiveSha256": "f3b6634cf895186bda145e389a08956ef2e2640827bdc8bd4a56ea5b7f294ee8"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -6030,7 +6333,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8d764f06c7b545ca7deabb6ff94d8718a4822f9b0d2691962a19a4709a1d2a40.log.gz",
+          "logSha256": "8d764f06c7b545ca7deabb6ff94d8718a4822f9b0d2691962a19a4709a1d2a40",
+          "archiveSha256": "c2d9bf56c20b8a7539f76844be38794fe90dd9034264346d0fd0cfa7618c127b"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
@@ -6046,7 +6352,10 @@
             "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad"
           },
           "device": "guition-esp32-p4-jc8012p4a1",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/53b9b903c6ba05a5861c6db9b25fb5d9fde4144de56f514ca57499cd7953a225.log.gz",
+          "logSha256": "53b9b903c6ba05a5861c6db9b25fb5d9fde4144de56f514ca57499cd7953a225",
+          "archiveSha256": "56010f3d8351af2604b3fb67b2103b74b74aea2aa2e56cfa5fe6914b196a1a10"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v2.factory.yaml",
@@ -6062,7 +6371,10 @@
             "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad"
           },
           "device": "guition-esp32-p4-jc8012p4a1-v2",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b7ebc31d4e7e490b4c027f4e888177176c96250737d9e094ffec3fd197689ec9.log.gz",
+          "logSha256": "b7ebc31d4e7e490b4c027f4e888177176c96250737d9e094ffec3fd197689ec9",
+          "archiveSha256": "4153ce500c69ba8ac9fbd669725c560b1dc116c588951a099e0a583440e12bc1"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
@@ -6078,7 +6390,10 @@
             "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad"
           },
           "device": "guition-esp32-p4-jc8012p4a1-v3",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/18a6ea2a8487f8f4d463a5f1ddd0c9b53a3a6903a96eec369ad64ec54243fbe6.log.gz",
+          "logSha256": "18a6ea2a8487f8f4d463a5f1ddd0c9b53a3a6903a96eec369ad64ec54243fbe6",
+          "archiveSha256": "502b6179dc3f476f5e752fc59a4ce9f0ccfc06f88e1e885dd99667aabf94a48a"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -6094,7 +6409,10 @@
             "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad"
           },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/7ca3dc913e4923b2ef62a294e28127534ac7f92b1b8317d7212352710a47abfd.log.gz",
+          "logSha256": "7ca3dc913e4923b2ef62a294e28127534ac7f92b1b8317d7212352710a47abfd",
+          "archiveSha256": "edfe56352da7c0c19870cb6f2f1ba06952f4904e47d690dd6b2ed5a795fb5392"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -6110,7 +6428,10 @@
             "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/7a7accd65d31ea9eef9f26c8c23cb03f37df86a0a9df090770e6cb1f8990ff5e.log.gz",
+          "logSha256": "7a7accd65d31ea9eef9f26c8c23cb03f37df86a0a9df090770e6cb1f8990ff5e",
+          "archiveSha256": "c9824350d71a2e9e1a4738cfbb4c9c4ddc1d4dac6eba08cf81346aeb7461ec42"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -6214,7 +6535,10 @@
           "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2098-firmware-p43.log"
+          "log": "/private/tmp/2098-firmware-p43.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/596fe00796bc246d6f0723a049a738c35e655bc12c51b49dab9337a99bd764d8.log.gz",
+          "logSha256": "596fe00796bc246d6f0723a049a738c35e655bc12c51b49dab9337a99bd764d8",
+          "archiveSha256": "22f0a75689ccaf6fd914ac399ac4ef382d5241cdb559c9c137c206d5ba7bd3fb"
         },
         {
           "device": "esp32-p4-86",
@@ -6222,7 +6546,10 @@
           "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2098-firmware-p486.log"
+          "log": "/private/tmp/2098-firmware-p486.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/39289f28e0bfdaaee835366d878483613939093cadb67f624d5700b2618cd32f.log.gz",
+          "logSha256": "39289f28e0bfdaaee835366d878483613939093cadb67f624d5700b2618cd32f",
+          "archiveSha256": "1518c5649caf1bb461c138e68d40347ab54823d12a849d01515efe749e999bd3"
         }
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/146",
@@ -6261,7 +6588,10 @@
           "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2100-firmware-v3.log"
+          "log": "/private/tmp/2100-firmware-v3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/7d99eb0aeaafc42167574c5da07a2653b110a442c126cac77d9fe17e56c8d939.log.gz",
+          "logSha256": "7d99eb0aeaafc42167574c5da07a2653b110a442c126cac77d9fe17e56c8d939",
+          "archiveSha256": "1dc0577b6956c61a93b3adfd5c9eec30c221afb243b237ef6230d155f05ef73c"
         }
       ],
       "latestPortRevision": "db8c86688f775bcf9af9585172d3c3549da1cdc6",
@@ -6308,7 +6638,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c9e6439558d1317c3e0f39db969cdf6f885e265a4cf6ae3940ecda7780a1b353.log.gz",
+          "logSha256": "c9e6439558d1317c3e0f39db969cdf6f885e265a4cf6ae3940ecda7780a1b353",
+          "archiveSha256": "3b5275703dfbff8e17477b18dc06b45be573e04843aa2a985c9c5997115d560b"
         }
       ],
       "latestPortRevision": "29f5be9d7765814bd12f27c8baf2de54898faed7",
@@ -6463,7 +6796,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/fc4077fd85b785571cbe702e07f67f83e17d341c8239745cf65cde5e35a973be.log.gz",
+          "logSha256": "fc4077fd85b785571cbe702e07f67f83e17d341c8239745cf65cde5e35a973be",
+          "archiveSha256": "9f7d0edb8e561111a54b3e6e6e8ad48ffd6673ee8987e2730f8c0f4c481d6df1"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -6477,7 +6813,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/3709db6fd56792fb4163fcc469f155f81e66214082cb1aeebeb4e13865428b8e.log.gz",
+          "logSha256": "3709db6fd56792fb4163fcc469f155f81e66214082cb1aeebeb4e13865428b8e",
+          "archiveSha256": "f8499cc6a9d4f43bad0046a83bc0a27c8f4d532b97174899912765f6e46f290a"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -6491,7 +6830,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/86c4562cac86e34d183d79ef624e5f3c82d8c2cac5bfff584998d4b623e8af25.log.gz",
+          "logSha256": "86c4562cac86e34d183d79ef624e5f3c82d8c2cac5bfff584998d4b623e8af25",
+          "archiveSha256": "2d66d28e9a7398fd8656c05c9b3a9db3e0380ee2026032ddc2f4959a5f7a2f05"
         }
       ],
       "latestPortRevision": "a69f0c0ff1c8cbe401697fbd8dc84e8d274a4ced",
@@ -6579,7 +6921,10 @@
           "revision": "5f2d163a917422f2c28148b62f70948e7464f23a",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2128-firmware-build.log"
+          "log": "/private/tmp/2128-firmware-build.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/290b8d4bd50bb0627c6c1579e43912a5ba934df8511f429c8da1d815fcb6fdb6.log.gz",
+          "logSha256": "290b8d4bd50bb0627c6c1579e43912a5ba934df8511f429c8da1d815fcb6fdb6",
+          "archiveSha256": "989d7ff8a2120f0859abbc485423609076515befe0dcc2ca2d7ff7c8cefd5fda"
         }
       ],
       "latestPortRevision": "5f2d163a917422f2c28148b62f70948e7464f23a",
@@ -6639,7 +6984,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/136ca21c652c114ce82305796afcf46fe622b7571ccdef1586b7f714e94efd39.log.gz",
+          "logSha256": "136ca21c652c114ce82305796afcf46fe622b7571ccdef1586b7f714e94efd39",
+          "archiveSha256": "76b6e865ee511d4ebeb4835c1eabed515b9e3fec1be809c8d62e12a988d08ebd"
         }
       ],
       "latestPortRevision": "d3bf15ca60358d419c092a0ef7c30ce98d436ee9",
@@ -6673,7 +7021,10 @@
           "revision": "ed4e4163834a78fe8e7eacdb9dfb465c3fcdbe2d",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2133-firmware-v3-recovery.log"
+          "log": "/private/tmp/2133-firmware-v3-recovery.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/3e0e5a6099d9bd531f4741efc4ba85911ec3bce3f6894c311125a621097467f3.log.gz",
+          "logSha256": "3e0e5a6099d9bd531f4741efc4ba85911ec3bce3f6894c311125a621097467f3",
+          "archiveSha256": "8d3d4134b3a866628745ba0687ba66e42468ef9dbd082920f5c20b2e426c4353"
         }
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/150",
@@ -6708,7 +7059,10 @@
           "revision": "ff4576898346b170a3e1072013b2391c58e2b6b6",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2127-firmware-s3.log"
+          "log": "/private/tmp/2127-firmware-s3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/6f674516328878cf39fe647a6b312714378b4b5779b76352d704e5632fa4ad25.log.gz",
+          "logSha256": "6f674516328878cf39fe647a6b312714378b4b5779b76352d704e5632fa4ad25",
+          "archiveSha256": "ecac6689d8aa2eaa74e1ade80bd3e2626cd258e7297ecfae6a22422402a4a47c"
         }
       ],
       "latestPortRevision": "ff4576898346b170a3e1072013b2391c58e2b6b6",
@@ -6824,7 +7178,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/310294aecd6005e8e6ce80b4acea8b0c059c37a8a95945283e37539c792e90f2.log.gz",
+          "logSha256": "310294aecd6005e8e6ce80b4acea8b0c059c37a8a95945283e37539c792e90f2",
+          "archiveSha256": "1c305e795455375a4f78816fe3c4fa45d14c93a978e453c0405bdd6e9e960b70"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -6838,7 +7195,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/dcae639b1b8fc2fd676dae36cf418be43e7b43d9d3d1d9ca78c98488c570b243.log.gz",
+          "logSha256": "dcae639b1b8fc2fd676dae36cf418be43e7b43d9d3d1d9ca78c98488c570b243",
+          "archiveSha256": "406828259977ffdc2e1cf2e0bea9a4131352b1b3b65d92f03d7660a818f1f829"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -6852,7 +7212,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/a0780803641a32df916b1ee5b6ff98f966b71ac9eb6dc8b5af6171ca296de2d3.log.gz",
+          "logSha256": "a0780803641a32df916b1ee5b6ff98f966b71ac9eb6dc8b5af6171ca296de2d3",
+          "archiveSha256": "4f214e7a24d977e09a78189576a16b4153a15ade1d9f797b6735586831478f37"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -6866,7 +7229,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/ad47aa159ee7ce59d5090cb39787220e8b375d0ec84a8ca5030d5f11d2f3d48a.log.gz",
+          "logSha256": "ad47aa159ee7ce59d5090cb39787220e8b375d0ec84a8ca5030d5f11d2f3d48a",
+          "archiveSha256": "46e7debc32bbc640d0235b124f555aeb461cfad6dd5c5edda738b6ed5058457e"
         }
       ],
       "reviewStatus": "Authentication finding accepted by owner",
@@ -6900,7 +7266,10 @@
           "revision": "444d08a6d83a6813906d4d3ca86372c436eab656",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2138-firmware-build.log"
+          "log": "/private/tmp/2138-firmware-build.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/67510f69541c4e2f41d913820c4649cd448f7a5a8b254f07d1254349e02f4dfc.log.gz",
+          "logSha256": "67510f69541c4e2f41d913820c4649cd448f7a5a8b254f07d1254349e02f4dfc",
+          "archiveSha256": "592bf13fd4cc322dc241756d05f06f2377c7dbddf8ef3b9366a16e43462619ac"
         }
       ],
       "latestPortRevision": "444d08a6d83a6813906d4d3ca86372c436eab656",
@@ -7172,7 +7541,10 @@
           "status": "failed",
           "log": "/private/tmp/2144-6c3845fb4-final-review-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/6c27cc11c6341a514737abd2d98b15900b3de1c2d173d1ac8115be581ca9f72a.log.gz",
+          "logSha256": "6c27cc11c6341a514737abd2d98b15900b3de1c2d173d1ac8115be581ca9f72a",
+          "archiveSha256": "317060e92266e1c412e11dcd9fe10fcec0a81c01ba01858385b7dc1ebeaf17e9"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
@@ -7190,7 +7562,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc1060p470-v2",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/58014299caecc14752ff56ff654ee028e91d0b6266600c302ae763974100c312.log.gz",
+          "logSha256": "58014299caecc14752ff56ff654ee028e91d0b6266600c302ae763974100c312",
+          "archiveSha256": "7bb14dcc35e7baf1d62753c30e5d7015f72256618e3fab90e9816ae3d6d4e2de"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -7208,7 +7583,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/47dc22a45fd97f655214551652c8f21ef82e71bfb6c964fea4bde06c6fe6059d.log.gz",
+          "logSha256": "47dc22a45fd97f655214551652c8f21ef82e71bfb6c964fea4bde06c6fe6059d",
+          "archiveSha256": "2124c282710d0dc77ed2b82ea48e42f86aff8617eb56a75531e0ada7765620ba"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
@@ -7226,7 +7604,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc8012p4a1",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/6a4dc017bcdb4a899c8cb09347edcee9a011bb96468d9cb28f2ec09690c858cd.log.gz",
+          "logSha256": "6a4dc017bcdb4a899c8cb09347edcee9a011bb96468d9cb28f2ec09690c858cd",
+          "archiveSha256": "0fecd23c71be8173b4c3890acc9b35ef7c03caf1c327a19abb4e360b5008974a"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v2.factory.yaml",
@@ -7244,7 +7625,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc8012p4a1-v2",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/2e3912c2876a1d6737e8434b1cb84963990985d78dd417466bb09760d4f82654.log.gz",
+          "logSha256": "2e3912c2876a1d6737e8434b1cb84963990985d78dd417466bb09760d4f82654",
+          "archiveSha256": "6d115c2d779cbd60e2f6d649a2fd540c1d12e58ab8200d1399832c9a248f87f6"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
@@ -7262,7 +7646,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc8012p4a1-v3",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/89d996059cd3556305b59d3c519a017028fd3f7a3dddb63cfbb59693a2fc3e32.log.gz",
+          "logSha256": "89d996059cd3556305b59d3c519a017028fd3f7a3dddb63cfbb59693a2fc3e32",
+          "archiveSha256": "789358f5c06edf82819dc11b11010d77fed4b1c4689ed3f5dc08bf04290be480"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -7280,7 +7667,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f00c61e0a965605a7e070acdfea5ed7e4f1f8b0d169f298e50d769e35627ffcf.log.gz",
+          "logSha256": "f00c61e0a965605a7e070acdfea5ed7e4f1f8b0d169f298e50d769e35627ffcf",
+          "archiveSha256": "701cfb1aa0a4d6b216d3bbf1923412e2f4f8695ffda5badfefbf90cac1a7e3ea"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -7298,7 +7688,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c5be989d438bea044511394bb0f536d6e7ef5f960a81252efe62b4005f0f4683.log.gz",
+          "logSha256": "c5be989d438bea044511394bb0f536d6e7ef5f960a81252efe62b4005f0f4683",
+          "archiveSha256": "053a1e895cc2f1d9a305f1c764d78b966ac914210b6eb6b915b001bdcb173840"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -7383,7 +7776,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/745e9ee87823d80b61dd574d7c9d3ddf4c998548faaa6b85f1cc8fe28bd69362.log.gz",
+          "logSha256": "745e9ee87823d80b61dd574d7c9d3ddf4c998548faaa6b85f1cc8fe28bd69362",
+          "archiveSha256": "50f3a3ce44ee23931db3124e88e53af6e5de903885a7c3a4679a84bd939628ed"
         }
       ],
       "latestPortRevision": "c6a678b4800eab576992d301f443848189c5f170",
@@ -7429,7 +7825,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/751759db95d318310189412f7f3e2b6f33cef2d2a20c69796214a3fb00976d62.log.gz",
+          "logSha256": "751759db95d318310189412f7f3e2b6f33cef2d2a20c69796214a3fb00976d62",
+          "archiveSha256": "02f0281e9af7259a7575d881d8a453b7f4addfb37959bf4d37180adcb9294019"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -7443,7 +7842,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/6079e64081b5b1ba926a99e9e53aeb3b156e88e0c03e5d8a8f5e8f4896c8d35a.log.gz",
+          "logSha256": "6079e64081b5b1ba926a99e9e53aeb3b156e88e0c03e5d8a8f5e8f4896c8d35a",
+          "archiveSha256": "c061088c963672eac0ea8f4e52c7a93474119184315e19675760250e9687fb94"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -7457,7 +7859,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/0729587d6ee62c6565398f8c851bb95b85da60b0ec8ee794b20b835244d2c6c1.log.gz",
+          "logSha256": "0729587d6ee62c6565398f8c851bb95b85da60b0ec8ee794b20b835244d2c6c1",
+          "archiveSha256": "343888f6cc421c1135858218ff2681f40d888e36a8b63a5c3f3d2acbd5761a10"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -7471,7 +7876,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/74e14e1bfc950bc03317eb3e992d0f5fe638c6d9bc32a3ec707de324eb99b8fc.log.gz",
+          "logSha256": "74e14e1bfc950bc03317eb3e992d0f5fe638c6d9bc32a3ec707de324eb99b8fc",
+          "archiveSha256": "2011b189833c19a3bd8f5297b51c14a609f12d5a4090afaf0e257aaacc5b3a3c"
         }
       ],
       "latestPortRevision": "03fecaed0be5f47e27f12adc63a27881e846da6c",
@@ -7504,7 +7912,10 @@
           "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2147-firmware-build.log"
+          "log": "/private/tmp/2147-firmware-build.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/fbbec57142778eab63ddc664385720cfe8cdcc87c2778cd3e0b1166cb08c6b4e.log.gz",
+          "logSha256": "fbbec57142778eab63ddc664385720cfe8cdcc87c2778cd3e0b1166cb08c6b4e",
+          "archiveSha256": "e19abbb18a0b7f07242c718b93abbef50dcefb4f36338c1e9e6515a36312e64c"
         }
       ],
       "latestPortRevision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2",
@@ -7639,7 +8050,10 @@
           "revision": "158f27e56e0377848546d837d886aa3643bc811f",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2136-firmware-s3.log"
+          "log": "/private/tmp/2136-firmware-s3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/3dbc32a68bee8403ba953551d28b993917b2c9c167de683b70e4bebbbb4609dc.log.gz",
+          "logSha256": "3dbc32a68bee8403ba953551d28b993917b2c9c167de683b70e4bebbbb4609dc",
+          "archiveSha256": "947a0cdd68217bde4a01d04d6ea873a17c1a44bc81607bef21e663e41cb33947"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -7647,7 +8061,10 @@
           "revision": "158f27e56e0377848546d837d886aa3643bc811f",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2136-firmware-guition-esp32-p4-jc1060p470.log"
+          "log": "/private/tmp/2136-firmware-guition-esp32-p4-jc1060p470.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f883ea7dc83a97d046ced484b765c68366d95ff324e4c1a8b050089014ee4d0a.log.gz",
+          "logSha256": "f883ea7dc83a97d046ced484b765c68366d95ff324e4c1a8b050089014ee4d0a",
+          "archiveSha256": "d221d9eb014620c1c36a08c040c013d6d2d875ece9d810b396acd9ff481bc3a5"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -7655,7 +8072,10 @@
           "revision": "158f27e56e0377848546d837d886aa3643bc811f",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2136-firmware-guition-esp32-p4-jc4880p443.log"
+          "log": "/private/tmp/2136-firmware-guition-esp32-p4-jc4880p443.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f392b162de1c938676e95f04db8791abe7d411db16497387fa5c01196b996887.log.gz",
+          "logSha256": "f392b162de1c938676e95f04db8791abe7d411db16497387fa5c01196b996887",
+          "archiveSha256": "508defe23fbb39bb26b2a1289fc3b4ff1d3c66170d8aa5778cd9323f3cb751d3"
         },
         {
           "device": "guition-esp32-s3-4848s040",
@@ -7669,7 +8089,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/a6978d3721258c4f5054e610649bd35a37bf808e2b17b12ff10fc0edd0df3948.log.gz",
+          "logSha256": "a6978d3721258c4f5054e610649bd35a37bf808e2b17b12ff10fc0edd0df3948",
+          "archiveSha256": "99359e2138cedb8d7f2459b5cc51b099ba11d18db6cf707a8e00b25e93f53aab"
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -7683,7 +8106,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d484e8f3084b07cdb76596b11d22046207c50a4f61e73bb750229f1323ff125f.log.gz",
+          "logSha256": "d484e8f3084b07cdb76596b11d22046207c50a4f61e73bb750229f1323ff125f",
+          "archiveSha256": "acdbe5d284dc2a98f93f2dbf65632211d8cda679eaba5026e2f30d41432b1ae5"
         },
         {
           "device": "guition-esp32-p4-jc4880p443",
@@ -7697,7 +8123,10 @@
             "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
             "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
-          }
+          },
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/60aa445a2f1b7e8260c986fafd9a118c362e02ee77167949942f3075c0add5c5.log.gz",
+          "logSha256": "60aa445a2f1b7e8260c986fafd9a118c362e02ee77167949942f3075c0add5c5",
+          "archiveSha256": "30f0d71137a16b25c4ca679c76fab91f7053593b5d7895ffbaf3bdd02e633520"
         }
       ],
       "latestPortRevision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
@@ -7765,7 +8194,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/c107f20f37bcf939f74eb3a924d65e984c47263b90e2bf8dff285fcb1b69b876.log.gz",
+          "logSha256": "c107f20f37bcf939f74eb3a924d65e984c47263b90e2bf8dff285fcb1b69b876",
+          "archiveSha256": "e1258eee2c88d277851bb3751efa2cbacf4ced17e1addc064d14924fc95f6824"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -7779,7 +8211,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/58c383e42d556404f9487ad11fef2f3bda85474f1d9778dae0633b485258b9f7.log.gz",
+          "logSha256": "58c383e42d556404f9487ad11fef2f3bda85474f1d9778dae0633b485258b9f7",
+          "archiveSha256": "7a67360712b2e498e4c2e30b06a7f3d57ae3e68feebfb6f434d2fc8b0af6c2bf"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -7793,7 +8228,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/09b3ce61336ae330c27276118ffdf2b9ee1886f1cb379e35ab4e534541d507b8.log.gz",
+          "logSha256": "09b3ce61336ae330c27276118ffdf2b9ee1886f1cb379e35ab4e534541d507b8",
+          "archiveSha256": "26153cd7639c774dc7b69cf522794e13b4c00fe73afce09fbb753acf22cf0cdb"
         }
       ],
       "latestPortRevision": "2d3b76a416cf621b42297b9642dbb61ada631942",
@@ -7892,7 +8330,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443-v3-factory",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/36120b04400b6b1a09ff6a9ddc728dbabd3ca463f7299d4d750ce25cd0f2835b.log.gz",
+          "logSha256": "36120b04400b6b1a09ff6a9ddc728dbabd3ca463f7299d4d750ce25cd0f2835b",
+          "archiveSha256": "1606f7b029b22da1baa36bcd9328a2122600bdc4446c5fb33bf45805e529c426"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.recovery.yaml",
@@ -7906,7 +8347,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443-v3-recovery",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/4ab9e5b91e56c7bebc07718336b7d81f19e1c56ef9d4879c214ffe05fddbdd50.log.gz",
+          "logSha256": "4ab9e5b91e56c7bebc07718336b7d81f19e1c56ef9d4879c214ffe05fddbdd50",
+          "archiveSha256": "9aad388a4f0f1263669f4039877df929be4567b2a7c24cbf4ae9515810f2247e"
         }
       ],
       "destinationBaseBranch": "show-screensaver-date"
@@ -7947,7 +8391,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/0db6d8efe14a88e4fd1d938e473dafba8e3cbafb8567bb96bec6c97ebfe2fa14.log.gz",
+          "logSha256": "0db6d8efe14a88e4fd1d938e473dafba8e3cbafb8567bb96bec6c97ebfe2fa14",
+          "archiveSha256": "7750693358e46bebfc8786e384e08edb5bb96c55c6a75bb1e2658d036aefb35c"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
@@ -7961,7 +8408,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470-v2",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/3a6a4159c0eefd2b71e0b9b6cc0d2a275f2e060bd78d7ee70c395c5daa6c524a.log.gz",
+          "logSha256": "3a6a4159c0eefd2b71e0b9b6cc0d2a275f2e060bd78d7ee70c395c5daa6c524a",
+          "archiveSha256": "20204e985edbac48823d0736e812b4b1a41d5a4514e58edd52a5476339d3d746"
         }
       ],
       "latestPortRevision": "de979d5df3ac2239aaf28ba71e78e05a384ee7ae",
@@ -8017,7 +8467,7 @@
           "log": "/private/tmp/2159-final-camera-clock-firmware-guition-esp32-p4-jc8012p4a1-v3.log",
           "device": "guition-esp32-p4-jc8012p4a1-v3",
           "esphome": "2026.9.1",
-          "note": "Queued input was updated to a newer published revision before compilation; no build pass claimed for this revision."
+          "note": "This queued job was replaced before it ran; this record is not a compile attempt. Separate log records may prove a build of this revision."
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
@@ -8039,7 +8489,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc8012p4a1-v3",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/b81d179fb78752cfbe4b1ae6e27181f6090546a6981ad4893fe64ebcfda672de.log.gz",
+          "logSha256": "b81d179fb78752cfbe4b1ae6e27181f6090546a6981ad4893fe64ebcfda672de",
+          "archiveSha256": "0659120e7cc92eee701dedfd3fa2e7b2be0803ec140549c08069c406c8810af1"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
@@ -8061,7 +8514,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc8012p4a1-v3",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/03d1ada6e0a94ae434dc47fbaaaba7d9bde8a649243bac55a69d279fa45ec6bc.log.gz",
+          "logSha256": "03d1ada6e0a94ae434dc47fbaaaba7d9bde8a649243bac55a69d279fa45ec6bc",
+          "archiveSha256": "f43ed95958171152cfe8799479e61373526344116f778e46524a43ca919d9e8a"
         }
       ],
       "reviewStatus": "New review finding needs action",
@@ -8119,7 +8575,10 @@
           "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147",
           "esphome": "2026.9.1",
           "status": "passed",
-          "log": "/private/tmp/2171-firmware-v3.log"
+          "log": "/private/tmp/2171-firmware-v3.log",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/656bca9bdafc588b5272cd2c371d65634e3de88fab92c8ef5f31f1a74b8bd926.log.gz",
+          "logSha256": "656bca9bdafc588b5272cd2c371d65634e3de88fab92c8ef5f31f1a74b8bd926",
+          "archiveSha256": "39632ef715c147e5939b4c9683f1e41850946525e39815278c639f0faca721e2"
         }
       ],
       "latestPortRevision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147",
@@ -8261,7 +8720,10 @@
           "status": "failed",
           "log": "/private/tmp/2168-8be9e98e4-final-review-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/fecbc195f313cb072a16bece8c47706087815d429eb3b21e9237d91411b2dd96.log.gz",
+          "logSha256": "fecbc195f313cb072a16bece8c47706087815d429eb3b21e9237d91411b2dd96",
+          "archiveSha256": "18f21ba3add13225e9d06d973deba56cb6d178f7ce114f4b79210192394b9b9e"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -8280,7 +8742,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/5133909489894257f7e1665226576e94f7efc357331f2187f3afc942af60df39.log.gz",
+          "logSha256": "5133909489894257f7e1665226576e94f7efc357331f2187f3afc942af60df39",
+          "archiveSha256": "0abba40cb1b72aa7acf695633edc9dc15a31dee1ee95c9e9202a8d7215edc57b"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
@@ -8299,7 +8764,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc1060p470-v2",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/378c2160e19baf3d44ca634fc61c4a4fe4c7a5395bb241e42d00b8fa70baa614.log.gz",
+          "logSha256": "378c2160e19baf3d44ca634fc61c4a4fe4c7a5395bb241e42d00b8fa70baa614",
+          "archiveSha256": "2fd276603dc1cf07c00fc9d0442bab3a84ef4c35ea1c58796da960d53fd45d29"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -8318,7 +8786,10 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/52c754229a6e6f288131ecda323d8a9c9580145a4f434d2f628bd3ef97159ce8.log.gz",
+          "logSha256": "52c754229a6e6f288131ecda323d8a9c9580145a4f434d2f628bd3ef97159ce8",
+          "archiveSha256": "6b83de5cbb1301bfde19104e751ad1ab464cfd927f648bfc6df598a4a91be1ed"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
@@ -8510,7 +8981,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/15f7ef191d5af4defec815692df03bf5367346d726783cffbd0ede30ba8326e0.log.gz",
+          "logSha256": "15f7ef191d5af4defec815692df03bf5367346d726783cffbd0ede30ba8326e0",
+          "archiveSha256": "e7d7f616ec70eb9f92f1b8b05107c8bfd565a8fdba55b2f150019f82415fb5bc"
         }
       ],
       "latestPortRevision": "e52a136f19c9df4631e42141b762f7bb9abe495d",
@@ -9010,7 +9484,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/87ca40384cdf89a79a53aa7150887e210172af99cc77edceb2d29c2f22931fca.log.gz",
+          "logSha256": "87ca40384cdf89a79a53aa7150887e210172af99cc77edceb2d29c2f22931fca",
+          "archiveSha256": "2de43770d834ab7943e203dd0014b3ba3bf9c076731a976d8da10441f2285c88"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -9024,7 +9501,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d4e2429b61d6ff7c0fa56d996c05be162ab6286abc167bb567f209a3e2cc853e.log.gz",
+          "logSha256": "d4e2429b61d6ff7c0fa56d996c05be162ab6286abc167bb567f209a3e2cc853e",
+          "archiveSha256": "c432f2c8d950cb8d888941284941f70d73b133aa44db6d775a1ec1c6e59a14c6"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
@@ -9038,7 +9518,10 @@
             "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
           },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/f27217328c11bfc5a642e3f8b858a4ab862db5c96249515cc07dc6a21274a8fc.log.gz",
+          "logSha256": "f27217328c11bfc5a642e3f8b858a4ab862db5c96249515cc07dc6a21274a8fc",
+          "archiveSha256": "473664710a4765c900a4289244de7ff8a5a1196d440f4198a9fb9582b248edfa"
         }
       ],
       "latestPortRevision": "756522a86902c510049a65fb9f71ceb98585f8c6",
