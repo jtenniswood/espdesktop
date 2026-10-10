@@ -38,6 +38,7 @@ export function createPublicFirmwareInstallFeature(
         clearWebOtaFallback: clearFirmwareWebOtaFallback,
         renderStatus: renderFirmwareUpdateStatus,
         startInstallRefresh: startFirmwareInstallRefresh,
+        pauseInstallRefresh: pauseFirmwareInstallRefresh,
         stopInstallRefresh: stopFirmwareInstallRefresh,
     } = firmwareUpdate;
     // ── Public Firmware Web OTA ────────────────────────────────────────────
@@ -69,8 +70,7 @@ export function createPublicFirmwareInstallFeature(
     function installPublicFirmwareViaWebOta(this: any, info?: any) {
         info = info || selectedFirmwareInfo();
         // Download/upload is a separate phase; confirmation begins after it ends.
-        stopFirmwareInstallRefresh();
-        state.firmwareInstallTransferPending = true;
+        pauseFirmwareInstallRefresh();
         state.firmwareUpdateState = "INSTALLING";
         var installingLatest: any = !info ||
             firmwareVersionsSame(info.latest_version, state.firmwareLatestVersion);
