@@ -228,6 +228,19 @@ int main() {
     display_mode_reconcile.execute(); advance(500);
     assert(controller.current_mode_is(DisplayMode::ACTIVE));
   }
+  // Losing time must stay fail-dark without creating a stale daytime idle request.
+  for (bool fast_first : {false, true}) {
+    reset(); clock_time.hour = 12; clock_time.valid = false;
+    (fast_first ? display_mode_reconcile : screen_schedule_check).execute();
+    (fast_first ? screen_schedule_check : display_mode_reconcile).execute(); advance(1000);
+    assert(controller.target_source_is(DisplayRequestSource::BOOT_GUARD));
+    assert(!controller.request_active(DisplayRequestSource::IDLE_TIMER));
+    assert(!controller.request_active(DisplayRequestSource::PRESENCE_SENSOR));
+    clock_time.valid = true;
+    display_mode_reconcile.execute(); screen_schedule_check.execute(); advance(1000);
+    assert(controller.current_mode_is(DisplayMode::ACTIVE));
+    assert(screensaver_idle_check.is_running());
+  }
   // Manual sleep is never cleared by either order at the schedule boundary.
   for (bool fast_first : {false, true}) {
     reset(); controller.request(DisplayRequestSource::MANUAL_SLEEP, DisplayMode::DISPLAY_OFF);
