@@ -68,6 +68,10 @@ export function createPublicFirmwareInstallFeature(
     }
     function installPublicFirmwareViaWebOta(this: any, info?: any) {
         info = info || selectedFirmwareInfo();
+        // Download/upload is a separate phase; confirmation begins after it ends.
+        stopFirmwareInstallRefresh();
+        state.firmwareInstallTransferPending = true;
+        state.firmwareUpdateState = "INSTALLING";
         var installingLatest: any = !info ||
             firmwareVersionsSame(info.latest_version, state.firmwareLatestVersion);
         return requestApi.getJsonQuietly(publicFirmwareManifestUrl(), function (this: any, d?: any) {
@@ -89,7 +93,6 @@ export function createPublicFirmwareInstallFeature(
                 "Uploading firmware " + state.firmwareInstallTargetVersion + "\u2026" :
                 "Uploading firmware update\u2026";
             renderFirmwareUpdateStatus();
-            startFirmwareInstallRefresh();
             var uploadStarted: any = false;
             var uploadResponseReceived: any = false;
             return ensurePublicFirmwareOtaUrl(info).then(function (this: any, otaUrl?: any) {
@@ -123,13 +126,22 @@ export function createPublicFirmwareInstallFeature(
                     if (/update failed/i.test(text)) {
                         throw new Error("Device reported that the firmware upload failed.");
                     }
+                    // The confirmation deadline starts after the transfer completes.
+                    state.firmwareInstallTransferPending = false;
+                    startFirmwareInstallRefresh(true);
                     waitForFirmwareRestart();
                     return true;
                 });
             }).catch(function (this: any, err?: any) {
                 if (uploadStarted && !uploadResponseReceived) {
-                    waitForFirmwareRestart();
-                    return true;
+                    // The connection may close during reboot, but that is not proof
+                    // of success. Keep checking the version and expose the uncertainty.
+                    state.firmwareInstallTransferPending = false;
+                    startFirmwareInstallRefresh(true);
+                    state.firmwareInstallStatus = "Upload connection lost. Checking whether the display installed the firmware…";
+                    renderFirmwareUpdateStatus();
+                    setTimeout(appEvents.connect, 5000);
+                    return false;
                 }
                 failPublicFirmwareUpload(err && err.message);
                 return false;

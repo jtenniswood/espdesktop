@@ -228,6 +228,7 @@ export interface AppState {
   firmwareVersionRefreshPending: boolean;
   firmwareInstallTargetVersion: string;
   firmwareInstallPostPending: boolean;
+  firmwareInstallTransferPending: boolean;
   firmwareInstallStatus: string;
   firmwareInstallError: string;
   firmwareUpdateControlsSupported: boolean;
