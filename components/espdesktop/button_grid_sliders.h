@@ -185,6 +185,7 @@ constexpr lv_coord_t MEDIA_VOLUME_COMPACT_PORTRAIT_BUTTON_REF_PX = 96;
 struct MediaVolumeCtx {
   std::string entity_id;
   std::string label;
+  std::string clock_bar_title;
   int current_pct = 0;
   int max_pct = 100;
   int pending_pct = -1;
