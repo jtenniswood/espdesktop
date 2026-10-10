@@ -2549,7 +2549,17 @@
         "docs/screens/4848s040.md",
         "tests/firmware/image_pipeline_policy_test.cpp"
       ],
-      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/122"
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/122",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2061-firmware-build.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nAdds `open_modal`, `close_modal`, `open_subpage`, `close_subpage`, and `navigate` Home Assistant actions to P4 and S3 firmware. Open configured controls by entity ID, open or close a labeled Subpage, close a popup, or navigate to a home-screen card or back home.\n\nRefs #2003. Keep the issue open until user-confirmed device testing.\n\n## Practical impact\n\n- Reuses existing controls and availability rules without invoking toggle, playback, script, or confirmation actions.\n- Adds a remote close action that cancels queued remote opens, dismisses nested popups, and force-closes the active control modal.\n- Adds a focused subpage action that only opens a labeled Subpage card; it does not activate other home-screen card commands.\n- Closes remote controls before card widgets or runtime contexts are rebuilt, including when the underlying page is outside the grid. A regression test reproduces the unsafe release order and verifies the fix.\n- Chooses the first modal-capable home-screen match, then subpages in displayed order. Logs duplicates and unavailable targets without selecting a fallback.\n- Rejects requests during Screen Lock, alarm takeover, or startup; resolves again after wake-up and replaces pending requests with the latest request.\n- Includes remote modal and subpage actions on S3, and enables the general `navigate` action there while preserving API resource settings.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes:\n\n`docs/features/subpages.md` documents the remote actions, supported cards, precedence, rejected requests, and Home Assistant examples.\n\n## Testing\n\n- [x] Automated/local checks passed for the original implementation; the follow-up actions were compiled and flashed.\n- [x] Device testing is required before merge.\n\nAffected display/device, if applicable:\n\n- All supported P4 profiles and the Guition 4848S040 S3; see the device list below.\n\nAutomated checks passed for the original implementation at commit `f27752872`: full `check:fast`, all 61 firmware host tests, parser, card runtime, modal/layout, Home Assistant binding, device-profile, and generated-output checks. The cleanup regression failed before the fix and passed afterward. All eight supported factory targets compiled successfully in the pinned ESPHome 2026.9.0 Docker image: S3, P4-86, both 7-inch variants, 4.3-inch, and all three 10-inch variants. Generated firmware sources were checked against that source revision.\n\nThe `close_modal` and `open_subpage` actions were compiled and OTA flashed to the S3 in earlier commits. The new `close_subpage` action and S3 `navigate` inclusion also compiled with ESPHome 2026.9.0 and were OTA flashed; the panel returned online. Home Assistant action discovery and manual behavior still need user confirmation. No automated test suite was run for these follow-up changes.\n\nHardware/API diagnostics:\n\n- **S3 4848S040:** Pinned-version baseline and inert string-action builds each passed three native API discovery/reconnect cycles with 24 entities. The inert action registered and executed every time, so the historical registration failure was not reproduced; no speculative buffer changes were made. Feature tests with panel-only synthetic light states passed home/subpage opening, duplicate selection, same-page close, repeated replacement, and rebuild cleanup. Invalid/unsupported/unavailable requests left the UI unchanged. The ordinary feature firmware at that time exposed only `open_modal`, passed three more reconnects, and retained the original configuration byte-for-byte. The final probe reported about 33.9% internal heap free and a 32,768-byte largest block, compared with about 32.9% and 31,744 bytes in the baseline.\n- **10-inch P4 V1:** The real panel passed opening from another subpage, preserving the underlying page on close, duplicate selection, Screen Lock and synthetic alarm takeover blocking, off/dimmed/clock wake-up, latest-pending-request behavior, repeated replacement, and deletion/rebuild cleanup with a modal over the setup page. A native API command spy observed zero outgoing Home Assistant commands. Original configuration was restored byte-for-byte. Final ordinary feature firmware is installed; `open_modal`, `navigate`, and `refresh_camera_cards` were present across three native API reconnects, with no diagnostic action. Configuration also matched the pre-flash original byte-for-byte.\n\nAcceptance gaps remain: native API probes do not establish Home Assistant-side action discovery or reconnect behavior. Successful modal tests used synthetic state because the S3's configured real media/image controls reported unavailable. Cold power-on, visual/touch interaction, artwork wake-up, and sustained S3 camera/artwork activity still need user confirmation. Baseline stack watermarks were not captured, and the memory observations are not a long-duration stability guarantee. These are device-test requirements before merge, not results established by compilation.\n\n## Notes for testing\n\nUse branch `open-entity-modal` in a separate worktree so testing does not change `main`. With the pinned ESPHome installed and your existing development secrets configured, flash the appropriate device entry point from that worktree, for example:\n\n```bash\npython3 scripts/local_esphome.py devices/guition-esp32-s3-4848s040/dev.yaml run --device <S3_IP> --no-logs\npython3 scripts/local_esphome.py devices/guition-esp32-p4-jc8012p4a1/dev.yaml run --device <10INCH_P4_V1_IP> --no-logs\n```\n\nIn Home Assistant Developer Tools > Actions, call:\n\n```yaml\naction: esphome.<device_name>_open_modal\ndata:\n  entity_id: light.office_ceiling\n```\n\nTo close the active popup:\n\n```yaml\naction: esphome.<device_name>_close_modal\n```\n\nTo open a labeled Subpage card:\n\n```yaml\naction: esphome.<device_name>_open_subpage\ndata:\n  label: \"Lights\"\n```\n\nTo return from the active Subpage to the home screen:\n\n```yaml\naction: esphome.<device_name>_close_subpage\n```\n\nUse an entity already configured as a control card and replace `Lights` with the Subpage card's label. Test waking from off/dimmed/screensaver modes, opening a labeled Subpage from another page, and closing through Home Assistant back to the underlying page (including with a nested menu open). Also try duplicate subpage labels, closing while an open request is waiting, duplicate modal cards, unavailable entities, Screen Lock, and an active alarm takeover. Calling `close_modal` with no popup open should leave the current page unchanged. Confirm opening controls sends no entity-changing action. For S3, also check action discovery and Home Assistant reconnects with camera/artwork activity. Physical visual confirmation and a power-cycle test remain required; compilation and API probes do not establish those results.\n\n## PR status\n\n- [x] Ready for device test.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\n<!-- espcontrol-pr-testing-guidance -->\n## Automated testing guidance\n\nDevice testing is expected before merge because this change may affect firmware or the on-device experience.\n\nSuggested devices to test:\n- ESP32-P4 86 Panel (4 inches, Square)\n- Guition JC1060P470 (7 inches, Landscape)\n- Guition JC1060P470 new panel (V2 label) (7 inches, Landscape)\n- Guition JC4880P443 (4.3 inches, Portrait)\n- Guition JC8012P4A1 (10.1 inches, Landscape)\n- Guition JC8012P4A1 new panel (2628+) (10.1 inches, Landscape)\n- Guition JC8012P4A1 V3 (production silicon) (10.1 inches, Landscape)\n- Guition 4848S040 (4 inches, Square)\n\nSuggested checks:\n- Confirm the device boots normally and does not restart repeatedly.\n- Confirm the affected screen, card, or setting appears correctly.\n- Confirm touch/navigation still works where the changed area is interactive.\n- Confirm there is no obvious text overlap, clipping, blank screen, or missing icon.\n\nSuggested PR status: Ready for device test once automated checks pass.\n\n",
@@ -3546,8 +3556,8 @@
       "title": "Report CI failures together and prepare branches before pushing",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2110",
       "mergeSha": "961e1934cfaabee0f6d254c6687a3422a898bc56",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits.",
       "changedFiles": [
         ".github/workflows/ci.yml",
         ".github/workflows/pr-process.yml",
@@ -3562,7 +3572,8 @@
         "scripts/prepare_ci.py",
         "scripts/web_bundle_budget.js",
         "tests/web/unit/web_bundle_budget.test.js"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/138"
     },
     {
       "body": "## Summary\n\nThe full-screen clock could show the previous minute for up to 30 seconds because it refreshed on a boot-relative interval. Refresh it through the existing SNTP/Home Assistant minute-boundary callbacks, and immediately when entering the screensaver or changing the time format.\n\nRelated to #2099; this addresses the full-screen clock delay only.\n\n## Practical impact\n\n- Shared by all supported displays, including the reported 10.1-inch Guition JC8012P4A1 V1.\n- Reuse one rendering script for screensaver entry and time updates. Keep the existing time fallback, formatting and burn-in movement; skip updates when another display mode is visible.\n- Keep brightness and camera-image overlay maintenance on their existing schedule.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nThe Screensaver guide now describes minute-boundary updates.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\n- New regression test fails on unchanged `origin/main` and passes on this branch. It checks both minute-trigger sources, entry refresh, midnight, 12/24-hour formatting, invalid time, HA fallback, visibility and drift-minute updates using the production rendering lambda.\n- Host firmware suite: all 72 tests passed across the initial run and dependency-corrected rerun. Five initially lacked Python dependencies; reran those with the existing project virtual environment.\n- `python3 scripts/check_firmware_ha_bindings.py` passed.\n- ESPHome 2026.9.0 validated `builds/guition-esp32-p4-jc8012p4a1.factory.yaml` using local component/font paths.\n- `git diff --check` passed.\n- `python3 scripts/check_tasks.py --self-test` now passes. The latest merge from `main` removed the obsolete generated developer-doc check and corrected the photo-metadata coverage fixture. GitHub\u2019s Validate Generated Files job, which runs the full CI check graph, passed at `0feafa038`.\n- Full device firmware compilation and physical testing have not been performed.\n\nAffected display/device, if applicable:\n\n- All supported displays; prioritize the 10.1-inch Guition JC8012P4A1 V1 reported in #2099.\n\n## Notes for testing\n\nBased on the generated testing guidance, device testing is expected for the shared display code. Start with the **10.1-inch Guition JC8012P4A1 V1**; the shared fix also applies to S3 4848S040, P4-86, 4.3-inch JC4880P443, 7-inch V1/V2 and 10-inch V2/V3.\n\nBuild from `fix-clock-delay`. For a remote-package installation, set both the package `ref` and `espcontrol_component_ref` to `fix-clock-delay`.\n\n1. Confirm normal boot and touch navigation, then enable the Clock screensaver and let it appear.\n2. Compare several minute changes with a synchronized reference clock. The digits should change at the minute boundary without the previous 10\u201330 second delay.\n3. Check 12-hour and 24-hour formats, wake/re-enter the screensaver, and confirm the drifting position and brightness still behave normally.\n4. If using a scheduled night clock, repeat the minute-change check there. Confirm the clock remains readable without clipping or overlap.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [x] Ready for device test.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -3657,7 +3668,17 @@
         "devices/guition-esp32-s3-4848s040/device/device.yaml",
         "docs/screens/4848s040.md"
       ],
-      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/124"
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/124",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "5f2d163a917422f2c28148b62f70948e7464f23a",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2128-firmware-build.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\n- Follow-up to #1707. I went back over the Hebrew strings, including the ones added since then, and checked each one against where it shows up on the panel.\n- `start_dock` was still in English in the Hebrew file. Translated it.\n- Reworded Hebrew strings that read as literal translations: on/off state, opening/closing, thermostat hold modes, partial weather conditions, fan oscillation off, unlock, screen unlocked, update status, timer confirm, guest Wi-Fi, and the \"connect to hotspot\" setup message (it was singular masculine and didn't match the other setup screens).\n- `media_default_label()` already passes \"Cover Art\" through `espcontrol_i18n()`, but it wasn't in the translation files, so it showed in English in every language. Added `cover_art` to all `strings.*.txt` files.\n\n## Practical impact\n\n- Hebrew panels read more naturally for day-to-day smart home use.\n- The media Cover Art card default label is now translated in all languages.\n\n## Documentation decision\n\n- [ ] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [x] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Wording changes only.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [ ] Device testing is required before merge.\n- [x] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- All displays when the panel language is Hebrew. Cover Art label on all displays in any language.\n\n## Notes for testing\n\n- `build.py i18n --check` passes. Product model, backup contract, card runtime and device profile checks pass locally. Every character in the changed strings is covered by the existing text and Hebrew glyph sets.\n- No code changes, only translation files and the regenerated header, so no device test is needed. To check on a device anyway: set language to Hebrew, then look at a vacuum card in Start / Dock mode, a media Cover Art card with no label, and the WiFi setup screen.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -3972,7 +3993,17 @@
         "components/espcontrol/button_grid_image.h",
         "tests/firmware/artwork_controller_test.cpp"
       ],
-      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/130"
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/130",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2147-firmware-build.log"
+        }
+      ]
     },
     {
       "body": "## Purpose\nMove the hardware version dropdown chevron in from the field edge and keep option text clear of it.\n\n## Change\nReplace the browser-native arrow with a CSS chevron positioned consistently inside the select field.\n\n## Checks\n- `git diff --check` passed.\n- No automated or browser preview checks were run.\n\n## User testing\nReview the hardware version dropdown on the install page in both light and dark themes.",
@@ -4002,11 +4033,12 @@
       "title": "Fix release preflight ESPHome dependency",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2150",
       "mergeSha": "81deec8ede0b9b9696c2114d3b6a0ff19f79a456",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits.",
       "changedFiles": [
         ".github/workflows/release.yml"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/137"
     },
     {
       "body": "## Summary\n\n- Route the default 10-inch display at `192.168.6.103` to the V3 ESPHome configuration.\n- Keep V1 and V2 selectable by explicit version name.\n\n## Practical impact\n\nA default `10inch` flash now uses `devices/guition-esp32-p4-jc8012p4a1-v3`; the all-displays sequence and command examples match.\n\n## Documentation decision\n\n- [x] No docs needed because this does not change user-visible behavior/configuration.\n\nDocs notes:\n\n- This is an internal flashing workflow instruction; it does not change public user documentation or release notes.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- 10-inch P4 V3\n\n## Notes for testing\n\n- `git diff --check` passed for the skill change.\n- This is a workflow instruction update; no firmware was built or flashed.\n\n## PR status\n\n- [x] Checks running or waiting.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -4036,12 +4068,13 @@
       "title": "Fix release generated-output preflight",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2152",
       "mergeSha": "939a041c01818a848e9d28fb7069dd88fb50231c",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits.",
       "changedFiles": [
         ".github/workflows/release.yml",
         "scripts/check_tasks.py"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/139"
     },
     {
       "body": "## Summary\n\n- Compile one representative device for each chip family on firmware-related pull requests: one ESP32-P4 factory and recovery image, plus one ESP32-S3 factory image.\n- Keep nightly and release firmware builds exhaustive across all supported devices.\n- Update the device matrix expectation and contributor docs to match.\n\n## Practical impact\n\nFirmware pull requests now compile 3 images instead of 15, reducing CI time while preserving full device coverage in nightly and release builds.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated `docs/reference/contributing.md` with the new PR and nightly/release compile coverage.\n\n## Testing\n\n- [ ] Automated/local checks passed or were run where practical.\n- [ ] Device testing is required before merge.\n- [x] Device testing is not required; this changes CI compile selection only.\n\nAffected display/device, if applicable:\n\n- None.\n\n## Notes for testing\n\n- No local tests were run. The pull request CI will validate the generated matrix and workflow behavior.\n- Full device matrix remains covered by the nightly workflow and releases.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -4054,15 +4087,16 @@
       "title": "Reduce device compiles on pull requests",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2154",
       "mergeSha": "71d8adbcac3933ac51c2f1c814c4e681697683c0",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits.",
       "changedFiles": [
         "docs/reference/contributing.md",
         "scripts/check_device_matrix.py",
         "scripts/check_device_profiles.py",
         "scripts/check_release_confidence.py",
         "scripts/device_matrix.py"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/135"
     },
     {
       "body": "Fixes #2129\n\n**Cause**\n\nEvery transition into the active screen runs `hide_cover_art_view`, which stops `cover_art_delay_timer`. Closing an image modal starts such an `active -> active` generation, so a pending cover art delay is cancelled. Nothing re-arms it until the next playback-state or presence edge, so the panel stays on the home screen while music keeps playing.\n\nFrom the log in #2129:\n\n```\n[11:56:07.855] cover_art: Waiting 10s before showing cover art\n[11:56:07.855] display_mode: Starting generation 89: active -> active   <- modal closed, delay cancelled\n... no cover art until the next play action at 12:07:53\n```\n\n**Change**\n\nAt the end of `display_mode_effect_active` in `common/addon/backlight.yaml`, run `cover_art_start_delay` again when all of these hold:\n\n- cover art screensaver enabled, media playing, a cover art entity configured\n- target mode is ACTIVE\n- no INTERACTIVE or CRITICAL takeover and no alarm takeover\n\nSo the delay re-arms whenever the display settles back on the plain active screen, and cover art still never appears over an open modal. Single 20-line hook, no new globals.\n\n**Testing**\n\nBuilt from this branch with ESPHome 2026.9.1 and run on an `esp32-p4-86`, cover art delay 10s, Music Assistant player:\n\n- Modal opened and closed within a few seconds: cover art returns 10s after closing.\n- Modal open for ~30s, then closed: `Waiting 10s before showing cover art` right after close, `active -> cover_art` 10s later.\n\n```\n[17:39:23.565] image_card: Closing image modal for camera.front_door_fluent\n[17:39:23.567] display_mode: Starting generation 8: active -> active (takeover=none)\n[17:39:23.724] cover_art: Waiting 10s before showing cover art\n[17:39:33.725] display_mode: Starting generation 9: active -> cover_art (source=media_playback)\n```\n\nRepo checks `check_cover_art_contract.py` and `check_backlight_schedule.py` pass.",
@@ -4093,11 +4127,13 @@
       "title": "Validate web asset manifest before release prep",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2155",
       "mergeSha": "38062e9430e130d25b3fc1ea17893e4ad386f971",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits.",
       "changedFiles": [
         ".github/workflows/release.yml"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/140",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/139"
     },
     {
       "body": "## Purpose\nRelease preflight run 37496436294 failed in browser smoke: a routine `NO UPDATE` status replaced the active `Installing\u2026` state while a previous firmware download was still in progress.\n\n## Change\nKeep the firmware controls in the installing state while a targeted install is active, including the download period before the post-upload confirmation timer starts.\n\n## Checks\n- `git diff --check` passed locally.\n- GitHub Actions will validate the change.\n",
@@ -4440,8 +4476,8 @@
       "title": "Default fan cards to All Controls",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2178",
       "mergeSha": "e20a44c93d7f9131699d06067f3587cddd5ef327",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits.",
       "changedFiles": [
         "docs/card-types/fans.md",
         "docs/public/webserver/bundles/6855455b66eede1d708172b30531afeb57d96cf44020938b967292b53d94b7ae/www.js",
@@ -4449,7 +4485,8 @@
         "docs/public/webserver/embedded/www.js",
         "docs/public/webserver/web-assets.json",
         "src/webserver/features/preview.ts"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/136"
     },
     {
       "body": "## Summary\n\nCamera cards cropped grid images even when **Show full image** was selected, and an expanded download could be blocked by a scheduled tile refresh. Apply the selected fit to both views and reload cached images when the fit changes.\n\nFill fitted image margins with the sensor-card surface color. Runtime Light/Dark changes repaint the margins in displayed, decoding, and cached expanded images and invalidate the display cache while preserving the photo. Rename the card setting to **Image Settings > Image fit**, retaining its saved option and default crop mode.\n\nRelated to #2176.\n\n## Practical impact\n\n- **Show full image** preserves the complete snapshot on the card and in its expanded view.\n- Margins match the sensor-card background and follow theme changes on the main grid and subpages.\n- **Crop to fit** and Media Cover Art retain their crop behavior.\n- Opening an expanded image during periodic or activity refresh starts its separate download.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes:\n\n- Updated Camera-card and Immich guidance, generated capabilities, and the embedded editor. The Camera screensaver keeps its separate **Expanded Image** control.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\n- All 82 firmware host tests passed locally.\n- Firmware card runtime and Home Assistant binding checks passed.\n- P4-86 development firmware compiled with ESPHome 2026.9.1; generated sources matched the committed change.\n- Decoder tests check complete-image edges, landscape/portrait margins, both pixel byte orders, and repeated background changes with photo pixels preserved.\n- Runtime tests cover main-grid/subpage theme updates, open and retained expanded images, cached fit changes, and the tile-to-expanded refresh handoff.\n- The user confirmed the full-image and sensor-colored margin fixes on the **4-inch P4-86**. The additional live theme-refresh correction awaits device confirmation.\n\nAffected display/device:\n\n- Shared Camera-card logic on supported P4 and S3 panels.\n- **4-inch P4-86** for local compilation and device testing.\n- Original reported hardware: **Guition JC8012P4A1 V3, 1280\u00d7800**, not physically retested.\n\n## Notes for testing\n\nTest branch **fix-camera-image-cropping**, following the automated PR testing guidance:\n\n1. With a wide camera snapshot, select **Image Settings > Image fit > Show full image**. Confirm both edges on the grid and in the expanded view; margins should match sensor cards.\n2. Switch to **Crop to fit** and back at the same card size. Repeat with a Home Assistant image entity.\n3. Switch Light \u2192 Dark \u2192 Light on the main grid, a subpage, and an open expanded image. Confirm margin colors update while the photo remains visible. Close and reopen the expanded view.\n4. Open during periodic/activity refresh and check continued refreshing, touch/navigation, and Media Cover Art.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [x] Ready for device test.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -4811,8 +4848,8 @@
     "Already present": 72,
     "Not applicable": 10,
     "Closed without merging": 9,
-    "Needs review": 48,
-    "Ported": 13
+    "Needs review": 42,
+    "Ported": 19
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports."
 }
