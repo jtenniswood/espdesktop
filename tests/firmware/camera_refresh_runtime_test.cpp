@@ -185,6 +185,17 @@ int main() {
   ctx.visible = true;
   image_card_refresh_due();
   assert(tile_requests == 1); // The retained revision is consumed only on return.
+  for (auto mode : {espdesktop::camera::RefreshMode::PERIODIC, espdesktop::camera::RefreshMode::ACTIVITY}) {
+    reset(); ctx.entity_id = "camera.test"; ctx.refresh_schedule.mode = mode;
+    ctx.refresh_schedule.begin(esphome::now, false);
+    if (mode == espdesktop::camera::RefreshMode::ACTIVITY) ctx.refresh_schedule.activate(esphome::now);
+    ctx.camera_entity_unavailable = true;
+    image_card_refresh_due();
+    assert(tile_requests == 0 && !ctx.download_active && !ctx.refresh_schedule.in_flight);
+    ctx.camera_entity_unavailable = false;
+    image_card_refresh_due();
+    assert(tile_requests == 1); // Retained availability recovery keeps the due schedule usable.
+  }
   reset();
   ctx.revision.observe("first");
   image_card_handle_picture(&ctx, ctx.source_url);

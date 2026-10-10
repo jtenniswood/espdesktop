@@ -1008,7 +1008,9 @@ inline void image_card_handle_modal_download_error(ImageCardCtx *ctx) {
   const bool revision_refresh = ctx->entity_id.rfind("image.", 0) == 0 &&
       ctx->revision.modal_requested != ctx->revision.modal_applied;
   const bool scheduled_request = ctx->refresh_schedule.in_flight &&
-      (ctx->refresh_schedule.mode != espdesktop::camera::RefreshMode::OFF || revision_refresh);
+      (ctx->refresh_schedule.mode == espdesktop::camera::RefreshMode::PERIODIC ||
+       (ctx->refresh_schedule.mode == espdesktop::camera::RefreshMode::ACTIVITY &&
+        ctx->refresh_schedule.window) || revision_refresh);
   ctx->refresh_schedule.finished(esphome::millis(), false);
   ctx->revision_retry_ms = ctx->refresh_schedule.next_due;
   ESP_LOGW("image_card", "Modal image download failed for %s", ctx->entity_id.c_str());
@@ -3041,7 +3043,8 @@ inline void image_card_refresh_due(std::function<bool()> page_visible = nullptr)
     }
     if ((activity || periodic) && visible && !ctx->refresh_schedule.open)
       image_card_begin_refresh_schedule(ctx); // Hidden events never replay on return.
-    if (schedule_visible && ctx->refresh_schedule.due(now, connected) && !ctx->source_url.empty()) {
+    if (schedule_visible && !ctx->camera_entity_unavailable &&
+        ctx->refresh_schedule.due(now, connected) && !ctx->source_url.empty()) {
       if (visible_modal) image_card_queue_modal_source_request(ctx);
       else if (!ctx->download_active && ctx->next_download_retry_ms == 0) {
         ctx->scheduled_tile_request = true;

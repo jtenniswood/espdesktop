@@ -331,6 +331,16 @@ int main() {
  assert(!ctx.refresh_schedule.in_flight && ctx.refresh_schedule.next_due == now_ms + 30000);
  assert(!ctx.refresh_schedule.due(now_ms + 2000, true));
  assert(ctx.refresh_schedule.due(now_ms + 30000, true));
+ // An initial ACTIVITY open without an event window still owns the legacy retry.
+ ctx.entity_id = "camera.front"; ctx.refresh_schedule = {};
+ ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::ACTIVITY;
+ ctx.refresh_schedule.begin(now_ms, false); ctx.refresh_schedule.started();
+ ctx.next_download_retry_ms = 0;
+ image_card_handle_modal_download_error(&ctx);
+ assert(!ctx.refresh_schedule.window && !ctx.refresh_schedule.in_flight);
+ assert(ctx.next_download_retry_ms > now_ms && ctx.camera_download_errors > 0);
+ ctx.camera_download_errors = 0; ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::PERIODIC;
+ ctx.refresh_schedule.interval_ms = 30000;
  // Memory refusal happens before downloader I/O, but still belongs to the schedule.
  memory_available = false; ctx.refresh_schedule.begin(now_ms, false);
  cache.ready = true; modal.available = true;
