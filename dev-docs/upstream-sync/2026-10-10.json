@@ -2664,7 +2664,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2031",
       "mergeSha": "c314cbc43a11bde4c90e34a9ad7a4a9726ddecc1",
       "disposition": "Ported",
-      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending.",
+      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending. GitHub CI Gate and documentation checks passed.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "components/espcontrol/UNICODE-LICENSE.txt",
@@ -2792,7 +2792,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2065",
       "mergeSha": "9646561622236a8e288ae50b1ef2624ce2b37271",
       "disposition": "Ported",
-      "evidence": "Adapted to destination image/card capabilities; config, unit, TypeScript, migration, generated, browser and documentation checks passed. Physical testing pending.",
+      "evidence": "Adapted to destination image/card capabilities; config, unit, TypeScript, migration, generated, browser and documentation checks passed. Physical testing pending. GitHub CI Gate and documentation checks passed.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "docs/public/webserver/bundles/3b91a09186d262f0962d08ebdc73fde8efd0dca46bcee636b3ca01e6f15ffa46/www.js",
@@ -3481,7 +3481,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2098",
       "mergeSha": "7b43091ca77607fd23b96e8316ec1f5ab01aa76a",
       "disposition": "Ported",
-      "evidence": "Separate dependent port on #142; Cover Art contracts and both 4.3-inch P4 and P4-86 factory builds passed. Physical testing pending.",
+      "evidence": "Separate dependent port on #142; Cover Art contracts and both 4.3-inch P4 and P4-86 factory builds passed. Physical testing pending. GitHub CI Gate and documentation checks passed.",
       "changedFiles": [
         "components/espcontrol/cover_art.h",
         "scripts/check_cover_art_contract.py"
@@ -3856,13 +3856,14 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2127",
       "mergeSha": "99e786bb541d705b4c098869ff5f6abe5c7c29b0",
       "disposition": "Port in progress",
-      "evidence": "Adapted preserving Companion ownership and activation gates. Production routing test passes all display/saver/sleep-prevention combinations and rejects original behavior; playback-source and Cover Art contracts passed. Docs/commit and representative compile pending.",
+      "evidence": "Committed/pushed on #142 foundation. Production clock-routing regression passes and rejects original behavior; ownership, layout and docs checks passed. Exact-revision S3 factory compile running before publication.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "docs/features/media-cover-art.md"
       ],
       "branch": "show-artwork-over-clock",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142",
+      "revision": "ff4576898"
     },
     {
       "body": "## Summary\n\n- Make repository skills resolve the active worktree instead of relying on machine-specific checkout paths.\n- Keep display flashing on the currently selected branch and worktree.\n- Make merged-worktree cleanup recognize the actual Git worktree root when launched from a subdirectory.\n\n## Practical impact\n\nCompile, flashing, and cleanup workflows now target the checkout you are using, including linked worktrees. Flashing no longer switches to or pulls `main` as a side effect.\n\n## Documentation decision\n\n- [x] No docs needed because this does not change user-visible behavior/configuration.\n\nDocs notes:\n\nNo public or release-facing documentation is needed; this change updates maintainer skills and worktree safety behavior only.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is not required; explain why in Notes for testing.\n\n## Notes for testing\n\n- `git diff --check` passed.\n- Ran both bundled cleanup scripts in dry-run mode from a subdirectory in the feature worktree; each recognized the feature worktree as current and did not offer it for removal.\n- Device testing is not applicable to skill and workflow guidance changes.\n\n## PR status\n\n- [x] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -4446,7 +4447,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2171",
       "mergeSha": "18a216370274e8c168fd89a12e8fd22581cbece3",
       "disposition": "Ported",
-      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable.",
+      "evidence": "Individual ready-for-review port; targeted checks passed. Full firmware and physical testing remain pending where applicable. Exact-revision 10-inch V3 factory build passed; physical touch/cold-start testing pending.",
       "changedFiles": [
         "components/gsl3680/README.md",
         "components/gsl3680/gsl3680.cpp",
@@ -4456,7 +4457,17 @@
         "tests/firmware/gsl3680_startup_test.cpp",
         "tests/firmware/gsl3680_startup_test.py"
       ],
-      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/125"
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/125",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+          "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2171-firmware-v3.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\n- Add runtime Dark, Light and Auto theme support.\n- Add automatic switching by time or sunrise/sunset, including signed sunrise/sunset offsets.\n- Add persistent theme settings, Home Assistant controls and matching web preview support.\n- Refresh the existing UI in place so theme changes do not reset navigation, open modals or card state.\n\nRelated to #1216.\n\n## Practical impact\n\nUsers can switch between Dark and Light without rebooting, or select Auto to switch automatically.\n\nDark remains the default and preserves the existing appearance. Theme-owned neutral UI colours change with the selected theme, while user accent colours, functional/status colours, artwork, camera/image content, QR rendering and the configured clock text colour remain independent.\n\nAutomatic mode supports:\n\n- configurable Light and Dark times;\n- sunrise/sunset switching;\n- signed sunrise and sunset offsets.\n\nTheme settings can be changed from the panel web UI or Home Assistant.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated the Appearance documentation with Dark, Light and Auto modes, automatic switching, offsets, Home Assistant controls, backup/restore behaviour and theme-independent colours.\n\n## Screenshots\n\n### Device with light theme\n\n<img width=\"2631\" height=\"2634\" alt=\"PXL_20261007_174157330 RAW-01 MP~2\" src=\"https://github.com/user-attachments/assets/ad430fe8-c79a-4b74-8dc6-7ab5ea2f8d00\" />\n\n### Web settings and preview\n\n<img width=\"1081\" height=\"275\" alt=\"image\" src=\"https://github.com/user-attachments/assets/8b3510a3-d937-4a8a-9825-3973417e32de\" />\n<img width=\"593\" height=\"718\" alt=\"image\" src=\"https://github.com/user-attachments/assets/4acb8508-52a8-46e8-8a6f-cbea735b5863\" />\n\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- Shared theme/runtime code affects all supported displays.\n- Physically tested on:\n  - ESP32-P4 86\n  - JC8012P4A1 v2\n\n## Notes for testing\n\nAutomated validation included:\n\n- `npm run prepare:ci` \u2014 48/48 tasks passed\n- firmware host tests \u2014 80/80\n- web unit tests \u2014 153/153\n- web smoke checks \u2014 113/113\n- browser smoke across all nine layouts\n- documentation and installer validation\n- generated-source and firmware UI checks\n- `git diff --check`\n- final GitHub CI\n\nFirmware compile validation passed for:\n\n- `guition-esp32-p4-jc1060p470`\n- `guition-esp32-p4-jc4880p443`\n- `guition-esp32-s3-4848s040`\n- `esp32-p4-86`\n\nPhysical testing on ESP32-P4 86 and JC8012P4A1 v2 covered:\n\n- Dark \u2192 Light \u2192 Dark runtime switching\n- switching while remaining on the current page\n- subpages and modal state preservation\n- grid, controls, fan/climate modals and large option lists\n- custom accent/content colour preservation\n- artwork, cover art, camera/image and QR behaviour\n- clock/screensaver behaviour\n- Auto theme settings\n- Home Assistant controls and Active Theme state\n- reboot persistence\n- backup/restore\n\nA legacy backup restore issue found during physical testing was also corrected: rebuilt grid objects now have the current effective theme reapplied after restoration without changing the selected theme.\n\nSome implementation details intentionally differ from the original #1216 proposal: theme switching refreshes existing UI objects in place rather than rebuilding the full UI, and this PR also includes Auto mode and Home Assistant controls.\n\nPhysical validation was completed on ESP32-P4 86 and JC8012P4A1 v2. Representative firmware builds also passed for other supported chip families, but those devices were not physically tested.\n\n## Cover-art fallback update\n\n- Empty media cover-art cards now use the active theme on the main grid and subpages: white cards with dark-grey text in Light, and the existing dark colours in Dark.\n- The fallback refreshes at creation, on theme changes, and when artwork is shown, cleared or suppressed. Visible artwork retains its white text and contrast overlay.\n- The web preview fallback matches, and the embedded web assets have been rebuilt.\n- Latest local build checks: S3 `guition-esp32-s3-4848s040/dev.yaml` compiled with ESPHome 2026.9.1; `python3 scripts/build.py www` completed; `git diff --check` passed.\n- S3 flashed successfully over OTA with commit `2470e899d`; post-reboot reachability confirmed. Visual testing is still pending: check an idle/no-image cover-art card in Light, switch Dark \u2192 Light, and start/stop media with artwork to check text contrast and fallback restoration.\n\n## Settings card style update\n\n- The device Settings cards now use the main grid's card colours at creation and during theme changes: white with dark-grey content in Light and the original card colours in Dark. Card sizing, spacing, corners and shadow styling use the existing shared grid helpers.\n- Settings text colours come from the active theme, rather than copying a potentially accented/custom-coloured first card.\n- S3 firmware compilation with ESPHome 2026.9.1 and `git diff --check` passed. Rebased commit `a97eb36fa` flashed successfully to the S3 over OTA; post-reboot reachability confirmed. Visual testing remains pending: open Settings from the network icon, compare its cards with the main grid, then check Dark \u2192 Light \u2192 Dark while Settings is open.\n\n## Light theme background update\n\n- The Light theme screen background is `#E3E3E3`; clock-bar text remains dark grey for contrast. Other Light theme surfaces retain their existing colors, and the web preview matches.\n- The 10-inch V3 firmware compiled with ESPHome 2026.9.1 and flashed successfully over OTA with commit `41282ded8`. The display responded after reboot.\n- Visual testing is still needed: check the `#E3E3E3` background in Light mode, then switch to Dark and back to confirm the Dark palette remains unchanged.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully on ESP32-P4 86 and JC8012P4A1 v2.\n- [ ] Additional physical validation on other supported devices is welcome.\n- [ ] Ready for maintainer review.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
