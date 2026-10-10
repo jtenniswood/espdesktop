@@ -3462,14 +3462,32 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2098",
       "mergeSha": "7b43091ca77607fd23b96e8316ec1f5ab01aa76a",
       "disposition": "Port in progress",
-      "evidence": "Committed and pushed on #142 foundation. Host contracts passed; firmware validation queued/running before PR publication.",
+      "evidence": "Committed and pushed on #142 foundation. Host contracts and 4.3-inch P4 factory build passed on b695c6f93; P4-86 factory build running before PR publication.",
       "changedFiles": [
         "components/espcontrol/cover_art.h",
         "scripts/check_cover_art_contract.py"
       ],
       "branch": "enlarge-p4-playback-controls",
       "revision": "b695c6f93",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2098-firmware-p43.log"
+        },
+        {
+          "device": "esp32-p4-86",
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
+          "esphome": "2026.9.1",
+          "status": "running",
+          "log": "/private/tmp/2098-firmware-p486.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nThe JC8012P4A1 V3 firmware and WiFi co-processor update switches now use the shared enabled-by-default, persistent settings. Device-slot regeneration no longer reintroduces V3-specific off overrides. The separate V3 test build uses the same default while retaining its unpublished test manifest.\n\n## Practical impact\n\nNew JC8012P4A1 V3 installations will check for released firmware updates automatically, like V1 and V2. Users can still turn automatic updates off. The V3 setup guide, hardware comments, and MIPI driver notes now distinguish the released production profile from the earlier test build.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated V3 upgrade wording, V3 hardware labels, and driver usage notes.\n- Updated the test build guide to reflect enabled-by-default update switches.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- 10.1-inch JC8012P4A1 V3 production firmware; V3 test package configuration.\n\n## Notes for testing\n\n- Passed: `python3 scripts/check_device_profiles.py`\n- Passed: `python3 scripts/generate_device_slots.py --check`\n- Passed: `python3 scripts/check_device_matrix.py`\n- Passed: `git diff --check`\n- Please confirm on a JC8012P4A1 V3 that firmware and C6 automatic update switches start enabled and remain enabled after reboot. No physical-device test has been performed.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [x] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
