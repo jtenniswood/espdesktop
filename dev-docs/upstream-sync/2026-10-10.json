@@ -2715,8 +2715,8 @@
       "title": "Camera Refresh Control",
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Missing refresh policy confirmed; isolated port and destination generated contracts/assets under validation. Companion webapp icon path retained. Source remote-modal normalization fixture does not yet exist in destination and will be handled with the remote-modal port.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -2756,7 +2756,8 @@
         "tests/firmware/ha_read_coordinator_test.cpp",
         "tests/firmware/remote_modal_test.py",
         "tests/web/camera_name.test.ts"
-      ]
+      ],
+      "branch": "add-camera-refresh-settings"
     },
     {
       "body": "## Summary\n\n- Home Assistant `image.*` entities report their image-update timestamp as the entity state, while the `/api/image_proxy/` URL only changes when the access token rotates (every 5 minutes). The camera card treated a same-URL state update like any other repeat and held it behind the 30-second refresh guard (`IMAGE_CARD_MIN_REPEAT_REFRESH_MS`), so an image entity that Home Assistant updates every few seconds looked frozen on the panel: one download per token rotation plus at most one per 30 seconds.\n- Track the timestamp per image card (`image_entity_revision.h`). A new timestamp is a pending revision that bypasses the recent-refresh guard once, then is acknowledged when the tile or expanded-view download is issued. Repeated timestamps, `unknown`/`unavailable`, token rotation and camera entities keep the existing behaviour.\n- This is a small subset of the image-revision semantics in #1920, kept independent so it can land on its own and so the 4-inch S3 (which has camera cards since v2.10.0) gets it too. Fixes the \"picture does not update often\" case for image entities described in #1921.\n\n## Practical impact\n\n- An `image.*` camera card follows the entity's own update rate. On a Guition 4848S040 with a template image that refreshes every 10 seconds, the tile now reloads every 10 seconds instead of once a minute (verified by the panel log: `Downloading camera image for image.\u2026` every state change, no `Skipping recent image refresh`).\n- Nothing changes for `camera.*` entities, media cover art, or image entities whose state does not change.\n- No new settings, saved options, web configurator or backup changes.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- `docs/card-types/cameras.md`: added the image-entity bullet under \"How It Works on the Panel\" and extended the \"picture does not update often\" troubleshooting row.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- All camera-card displays; the change is in the shared `button_grid_image.h`. Device-tested on Guition 4848S040 (4-inch S3). P4 displays not tested by me.\n\n## Notes for testing\n\n- Host tests: new `image_entity_revision_test` passes; `firmware-card-runtime`, `firmware-parser`, `firmware-ha-bindings`, `generated`, `card-contract-outputs`, `dev-docs`, `docs-build`, `memory-monitor`, `camera-test-endpoint`, `pr-process`, `pr-testing-guidance` pass. (On macOS/clang seven pre-existing host tests fail identically on `main` because of `-Wunused-variable` under `-Werror`; not related.)\n- Firmware: `builds/guition-esp32-s3-4848s040.factory.yaml` compiled with the pinned ESPHome 2026.9.0 image and flashed OTA to a 4848S040.\n- To reproduce: a template `image` entity with a `time_pattern` trigger every 10 seconds on a Camera card; watch the panel log (`/events`) for `image_card: Downloading camera image` every 10 seconds while the card is visible, and `Skipping recent image refresh` no longer appearing for that entity. Token rotation still downloads as before.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n",
@@ -3239,8 +3240,8 @@
       "title": "Fix bright wake interval after the night clock schedule",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2089",
       "mergeSha": "4606e8113920c6e3f5594fb711313430e6a0db9b",
-      "disposition": "Port in progress",
-      "evidence": "Separate dependent worktree; source clock-to-idle handoff and runtime tests being validated, retaining the onboarding guard.",
+      "disposition": "Ported",
+      "evidence": "Separate dependent port on #152; all fast-profile checks including73 host tests, production callback/order/idle-action regressions and parent-behavior mutation passed. Onboarding guard retained; docs passed. Representative firmware and physical testing pending.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "dev-docs/display-lifecycle.md",
@@ -3248,7 +3249,9 @@
         "tests/firmware/display_schedule_test.cpp.in"
       ],
       "branch": "handoff-night-clock-to-idle",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/152"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/152",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/153",
+      "revision": "982653e44"
     },
     {
       "body": "## Purpose\nRestore the three voice audio files that older `esp32-p4-86` package versions download from `main`.\n\n## Impact\nUsers still building a release such as `v2.11.0` can resolve the wake chime, timer alert, and STT failure chime URLs after the files were removed with voice support. Current firmware configuration stays unchanged.\n\n## Checks\n- Confirmed all three files match the assets from `v2.11.0`.\n- ESPHome 2026.9.0 compiled the PR checkout's `devices/esp32-p4-86/dev.yaml` and OTA flashed the 4-inch P4 at `192.168.6.104` successfully; the device responded to ping after reboot.\n- The legacy `v2.11.0` package reproduction still needs verification after this PR is merged, when its `main` URLs will resolve to these restored assets.\n- Existing cover-art code emitted two deprecation warnings; compilation and upload succeeded.",
@@ -4266,13 +4269,23 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2136",
       "mergeSha": "25515bd9e51dc18146d240242bd2fd5dd23e72d1",
       "disposition": "Ported",
-      "evidence": "Separate ready port; actual landing guard tested with production controller for HA, Companion, modal/alarm and idle modes. Companion mutation rejects HA-only adaptation. Layout/backlight/HA/docs passed; S3 compile running; other representative compiles and physical tests pending.",
+      "evidence": "Separate ready port; actual landing guard tested with production controller for HA, Companion, modal/alarm and idle modes. Companion mutation rejects HA-only adaptation. Layout/backlight/HA/docs passed; S3 compile running; other representative compiles and physical tests pending. Exact-revision S3 factory build passed; P4 builds queued.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "tests/firmware/display_schedule_test.cpp.in"
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/151",
-      "revision": "158f27e56"
+      "revision": "158f27e56",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "158f27e56",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2136-firmware-s3.log"
+        }
+      ]
     },
     {
       "body": "## Purpose\nRelease preflight fails because preparing release web assets replaces the checked-in bundle manifest with metadata based on the currently published legacy bundle. The asset-manifest consistency check then compares that prepared manifest to the older release tag's retained bundle ID.\n\n## Change\nValidate the checked-in web asset manifest before release asset preparation, then mark that task as preverified in the post-preparation release preflight. The generated check and all other preflight tasks remain active.\n\n## Checks\n- `git diff --check` passed locally.\n- GitHub Actions will validate the release workflow change.\n",
@@ -5016,8 +5029,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 31,
-    "Needs review": 28,
+    "Ported": 32,
+    "Needs review": 27,
     "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
