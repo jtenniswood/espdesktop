@@ -2563,7 +2563,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2059-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -2853,7 +2853,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "6719dca764a7e15151b6a6cfc35f4ba143907678",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -2861,7 +2861,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "6719dca764a7e15151b6a6cfc35f4ba143907678",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2008-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -3210,7 +3210,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "95427ebd8d2111efc77b99f039d4aeb5273945e0",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -3218,7 +3218,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "95427ebd8d2111efc77b99f039d4aeb5273945e0",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/1920-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -3226,7 +3226,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "95427ebd8d2111efc77b99f039d4aeb5273945e0",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/1920-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -3466,7 +3466,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "1b4f14e7a76b269d7cae8e77c0b6e059287eb8a2",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -3474,7 +3474,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "1b4f14e7a76b269d7cae8e77c0b6e059287eb8a2",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2062-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -3482,7 +3482,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "1b4f14e7a76b269d7cae8e77c0b6e059287eb8a2",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2062-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -3723,7 +3723,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "0f2567de27ecc1d09a054e3715ec5bb87773af04",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -3899,7 +3899,41 @@
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/168",
       "branch": "remove-local-voice-alarm-audio",
-      "revision": "464bae166bf4f546df5bb427422118065b0522a2"
+      "revision": "464bae166bf4f546df5bb427422118065b0522a2",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "464bae166bf4f546df5bb427422118065b0522a2",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "464bae166bf4f546df5bb427422118065b0522a2",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "464bae166bf4f546df5bb427422118065b0522a2",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "464bae166bf4f546df5bb427422118065b0522a2",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        }
+      ]
     },
     {
       "body": "This adds independent **Tile Display** and **Tap Action** settings to Now Playing cards, so users can choose how a tile looks and what tapping it does.\n\nFor example, a tile can show playback progress while tapping anywhere toggles play/pause.\n\n| Setting | Options |\n|---|---|\n| Tile Display | Track Info, Progress, Playback State |\n| Tap Action | None, Play/Pause, Seek |\n\nSeek is available when Progress is selected. The progress fill uses the configured highlight colour while playing, advances in real time, and holds its position in grey when paused.\n\nThe change applies to the main grid and subpages. Documentation and regression tests cover the new settings, saved configurations, progress updates, and tap behavior.\n\n### Compatibility\n\nExisting saved cards and backups are supported without requiring users to recreate their cards. Display settings and explicit tap choices are preserved through saving and restoring. Legacy progress tiles default to Play/Pause; users can select Seek to seek through the title tile.\n\nAn optional embedded-editor package is included for testing unpublished branches with the matching web UI.\n\n### Validation\n\nThe web build, TypeScript checks, configuration tests, and focused compiled firmware regression tests pass. Full firmware compilation across all supported devices has not been completed.\n\nThe progress display and paused appearance have been tested on a Guition 4848S040.\n\n### Screenshot\n\n![Now Playing configuration with separate Tile Display and Tap Action settings](https://raw.githubusercontent.com/gage006/espcontrol/915a6df19b1bb3d140c45743f9f9d6f6ac9ac28d/docs/public/images/now-playing-settings.png)\n\nWould you be interested in including this configuration split? I'm happy to adjust the labels or behavior to fit the project's direction. ",
@@ -4067,7 +4101,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "d44c137570a7483daa6f7109848353c85e08b6f6",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2021-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -4333,7 +4367,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "2696cab9a5089a5df5c55cdd553b44df67bf5df4",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -4518,7 +4552,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "c055bb06a76c5adca7cb7c7eceb822ad29227e4e",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2086-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -4526,7 +4560,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "c055bb06a76c5adca7cb7c7eceb822ad29227e4e",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2086-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -4722,7 +4756,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "29f5be9d7765814bd12f27c8baf2de54898faed7",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2108-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -4865,7 +4899,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "a69f0c0ff1c8cbe401697fbd8dc84e8d274a4ced",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2107-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -4873,7 +4907,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "a69f0c0ff1c8cbe401697fbd8dc84e8d274a4ced",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2107-supplemental-latest-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -4881,7 +4915,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "a69f0c0ff1c8cbe401697fbd8dc84e8d274a4ced",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2107-supplemental-latest-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -5015,7 +5049,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "d3bf15ca60358d419c092a0ef7c30ce98d436ee9",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2131-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -5173,7 +5207,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2109-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -5181,7 +5215,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2109-supplemental-latest-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -5189,7 +5223,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2109-supplemental-latest-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -5197,7 +5231,7 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2109-supplemental-latest-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
@@ -6049,7 +6083,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "e52a136f19c9df4631e42141b762f7bb9abe495d",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2183-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -6306,8 +6340,8 @@
       "title": "Add optional date below the clock screensaver",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2184",
       "mergeSha": "c6c07459c4af4cb9b9285e49363377883e9c9e51",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Optional localized clock date, persistence/backups and bounded clock/date drift ported. Adapted Timer/Sensor/App Connection unique controls and shared state; preserve destination timezone-first refresh. Full fast74 host/172 web checks, S3 Chromium acceptance and docs passed. Production rollover/fallback/layout bounds and App Connection synchronization verified. Three representative compiles queued; physical testing pending. Depends on destination PR164. Source-only 4.3-inch V3 profile awaits separate2158 port.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/addon/backlight_schedule.yaml",
@@ -6345,6 +6379,35 @@
         "src/webserver/state/types.ts",
         "tests/firmware/clock_screensaver_time_test.py",
         "tests/web/state_contract.test.ts"
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/169",
+      "branch": "show-screensaver-date",
+      "revision": "756522a86902c510049a65fb9f71ceb98585f8c6",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "756522a86902c510049a65fb9f71ceb98585f8c6",
+          "status": "planned",
+          "log": "/private/tmp/2184-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "756522a86902c510049a65fb9f71ceb98585f8c6",
+          "status": "planned",
+          "log": "/private/tmp/2184-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "756522a86902c510049a65fb9f71ceb98585f8c6",
+          "status": "planned",
+          "log": "/private/tmp/2184-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        }
       ]
     }
   ],
@@ -6352,8 +6415,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 47,
-    "Needs review": 13
+    "Ported": 48,
+    "Needs review": 12
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
