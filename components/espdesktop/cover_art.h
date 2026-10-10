@@ -410,7 +410,10 @@ struct PlaybackButtonLayout {
 inline PlaybackButtonLayout playback_button_layout(const Layout &layout, int title_line_height = 0,
                                                    int title_line_space = 0) {
   const int short_side = std::min(layout.screen_width, layout.screen_height);
-  const int size = std::clamp(short_side / 5, 80, 112);
+  const int default_size = std::clamp(short_side / 5, 80, 112);
+  const int size = layout.screen_width == 720 && layout.screen_height == 720
+      ? 144
+      : short_side == 480 && layout.split ? 112 : default_size;
   const int margin = std::clamp(short_side / 20, 24, 40);
   int width = layout.panel_width;
   int height = layout.panel_height;
