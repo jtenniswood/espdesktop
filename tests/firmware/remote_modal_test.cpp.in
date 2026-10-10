@@ -161,6 +161,15 @@ bool navigation_activate_home_target(NavigationHomeTargetEntry *target, lv_obj_t
 #include "button_grid_remote_modal.h"
 
 int main() {
+  alarm = true;
+  const int closes_before_alarm_navigation = closes;
+  for (const auto *target : {"home", "Kitchen", "voice"}) invoke_remote_navigation(target);
+  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
+  assert(closes == closes_before_alarm_navigation);
+  alarm = false;
+  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen"); invoke_remote_navigation("voice");
+  assert(remote_navigation_calls == 2 && remote_voice_calls == 1);
+
   struct Case { const char *type; const char *mode; const char *entity; ControlModalKind kind; };
   const Case cases[] = {
     {"light_control", "", "light.office", ControlModalKind::LIGHT_CONTROL},

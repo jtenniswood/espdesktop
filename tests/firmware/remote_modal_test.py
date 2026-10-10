@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import subprocess
 import tempfile
+import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 HEADERS = ROOT / 'components/espdesktop'
@@ -69,6 +70,20 @@ for driver in ['light_control', 'cover_modal', 'climate_control', 'fan_control',
     helpers += function('button_grid_' + driver + '_driver.h', driver + '_driver_modal_target')
 helpers += '}\n'
 helpers += function('button_grid_grid.h', 'grid_release_runtime_allocations')
+config = yaml.safe_load((ROOT / 'common/device/api_remote_actions.yaml').read_text())
+navigate = next(script for script in config['script'] if script['id'] == 'remote_navigate')
+body = next(action['lambda'] for action in navigate['then'] if 'lambda' in action)
+body = body.replace('${navigate_voice_target_code}', '++remote_voice_calls;')
+helpers += r"""
+int remote_navigation_calls = 0, remote_voice_calls = 0;
+bool navigation_is_voice_target(const std::string &target) { return target == "voice"; }
+bool navigation_has_home_label_target(const std::string &) { return false; }
+bool espdesktop_navigate(const std::string &, lv_obj_t *) { ++remote_navigation_calls; navigation_hide_modals(); return true; }
+struct TestPage { lv_obj_t *obj; } test_main_page{&home};
+auto *main_page = &test_main_page;
+#define id(x) x
+void invoke_remote_navigation(std::string target) {
+""" + body + '\n}\n'
 source = source.replace('// PRODUCTION_HOOKS', helpers)
 with tempfile.TemporaryDirectory(prefix='remote-modal-test-') as directory:
     cpp = Path(directory) / 'test.cpp'
