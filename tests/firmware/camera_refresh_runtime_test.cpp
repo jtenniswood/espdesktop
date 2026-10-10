@@ -109,9 +109,10 @@ std::string image_card_join_url(const std::string &, const std::string &s) { ret
 bool use_proxy = false, prefer_local = false;
 std::string image_card_entity_proxy_path(const std::string &) { return use_proxy ? "/camera" : ""; }
 bool image_card_prefer_local_picture(ImageCardCtx *) { return prefer_local; }
-std::string image_card_proxy_path_with_token(const std::string &s, const std::string &) { return s; }
+std::string image_card_proxy_path_with_token(const std::string &s, const std::string &token) { return s + "?token=" + token; }
 bool image_card_valid_access_token(const std::string &token) { return !token.empty(); }
-bool image_card_home_assistant_proxy_authed(const std::string &) { return true; }
+bool require_proxy_token = false;
+bool image_card_home_assistant_proxy_authed(const std::string &url) { return !require_proxy_token || url.find("?token=") != std::string::npos; }
 bool cached_read = false, pending_read = false;
 std::function<void(std::string)> deferred_picture;
 int picture_reads = 0;
@@ -159,7 +160,7 @@ void image_card_request_current_picture(ImageCardCtx *) {}
 #include "camera_refresh_runtime_functions.h"
 
 void reset() {
-  cached_read = pending_read = prefer_local = use_proxy = false;
+  cached_read = pending_read = prefer_local = use_proxy = require_proxy_token = false;
   deferred_picture = {}; picture_reads = 0;
   contexts[0] = {};
   contexts[1] = {};
@@ -272,6 +273,15 @@ int main() {
   reset(); cached_read = true; use_proxy = true;
   image_card_request_picture(&ctx);
   assert(ctx.next_picture_retry_ms == 0 && !ctx.access_token_request_pending);
+  reset(); cached_read = true; require_proxy_token = true;
+  image_card_handle_picture(&ctx, "/camera");
+  assert(picture_reads == 1 && !ctx.access_token.empty() && !ctx.access_token_request_pending);
+  assert(ctx.next_picture_retry_ms == 0); // Cached token recursively delivers a usable picture.
+  reset(); pending_read = true; require_proxy_token = true;
+  image_card_handle_picture(&ctx, "/camera");
+  assert(ctx.access_token_request_pending && ctx.next_picture_retry_ms == esphome::now + 2000);
+  deferred_picture("valid-token");
+  assert(!ctx.access_token_request_pending && ctx.next_picture_retry_ms == 0);
   reset(); pending_read = true;
   image_card_request_picture(&ctx);
   assert(ctx.next_picture_retry_ms == esphome::now + 2000 && deferred_picture);

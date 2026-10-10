@@ -2600,6 +2600,7 @@ inline void image_card_handle_picture(ImageCardCtx *ctx, esphome::StringRef pict
     const uint32_t generation = ha_subscription_generation();
     ctx->access_token_request_pending = true;
     ctx->access_token_request_started_ms = esphome::millis();
+    image_card_wait_for_picture(ctx);
     bool requested = ha_read_retained_attribute(
       entity_id,
       std::string("access_token"),
@@ -2620,10 +2621,7 @@ inline void image_card_handle_picture(ImageCardCtx *ctx, esphome::StringRef pict
         }),
       ctx
     );
-    if (requested) {
-      image_card_wait_for_picture(ctx);
-      return;
-    }
+    if (requested) return;
     ctx->access_token_request_pending = false;
     ctx->access_token_request_started_ms = 0;
   }
