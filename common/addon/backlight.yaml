@@ -512,6 +512,7 @@ script:
                 id(media_player_sleep_prevention_enabled).state &&
                 id(media_player_playing);
             if (leaving_scheduled_clock && !onboarding && !waiting_for_time &&
+                !id(screensaver_wake).is_running() &&
                 (id(screensaver_mode).state == "timer" || sensor_idle) &&
                 !playback_prevents_sleep) {
               const auto idle_mode = id(screensaver_action_clock)

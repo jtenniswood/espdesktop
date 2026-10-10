@@ -228,6 +228,15 @@ int main() {
     display_mode_reconcile.execute(); advance(500);
     assert(controller.current_mode_is(DisplayMode::ACTIVE));
   }
+  // A tap after the boundary must wake even before stale schedule ownership clears.
+  for (bool fast_first : {false, true}) {
+    reset(); clock_time.hour = 12; screensaver_wake.running = true;
+    (fast_first ? display_mode_reconcile : screen_schedule_check).execute();
+    (fast_first ? screen_schedule_check : display_mode_reconcile).execute(); advance(1000);
+    assert(controller.current_mode_is(DisplayMode::ACTIVE));
+    assert(!controller.request_active(DisplayRequestSource::IDLE_TIMER));
+    screensaver_wake.running = false;
+  }
   // Losing time must stay fail-dark without creating a stale daytime idle request.
   for (bool fast_first : {false, true}) {
     reset(); clock_time.hour = 12; clock_time.valid = false;
