@@ -996,12 +996,14 @@ int main() {
   navigation_subpages().clear();
   test_registry_exhaustion();
   for (auto &binding : theme_refresh_bindings()) binding = {};
-  lv_obj_t time_label, voice_label;
-  register_theme_hud(nullptr, &time_label, nullptr, nullptr, &voice_label);
+  lv_obj_t time_label, voice_label, battery_label;
+  register_theme_hud(nullptr, &time_label, nullptr, nullptr, &voice_label, &battery_label);
   set_active_theme_palette(LIGHT_THEME); apply_current_theme();
   assert(time_label.text.full == LIGHT_THEME.clockbar_text);
   assert(voice_label.text.full == LIGHT_THEME.clockbar_text);
+  assert(battery_label.text.full == LIGHT_THEME.clockbar_text);
   set_active_theme_palette(DARK_THEME); apply_current_theme();
   assert(voice_label.text.full == DARK_THEME.clockbar_text);
+  assert(battery_label.text.full == DARK_THEME.clockbar_text);
   unregister_theme_refresh(&time_label); theme_hud_targets() = {};
 }
