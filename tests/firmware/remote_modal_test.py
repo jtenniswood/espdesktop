@@ -69,6 +69,7 @@ for driver in ['light_control', 'cover_modal', 'climate_control', 'fan_control',
                'numeric_selectable', 'media', 'image', 'alarm', 'wifi_qr']:
     helpers += function('button_grid_' + driver + '_driver.h', driver + '_driver_modal_target')
 helpers += '}\n'
+helpers += function('button_grid_navigation.h', 'navigation_close_modals_for_display_takeover')
 helpers += function('button_grid_grid.h', 'grid_release_runtime_allocations')
 config = yaml.safe_load((ROOT / 'common/device/api_remote_actions.yaml').read_text())
 navigate = next(script for script in config['script'] if script['id'] == 'remote_navigate')

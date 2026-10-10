@@ -185,6 +185,10 @@ inline bool espdesktop_open_subpage(const std::string &label, bool ui_ready,
 }
 
 inline bool espdesktop_close_subpage(lv_obj_t *main_page_obj) {
+  if (screen_lock_enabled()) {
+    ESP_LOGW("close_subpage", "Rejected request: screen is locked");
+    return false;
+  }
   if (alarm_display_takeover_active()) {
     ESP_LOGW("close_subpage", "Rejected request: alarm display is active");
     return false;

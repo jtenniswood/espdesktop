@@ -245,6 +245,7 @@ void navigation_hide_modals() {
   CHECK(media_control_modal_ui().active == nullptr);
   CHECK(media_volume_modal_ui().active == nullptr);
 }
+void navigation_close_modals_for_display_takeover() { navigation_hide_modals(); }
 struct GridRuntimeAllocation { lv_obj_t *owner; void *ptr; void (*deleter)(void *); };
 
 #include "media_lifecycle_production.h"

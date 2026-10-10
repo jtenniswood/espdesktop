@@ -135,6 +135,10 @@ bool wifi_qr_payload_from_config(const ParsedCfg &config, std::string *payload,
 }
 void control_modal_close_nested_menu() {}
 void control_modal_force_close_active() { navigation_hide_modals(); }
+void control_modal_close_for_display_takeover(bool preserve) {
+  if (preserve && modal.kind == ControlModalKind::ALARM_CONTROL) return;
+  control_modal_force_close_active();
+}
 std::string navigation_lower(const std::string &value) {
   std::string lowered = value;
   for (char &character : lowered) character = static_cast<char>(std::tolower(character));
@@ -334,5 +338,17 @@ int main() {
   allocations.push_back({&one, &first, [](void *) { assert(!modal.overlay); }});
   grid_release_runtime_allocations(&one);
   assert(!modal.overlay && allocations.empty() && current_page == &other_page);
+  // Releasing an unrelated grid owner must not dismiss critical alarm controls.
+  alarm = true;
+  alarm_control_open_modal(&first);
+  allocations.push_back({&two, &second, [](void *) { assert(modal.overlay); }});
+  grid_release_runtime_allocations(&two);
+  assert(modal.overlay && modal.kind == ControlModalKind::ALARM_CONTROL && allocations.empty());
+  alarm = false; navigation_hide_modals();
+  active_subpage_slot = 3; current_page = &other_page; locked = true;
+  assert(!espdesktop_close_subpage(&home));
+  assert(active_subpage_slot == 3 && current_page == &other_page);
+  locked = false;
+  assert(espdesktop_close_subpage(&home) && active_subpage_slot == 0 && current_page == &home);
   return 0;
 }

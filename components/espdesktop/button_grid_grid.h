@@ -1033,7 +1033,7 @@ inline void grid_phase1(
   ESP_LOGI("sensors", "Phase 1: visual setup start (%lu ms)", esphome::millis());
   grid_phase2_complete_state() = false;
   // Remote controls may be open over a non-grid page when widgets are rebuilt.
-  navigation_hide_modals();
+  navigation_close_modals_for_display_takeover();
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
@@ -1507,7 +1507,7 @@ inline void grid_release_runtime_allocations(
     void *preserve_secondary = nullptr) {
   if (owner == nullptr) return;
   // Close before any context is freed, including an inactive subpage's owner.
-  navigation_hide_modals();
+  navigation_close_modals_for_display_takeover();
   std::vector<GridRuntimeAllocation> &allocations = grid_runtime_allocations();
   size_t write_index = 0;
   for (size_t read_index = 0; read_index < allocations.size(); read_index++) {
