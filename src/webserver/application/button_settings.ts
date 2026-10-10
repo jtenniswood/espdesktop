@@ -1,6 +1,6 @@
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
-import { configOptionValue, setCardColor } from "../model/config_primitives";
+import { configOptionValue, setCardColor, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
 import { iconSlug, mdiIcon, textSpan } from "./ui_primitives";
@@ -612,6 +612,7 @@ export function createButtonSettingsFeature(
             draft.autoSelectedButton = null;
         }
         function selectCardType(this: any, newType?: any) {
+            var previousCardOptions = b.options;
             var pickerType: any = newType;
             newType = defaultButtonTypeForPicker(newType);
             var wasNewDraftWithoutType: any = isNewDraft && state.settingsDraft &&
@@ -643,6 +644,7 @@ export function createButtonSettingsFeature(
                 b.precision = "";
                 b.options = "";
             }
+            b.options = preserveCardColorOptions(previousCardOptions, b.options);
             if (wasNewDraftWithoutType && state.settingsDraft && state.settingsDraft.key === draftKey) {
                 state.settingsDraft.autoSelectedButton = cloneButtonConfig(b);
             }
