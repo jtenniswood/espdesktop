@@ -50,6 +50,8 @@ class HomeAssistantEndpointResolver {
   std::string protocol_{"http"};
   uint16_t port_{8123};
   std::string client_address_, manual_host_, origin_;
+  std::string verified_peer_, verified_origin_;
+  home_assistant_endpoint::Source verified_source_{home_assistant_endpoint::Source::DISCOVERING};
   std::string status_{"Discovering"}, health_{"Checking connection"};
   home_assistant_endpoint::Source source_{home_assistant_endpoint::Source::DISCOVERING};
   ChangeCallback change_callback_;

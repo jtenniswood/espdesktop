@@ -38,6 +38,15 @@ void HomeAssistantEndpointResolver::configure(const std::string &mode,
   const uint16_t next_port = port ? port : 8123;
   if (next_mode == mode_ && next_protocol == protocol_ && next_port == port_ &&
       next_client == client_address_ && next_manual_host == manual_host_) return;
+  // Disconnect clears the published destination, but not a verified endpoint
+  // belonging to that peer. Never carry it to another peer or settings policy.
+  if (mode_ != Mode::AUTOMATIC || next_mode != Mode::AUTOMATIC ||
+      next_protocol != protocol_ || next_port != port_ ||
+      (!next_client.empty() && next_client != verified_peer_)) {
+    verified_peer_.clear();
+    verified_origin_.clear();
+  }
+  const bool restore_verified_origin = !next_client.empty() && next_client == verified_peer_;
   const bool same_client = next_client == client_address_;
   const bool preserve_automatic_origin = same_client &&
       mode_ == Mode::AUTOMATIC && next_mode == Mode::AUTOMATIC;
@@ -60,7 +69,9 @@ void HomeAssistantEndpointResolver::configure(const std::string &mode,
   } else {
     health_ = "Checking connection";
     // An old host must never remain a token-bearing destination after reconnect.
-    publish(preserve_automatic_origin ? origin_ : std::string(), Source::DISCOVERING);
+    publish(restore_verified_origin ? verified_origin_ :
+            preserve_automatic_origin ? origin_ : std::string(),
+            restore_verified_origin ? verified_source_ : Source::DISCOVERING);
     next_query_ms_ = esphome::millis();
   }
 }
@@ -169,6 +180,11 @@ void HomeAssistantEndpointResolver::process_probe(uint32_t now) {
       }
       health_ = "Connection checked";
       publish(candidate.origin, candidate.source);
+      if (mode_ == Mode::AUTOMATIC) {
+        verified_peer_ = client_address_;
+        verified_origin_ = candidate.origin;
+        verified_source_ = candidate.source;
+      }
       next_query_ms_ = now + RETRY_DELAYS_MS[2];
       return;
     }

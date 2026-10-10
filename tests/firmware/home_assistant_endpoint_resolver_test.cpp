@@ -154,6 +154,17 @@ int main() {
   assert(same_peer_probe.calls.back() == "https://10.20.30.40:9443");
   same_peer_probe.reply(EndpointProbeOutcome::READY, 200); same_peer.loop();
   assert(same_peer.origin() == "https://10.20.30.40:9443" && same_peer.health() == "Connection checked");
+  // Real API disconnect-first path clears the peer before its replacement arrives.
+  same_peer.configure("Automatic", "http", 8123, "");
+  same_peer.invalidate_connection();
+  assert(same_peer.origin().empty());
+  same_peer.configure("Automatic", "http", 8123, "10.20.30.40");
+  same_peer.invalidate_connection();
+  same_peer.accept_discovery({}); same_peer.loop();
+  assert(same_peer_probe.calls.back() == "https://10.20.30.40:9443");
+  same_peer_probe.reply(EndpointProbeOutcome::READY, 200); same_peer.loop();
+  assert(same_peer.origin() == "https://10.20.30.40:9443");
+  same_peer.configure("Automatic", "http", 8123, "");
   same_peer.configure("Automatic", "http", 8123, "10.20.30.41");
   same_peer.accept_discovery({}); same_peer.loop();
   assert(same_peer_probe.calls.back() == "http://10.20.30.41:8123");
