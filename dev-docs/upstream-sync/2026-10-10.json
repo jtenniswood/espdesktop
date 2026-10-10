@@ -2663,8 +2663,8 @@
       "title": "Fix fullwidth media titles and hide emoji",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2031",
       "mergeSha": "c314cbc43a11bde4c90e34a9ad7a4a9726ddecc1",
-      "disposition": "Port in progress",
-      "evidence": "Committed/pushed. Production renderer and text regressions, bindings and docs passed; exact-revision S3 factory build running before PR publication.",
+      "disposition": "Ported",
+      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "components/espcontrol/UNICODE-LICENSE.txt",
@@ -2683,7 +2683,18 @@
         "tests/firmware/media_display_text_test.cpp"
       ],
       "branch": "normalize-media-display-text",
-      "revision": "27dcbdc89"
+      "revision": "27dcbdc89",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/147",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "27dcbdc89",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2031-firmware-s3.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nCamera cards now refresh on motion or doorbell activity while visible, and continue refreshing when expanded. Periodic refresh remains available for expanded views. Existing cards default to Off. Home Assistant image entities use their image-update timestamp so a changed image reloads at the same URL, while credential rotation alone does not download an unchanged image.\n\nRelated issue: https://github.com/jtenniswood/espcontrol/issues/1921\n\nRelated research: https://github.com/jtenniswood/espcontrol/discussions/1818\n\n## Practical impact\n\n- Camera card > Refresh Settings > Camera refresh: Off, Periodic (expanded view, 5/10/30 seconds), or On activity.\n- Activity accepts a binary sensor or event entity, refreshes at five-second intervals for 30 seconds, and extends the window on another activation.\n- Activity refresh downloads use the visible tile or expanded view. Switching between them preserves the 30-second window. Hidden cards, other modals, screen-off and screensavers stop activity downloads; hidden events do not replay on return.\n- Downloads remain serialized, retain the last image on errors, and back off on failures. Refreshes do not wake the display, extend Home Screen Timeout, or replay old doorbell events after reconnecting.\n- Main-page and subpage settings survive save/load and backups. Obsolete refresh options remain ignored.\n- No video, automatic camera opening, or screensaver changes. S3 camera support remains outside this branch.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes:\n\nCamera docs explain modes, trigger semantics, timing, and integration-dependent image freshness.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nAffected display/device, if applicable:\n\n- All P4 camera displays; primary tests on Guition JC1060P470 (7-inch) and JC8012P4A1 (10-inch). Shared image regression checks on JC4880P443 (4.3-inch P4) and 4848S040 (4-inch S3).\n\nAutomated validation for commit `648756dd8`:\n\n- Fast checks passed, including 56 firmware host tests; product checks, documentation build, and GitHub CI passed.\n- Runtime tests exercise the production trigger, tile downloader, failure handler, and maintenance loop: five-second completion timing, slow downloads, failure backoff, low-memory retries, queued-request expiry, reconnect baselines, hidden events, screen-off, shared-modal ownership, and tile/expanded transitions.\n- The 10-inch P4 browser suite passed with Refresh Settings outside Modal Settings and conditional controls/trigger validation.\n- ESPHome 2026.8.2 factory compilation passed for the original 10-inch JC8012P4A1, 7-inch JC1060P470, 4.3-inch JC4880P443, and 4-inch S3 4848S040.\n- Existing saved activity settings carry over without changing the serialized option keys. Periodic refresh remains expanded-only.\n\n## Notes for testing\n\nTest branch: `improve-camera-refresh`. Flash firmware built from this branch; main is unchanged.\n\nPrimary displays: Guition JC1060P470 7-inch P4 and Guition JC8012P4A1 10-inch P4. Also check shared image/cover-art behaviour on the 4.3-inch P4 and 4-inch S3.\n\n1. Confirm existing cards remain Off. Open a timestamped camera and try Periodic at 5, 10, and 30 seconds; allow for download time.\n2. Select On activity with a motion sensor or doorbell event. Keep the tile visible and activate the trigger: confirm 30 seconds of tile refreshes, extension on another activation, and no repeated window merely because motion stays on.\n3. Open and close the camera during the activity window: refreshes should follow the visible view without restarting the window. Navigate away, open another modal, turn the display off, or enter a screensaver: activity requests should stop. Trigger while hidden and return: old events should not replay. Confirm Home Screen Timeout still expires and no older camera image appears in another camera.\n4. Interrupt Home Assistant connectivity and reconnect. Confirm old doorbell events are not replayed and the last image remains visible during failures.\n5. Test a changing `image.*` source, including unchanged picture URLs; verify only reported revisions reload automatically.\n6. Exercise main/subpage cards and backup/restore. Leave refresh enabled for at least 15 minutes and check for flicker, restarts, or progressive memory loss.\n\nPhysical device testing has not been performed for this branch. Compilation is not confirmation of the on-device experience.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [x] Ready for device test.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -3286,8 +3297,8 @@
       "title": "Add 3\u00d72 and 2\u00d73 card sizes on square screens",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2087",
       "mergeSha": "50166a17027458ad73582865900f0e4387f76df3",
-      "disposition": "Port in progress",
-      "evidence": "Separate worktree on #145; square-grid save/transfer and Companion/Wi-Fi checks being validated.",
+      "disposition": "Ported",
+      "evidence": "Separate dependent port; square-grid save/transfer, Companion and Wi-Fi regressions, all172 unit tests, types, generated, manifest, migration, S3 browser and docs passed. Physical testing pending.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "docs/public/webserver/bundles/5b5062d6c3e6a948d79d6e1c5370be2f329b0d2af1582c63edcf43bdf09fd39c/www.js",
@@ -3298,7 +3309,10 @@
         "src/webserver/application/preview_context_menu.ts",
         "src/webserver/testing/app_test_hooks_config.ts"
       ],
-      "branch": "square-grid-large-card-sizes"
+      "branch": "square-grid-large-card-sizes",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/148",
+      "revision": "39eaebc80",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/145"
     },
     {
       "body": "## Purpose\nCast the LVGL part and state enum values to the selector type before combining them in the two pressed-state style calls. This removes the deprecated enum-enum conversion warning during firmware compilation.\n\n## Impact\nNo runtime behavior changes. The pressed button styling remains the same.\n\n## Checks\n- `git diff --check` passed.\n- JC4880P443 factory firmware compiled successfully with ESPHome 2026.9.0 (`guition-esp32-p4-jc4880p443.factory.yaml`).",
@@ -3841,12 +3855,14 @@
       "title": "Skip cover art delay over clock screensaver",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2127",
       "mergeSha": "99e786bb541d705b4c098869ff5f6abe5c7c29b0",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Adapted preserving Companion ownership and activation gates. Production routing test passes all display/saver/sleep-prevention combinations and rejects original behavior; playback-source and Cover Art contracts passed. Docs/commit and representative compile pending.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "docs/features/media-cover-art.md"
-      ]
+      ],
+      "branch": "show-artwork-over-clock",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142"
     },
     {
       "body": "## Summary\n\n- Make repository skills resolve the active worktree instead of relying on machine-specific checkout paths.\n- Keep display flashing on the currently selected branch and worktree.\n- Make merged-worktree cleanup recognize the actual Git worktree root when launched from a subdirectory.\n\n## Practical impact\n\nCompile, flashing, and cleanup workflows now target the checkout you are using, including linked worktrees. Flashing no longer switches to or pulls `main` as a side effect.\n\n## Documentation decision\n\n- [x] No docs needed because this does not change user-visible behavior/configuration.\n\nDocs notes:\n\nNo public or release-facing documentation is needed; this change updates maintainer skills and worktree safety behavior only.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is not required; explain why in Notes for testing.\n\n## Notes for testing\n\n- `git diff --check` passed.\n- Ran both bundled cleanup scripts in dry-run mode from a subdirectory in the feature worktree; each recognized the feature worktree as current and did not offer it for removal.\n- Device testing is not applicable to skill and workflow guidance changes.\n\n## PR status\n\n- [x] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -4118,8 +4134,8 @@
       "title": "Fix installer hardware version chevron spacing",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2151",
       "mergeSha": "e2a921229f2fa7b26ccb8050a591c2083550a9cd",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Not applicable",
+      "evidence": "CSS chevron change targets multi-panel EspInstallSelector. Destination public install renders only generated 4848S040 instructions and does not reference this selector; hardware-version dropdown is absent. Confirmed no Markdown references in latest-main worktree.",
       "changedFiles": [
         "docs/.vitepress/theme/components/EspInstallSelector.vue"
       ]
@@ -4948,11 +4964,11 @@
   ],
   "counts": {
     "Already present": 72,
-    "Not applicable": 10,
+    "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 25,
-    "Needs review": 34,
-    "Port in progress": 2
+    "Ported": 27,
+    "Needs review": 32,
+    "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
