@@ -560,3 +560,21 @@ target_include_directories(camera_refresh_policy_test PRIVATE ../../components/e
 add_test(NAME camera_refresh_policy_test COMMAND camera_refresh_policy_test)
 add_test(NAME camera_refresh_runtime_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_refresh_runtime_test.py)
+
+
+add_executable(home_assistant_endpoint_resolver_test
+  home_assistant_endpoint_resolver_test.cpp
+  ../../components/espdesktop/home_assistant_endpoint_resolver.cpp
+  ../../components/espdesktop/home_assistant_endpoint_probe.cpp)
+target_compile_features(home_assistant_endpoint_resolver_test PRIVATE cxx_std_17)
+target_compile_options(home_assistant_endpoint_resolver_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(home_assistant_endpoint_resolver_test PRIVATE endpoint_stubs ../../components/espdesktop)
+add_test(NAME home_assistant_endpoint_resolver_test COMMAND home_assistant_endpoint_resolver_test)
+
+add_executable(home_assistant_endpoint_probe_test
+  home_assistant_endpoint_probe_test.cpp ../../components/espdesktop/home_assistant_endpoint_probe.cpp)
+target_compile_features(home_assistant_endpoint_probe_test PRIVATE cxx_std_17)
+target_compile_options(home_assistant_endpoint_probe_test PRIVATE -Wall -Wextra -Werror)
+target_compile_definitions(home_assistant_endpoint_probe_test PRIVATE USE_ESP_IDF)
+target_include_directories(home_assistant_endpoint_probe_test PRIVATE endpoint_idf_stubs endpoint_stubs ../../components/espdesktop)
+add_test(NAME home_assistant_endpoint_probe_test COMMAND home_assistant_endpoint_probe_test)
