@@ -28,7 +28,11 @@ namespace esphome {
 uint32_t millis() { return now_ms; }
 using StringRef = std::string;
 namespace artwork_image {
+enum class ImageResizeMode { FIT, COVER };
 struct ArtworkImage {
+ void set_target_size(int, int) {}
+ void set_resize_mode(ImageResizeMode) {}
+ std::string request_update_url(const std::string &url, int) { return url; }
  bool available = true; int released = 0, cancelled = 0;
  bool has_image() { return available; }
  int get_width() { return 320; } int get_height() { return 240; }
@@ -56,7 +60,7 @@ struct ImageCardCtx {
  std::string modal_url = "snapshot", modal_source_url = "snapshot";
  std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;
  bool requested_once = false, access_token_request_pending = false, camera_refresh_pending = false;
- bool scheduled_tile_request = false;
+ bool scheduled_tile_request = false, explicit_picture_refresh = false;
  bool media_artwork_refresh_forced = false;
  uint32_t retry_deadline_ms = 0, media_artwork_retry_mask = 0, media_artwork_timeout_retries = 0;
  uint32_t revision_retry_ms = 0;
@@ -107,7 +111,7 @@ void image_card_show_modal_loading(ImageCardCtx *, const char *s) { modal_status
 void image_card_clear_widget_source(Widget *) { ++cleared; }
 void image_card_hide_loading(ImageCardCtx *) { tile_status.clear(); }
 void image_card_release_download_slot(ImageCardCtx *c) { c->download_active = false; }
-void image_card_log_diagnostics(ImageCardCtx *, const char *) {}
+void image_card_log_diagnostics(ImageCardCtx *, const char *, int = 0, int = 0) {}
 bool image_card_startup_retry_active(ImageCardCtx *, uint32_t) { return true; }
 void image_card_cancel_modal_request_timer() {}
 enum class ControlModalKind { NONE, IMAGE_CARD };
@@ -135,6 +139,16 @@ bool image_card_has_separate_modal_image(ImageCardCtx *ctx) { return ctx->modal_
 bool image_card_apply_modal_geometry(ImageCardCtx *, Image *) { return true; }
 bool image_card_modal_has_preview(ImageCardCtx *ctx) { return ctx->modal_image->has_image(); }
 void image_card_show_modal_download_failure(ImageCardCtx *) {}
+bool image_card_modal_refresh_supported() { return true; }
+using lv_coord_t = int;
+void lv_obj_update_layout(Widget *) {}
+int lv_obj_get_width(Widget *) { return 320; }
+int lv_obj_get_height(Widget *) { return 240; }
+void image_card_limit_target_size(int w, int h, int *width, int *height) { *width=w; *height=h; }
+bool memory_available = true;
+bool image_card_memory_available(ImageCardCtx *, const char *, int, int) { return memory_available; }
+std::string image_card_sized_url(const std::string &url, int, int) { return url; }
+void image_card_preempt_active_tile_for_modal() {}
 void notify_dashboard_content_changed() {}
 constexpr uint32_t IMAGE_CARD_STARTUP_DOWNLOAD_RETRIES = 10;
 constexpr int IMAGE_CARD_MAX_CONTEXTS = 1;
@@ -181,7 +195,7 @@ for name in ('image_card_modal_cache_expired', 'image_card_cancel_modal_cache_ex
              'image_card_apply_entity_state', 'subscribe_image_card_entity_state',
              'image_card_refresh_entity_state',
              'image_card_hide_modal', 'image_card_apply_modal_downloaded',
-             'image_card_handle_modal_download_error'):
+             'image_card_handle_modal_download_error', 'image_card_request_modal_source_url'):
     source += definition(name) + '\n'
 # The polling callback checks get_url as well as availability.
 source = source.replace('bool has_image() {', 'std::string get_url() { return "snapshot"; }\n bool has_image() {')
@@ -317,6 +331,22 @@ int main() {
  assert(!ctx.refresh_schedule.in_flight && ctx.refresh_schedule.next_due == now_ms + 30000);
  assert(!ctx.refresh_schedule.due(now_ms + 2000, true));
  assert(ctx.refresh_schedule.due(now_ms + 30000, true));
+ // Memory refusal happens before downloader I/O, but still belongs to the schedule.
+ memory_available = false; ctx.refresh_schedule.begin(now_ms, false);
+ cache.ready = true; modal.available = true;
+ assert(!image_card_request_modal_source_url(&ctx));
+ assert(ctx.refresh_schedule.in_flight);
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && ctx.next_download_retry_ms == 0);
+ assert(!ctx.refresh_schedule.in_flight && ctx.refresh_schedule.next_due == now_ms + 30000);
+ // The same preflight preserves timestamp ownership for OFF-mode image updates.
+ ctx.entity_id = "image.poster"; ctx.refresh_schedule = {};
+ ctx.revision.latest = 3; ctx.revision.modal_applied = 2;
+ assert(!image_card_request_modal_source_url(&ctx));
+ assert(ctx.revision.modal_requested == 3);
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && ctx.revision_retry_ms > now_ms);
+ memory_available = true;
  // Timestamp-driven image refreshes use the revision backoff even in OFF mode.
  ctx.entity_id = "image.poster"; ctx.refresh_schedule = {};
  ctx.revision.modal_requested = 2; ctx.revision.modal_applied = 1;

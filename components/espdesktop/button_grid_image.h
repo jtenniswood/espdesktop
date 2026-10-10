@@ -2180,6 +2180,11 @@ inline bool image_card_request_modal_source_url(ImageCardCtx *ctx) {
     return false;
   }
   if (ctx->refresh_schedule.in_flight) return true;
+  // Preflight failures belong to this refresh too: retain the preview and
+  // apply the schedule/revision backoff when geometry or memory is unavailable.
+  ctx->revision.modal_requested = ctx->revision.latest;
+  ctx->explicit_picture_refresh = false;
+  ctx->refresh_schedule.started();
   ImageCardModalUi &ui = image_card_modal_ui();
   lv_obj_update_layout(ui.panel);
   lv_coord_t panel_width = lv_obj_get_width(ui.panel);
@@ -2200,9 +2205,6 @@ inline bool image_card_request_modal_source_url(ImageCardCtx *ctx) {
   ctx->last_modal_request_started_ms = esphome::millis();
   image_card_log_diagnostics(ctx, "modal-download-start", width, height);
   int max_source_dim = width > height ? width : height;
-  ctx->revision.modal_requested = ctx->revision.latest;
-  ctx->explicit_picture_refresh = false;
-  ctx->refresh_schedule.started();
   std::string effective_url = ctx->modal_image->request_update_url(ctx->modal_url, max_source_dim);
   if (effective_url.empty()) return false;
   ctx->modal_url = effective_url;
