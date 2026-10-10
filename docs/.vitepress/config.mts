@@ -165,7 +165,7 @@ export default defineConfig({
     'card-types/{actions,alarms,buttons,calendar,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,internal-relays,lawn-mower,lights,local-actions,local-sensors,locks,media,option-select,presence,screen-lock,sensors,sliders,switches,timers,timezones,vacuum,weather,weather-forecast,webhooks,wifi-share}.md',
     'features/{appearance,backlight,backup,battery,clock,clock-bar,firmware-updates,idle,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
     'getting-started/{c6-recovery,home-assistant-actions,manual-esphome-setup,migrate-esphome-media-player}.md',
-    'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
+    'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc4880p443-v3,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
     'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
   ],
   markdown: { config: faqSchema },
