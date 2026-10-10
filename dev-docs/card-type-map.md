@@ -133,3 +133,7 @@ This table is generated from the card contract and typed `registry.register(...)
 | `wifi_qr_card` | QR Card | `src/webserver/cards/wifi_qr.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_subpages.h`, `components/espdesktop/button_grid_wifi_qr_driver.h`, `components/espdesktop/button_grid_card_runtime.h` | `switch` | Yes | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible | Contract, Codec, Parser, HA, Backup |
 | `weather_forecast` | Weather Forecast | `src/webserver/cards/weather_forecast.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_subpages.h`, `components/espdesktop/button_grid_weather_driver.h`, `components/espdesktop/button_grid_weather_forecast.h`, `components/espdesktop/button_grid_card_runtime.h` | `weather` | Yes | None | Hidden | Contract, Codec, Parser, HA |
 <!-- END GENERATED CARD TYPE MAP -->
+
+Camera and media Cover Art cards can use rectangular and larger spans that fit
+the active display grid. The editor size menu and saved-config normalization
+use the grid bounds; Wi-Fi sharing retains its separate size allow-list.
