@@ -282,6 +282,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity || state.coverArtMediaPlayerEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
+                clock_date: state.clockDateOn,
                 clock_overlay: state.clockOverlayOn,
                 cover_art_media_player_entity: state.coverArtMediaPlayerEntity,
                 cover_art_secondary_media_player_entity: state.coverArtSecondaryMediaPlayerEntity,
@@ -530,6 +531,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
                     postCoverArtSource(importedSettings.coverArtSource);
+                    if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
                     if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
                     if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
                         controllers.artworkPostApi.postMetadataOverlay(importedSettings.metadataOverlay);
@@ -605,6 +607,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
                     state.coverArtScreensaverOn = importedSettings.coverArtScreensaver;
                     state.coverArtSource = importedSettings.coverArtSource;
+                    state.clockDateOn = importedSettings.clockDate;
                     state.clockOverlayOn = importedSettings.clockOverlay;
                     state.coverArtMediaPlayerEntity = importedSettings.coverArtMediaPlayerEntity;
                     state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;

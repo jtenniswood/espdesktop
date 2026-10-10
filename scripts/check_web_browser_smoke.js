@@ -1465,6 +1465,29 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     { id: "text-screen_saver__camera_entity", state: "" },
     { id: "switch-screen_saver__clock_overlay", state: "OFF", value: false },
   ]));
+  const dateToggle = screensaverCard.locator("#sp-set-clock-date");
+  const dateRow = dateToggle.locator("..").locator("..");
+  await dimmedAction.selectOption("clock");
+  assert.strictEqual(await dateRow.isVisible(), false,
+    `${label}: old firmware hides the date toggle`);
+  await page.evaluate(() => window.__seedEspState([
+    { id: "switch-screen_saver__show_date", state: "OFF", value: false },
+  ]));
+  await dateRow.waitFor({ state: "visible", timeout: 10000 });
+  assert(await dateRow.isVisible(), `${label}: clock screensaver offers Show date`);
+  assert.strictEqual(await dateToggle.isChecked(), false, `${label}: date defaults off`);
+  await screensaverCard.locator('label[for="sp-set-clock-date"]').click();
+  await page.evaluate(() => window.__seedEspState([
+    { id: "switch-clock_screensaver_show_date", state: "ON", value: true },
+  ]));
+  assert(await dateToggle.isChecked(), `${label}: date state aliases synchronize`);
+  await screensaverCard.getByRole("button", { name: "Sensor", exact: true }).click();
+  const sensorDateToggle = screensaverCard.locator("#sp-set-sensor-clock-date");
+  assert(await sensorDateToggle.locator("..").locator("..").isVisible(), `${label}: Sensor clock also offers Show date`);
+  assert(await sensorDateToggle.isChecked(), `${label}: Sensor and Timer share date state`);
+  await screensaverCard.locator('label[for="sp-set-sensor-clock-date"]').click();
+  await screensaverCard.getByRole("button", { name: "Timer", exact: true }).click();
+  assert.strictEqual(await dateToggle.isChecked(), false, `${label}: date changes sync across modes`);
   const hasCameraScreensaver = await dimmedAction.locator('option[value="camera"]').count() > 0;
   await dimmedAction.selectOption("dim");
   assert.strictEqual(
@@ -1532,6 +1555,19 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     assert(await metadataInput.isVisible(), `${label}: Sensor mode preserves enabled metadata`);
     if (options.slug === "guition-esp32-s3-4848s040") {
       await screensaverCard.getByRole("button", { name: "App Connection", exact: true }).click();
+      const companionClockMode = screensaverCard.locator('#sp-set-companion-clock-mode');
+      await companionClockMode.selectOption('clock');
+      const companionDateToggle = screensaverCard.locator('#sp-set-companion-clock-date');
+      assert(await companionDateToggle.locator('..').locator('..').isVisible(), `${label}: App Connection offers Show date`);
+      assert.strictEqual(await companionDateToggle.isChecked(), false, `${label}: App Connection shares disabled date state`);
+      assert.strictEqual(await screensaverCard.locator('#sp-set-clock-date').count(), 1, `${label}: Timer date identifier is unique`);
+      await screensaverCard.locator('label[for="sp-set-companion-clock-date"]').click();
+      assert(await dateToggle.isChecked() && await sensorDateToggle.isChecked(), `${label}: App Connection date changes synchronize with Timer and Sensor`);
+      for (const toggle of [dateToggle, sensorDateToggle, companionDateToggle]) {
+        const padding = await toggle.evaluate(input => { const style = getComputedStyle(input.closest('.sp-toggle-row')); return [style.paddingTop, style.paddingBottom]; });
+        assert.deepStrictEqual(padding, ['12px', '12px'], `${label}: date toggle has comfortable spacing`);
+      }
+      await companionClockMode.selectOption('camera');
       assert(await cameraPanel.isVisible(), `${label}: App Connection keeps camera settings available`);
       assert.strictEqual(await timerCamera.inputValue(), "image.garden", `${label}: App Connection shares the selected camera`);
       assert.strictEqual(await screensaverCard.locator('#sp-set-companion-clock-mode option[value="camera"]').count(), 1,

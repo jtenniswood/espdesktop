@@ -258,6 +258,11 @@ export function createAppStateEventHandlersFeature(
             "select-cover_art_source": function (this: any, val?: any, d?: any) {
                 state.coverArtSource = (d.value || val) === "Mac Companion" ? "Mac Companion" : "Home Assistant";
             },
+            "switch-screen_saver__show_date": function (this: any, val?: any, d?: any) {
+                state.clockDateSupported = true;
+                state.clockDateOn = d.value === true || val === "ON";
+                syncClockScreensaverControls();
+            },
             "switch-screen_saver__clock_overlay": function (this: any, val?: any, d?: any) {
                 state.clockOverlaySupported = true;
                 state.clockOverlayOn = d.value === true || val === "ON";
