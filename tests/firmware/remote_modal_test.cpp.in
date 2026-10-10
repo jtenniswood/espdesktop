@@ -182,6 +182,10 @@ int main() {
   invoke_remote_navigation("1"); invoke_remote_navigation("voice");
   assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
   locked = false;
+  homes.clear();
+  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen"); invoke_remote_navigation("voice");
+  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
+  homes.push_back({1, 0, "Home", "configured", &home});
   invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen"); invoke_remote_navigation("voice");
   assert(remote_navigation_calls == 2 && remote_voice_calls == 1);
 
