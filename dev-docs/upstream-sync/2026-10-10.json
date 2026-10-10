@@ -3294,7 +3294,7 @@
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "Known review findings addressed",
+      "reviewStatus": "New tile revision failure review needs action",
       "reviewThreads": [
         "PRRT_kwDOUR8kMs6rEG4_",
         "PRRT_kwDOUR8kMs6rEG5D",
@@ -3919,7 +3919,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2073",
       "mergeSha": "2f8d6e892912506440e0efb4f09c7c1400610bf3",
       "disposition": "Ported",
-      "evidence": "Removed P4-86 local Voice Services/alarm delay audio, controls and obsolete docs/assets, preserving visual countdowns, external HA media, Mac Companion artwork and protected remote navigation. Full fast checks passed (74 firmware host,172 web), actual P4-86 Chromium acceptance and docs/site links passed. Four representative builds queued; no physical device testing. Depends on destination PR156 remote navigation. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked.",
+      "evidence": "Removed P4-86 local Voice Services/alarm delay audio, controls and obsolete docs/assets, preserving visual countdowns, external HA media, Mac Companion artwork and protected remote navigation. Full fast checks passed (74 firmware host,172 web), actual P4-86 Chromium acceptance and docs/site links passed. Four representative builds queued; no physical device testing. Depends on destination PR156 remote navigation. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. New exports omit seven retired voice/alarm-audio fields; old import compatibility retained. Full fast74/172 and actual P4-86 downloaded-backup/browser acceptance passed. Final embedded bundle regenerated and builds updated.",
       "changedFiles": [
         "builds/esp32-p4-86.yaml",
         "common/addon/backlight.yaml",
@@ -4026,7 +4026,7 @@
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/168",
       "branch": "remove-local-voice-alarm-audio",
-      "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
+      "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
       "firmwareBuilds": [
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -4067,7 +4067,7 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
-          "status": "running",
+          "status": "failed",
           "log": "/private/tmp/2073-final-camera-clock-firmware-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
@@ -4075,6 +4075,33 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
+          "status": "superseded",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1",
+          "note": "Input updated before compilation; no pass claimed."
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
+          "status": "superseded",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1",
+          "note": "Input updated before compilation; no pass claimed."
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
+          "status": "superseded",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1",
+          "note": "Input updated before compilation; no pass claimed."
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
           "status": "planned",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
@@ -4082,7 +4109,7 @@
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
-          "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
+          "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
           "status": "planned",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
@@ -4090,13 +4117,22 @@
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
-          "revision": "aa99987e4b417b0fbe0887fb2c1774729880ab5b",
+          "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
           "status": "planned",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
+          "status": "planned",
+          "log": "/private/tmp/2073-backup-final-e4b77bcc1-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
         }
-      ]
+      ],
+      "reviewStatus": "Known review findings addressed"
     },
     {
       "body": "This adds independent **Tile Display** and **Tap Action** settings to Now Playing cards, so users can choose how a tile looks and what tapping it does.\n\nFor example, a tile can show playback progress while tapping anywhere toggles play/pause.\n\n| Setting | Options |\n|---|---|\n| Tile Display | Track Info, Progress, Playback State |\n| Tap Action | None, Play/Pause, Seek |\n\nSeek is available when Progress is selected. The progress fill uses the configured highlight colour while playing, advances in real time, and holds its position in grey when paused.\n\nThe change applies to the main grid and subpages. Documentation and regression tests cover the new settings, saved configurations, progress updates, and tap behavior.\n\n### Compatibility\n\nExisting saved cards and backups are supported without requiring users to recreate their cards. Display settings and explicit tap choices are preserved through saving and restoring. Legacy progress tiles default to Play/Pause; users can select Seek to seek through the title tile.\n\nAn optional embedded-editor package is included for testing unpublished branches with the matching web UI.\n\n### Validation\n\nThe web build, TypeScript checks, configuration tests, and focused compiled firmware regression tests pass. Full firmware compilation across all supported devices has not been completed.\n\nThe progress display and paused appearance have been tested on a Guition 4848S040.\n\n### Screenshot\n\n![Now Playing configuration with separate Tile Display and Tap Action settings](https://raw.githubusercontent.com/gage006/espcontrol/915a6df19b1bb3d140c45743f9f9d6f6ac9ac28d/docs/public/images/now-playing-settings.png)\n\nWould you be interested in including this configuration split? I'm happy to adjust the labels or behavior to fit the project's direction. ",
@@ -5321,7 +5357,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2111",
       "mergeSha": "37c84adfe7f15e156fec5ddaea7e38e51bdab204",
       "disposition": "Ported",
-      "evidence": "Missing application/OTA headroom reporting and automatic firmware PR gate ported. All PR jobs use disposable GitHub-hosted runners, preserving optional single-device manual input and destination nightly/release cleanup. Recovery logging/font savings separately ported in#150; public C6 route remains absent. Nine overflow/missing/empty/ambiguous/failure-preservation reporting tests, full fast72 host/172 web/product/release checks, workflow shell/YAML and docs passed. GitHub full firmware matrix pending. Actual GitHub PR trigger accepted, detect/matrix/testing guidance passed, eight serialized device matrix jobs (15 factory/recovery images) started.",
+      "evidence": "Missing application/OTA headroom reporting and automatic firmware PR gate ported. All PR jobs use disposable GitHub-hosted runners, preserving optional single-device manual input and destination nightly/release cleanup. Recovery logging/font savings separately ported in#150; public C6 route remains absent. Nine overflow/missing/empty/ambiguous/failure-preservation reporting tests, full fast72 host/172 web/product/release checks, workflow shell/YAML and docs passed. GitHub full firmware matrix pending. Actual GitHub PR trigger accepted, detect/matrix/testing guidance passed, eight serialized device matrix jobs (15 factory/recovery images) started. Real GitHub Actions run38065274519 succeeded at published5128f047c6191842420fa095a1636228ccda21f1: all8device jobs,8factory and7recovery builds passed. Verified15actualapplication/OTApartition headroomreports in logs, including S3; smallestremainingheadroom245408bytes(10-inchV1recovery). No physicaldeviceflash.",
       "changedFiles": [
         ".github/workflows/firmware-compile.yml",
         ".github/workflows/nightly-firmware.yml",
@@ -5335,7 +5371,16 @@
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/165",
       "branch": "report-firmware-ota-headroom",
       "revision": "5128f047c6191842420fa095a1636228ccda21f1",
-      "workflowRun": "https://github.com/jtenniswood/espdesktop/actions/runs/38065274519"
+      "workflowRun": "https://github.com/jtenniswood/espdesktop/actions/runs/38065274519",
+      "ciFirmwareMatrix": {
+        "url": "https://github.com/jtenniswood/espdesktop/actions/runs/38065274519",
+        "revision": "5128f047c6191842420fa095a1636228ccda21f1",
+        "status": "passed",
+        "deviceJobs": 8,
+        "factoryBuilds": 8,
+        "recoveryBuilds": 7,
+        "log": "/private/tmp/espcontrol-month-review/2111-firmware-matrix.log"
+      }
     },
     {
       "body": "## Summary\n\nFix browser firmware installation failing during download or silently returning from \u201cInstalling\u201d without changing the display's firmware. Related to #2104.\n\nPublic binary downloads omit browser credentials, and the shared update configuration explicitly enables ESPHome's browser OTA platform. The browser keeps installation active through routine update-status refreshes, preserves errors, and confirms completion only when the panel reports the requested version. A lost connection is treated as uncertain until the version is checked; an unconfirmed installation times out visibly.\n\n## Practical impact\n\nRestores Previous firmware uploads on supported displays and prevents the interface from claiming an uninstalled version. Development builds remain labelled as development builds. The existing JC8012P4A1 V3 browser-upload rejection and updates-disabled configuration remain in place.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes: Explain keeping the setup page open, confirmation after restart, and checking the current version after failures.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAutomated validation:\n- `node --test tests/web/unit/firmware_update.test.js` \u2014 passed. Covers routine NO UPDATE responses during rollback, actual-version confirmation, persistent errors, fixed timeout, native fallback, and lost upload connections.\n- `ESPCONTROL_BROWSER_PROFILE=esp32-p4-86 ESPCONTROL_BROWSER_ACCEPTANCE_ONLY=1 node scripts/check_web_browser_smoke.js` \u2014 passed in Chromium with mocked firmware/device responses. Covers credential-free public downloads, authenticated device upload, uploaded bytes/filename, and a delayed download receiving NO UPDATE.\n- `npm run webserver:build` \u2014 regenerated embedded and development web assets.\n- `PATH=/tmp/espcontrol-pr-ci-venv/bin:$PATH npm run check:ci` \u2014 passed on commit `3dc87a7b0` (71 firmware tests plus web/unit/type/generated/configuration and repository checks).\n- P4-86 `dev.yaml` compiled successfully with pinned ESPHome 2026.9.0 in Docker, then uploaded through native ESPHome OTA. Generated firmware includes `USE_WEBSERVER_OTA`.\n- Physical P4-86 at `192.168.6.104`: multipart POST of the same corrected development image to `/update` transferred 7,024,095 bytes in 45.7 seconds, returned HTTP 200 / `Update Successful!`, and the panel restarted. Served `/0.js` matches the generated embedded bundle byte for byte. This verifies browser-style transport on hardware; the user subsequently confirmed the browser firmware installation works on the P4-86.\n- Review follow-up on `8ad7dc2d0`: `node --test tests/web/unit/firmware_update.test.js`, P4-profile Chromium acceptance, and the full `npm run check:ci` suite passed. New coverage includes a response arriving at the installation deadline, unreachable-device timeout, stale requests after a retry, and clearing errors for normal checks and both native installation paths.\n- `git diff --check` \u2014 passed.\n\nAffected display/device:\n\n- ESP32-P4-86 first; shared browser and update configuration affect supported displays. Other display hardware has not been flashed for this PR.\n\n## Notes for testing\n\nThe automated guidance requires device testing for these shared web and firmware changes. Loading a browser override alone is insufficient: the device also needs the browser OTA platform.\n\n1. Check out `fix-firmware-download`, install dependencies, and run `npm run webserver:build`.\n2. Using the pinned ESPHome environment and your local secrets, flash `devices/esp32-p4-86/dev.yaml` with `python3 scripts/local_esphome.py devices/esp32-p4-86/dev.yaml run --device <panel-IP> --no-logs`.\n3. Hard-refresh the panel setup page. Open Settings \u2192 Firmware \u2192 Previous firmware, select v2.8.6, and confirm Install. Verify the upload completes, the panel restarts on v2.8.6, and settings and touch/navigation still work.\n4. Test with display password protection enabled to check authenticated uploads. An interrupted or rejected upload should leave a visible result instead of silently clearing the install state.\n\nThe user confirmed the P4-86 browser firmware installation works on `3dc87a7b0` (September 29, 2026). The subsequent review fixes make the final version check wait for its asynchronous response and clear stale errors when a new attempt starts; they have automated coverage and have not been reflashed to the panel.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\n\n",
