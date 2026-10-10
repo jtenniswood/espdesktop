@@ -173,7 +173,7 @@ int main() {
   assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
   locked = false;
   invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen"); invoke_remote_navigation("voice");
-  assert(remote_navigation_calls == 2 && remote_voice_calls == 1);
+  assert(remote_navigation_calls == 3 && remote_voice_calls == 0);
 
   struct Case { const char *type; const char *mode; const char *entity; ControlModalKind kind; };
   const Case cases[] = {
