@@ -3837,13 +3837,24 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2133",
       "mergeSha": "5eca9a12b0a3104d50b0087b5e19988acaf65f0e",
       "disposition": "Port in progress",
-      "evidence": "Recovery-only INFO ceiling and two-bit title shading, exact Home icon browser selection ported. Maintainer documentation updated; release contract/docs checks running before commit and recovery compile.",
+      "evidence": "Committed/pushed. Release helpers and docs passed. Exact-revision 10-inch V3 recovery factory compile and 7-inch browser smoke running before PR publication.",
       "changedFiles": [
         "common/device/esp32_c6_recovery.yaml",
         "docs/getting-started/c6-recovery.md",
         "scripts/check_web_browser_smoke.js"
       ],
-      "branch": "trim-recovery-firmware-size"
+      "branch": "trim-recovery-firmware-size",
+      "revision": "ed4e4163834a78fe8e7eacdb9dfb465c3fcdbe2d",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.recovery.yaml",
+          "revision": "ed4e4163834a78fe8e7eacdb9dfb465c3fcdbe2d",
+          "esphome": "2026.9.1",
+          "status": "running",
+          "log": "/private/tmp/2133-firmware-v3-recovery.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\n- Skip the Cover Art **Show After** delay when playback starts while the clock screensaver is already active.\n- Keep the existing delay in other display modes and preserve touch-pause, schedule, alarm, and sleep-prevention behavior.\n\n## Practical impact\n\nThe clock is replaced by cover art immediately when playback starts, instead of waiting through a second idle delay.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Clarified the immediate switch in the Media Cover Art settings guide.\n\n## Testing\n\n- [ ] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- ESP32-P4 86 Panel (4 inches, Square)\n- Guition JC1060P470 and JC1060P470 V2 (7 inches, Landscape)\n- Guition JC4880P443 (4.3 inches, Portrait)\n- Guition JC8012P4A1, V2, and V3 (10.1 inches, Landscape)\n- Guition 4848S040 (4 inches, Square)\n\n## Notes for testing\n\nLocal checks were not run. GitHub checks will run on this PR.\n\nOn a device, set the clock and cover art delays to 10 seconds, wait for the clock screensaver, then start playback. Confirm cover art replaces the clock immediately. Also confirm the Show After delay still applies when playback starts from the active UI, and that dismissing cover art still uses the configured return delay.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [x] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\nRelated to #2126.",
