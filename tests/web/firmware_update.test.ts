@@ -154,14 +154,20 @@ export async function runFirmwareUpdateTests() {
     const pollsBeforeTransfer = pollsScheduled;
     let finishDownload!: (result: any) => void;
     let finishUpload!: (result: any) => void;
+    let finishMetadata!: () => void;
     const delayedTransfer = createPublicFirmwareInstallFeature({ request: (url: string) => url === "/update"
       ? new Promise(resolve => { finishUpload = resolve; })
       : new Promise(resolve => { finishDownload = resolve; }) } as any, "test", updates,
       { setConfigLocked() {}, showBanner() {} } as any,
-      { getJsonQuietly: async () => {} } as any, { connect() {} });
+      { getJsonQuietly: () => new Promise<void>(resolve => { finishMetadata = resolve; }) } as any, { connect() {} });
     const installing = delayedTransfer.installPublicFirmwareViaWebOta({
       latest_version: "v2.8.6", ota_url: "https://example.test/fw.bin",
     });
+    equal(state.firmwareInstallTargetVersion, "v2.8.6", "pausing transfer retains the selected target before metadata arrives");
+    equal(state.firmwareInstallTransferPending, true, "metadata fetch belongs to the transfer phase");
+    updates.setInfo({ state: "NO UPDATE", current_version: "v2.11.0" });
+    equal(state.firmwareUpdateState, "INSTALLING", "routine status cannot cancel pending metadata");
+    finishMetadata();
     for (let i = 0; i < 10 && !finishDownload; i++) await Promise.resolve();
     updates.setInfo({ state: "NO UPDATE", current_version: "v2.11.0" });
     equal(state.firmwareUpdateState, "INSTALLING", "cached status keeps delayed downloads busy");
