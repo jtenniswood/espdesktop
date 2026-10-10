@@ -189,3 +189,11 @@ interruption, alarm takeover, and Home Assistant reconnect. Compilation is not a
 substitute for those device tests. Compare memory with the preceding `main`, pay
 particular attention to unexplained S3 growth or boot instability, and confirm
 saved schedule, brightness, and screensaver settings survive upgrade.
+
+## Remote Modal and Subpage Actions
+
+Home Assistant can use `open_modal` with `entity_id` to show a configured card's existing controls without firing its normal command. `open_subpage` takes the configured subpage `label`; `close_modal` force-closes current controls and `close_subpage` returns home. The existing `navigate` action takes `target`.
+
+The resolver chooses the first modal-capable home match, then subpages in displayed order. It logs duplicate matches and rejects unavailable selected targets rather than trying a fallback. Requests are rejected during screen lock, alarm takeover or startup before grid phase two finishes. Requests waiting for wake revalidate their target; newer remote requests cancel older queued navigation/opens. Modal contexts are closed before grid runtime allocations are rebuilt. Remote API packages remain independently selectable through device capabilities, with shared action scripts included whenever either capability is enabled.
+
+On a test device, request a modal from home and a subpage, check its ordinary card action did not fire, close it immediately after opening, and repeat while asleep. Verify latest-request behavior, locked/alarm/startup rejection, duplicate precedence and configuration rebuild while a modal is open. Companion cards and pairing remain governed by their existing controls and capabilities.
