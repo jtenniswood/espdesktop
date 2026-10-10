@@ -2436,8 +2436,8 @@
       "title": "Add play/pause to the cover-art screensaver",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2045",
       "mergeSha": "9abeb5cc217fec992340f9e2e43651dae56f6d67",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Committed and pushed. Host/web/browser/ownership checks and S3/7-inch P4 factory builds passed; 4.3-inch P4 build running before PR publication.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/config/display.yaml",
@@ -2477,7 +2477,9 @@
         "src/webserver/state/event_aliases.ts",
         "src/webserver/state/types.ts",
         "tests/web/state_contract.test.ts"
-      ]
+      ],
+      "branch": "add-cover-art-playback-controls",
+      "revision": "2d082fc427e5896c0bfade1910aa33078b07a064"
     },
     {
       "body": "## Summary\n\nAfter choosing a new card type, its configuration now uses the same card-specific heading and settings layout as editing a saved card. For example, choosing Cover opens \u201cCover\u201d with Type, Entity, Card Settings, and Modal Settings, without the extra Card dropdown.\n\n## Practical impact\n\nChoose the card family in the initial picker. To choose another family, close the unsaved panel and reopen the empty slot. Card-specific modes remain available through Type. Delete remains available only for saved cards.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nUpdated the Adding a Card instructions in `docs/features/setup.md`.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nPassed: `python3 scripts/build.py www`, `npm run check:web-smoke`, `npm run check:web-asset-manifest`, `npm run check:types`, and `npm run check:product`.\n\n`npm run check:web-browser-smoke` passed the card-editor scenarios before stopping in `assertClockBarEditorSmoke`: the temperature entity suggestion intercepted a click on Show Degree Symbol. The complete browser suite did not pass.\n\nTargeted Playwright runs using the existing card-editor scenarios passed across all eight generated device layouts. The native configuration journey, including guest Wi-Fi validation and saving, also passed.\n\nBrowser automation also compared new and saved Cover editors: both have the same heading, primary fields, collapsed sections, and 422 \u00d7 410 panel dimensions at a 1280 \u00d7 900 viewport. Physical device testing has not been performed.\n\nAffected display/device:\n\n- The shared web setup page for all supported displays, including P4 and S3.\n\n## Notes for testing\n\nThe automated testing guidance flags the shared web assets for device testing. Check the setup page connected to your usual display:\n\n1. Serve this branch's generated assets with `python3 -m http.server 8080 --directory docs/public/webserver/embedded`, point the local device `dev.yaml` at `http://<computer-ip>:8080/www.js`, and hard-reload its setup page.\n2. Click an empty slot and choose Cover. Confirm the heading is Cover and there is no Card dropdown. Compare its layout with an existing Cover card's Edit panel.\n3. Enter a cover entity, save, and reopen Edit. Confirm the configuration persists and Delete is available on the saved card.\n4. Try another card type, including a subpage card. Close an unsaved panel and confirm the slot remains empty.\n\n## PR status\n\n- [x] Ready for device test.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -3230,7 +3232,17 @@
         "tests/firmware/CMakeLists.txt",
         "tests/firmware/cover_confirmation_test.py"
       ],
-      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/123"
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/123",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2093-firmware-build.log"
+        }
+      ]
     },
     {
       "body": "## Purpose\nExpose the existing 3\u00d72 and 2\u00d73 card sizes to all card types on 3\u00d73 square layouts. This lets the 4-inch Guition 4848S040 and ESP32-P4 86 panels use these larger card shapes from the preview size menu.\n\n## Practical impact\nCards on these square panels can occupy six of the nine grid cells in either orientation. The 3\u00d73 and 3\u00d74 sizes remain limited to image and cover-art cards.\n\n## Checks\n- User confirmed the new sizes work on the S3 after OTA flashing.\n- ESPHome 2026.9.0 compiled and uploaded successfully to the 4-inch S3; it responded after reboot.\n- GitHub CI is rerunning against the latest PR head.\n\n## User testing\nOn either 4-inch square panel, open a card's size menu and confirm that 3\u00d72 and 2\u00d73 are available and render in the selected orientation.",
@@ -3451,8 +3463,8 @@
       "title": "Add folder outline icons",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2108",
       "mergeSha": "039228a8dc4b9a8cffd4ef3ffed67065fb47510c",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Port four missing icons; Folder Outline already exists and is retained once. Group all five under Files & Folders. Generated assets, web, migration, manifest and docs checks passed; physical testing pending.",
       "changedFiles": [
         "common/assets/icon_glyphs.yaml",
         "compatibility/fixtures/web_migration_baseline.json",
@@ -3465,7 +3477,8 @@
         "product/product_snapshot.json",
         "product/v2/icons.json",
         "src/webserver/generated/icons.ts"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/141"
     },
     {
       "body": "## Summary\n\n- Remove the internal developer guides and their documentation-only validation scripts.\n- Update contributor and product source-map links to point to surviving guidance.\n- Keep active generated-data and retired-page checks working with artifacts moved outside `dev-docs/`.\n\n## Practical impact\n\nNo firmware behavior changes. Contributor links and old generated-page redirects now lead to available guidance.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated surviving contributor links and old generated-page redirects.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [ ] Device testing is required before merge.\n- [x] Device testing is not required; this change only affects docs links and validation tooling.\n\n## Notes for testing\n\nThe task registry self-check and firmware modal-layout check passed. The generated-artifact check could not fetch its pinned MDI asset because network DNS was unavailable locally; the docs build could not start locally because `esbuild` was missing. GitHub CI is running on the pushed update.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -3849,7 +3862,17 @@
       "changedFiles": [
         "components/espcontrol/button_grid_fan.h"
       ],
-      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/132"
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/132",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "444d08a6d83a6813906d4d3ca86372c436eab656",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2138-firmware-build.log"
+        }
+      ]
     },
     {
       "body": "This PR contains the following updates:\n\n| Package | Change | [Age](https://docs.renovatebot.com/merge-confidence/) | [Confidence](https://docs.renovatebot.com/merge-confidence/) |\n|---|---|---|---|\n| [postcss](https://postcss.org/) ([source](https://redirect.github.com/postcss/postcss)) | [`8.5.28` \u2192 `8.5.29`](https://renovatebot.com/diffs/npm/postcss/8.5.28/8.5.29) | ![age](https://developer.mend.io/api/mc/badges/age/npm/postcss/8.5.29?slim=true) | ![confidence](https://developer.mend.io/api/mc/badges/confidence/npm/postcss/8.5.28/8.5.29?slim=true) |\n\n---\n\n### Release Notes\n\n<details>\n<summary>postcss/postcss (postcss)</summary>\n\n### [`v8.5.29`](https://redirect.github.com/postcss/postcss/blob/HEAD/CHANGELOG.md#8529)\n\n[Compare Source](https://redirect.github.com/postcss/postcss/compare/8.5.28...8.5.29)\n\n- Improved `</style>` escaping (by [@&#8203;choudhryfrompak](https://redirect.github.com/choudhryfrompak)).\n- Fixed comments support in `list.comma()` and `list.space()` (by [@&#8203;00200200](https://redirect.github.com/00200200)).\n- Fixed semicolon and custom property (by [@&#8203;wahidrizka](https://redirect.github.com/wahidrizka)).\n\n</details>\n\n---\n\n### Configuration\n\n\ud83d\udcc5 **Schedule**: (in timezone Europe/London)\n\n- Branch creation\n  - At any time (no schedule defined)\n- Automerge\n  - At any time (no schedule defined)\n\n\ud83d\udea6 **Automerge**: Disabled by config. Please merge this manually once you are satisfied.\n\n\u267b **Rebasing**: Whenever PR becomes conflicted, or you tick the rebase/retry checkbox.\n\n\ud83d\udd15 **Ignore**: Close this PR and you won't be reminded about this update again.\n\n---\n\n - [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check this box\n\n---\n\nThis PR was generated by [Mend Renovate](https://mend.io/renovate/). View the [repository job log](https://developer.mend.io/github/jtenniswood/espcontrol).\n<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMjUuMSIsInVwZGF0ZWRJblZlciI6IjQ0LjEzNC4xIiwidGFyZ2V0QnJhbmNoIjoibWFpbiIsImxhYmVscyI6W119-->\n",
@@ -4848,8 +4871,15 @@
     "Already present": 72,
     "Not applicable": 10,
     "Closed without merging": 9,
-    "Needs review": 42,
-    "Ported": 19
+    "Port in progress": 1,
+    "Ported": 20,
+    "Needs review": 40
   },
-  "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports."
+  "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
+  "previousSyncProof": {
+    "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/74",
+    "mergeSha": "58259b86a",
+    "sourceMergeShasRechecked": true,
+    "result": "All previously audited source merge SHAs match the current upstream PR records."
+  }
 }
