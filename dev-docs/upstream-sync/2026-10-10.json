@@ -2664,7 +2664,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2031",
       "mergeSha": "c314cbc43a11bde4c90e34a9ad7a4a9726ddecc1",
       "disposition": "Ported",
-      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending. GitHub CI Gate and documentation checks passed.",
+      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending. GitHub CI Gate and documentation checks passed. Two external-input review fixes validated/pushed; production renderer and HA guard/self-tests passed at11791ae29. Prior firmware build is retained as historical evidence; newest-revision rebuild pending.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "components/espcontrol/UNICODE-LICENSE.txt",
@@ -2683,7 +2683,7 @@
         "tests/firmware/media_display_text_test.cpp"
       ],
       "branch": "normalize-media-display-text",
-      "revision": "27dcbdc89",
+      "revision": "11791ae29",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/147",
       "firmwareBuilds": [
         {
@@ -3056,8 +3056,8 @@
       "title": "Fix scheduled wake idle handling and backlight state",
       "url": "https://github.com/jtenniswood/espcontrol/pull/1792",
       "mergeSha": "ba9380223b37e43ecf2467a321dcedba822d654b",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Source finalizer and reporting fixes ported. Production schedule/backlight tests passed; added onboarding guard with mutation regression for source review finding. HA binding checks/self-tests passed; full fast graph running with temporary CMake tooling.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/addon/backlight_schedule.yaml",
@@ -3073,7 +3073,8 @@
         "tests/firmware/backlight_recovery_test.cpp",
         "tests/firmware/display_schedule_test.cpp.in",
         "tests/firmware/display_schedule_test.py"
-      ]
+      ],
+      "branch": "fix-scheduled-display-wake"
     },
     {
       "body": "## Summary\n\nAdds Home Assistant horizontal climate swing support as a separate, capability-aware `Horizontal Swing` control. Entities that expose `swing_horizontal_modes` receive a horizontal tab and modal quick option; entities without horizontal modes keep the existing UI unchanged.\n\nHorizontal selections use `climate.set_swing_horizontal_mode` with `swing_horizontal_mode`, while vertical swing remains independent. Existing icons are reused with semantic mappings for left/right, up/down, top/bottom, generic swing, and exact off values; full mode labels remain visible.\n\nThe change also updates climate subscriptions, default/configurable tab order, product contracts and generated web artifacts, firmware translations, documentation, and regression coverage. Related to #2014.\n\n## Validation\n\n- `npm run check:product` \u2014 passed.\n- `npm run docs:build` \u2014 passed.\n- Targeted climate firmware tests \u2014 passed.\n- Full firmware CTest suite with `ASAN_OPTIONS=detect_leaks=0` \u2014 60/60 passed. The two media lifecycle tests fail in the default environment before assertions because LeakSanitizer cannot run under the hosted ptrace environment; both pass with leak detection disabled.\n- ESPHome 2026.9.0 Docker compiles \u2014 passed for `guition-esp32-p4-jc1060p470`, `guition-esp32-p4-jc4880p443`, and `guition-esp32-s3-4848s040`.\n\n## Limitations\n\n- `npm run check:web-browser-smoke` completed generated-output checks but stalled in the existing panel-naming browser journey and was interrupted; no browser-smoke pass is claimed.\n- Physical testing remains: verify an entity exposing both vertical and horizontal modes and confirm each control changes only its corresponding Home Assistant setting.\n",
@@ -5001,8 +5002,8 @@
     "Not applicable": 11,
     "Closed without merging": 9,
     "Ported": 28,
-    "Needs review": 31,
-    "Port in progress": 1
+    "Needs review": 30,
+    "Port in progress": 2
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
