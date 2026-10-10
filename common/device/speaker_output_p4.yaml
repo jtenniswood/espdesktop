@@ -144,3 +144,6 @@ switch:
     pin: ${speaker_amplifier_pin}
     restore_mode: ALWAYS_OFF
     internal: true
+
+espdesktop:
+  shared_speaker_players: [device_speaker, sendspin_speaker_player]

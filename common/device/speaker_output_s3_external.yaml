@@ -91,3 +91,6 @@ media_player:
       num_channels: 1
       sources:
         - sendspin_media_source
+
+espdesktop:
+  shared_speaker_players: [device_speaker, sendspin_speaker_player]
