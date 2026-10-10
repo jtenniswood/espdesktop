@@ -552,3 +552,11 @@ add_test(NAME camera_feedback_test COMMAND
 
 add_test(NAME clock_image_overlay_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/clock_image_overlay_test.py)
+
+add_executable(camera_refresh_policy_test camera_refresh_policy_test.cpp)
+target_compile_features(camera_refresh_policy_test PRIVATE cxx_std_17)
+target_compile_options(camera_refresh_policy_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(camera_refresh_policy_test PRIVATE ../../components/espdesktop)
+add_test(NAME camera_refresh_policy_test COMMAND camera_refresh_policy_test)
+add_test(NAME camera_refresh_runtime_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_refresh_runtime_test.py)

@@ -5982,6 +5982,36 @@
             ],
             "defaultValue": "fill",
             "omitDefault": true
+          },
+          {
+            "name": "image_modal_refresh_mode",
+            "label": "Camera refresh",
+            "kind": "choice",
+            "values": [
+              "off",
+              "periodic",
+              "activity"
+            ],
+            "defaultValue": "off",
+            "omitDefault": true
+          },
+          {
+            "name": "image_modal_refresh_interval",
+            "label": "Refresh interval",
+            "kind": "choice",
+            "values": [
+              "5",
+              "10",
+              "30"
+            ],
+            "defaultValue": "10",
+            "omitDefault": true
+          },
+          {
+            "name": "image_modal_refresh_trigger",
+            "label": "Trigger entity",
+            "kind": "text",
+            "omitDefault": true
           }
         ],
         "normalization": {
@@ -6023,7 +6053,10 @@
           "canonicalOptionOrder": [
             "image_label",
             "image_icon",
-            "image_modal_mode"
+            "image_modal_mode",
+            "image_modal_refresh_mode",
+            "image_modal_refresh_interval",
+            "image_modal_refresh_trigger"
           ],
           "optionHook": "normalize_image_options"
         },
