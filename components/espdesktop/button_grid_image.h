@@ -2087,6 +2087,15 @@ inline void image_card_apply_entity_state(ImageCardCtx *ctx,
   if (!ctx) return;
   const std::string value = string_ref_limited(state, 64);
   const bool unavailable = value == "unavailable" || value == "unknown";
+  if (ctx->entity_id.rfind("image.", 0) == 0) {
+    if (unavailable) {
+      // A recovered entity may report the same timestamp it had before going
+      // unavailable. Forget that baseline so recovery triggers a fresh image.
+      ctx->revision.invalidate();
+    } else if (!ctx->revision.observe(string_ref_limited(state, 80))) {
+      return;
+    }
+  }
   const bool recovered = ctx->camera_entity_unavailable && !unavailable;
   ctx->camera_entity_unavailable = unavailable;
   if (unavailable) {
@@ -2118,8 +2127,6 @@ inline void subscribe_image_card_entity_state(ImageCardCtx *ctx,
     std::function<void(esphome::StringRef)>(
       [ctx, entity_id, generation](esphome::StringRef state) {
         if (!image_card_context_current(ctx, entity_id, generation)) return;
-        if (entity_id.rfind("image.", 0) == 0 &&
-            !ctx->revision.observe(string_ref_limited(state, 80))) return;
         image_card_apply_entity_state(ctx, state);
       }),
     HA_SUBSCRIPTION_SCOPE_DEFAULT, true
@@ -2430,10 +2437,14 @@ inline void image_card_hide_modal() {
   image_card_schedule_modal_cleanup(ctx);
 }
 
+inline bool image_card_can_open_modal(ImageCardCtx *ctx) {
+  return ctx && ctx->active && ctx->image &&
+         esphome::artwork_image::image_pipeline_modal_can_open(
+           ctx->image_ready, !ctx->source_url.empty());
+}
+
 inline void image_card_open_modal(ImageCardCtx *ctx) {
-  if (!ctx || !ctx->active || !ctx->image ||
-      !esphome::artwork_image::image_pipeline_modal_can_open(
-        ctx->image_ready, !ctx->source_url.empty())) {
+  if (!image_card_can_open_modal(ctx)) {
     ESP_LOGW("image_card", "No camera card is available to open");
     image_card_log_diagnostics(ctx, "modal-open-not-ready");
     return;
@@ -2978,6 +2989,8 @@ inline bool image_card_context_visible_on_active_screen(ImageCardCtx *ctx) {
        !image_card_modal_active_for(ctx))) {
     return false;
   }
+  // Remote entity controls can be visible over a different grid page.
+  if (image_card_modal_active_for(ctx)) return true;
   lv_obj_t *screen = ctx->btn;
   while (lv_obj_get_parent(screen) != nullptr) screen = lv_obj_get_parent(screen);
   return screen == lv_scr_act();
