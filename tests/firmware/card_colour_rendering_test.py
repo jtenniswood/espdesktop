@@ -96,6 +96,8 @@ struct MediaNowPlayingCtx {
 bool image_card_media_artwork_visible(const ImageCardCtx *ctx) { return ctx && ctx->artwork_visible; }
 void set_card_content_disabled(lv_obj_t *, bool) {}
 constexpr int LV_STATE_DISABLED = 4, LV_OBJ_FLAG_HIDDEN = 1, LV_OBJ_FLAG_CLICKABLE = 2;
+constexpr int LV_OBJ_FLAG_USER_2 = 8;
+bool lv_obj_has_flag(lv_obj_t *obj, int flag) { return (obj->flags & flag) != 0; }
 constexpr int LV_OPA_50 = 128, MEDIA_CONTROL_SPEAKER_VOLUME_TEXT_OPA = 204;
 using lv_coord_t = int;
 void lv_obj_add_flag(lv_obj_t *obj, int flag) { obj->flags |= flag; }
@@ -186,6 +188,8 @@ int main() {
         assert(label->text[0] == theme->text_primary);
       // Cover-art fallbacks preserve a calibrated custom fill through themes.
       lv_obj_t card, idle, title, artist, music;
+      card.children = {&music, &idle, &title, &artist};
+      apply_button_colors(&card, true, 0xFFFFFF, true, 0xFFEC16);
       ImageCardCtx art;
       MediaNowPlayingCtx cover{&card, &music, &idle, &title, &artist, &art};
       cover.custom_fallback_background = true;
@@ -194,6 +198,12 @@ int main() {
         art.artwork_visible = visible;
         media_cover_art_apply_theme(&cover, *theme);
         assert(card.background[0] == background);
+        // Press/release must leave owner-assigned artwork/fallback text intact.
+        for (int event : {LV_EVENT_PRESSED, LV_EVENT_RELEASED, LV_EVENT_PRESS_LOST}) {
+          send_event(&card, event);
+          for (auto *label : {&music, &idle, &title, &artist})
+            assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : readable_text_color_for_bg(background)));
+        }
         for (auto *label : {&card, &music, &idle, &title, &artist})
           assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : readable_text_color_for_bg(background)));
       }
@@ -202,6 +212,17 @@ int main() {
       assert(card.background[0] == theme->surface_card);
       assert(idle.text[0] == theme->text_primary);
     }
+  }
+  // A black image-label shadow is content-owned; its ordinary sibling follows contrast.
+  lv_obj_t image_button, shadow, ordinary;
+  image_button.children = {&shadow, &ordinary};
+  shadow.text[0] = 0x000000;
+  lv_obj_add_flag(&shadow, LV_OBJ_FLAG_USER_2);
+  apply_button_colors(&image_button, true, 0x6633B9, true, 0xFFEC16);
+  for (int event : {LV_EVENT_PRESSED, LV_EVENT_RELEASED, LV_EVENT_PRESS_LOST}) {
+    send_event(&image_button, event);
+    assert(shadow.text[0] == 0x000000);
+    assert(ordinary.text[0] == display_text_color_for_bg(0xFFEC16));
   }
   CardPalette defaults;
   defaults.has_on = defaults.has_off = defaults.has_sensor_color = true;

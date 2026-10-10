@@ -1103,7 +1103,10 @@ inline void media_cover_art_apply_theme(MediaNowPlayingCtx *ctx,
   lv_obj_set_style_text_color(ctx->btn, foreground, LV_PART_MAIN);
   lv_obj_t *labels[] = {ctx->icon_lbl, ctx->idle_lbl, ctx->title_lbl, ctx->artist_lbl};
   for (lv_obj_t *label : labels) {
-    if (label) lv_obj_set_style_text_color(label, foreground, LV_PART_MAIN);
+    if (label) {
+      lv_obj_set_style_text_color(label, foreground, LV_PART_MAIN);
+      lv_obj_add_flag(label, LV_OBJ_FLAG_USER_2);
+    }
   }
   set_card_content_disabled(ctx->btn, lv_obj_has_state(ctx->btn, LV_STATE_DISABLED));
 }
