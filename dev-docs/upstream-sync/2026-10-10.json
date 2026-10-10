@@ -2436,8 +2436,8 @@
       "title": "Add play/pause to the cover-art screensaver",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2045",
       "mergeSha": "9abeb5cc217fec992340f9e2e43651dae56f6d67",
-      "disposition": "Port in progress",
-      "evidence": "Committed and pushed. Host/web/browser/ownership checks and S3/7-inch P4 factory builds passed; 4.3-inch P4 build running before PR publication.",
+      "disposition": "Ported",
+      "evidence": "Host/web/browser/ownership checks, complete GitHub CI/docs and S3/7-inch P4/4.3-inch P4 factory builds passed on 2d082fc42. Physical testing pending.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/config/display.yaml",
@@ -2479,7 +2479,34 @@
         "tests/web/state_contract.test.ts"
       ],
       "branch": "add-cover-art-playback-controls",
-      "revision": "2d082fc427e5896c0bfade1910aa33078b07a064"
+      "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/142",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2045-firmware-s3.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2045-firmware-p4.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2045-firmware-p43.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nAfter choosing a new card type, its configuration now uses the same card-specific heading and settings layout as editing a saved card. For example, choosing Cover opens \u201cCover\u201d with Type, Entity, Card Settings, and Modal Settings, without the extra Card dropdown.\n\n## Practical impact\n\nChoose the card family in the initial picker. To choose another family, close the unsaved panel and reopen the empty slot. Card-specific modes remain available through Type. Delete remains available only for saved cards.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nUpdated the Adding a Card instructions in `docs/features/setup.md`.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nPassed: `python3 scripts/build.py www`, `npm run check:web-smoke`, `npm run check:web-asset-manifest`, `npm run check:types`, and `npm run check:product`.\n\n`npm run check:web-browser-smoke` passed the card-editor scenarios before stopping in `assertClockBarEditorSmoke`: the temperature entity suggestion intercepted a click on Show Degree Symbol. The complete browser suite did not pass.\n\nTargeted Playwright runs using the existing card-editor scenarios passed across all eight generated device layouts. The native configuration journey, including guest Wi-Fi validation and saving, also passed.\n\nBrowser automation also compared new and saved Cover editors: both have the same heading, primary fields, collapsed sections, and 422 \u00d7 410 panel dimensions at a 1280 \u00d7 900 viewport. Physical device testing has not been performed.\n\nAffected display/device:\n\n- The shared web setup page for all supported displays, including P4 and S3.\n\n## Notes for testing\n\nThe automated testing guidance flags the shared web assets for device testing. Check the setup page connected to your usual display:\n\n1. Serve this branch's generated assets with `python3 -m http.server 8080 --directory docs/public/webserver/embedded`, point the local device `dev.yaml` at `http://<computer-ip>:8080/www.js`, and hard-reload its setup page.\n2. Click an empty slot and choose Cover. Confirm the heading is Cover and there is no Card dropdown. Compare its layout with an existing Cover card's Edit panel.\n3. Enter a cover entity, save, and reopen Edit. Confirm the configuration persists and Delete is available on the saved card.\n4. Try another card type, including a subpage card. Close an unsaved panel and confirm the slot remains empty.\n\n## PR status\n\n- [x] Ready for device test.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -3279,11 +3306,14 @@
       "title": "Fix LVGL pressed style selector warning",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2094",
       "mergeSha": "67c7c4828abe47c773464af330c8a81ff5edfca1",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Committed and pushed on #142 foundation. Host contracts passed; firmware validation queued/running before PR publication.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml"
-      ]
+      ],
+      "branch": "fix-playback-style-selector",
+      "revision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142"
     },
     {
       "body": "## Summary\n\nThe **Large Clock** setting is now available at every card size. When enabled on smaller cards, the clock uses the larger type size; wider cards continue to use it automatically unless it is explicitly turned off. Cards wider than two columns also offer **Center Clock**.\n\nThe large clock now uses Roboto Light (weight 300), matching the web preview. Its LVGL glyph bitmaps use 2 bits per pixel instead of 4, reducing the S3 firmware image by about 11 KB while preserving the clock and sensor glyphs.\n\nBoth settings are saved with the card configuration. The web preview uses the configured timezone for the clock and the matching date in Time & Date mode.\n\n## Validation\n\n- Generated card contract and product snapshot are current.\n- Focused web smoke, config, product model, product schema, product snapshot, generated-file, and dev-doc checks passed.\n- ESPHome 2026.9.0 compiled and OTA flashed `devices/esp32-p4-86/dev.yaml` to the 4-inch P4 at `192.168.6.104`; the panel responded after reboot.\n- ESPHome 2026.9.0 compiled and OTA flashed the latest PR firmware to the S3 at `192.168.6.105`; it responded after reboot.\n- Physical behavior confirmation on the final PR candidate is still pending. Please verify the large clock across card sizes, centering, and timezone-correct time on the S3 before merge.",
@@ -3420,12 +3450,15 @@
       "title": "Enlarge P4 cover art playback buttons",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2098",
       "mergeSha": "7b43091ca77607fd23b96e8316ec1f5ab01aa76a",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Committed and pushed on #142 foundation. Host contracts passed; firmware validation queued/running before PR publication.",
       "changedFiles": [
         "components/espcontrol/cover_art.h",
         "scripts/check_cover_art_contract.py"
-      ]
+      ],
+      "branch": "enlarge-p4-playback-controls",
+      "revision": "b695c6f93",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142"
     },
     {
       "body": "## Summary\n\nThe JC8012P4A1 V3 firmware and WiFi co-processor update switches now use the shared enabled-by-default, persistent settings. Device-slot regeneration no longer reintroduces V3-specific off overrides. The separate V3 test build uses the same default while retaining its unpublished test manifest.\n\n## Practical impact\n\nNew JC8012P4A1 V3 installations will check for released firmware updates automatically, like V1 and V2. Users can still turn automatic updates off. The V3 setup guide, hardware comments, and MIPI driver notes now distinguish the released production profile from the earlier test build.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated V3 upgrade wording, V3 hardware labels, and driver usage notes.\n- Updated the test build guide to reflect enabled-by-default update switches.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- 10.1-inch JC8012P4A1 V3 production firmware; V3 test package configuration.\n\n## Notes for testing\n\n- Passed: `python3 scripts/check_device_profiles.py`\n- Passed: `python3 scripts/generate_device_slots.py --check`\n- Passed: `python3 scripts/check_device_matrix.py`\n- Passed: `git diff --check`\n- Please confirm on a JC8012P4A1 V3 that firmware and C6 automatic update switches start enabled and remain enabled after reboot. No physical-device test has been performed.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [x] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -3438,8 +3471,8 @@
       "title": "Enable automatic updates by default for JC8012P4A1 V3",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2100",
       "mergeSha": "12b020f66a6850ffe6147e676cb1b5900de00106",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "V3 update settings inherit persistent shared defaults. Profile/slot/matrix checks and V3 factory compile passed on db8c86688; generated C++ confirms RESTORE_DEFAULT_ON. Physical testing pending.",
       "changedFiles": [
         "components/mipi_dsi/README.md",
         "devices/guition-esp32-p4-jc8012p4a1-v3-test/README.md",
@@ -3450,6 +3483,17 @@
         "scripts/build_jc8012p4a1_v3_test.py",
         "scripts/check_device_profiles.py",
         "scripts/generate_device_slots.py"
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/143",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+          "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2100-firmware-v3.log"
+        }
       ]
     },
     {
@@ -4871,9 +4915,9 @@
     "Already present": 72,
     "Not applicable": 10,
     "Closed without merging": 9,
-    "Port in progress": 1,
-    "Ported": 20,
-    "Needs review": 40
+    "Ported": 22,
+    "Needs review": 37,
+    "Port in progress": 2
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
