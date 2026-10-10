@@ -8418,7 +8418,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2184",
       "mergeSha": "c6c07459c4af4cb9b9285e49363377883e9c9e51",
       "disposition": "Ported",
-      "evidence": "Optional localized clock date, persistence/backups and bounded clock/date drift ported. Adapted Timer/Sensor/App Connection unique controls and shared state; preserve destination timezone-first refresh. Full fast74 host/172 web checks, S3 Chromium acceptance and docs passed. Production rollover/fallback/layout bounds and App Connection synchronization verified. Three representative compiles queued; physical testing pending. Depends on destination PR164. Source-only 4.3-inch V3 profile awaits separate2158 port.",
+      "evidence": "Optional localized clock date, persistence/backups and bounded clock/date drift ported. Adapted Timer/Sensor/App Connection unique controls and shared state; preserve destination timezone-first refresh. Full fast74 host/172 web checks, S3 Chromium acceptance and docs passed. Production rollover/fallback/layout bounds and App Connection synchronization verified. Three representative compiles passed at the latest revision; physical testing pending. Depends on destination PR164. Source-only 4.3-inch V3 profile awaits separate2158 port. Final firmware validation: the three representative builds at latest revision 756522a86902c510049a65fb9f71ceb98585f8c6 passed. Physical device testing remains pending.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/addon/backlight_schedule.yaml",
