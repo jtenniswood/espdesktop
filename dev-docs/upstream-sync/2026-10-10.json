@@ -3306,14 +3306,25 @@
       "title": "Fix LVGL pressed style selector warning",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2094",
       "mergeSha": "67c7c4828abe47c773464af330c8a81ff5edfca1",
-      "disposition": "Port in progress",
-      "evidence": "Committed and pushed on #142 foundation. Host contracts passed; firmware validation queued/running before PR publication.",
+      "disposition": "Ported",
+      "evidence": "Separate PR on #142 foundation. Cover-art/binding contracts and S3 factory compile passed on c037b76a2; selector values are unchanged.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml"
       ],
       "branch": "fix-playback-style-selector",
       "revision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/144",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2094-firmware-s3.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nThe **Large Clock** setting is now available at every card size. When enabled on smaller cards, the clock uses the larger type size; wider cards continue to use it automatically unless it is explicitly turned off. Cards wider than two columns also offer **Center Clock**.\n\nThe large clock now uses Roboto Light (weight 300), matching the web preview. Its LVGL glyph bitmaps use 2 bits per pixel instead of 4, reducing the S3 firmware image by about 11 KB while preserving the clock and sensor glyphs.\n\nBoth settings are saved with the card configuration. The web preview uses the configured timezone for the clock and the matching date in Time & Date mode.\n\n## Validation\n\n- Generated card contract and product snapshot are current.\n- Focused web smoke, config, product model, product schema, product snapshot, generated-file, and dev-doc checks passed.\n- ESPHome 2026.9.0 compiled and OTA flashed `devices/esp32-p4-86/dev.yaml` to the 4-inch P4 at `192.168.6.104`; the panel responded after reboot.\n- ESPHome 2026.9.0 compiled and OTA flashed the latest PR firmware to the S3 at `192.168.6.105`; it responded after reboot.\n- Physical behavior confirmation on the final PR candidate is still pending. Please verify the large clock across card sizes, centering, and timezone-correct time on the S3 before merge.",
@@ -4915,9 +4926,9 @@
     "Already present": 72,
     "Not applicable": 10,
     "Closed without merging": 9,
-    "Ported": 22,
+    "Ported": 23,
     "Needs review": 37,
-    "Port in progress": 2
+    "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
