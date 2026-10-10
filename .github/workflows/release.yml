@@ -137,13 +137,18 @@ jobs:
             curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
               -o "docs/public/webserver/${BUNDLE_PATH}"
             # Verify imported bytes before generating or pre-verifying release assets.
-            python3 - "${BUNDLE_PATH}" <<'PY'
+            python3 - "${BUNDLE_PATH}" "${LEGACY_WEB_MANIFEST}" "${LEGACY_STABLE_TAG}" <<'PY'
           import hashlib
+          import json
           from pathlib import Path
           import sys
           downloaded = Path("docs/public/webserver") / sys.argv[1]
           expected = downloaded.parent.name
           actual = hashlib.sha256(downloaded.read_bytes()).hexdigest()
+          published = json.loads(Path(sys.argv[2]).read_text())
+          entry = next(item for item in published["bundles"] if sys.argv[3] in item["firmwareVersions"])
+          if entry.get("id") != expected or entry.get("sha256") != expected or entry.get("path") != sys.argv[1]:
+              raise SystemExit("Published legacy bundle metadata disagrees with its content-addressed path")
           if actual != expected:
               raise SystemExit("Published legacy web bundle does not match its content-addressed path")
           PY
