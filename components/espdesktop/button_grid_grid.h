@@ -573,7 +573,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (context.known) screen_lock_register_controlled_button(s.btn);
 
   if (espdesktop::cards::timer_driver_setup_visual(s, p, context)) return;
-  if (espdesktop::cards::image_driver_setup_visual(s, p, context)) {
+  if (espdesktop::cards::image_driver_setup_visual(s, p, context, palette)) {
     espdesktop::cards::image_driver_attach_interaction(s, p, context);
     espdesktop::cards::image_driver_refresh_layout(s, p, context);
     return;
@@ -1018,7 +1018,7 @@ inline bool grid_card_uses_secondary_surface(
 }
 
 inline bool grid_card_uses_sensor_surface(
-    const espdesktop::cards::Context &context) {
+    const espdesktop::cards::Context &context, const ParsedCfg &config) {
   using Driver = espdesktop::card_runtime::CardDriverId;
   switch (context.runtime.driver) {
     case Driver::SENSOR:
@@ -1026,6 +1026,8 @@ inline bool grid_card_uses_sensor_surface(
     case Driver::WEATHER:
     case Driver::DATE_TIME:
       return true;
+    case Driver::IMAGE:
+      return image_card_modal_fit_enabled(config);
     default:
       return false;
   }
@@ -1123,7 +1125,7 @@ inline void grid_phase1(
     const auto context = card_runtime_context(p);
     neutral_buttons[idx - 1] = context.family != espdesktop::cards::Family::IMAGE &&
         espdesktop::cards::media_driver_theme_owned_surface(context, p);
-    sensor_surfaces[idx - 1] = grid_card_uses_sensor_surface(context);
+    sensor_surfaces[idx - 1] = grid_card_uses_sensor_surface(context, p);
     secondary_surfaces[idx - 1] = grid_card_uses_secondary_surface(context, p);
     image_cards[idx - 1] = context.family == espdesktop::cards::Family::IMAGE;
     display_apply_main_width(s.icon_lbl, display);
@@ -1942,7 +1944,7 @@ inline void grid_phase2(
     if (cfg.info_only && info_only_hidden_card_type(context)) continue;
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
     if (espdesktop::cards::image_driver_bind_main(
-          s, p, context, cfg)) continue;
+          s, p, context, cfg, palette)) continue;
     if (espdesktop::cards::wifi_qr_driver_bind_main(s, p, context)) continue;
     auto light_control_environment =
       espdesktop::cards::light_control_driver_environment(
@@ -2161,7 +2163,7 @@ inline void grid_phase2(
           si + 1, bn, sub_slot, sb,
           context.family != espdesktop::cards::Family::IMAGE &&
               espdesktop::cards::media_driver_theme_owned_surface(context, sb_cfg),
-          grid_card_uses_sensor_surface(context),
+          grid_card_uses_sensor_surface(context, sb_cfg),
           grid_card_uses_secondary_surface(context, sb_cfg),
           context.family == espdesktop::cards::Family::IMAGE);
       display_apply_main_width(sub_slot.icon_lbl, display);
@@ -2173,7 +2175,7 @@ inline void grid_phase2(
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
 
       if (espdesktop::cards::image_driver_bind_subpage(
-            sub_slot, sb_cfg, context, cfg)) continue;
+            sub_slot, sb_cfg, context, cfg, palette)) continue;
       if (espdesktop::cards::wifi_qr_driver_bind_subpage(
             sub_slot, sb_cfg, context)) continue;
       auto light_control_environment =

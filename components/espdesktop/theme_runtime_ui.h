@@ -6,6 +6,7 @@
 inline void image_card_refresh_placeholder_theme(lv_obj_t *button,
                                                   uint32_t background,
                                                   uint32_t foreground);
+inline void image_card_refresh_theme(uint32_t fit_background_color);
 
 // Runtime LVGL targets for the palette refresh boundary. Dark -> Dark leaves
 // existing styles, state, and Home Assistant bindings alone.
@@ -107,6 +108,7 @@ inline void theme_apply_grid(void *context, const ThemePalette &theme) {
       }
     }
   }
+  image_card_refresh_theme(theme_grid_correct_color(theme.surface_sensor, targets));
 }
 
 inline void register_theme_grid(lv_obj_t *main_page, BtnSlot *slots,
