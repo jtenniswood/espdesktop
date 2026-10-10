@@ -3123,6 +3123,8 @@ inline void image_card_suspend_pipeline() {
       ctx->image->release();
     }
     image_card_release_download_slot(ctx);
+    ctx->scheduled_tile_request = false;
+    ctx->refresh_schedule.in_flight = false;
     ctx->image_ready = false;
     ctx->requested_once = false;
     ctx->url.clear();

@@ -406,14 +406,21 @@ int main() {
  constrained = true;
  // Tokens may rotate while callbacks are suspended; never reuse the old token.
  ctx.access_token = "old-token";
+ ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::ACTIVITY;
+ ctx.refresh_schedule.begin(now_ms, false);
+ ctx.refresh_schedule.activate(now_ms);
+ ctx.refresh_schedule.started(); ctx.scheduled_tile_request = true;
  image_card_suspend_pipeline();
+ assert(!ctx.refresh_schedule.in_flight && !ctx.scheduled_tile_request);
+ now_ms += 31000; // The activity window can expire while the screensaver owns memory.
+ const int pictures_before_suspended_resume = pictures;
  assert(suspended && !ctx.active && ctx.access_token.empty());
  assert(!ctx.access_token_request_pending);
  // Visible cameras revalidate availability when the real resume path runs.
  ctx.camera_entity_unavailable = true;
  image_card_resume_pipeline();
  assert(!suspended && ctx.active && !ctx.camera_entity_unavailable);
- assert(retained_state_reads == 3);
+ assert(retained_state_reads == 3 && pictures > pictures_before_suspended_resume);
  // An unavailable media player must not acquire the camera-only blocker on wake.
  ctx.media_artwork = true; ctx.entity_id = "media_player.lounge";
  image_card_suspend_pipeline();
