@@ -19,6 +19,10 @@ for name in (
     if match is None:
         raise AssertionError(f"Missing production function: {name}")
     functions.append(match.group())
+# Exercise the actual expanded-entry statement without unrelated LVGL I/O.
+entry = re.search(r"ctx->refresh_schedule\.enter_expanded\([^;]+;", source)
+assert entry is not None
+functions.append("inline void image_card_test_enter_expanded(ImageCardCtx *ctx) {" + entry.group() + "}")
 with tempfile.TemporaryDirectory(prefix="camera-refresh-runtime-") as temp:
     directory = Path(temp)
     (directory / "camera_refresh_runtime_functions.h").write_text("\n\n".join(functions))

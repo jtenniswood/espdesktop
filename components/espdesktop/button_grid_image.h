@@ -994,10 +994,20 @@ inline void image_card_apply_modal_downloaded(ImageCardCtx *ctx) {
 inline void image_card_handle_modal_download_error(ImageCardCtx *ctx) {
   if (image_card_pipeline_suspended()) return;
   if (!ctx || !ctx->active || !image_card_has_separate_modal_image(ctx)) return;
+  const bool scheduled_request = ctx->refresh_schedule.in_flight &&
+      ctx->refresh_schedule.mode != espdesktop::camera::RefreshMode::OFF;
   ctx->refresh_schedule.finished(esphome::millis(), false);
   ctx->revision_retry_ms = ctx->refresh_schedule.next_due;
   ESP_LOGW("image_card", "Modal image download failed for %s", ctx->entity_id.c_str());
   image_card_log_diagnostics(ctx, "modal-download-error");
+  if (scheduled_request) {
+    ctx->next_download_retry_ms = 0;
+    if (image_card_modal_active_for(ctx)) {
+      if (image_card_modal_has_preview(ctx)) image_card_hide_modal_loading(ctx);
+      else image_card_show_modal_loading(ctx, "Unavailable");
+    }
+    return; // The schedule owns backoff; retain the last successful preview.
+  }
   if (!ctx->media_artwork) image_card_camera_download_failed(ctx);
   if (image_card_modal_active_for(ctx)) {
     ImageCardModalUi &ui = image_card_modal_ui();
@@ -2010,6 +2020,8 @@ inline void image_card_apply_entity_state(ImageCardCtx *ctx,
   const bool recovered = ctx->camera_entity_unavailable && !unavailable;
   ctx->camera_entity_unavailable = unavailable;
   if (unavailable) {
+    ctx->refresh_schedule.in_flight = false;
+    ctx->scheduled_tile_request = false;
     ctx->image->cancel_update();
     image_card_release_download_slot(ctx);
     if (image_card_modal_active_for(ctx) && ctx->modal_image)
@@ -2368,8 +2380,7 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
 
   ImageCardModalUi &ui = image_card_modal_ui();
   ui.active = ctx;
-  ctx->refresh_schedule.enter_expanded(esphome::millis(), ctx->activity_trigger.on(
-      ha_read_coordinator().connection_generation()));
+  ctx->refresh_schedule.enter_expanded(esphome::millis(), false);
   ui.overlay = shell.overlay;
   ui.panel = shell.panel;
   ui.back_btn = shell.close_btn;

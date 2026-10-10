@@ -278,6 +278,26 @@ int main() {
   image_card_refresh_due([] { return true; });
   assert(tile_requests == 1 && !ctx.refresh_schedule.window);
 
+  // Opening a modal must not replay hidden or initially baselined binary ON.
+  reset(); ctx.entity_id = "camera.test"; ctx.last_download_completed_ms = 0;
+  ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::ACTIVITY;
+  ctx.visible = false;
+  image_card_handle_activity_state(&ctx, "off", true, 1);
+  image_card_handle_activity_state(&ctx, "on", true, 1);
+  ctx.visible = true; ctx.modal = true;
+  image_card_test_enter_expanded(&ctx);
+  assert(!ctx.refresh_schedule.window);
+  reset(); ctx.last_download_completed_ms = 0;
+  ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::ACTIVITY;
+  image_card_handle_activity_state(&ctx, "on", true, 1);
+  ctx.modal = true; image_card_test_enter_expanded(&ctx);
+  assert(!ctx.refresh_schedule.window);
+  image_card_handle_activity_state(&ctx, "off", true, 1);
+  image_card_handle_activity_state(&ctx, "on", true, 1);
+  const auto visible_window = ctx.refresh_schedule.window_end;
+  image_card_test_enter_expanded(&ctx);
+  assert(ctx.refresh_schedule.window && ctx.refresh_schedule.window_end == visible_window);
+
   // Hiding one tile must not cancel the shared modal belonging to another card.
   reset();
   ctx.entity_id = "camera.test";

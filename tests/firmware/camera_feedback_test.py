@@ -133,6 +133,8 @@ void image_card_set_widget_source(Widget *, Image *) {}
 void image_card_hide_modal_loading(ImageCardCtx *) { modal_status.clear(); }
 bool image_card_has_separate_modal_image(ImageCardCtx *ctx) { return ctx->modal_image != ctx->image; }
 bool image_card_apply_modal_geometry(ImageCardCtx *, Image *) { return true; }
+bool image_card_modal_has_preview(ImageCardCtx *ctx) { return ctx->modal_image->has_image(); }
+void image_card_show_modal_download_failure(ImageCardCtx *) {}
 void notify_dashboard_content_changed() {}
 constexpr uint32_t IMAGE_CARD_STARTUP_DOWNLOAD_RETRIES = 10;
 constexpr int IMAGE_CARD_MAX_CONTEXTS = 1;
@@ -178,7 +180,8 @@ for name in ('image_card_modal_cache_expired', 'image_card_cancel_modal_cache_ex
              'image_card_modal_cache_matches', 'image_card_modal_needs_open_refresh',
              'image_card_apply_entity_state', 'subscribe_image_card_entity_state',
              'image_card_refresh_entity_state',
-             'image_card_hide_modal', 'image_card_apply_modal_downloaded'):
+             'image_card_hide_modal', 'image_card_apply_modal_downloaded',
+             'image_card_handle_modal_download_error'):
     source += definition(name) + '\n'
 # The polling callback checks get_url as well as availability.
 source = source.replace('bool has_image() {', 'std::string get_url() { return "snapshot"; }\n bool has_image() {')
@@ -302,11 +305,26 @@ int main() {
  image_card_apply_modal_downloaded(&ctx);
  assert(cache.ready && ctx.camera_download_errors == 0 && modal_status.empty());
  assert(ctx.next_download_retry_ms == now_ms + 1000);
+ // Scheduled modal failures keep the cached frame and use the 30-second schedule.
+ ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::PERIODIC;
+ ctx.refresh_schedule.interval_ms = 30000;
+ ctx.refresh_schedule.begin(now_ms, false); ctx.refresh_schedule.started();
+ ctx.next_download_retry_ms = now_ms + 2000;
+ modal.available = true; cache.ready = true; modal_status.clear();
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && modal_status.empty());
+ assert(ctx.next_download_retry_ms == 0 && ctx.camera_download_errors == 0);
+ assert(!ctx.refresh_schedule.in_flight && ctx.refresh_schedule.next_due == now_ms + 30000);
+ assert(!ctx.refresh_schedule.due(now_ms + 2000, true));
+ assert(ctx.refresh_schedule.due(now_ms + 30000, true));
+ ctx.refresh_schedule = {};
  // Unavailable HA state cancels requests, waits, then restarts on recovery.
  subscribe_image_card_entity_state(&ctx, ctx.entity_id);
  const int tile_cancelled_before_unavailable = tile.cancelled;
  const int modal_cancelled_before_unavailable = modal.cancelled;
+ ctx.refresh_schedule.started(); ctx.scheduled_tile_request = true;
  state_callback("unavailable");
+ assert(!ctx.refresh_schedule.in_flight && !ctx.scheduled_tile_request);
  assert(ctx.camera_entity_unavailable &&
         tile.cancelled == tile_cancelled_before_unavailable + 1 &&
         modal.cancelled == modal_cancelled_before_unavailable + 1);
