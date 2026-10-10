@@ -3298,7 +3298,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2087",
       "mergeSha": "50166a17027458ad73582865900f0e4387f76df3",
       "disposition": "Ported",
-      "evidence": "Separate dependent port; square-grid save/transfer, Companion and Wi-Fi regressions, all172 unit tests, types, generated, manifest, migration, S3 browser and docs passed. Physical testing pending.",
+      "evidence": "Separate dependent port; square-grid save/transfer, Companion and Wi-Fi regressions, all172 unit tests, types, generated, manifest, migration, S3 browser and docs passed. Physical testing pending. GitHub CI Gate and documentation checks passed.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "docs/public/webserver/bundles/5b5062d6c3e6a948d79d6e1c5370be2f329b0d2af1582c63edcf43bdf09fd39c/www.js",
@@ -3836,13 +3836,14 @@
       "title": "Fix browser smoke and recovery image size",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2133",
       "mergeSha": "5eca9a12b0a3104d50b0087b5e19988acaf65f0e",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Recovery-only INFO ceiling and two-bit title shading, exact Home icon browser selection ported. Maintainer documentation updated; release contract/docs checks running before commit and recovery compile.",
       "changedFiles": [
         "common/device/esp32_c6_recovery.yaml",
         "docs/getting-started/c6-recovery.md",
         "scripts/check_web_browser_smoke.js"
-      ]
+      ],
+      "branch": "trim-recovery-firmware-size"
     },
     {
       "body": "## Summary\n\n- Skip the Cover Art **Show After** delay when playback starts while the clock screensaver is already active.\n- Keep the existing delay in other display modes and preserve touch-pause, schedule, alarm, and sleep-prevention behavior.\n\n## Practical impact\n\nThe clock is replaced by cover art immediately when playback starts, instead of waiting through a second idle delay.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Clarified the immediate switch in the Media Cover Art settings guide.\n\n## Testing\n\n- [ ] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- ESP32-P4 86 Panel (4 inches, Square)\n- Guition JC1060P470 and JC1060P470 V2 (7 inches, Landscape)\n- Guition JC4880P443 (4.3 inches, Portrait)\n- Guition JC8012P4A1, V2, and V3 (10.1 inches, Landscape)\n- Guition 4848S040 (4 inches, Square)\n\n## Notes for testing\n\nLocal checks were not run. GitHub checks will run on this PR.\n\nOn a device, set the clock and cover art delays to 10 seconds, wait for the clock screensaver, then start playback. Confirm cover art replaces the clock immediately. Also confirm the Show After delay still applies when playback starts from the active UI, and that dismissing cover art still uses the configured return delay.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [x] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\nRelated to #2126.",
@@ -3855,15 +3856,26 @@
       "title": "Skip cover art delay over clock screensaver",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2127",
       "mergeSha": "99e786bb541d705b4c098869ff5f6abe5c7c29b0",
-      "disposition": "Port in progress",
-      "evidence": "Committed/pushed on #142 foundation. Production clock-routing regression passes and rejects original behavior; ownership, layout and docs checks passed. Exact-revision S3 factory compile running before publication.",
+      "disposition": "Ported",
+      "evidence": "Separate port on #142. Production clock routing passed all mode combinations and rejects original behavior; playback ownership, Cover Art layout and docs passed. Exact-revision S3 factory build passed. Physical testing pending.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "docs/features/media-cover-art.md"
       ],
       "branch": "show-artwork-over-clock",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/142",
-      "revision": "ff4576898"
+      "revision": "ff4576898",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/149",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "ff4576898",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2127-firmware-s3.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\n- Make repository skills resolve the active worktree instead of relying on machine-specific checkout paths.\n- Keep display flashing on the currently selected branch and worktree.\n- Make merged-worktree cleanup recognize the actual Git worktree root when launched from a subdirectory.\n\n## Practical impact\n\nCompile, flashing, and cleanup workflows now target the checkout you are using, including linked worktrees. Flashing no longer switches to or pulls `main` as a side effect.\n\n## Documentation decision\n\n- [x] No docs needed because this does not change user-visible behavior/configuration.\n\nDocs notes:\n\nNo public or release-facing documentation is needed; this change updates maintainer skills and worktree safety behavior only.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is not required; explain why in Notes for testing.\n\n## Notes for testing\n\n- `git diff --check` passed.\n- Ran both bundled cleanup scripts in dry-run mode from a subdirectory in the feature worktree; each recognized the feature worktree as current and did not offer it for removal.\n- Device testing is not applicable to skill and workflow guidance changes.\n\n## PR status\n\n- [x] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -4977,8 +4989,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 27,
-    "Needs review": 32,
+    "Ported": 28,
+    "Needs review": 31,
     "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
