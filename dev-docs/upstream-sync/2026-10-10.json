@@ -2664,7 +2664,7 @@
       "branch": "add-remote-modal-navigation",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/156",
-      "revision": "6548cd7209ee380117140e976b6f3a00214ceb0e",
+      "revision": "8188720c4577f8586a2cef422345ef3974f55c3b",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -2884,7 +2884,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "6548cd7209ee380117140e976b6f3a00214ceb0e",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-review-final-6548cd720-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -2892,7 +2892,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "6548cd7209ee380117140e976b6f3a00214ceb0e",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2008-review-final-6548cd720-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -2900,6 +2900,30 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "6548cd7209ee380117140e976b6f3a00214ceb0e",
+          "status": "superseded",
+          "log": "/private/tmp/2008-review-final-6548cd720-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "8188720c4577f8586a2cef422345ef3974f55c3b",
+          "status": "planned",
+          "log": "/private/tmp/2008-review-final-6548cd720-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "8188720c4577f8586a2cef422345ef3974f55c3b",
+          "status": "planned",
+          "log": "/private/tmp/2008-review-final-6548cd720-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "8188720c4577f8586a2cef422345ef3974f55c3b",
           "status": "planned",
           "log": "/private/tmp/2008-review-final-6548cd720-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
@@ -3017,7 +3041,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
       "disposition": "Ported",
-      "evidence": "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions queued. Physical testing pending. Hidden image revisions now stay dirty until the card is visible, both in picture callbacks and maintenance. Actual production hidden/visible transition test and full fast74 host checks passed; review resolved after push. Initial ordinary transfer completion now seeds an already-open periodic cadence instead of immediately downloading twice. Actual production completion/maintenance regression and full fast74 host checks passed; dependent #155/#156/#157 rebased and production tests rechecked. Latest activity-without-window retry and unavailable-camera schedule findings fixed; full fast74 host/172 web passed and production availability/activity regressions passed.",
+      "evidence": "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions queued. Physical testing pending. Hidden image revisions now stay dirty until the card is visible, both in picture callbacks and maintenance. Actual production hidden/visible transition test and full fast74 host checks passed; review resolved after push. Initial ordinary transfer completion now seeds an already-open periodic cadence instead of immediately downloading twice. Actual production completion/maintenance regression and full fast74 host checks passed; dependent #155/#156/#157 rebased and production tests rechecked. Latest activity-without-window retry and unavailable-camera schedule findings fixed; full fast74 host/172 web passed and production availability/activity regressions passed. Revision-driven image tile failures now retain the last successful frame and respect the revision retry deadline. Actual UI/error and production maintenance regressions passed, as did full fast74/172 checks. Dependent ports updated and final builds requeued.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -3060,7 +3084,7 @@
       ],
       "branch": "add-camera-refresh-settings",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
-      "revision": "1557fcb5fb63ebae296d5e599cdfd1cbbbcb5a0b",
+      "revision": "ac390c4f07f0e051a36b9883cab4ef1966a7a6af",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -3272,7 +3296,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "1557fcb5fb63ebae296d5e599cdfd1cbbbcb5a0b",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-review-final-1557fcb5f-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -3280,7 +3304,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "1557fcb5fb63ebae296d5e599cdfd1cbbbcb5a0b",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/1920-review-final-1557fcb5f-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -3288,13 +3312,37 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "1557fcb5fb63ebae296d5e599cdfd1cbbbcb5a0b",
+          "status": "superseded",
+          "log": "/private/tmp/1920-review-final-1557fcb5f-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "ac390c4f07f0e051a36b9883cab4ef1966a7a6af",
+          "status": "planned",
+          "log": "/private/tmp/1920-review-final-1557fcb5f-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "ac390c4f07f0e051a36b9883cab4ef1966a7a6af",
+          "status": "planned",
+          "log": "/private/tmp/1920-review-final-1557fcb5f-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "ac390c4f07f0e051a36b9883cab4ef1966a7a6af",
           "status": "planned",
           "log": "/private/tmp/1920-review-final-1557fcb5f-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "New tile revision failure review needs action",
+      "reviewStatus": "Known review findings addressed",
       "reviewThreads": [
         "PRRT_kwDOUR8kMs6rEG4_",
         "PRRT_kwDOUR8kMs6rEG5D",
@@ -3339,7 +3387,7 @@
       "branch": "retry-recovered-image-entities",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
-      "revision": "3ba202dd2eefd3197f30dd7ce5ffb79fbfbb8438",
+      "revision": "9df836cc3fc038e79ae47ab93f43d45708db2360",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -3559,7 +3607,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "3ba202dd2eefd3197f30dd7ce5ffb79fbfbb8438",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-review-final-3ba202dd2-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -3567,7 +3615,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "3ba202dd2eefd3197f30dd7ce5ffb79fbfbb8438",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2062-review-final-3ba202dd2-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -3575,6 +3623,30 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "3ba202dd2eefd3197f30dd7ce5ffb79fbfbb8438",
+          "status": "superseded",
+          "log": "/private/tmp/2062-review-final-3ba202dd2-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "9df836cc3fc038e79ae47ab93f43d45708db2360",
+          "status": "planned",
+          "log": "/private/tmp/2062-review-final-3ba202dd2-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "9df836cc3fc038e79ae47ab93f43d45708db2360",
+          "status": "planned",
+          "log": "/private/tmp/2062-review-final-3ba202dd2-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "9df836cc3fc038e79ae47ab93f43d45708db2360",
           "status": "planned",
           "log": "/private/tmp/2062-review-final-3ba202dd2-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
@@ -3685,7 +3757,7 @@
       "branch": "fix-artwork-endpoint-discovery",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/157",
-      "revision": "7b11a09f935ecea2d84c6601e46ee13f70da27d6",
+      "revision": "b019dd0b1284b17969fe80a4e5e97218becd2a0f",
       "firmwareBuilds": [
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3865,9 +3937,33 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "7b11a09f935ecea2d84c6601e46ee13f70da27d6",
+          "status": "superseded",
+          "log": "/private/tmp/2067-review-final-7b11a09f9-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "b019dd0b1284b17969fe80a4e5e97218becd2a0f",
           "status": "planned",
           "log": "/private/tmp/2067-review-final-7b11a09f9-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "b019dd0b1284b17969fe80a4e5e97218becd2a0f",
+          "status": "planned",
+          "log": "/private/tmp/2067-latest-reviewed-b019dd0b1-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "b019dd0b1284b17969fe80a4e5e97218becd2a0f",
+          "status": "planned",
+          "log": "/private/tmp/2067-latest-reviewed-b019dd0b1-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
         }
       ],
@@ -4026,7 +4122,7 @@
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/168",
       "branch": "remove-local-voice-alarm-audio",
-      "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
+      "revision": "9a48707d6ed5722b08ce0d066fadf345d86b155a",
       "firmwareBuilds": [
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -4134,7 +4230,7 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2073-backup-final-e4b77bcc1-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
@@ -4142,7 +4238,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -4150,7 +4246,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -4158,9 +4254,41 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
+          "status": "superseded",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "9a48707d6ed5722b08ce0d066fadf345d86b155a",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "9a48707d6ed5722b08ce0d066fadf345d86b155a",
           "status": "planned",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "9a48707d6ed5722b08ce0d066fadf345d86b155a",
+          "status": "planned",
+          "log": "/private/tmp/2073-latest-reviewed-9a48707d6-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "9a48707d6ed5722b08ce0d066fadf345d86b155a",
+          "status": "planned",
+          "log": "/private/tmp/2073-latest-reviewed-9a48707d6-esp32-p4-86.log",
+          "device": "esp32-p4-86",
           "esphome": "2026.9.1"
         }
       ],
@@ -4812,8 +4940,8 @@
       "title": "Add speaker playback across supported panels",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2095",
       "mergeSha": "3859a569976a771ad48772b8815e5f5ff6c828b2",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Separate decoded HTTP/announcement and raw PCM Sendspin speaker pipelines ported with amplifier restart/pause guards. Added missing80percent ceiling on both players per source review. Preserve destination clock overrides, Companion endpoint/artwork and S3 relays. All8factory configs validate under pinned2026.9.1/local components; full fast74host172web and docs passed. After camera parent update actualruntime/feedback/remote tests passed. Eightfactory compiles queued, physicalspeaker tests pending. Later2144/2146 corrections pending separate ports; depends on PR168.",
       "changedFiles": [
         "common/device/speaker_output_p4.yaml",
         "common/device/speaker_output_s3_external.yaml",
@@ -4845,6 +4973,75 @@
         "product/v2/devices/guition-esp32-p4-jc8012p4a1-v3.json",
         "product/v2/devices/guition-esp32-p4-jc8012p4a1.json",
         "product/v2/devices/guition-esp32-s3-4848s040.json"
+      ],
+      "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/172",
+      "branch": "add-panel-speaker-playback",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-guition-esp32-p4-jc1060p470-v2.log",
+          "device": "guition-esp32-p4-jc1060p470-v2",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-guition-esp32-p4-jc8012p4a1.log",
+          "device": "guition-esp32-p4-jc8012p4a1",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v2.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-guition-esp32-p4-jc8012p4a1-v2.log",
+          "device": "guition-esp32-p4-jc8012p4a1-v2",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-guition-esp32-p4-jc8012p4a1-v3.log",
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "68f107c5a35ab8cf18e53132d0f1d005e6dd5cf4",
+          "status": "planned",
+          "log": "/private/tmp/2095-latest-reviewed-68f107c5a-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        }
       ]
     },
     {
@@ -6702,8 +6899,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 50,
-    "Needs review": 10
+    "Ported": 51,
+    "Needs review": 9
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
