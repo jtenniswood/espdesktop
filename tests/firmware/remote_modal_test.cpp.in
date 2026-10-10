@@ -167,6 +167,11 @@ int main() {
   assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
   assert(closes == closes_before_alarm_navigation);
   alarm = false;
+  locked = true;
+  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen");
+  invoke_remote_navigation("1"); invoke_remote_navigation("voice");
+  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
+  locked = false;
   invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen"); invoke_remote_navigation("voice");
   assert(remote_navigation_calls == 2 && remote_voice_calls == 1);
 

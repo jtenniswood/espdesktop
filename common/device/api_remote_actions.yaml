@@ -11,7 +11,7 @@ script:
       - script.execute: screensaver_wake
       - script.wait: screensaver_wake
       - lambda: |-
-          if (alarm_display_takeover_active()) return;
+          if (alarm_display_takeover_active() || screen_lock_enabled()) return;
           if (navigation_is_voice_target(target) && !navigation_has_home_label_target(target)) {
             navigation_hide_modals();
             ${navigate_voice_target_code}
