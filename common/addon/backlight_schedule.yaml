@@ -22,6 +22,9 @@ globals:
   - id: sunset_minute
     type: int
     initial_value: '0'
+  - id: theme_solar_valid
+    type: bool
+    initial_value: 'false'
   - id: sunrise_sunset_valid
     type: bool
     initial_value: 'false'
@@ -802,7 +805,7 @@ script:
           ThemeConditions conditions;
           conditions.time_valid = now.is_valid();
           if (conditions.time_valid) conditions.local_minute = now.hour * 60 + now.minute;
-          conditions.sun_valid = id(sunrise_sunset_valid) && offsets_valid;
+          conditions.sun_valid = id(theme_solar_valid) && offsets_valid;
           conditions.sunrise_minute = id(sunrise_hour) * 60 + id(sunrise_minute);
           conditions.sunset_minute = id(sunset_hour) * 60 + id(sunset_minute);
           apply_theme_resolution(current_theme_resolver(), settings, conditions);
@@ -1128,6 +1131,7 @@ script:
           id(sunset_hour) = r.set_h;
           id(sunset_minute) = r.set_m;
           id(sunrise_sunset_valid) = r.valid;
+          id(theme_solar_valid) = r.solar_valid;
           if (r.valid) {
             id(sunrise_time_sensor).publish_state(r.sunrise_str);
             id(sunset_time_sensor).publish_state(r.sunset_str);

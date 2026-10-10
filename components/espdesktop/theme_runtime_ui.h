@@ -162,6 +162,7 @@ struct ThemeHudTargets {
   lv_obj_t *network = nullptr;
   lv_obj_t *night = nullptr;
   lv_obj_t *voice = nullptr;
+  lv_obj_t *battery = nullptr;
 };
 
 inline ThemeHudTargets &theme_hud_targets() {
@@ -171,7 +172,7 @@ inline ThemeHudTargets &theme_hud_targets() {
 
 inline void theme_apply_hud(void *context, const ThemePalette &theme) {
   const auto &targets = *static_cast<ThemeHudTargets *>(context);
-  lv_obj_t *labels[] = {targets.temperature, targets.time, targets.network, targets.night, targets.voice};
+  lv_obj_t *labels[] = {targets.temperature, targets.time, targets.network, targets.night, targets.voice, targets.battery};
   for (lv_obj_t *label : labels) {
     if (label) lv_obj_set_style_text_color(label, lv_color_hex(theme.clockbar_text), LV_PART_MAIN);
   }
@@ -179,10 +180,10 @@ inline void theme_apply_hud(void *context, const ThemePalette &theme) {
 
 inline void register_theme_hud(lv_obj_t *temperature, lv_obj_t *time,
                                lv_obj_t *network, lv_obj_t *night,
-                               lv_obj_t *voice = nullptr) {
+                               lv_obj_t *voice = nullptr, lv_obj_t *battery = nullptr) {
   auto &targets = theme_hud_targets();
   const bool new_owner = targets.time != time;
-  targets = {temperature, time, network, night, voice};
+  targets = {temperature, time, network, night, voice, battery};
   if (!time) return;
   if (!register_theme_refresh(time, theme_apply_hud, &targets))
     ESP_LOGW("theme", "Refresh registry full; HUD will not follow theme changes");

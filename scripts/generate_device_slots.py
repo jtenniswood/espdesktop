@@ -85,10 +85,12 @@ def clock_bar_icon_offset_lines(name: str, button: str, label: str) -> list[str]
 def battery_substitution_lines(device: dict) -> list[str]:
     if device["slug"] != "guition-esp32-p4-jc8012p4a1":
         return [
+            '  theme_battery_hud_label: "nullptr"',
             '  battery_status_apply_code: ""',
             '  battery_status_hide_code: ""',
         ]
     return [
+        '  theme_battery_hud_label: "id(battery_status_icon_label)"',
         "  battery_status_apply_code: |-",
         "    if (id(battery_status_enabled).state) {",
         *clock_bar_icon_offset_lines("battery_status_icon_x", "battery_status_button",

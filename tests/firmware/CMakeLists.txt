@@ -38,6 +38,8 @@ target_compile_options(theme_runtime_tree_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(theme_runtime_tree_test PRIVATE ../../components/espdesktop
   ${CMAKE_CURRENT_BINARY_DIR})
 add_test(NAME theme_runtime_tree_test COMMAND theme_runtime_tree_test)
+add_test(NAME theme_solar_validity_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/theme_solar_validity_test.py)
 add_test(NAME theme_refresh_contract_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/theme_refresh_contract_test.py)
 
