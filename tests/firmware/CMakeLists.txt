@@ -615,3 +615,6 @@ target_include_directories(camera_refresh_policy_test PRIVATE ../../components/e
 add_test(NAME camera_refresh_policy_test COMMAND camera_refresh_policy_test)
 add_test(NAME camera_refresh_runtime_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_refresh_runtime_test.py)
+
+add_test(NAME alarm_palette_ownership_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/alarm_palette_ownership_test.py)
