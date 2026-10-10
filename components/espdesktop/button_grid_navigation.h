@@ -40,6 +40,7 @@ struct NavigationSubpageEntry {
     bool neutral_background = true;
     bool sensor_surface = false;
     bool secondary_surface = false;
+    bool image_card = false;
   };
   std::vector<Card> cards;
 };
@@ -388,12 +389,13 @@ inline void navigation_register_subpage_card(int slot, int index,
                                              const SubpageBtn &definition,
                                              bool neutral_background,
                                              bool sensor_surface,
-                                             bool secondary_surface = false) {
+                                             bool secondary_surface = false,
+                                             bool image_card = false) {
   if (index <= 0 || card_slot.btn == nullptr) return;
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   if (entry == nullptr) return;
   entry->cards.push_back({index, card_slot.btn, card_slot, definition,
-                          neutral_background, sensor_surface, secondary_surface});
+                          neutral_background, sensor_surface, secondary_surface, image_card});
 }
 
 inline void navigation_retire_subpage(int slot, lv_obj_t *main_page_obj) {

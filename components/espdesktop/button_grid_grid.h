@@ -1047,6 +1047,7 @@ inline void grid_phase1(
   bool neutral_buttons[MAX_GRID_SLOTS]{};
   bool sensor_surfaces[MAX_GRID_SLOTS]{};
   bool secondary_surfaces[MAX_GRID_SLOTS]{};
+  bool image_cards[MAX_GRID_SLOTS]{};
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   if (COLS > MAX_GRID_SLOTS) COLS = MAX_GRID_SLOTS;
   for (int i = 0; i < NS; i++)
@@ -1124,6 +1125,7 @@ inline void grid_phase1(
         espdesktop::cards::media_driver_theme_owned_surface(context, p);
     sensor_surfaces[idx - 1] = grid_card_uses_sensor_surface(context);
     secondary_surfaces[idx - 1] = grid_card_uses_secondary_surface(context, p);
+    image_cards[idx - 1] = context.family == espdesktop::cards::Family::IMAGE;
     display_apply_main_width(s.icon_lbl, display);
     display_apply_slot_text_width(s, display);
     setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
@@ -1133,7 +1135,7 @@ inline void grid_phase1(
   register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
                       cfg.color_correction_red_percent,
                       cfg.color_correction_green_percent,
-                      cfg.color_correction_blue_percent, secondary_surfaces);
+                      cfg.color_correction_blue_percent, secondary_surfaces, image_cards);
   ESP_LOGI("sensors", "Phase 1: done (%lu ms)", esphome::millis());
 }
 
@@ -2160,7 +2162,8 @@ inline void grid_phase2(
           context.family != espdesktop::cards::Family::IMAGE &&
               espdesktop::cards::media_driver_theme_owned_surface(context, sb_cfg),
           grid_card_uses_sensor_surface(context),
-          grid_card_uses_secondary_surface(context, sb_cfg));
+          grid_card_uses_secondary_surface(context, sb_cfg),
+          context.family == espdesktop::cards::Family::IMAGE);
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
       setup_card_visual(sub_slot, sb_cfg, context, cfg, palette, rs, cs);

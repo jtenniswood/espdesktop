@@ -27,3 +27,14 @@ args.output.write_text(
     "// Extracted from button_grid_modal.h; do not edit.\n" + "\n".join(definitions),
     encoding="utf-8",
 )
+
+image = (args.header.parent / "button_grid_image.h").read_text()
+helpers = []
+for name in ("image_card_loading_widget", "image_card_loading_icon", "image_card_loading_label", "image_card_refresh_placeholder_theme"):
+    start = image.index("inline " + ("void " if name == "image_card_refresh_placeholder_theme" else "lv_obj_t *") + name + "(")
+    while image[start:image.index("\n", start)].endswith(";"):
+        start = image.index("inline " + ("void " if name == "image_card_refresh_placeholder_theme" else "lv_obj_t *") + name + "(", start + 1)
+    end = image.index("\n}", start) + 2
+    helpers.append(image[start:end])
+with args.output.open("a") as output:
+    output.write("\n" + "\n".join(helpers) + "\n")
