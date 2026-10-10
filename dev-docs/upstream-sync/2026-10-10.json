@@ -2626,7 +2626,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2008",
       "mergeSha": "a7d43cbf0cbb52e3d6102f6dccff7d0d9b91abd7",
       "disposition": "Ported",
-      "evidence": "Remote modal/subpage/navigation port on final #155 image-recovery foundation. Screen locks, stale/canceled requests, startup readiness and critical alarm controls preserved. Remote home/card/voice navigation now keeps alarm overlays; actual YAML navigation lambda, resolver/driver/lifecycle and latest hidden-image production regressions passed. Full fast75 host/172 web checks passed, then final parent rebased and relevant production paths rechecked. Latest3-target builds queued; historical ones passed. Physical testing pending. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. Locked screens reject remote home, label, slot and Voice navigation before dispatch; actual production YAML guard regressions and full fast75/172 passed. Remote navigation waits for phase2 grid initialization, retaining screen-lock/alarm guards; actual startup-gap regression and fullfast passed. Review resolved. Alarm-preserving modal dismissal during grid setup/runtime release; locked close_subpage rejected. Destructive generated rebuild scripts wait for critical alarm to end, keeping controls/context alive rather than depending on a fresh HA callback. Actual production wait-lambda and modal/runtime regressions/fullfast74host172web/all8factoryconfigurationsPASS; Gs7V/Xresolved. New first-run onboarding navigation finding G5yn remains. Rejectremote navigate whenhome-target registry isempty, retainingonboarding instructions. Actualemptygrid/setup/validhomeguard regression/fullfast74/172PASS; G5ynresolved. NewS3suspendpre-wakeimagemodalavailabilityHH7d pending. Review HH7d resolved: initial configured-target validation permits suspended S3 camera cards to wake, then actual modal opening rechecks live availability. Production suspended/resumed/lock/alarm regressions and updated API ordering mutation guard passed; full fast checks passed (75 host/172 web). Published b5eb90c17; parent review wave remains pending. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision.",
+      "evidence": "Remote modal/subpage/navigation port on final #155 image-recovery foundation. Screen locks, stale/canceled requests, startup readiness and critical alarm controls preserved. Remote home/card/voice navigation now keeps alarm overlays; actual YAML navigation lambda, resolver/driver/lifecycle and latest hidden-image production regressions passed. Full fast75 host/172 web checks passed, then final parent rebased and relevant production paths rechecked. Latest3-target builds previously queued; historical ones passed. Physical testing pending. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. Locked screens reject remote home, label, slot and Voice navigation before dispatch; actual production YAML guard regressions and full fast75/172 passed. Remote navigation waits for phase2 grid initialization, retaining screen-lock/alarm guards; actual startup-gap regression and fullfast passed. Review resolved. Alarm-preserving modal dismissal during grid setup/runtime release; locked close_subpage rejected. Destructive generated rebuild scripts wait for critical alarm to end, keeping controls/context alive rather than depending on a fresh HA callback. Actual production wait-lambda and modal/runtime regressions/fullfast74host172web/all8factoryconfigurationsPASS; Gs7V/Xresolved. New first-run onboarding navigation finding G5yn remains. Rejectremote navigate whenhome-target registry isempty, retainingonboarding instructions. Actualemptygrid/setup/validhomeguard regression/fullfast74/172PASS; G5ynresolved. NewS3suspendpre-wakeimagemodalavailabilityHH7d pending. Review HH7d resolved: initial configured-target validation permits suspended S3 camera cards to wake, then actual modal opening rechecks live availability. Production suspended/resumed/lock/alarm regressions and updated API ordering mutation guard passed; full fast checks passed (75 host/172 web). Published b5eb90c17; parent review wave remains pending. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision.",
       "changedFiles": [
         "common/device/api_navigate.yaml",
         "common/device/api_open_modal.yaml",
@@ -3067,6 +3067,22 @@
           },
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
+          "status": "planned",
+          "log": "/private/tmp/2008-46d8c71a5-final-review-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
+          "status": "planned",
+          "log": "/private/tmp/2008-46d8c71a5-final-review-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
         }
       ],
       "reviewThreads": [
@@ -3184,7 +3200,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
       "disposition": "Ported",
-      "evidence": "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions queued. Physical testing pending. Hidden image revisions now stay dirty until the card is visible, both in picture callbacks and maintenance. Actual production hidden/visible transition test and full fast74 host checks passed; review resolved after push. Initial ordinary transfer completion now seeds an already-open periodic cadence instead of immediately downloading twice. Actual production completion/maintenance regression and full fast74 host checks passed; dependent #155/#156/#157 rebased and production tests rechecked. Latest activity-without-window retry and unavailable-camera schedule findings fixed; full fast74 host/172 web passed and production availability/activity regressions passed. Revision-driven image tile failures now retain the last successful frame and respect the revision retry deadline. Actual UI/error and production maintenance regressions passed, as did full fast74/172 checks. Dependent ports updated and final builds requeued. Activity-window completion now credits ordinary initial transfers, preventing immediate duplicates; actual completion/5-second cadence regression and full fast74/172 passed. Synchronous rejected image revision URLs now use the same preview-preserving backoff; actual rejected-request/due-time regression and fullfast74/172 passed. Dependents updated and exact-head builds requeued. Dirty image revisions are consumed before memory preflight; rejected revisions preserve previews and follow deadline backoff rather than repeat legacy-loop preflights. Actual memory-count/backoff runtime regression and fullfast passed; review resolved. Latest S3 suspension clears scheduledtile ownership and in_flight before release; actual suspend/resume with expiredactivitywindow and camera runtime/fullfastPASS; GsNwresolved. New unsolicited credential-update cadence finding G0fX remains. Camera picture/token URL updates retain credentials but respect tile periodic deadlines/activity windows; initial and explicit reloads stillwork. Actualcadence/idleactivity/initial/explicit runtime regressions/fullfast74/172PASS at3829675f9, G0fXresolved. NewsuccessfulrevisionbackoffresetfindingHGGu pending. Review HGGu resolved: successful image revision downloads clear retry deadlines and failure counts even in Off mode. Production runtime regression and full fast checks passed at the published revision. Hb2h resolved: recovering availability sets explicit picture refresh so an idle activity schedule cannot keep a camera hidden. Production availability and picture-handler tests plus full fast checks passed.",
+      "evidence": "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions previously queued. Physical testing pending. Hidden image revisions now stay dirty until the card is visible, both in picture callbacks and maintenance. Actual production hidden/visible transition test and full fast74 host checks passed; review resolved after push. Initial ordinary transfer completion now seeds an already-open periodic cadence instead of immediately downloading twice. Actual production completion/maintenance regression and full fast74 host checks passed; dependent #155/#156/#157 rebased and production tests rechecked. Latest activity-without-window retry and unavailable-camera schedule findings fixed; full fast74 host/172 web passed and production availability/activity regressions passed. Revision-driven image tile failures now retain the last successful frame and respect the revision retry deadline. Actual UI/error and production maintenance regressions passed, as did full fast74/172 checks. Dependent ports updated and final builds requeued. Activity-window completion now credits ordinary initial transfers, preventing immediate duplicates; actual completion/5-second cadence regression and full fast74/172 passed. Synchronous rejected image revision URLs now use the same preview-preserving backoff; actual rejected-request/due-time regression and fullfast74/172 passed. Dependents updated and exact-head builds requeued. Dirty image revisions are consumed before memory preflight; rejected revisions preserve previews and follow deadline backoff rather than repeat legacy-loop preflights. Actual memory-count/backoff runtime regression and fullfast passed; review resolved. Latest S3 suspension clears scheduledtile ownership and in_flight before release; actual suspend/resume with expiredactivitywindow and camera runtime/fullfastPASS; GsNwresolved. New unsolicited credential-update cadence finding G0fX remains. Camera picture/token URL updates retain credentials but respect tile periodic deadlines/activity windows; initial and explicit reloads stillwork. Actualcadence/idleactivity/initial/explicit runtime regressions/fullfast74/172PASS at3829675f9, G0fXresolved. NewsuccessfulrevisionbackoffresetfindingHGGu pending. Review HGGu resolved: successful image revision downloads clear retry deadlines and failure counts even in Off mode. Production runtime regression and full fast checks passed at the published revision. Hb2h resolved: recovering availability sets explicit picture refresh so an idle activity schedule cannot keep a camera hidden. Production availability and picture-handler tests plus full fast checks passed.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -3611,6 +3627,22 @@
             "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
           },
           "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "e6dd5c97954a7959366b018d9b9c4304655adbf2",
+          "status": "planned",
+          "log": "/private/tmp/1920-e6dd5c979-final-review-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "e6dd5c97954a7959366b018d9b9c4304655adbf2",
+          "status": "planned",
+          "log": "/private/tmp/1920-e6dd5c979-final-review-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
         }
       ],
@@ -4503,6 +4535,30 @@
           },
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
+          "status": "planned",
+          "log": "/private/tmp/2067-9bf72fef6-final-verified-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
+          "status": "planned",
+          "log": "/private/tmp/2067-9bf72fef6-final-verified-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
+          "status": "planned",
+          "log": "/private/tmp/2067-9bf72fef6-final-verified-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
         }
       ],
       "reviewStatus": "New review finding needs action",
@@ -4974,6 +5030,38 @@
           },
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
+          "status": "planned",
+          "log": "/private/tmp/2073-9f4d92ef1-final-review-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
+          "status": "planned",
+          "log": "/private/tmp/2073-9f4d92ef1-final-review-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
+          "status": "planned",
+          "log": "/private/tmp/2073-9f4d92ef1-final-review-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
+          "status": "planned",
+          "log": "/private/tmp/2073-9f4d92ef1-final-review-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
         }
       ],
       "reviewStatus": "Known review findings addressed",
@@ -5065,7 +5153,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2021",
       "mergeSha": "b412ae28ea716af64006c46d87864615c13f9a97",
       "disposition": "Ported",
-      "evidence": "Missing capability-aware horizontal swing controls, independent HA service, subscription fallback, translations and six-tab portrait correction ported. All fast72 host/172 web checks, product/generated/i18n and docs passed; final representative compiles queued. Companion retained.",
+      "evidence": "Missing capability-aware horizontal swing controls, independent HA service, subscription fallback, translations and six-tab portrait correction ported. All fast72 host/172 web checks, product/generated/i18n and docs passed; final representative compiles previously queued. Companion retained.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "components/espcontrol/button_grid_climate.h",
@@ -5270,7 +5358,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2089",
       "mergeSha": "4606e8113920c6e3f5594fb711313430e6a0db9b",
       "disposition": "Ported",
-      "evidence": "Scheduled night clock hands directly to the configured idle policy. Guards preserve invalid-time boot recovery, explicit taps, disabled schedules and Companion disconnected/locked sleep without requiring a new Mac event. Actual schedule action/callback-order regressions and full fast73 host/172 web checks passed. Review findings resolved; final3-target builds queued.",
+      "evidence": "Scheduled night clock hands directly to the configured idle policy. Guards preserve invalid-time boot recovery, explicit taps, disabled schedules and Companion disconnected/locked sleep without requiring a new Mac event. Actual schedule action/callback-order regressions and full fast73 host/172 web checks passed. Review findings resolved; final3-target builds previously queued.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "dev-docs/display-lifecycle.md",
@@ -5578,7 +5666,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2086",
       "mergeSha": "5d3401f5a4aa54baa6e23659a88f23c0a434f8bf",
       "disposition": "Ported",
-      "evidence": "Missing large-clock support across sizes, center option, smaller Roboto Light glyphs and timezone-correct preview ported with all upstream corrections. EspDesktop local/Companion and HA availability filtering retained. All fast72 host/172 web/product/generated/docs passed; final representative compiles queued.",
+      "evidence": "Missing large-clock support across sizes, center option, smaller Roboto Light glyphs and timezone-correct preview ported with all upstream corrections. EspDesktop local/Companion and HA availability filtering retained. All fast72 host/172 web/product/generated/docs passed; final representative compiles previously queued.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "components/espcontrol/button_grid_config_parser.h",
@@ -5673,7 +5761,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2095",
       "mergeSha": "3859a569976a771ad48772b8815e5f5ff6c828b2",
       "disposition": "Ported",
-      "evidence": "Separate decoded HTTP/announcement and raw PCM Sendspin speaker pipelines ported with amplifier restart/pause guards. Added missing80percent ceiling on both players per source review. Preserve destination clock overrides, Companion endpoint/artwork and S3 relays. All8factory configs validate under pinned2026.9.1/local components; full fast74host172web and docs passed. After camera parent update actualruntime/feedback/remote tests passed. Eightfactory compiles queued, physicalspeaker tests pending. Later2144/2146 corrections pending separate ports; depends on PR168. Hardware-scope review is covered by required separate source2144 portPR173. This intermediate PR retains originalsource2095; finalaudio testbranchPR174 limitslocal outputtoP4-86. No scopefix claimedinsidePR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. SharedSpeakerState component runslate afterbothplayerssetup, initializes fromHAplayer andsynchronizesvolume/mute bothdirections whilepreservingplayback/URIstate. RestoresmuteAFTERvolume becauseSDKvolume unmutessinks; recursionguardandequal-statechecks avoidcallbackloops. P4/S3packageexplicitsharedplayerIDs/codegen. Actualproductionheaderrestored/mute/volume/zero/announcement-state/callbackloop regressions andfullfast75/172/all8configsPASS atffa4cf460, GvK4resolved. NewannouncementduckingHJCI findingpending. Announcement review correction: production P4/S3 callbacks duck both media and Sendspin mixer inputs by 20 dB during announcements, restoring after state changes without changing player volume/mute. Production callback regression, final full fast checks (76 host/172 web) and all eight pinned device configurations passed. HJCI resolved. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision.",
+      "evidence": "Separate decoded HTTP/announcement and raw PCM Sendspin speaker pipelines ported with amplifier restart/pause guards. Added missing80percent ceiling on both players per source review. Preserve destination clock overrides, Companion endpoint/artwork and S3 relays. All8factory configs validate under pinned2026.9.1/local components; full fast74host172web and docs passed. After camera parent update actualruntime/feedback/remote tests passed. Eightfactory compiles previously queued, physicalspeaker tests pending. Later2144/2146 corrections pending separate ports; depends on PR168. Hardware-scope review is covered by required separate source2144 portPR173. This intermediate PR retains originalsource2095; finalaudio testbranchPR174 limitslocal outputtoP4-86. No scopefix claimedinsidePR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. SharedSpeakerState component runslate afterbothplayerssetup, initializes fromHAplayer andsynchronizesvolume/mute bothdirections whilepreservingplayback/URIstate. RestoresmuteAFTERvolume becauseSDKvolume unmutessinks; recursionguardandequal-statechecks avoidcallbackloops. P4/S3packageexplicitsharedplayerIDs/codegen. Actualproductionheaderrestored/mute/volume/zero/announcement-state/callbackloop regressions andfullfast75/172/all8configsPASS atffa4cf460, GvK4resolved. NewannouncementduckingHJCI findingpending. Announcement review correction: production P4/S3 callbacks duck both media and Sendspin mixer inputs by 20 dB during announcements, restoring after state changes without changing player volume/mute. Production callback regression, final full fast checks (76 host/172 web) and all eight pinned device configurations passed. HJCI resolved. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision.",
       "changedFiles": [
         "common/device/speaker_output_p4.yaml",
         "common/device/speaker_output_s3_external.yaml",
@@ -6023,6 +6111,38 @@
           },
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
+          "status": "planned",
+          "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
+          "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
+          "status": "planned",
+          "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc1060p470-v2.log",
+          "device": "guition-esp32-p4-jc1060p470-v2",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
+          "status": "planned",
+          "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
+          "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
+          "status": "planned",
+          "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc8012p4a1.log",
+          "device": "guition-esp32-p4-jc8012p4a1",
+          "esphome": "2026.9.1"
         }
       ],
       "reviewStatus": "Speaker scope correction covered by separate PR173",
@@ -6318,7 +6438,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2107",
       "mergeSha": "d639f561d965b742ab16eebf57eb1921f355c594",
       "disposition": "Ported",
-      "evidence": "Minute-boundary clock refresh ported on night-clock #153 foundation, after EspDesktop timezone application. Actual entry/minute/format/fallback/hidden-mode lambdas tested. Full fast74 host/172 web checks and docs passed; parent Companion sleep fix rebased and both production clock/schedule regressions rechecked. Full builds queued.",
+      "evidence": "Minute-boundary clock refresh ported on night-clock #153 foundation, after EspDesktop timezone application. Actual entry/minute/format/fallback/hidden-mode lambdas tested. Full fast74 host/172 web checks and docs passed; parent Companion sleep fix rebased and both production clock/schedule regressions rechecked. Full builds previously queued.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/addon/time.yaml",
@@ -6671,7 +6791,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2109",
       "mergeSha": "0f53a59d322bf7e3f59eb8ec35728bdcdeb674c1",
       "disposition": "Ported",
-      "evidence": "Browser OTA platform and truthful installed-version/timeout/error handling ported, preserving destination credential-free downloads, authenticated upload, Dev Build label and V3/disabled-update guards. Browser regression exposed source pending-transfer cancellation; explicit transfer ownership fixed and actual asynchronous download/upload/status regression passed. Full fast72 host/173 web/product/generated checks, P4-86 Chromium acceptance and docs passed. Final S3/7P4/4.3P4/P4-86 compiles queued. No physical upload/flash. Source2156 follow-up pause API port in progress separately. Owner explicitly chose unauthenticated browser installation; the authentication review finding is accepted by owner, with no mitigation claimed. The uncommitted approval prototype was removed; original published revision remains unchanged.",
+      "evidence": "Browser OTA platform and truthful installed-version/timeout/error handling ported, preserving destination credential-free downloads, authenticated upload, Dev Build label and V3/disabled-update guards. Browser regression exposed source pending-transfer cancellation; explicit transfer ownership fixed and actual asynchronous download/upload/status regression passed. Full fast72 host/173 web/product/generated checks, P4-86 Chromium acceptance and docs passed. Final S3/7P4/4.3P4/P4-86 compiles previously queued. No physical upload/flash. Source2156 follow-up pause API port in progress separately. Owner explicitly chose unauthenticated browser installation; the authentication review finding is accepted by owner, with no mitigation claimed. The uncommitted approval prototype was removed; original published revision remains unchanged.",
       "changedFiles": [
         "common/addon/firmware_update.yaml",
         "docs/features/firmware-updates.md",
@@ -6820,7 +6940,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2144",
       "mergeSha": "66886d5a7c8b4d06e33e7db9b9e1ea3d5398c466",
       "disposition": "Ported",
-      "evidence": "Local speaker/Sendspin restricted to P4-86; seven other profiles restore network budgets and S3 serial logs, unused external amplifier package removed. Preserve destination clock overrides, Companion and P4-86 volume ceiling. Full fast74host172web and docs passed. All8factory configs validate and generate actual C++ under pinned2026.9.1; inspected constructor instances: onlyP4-86 retains speaker and Sendspin. Eight factory compiles queued; physical tests pending. Depends on PR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. Shared gain/mute coordinator retainedonlyforP4-86 afterunsupportedS3speakerfile deletion. Latest69c43fece fullfast75/172PASS; code fromvalidatedspeakerparent. Jobsupdatedpublishedrevision. Latest parent review changes retained P4-86-only audio and removed S3 package. Announcement fixture adapted to the supported P4 path; full fast checks passed (76 host/172 web). Full firmware validation exposed an optional audio header included by ESPHome on non-audio profiles. Fixed with USE_MEDIA_PLAYER guard, tested with enabled gain/mute callbacks and disabled compilation after removing the media-player header. Full fast checks passed (76 host/172 web); new exact-revision retry required. The failed older 6c384 revision is retained as historical evidence.",
+      "evidence": "Local speaker/Sendspin restricted to P4-86; seven other profiles restore network budgets and S3 serial logs, unused external amplifier package removed. Preserve destination clock overrides, Companion and P4-86 volume ceiling. Full fast74host172web and docs passed. All8factory configs validate and generate actual C++ under pinned2026.9.1; inspected constructor instances: onlyP4-86 retains speaker and Sendspin. Eight factory compiles previously queued; physical tests pending. Depends on PR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. Shared gain/mute coordinator retainedonlyforP4-86 afterunsupportedS3speakerfile deletion. Latest69c43fece fullfast75/172PASS; code fromvalidatedspeakerparent. Jobsupdatedpublishedrevision. Latest parent review changes retained P4-86-only audio and removed S3 package. Announcement fixture adapted to the supported P4 path; full fast checks passed (76 host/172 web). Full firmware validation exposed an optional audio header included by ESPHome on non-audio profiles. Fixed with USE_MEDIA_PLAYER guard, tested with enabled gain/mute callbacks and disabled compilation after removing the media-player header. Full fast checks passed (76 host/172 web); new exact-revision retry required. The failed older 6c384 revision is retained as historical evidence.",
       "changedFiles": [
         "common/device/speaker_output_s3_external.yaml",
         "devices/guition-esp32-p4-jc1060p470-v2/device/device.yaml",
@@ -7179,6 +7299,14 @@
           },
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "7a764ab631c7be629da3088d8b08025ccea78aba",
+          "status": "planned",
+          "log": "/private/tmp/2144-7a764ab63-final-verified-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
         }
       ],
       "latestPortRevision": "7a764ab631c7be629da3088d8b08025ccea78aba",
@@ -7497,7 +7625,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2136",
       "mergeSha": "25515bd9e51dc18146d240242bd2fd5dd23e72d1",
       "disposition": "Ported",
-      "evidence": "Separate ready port; actual landing guard tested with production controller for HA, Companion, modal/alarm and idle modes. Companion mutation rejects HA-only adaptation. Layout/backlight/HA/docs passed; S3 compile running; other representative compiles and physical tests pending. Exact-revision S3 factory build passed; P4 builds queued. Idle-policy review fixed atd48ee4ff6: timer/sensor with prevention off retains normal idle policy except manual artwork return. Regression and contracts passed; final-revision builds pending (queued158f27e56 builds are historical).",
+      "evidence": "Separate ready port; actual landing guard tested with production controller for HA, Companion, modal/alarm and idle modes. Companion mutation rejects HA-only adaptation. Layout/backlight/HA/docs passed; S3 compile running; other representative compiles and physical tests pending. Exact-revision S3 factory build passed; P4 builds previously queued. Idle-policy review fixed atd48ee4ff6: timer/sensor with prevention off retains normal idle policy except manual artwork return. Regression and contracts passed; final-revision builds pending (queued158f27e56 builds are historical).",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "tests/firmware/display_schedule_test.cpp.in"
@@ -7610,7 +7738,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2156",
       "mergeSha": "86d61c8cf7b2397e8d8cbfb55376dd0431e5bd54",
       "disposition": "Ported",
-      "evidence": "Separate source follow-up stacked on #166: pause confirmation instead of clearing the intended version/status while metadata loads. Keep parent transfer/confirmation separation and lost-connection safeguards. Actual delayed-metadata/download/upload tests passed; full fast72 host/173 web/product/generated checks and P4-86 Chromium acceptance passed. Destination baseline measured; final3-target compiles queued.",
+      "evidence": "Separate source follow-up stacked on #166: pause confirmation instead of clearing the intended version/status while metadata loads. Keep parent transfer/confirmation separation and lost-connection safeguards. Actual delayed-metadata/download/upload tests passed; full fast72 host/173 web/product/generated checks and P4-86 Chromium acceptance passed. Destination baseline measured; final3-target compiles previously queued.",
       "changedFiles": [
         "docs/public/webserver/bundles/82e50b6210ef171ce4bed957bfd092fcb733355f3e82c7ac548261703a912dfa/www.js",
         "docs/public/webserver/bundles/cd11005007013f152fa7a6e0a112d54126ca6089bb4663c93e7bd04c80396a9a/www.js",
@@ -7700,7 +7828,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2158",
       "mergeSha": "7eedde0ba86f71a6f2b0a8c71a6c7fd27d619023",
       "disposition": "Ported",
-      "evidence": "Separate production-silicon 4.3-inch P4 V3 device profile, normal/factory/recovery builds and generated destination editor/catalog outputs. Preserves EspDesktop touch wake, Companion behavior and published S3 installation policy; retained P4 guide redirects upstream. V3 recovery choice and original-versus-production silicon warnings retained. Depends on #169 for smaller clock-date font. Full fast74 firmware host/172 web, all9factory configurations, real V3 Chromium acceptance and docs/link/redirect checks passed. Published revision factory/recovery compiles queued; physical hardware pending.",
+      "evidence": "Separate production-silicon 4.3-inch P4 V3 device profile, normal/factory/recovery builds and generated destination editor/catalog outputs. Preserves EspDesktop touch wake, Companion behavior and published S3 installation policy; retained P4 guide redirects upstream. V3 recovery choice and original-versus-production silicon warnings retained. Depends on #169 for smaller clock-date font. Full fast74 firmware host/172 web, all9factory configurations, real V3 Chromium acceptance and docs/link/redirect checks passed. Published revision factory/recovery compiles previously queued; physical hardware pending.",
       "changedFiles": [
         ".github/workflows/pages.yml",
         "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
@@ -7795,7 +7923,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2160",
       "mergeSha": "4b9aa4bceb3a5669d34964a589ca1608dc48f742",
       "disposition": "Ported",
-      "evidence": "Immediate rotation compensation axis before Cover Art layout for both 7-inch versions. Depends on destination PR146 playback controls. Actual production YAML rotation, startup, icon and text regressions passed; full fast checks passed (74 firmware host, 172 web tests). Two firmware compiles queued; physical testing pending.",
+      "evidence": "Immediate rotation compensation axis before Cover Art layout for both 7-inch versions. Depends on destination PR146 playback controls. Actual production YAML rotation, startup, icon and text regressions passed; full fast checks passed (74 firmware host, 172 web tests). Two firmware compiles previously queued; physical testing pending.",
       "changedFiles": [
         "devices/guition-esp32-p4-jc1060p470-v2/device/device.yaml",
         "devices/guition-esp32-p4-jc1060p470/device/device.yaml",
@@ -7851,7 +7979,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2159",
       "mergeSha": "482194d6bb522c3cc38057b72b465a0e113325de",
       "disposition": "Ported",
-      "evidence": "3x6/18-visible-card portrait firmware and web preview, retaining full20-card saved landscape configuration. Generator/profile/deferred startup corrections retained; additionally fixed remaining upstream high-ID subpage and trailing-only sparse-order findings. Full fast72 host/172 web checks, actual V3 Chromium acceptance and docs passed. V3 full firmware compile queued; physical testing pending. Latest firmware reads configured20-token order before applying18-cell home capacity, and subpage rebuild normalizes atactive18 whilepreserving20serialization. Production parser regressions, fullfast72/172 and freshV3browser acceptance passed. Both review findings resolved; finalcompile updated. Firmware subpage parser now reads configured20-token orders before compacting to active18, preserving independent high IDs and explicit/implicit Back. Actual sparse/high-ID/back/span/landscape/default parser regressions and full fast73/172 passed. Web portrait overflow now reserves visible Back while preserving excess controls in serialized tail, matching firmware. Actual subpage reconstruction/serialization regression, fullfast73/172 and freshV3browser acceptance passed; bundle regenerated and baseline measured. Latest portrait editing fixes retain serialized landscape tail through drag, multi-selection, resize, save and rotation restoration for home/subpages. Temporary compacted firmware spans downgrade when they would cover another card or Back origin. Actual production parser and web regressions, fullfast73/172 and realV3browser acceptance passed at 522afc2a77ae8ae4be25e1a5b45f9c264922d673. Three fresh review threads resolved after push; new fullfirmware compile queued.",
+      "evidence": "3x6/18-visible-card portrait firmware and web preview, retaining full20-card saved landscape configuration. Generator/profile/deferred startup corrections retained; additionally fixed remaining upstream high-ID subpage and trailing-only sparse-order findings. Full fast72 host/172 web checks, actual V3 Chromium acceptance and docs passed. V3 full firmware compile previously queued; physical testing pending. Latest firmware reads configured20-token order before applying18-cell home capacity, and subpage rebuild normalizes atactive18 whilepreserving20serialization. Production parser regressions, fullfast72/172 and freshV3browser acceptance passed. Both review findings resolved; finalcompile updated. Firmware subpage parser now reads configured20-token orders before compacting to active18, preserving independent high IDs and explicit/implicit Back. Actual sparse/high-ID/back/span/landscape/default parser regressions and full fast73/172 passed. Web portrait overflow now reserves visible Back while preserving excess controls in serialized tail, matching firmware. Actual subpage reconstruction/serialization regression, fullfast73/172 and freshV3browser acceptance passed; bundle regenerated and baseline measured. Latest portrait editing fixes retain serialized landscape tail through drag, multi-selection, resize, save and rotation restoration for home/subpages. Temporary compacted firmware spans downgrade when they would cover another card or Back origin. Actual production parser and web regressions, fullfast73/172 and realV3browser acceptance passed at 522afc2a77ae8ae4be25e1a5b45f9c264922d673. Three fresh review threads resolved after push; new fullfirmware compile previously queued.",
       "changedFiles": [
         "devices/guition-esp32-p4-jc8012p4a1-v3/device/lvgl.yaml",
         "devices/guition-esp32-p4-jc8012p4a1-v3/device/sensors.yaml",
@@ -8134,6 +8262,78 @@
           "log": "/private/tmp/2168-8be9e98e4-final-review-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "running",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc1060p470-v2.log",
+          "device": "guition-esp32-p4-jc1060p470-v2",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc4880p443-v3.log",
+          "device": "guition-esp32-p4-jc4880p443-v3",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc8012p4a1.log",
+          "device": "guition-esp32-p4-jc8012p4a1",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v2.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc8012p4a1-v2.log",
+          "device": "guition-esp32-p4-jc8012p4a1-v2",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-p4-jc8012p4a1-v3.log",
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
+          "status": "planned",
+          "log": "/private/tmp/2168-2fe34027a-declaration-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
         }
       ]
     },
@@ -8208,7 +8408,41 @@
       "latestPortRevision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/178",
       "branch": "fix-camera-image-fit",
-      "destinationBaseBranch": "integrate-camera-theme"
+      "destinationBaseBranch": "integrate-camera-theme",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
+          "status": "planned",
+          "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
+          "status": "planned",
+          "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
+          "status": "planned",
+          "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+          "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
+          "status": "planned",
+          "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-p4-jc8012p4a1-v3.log",
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "esphome": "2026.9.1"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nFan cards set to **All Controls** now keep their configured label on the tile. When the label is blank, they show the Home Assistant friendly name, falling back to \u201cFan\u201d. Related to #2181.\n\n## Practical impact\n\nThe fan refresh previously replaced the tile name with a permanent speed percentage, preset, or status. Removing that replacement keeps the name visible through Home Assistant updates, while the on/off icon and active highlight still update. Fan settings remain in the control view.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes:\n- The fan guide explains the All Controls tile label and friendly-name fallback.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nAutomated validation:\n- The new regression test fails against the original production refresh and passes with the fix. It covers startup, speed, power, preset and availability updates, label edits, friendly-name changes, fallback names, and on/off visuals.\n- All 83 host firmware tests passed with pinned ESPHome 2026.9.1 available.\n- Firmware card runtime checks passed.\n- `npm run prepare:ci` passed using Node 24, ESPHome 2026.9.1 and tzdata 2026.3, including the CI checks, generated-output checks, docs build and mocked browser installer checks. GitHub CI and the Firmware Compile Gate also passed, including the representative S3 and 7-inch P4 firmware builds.\n\nAffected display/device, if applicable:\n- Shared fan code affects every supported display. Prioritize the reported S3 panel, described as 4.3-inch in #2181, and check a P4 display if available. Commit `303d5d6c8` compiled and flashed successfully over OTA to the 4-inch S3 (4848S040) at `192.168.6.105`, and post-reboot reachability was confirmed. The user confirmed the fix works on 9 October 2026. Other display hardware has not been physically tested in this task.\n\n## Notes for testing\n\nInstall firmware from `fix-fan-control-label`, keeping the existing device configuration and secrets. For an ESPHome GitHub package reference, set `ref: fix-fan-control-label` and `refresh: 0s`.\n\n1. Confirm normal boot. Configure a **Fans \u2192 All Controls** tile with a custom label. Change speed and power in Home Assistant; the tile should retain the label, with the correct active highlight and icon.\n2. Tap the tile and confirm supported controls open, speed reflects Home Assistant changes, and power/speed controls still work.\n3. Clear the label and confirm the Home Assistant friendly name appears. Check both the main grid and a subpage for readable text and working navigation.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Ready for device test.\n- [x] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -8347,7 +8581,50 @@
       "latestPortRevision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/179",
       "branch": "improve-wifi-setup-reset",
-      "destinationBaseBranch": "fix-camera-image-fit"
+      "destinationBaseBranch": "fix-camera-image-fit",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
+          "status": "planned",
+          "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
+          "status": "planned",
+          "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
+          "status": "planned",
+          "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
+          "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
+          "status": "planned",
+          "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc4880p443-v3.log",
+          "device": "guition-esp32-p4-jc4880p443-v3",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
+          "status": "planned",
+          "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc1060p470-ethernet-ethernet.log",
+          "network_transport": "ethernet",
+          "device": "guition-esp32-p4-jc1060p470-ethernet",
+          "esphome": "2026.9.1"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nAdds a shared component with 20 round colour swatches to **Custom Colours** and **Appearance**. Users choose one card colour; its active state uses a lighter shade. The palette includes a grey row, distinct blues, pure red and white, and the existing `FF8C00` orange. The reset icon appears only while its section is open.\n\nRelated to #878.\n\n## Practical impact\n\n- Colours survive reopening editors, changing other options, Wi-Fi credential edits, saved-configuration normalization, both subpage formats and Dark/Light theme changes. Main and secondary-page sensor and information cards use their selected backgrounds.\n- Device and web preview share the foreground rules: mid-tone colours retain white content, while pale backgrounds use dark content. Cyan retains white content in its lighter active state. State changes, presses, confirmations, selected modal/speaker controls and triggered alarms preserve the correct contrast.\n- Custom backgrounds remain fixed while theme-owned child surfaces, slider tracks and disabled labels refresh with the theme. Uncustomised cards continue following the selected theme.\n- Media fallback previews and device tiles honour custom colours. Track Position and Now Playing Progress use a lighter fill on darker backgrounds and a darker fill on pale backgrounds, including white, so progress stays visible. Shades are derived before display calibration.\n- Image and full QR cards omit colour controls because their backgrounds are fixed. Visible artwork retains white text. Older saved colours remain available as a custom swatch.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n- Appearance guide and FAQ cover the palette, automatic shades, reset, foreground behaviour and fixed-background exclusions. Appearance also explains media fallback colours and visible progress fills.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n- Shared card code affects all EspControl displays. Test the 7-inch P4 V1, 10-inch P4 V3 and 4-inch P4 / P4-86 before merge, including secondary pages.\n\n## Notes for testing\n\nLatest revision: `739301419`.\n\n- Custom colours now survive Action changes to Option Select/Local, all 12 transitions between Light control types, and Webhook editor reopening and header edits/clearing. New production-renderer regressions reproduced each failure before its fix and pass afterward. All 31 web unit test files, TypeScript, runtime coverage and web smoke/generated-output checks passed at `739301419`; web assets were regenerated.\n- [Latest GitHub validation, documentation and the CI gate passed](https://github.com/jtenniswood/espcontrol/actions/runs/37974517014) at `739301419`. The P4 and S3 firmware checks are still running.\n- Merged `origin/main` (`2245062f4`) to clear generated-asset conflicts that prevented CI from starting, preserving its Wi-Fi setup/reset changes. Rebuilt the combined web assets.\n- Fixed the failing `card-runtime-coverage` CI check by regenerating `compatibility/fixtures/card_runtime_surface_baseline.json`. The stale entry was the Cover Art preview fingerprint; its generator now reports the baseline as current. [GitHub validation and the CI gate passed](https://github.com/jtenniswood/espcontrol/actions/runs/37971561708) on `c7bb99006`.\n- All 84 host firmware tests passed. The three ESPHome-dependent package/code-generation tests also passed in pinned ESPHome 2026.9.1: Wi-Fi setup package expansion, reset startup code generation and Home Assistant reconnect recovery. Together these cover all 87 firmware test entries, including production colour/state rendering, main/subpage media-driver routing, calibrated progress colours, theme refreshes, disabled content and alarm contrast. Captive-portal DNS tests passed with and without station IPv6.\n- All 31 web unit test files, preview/feature checks, TypeScript, web smoke, generated-output freshness and documentation build checks passed. Chromium verified actual overlay/fill colours and placeholder/artwork text in 120 media-preview combinations across both themes and page levels. The distinct-fill regression fails before the fix and passes afterward. Web assets were regenerated.\n- Factory builds passed for 7-inch P4 V1, 4.3-inch P4 and S3 at `4efce28db`. All five changed colour/media headers remain identical after merging main. The final merged 4.3-inch factory build passed at `c7bb99006`, with staged colour/media and Wi-Fi/reset sources matching this commit. GitHub\u2019s P4 landscape build passed on `c7bb99006`; the S3 build was still running when the web-only mode fixes were pushed. Firmware checks will rerun on the latest revision.\n- Earlier factory builds passed on `f46f96a37`; GitHub P4 and S3 builds and all checks passed on `68730d218`. Earlier OTA uploads were verified on 7-inch P4 V1 (`355213e7e`), 10-inch P4 V3 (`f285e7fda`) and P4-86 (`983a4f9a6`). These are historical results; this latest revision has not been flashed or physically tested.\n\nManual testing:\n1. Choose a colour in Custom Colours or Appearance, save and reopen. Change another card option, Connect-card credentials or Webhook headers and confirm the colour remains after saving and reopening. Change an Action card to Option Select and Local, and change a Light card between All Controls, Switch, Brightness and Colour Temperature; save and reopen each one to check the colour remains. Check palette/reset behaviour and older saved-colour preservation.\n2. Compare main and secondary-page sensors, presence/door cards and media cards. While media is playing, check Track Position and Now Playing Progress with cyan, grey and white cards: the fill must remain visible against the selected background. Check Cover Art loading/unavailable fallbacks and their text contrast.\n3. Switch Dark/Light while a custom card is active or unavailable. Turn it off or release it afterward; verify inactive text contrast, muted labels, slider tracks and preserved backgrounds. Confirm uncustomised cards follow the theme.\n4. Check confirmations, selected modal/speaker rows and triggered alarms with a bright accent. Confirm Image and full QR cards have no Custom Colours section.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -8438,7 +8715,41 @@
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/180",
       "latestPortRevision": "83dc649abe1e8ad4b94c69343765c5883b8aec7f",
       "branch": "add-custom-card-colours",
-      "destinationBaseBranch": "improve-wifi-setup-reset"
+      "destinationBaseBranch": "improve-wifi-setup-reset",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "83dc649abe1e8ad4b94c69343765c5883b8aec7f",
+          "status": "planned",
+          "log": "/private/tmp/2163-83dc649ab-declaration-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "83dc649abe1e8ad4b94c69343765c5883b8aec7f",
+          "status": "planned",
+          "log": "/private/tmp/2163-83dc649ab-declaration-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "83dc649abe1e8ad4b94c69343765c5883b8aec7f",
+          "status": "planned",
+          "log": "/private/tmp/2163-83dc649ab-declaration-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "83dc649abe1e8ad4b94c69343765c5883b8aec7f",
+          "status": "planned",
+          "log": "/private/tmp/2163-83dc649ab-declaration-final-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nMedia cards can now reorder and hide popup tabs under **Modal Settings**, using the same drag handles, arrows, and switches as the fan editor. **All Controls** and **Cover Art** share these settings and an optional separate power device. Related to #2173; keep the issue open until the behavior is confirmed on hardware.\n\n## Practical impact\n\n- Reorder **Controls**, **Track Position**, **Volume**, **Speakers**, and **Power**, or switch off tabs you do not want. The popup opens the first available tab in the saved order. Unsupported tabs stay hidden, with Controls as a fallback while the main player is available. A single visible tab hides the tab bar.\n- **Optional Power** sits inside **Modal Settings**, below the tab list, without explanatory info text. Power starts off and unavailable until a Power Entity is entered. Adding an entity enables Power, including with a custom tab order; it can still be hidden manually. Clearing the entity disables the tab and blocks power actions. Use a Sonos soundbar for playback/volume and a TV, switch, input boolean, light, or fan for power.\n- Switching between All Controls and Cover Art retains the power entity, tab order, and visibility choices. Other media types omit these modal options. The default order of the other controls stays the same. The main player's native power capability does not enable Power without an explicitly configured Power Entity.\n- Cover Art continues to use its existing external-source playback routing; the separate power target stays fixed. Enough shared state slots are reserved for cards with distinct main, secondary artwork, and power entities.\n- If the main player becomes unavailable, the popup can still open its enabled Power tab while the separate device has a known, available state. Playback tabs return when the player recovers; losing both devices closes the popup.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes: The Media card guide explains shared Modal Settings, tab order/visibility, capability fallback, and separate power setup for both views.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nAutomated validation:\n- `PATH=/tmp/media-power-venv/bin:$PATH npm run check:parallel` passed after bringing in the latest main, including all 91 firmware host tests, web unit tests, TypeScript, generated outputs, and browser/firmware configuration compatibility.\n- Focused firmware modal and Home Assistant binding checks passed.\n- Regression tests compile the production modal availability, tab selection, and power-state callbacks. They cover offline playback with usable power, power state loss/recovery, manually hidden Power, unknown states, restored playback tabs, and remote modal opening.\n- The production state allocator test fits three distinct entities for every main-grid and subpage card with both 25-slot and 16-slot limits, including deduplication and generation reuse.\n- Media browser checks previously passed across all nine layouts for shared Modal Settings. Entity-required Power was rechecked on the 7-inch landscape P4, 4.3-inch portrait P4, and 4-inch S3, covering disabled defaults, automatic enabling, ordering, visibility, saving/reopening, and both media views.\n- Conflicts with main were resolved by preserving custom card colours together with media Power/tab settings and regenerating browser assets from the combined sources. Regression checks cover colour and modal-option preservation when editing and switching between both views; the new colour-preview test uses the shared tab-settings interface.\n- The shared media editor journey passed again on the 7-inch landscape P4, 4.3-inch portrait P4, and 4-inch S3 after the latest main update.\n\nGitHub CI passed on this commit, including required validation, docs, and the 7-inch P4 (JC1060P470) and 4-inch S3 firmware builds with ESPHome 2026.9.1. The full required CI task graph also passed locally. The updated branch still needs flashing and physical testing: the previous S3 upload could not start because 192.168.6.105 was unreachable. Earlier feature firmware was flashed successfully.\n\nAffected display/device, if applicable:\n\n- Shared firmware for all supported displays, including the 7-inch JC1060P470, 10-inch JC8012P4A1, 4.3-inch JC4880P443, P4-86, and 4-inch S3 panels and their variants.\n\n## Notes for testing\n\nInstall firmware from `media-optional-power`, keeping your existing device configuration and secrets. For a GitHub package reference, use `ref: media-optional-power` and `refresh: 0s` so ESPHome fetches the branch instead of main.\n\n1. Refresh the panel web editor. Use **All Controls** with Sonos as Entity. Open **Modal Settings \u2192 Optional Power**, set the TV entity, and move Power above Volume with the arrows or drag handle. Save and reopen to confirm the settings persist.\n2. Open the panel popup. Confirm Power appears first and controls the TV, while volume and playback control Sonos. Change the TV state elsewhere in Home Assistant and confirm it updates on the panel.\n3. Hide a tab and confirm it disappears. Leave only Volume enabled and confirm the popup opens Volume without a tab bar. Check behavior when a selected optional tab is unsupported.\n4. Switch the card to **Cover Art** and confirm the same power device, tab order, and visibility choices remain. Tap the artwork and verify the shared popup uses those settings.\n5. Clear the power entity and confirm Power turns off and becomes unavailable in both the editor and popup. To control the main player's own power, explicitly enter its entity in Power Entity. If using Cover Art's external-source player, confirm playback still follows that player while power continues to target the separately configured device.\n\n6. With the main player unavailable and the power device available, confirm the popup opens Power and still controls that device. Confirm the playback tabs return when the main player recovers, and that hiding Power prevents opening the popup while playback is unavailable.\n\n7. Set a custom card colour, change the tab order or visibility, and switch between All Controls and Cover Art. Confirm the colour, Power Entity, and modal settings remain saved.\n\n## PR status\n\n- [x] Ready for device test.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -8499,7 +8810,41 @@
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/181",
       "latestPortRevision": "679f5b5df30d358984985139a1a4213500e4bff7",
       "branch": "add-media-popup-controls",
-      "destinationBaseBranch": "integrate-colours-navigation"
+      "destinationBaseBranch": "integrate-colours-navigation",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "679f5b5df30d358984985139a1a4213500e4bff7",
+          "status": "planned",
+          "log": "/private/tmp/2179-679f5b5df-declaration-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "679f5b5df30d358984985139a1a4213500e4bff7",
+          "status": "planned",
+          "log": "/private/tmp/2179-679f5b5df-declaration-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "679f5b5df30d358984985139a1a4213500e4bff7",
+          "status": "planned",
+          "log": "/private/tmp/2179-679f5b5df-declaration-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "679f5b5df30d358984985139a1a4213500e4bff7",
+          "status": "planned",
+          "log": "/private/tmp/2179-679f5b5df-declaration-final-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nAdd an optional local date beneath the Clock screensaver. **Show date** appears when **Then \u2192 Clock** is selected, for both Timer and Sensor modes, and defaults to off. The toggle has extra space above and below it. The date is centered below the time using existing device fonts: 29 pixels on both 4.3-inch P4 versions, and the heading font on other displays (46 pixels on the 10-inch). Its month follows the panel language.\n\n## Practical impact\n\nThe clock and date drift together to reduce burn-in and share the configured clock text color. The toggle is restored after reboot and included in backups; older backups default it to off. Older firmware hides the unsupported control. Language and color changes refresh the date immediately.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated the Screensaver feature guide with the toggle, positioning, persistence, and firmware requirement.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAutomated checks:\n- After merging current `main` at `dc07c6237`: product checks, TypeScript, all 31 web unit tests, screensaver rendering/layout and camera/backlight regressions, the documentation build, and existing S3/7-inch P4 browser journeys passed. The web bundle and asset manifest were regenerated from the combined source. Fresh firmware CI builds are running; device testing of this merged revision is still pending.\n- Product profile: all checks passed (`python3 scripts/check_tasks.py run product --jobs 4 --no-cache`), including backup/state contracts, compatibility baseline, web smoke checks, generated assets, and bundle budgets.\n- Web unit tests and TypeScript checks passed. Browser spacing checks passed at 1280px and 390px widths for both Timer and Sensor modes (12px padding above and below the date toggle).\n- Firmware suite: 80/83 passed initially. The two sanitizer tests passed outside the sandbox; the remaining reconnect test passed using the pinned ESPHome Python environment (12 cases).\n- Merged ESPHome factory configurations verified the 29-pixel body font on both 4.3-inch P4 variants and the existing heading font on all other displays. The product profile and date rendering/layout regressions passed again after this device-specific change.\n- Production screensaver rendering and layout regression tests passed, including date toggling, midnight/year rollover, fallback time, centering, drift, bounds, and clock-only positioning. Camera overlay and backlight schedule checks passed.\n- Pinned ESPHome 2026.9.1 successfully generated C++ for the 4-inch S3 and 7-inch P4 factory configurations. This is configuration/code-generation validation, not a complete firmware binary compile or physical device test.\n- Full browser smoke stopped at the rotation-startup loading assertion. Targeted existing browser settings journeys passed for both the S3 and 7-inch P4, including old-firmware visibility, off-by-default behavior, switching the toggle, event aliases, and Timer/Sensor synchronization.\n\nAffected display/device:\n\n- Shared firmware affects all EspControl displays: 4-inch S3 4848S040, P4-86, 4.3-inch P4 JC4880P443/V3, 7-inch P4 JC1060P470/V2, and 10-inch P4 JC8012P4A1/V2/V3.\n\n## Notes for testing\n\nInstall this branch through ESPHome by changing your device package reference from `@main` to `@screensaver-date`, then compile and flash your display. Begin with a 4-inch S3 or 7-inch P4 if available.\n\n1. Open **Settings \u2192 Sleep & Schedule \u2192 Screensaver**, select **Timer \u2192 Then \u2192 Clock**, and enable **Show date**.\n2. Let the screensaver activate. Confirm the correct local date appears centered below the time in a smaller font, with no overlap or clipping. Confirm both drift together and touching the screen wakes it normally.\n3. Turn the toggle off and confirm the clock-only screensaver returns. Check Sensor mode uses the same saved setting.\n4. Enable it again, reboot, and confirm it stays enabled. Check backup export/restore, clock color, language, and portrait orientation where available.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
