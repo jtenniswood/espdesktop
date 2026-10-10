@@ -149,6 +149,15 @@ void finish_tile() {
 int main() {
   reset();
   auto &ctx = contexts[0];
+  ctx.revision.observe("hidden"); ctx.visible = false;
+  image_card_handle_picture(&ctx, ctx.source_url);
+  assert(tile_requests == 0);
+  image_card_refresh_due();
+  assert(tile_requests == 0 && ctx.revision.tile_dirty());
+  ctx.visible = true;
+  image_card_refresh_due();
+  assert(tile_requests == 1); // The retained revision is consumed only on return.
+  reset();
   ctx.revision.observe("first");
   image_card_handle_picture(&ctx, ctx.source_url);
   assert(tile_requests == 1); // Real revision bypasses the 30-second guard.

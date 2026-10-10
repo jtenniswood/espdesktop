@@ -2569,6 +2569,7 @@ inline void image_card_handle_picture(ImageCardCtx *ctx, esphome::StringRef pict
       ? ctx->revision.modal_dirty() : ctx->revision.tile_dirty());
   if (image_entity) {
     ctx->source_url = url;
+    if (dirty && !image_card_context_on_active_screen(ctx)) return;
     if (ctx->image_ready && !dirty && !ctx->explicit_picture_refresh) return;
   }
   if (!dirty && !ctx->media_artwork && ctx->image_ready &&
@@ -3044,7 +3045,7 @@ inline void image_card_refresh_due(std::function<bool()> page_visible = nullptr)
       if (visible_modal && ctx->revision.modal_dirty() && !ctx->refresh_schedule.in_flight &&
           (ctx->revision_retry_ms == 0 || static_cast<int32_t>(now - ctx->revision_retry_ms) >= 0)) {
         image_card_queue_modal_source_request(ctx);
-      } else if (!image_card_modal_active_for(ctx) && ctx->revision.tile_dirty() &&
+      } else if (visible && !image_card_modal_active_for(ctx) && ctx->revision.tile_dirty() &&
                  !ctx->download_active && ctx->next_download_retry_ms == 0) {
         image_card_request_source_url(ctx);
       }
