@@ -4866,26 +4866,62 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2067-9bf72fef6-final-verified-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "1e7c9259502f44f463e0337f48f106275a44b1e9208419fcd5ff9fedccd9460e",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "de63a1c4933f893faeb951ee2ea7a22f68de4843702016a74dc443d7568bd329",
+            "home_assistant_endpoint_resolver.cpp": "ac7d25fe50ec84b72e7157bb76ae9346aaa3fdcbd3297da847b4e563e5eac953"
+          },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/1092d5516e984b386cd69ad9295d1000fd49a1e37625fbabf11ce0d9544a7082.log.gz",
+          "logSha256": "1092d5516e984b386cd69ad9295d1000fd49a1e37625fbabf11ce0d9544a7082",
+          "archiveSha256": "f4b89e146a50876704ca2bb1be120e155495f1ff403474c70d471fca87932b86"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2067-9bf72fef6-final-verified-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "1e7c9259502f44f463e0337f48f106275a44b1e9208419fcd5ff9fedccd9460e",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "de63a1c4933f893faeb951ee2ea7a22f68de4843702016a74dc443d7568bd329",
+            "home_assistant_endpoint_resolver.cpp": "ac7d25fe50ec84b72e7157bb76ae9346aaa3fdcbd3297da847b4e563e5eac953"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8fe5831459c4e9ab30261a10718e97ebc70f52234ee4a587e78721cd2908a0b4.log.gz",
+          "logSha256": "8fe5831459c4e9ab30261a10718e97ebc70f52234ee4a587e78721cd2908a0b4",
+          "archiveSha256": "330d39c085ba1edc667894802cd5f63221d589e6a2c33824fe35535da2e5ac33"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2067-9bf72fef6-final-verified-guition-esp32-p4-jc4880p443.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "1e7c9259502f44f463e0337f48f106275a44b1e9208419fcd5ff9fedccd9460e",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "de63a1c4933f893faeb951ee2ea7a22f68de4843702016a74dc443d7568bd329",
+            "home_assistant_endpoint_resolver.cpp": "ac7d25fe50ec84b72e7157bb76ae9346aaa3fdcbd3297da847b4e563e5eac953"
+          },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/094d364d64ba6efe84e6ba19c11acb03ee8735b43362424c0fb6a408fc4f3fb6.log.gz",
+          "logSha256": "094d364d64ba6efe84e6ba19c11acb03ee8735b43362424c0fb6a408fc4f3fb6",
+          "archiveSha256": "47485f78123596d04b5b1b03774bc9ebc21012f823ad97f9827ab8e15d881f74"
         }
       ],
       "reviewStatus": "No unresolved review findings at the verified revision",
@@ -5403,7 +5439,7 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2073-9f4d92ef1-final-review-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
@@ -9529,7 +9565,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2177",
       "mergeSha": "c1c292ad6edf43466a1ee7750d66ee86ca6b6d3d",
       "disposition": "Ported",
-      "evidence": "Camera/image tile and expanded FIT selection, cached-fit reload, palette-coloured RGB565/alpha margins and live theme repaint of displayed/decoding/cached frames without touching photograph pixels. Expanded request cancels scheduledtile ownership. Preserves destination Companion and latestcamera revision/memory/S3suspend fixes. Baseintegrate-camera-theme4b0056e6d combinesexisting154+177; itsownfullfast80host172webPASS, noextraPR/nonmainmerge. Source2177fullfast81host172web/all9factoryconfigs/realChromiumall9layouts/docsPASS. Sourceinlinefindingsallretainedfinal: screensaverlabelExpandedImage, opaqueFIT marginsfilled,livepalettecacheinvalidations. Published11659691cfourrepresentativefactorybuildsqueued; physicalpending. RetargettoMainonlyafterparentportsmerged. Latestf432c3270 rebasedontovalidatedcombinedbase351e54d76 withcadence+placeholder fixes. GridconflictretainedbothFITsensor-surfacepredicateandIMAGEplaceholder ownership. Fullfast81/172PASS2177-reviewed-parents-fast.log; publishedrequeued. No sourceownscopecollapse. Final reviewed camera/theme dependency base updated, full fast checks passed (82 host/172 web) at published 1bec8b5ea; latest exact-revision firmware builds queued. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published b341228ed.",
+      "evidence": "Camera image fit and themed image margins ported. Production image-fit and theme regressions and all four final-revision factory builds passed at b341228ed (S3, 7-inch P4, 4.3-inch P4 and 10-inch V3). Physical device testing remains pending; earlier checks and fixes are retained in the JSON validation history.",
       "changedFiles": [
         "components/artwork_image/artwork_image.cpp",
         "components/artwork_image/artwork_image.h",
@@ -9589,26 +9625,68 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "d382ac16fa02eb9aa6479729dca2e97710b339b5610f548b473e69883c512def",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "872e1d626304467c570fe87c449cfeaf5574cc6377edf5daecc563c87f54ba15",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/534a8d2135ba4dd5c81abeb82f0f4a32d4b7d816c888ccf6743928f890764773.log.gz",
+          "logSha256": "534a8d2135ba4dd5c81abeb82f0f4a32d4b7d816c888ccf6743928f890764773",
+          "archiveSha256": "12438d3062101e3bea52114900695111bd0681fbd5612b8cce1d86446160fd64"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-p4-jc4880p443.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "d382ac16fa02eb9aa6479729dca2e97710b339b5610f548b473e69883c512def",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "872e1d626304467c570fe87c449cfeaf5574cc6377edf5daecc563c87f54ba15",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/ad8fa824cf073cf55301b4baea05d89f309192550e8f653445d19d9b99f9c779.log.gz",
+          "logSha256": "ad8fa824cf073cf55301b4baea05d89f309192550e8f653445d19d9b99f9c779",
+          "archiveSha256": "9503fa86f2d7d5a385c5fdd4e6f510a1cf9e59900997b7226d03c9e643cc1810"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
           "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-p4-jc8012p4a1-v3.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "d382ac16fa02eb9aa6479729dca2e97710b339b5610f548b473e69883c512def",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "872e1d626304467c570fe87c449cfeaf5574cc6377edf5daecc563c87f54ba15",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc8012p4a1-v3",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/cc0e7a29caba954924b18d5873952479fc2e8975f802027062a585f87a71a172.log.gz",
+          "logSha256": "cc0e7a29caba954924b18d5873952479fc2e8975f802027062a585f87a71a172",
+          "archiveSha256": "df9b71ea25401b6af4719c62369b14dccd86c4e964e6f8f5d89641be0be1aaeb"
         }
       ],
       "reviewStatus": "No unresolved review findings at the verified revision",
@@ -9617,7 +9695,10 @@
         "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
         "checkedAt": "2026-10-10T22:57:54.449634+00:00",
         "unresolvedThreads": []
-      }
+      },
+      "validationHistory": [
+        "Camera/image tile and expanded FIT selection, cached-fit reload, palette-coloured RGB565/alpha margins and live theme repaint of displayed/decoding/cached frames without touching photograph pixels. Expanded request cancels scheduledtile ownership. Preserves destination Companion and latestcamera revision/memory/S3suspend fixes. Baseintegrate-camera-theme4b0056e6d combinesexisting154+177; itsownfullfast80host172webPASS, noextraPR/nonmainmerge. Source2177fullfast81host172web/all9factoryconfigs/realChromiumall9layouts/docsPASS. Sourceinlinefindingsallretainedfinal: screensaverlabelExpandedImage, opaqueFIT marginsfilled,livepalettecacheinvalidations. Published11659691cfourrepresentativefactorybuildsqueued; physicalpending. RetargettoMainonlyafterparentportsmerged. Latestf432c3270 rebasedontovalidatedcombinedbase351e54d76 withcadence+placeholder fixes. GridconflictretainedbothFITsensor-surfacepredicateandIMAGEplaceholder ownership. Fullfast81/172PASS2177-reviewed-parents-fast.log; publishedrequeued. No sourceownscopecollapse. Final reviewed camera/theme dependency base updated, full fast checks passed (82 host/172 web) at published 1bec8b5ea; latest exact-revision firmware builds queued. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published b341228ed."
+      ]
     },
     {
       "body": "## Summary\n\nFan cards set to **All Controls** now keep their configured label on the tile. When the label is blank, they show the Home Assistant friendly name, falling back to \u201cFan\u201d. Related to #2181.\n\n## Practical impact\n\nThe fan refresh previously replaced the tile name with a permanent speed percentage, preset, or status. Removing that replacement keeps the name visible through Home Assistant updates, while the on/off icon and active highlight still update. Fan settings remain in the control view.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes:\n- The fan guide explains the All Controls tile label and friendly-name fallback.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nAutomated validation:\n- The new regression test fails against the original production refresh and passes with the fix. It covers startup, speed, power, preset and availability updates, label edits, friendly-name changes, fallback names, and on/off visuals.\n- All 83 host firmware tests passed with pinned ESPHome 2026.9.1 available.\n- Firmware card runtime checks passed.\n- `npm run prepare:ci` passed using Node 24, ESPHome 2026.9.1 and tzdata 2026.3, including the CI checks, generated-output checks, docs build and mocked browser installer checks. GitHub CI and the Firmware Compile Gate also passed, including the representative S3 and 7-inch P4 firmware builds.\n\nAffected display/device, if applicable:\n- Shared fan code affects every supported display. Prioritize the reported S3 panel, described as 4.3-inch in #2181, and check a P4 display if available. Commit `303d5d6c8` compiled and flashed successfully over OTA to the 4-inch S3 (4848S040) at `192.168.6.105`, and post-reboot reachability was confirmed. The user confirmed the fix works on 9 October 2026. Other display hardware has not been physically tested in this task.\n\n## Notes for testing\n\nInstall firmware from `fix-fan-control-label`, keeping the existing device configuration and secrets. For an ESPHome GitHub package reference, set `ref: fix-fan-control-label` and `refresh: 0s`.\n\n1. Confirm normal boot. Configure a **Fans \u2192 All Controls** tile with a custom label. Change speed and power in Home Assistant; the tile should retain the label, with the correct active highlight and icon.\n2. Tap the tile and confirm supported controls open, speed reflects Home Assistant changes, and power/speed controls still work.\n3. Clear the label and confirm the Home Assistant friendly name appears. Check both the main grid and a subpage for readable text and working navigation.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Ready for device test.\n- [x] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
