@@ -853,10 +853,11 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
   }
   const bool scheduled_request = image_card_finish_scheduled_tile_request(ctx, true);
   if (!scheduled_request && ctx->refresh_schedule.open &&
-      ctx->refresh_schedule.mode == espdesktop::camera::RefreshMode::PERIODIC &&
+      (ctx->refresh_schedule.mode == espdesktop::camera::RefreshMode::PERIODIC ||
+       (ctx->refresh_schedule.mode == espdesktop::camera::RefreshMode::ACTIVITY && ctx->refresh_schedule.window)) &&
       !ctx->refresh_schedule.in_flight) {
     // The initial ordinary transfer may finish after maintenance opened the
-    // schedule. Count that frame before starting the next periodic refresh.
+    // schedule. Count that frame before starting the next scheduled refresh.
     ctx->refresh_schedule.finished(esphome::millis(), true);
   }
   ctx->image_ready = true;
