@@ -7,7 +7,7 @@ description: Flash EspDesktop display firmware from this repository using ESPHom
 
 ## Overview
 
-Use the local development ESPHome configs to flash the known EspDesktop displays. If the user invokes `/flash-displays` with no additional display name or target, assume they mean all displays. Flash one requested display, or flash all displays in the fixed order below. Use OTA with the default hard-coded target unless the user provides a different target; use USB only when the user explicitly asks for USB.
+Use the local development ESPHome configs in the active repository worktree to flash the known EspDesktop displays. If the user invokes `/flash-displays` with no additional display name or target, assume they mean all displays. Flash one requested display, or flash all displays in the fixed order below. Use OTA with the default hard-coded target unless the user provides a different target; use USB only when the user explicitly asks for USB.
 
 ## Device Map
 
@@ -54,16 +54,25 @@ Use `dev.yaml` by default. If the user names another YAML file, use that file in
 All development YAML files require a local `secrets.yaml` containing `wifi_ssid` and `wifi_password`. Always use this existing local file as the only secrets source:
 
 ```text
-/home/jtenniswood/git/espdesktop/secrets.yaml
+${ESPDESKTOP_SECRETS:-<main-checkout>/secrets.yaml}
+```
+
+Resolve the active and main checkout paths dynamically before using secrets or
+device configs. The `ESPDESKTOP_SECRETS` override is optional:
+
+```bash
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+COMMON_GIT_DIR="$(git -C "$REPO_ROOT" rev-parse --path-format=absolute --git-common-dir)"
+MAIN_CHECKOUT="$(dirname "$COMMON_GIT_DIR")"
+SECRETS_SOURCE="${ESPDESKTOP_SECRETS:-$MAIN_CHECKOUT/secrets.yaml}"
 ```
 
 Before flashing each selected display:
 
-1. Confirm the source exists with `test -f /home/jtenniswood/git/espdesktop/secrets.yaml`. If it is missing, stop and tell the user; do not create or guess secret values.
+1. Confirm the source exists with `test -f "$SECRETS_SOURCE"`. If it is missing, stop and tell the user; do not create or guess secret values.
 2. Run the following from the selected display's config directory. This creates the ignored local symlink only when `secrets.yaml` is absent, and verifies that any existing file or symlink resolves to the required source:
 
    ```bash
-   SECRETS_SOURCE=/home/jtenniswood/git/espdesktop/secrets.yaml
    if [ ! -e secrets.yaml ] && [ ! -L secrets.yaml ]; then
      ln -s "$SECRETS_SOURCE" secrets.yaml
    fi
@@ -78,9 +87,8 @@ Never display the secrets file, include its contents in command output, or add i
 
 1. Confirm the repository state:
    - Run `git status --short --branch`.
-   - Use `main` as the source. If not on `main`, switch only when it is safe and there are no blocking local changes; otherwise explain the issue.
+   - Flash the currently selected worktree and branch. Do not switch branches or pull another branch as part of flashing.
    - If the worktree is dirty, do not revert or commit unrelated changes. Tell the user the flash will use the current local checkout as-is.
-   - If the worktree is clean, run `git pull --ff-only` before flashing.
 2. Resolve the requested display names from the device map. If the user invoked `/flash-displays` without naming a display, resolve it as `all`. If the request is ambiguous, ask one short clarification.
 3. Resolve the YAML file from the user's request. If none is provided, use `dev.yaml`.
 4. Prepare and verify the required local `secrets.yaml` symlink in each selected display's config directory by following the Secrets File section. Do not print or commit the secrets.
@@ -113,43 +121,43 @@ Run from the appropriate config directory:
 
 ```bash
 # 7-inch P4 over OTA
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc1060p470
+cd "$REPO_ROOT/devices/guition-esp32-p4-jc1060p470"
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.102 --no-logs
 
 # 7-inch P4 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc1060p470
+cd "$REPO_ROOT/devices/guition-esp32-p4-jc1060p470"
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # 10-inch P4 V1 over OTA
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc8012p4a1
+cd "$REPO_ROOT/devices/guition-esp32-p4-jc8012p4a1"
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.103 --no-logs
 
 # 10-inch P4 V1 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc8012p4a1
+cd "$REPO_ROOT/devices/guition-esp32-p4-jc8012p4a1"
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # 4-inch P4 / P4-86 over OTA
-cd /Users/jtenniswood/Git/espdesktop/devices/esp32-p4-86
+cd "$REPO_ROOT/devices/esp32-p4-86"
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.104 --no-logs
 
 # 4-inch P4 / P4-86 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espdesktop/devices/esp32-p4-86
+cd "$REPO_ROOT/devices/esp32-p4-86"
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # 4.3-inch P4 over OTA
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc4880p443
+cd "$REPO_ROOT/devices/guition-esp32-p4-jc4880p443"
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.101 --no-logs
 
 # 4.3-inch P4 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-p4-jc4880p443
+cd "$REPO_ROOT/devices/guition-esp32-p4-jc4880p443"
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 # S3 over OTA
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-s3-4848s040
+cd "$REPO_ROOT/devices/guition-esp32-s3-4848s040"
 python3 ../../scripts/local_esphome.py dev.yaml run --device 192.168.6.100 --no-logs
 
 # S3 over USB, only when explicitly requested
-cd /Users/jtenniswood/Git/espdesktop/devices/guition-esp32-s3-4848s040
+cd "$REPO_ROOT/devices/guition-esp32-s3-4848s040"
 python3 ../../scripts/local_esphome.py dev.yaml run --device /dev/cu.usbmodem201301 --no-logs
 
 ```
