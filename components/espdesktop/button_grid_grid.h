@@ -15,6 +15,7 @@
 
 struct GridConfig {
   int num_slots;
+  int configured_slots = 0;
   int cols;
   bool width_compensation_vertical = false;
   bool wrap_tall_labels;
@@ -969,7 +970,7 @@ inline void grid_refresh_layout(
   int ROWS = (NS + COLS - 1) / COLS;
 
   OrderResult parsed, order;
-  parse_order_string(order_str, NS, parsed);
+  parse_order_for_layout(order_str, cfg.configured_slots, NS, parsed);
   clear_spanned_cells(parsed, NS, COLS, order);
   clock_bar_clear_responsive_grid_cards(main_page_obj);
   navigation_clear_home_targets();
@@ -1052,7 +1053,7 @@ inline void grid_phase1(
   }
 
   OrderResult parsed, order;
-  parse_order_string(order_str, NS, parsed);
+  parse_order_for_layout(order_str, cfg.configured_slots, NS, parsed);
   clear_spanned_cells(parsed, NS, COLS, order);
   clock_bar_clear_responsive_grid_cards(main_page_obj);
 
@@ -1169,7 +1170,7 @@ inline bool grid_refresh_subpage_layouts(
 
     const std::string order = get_subpage_order(sp_cfg);
     SubpageOrder sp_order;
-    parse_subpage_order(order, NS, sp_btns.size(), sp_order);
+    parse_subpage_order(order, NS, sp_btns.size(), sp_order, cfg.configured_slots);
     normalize_subpage_order_spans(sp_order, NS, COLS);
 
     // Binding a card to another entity/type requires new HA callbacks. Keep
@@ -1884,7 +1885,7 @@ inline void grid_phase2(
   set_current_button_primary_color(palette.on_val);
 
   OrderResult parsed, order;
-  parse_order_string(order_str, NS, parsed);
+  parse_order_for_layout(order_str, cfg.configured_slots, NS, parsed);
   clear_spanned_cells(parsed, NS, COLS, order);
   lv_obj_t *first_card = nullptr;
   if (order.positions[0] >= 1 && order.positions[0] <= NS) {
@@ -2018,7 +2019,7 @@ inline void grid_phase2(
     std::string sp_back_label = get_subpage_back_label(sp_order_str);
 
     SubpageOrder sp_ord;
-    parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord);
+    parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
     normalize_subpage_order_spans(sp_ord, NS, COLS);
 
     lv_obj_t *sub_scr = lv_obj_create(NULL);
