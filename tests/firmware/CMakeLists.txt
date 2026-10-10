@@ -555,3 +555,6 @@ add_test(NAME camera_feedback_test COMMAND
 
 add_test(NAME clock_image_overlay_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/clock_image_overlay_test.py)
+
+add_test(NAME clock_screensaver_time_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/clock_screensaver_time_test.py)

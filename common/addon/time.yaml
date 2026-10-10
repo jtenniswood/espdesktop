@@ -456,6 +456,13 @@ script:
           const std::string active_timezone = effective_timezone_option(timezone_option);
           apply_timezone(active_timezone);
           id(screen_active_timezone_sensor).publish_state(active_timezone);
+      - if:
+          condition:
+            lambda: |-
+              return id(espdesktop_app).display().current_mode_is(
+                  espdesktop::DisplayMode::CLOCK);
+          then:
+            - script.execute: clock_screensaver_update_time
       - lvgl.label.update:
           id: display_time
           text: !lambda |-
