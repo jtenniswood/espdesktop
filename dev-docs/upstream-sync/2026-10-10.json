@@ -2671,7 +2671,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2008",
       "mergeSha": "a7d43cbf0cbb52e3d6102f6dccff7d0d9b91abd7",
       "disposition": "Ported",
-      "evidence": "Remote modal/subpage/navigation port on final #155 image-recovery foundation. Screen locks, stale/canceled requests, startup readiness and critical alarm controls preserved. Remote home/card/voice navigation now keeps alarm overlays; actual YAML navigation lambda, resolver/driver/lifecycle and latest hidden-image production regressions passed. Full fast75 host/172 web checks passed, then final parent rebased and relevant production paths rechecked. Latest3-target builds previously queued; historical ones passed. Physical testing pending. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. Locked screens reject remote home, label, slot and Voice navigation before dispatch; actual production YAML guard regressions and full fast75/172 passed. Remote navigation waits for phase2 grid initialization, retaining screen-lock/alarm guards; actual startup-gap regression and fullfast passed. Review resolved. Alarm-preserving modal dismissal during grid setup/runtime release; locked close_subpage rejected. Destructive generated rebuild scripts wait for critical alarm to end, keeping controls/context alive rather than depending on a fresh HA callback. Actual production wait-lambda and modal/runtime regressions/fullfast74host172web/all8factoryconfigurationsPASS; Gs7V/Xresolved. New first-run onboarding navigation finding G5yn remains. Rejectremote navigate whenhome-target registry isempty, retainingonboarding instructions. Actualemptygrid/setup/validhomeguard regression/fullfast74/172PASS; G5ynresolved. NewS3suspendpre-wakeimagemodalavailabilityHH7d pending. Review HH7d resolved: initial configured-target validation permits suspended S3 camera cards to wake, then actual modal opening rechecks live availability. Production suspended/resumed/lock/alarm regressions and updated API ordering mutation guard passed; full fast checks passed (75 host/172 web). Published b5eb90c17; parent review wave remains pending. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision.",
+      "evidence": "Remote modal navigation ported with lock, alarm, startup and suspended-image lifecycle guards. Production camera and navigation regressions and all three final-revision representative firmware builds passed at 46d8c71a5. Physical device testing remains pending; earlier checks and fixes are retained in the JSON validation history.",
       "changedFiles": [
         "common/device/api_navigate.yaml",
         "common/device/api_open_modal.yaml",
@@ -3161,18 +3161,42 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2008-46d8c71a5-final-review-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/079ab9493fb5e71129749818d403a667403b64cded5ee81e083b500de86a7acb.log.gz",
+          "logSha256": "079ab9493fb5e71129749818d403a667403b64cded5ee81e083b500de86a7acb",
+          "archiveSha256": "bec5fc4484855973be2a0b1f6358304562877cbf7ca15143fa763d937db132f2"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2008-46d8c71a5-final-review-guition-esp32-p4-jc4880p443.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/d07fa439d28f5651fe4c5100b4c0a389e32d665f99e07ff6c86989cb54b8bc21.log.gz",
+          "logSha256": "d07fa439d28f5651fe4c5100b4c0a389e32d665f99e07ff6c86989cb54b8bc21",
+          "archiveSha256": "d92defdbe795db7ee7942b04f536132311f2ca815b39f76d24daeb6a24546b41"
         }
       ],
       "reviewThreads": [
@@ -3192,7 +3216,10 @@
         "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
         "checkedAt": "2026-10-10T22:57:54.449634+00:00",
         "unresolvedThreads": []
-      }
+      },
+      "validationHistory": [
+        "Remote modal/subpage/navigation port on final #155 image-recovery foundation. Screen locks, stale/canceled requests, startup readiness and critical alarm controls preserved. Remote home/card/voice navigation now keeps alarm overlays; actual YAML navigation lambda, resolver/driver/lifecycle and latest hidden-image production regressions passed. Full fast75 host/172 web checks passed, then final parent rebased and relevant production paths rechecked. Latest3-target builds previously queued; historical ones passed. Physical testing pending. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. Locked screens reject remote home, label, slot and Voice navigation before dispatch; actual production YAML guard regressions and full fast75/172 passed. Remote navigation waits for phase2 grid initialization, retaining screen-lock/alarm guards; actual startup-gap regression and fullfast passed. Review resolved. Alarm-preserving modal dismissal during grid setup/runtime release; locked close_subpage rejected. Destructive generated rebuild scripts wait for critical alarm to end, keeping controls/context alive rather than depending on a fresh HA callback. Actual production wait-lambda and modal/runtime regressions/fullfast74host172web/all8factoryconfigurationsPASS; Gs7V/Xresolved. New first-run onboarding navigation finding G5yn remains. Rejectremote navigate whenhome-target registry isempty, retainingonboarding instructions. Actualemptygrid/setup/validhomeguard regression/fullfast74/172PASS; G5ynresolved. NewS3suspendpre-wakeimagemodalavailabilityHH7d pending. Review HH7d resolved: initial configured-target validation permits suspended S3 camera cards to wake, then actual modal opening rechecks live availability. Production suspended/resumed/lock/alarm regressions and updated API ordering mutation guard passed; full fast checks passed (75 host/172 web). Published b5eb90c17; parent review wave remains pending. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision."
+      ]
     },
     {
       "body": "## Summary\n\nMedia titles such as `RAINING IN \uff2f\uff33\uff21\uff2b\uff21 \ud83c\udf27\ufe0f` currently show missing-glyph boxes. This change displays `RAINING IN OSAKA` by converting fullwidth ASCII forms to ordinary text and omitting emoji sequences, without adding font glyphs.\n\n## Practical impact\n\n- Apply the same display-only cleanup to Now Playing cards, the expanded media player, and the Cover Art screensaver.\n- Preserve supported accented, Greek, and Cyrillic text, existing S-with-dot-below fallback, and ordinary digits, `#`, `*`, `\u00a9`, `\u00ae`, and `\u2122`. Other scripts still depend on existing font coverage; this is not universal Unicode font support.\n- Remove joined emoji, modifiers, flags, keycaps, and emoji presentation controls. Bound artist text at complete UTF-8 characters.\n- Preserve original metadata for track identity and artwork updates. No Home Assistant values, actions, or font sizes change.\n- Include a compact generated Unicode 17.0 emoji table, its regeneration script and license, and regression tests that compile production media renderers.\n\nRelated context: #1270 (missing media-title characters) and #423 (emoji font memory constraints). This does not add emoji rendering or close either issue.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated the Media card documentation and developer font guidelines. Updated generated check-matrix documentation for the new test inputs.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- Shared media rendering affects all supported displays. The contributor tested the fix on a Guition ESP32-S3 4848S040 (4-inch square) and reported that it works perfectly. Other display models have not been physically tested for this change.\n- This successful device test predates the final upstream synchronization. The synchronized branch includes upstream's S3 LVGL buffer update; the final head has not been re-flashed as part of submission preparation.\n\nValidation results:\n\n- **PASS:** Guition 4848S040 factory firmware compiled with pinned ESPHome 2026.9.0 / ESP-IDF 5.5.5. Used `builds/guition-esp32-s3-4848s040.factory.yaml` in an isolated Linux checkout with local component/font path substitutions. Flash usage 67.2%; static RAM usage 60.7%. No device was flashed during submission preparation.\n- **PASS:** Full host firmware test suite, including `media_display_text_test` and `media_display_integration_test`; web unit tests; generated outputs; product/schema/configuration checks; Cover Art contract checks.\n- **PASS:** All six firmware UI playbook checks: parser, modals, modal layouts, card runtime, display tokens, and Home Assistant bindings (including guard self-tests). Updated the existing binding guard to recognize and enforce the new display-only normalization path.\n- **PASS:** Documentation build.\n- **KNOWN BASELINE FAILURE:** `npm run check:ci` stops at `scripts/check_web_smoke.js:711`, assertion `date preview follows selected language month names`. Reproduced under Node.js 24.21.0 on both this branch and unchanged upstream `b32be4c76` in the same environment. No web preview code is changed by this PR. Consequently, the complete CI profile is not claimed as passing; checks after that failure were not all run. The firmware playbook checks and docs build above were run separately.\n\n## Notes for testing\n\nBased on the repository's generated device-testing guidance:\n\n1. Compile and flash this branch for the target display. Confirm normal boot, touch, and navigation.\n2. Play https://www.youtube.com/watch?v=MZhivjxcF-M and confirm `RAINING IN OSAKA` appears without emoji or missing-glyph boxes.\n3. Check Now Playing, the expanded player, and the Cover Art screensaver for consistent text, layout, and icons.\n4. Check supported accented/Greek/Cyrillic text, emoji-only titles, joined emoji, flags, keycaps, and long artist names. Emoji-only titles use the view's existing empty-title fallback.\n5. Change tracks and confirm title, artist, artwork, progress, and playback controls continue updating.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -9540,15 +9567,29 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "d382ac16fa02eb9aa6479729dca2e97710b339b5610f548b473e69883c512def",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "872e1d626304467c570fe87c449cfeaf5574cc6377edf5daecc563c87f54ba15",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/a488bf9d7a010191fe4fd27a5ceb5ed96d03e20e903f0f719d790138a8054b46.log.gz",
+          "logSha256": "a488bf9d7a010191fe4fd27a5ceb5ed96d03e20e903f0f719d790138a8054b46",
+          "archiveSha256": "b2324ea8c7b645565f2d5729bcb849b70f30f330c6bc6d62698ccd929d30a417"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2177-b341228ed-declaration-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
