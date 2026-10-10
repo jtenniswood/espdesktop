@@ -108,6 +108,8 @@ TASKS = (
              "components/espdesktop/climate_state_logic.h",
              "components/espdesktop/button_grid_media_slider_lifecycle.h",
              "components/espdesktop/button_grid_media.h",
+             "components/espdesktop/media_display_text.h",
+             "components/espdesktop/media_emoji_ranges.h",
              "components/espdesktop/button_grid_media_driver.h",
              "components/espdesktop/button_grid_sliders.h",
              "components/espdesktop/button_grid_grid.h",

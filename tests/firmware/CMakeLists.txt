@@ -5,6 +5,14 @@ enable_testing()
 include(CheckCXXSourceCompiles)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
+add_executable(media_display_text_test media_display_text_test.cpp)
+target_compile_features(media_display_text_test PRIVATE cxx_std_17)
+target_compile_options(media_display_text_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(media_display_text_test PRIVATE stubs ../../components/espdesktop)
+add_test(NAME media_display_text_test COMMAND media_display_text_test)
+add_test(NAME media_display_integration_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/media_display_integration_test.py ${CMAKE_CXX_COMPILER})
+
 add_executable(foundation_test foundation_test.cpp)
 target_compile_features(foundation_test PRIVATE cxx_std_17)
 target_compile_options(foundation_test PRIVATE -Wall -Wextra -Werror)
