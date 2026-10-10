@@ -100,6 +100,7 @@ int main() {
   assert(!artwork_entity_picture_present(""));
   assert(!artwork_entity_picture_present("unknown"));
   assert(!artwork_entity_picture_present("unavailable"));
+  assert(!artwork_entity_picture_present("None"));
   assert(artwork_entity_picture_present("/api/media_player_proxy/player"));
 
   // Home Assistant normally publishes the remote value first. It is usable

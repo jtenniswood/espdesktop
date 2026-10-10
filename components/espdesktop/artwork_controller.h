@@ -22,8 +22,10 @@ constexpr uint8_t ARTWORK_SOURCE_REMOTE = 1u << 0;
 constexpr uint8_t ARTWORK_SOURCE_LOCAL = 1u << 1;
 constexpr uint8_t ARTWORK_SOURCE_BOTH = ARTWORK_SOURCE_REMOTE | ARTWORK_SOURCE_LOCAL;
 
+// Home Assistant reports a cleared picture attribute as the literal "None".
 inline bool artwork_entity_picture_present(const std::string &value) {
-  return !value.empty() && value != "unknown" && value != "unavailable";
+  return !value.empty() && value != "unknown" && value != "unavailable" &&
+         value != "None";
 }
 
 // Coalesces adjacent refresh triggers before a paired Home Assistant read.

@@ -1063,10 +1063,13 @@ script:
               std::string path = string_ref_limited(picture, COVER_ART_URL_MAX_LEN);
               std::string url;
               bool relative = false;
-              if (!path.empty() && path != "unknown" && path != "unavailable") {
+              // HA reports a cleared picture attribute as the literal string "None";
+              // treat it like unknown/unavailable instead of caching it as a URL.
+              if (!path.empty() && path != "unknown" && path != "unavailable" &&
+                  path != "None") {
                 if (path.rfind("http://", 0) == 0 || path.rfind("https://", 0) == 0) {
                   url = path;
-                } else {
+                } else if (path[0] == '/') {
                   relative = true;
                   std::string base = id(cover_art_home_assistant_base_url);
                   if (!base.empty()) {
@@ -2316,7 +2319,11 @@ script:
                         if (subscription_generation != id(cover_art_subscription_generation) ||
                             secondary_entity != id(cover_art_secondary_media_player_entity).state) return;
                         std::string next = string_ref_limited(value, 4096);
-                        const bool present = !next.empty() && next != "unknown" && next != "unavailable";
+                        // picture bits (2, 4) use the shared artwork sentinel check so a
+                        // cleared "None" picture doesn't count as usable artwork
+                        const bool present = (bit == 2u || bit == 4u)
+                            ? espdesktop::artwork::artwork_entity_picture_present(next)
+                            : (!next.empty() && next != "unknown" && next != "unavailable");
                         if (present) id(cover_art_secondary_content_mask) |= bit;
                         else id(cover_art_secondary_content_mask) &= static_cast<uint8_t>(~bit);
                         reconcile_entity_route();

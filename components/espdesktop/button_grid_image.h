@@ -1646,7 +1646,7 @@ inline void image_card_configure_icon(BtnSlot &s, const ParsedCfg &p) {
 }
 
 inline std::string image_card_join_url(const std::string &base, const std::string &path) {
-  if (path.empty() || path == "unknown" || path == "unavailable") return "";
+  if (path.empty() || path == "unknown" || path == "unavailable" || path == "None") return "";
   if (path.rfind("http://", 0) == 0 || path.rfind("https://", 0) == 0) return path;
   if (base.empty() || path[0] != '/') return "";
   return base + path;
@@ -1887,7 +1887,7 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
         [ctx, entity_id, generation](esphome::StringRef picture) {
           if (!image_card_context_current(ctx, entity_id, generation)) return;
           std::string local = string_ref_limited(picture, 4096);
-          if (!local.empty() && local != "unknown" && local != "unavailable") {
+          if (!local.empty() && local != "unknown" && local != "unavailable" && local != "None") {
             ctx->pending_fallback_picture.clear();
             image_card_handle_picture(ctx, picture);
             return;
