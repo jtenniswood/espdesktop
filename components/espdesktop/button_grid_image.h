@@ -830,7 +830,7 @@ inline void image_card_apply_media_overlay_tint(ImageCardCtx *ctx) {
 inline bool image_card_finish_scheduled_tile_request(ImageCardCtx *ctx, bool success) {
   const bool scheduled_request = ctx->scheduled_tile_request;
   ctx->scheduled_tile_request = false;
-  if (scheduled_request && ctx->refresh_schedule.open && !image_card_modal_active_for(ctx)) {
+  if (scheduled_request && ctx->refresh_schedule.open) {
     ctx->refresh_schedule.finished(esphome::millis(), success);
   }
   return scheduled_request;
@@ -994,8 +994,10 @@ inline void image_card_apply_modal_downloaded(ImageCardCtx *ctx) {
 inline void image_card_handle_modal_download_error(ImageCardCtx *ctx) {
   if (image_card_pipeline_suspended()) return;
   if (!ctx || !ctx->active || !image_card_has_separate_modal_image(ctx)) return;
+  const bool revision_refresh = ctx->entity_id.rfind("image.", 0) == 0 &&
+      ctx->revision.modal_requested != ctx->revision.modal_applied;
   const bool scheduled_request = ctx->refresh_schedule.in_flight &&
-      ctx->refresh_schedule.mode != espdesktop::camera::RefreshMode::OFF;
+      (ctx->refresh_schedule.mode != espdesktop::camera::RefreshMode::OFF || revision_refresh);
   ctx->refresh_schedule.finished(esphome::millis(), false);
   ctx->revision_retry_ms = ctx->refresh_schedule.next_due;
   ESP_LOGW("image_card", "Modal image download failed for %s", ctx->entity_id.c_str());

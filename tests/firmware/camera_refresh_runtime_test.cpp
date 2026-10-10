@@ -298,6 +298,17 @@ int main() {
   image_card_test_enter_expanded(&ctx);
   assert(ctx.refresh_schedule.window && ctx.refresh_schedule.window_end == visible_window);
 
+  // A tile finishing after its modal opens releases the shared schedule owner.
+  reset(); ctx.last_download_completed_ms = 0;
+  ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::ACTIVITY;
+  image_card_begin_refresh_schedule(&ctx); ctx.refresh_schedule.activate(esphome::now);
+  ctx.refresh_schedule.started(); ctx.scheduled_tile_request = true;
+  ctx.modal = true;
+  assert(image_card_finish_scheduled_tile_request(&ctx, true));
+  assert(!ctx.refresh_schedule.in_flight && !ctx.scheduled_tile_request);
+  esphome::now += 5000; image_card_refresh_due();
+  assert(modal_requests == 1);
+
   // Hiding one tile must not cancel the shared modal belonging to another card.
   reset();
   ctx.entity_id = "camera.test";

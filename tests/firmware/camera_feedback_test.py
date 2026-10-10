@@ -317,6 +317,15 @@ int main() {
  assert(!ctx.refresh_schedule.in_flight && ctx.refresh_schedule.next_due == now_ms + 30000);
  assert(!ctx.refresh_schedule.due(now_ms + 2000, true));
  assert(ctx.refresh_schedule.due(now_ms + 30000, true));
+ // Timestamp-driven image refreshes use the revision backoff even in OFF mode.
+ ctx.entity_id = "image.poster"; ctx.refresh_schedule = {};
+ ctx.revision.modal_requested = 2; ctx.revision.modal_applied = 1;
+ ctx.refresh_schedule.started(); cache.ready = true; modal.available = true;
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && ctx.next_download_retry_ms == 0);
+ assert(ctx.camera_download_errors == 0 && ctx.revision_retry_ms > now_ms);
+ assert(ctx.revision_retry_ms == ctx.refresh_schedule.next_due);
+ ctx.entity_id = "camera.front"; ctx.revision = {};
  ctx.refresh_schedule = {};
  // Unavailable HA state cancels requests, waits, then restarts on recovery.
  subscribe_image_card_entity_state(&ctx, ctx.entity_id);
