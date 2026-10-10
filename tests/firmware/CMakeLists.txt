@@ -412,6 +412,9 @@ add_test(NAME climate_subscription_runtime_test COMMAND climate_subscription_run
 add_test(NAME cover_art_activation_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_activation_test.py
   --compiler ${CMAKE_CXX_COMPILER})
+add_test(NAME cover_art_rotation_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_rotation_test.py
+  --compiler ${CMAKE_CXX_COMPILER})
 add_test(NAME presence_transition_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/presence_transition_test.py)
 add_test(NAME ha_reconnect_recovery_test COMMAND
