@@ -1710,7 +1710,8 @@ assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("wifi", false), false)
 assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("ethernet", true), true);
 assert.strictEqual(
   hooks.firmwareVersionAfterUpdateInfo("Dev", { state: "NO UPDATE", latest_version: "v1.11.1" }).version,
-  "v1.11.1"
+  "Dev Build",
+  "a routine update status must not replace the installed version with a public release"
 );
 assert.strictEqual(
   hooks.firmwareVersionAfterUpdateInfo("v1.10.0", { state: "NO UPDATE", latest_version: "v1.11.1" }).installAction,
