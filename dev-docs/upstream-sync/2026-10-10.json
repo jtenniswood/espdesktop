@@ -2602,7 +2602,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2008",
       "mergeSha": "a7d43cbf0cbb52e3d6102f6dccff7d0d9b91abd7",
       "disposition": "Ported",
-      "evidence": "Separate dependent feature port on #154. All fast checks including75 firmware host tests passed; production resolver/driver/lifecycle and HA guard self-tests passed. Device capabilities/packages, destination assets/snapshot and docs regenerated. Includes deferred #1920 modal harness changes. Full representative compiles queued; physical tests pending.",
+      "evidence": "Separate dependent feature port on #154. All fast checks including75 firmware host tests passed; production resolver/driver/lifecycle and HA guard self-tests passed. Device capabilities/packages, destination assets/snapshot and docs regenerated. Includes deferred #1920 modal harness changes. Full representative compiles queued; physical tests pending. GitHub CI Gate and docs passed.",
       "changedFiles": [
         "common/device/api_navigate.yaml",
         "common/device/api_open_modal.yaml",
@@ -2661,8 +2661,14 @@
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "c38e089cedf226d9f175ab7d9461f5611fe46b11",
           "esphome": "2026.9.1",
-          "status": "running",
-          "log": "/private/tmp/2008-final-firmware-guition-esp32-s3-4848s040.log"
+          "status": "passed",
+          "log": "/private/tmp/2008-final-firmware-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "9d75ed00dd42b3f29c1b3e73d18b4c6fb44802246c16bdf0b1869f81d0140ad0",
+            "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
@@ -2737,7 +2743,7 @@
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "2729945b2db3f05054c319d385a26294207d7c58",
           "esphome": "2026.9.1",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2031-final-firmware-guition-esp32-s3-4848s040.log"
         },
         {
@@ -2770,7 +2776,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
       "disposition": "Ported",
-      "evidence": "Separate ready feature port; all fast-profile checks including74 firmware host tests,172 web tests, config/backup/model/generated/types and7-inch browser refresh settings passed. Primary contracts and destination assets/snapshot regenerated; maintainer docs passed. Companion webapp icon and S3 camera paths retained. Representative compiles/physical tests pending; source remote-modal harness corrections now included with destination #156.",
+      "evidence": "Separate ready feature port; all fast-profile checks including74 firmware host tests,172 web tests, config/backup/model/generated/types and7-inch browser refresh settings passed. Primary contracts and destination assets/snapshot regenerated; maintainer docs passed. Companion webapp icon and S3 camera paths retained. Representative compiles/physical tests pending; source remote-modal harness corrections now included with destination #156. Fresh review: availability finding is covered by dependent #155; modal failure retry ownership, canceled in-flight state and hidden activity replay still need fixes. Native checks/compile do not establish these runtime behaviors.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -2845,6 +2851,13 @@
           "status": "planned",
           "log": "/private/tmp/1920-final-firmware-guition-esp32-p4-jc4880p443.log"
         }
+      ],
+      "reviewStatus": "Needs fixes",
+      "reviewThreads": [
+        "PRRT_kwDOUR8kMs6rEG4_",
+        "PRRT_kwDOUR8kMs6rEG5D",
+        "PRRT_kwDOUR8kMs6rEG5G",
+        "PRRT_kwDOUR8kMs6rEG5I"
       ]
     },
     {
@@ -4482,8 +4495,14 @@
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
           "esphome": "2026.9.1",
-          "status": "planned",
-          "log": "/private/tmp/2136-final-firmware-guition-esp32-s3-4848s040.log"
+          "status": "passed",
+          "log": "/private/tmp/2136-final-firmware-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "69800a6eef9b42b78096fc97c166eacad07bcaae7cf32cdf9d1175d070ee7f37",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "device": "guition-esp32-p4-jc1060p470",
