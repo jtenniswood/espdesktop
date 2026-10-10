@@ -2602,7 +2602,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2008",
       "mergeSha": "a7d43cbf0cbb52e3d6102f6dccff7d0d9b91abd7",
       "disposition": "Ported",
-      "evidence": "Separate dependent feature port on #154. All fast checks including75 firmware host tests passed; production resolver/driver/lifecycle and HA guard self-tests passed. Device capabilities/packages, destination assets/snapshot and docs regenerated. Includes deferred #1920 modal harness changes. Full representative compiles queued; physical tests pending. GitHub CI Gate and docs passed.",
+      "evidence": "Separate dependent feature port on #154. All fast checks including75 firmware host tests passed; production resolver/driver/lifecycle and HA guard self-tests passed. Device capabilities/packages, destination assets/snapshot and docs regenerated. Includes deferred #1920 modal harness changes. Full representative compiles queued; physical tests pending. GitHub CI Gate and docs passed. Rebased onto #155 to include image recovery and camera review corrections; combined runtime and HA tests passed.",
       "changedFiles": [
         "common/device/api_navigate.yaml",
         "common/device/api_open_modal.yaml",
@@ -2652,9 +2652,9 @@
         "tests/firmware/remote_modal_test.py"
       ],
       "branch": "add-remote-modal-navigation",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/156",
-      "revision": "c38e089cedf226d9f175ab7d9461f5611fe46b11",
+      "revision": "dc3f49c241c729ec541648e6e77aa2a7fd55f320",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -2776,7 +2776,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
       "disposition": "Ported",
-      "evidence": "Separate ready feature port; all fast-profile checks including74 firmware host tests,172 web tests, config/backup/model/generated/types and7-inch browser refresh settings passed. Primary contracts and destination assets/snapshot regenerated; maintainer docs passed. Companion webapp icon and S3 camera paths retained. Representative compiles/physical tests pending; source remote-modal harness corrections now included with destination #156. Fresh review: availability finding is covered by dependent #155; modal failure retry ownership, canceled in-flight state and hidden activity replay still need fixes. Native checks/compile do not establish these runtime behaviors.",
+      "evidence": "Separate ready feature port; all fast-profile checks including74 firmware host tests,172 web tests, config/backup/model/generated/types and7-inch browser refresh settings passed. Primary contracts and destination assets/snapshot regenerated; maintainer docs passed. Companion webapp icon and S3 camera paths retained. Representative compiles/physical tests pending; source remote-modal harness corrections now included with destination #156. Fresh review: availability finding is covered by dependent #155; modal failure retry ownership, canceled in-flight state and hidden activity replay still need fixes. Native checks/compile do not establish these runtime behaviors. Review fixes pushed at3ca053eaa; all fast checks and three scoped mutations passed. Availability separately covered by #155. Parent builds that started before this push are historical.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -2819,7 +2819,7 @@
       ],
       "branch": "add-camera-refresh-settings",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
-      "revision": "8208ec758",
+      "revision": "3ca053eaacf17fb7549f56942f64522625d04ee9",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -2852,7 +2852,7 @@
           "log": "/private/tmp/1920-final-firmware-guition-esp32-p4-jc4880p443.log"
         }
       ],
-      "reviewStatus": "Needs fixes",
+      "reviewStatus": "Addressed",
       "reviewThreads": [
         "PRRT_kwDOUR8kMs6rEG4_",
         "PRRT_kwDOUR8kMs6rEG5D",
@@ -2884,7 +2884,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2062",
       "mergeSha": "1adcca416a1831cc30d310f158a97a2508bda79b",
       "disposition": "Ported",
-      "evidence": "Separate dependent port on #154. Actual subscription and retained-state tests recover unknown/unavailable entities with same timestamp and suppress healthy duplicates; regression rejects parent behavior. Camera refresh runtime, HA, maintainer docs and diff checks passed. Exact-revision firmware/physical tests pending.",
+      "evidence": "Separate dependent port on #154. Actual subscription and retained-state tests recover unknown/unavailable entities with same timestamp and suppress healthy duplicates; regression rejects parent behavior. Camera refresh runtime, HA, maintainer docs and diff checks passed. Exact-revision firmware/physical tests pending. Rebased onto camera review fixes; combined production tests passed ate5a668b50.",
       "changedFiles": [
         "components/espcontrol/button_grid_image.h",
         "components/espcontrol/camera_refresh_policy.h"
@@ -2892,7 +2892,7 @@
       "branch": "retry-recovered-image-entities",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
-      "revision": "2ba472188",
+      "revision": "e5a668b50540c439aabb6e67007a4e4687941cc2",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -2963,8 +2963,8 @@
       "title": "Fix Home Assistant artwork endpoint discovery and recovery",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2067",
       "mergeSha": "377d2d381c43a46c62eb98b64a30ab009d8fd021",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Source endpoint discovery/probe/transfer observer port adapted to destination app and Companion controls. Fixing outstanding Manual-to-Automatic source review gap; endpoint tests and pinned ESPHome package-merge validation in progress.",
       "changedFiles": [
         "common/config/entity_names.yaml",
         "common/device/core_infra.yaml",
@@ -3025,7 +3025,9 @@
         "tests/firmware/home_assistant_endpoint_probe_test.cpp",
         "tests/firmware/home_assistant_endpoint_resolver_test.cpp",
         "tests/web/state_contract.test.ts"
-      ]
+      ],
+      "branch": "fix-artwork-endpoint-discovery",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155"
     },
     {
       "body": "## Summary\n\n- Use the known working comma-separated Sonos discovery template in the Standard Integrations section.\n- Keep the Music Assistant versioned JSON example and clarify the difference between the two formats.\n\n## Validation\n\n- `git diff --check` passed.\n- The supplied template is reported to work; no Home Assistant or device testing was run for this documentation-only change.\n",
@@ -5265,7 +5267,8 @@
     "Not applicable": 11,
     "Closed without merging": 9,
     "Ported": 35,
-    "Needs review": 25
+    "Port in progress": 1,
+    "Needs review": 24
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
