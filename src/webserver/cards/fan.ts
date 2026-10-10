@@ -178,9 +178,12 @@ export function registerFanCardTypes(
                 b.sensor = "";
                 b.unit = "";
                 b.precision = "";
-                b.options = opts.type === "fan_control" ? normalizeFanControlOptions(b.options) : "";
-                b.icon = fanControlDefaultIcon(opts.type);
-                b.icon_on = opts.type === "fan_switch" ? "Fan" : "Auto";
+                // The picker can resolve Fans to All Controls before invoking
+                // this definition too; apply defaults for the resolved mode.
+                var selectedType = normalizeFanControlType(b.type || opts.type);
+                b.options = selectedType === "fan_control" ? normalizeFanControlOptions(b.options) : "";
+                b.icon = fanControlDefaultIcon(selectedType);
+                b.icon_on = selectedType === "fan_switch" ? "Fan" : "Auto";
             },
             renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
                 b.sensor = "";

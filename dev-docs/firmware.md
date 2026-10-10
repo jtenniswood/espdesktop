@@ -53,6 +53,9 @@ suspend downloads until Home Assistant reports recovery.
 
 ## Adding Firmware Support for a Card
 
+The experimental Home Assistant fan picker defaults new cards to All Controls.
+Other fan modes remain available, and saved cards retain their chosen mode.
+
 Use an existing card with similar behavior as the architectural template:
 
 - Static display card: sensor-like or time-like cards.
