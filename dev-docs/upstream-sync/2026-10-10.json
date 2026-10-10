@@ -2664,7 +2664,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2031",
       "mergeSha": "c314cbc43a11bde4c90e34a9ad7a4a9726ddecc1",
       "disposition": "Ported",
-      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending. GitHub CI Gate and documentation checks passed. Two external-input review fixes validated/pushed; production renderer and HA guard/self-tests passed at11791ae29. Prior firmware build is retained as historical evidence; newest-revision rebuild pending. Final11791ae29 S3 factory rebuild passed.",
+      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending. GitHub CI Gate and documentation checks passed. Two external-input review fixes validated/pushed; production renderer and HA guard/self-tests passed at11791ae29. Prior firmware build is retained as historical evidence; newest-revision rebuild pending. Final11791ae29 S3 factory rebuild passed. Friendly-name fallback review fixed and production regression passed at2729945b2; latest-revision firmware rebuild pending.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "components/espcontrol/UNICODE-LICENSE.txt",
@@ -2683,7 +2683,7 @@
         "tests/firmware/media_display_text_test.cpp"
       ],
       "branch": "normalize-media-display-text",
-      "revision": "11791ae29",
+      "revision": "2729945b2",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/147",
       "firmwareBuilds": [
         {
@@ -2715,8 +2715,8 @@
       "title": "Camera Refresh Control",
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
-      "disposition": "Port in progress",
-      "evidence": "Missing refresh policy confirmed; isolated port and destination generated contracts/assets under validation. Companion webapp icon path retained. Source remote-modal normalization fixture does not yet exist in destination and will be handled with the remote-modal port.",
+      "disposition": "Ported",
+      "evidence": "Separate ready feature port; all fast-profile checks including74 firmware host tests,172 web tests, config/backup/model/generated/types and7-inch browser refresh settings passed. Primary contracts and destination assets/snapshot regenerated; maintainer docs passed. Companion webapp icon and S3 camera paths retained. Representative compiles/physical tests pending; source remote-modal fixture will be adapted with #2008.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -2757,7 +2757,9 @@
         "tests/firmware/remote_modal_test.py",
         "tests/web/camera_name.test.ts"
       ],
-      "branch": "add-camera-refresh-settings"
+      "branch": "add-camera-refresh-settings",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
+      "revision": "8208ec758"
     },
     {
       "body": "## Summary\n\n- Home Assistant `image.*` entities report their image-update timestamp as the entity state, while the `/api/image_proxy/` URL only changes when the access token rotates (every 5 minutes). The camera card treated a same-URL state update like any other repeat and held it behind the 30-second refresh guard (`IMAGE_CARD_MIN_REPEAT_REFRESH_MS`), so an image entity that Home Assistant updates every few seconds looked frozen on the panel: one download per token rotation plus at most one per 30 seconds.\n- Track the timestamp per image card (`image_entity_revision.h`). A new timestamp is a pending revision that bypasses the recent-refresh guard once, then is acknowledged when the tile or expanded-view download is issued. Repeated timestamps, `unknown`/`unavailable`, token rotation and camera entities keep the existing behaviour.\n- This is a small subset of the image-revision semantics in #1920, kept independent so it can land on its own and so the 4-inch S3 (which has camera cards since v2.10.0) gets it too. Fixes the \"picture does not update often\" case for image entities described in #1921.\n\n## Practical impact\n\n- An `image.*` camera card follows the entity's own update rate. On a Guition 4848S040 with a template image that refreshes every 10 seconds, the tile now reloads every 10 seconds instead of once a minute (verified by the panel log: `Downloading camera image for image.\u2026` every state change, no `Skipping recent image refresh`).\n- Nothing changes for `camera.*` entities, media cover art, or image entities whose state does not change.\n- No new settings, saved options, web configurator or backup changes.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- `docs/card-types/cameras.md`: added the image-entity bullet under \"How It Works on the Panel\" and extended the \"picture does not update often\" troubleshooting row.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- All camera-card displays; the change is in the shared `button_grid_image.h`. Device-tested on Guition 4848S040 (4-inch S3). P4 displays not tested by me.\n\n## Notes for testing\n\n- Host tests: new `image_entity_revision_test` passes; `firmware-card-runtime`, `firmware-parser`, `firmware-ha-bindings`, `generated`, `card-contract-outputs`, `dev-docs`, `docs-build`, `memory-monitor`, `camera-test-endpoint`, `pr-process`, `pr-testing-guidance` pass. (On macOS/clang seven pre-existing host tests fail identically on `main` because of `-Wunused-variable` under `-Werror`; not related.)\n- Firmware: `builds/guition-esp32-s3-4848s040.factory.yaml` compiled with the pinned ESPHome 2026.9.0 image and flashed OTA to a 4848S040.\n- To reproduce: a template `image` entity with a `time_pattern` trigger every 10 seconds on a Camera card; watch the panel log (`/events`) for `image_card: Downloading camera image` every 10 seconds while the card is visible, and `Skipping recent image refresh` no longer appearing for that entity. Token rotation still downloads as before.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n",
@@ -2782,12 +2784,14 @@
       "title": "Retry image entity downloads after recovery",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2062",
       "mergeSha": "1adcca416a1831cc30d310f158a97a2508bda79b",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Source recovery fix applied on #154; production subscription and retained-state regression added for unknown/unavailable\u2192same timestamp, duplicate suppression being validated.",
       "changedFiles": [
         "components/espcontrol/button_grid_image.h",
         "components/espcontrol/camera_refresh_policy.h"
-      ]
+      ],
+      "branch": "retry-recovered-image-entities",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154"
     },
     {
       "body": "## Purpose\nAllow cover art and camera cards to use larger tile spans, including rectangular layouts, while limiting the size menu to spans supported by each device grid.\n\n## Practical impact\nCover art can grow beyond square-only sizes. Camera and cover art size menus now avoid offering spans larger than the active device's row and column count.\n\n## How it was checked\n- Config compatibility and web migration baseline checks passed locally.\n- GitHub CI and docs build passed on the latest commit.\n- Physical display testing is still needed.\n\n## Manual testing\nOn a 7-inch display, open the card size menu for a Cover Art card and a Camera card. Confirm 2x2 and the larger sizes that fit the grid can be selected and saved. Repeat on a smaller device and confirm sizes larger than its grid are not offered.\n\nRelated to #2064. Leave the issue open until the fix has been tested on a display.",
@@ -4269,13 +4273,13 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2136",
       "mergeSha": "25515bd9e51dc18146d240242bd2fd5dd23e72d1",
       "disposition": "Ported",
-      "evidence": "Separate ready port; actual landing guard tested with production controller for HA, Companion, modal/alarm and idle modes. Companion mutation rejects HA-only adaptation. Layout/backlight/HA/docs passed; S3 compile running; other representative compiles and physical tests pending. Exact-revision S3 factory build passed; P4 builds queued.",
+      "evidence": "Separate ready port; actual landing guard tested with production controller for HA, Companion, modal/alarm and idle modes. Companion mutation rejects HA-only adaptation. Layout/backlight/HA/docs passed; S3 compile running; other representative compiles and physical tests pending. Exact-revision S3 factory build passed; P4 builds queued. Idle-policy review fixed atd48ee4ff6: timer/sensor with prevention off retains normal idle policy except manual artwork return. Regression and contracts passed; final-revision builds pending (queued158f27e56 builds are historical).",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "tests/firmware/display_schedule_test.cpp.in"
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/151",
-      "revision": "158f27e56",
+      "revision": "d48ee4ff6",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -5029,8 +5033,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 32,
-    "Needs review": 27,
+    "Ported": 33,
+    "Needs review": 26,
     "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
