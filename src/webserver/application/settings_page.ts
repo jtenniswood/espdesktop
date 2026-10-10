@@ -40,9 +40,9 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
     const { render: renderPreview } = preview;
-    const { appendSettingsSection, buildAlarmDelayAudioSettingsCard, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
+    const { appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
     const { buildCoverArtSettingsCard } = coverArtSection;
     const { buildSystemSettingsCards } = systemSection;
@@ -56,9 +56,9 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
     const { postPresenceSensorEntity, postClockOverlay } = artworkPostApi;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
-    const { postClockBar, postBatteryStatus, postVoiceServices } = clockBarPostApi;
+    const { postClockBar, postBatteryStatus } = clockBarPostApi;
     const els = runtime.els;
-    const { timezoneOptionsWithFallback, voiceServicesUiState, setVoiceServicesEnabled } = environment;
+    const { timezoneOptionsWithFallback } = environment;
     const { syncUi: syncScreenScheduleUi } = schedule;
     const { syncUi: syncScreensaverTimeoutUi } = screensaverTimeout;
     const { normalize: normalizeScreenRotation, activeOptions: activeScreenRotationOptions, appendOption: appendScreenRotationOption } = screenRotation;
@@ -272,23 +272,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         syncClockBarUi();
         syncTemperatureUi();
         var clockBarCard: any = makeCollapsibleCard("Clock Bar", clockBarBody, true, clockBarBadge);
-        var voiceServicesCard: any = null;
-        if (voiceServicesUiState().settingsVisible) {
-            var voiceServicesBody: any = document.createElement("div");
-            var voiceServices: any = toggleRow("Voice Services", "sp-set-voice-services", state.voiceServicesOn);
-            voiceServicesBody.appendChild(voiceServices.row);
-            els.setVoiceServicesToggle = voiceServices.input;
-            voiceServices.input.addEventListener("change", function (this: any) {
-                setVoiceServicesEnabled(this.checked);
-                syncClockBarUi();
-                postVoiceServices(state.voiceServicesOn);
-            });
-            var voiceServicesBadge: any = statusBadge("Voice services on");
-            els.setVoiceServicesBadge = voiceServicesBadge;
-            syncClockBarUi();
-            voiceServicesCard = makeCollapsibleCard("Voice Services", voiceServicesBody, true, voiceServicesBadge);
-            els.voiceServicesCard = voiceServicesCard;
-        }
         var batteryStatusCard: any = null;
         if (layout.config.features && layout.config.features.battery) {
             var batteryStatusBody: any = document.createElement("div");
@@ -306,7 +289,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             batteryStatusCard = makeCollapsibleCard("Battery", batteryStatusBody, true, batteryStatusBadge);
             els.batteryStatusCard = batteryStatusCard;
         }
-        var alarmDelayAudioCard: any = buildAlarmDelayAudioSettingsCard();
         var rotationCard: any = null;
         if (layout.config.features && layout.config.features.screenRotation) {
             var rotationBody: any = document.createElement("div");
@@ -611,10 +593,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             idleCard,
             clockBarCard,
             rotationCard,
-        ]);
-        appendSettingsSection(config, "Voice & Sounds", [
-            voiceServicesCard,
-            alarmDelayAudioCard,
         ]);
         appendSettingsSection(config, "Sleep & Schedule", [
             coverArtCard,
