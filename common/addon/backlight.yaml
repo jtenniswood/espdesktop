@@ -507,6 +507,9 @@ script:
             controller.clear(espdesktop::DisplayRequestSource::PRESENCE_SENSOR);
             const bool sensor_idle = id(screensaver_mode).state == "sensor" &&
                                      !id(presence_detected);
+            const bool companion_idle = id(screensaver_mode).state == "companion" &&
+                                        id(screensaver_companion_ready) &&
+                                        (!companion_connected() || screen_lock_enabled());
             const bool playback_prevents_sleep =
                 id(cover_art_screensaver_enabled).state &&
                 id(media_player_sleep_prevention_enabled).state &&
@@ -514,7 +517,7 @@ script:
             if (leaving_scheduled_clock && id(schedule_enabled).state &&
                 !onboarding && !waiting_for_time &&
                 !id(screensaver_wake).is_running() &&
-                (id(screensaver_mode).state == "timer" || sensor_idle) &&
+                (id(screensaver_mode).state == "timer" || sensor_idle || companion_idle) &&
                 !playback_prevents_sleep) {
               const auto idle_mode = id(screensaver_action_clock)
                   ? espdesktop::DisplayMode::CLOCK
