@@ -2664,7 +2664,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2031",
       "mergeSha": "c314cbc43a11bde4c90e34a9ad7a4a9726ddecc1",
       "disposition": "Ported",
-      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending. GitHub CI Gate and documentation checks passed. Two external-input review fixes validated/pushed; production renderer and HA guard/self-tests passed at11791ae29. Prior firmware build is retained as historical evidence; newest-revision rebuild pending.",
+      "evidence": "Production renderer regressions, Unicode table regeneration, HA/card/Cover Art contracts and docs passed; exact-revision S3 factory build passed. Display-only cleanup preserves raw metadata. Physical testing pending. GitHub CI Gate and documentation checks passed. Two external-input review fixes validated/pushed; production renderer and HA guard/self-tests passed at11791ae29. Prior firmware build is retained as historical evidence; newest-revision rebuild pending. Final11791ae29 S3 factory rebuild passed.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "components/espcontrol/UNICODE-LICENSE.txt",
@@ -2699,7 +2699,7 @@
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "11791ae29",
           "esphome": "2026.9.1",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2031-external-firmware-s3.log"
         }
       ]
@@ -3064,8 +3064,8 @@
       "title": "Fix scheduled wake idle handling and backlight state",
       "url": "https://github.com/jtenniswood/espcontrol/pull/1792",
       "mergeSha": "ba9380223b37e43ecf2467a321dcedba822d654b",
-      "disposition": "Port in progress",
-      "evidence": "Source finalizer and reporting fixes ported. Production schedule/backlight tests passed; added onboarding guard with mutation regression for source review finding. HA binding checks/self-tests passed; full fast graph running with temporary CMake tooling.",
+      "disposition": "Ported",
+      "evidence": "Separate ready port; all fast-profile checks including73 host firmware tests passed with documented Mac host-tool setup. Production scheduling/backlight/ownership regressions and onboarding mutation, HA binding self-tests and docs passed. Physical testing and representative compiles pending.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/addon/backlight_schedule.yaml",
@@ -3082,7 +3082,9 @@
         "tests/firmware/display_schedule_test.cpp.in",
         "tests/firmware/display_schedule_test.py"
       ],
-      "branch": "fix-scheduled-display-wake"
+      "branch": "fix-scheduled-display-wake",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/152",
+      "revision": "98d8ad3e7"
     },
     {
       "body": "## Summary\n\nAdds Home Assistant horizontal climate swing support as a separate, capability-aware `Horizontal Swing` control. Entities that expose `swing_horizontal_modes` receive a horizontal tab and modal quick option; entities without horizontal modes keep the existing UI unchanged.\n\nHorizontal selections use `climate.set_swing_horizontal_mode` with `swing_horizontal_mode`, while vertical swing remains independent. Existing icons are reused with semantic mappings for left/right, up/down, top/bottom, generic swing, and exact off values; full mode labels remain visible.\n\nThe change also updates climate subscriptions, default/configurable tab order, product contracts and generated web artifacts, firmware translations, documentation, and regression coverage. Related to #2014.\n\n## Validation\n\n- `npm run check:product` \u2014 passed.\n- `npm run docs:build` \u2014 passed.\n- Targeted climate firmware tests \u2014 passed.\n- Full firmware CTest suite with `ASAN_OPTIONS=detect_leaks=0` \u2014 60/60 passed. The two media lifecycle tests fail in the default environment before assertions because LeakSanitizer cannot run under the hosted ptrace environment; both pass with leak detection disabled.\n- ESPHome 2026.9.0 Docker compiles \u2014 passed for `guition-esp32-p4-jc1060p470`, `guition-esp32-p4-jc4880p443`, and `guition-esp32-s3-4848s040`.\n\n## Limitations\n\n- `npm run check:web-browser-smoke` completed generated-output checks but stalled in the existing panel-naming browser journey and was interrupted; no browser-smoke pass is claimed.\n- Physical testing remains: verify an entity exposing both vertical and horizontal modes and confirm each control changes only its corresponding Home Assistant setting.\n",
@@ -3237,14 +3239,16 @@
       "title": "Fix bright wake interval after the night clock schedule",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2089",
       "mergeSha": "4606e8113920c6e3f5594fb711313430e6a0db9b",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Separate dependent worktree; source clock-to-idle handoff and runtime tests being validated, retaining the onboarding guard.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "dev-docs/display-lifecycle.md",
         "docs/features/screen-schedule.md",
         "tests/firmware/display_schedule_test.cpp.in"
-      ]
+      ],
+      "branch": "handoff-night-clock-to-idle",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/152"
     },
     {
       "body": "## Purpose\nRestore the three voice audio files that older `esp32-p4-86` package versions download from `main`.\n\n## Impact\nUsers still building a release such as `v2.11.0` can resolve the wake chime, timer alert, and STT failure chime URLs after the files were removed with voice support. Current firmware configuration stays unchanged.\n\n## Checks\n- Confirmed all three files match the assets from `v2.11.0`.\n- ESPHome 2026.9.0 compiled the PR checkout's `devices/esp32-p4-86/dev.yaml` and OTA flashed the 4-inch P4 at `192.168.6.104` successfully; the device responded to ping after reboot.\n- The legacy `v2.11.0` package reproduction still needs verification after this PR is merged, when its `main` URLs will resolve to these restored assets.\n- Existing cover-art code emitted two deprecation warnings; compilation and upload succeeded.",
@@ -3846,7 +3850,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2133",
       "mergeSha": "5eca9a12b0a3104d50b0087b5e19988acaf65f0e",
       "disposition": "Ported",
-      "evidence": "Separate ready port. Release helper and docs passed; exact Home selection passed 7-inch browser smoke. Exact-revision 10-inch V3 recovery compile passed:6,699,418 bytes with575,078-byte app-slot headroom. Physical testing pending.",
+      "evidence": "Separate ready port. Release helper and docs passed; exact Home selection passed 7-inch browser smoke. Exact-revision 10-inch V3 recovery compile passed:6,699,418 bytes with575,078-byte app-slot headroom. Physical testing pending. GitHub CI Gate and docs passed.",
       "changedFiles": [
         "common/device/esp32_c6_recovery.yaml",
         "docs/getting-started/c6-recovery.md",
@@ -4261,12 +4265,14 @@
       "title": "Re-arm cover art delay when the display settles back on the active screen",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2136",
       "mergeSha": "25515bd9e51dc18146d240242bd2fd5dd23e72d1",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Separate ready port; actual landing guard tested with production controller for HA, Companion, modal/alarm and idle modes. Companion mutation rejects HA-only adaptation. Layout/backlight/HA/docs passed; S3 compile running; other representative compiles and physical tests pending.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "tests/firmware/display_schedule_test.cpp.in"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/151",
+      "revision": "158f27e56"
     },
     {
       "body": "## Purpose\nRelease preflight fails because preparing release web assets replaces the checked-in bundle manifest with metadata based on the currently published legacy bundle. The asset-manifest consistency check then compares that prepared manifest to the older release tag's retained bundle ID.\n\n## Change\nValidate the checked-in web asset manifest before release asset preparation, then mark that task as preverified in the post-preparation release preflight. The generated check and all other preflight tasks remain active.\n\n## Checks\n- `git diff --check` passed locally.\n- GitHub Actions will validate the release workflow change.\n",
@@ -5010,8 +5016,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 29,
-    "Needs review": 30,
+    "Ported": 31,
+    "Needs review": 28,
     "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
