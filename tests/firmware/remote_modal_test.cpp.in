@@ -69,7 +69,8 @@ std::string navigation_trim(const std::string &s) {
   auto first = s.find_first_not_of(" \r\n\t");
   return first == std::string::npos ? "" : s.substr(first, s.find_last_not_of(" \r\n\t") - first + 1);
 }
-bool locked = false, alarm = false, fail_open = false;
+bool locked = false, alarm = false, fail_open = false, phase2_ready = true;
+bool grid_phase2_complete() { return phase2_ready; }
 bool screen_lock_enabled() { return locked; }
 bool alarm_display_takeover_active() { return alarm; }
 ControlModalActiveState<lv_obj_t> modal;
@@ -167,6 +168,11 @@ int main() {
   assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
   assert(closes == closes_before_alarm_navigation);
   alarm = false;
+  phase2_ready = false;
+  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen");
+  invoke_remote_navigation("1"); invoke_remote_navigation("voice");
+  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
+  phase2_ready = true;
   locked = true;
   invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen");
   invoke_remote_navigation("1"); invoke_remote_navigation("voice");
