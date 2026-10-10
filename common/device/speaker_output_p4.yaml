@@ -83,7 +83,6 @@ media_player:
           previously_announcing = announcing;
           const uint8_t reduction = announcing ? 20 : 0;
           id(speaker_media_input).apply_ducking(reduction, 250);
-          id(speaker_sendspin_input).apply_ducking(reduction, 250);
     on_play:
       - switch.turn_on: speaker_amplifier
     on_announcement:
@@ -116,6 +115,3 @@ switch:
     pin: ${speaker_amplifier_pin}
     restore_mode: ALWAYS_OFF
     internal: true
-
-espdesktop:
-  shared_speaker_players: [device_speaker, sendspin_speaker_player]
