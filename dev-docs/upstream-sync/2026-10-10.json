@@ -3919,7 +3919,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2073",
       "mergeSha": "2f8d6e892912506440e0efb4f09c7c1400610bf3",
       "disposition": "Ported",
-      "evidence": "Removed P4-86 local Voice Services/alarm delay audio, controls and obsolete docs/assets, preserving visual countdowns, external HA media, Mac Companion artwork and protected remote navigation. Full fast checks passed (74 firmware host,172 web), actual P4-86 Chromium acceptance and docs/site links passed. Four representative builds queued; no physical device testing. Depends on destination PR156 remote navigation. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. New exports omit seven retired voice/alarm-audio fields; old import compatibility retained. Full fast74/172 and actual P4-86 downloaded-backup/browser acceptance passed. Final embedded bundle regenerated and builds updated.",
+      "evidence": "Removed P4-86 local Voice Services/alarm delay audio, controls and obsolete docs/assets, preserving visual countdowns, external HA media, Mac Companion artwork and protected remote navigation. Full fast checks passed (74 firmware host,172 web), actual P4-86 Chromium acceptance and docs/site links passed. Four representative builds queued; no physical device testing. Depends on destination PR156 remote navigation. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. New exports omit seven retired voice/alarm-audio fields; old import compatibility retained. Full fast74/172 and actual P4-86 downloaded-backup/browser acceptance passed. Final embedded bundle regenerated and builds updated. Actual P4-86 compile at aa99987e4 failed: removed volume popup clock title field still referenced. Restored destination field and pushed1e20d3cc7; fresh P4-86 compile running, remaining targets updated. Earlier failed build retained; no final compile pass claimed yet.",
       "changedFiles": [
         "builds/esp32-p4-86.yaml",
         "common/addon/backlight.yaml",
@@ -4026,7 +4026,7 @@
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/168",
       "branch": "remove-local-voice-alarm-audio",
-      "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
+      "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
       "firmwareBuilds": [
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
@@ -4102,7 +4102,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -4110,7 +4110,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -4118,7 +4118,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -4126,9 +4126,41 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "e4b77bcc1f74546e2b3208228343eb28eafa0b6b",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2073-backup-final-e4b77bcc1-esp32-p4-86.log",
           "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
+          "status": "running",
+          "log": "/private/tmp/2073-backup-final-e4b77bcc1-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "1e20d3cc7bceeed41d9606009876a8bc3c22b8c7",
+          "status": "planned",
+          "log": "/private/tmp/2073-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
         }
       ],
