@@ -66,3 +66,5 @@ For behavioural changes, extend `check_cover_art_contract.py` with the event
 sequence before modifying the implementation. Important sequences include a
 track changing during download, stop during retry, reconnect, external-input
 takeover, rotation, and rapid play/pause changes.
+
+Closing a modal after an artwork wake restarts Show After once the display settles on the normal active screen. Open modals and alarm takeovers prevent the restart. Companion artwork can restart the delay without a Home Assistant media-player entity.
