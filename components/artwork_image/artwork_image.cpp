@@ -719,6 +719,9 @@ bool ArtworkImage::load_owned_buffer(uint8_t *data, size_t size, bool *decode_su
   if (decode_succeeded) *decode_succeeded = false;
   if (!data || size < 12 || size > this->max_download_buffer_size_) return false;
 
+  // Pushed Companion bytes supersede any HTTP transfer; they cannot report
+  // success or failure for the canceled Home Assistant endpoint.
+  this->transfer_stamp_ = {};
   this->update_pending_ = false;
   this->pending_url_.clear();
   this->end_connection_();
