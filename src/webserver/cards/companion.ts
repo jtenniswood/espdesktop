@@ -1,6 +1,6 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
-import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
+import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
@@ -172,7 +172,7 @@ export function formatCompanionShortcutActionId(actionId: string): string {
 export function companionShortcutCatalogSelection(card: any) {
     for (const app of COMPANION_SHORTCUT_APPS.filter((app) => app.catalog)) {
         const preset = companionShortcutPresetCards(app.appId).find((preset) =>
-            preset.entity === card?.entity && preset.options === card?.options);
+            preset.entity === card?.entity && preset.options === withoutCardColorOptions(card?.options));
         if (preset) return { ...preset, appId: app.appId };
     }
     return undefined;
@@ -386,17 +386,24 @@ export function resetCompanionMetricPresentation(card: any, nextMode: string): v
     if (card.label === previous.label) card.label = "";
     card.unit = "";
     card.precision = "";
-    card.options = "";
+    card.options = normalizedCardColorOptions(card.options);
 }
 
 export function normalizeCompanionCard(card: any): void {
+    if (!card) return;
+    const previousOptions = card.options;
+    normalizeCompanionCardFields(card);
+    card.options = preserveCardColorOptions(previousOptions, card.options);
+}
+
+function normalizeCompanionCardFields(card: any): void {
     if (!card) return;
     if (card.entity === COMPANION_STATS_PLACEHOLDER) {
         card.type = "companion";
         card.sensor = "";
         card.unit = "";
         card.precision = "";
-        card.options = "";
+        card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon("stats");
@@ -416,7 +423,7 @@ export function normalizeCompanionCard(card: any): void {
         }, card));
         card.options = String(card.options || "").split(",").filter((option) =>
             option === "large_numbers" || option === "large_numbers=off" || option === "stat_labels_off").join(",");
-        if (metric.mode === "ip_address") card.options = "";
+        if (metric.mode === "ip_address") card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon(metric.mode, card.entity);
@@ -511,7 +518,7 @@ export function registerCompanionCardTypes(
         card.sensor = mode === "url" ? COMPANION_URL_PREFIX : "";
         card.unit = "";
         card.precision = "";
-        card.options = "";
+        card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
         card.label = "";
 
@@ -858,7 +865,7 @@ export function registerCompanionCardTypes(
             function saveBuiltShortcut(): void {
                 const modifiers = COMPANION_SHORTCUT_MODIFIERS.filter((modifier) => selectedModifiers.has(modifier));
                 card.entity = COMPANION_SHORTCUT_PREFIX + [...modifiers, selectedKey].join("+");
-                card.options = "app_shortcut_preset=custom";
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
@@ -916,7 +923,7 @@ export function registerCompanionCardTypes(
                 card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom Shortcut.
                 if (typeSelect.value === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
-                card.options = "app_shortcut_preset=custom";
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
@@ -924,7 +931,7 @@ export function registerCompanionCardTypes(
             catalogApp.addEventListener("change", function () {
                 card._shortcutCatalogApp = catalogApp.value;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
-                card.options = "";
+                card.options = normalizedCardColorOptions(card.options);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
@@ -933,12 +940,12 @@ export function registerCompanionCardTypes(
                 const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
                 if (!preset) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
-                    card.options = "";
+                    card.options = normalizedCardColorOptions(card.options);
                 } else {
                     card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
                     card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
                     card.entity = preset.entity;
-                    card.options = preset.options;
+                    card.options = preserveCardColorOptions(card.options, preset.options);
                 }
                 for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
                 renderButtonSettings();
