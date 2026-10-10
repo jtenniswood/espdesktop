@@ -53,6 +53,11 @@ suspend downloads until Home Assistant reports recovery.
 
 ## Adding Firmware Support for a Card
 
+Experimental Home Assistant fan cards in All Controls mode retain their configured
+tile label through state updates. A blank label uses the Home Assistant friendly
+name, falling back to the translated Fan label; power highlighting and icons
+still update.
+
 Use an existing card with similar behavior as the architectural template:
 
 - Static display card: sensor-like or time-like cards.
