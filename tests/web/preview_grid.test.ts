@@ -5,7 +5,7 @@ import {
   resizeGridSlot,
   resolveSpanPosition,
 } from "../../src/webserver/features/preview_grid";
-import { buildSubpageGrid } from "../../src/webserver/model/subpage";
+import { buildSubpageGrid, serializeSubpageGrid } from "../../src/webserver/model/subpage";
 import { applySpans, parseGridOrder, serializeGridOrder } from "../../src/webserver/model/grid";
 
 function equal<T>(actual: T, expected: T, message: string): void {
@@ -74,6 +74,17 @@ export function runPreviewGridTests(): void {
   equal(rebuiltPortrait.grid.length, 20, "subpage rebuild keeps full saved capacity");
   deepEqual(rebuiltPortrait.grid.slice(0, 3), [-2, 19, 20], "reopening a portrait subpage brings tail cards into visible cells");
   deepEqual(rebuiltPortrait.grid.slice(18), [0, 0], "rebuilt subpage has no lost visible cards in its tail");
+
+  const overflowSubpage = buildSubpageGrid({
+    order: [...Array.from({ length: 18 }, (_, i) => String(i + 1)), "", "B"],
+    buttons: Array<any>(20).fill({}),
+  }, 20, 3, 18);
+  deepEqual(overflowSubpage.grid,
+    [...Array.from({ length: 17 }, (_, i) => i + 1), -2, 18, 0],
+    "portrait overflow reserves visible Back and retains excess card in the serialized tail");
+  equal(serializeSubpageGrid(overflowSubpage.grid, overflowSubpage.sizes).join(","),
+    "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,B,18",
+    "portrait overflow serialization retains every control for landscape");
 
   const duplicateGrid = Array.from({ length: 20 }, (_, index) => index + 1);
   duplicateGrid[1] = 0;

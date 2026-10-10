@@ -141,7 +141,7 @@ export function applySpans(
 ): void {
   let entries = grid.slice(0, maxSlots);
   const trailingCapacity = Math.max(0, grid.length - maxSlots);
-  const preservedEntries = grid.filter((slot) => slot > maxSlotId);
+  let preservedEntries = grid.filter((slot) => slot > maxSlotId);
   const trailingVisibleEntries = grid.slice(maxSlots).filter(
     (slot) => slot === -2 || (slot > 0 && slot <= maxSlotId),
   );
@@ -151,8 +151,21 @@ export function applySpans(
     const visibleEntries = entries.filter(
       (slot) => slot === -2 || (slot > 0 && slot <= maxSlotId),
     );
-    if (visibleEntries.length + trailingVisibleEntries.length > maxSlots) return;
-    entries = [...visibleEntries, ...trailingVisibleEntries];
+    const candidates = [...visibleEntries, ...trailingVisibleEntries];
+    const reserveBack = candidates.includes(-2);
+    const cardLimit = maxSlots - (reserveBack ? 1 : 0);
+    let keptCards = 0;
+    const overflow: number[] = [];
+    entries = candidates.filter((slot) => {
+      if (slot === -2 || keptCards < cardLimit) {
+        if (slot !== -2) keptCards += 1;
+        return true;
+      }
+      overflow.push(slot);
+      return false;
+    });
+    preservedEntries = [...overflow, ...preservedEntries];
+    if (preservedEntries.length > trailingCapacity) return;
   }
 
   interface GridEntry {
