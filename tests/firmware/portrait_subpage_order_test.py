@@ -17,7 +17,7 @@ cpp='''#include <string>
 #include <cassert>
 constexpr int MAX_GRID_SLOTS=20;
 int bounded_grid_slots(int n) { return n<0?0:(n>20?20:n); }
-'''+order+helpers+suborder+function('subpage_back_token_span')+function('parse_subpage_order')+r'''
+'''+order+helpers+layout[layout.index('inline void normalize_grid_span_for_position'):layout.index('// Zero out grid cells')]+suborder+function('subpage_back_token_span')+function('parse_subpage_order')+function('normalize_subpage_order_spans')+r'''
 int main() {
  SubpageOrder portrait;
  parse_subpage_order("B,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,,,16,17",18,20,portrait,20);
@@ -37,6 +37,16 @@ int main() {
  parse_subpage_order("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,,,Bw",18,20,tail_back,20);
  assert(tail_back.back_pos==17 && tail_back.back_col_span==2);
  for(int i=0;i<17;++i) assert(tail_back.positions[i]==i+1);
+ for (const auto &csv : {"B,1w,,2,,,,,,,,,,,,,,,3", "1w,,2,,,,,,,,,,,,,,,,3", "Bw,1,,2,,,,,,,,,,,,,,,3"}) {
+   SubpageOrder compacted;
+   parse_subpage_order(csv,18,20,compacted,20);
+   normalize_subpage_order_spans(compacted,18,3);
+   int cards=0;
+   for(int i=0;i<18;++i) if(compacted.positions[i]>0) ++cards;
+   assert(cards==3);
+   assert(compacted.col_span[0]==1);
+   assert(compacted.back_col_span==1);
+ }
  SubpageOrder unchanged;
  parse_subpage_order("B,1,,,2",6,6,unchanged);
  assert(unchanged.positions[1]==1 && unchanged.positions[4]==2);

@@ -129,7 +129,7 @@ export function resizeGridSlot(
   gridCols: number,
   allowCardDisplacement: boolean,
 ): GridSlotResize {
-  const grid = sourceGrid.slice(0, maxSlots);
+  const grid = sourceGrid.slice();
   while (grid.length < maxSlots) grid.push(0);
   const sizes = { ...sourceSizes };
   const currentSize = sizes[String(slot)] || 1;
@@ -229,6 +229,7 @@ export function moveSelectedGridEntries(
 
   return {
     accepted: true,
-    grid: placeOrderedGridEntries(entries.slice(0, maxSlots), sizes, maxSlots, gridCols),
+    grid: [...placeOrderedGridEntries(entries.slice(0, maxSlots), sizes, maxSlots, gridCols),
+      ...sourceGrid.slice(maxSlots)],
   };
 }

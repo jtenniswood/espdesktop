@@ -412,7 +412,7 @@ export function createButtonSettingsFeature(
             else
                 c.sizes[slot] = nextSize;
             clearSpans(c.grid, c.maxSlots);
-            applySpans(c.grid, c.sizes, c.maxSlots, layout.gridCols);
+            applySpans(c.grid, c.sizes, c.maxSlots, layout.gridCols, c.maxSlotId);
             return true;
         }
         function saveResultSucceeded(this: any, result?: any) {

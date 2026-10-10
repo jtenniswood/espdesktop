@@ -19,6 +19,24 @@ function deepEqual(actual: unknown, expected: unknown, message: string): void {
 }
 
 export function runPreviewGridTests(): void {
+
+  for (const back of [false, true]) {
+    const saved = [back ? -2 : 1, 2, 3, ...Array<number>(15).fill(0), 19, 20];
+    const hiddenSizes = { "19": 3 };
+    const resized = resizeGridSlot(saved, hiddenSizes, 2, 1, 3, 18, 3, true);
+    equal(resized.accepted, true, "portrait resize succeeds on home and subpage");
+    deepEqual(resized.grid.slice(18), [19, 20], "resize keeps the serialized landscape tail");
+    equal(resized.sizes["19"], 3, "resize preserves the hidden card size");
+    const moved = moveSelectedGridEntries(saved, hiddenSizes, [2, 3], 1, 5, 18, 3);
+    equal(moved.accepted, true, "portrait selected move succeeds on home and subpage");
+    deepEqual(moved.grid.slice(18), [19, 20], "selected move keeps the landscape tail");
+    const encoded = back ? serializeSubpageGrid(resized.grid, resized.sizes).join(",")
+      : serializeGridOrder(resized.grid, resized.sizes);
+    const restored = back ? buildSubpageGrid({ order: encoded.split(","), buttons: Array<any>(20).fill({}) }, 20, 5)
+      : parseGridOrder(encoded, 20, 5);
+    equal(restored.grid.includes(19) && restored.grid.includes(20), true, "saved edits restore both landscape cards");
+  }
+
   const portraitOrder = [19, 20, ...Array.from({ length: 16 }, (_, index) => index + 1), 17, 18];
   const portraitSizes: Record<string, number> = { "19": 3 };
   applySpans(portraitOrder, portraitSizes, 18, 3);

@@ -939,6 +939,12 @@ int main() {
   parse_order_for_layout("1,,,2", 0, 6, portrait_order);
   assert(portrait_order.positions[0] == 1 && portrait_order.positions[3] == 2);
 
+  parse_order_for_layout("19,1w,,2,,,,,,,,,,,,,,,3", 20, 18, portrait_order, 3);
+  OrderResult compacted;
+  clear_spanned_cells(portrait_order, 18, 3, compacted);
+  assert(compacted.positions[0] == 1 && compacted.positions[1] == 2 && compacted.positions[2] == 3);
+  assert(compacted.col_span[0] == 1);
+
   OrderResult overlap;
   parse_order_string("1b,2,3,4,5,6", 9, overlap);
   OrderResult cleared;

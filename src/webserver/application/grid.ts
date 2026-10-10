@@ -40,7 +40,7 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
             var sp: any = getSubpage(state.editingSubpage);
             return {
                 grid: sp.grid, sizes: sp.sizes, buttons: sp.buttons,
-                maxSlots: layout.previewSlots, selected: state.subpageSelectedSlots,
+                maxSlots: layout.previewSlots, maxSlotId: sp.buttons.length, selected: state.subpageSelectedSlots,
                 isSub: true,
                 setSelected: function (this: any, s?: any) { state.subpageSelectedSlots = s; },
                 setLastClicked: function (this: any, s?: any) { state.subpageLastClicked = s; },

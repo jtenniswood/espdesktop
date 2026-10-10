@@ -430,6 +430,7 @@ struct SubpageOrder {
   int back_row_span = 1;
   int back_col_span = 1;
   bool has_back_token = false;
+  bool compacted_portrait = false;
 };
 
 inline void subscribe_subpage_parent_indicator(
@@ -563,6 +564,7 @@ inline void parse_subpage_order(const std::string &order_str, int num_slots, int
   bool compact = result.has_back_token && result.back_pos >= active;
   for (int i = active; i < slot_limit; ++i) compact |= result.positions[i] > 0;
   if (!compact) return;
+  result.compacted_portrait = true;
   int positions[MAX_GRID_SLOTS] = {};
   int count = 0;
   bool back_placed = false;
@@ -588,6 +590,11 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
                                      order.back_row_span,
                                      order.back_col_span);
   }
+  if (order.compacted_portrait && order.has_back_token &&
+      grid_span_overlaps_anchor(order.positions, order.back_pos, slot_limit, cols,
+                                order.back_row_span, order.back_col_span)) {
+    order.back_row_span = order.back_col_span = 1;
+  }
   for (int position = 0; position < slot_limit; position++) {
     int button_index = order.positions[position];
     if (button_index < 1 || button_index > MAX_GRID_SLOTS) continue;
@@ -600,6 +607,12 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
     int &col_span = order.col_span[button_index - 1];
     normalize_grid_span_for_position(rendered_position, slot_limit, cols,
                                      row_span, col_span);
+    if (order.compacted_portrait &&
+        grid_span_overlaps_anchor(order.positions, rendered_position, slot_limit, cols,
+                                  row_span, col_span, order.back_pos,
+                                  order.has_back_token ? 0 : 1)) {
+      row_span = col_span = 1;
+    }
   }
 }
 
