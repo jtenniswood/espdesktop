@@ -104,3 +104,5 @@ playback controls belong to Home Assistant artwork only: Companion ownership
 hides the button, clears retained HA pause state, and blocks commands to a saved
 HA player. Ownership also participates in the layout cache key. The production
 playback-lambda regression covers this separation and rejects a removed guard.
+
+When playback starts while the clock screensaver is active, artwork replaces the clock immediately. Playback starting on the active screen still uses Show After. The existing schedule, alarm and source-ownership checks still apply.
