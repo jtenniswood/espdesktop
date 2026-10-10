@@ -2600,7 +2600,7 @@ inline void image_card_handle_picture(ImageCardCtx *ctx, esphome::StringRef pict
     if (dirty && !image_card_context_on_active_screen(ctx)) return;
     if (ctx->image_ready && !dirty && !ctx->explicit_picture_refresh) return;
   }
-  if (!dirty && !ctx->media_artwork && ctx->image_ready &&
+  if (!dirty && !ctx->explicit_picture_refresh && !ctx->media_artwork && ctx->image_ready &&
       ctx->camera_download_errors == 0 && !ctx->camera_entity_unavailable && !source_changed &&
       ctx->last_download_completed_ms != 0 &&
       (uint32_t)(now - ctx->last_download_completed_ms) <
@@ -2624,6 +2624,12 @@ inline void image_card_handle_picture(ImageCardCtx *ctx, esphome::StringRef pict
     image_card_schedule_source_refresh(ctx, IMAGE_CARD_MODAL_REFRESH_DELAY_MS, "tile");
     return;
   }
+  // Credential events update the retained URL without bypassing the chosen
+  // tile cadence. Initial loading and explicit reloads remain independent.
+  if (!ctx->media_artwork && !image_entity && !ctx->explicit_picture_refresh &&
+      (ctx->requested_once || ctx->image_ready) &&
+      ctx->refresh_schedule.mode != espdesktop::camera::RefreshMode::OFF &&
+      !ctx->refresh_schedule.due(now, ha_api_state_connected())) return;
   image_card_request_source_url(ctx, source_changed);
 }
 
