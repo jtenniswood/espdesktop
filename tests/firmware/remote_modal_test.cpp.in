@@ -237,8 +237,13 @@ int main() {
   assert(remote_modal_find("light.office").matches == 2);
   first.available = false;
   const int before = opens, closed_before = closes;
+  alarm = true; espdesktop_close_modal();
+  assert(closes == closed_before); // Remote close cannot hide critical alarm controls.
+  alarm = false; espdesktop_close_modal();
+  assert(closes == closed_before + 1);
+
   assert(!espdesktop_open_modal("light.office", true)); // No fallback to second.
-  assert(opens == before && closes == closed_before);
+  assert(opens == before && closes == closed_before + 1);
   first.available = true;
   locked = true; assert(!espdesktop_open_modal("light.office", true)); locked = false;
   alarm = true; assert(!espdesktop_open_modal("light.office", true)); alarm = false;
@@ -246,7 +251,7 @@ int main() {
   assert(!espdesktop_open_modal("  ", true));
   assert(!espdesktop_open_modal("light.missing", true));
   assert(!espdesktop_open_modal("LIGHT.OFFICE", true));
-  assert(opens == before && closes == closed_before);
+  assert(opens == before && closes == closed_before + 1);
   // Hidden cards are excluded, and display order (not slot number) wins.
   one.hidden = true;
   assert(espdesktop_open_modal("light.office", true) && opened == &second);
