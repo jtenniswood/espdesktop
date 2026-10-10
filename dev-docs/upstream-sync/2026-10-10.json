@@ -2663,8 +2663,8 @@
       "title": "Fix fullwidth media titles and hide emoji",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2031",
       "mergeSha": "c314cbc43a11bde4c90e34a9ad7a4a9726ddecc1",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Committed/pushed. Production renderer and text regressions, bindings and docs passed; exact-revision S3 factory build running before PR publication.",
       "changedFiles": [
         "common/device/screen_cover_art.yaml",
         "components/espcontrol/UNICODE-LICENSE.txt",
@@ -2681,7 +2681,9 @@
         "tests/firmware/CMakeLists.txt",
         "tests/firmware/media_display_integration_test.py",
         "tests/firmware/media_display_text_test.cpp"
-      ]
+      ],
+      "branch": "normalize-media-display-text",
+      "revision": "27dcbdc89"
     },
     {
       "body": "## Summary\n\nCamera cards now refresh on motion or doorbell activity while visible, and continue refreshing when expanded. Periodic refresh remains available for expanded views. Existing cards default to Off. Home Assistant image entities use their image-update timestamp so a changed image reloads at the same URL, while credential rotation alone does not download an unchanged image.\n\nRelated issue: https://github.com/jtenniswood/espcontrol/issues/1921\n\nRelated research: https://github.com/jtenniswood/espcontrol/discussions/1818\n\n## Practical impact\n\n- Camera card > Refresh Settings > Camera refresh: Off, Periodic (expanded view, 5/10/30 seconds), or On activity.\n- Activity accepts a binary sensor or event entity, refreshes at five-second intervals for 30 seconds, and extends the window on another activation.\n- Activity refresh downloads use the visible tile or expanded view. Switching between them preserves the 30-second window. Hidden cards, other modals, screen-off and screensavers stop activity downloads; hidden events do not replay on return.\n- Downloads remain serialized, retain the last image on errors, and back off on failures. Refreshes do not wake the display, extend Home Screen Timeout, or replay old doorbell events after reconnecting.\n- Main-page and subpage settings survive save/load and backups. Obsolete refresh options remain ignored.\n- No video, automatic camera opening, or screensaver changes. S3 camera support remains outside this branch.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n\nDocs notes:\n\nCamera docs explain modes, trigger semantics, timing, and integration-dependent image freshness.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nAffected display/device, if applicable:\n\n- All P4 camera displays; primary tests on Guition JC1060P470 (7-inch) and JC8012P4A1 (10-inch). Shared image regression checks on JC4880P443 (4.3-inch P4) and 4848S040 (4-inch S3).\n\nAutomated validation for commit `648756dd8`:\n\n- Fast checks passed, including 56 firmware host tests; product checks, documentation build, and GitHub CI passed.\n- Runtime tests exercise the production trigger, tile downloader, failure handler, and maintenance loop: five-second completion timing, slow downloads, failure backoff, low-memory retries, queued-request expiry, reconnect baselines, hidden events, screen-off, shared-modal ownership, and tile/expanded transitions.\n- The 10-inch P4 browser suite passed with Refresh Settings outside Modal Settings and conditional controls/trigger validation.\n- ESPHome 2026.8.2 factory compilation passed for the original 10-inch JC8012P4A1, 7-inch JC1060P470, 4.3-inch JC4880P443, and 4-inch S3 4848S040.\n- Existing saved activity settings carry over without changing the serialized option keys. Periodic refresh remains expanded-only.\n\n## Notes for testing\n\nTest branch: `improve-camera-refresh`. Flash firmware built from this branch; main is unchanged.\n\nPrimary displays: Guition JC1060P470 7-inch P4 and Guition JC8012P4A1 10-inch P4. Also check shared image/cover-art behaviour on the 4.3-inch P4 and 4-inch S3.\n\n1. Confirm existing cards remain Off. Open a timestamped camera and try Periodic at 5, 10, and 30 seconds; allow for download time.\n2. Select On activity with a motion sensor or doorbell event. Keep the tile visible and activate the trigger: confirm 30 seconds of tile refreshes, extension on another activation, and no repeated window merely because motion stays on.\n3. Open and close the camera during the activity window: refreshes should follow the visible view without restarting the window. Navigate away, open another modal, turn the display off, or enter a screensaver: activity requests should stop. Trigger while hidden and return: old events should not replay. Confirm Home Screen Timeout still expires and no older camera image appears in another camera.\n4. Interrupt Home Assistant connectivity and reconnect. Confirm old doorbell events are not replayed and the last image remains visible during failures.\n5. Test a changing `image.*` source, including unchanged picture URLs; verify only reported revisions reload automatically.\n6. Exercise main/subpage cards and backup/restore. Leave refresh enabled for at least 15 minutes and check for flicker, restarts, or progressive memory loss.\n\nPhysical device testing has not been performed for this branch. Compilation is not confirmation of the on-device experience.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [x] Ready for device test.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -2778,8 +2780,8 @@
       "title": "Allow larger cover art and camera cards",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2065",
       "mergeSha": "9646561622236a8e288ae50b1ef2624ce2b37271",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Adapted to destination image/card capabilities; config, unit, TypeScript, migration, generated, browser and documentation checks passed. Physical testing pending.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "docs/public/webserver/bundles/3b91a09186d262f0962d08ebdc73fde8efd0dca46bcee636b3ca01e6f15ffa46/www.js",
@@ -2789,7 +2791,9 @@
         "scripts/check_config_formats.js",
         "src/webserver/application/config_codec.ts",
         "src/webserver/application/preview_context_menu.ts"
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/145",
+      "revision": "42667ce1c"
     },
     {
       "body": "## Summary\n\nAutomatic artwork discovery previously combined the protocol from Home Assistant's advertised internal URL with the native API peer's IP and service port. When a proxy and backend use different routes, that can create an endpoint that does not exist.\n\nPreserve the complete advertised internal origin and validate eligible candidates using a single background `/manifest.json` probe. Match advertisements to the connected HA instance, collapse duplicates, reject ambiguous matches, and retain a healthy endpoint through missed rediscovery. Related to #2063. Live diagnostics on the P4 4-inch identified a further startup wiring failure, described below.\n\n### P4 4-inch follow-up: discovery result never reaches image cards\n\nThe running P4-86 reports an Automatic endpoint with `Connection checked`, while image-card logs repeatedly report `Waiting for Home Assistant base URL`. The shared artwork `on_boot` block used a mapping, which ESPHome replaces when merging the devices' list-form startup hooks. This discarded the endpoint-change callback, legacy mode migration and startup resubscription. Manual mode worked because its settings action updates the artwork URL directly.\n\nCommit `682568afb` makes the shared startup hook a list so it survives package merging. A regression uses pinned ESPHome's actual package resolver across all nine factory entry points, checking that the callback, migration and resubscription remain present.\n\n## Practical impact\n\n- Prefer the advertised internal URL, then the API peer/service port with the configured protocol and an eligible alternate local protocol, then the configured fallback. No external URL, port scanning, guessed hostname, or instance-specific address is used.\n- Probe without credentials or redirects, with a three-second result deadline. A restricted manifest leaves normal image attempts available through the fallback. Existing artwork TLS policy is retained.\n- Recheck after two consecutive transport failures from current HA proxy downloads. Ignore stale/cancelled requests, external artwork, HTTP/image errors and known allocation failures. Manual settings remain authoritative.\n- Show endpoint source and a separate connection-health diagnostic. Existing settings, entity IDs and backups remain compatible; older firmware without the diagnostic still renders normally.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes: Setup and media-artwork guidance explain candidate selection, the difference between a connection check and image success, Manual protocol/port controls, and the current lack of a full-URL override. Developer documentation describes the probe and transfer observer.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\n### Latest startup fix (`682568afb`)\n\n- Reproduced the missing callback in all nine factory configurations before the fix; all nine pass with the fix using ESPHome 2026.9.0.\n- All 12 checks in `tests/firmware/ha_reconnect_recovery_test.py` pass, including executable artwork recovery and disconnect handling.\n- `git diff --check` passes.\n- Merged current `main` and regenerated the web assets to resolve PR conflicts; preserved the concurrent stalled-image feedback update. Web migration baseline, configuration format and generated-web checks pass. All 12 artwork recovery checks passed again on the final combined branch (`5f15d4dd2`).\n- Read-only live diagnostics confirm the failure on the P4-86. This follow-up has not been flashed or physically validated, and a full firmware compile has not been rerun.\n\n### Earlier endpoint/probe revision (`b0ac1fd468`)\n\nThe following results predate the startup fix and are retained as historical coverage:\n\n- All 70 firmware host tests pass, including policy, resolver lifecycle, actual probe worker with IDF stubs, transfer notifications and reconnect handling.\n- The complete fast-check suite passes, including web unit tests, generated outputs, compatibility and product checks. GitHub [CI for that earlier commit](https://github.com/jtenniswood/espcontrol/actions/runs/35904706119) also passes. The full host suite was rerun after the final allocation-handling correction.\n- Documentation build/link checks pass: 86 canonical pages, 60 FAQ answers, 20 redirects.\n- Full Chromium smoke/compatibility suite passes across all 8 generated layouts (`node scripts/check_web_browser_smoke.js`).\n- All 9 factory configurations pass with pinned ESPHome 2026.9.0. Earlier builds were rechecked after the final correction; the compiled source trees were compared with the committed endpoint/download code.\n\n| Factory configuration | Result |\n| --- | --- |\n| S3 4848S040 | Pass |\n| P4 JC1060P470 | Pass |\n| P4 JC1060P470 V2 | Pass |\n| P4 JC4880P443 | Pass |\n| P4-86 | Pass |\n| P4 JC8012P4A1 | Pass |\n| P4 JC8012P4A1 V2 | Pass |\n| P4 JC8012P4A1 V3 | Pass |\n| P4 JC8012P4A1 V3 test configuration | Pass |\n\n- No physical image-success validation has been completed for the latest startup fix.\n\nAffected display/device:\n\n- S3 4848S040; P4 JC1060P470 and V2, JC4880P443, P4-86, JC8012P4A1 and V2/V3, including the V3 test configuration.\n\n## Notes for testing\n\nFor the reported P4 4-inch failure, install the updated branch firmware, reboot, select Automatic and use the same working image source. Confirm the diagnostic progresses to Images received and the image appears without switching to Manual. Repeat after a panel reboot and a Home Assistant reconnect.\n\nUse the `fix-ha-http-discovery` branch's device configuration. For an existing ESPHome setup, set both the remote `packages.setup.ref` and the `espcontrol_component_ref` substitution to `fix-ha-http-discovery`; retain the device's current identity, networking and API encryption settings. The branch's `builds/<device>.factory.yaml` entry points bundle the updated web UI and are the configurations used for the compile matrix. Physical acceptance requires the S3 4848S040 and at least one P4 display. Based on repository-generated testing guidance, first confirm normal boot, responsive touch/navigation and readable settings without blank or clipped content.\n\n1. In Automatic mode, test both `camera.*` and `image.*` using direct HTTP, native HTTPS, and a hostname-based proxy with a backend on a different port. Check that Settings > System > Home Assistant Settings preserves the correct full origin and progresses from Connection checked to Images received.\n2. Make the advertised proxy unreachable while the eligible local backend remains reachable. Confirm bounded recovery, continued touch/API responsiveness, and retention of the last successful image where supported.\n3. Check multicast-blocked fallback, nonstandard ports, split DNS and IPv6 where available. Verify Manual HTTPS remains unchanged during failures; HTTP 401/403 and invalid image data must not cause destination switching.\n4. Restart/reconnect HA and the panel, change mode during discovery, and repeat several discovery/recovery cycles. Monitor API stability, memory and logs; logs must not contain image tokens or credentials.\n\nA manifest check validates connectivity, not camera availability. DNS/socket cleanup may outlive the three-second result deadline; the service retains its single worker slot until cleanup completes and backs off rather than accumulating tasks.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\nKeep this PR and #2063 open pending user-confirmed testing.\n",
@@ -3282,8 +3286,8 @@
       "title": "Add 3\u00d72 and 2\u00d73 card sizes on square screens",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2087",
       "mergeSha": "50166a17027458ad73582865900f0e4387f76df3",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Separate worktree on #145; square-grid save/transfer and Companion/Wi-Fi checks being validated.",
       "changedFiles": [
         "compatibility/fixtures/web_migration_baseline.json",
         "docs/public/webserver/bundles/5b5062d6c3e6a948d79d6e1c5370be2f329b0d2af1582c63edcf43bdf09fd39c/www.js",
@@ -3293,7 +3297,8 @@
         "src/webserver/application/config_codec.ts",
         "src/webserver/application/preview_context_menu.ts",
         "src/webserver/testing/app_test_hooks_config.ts"
-      ]
+      ],
+      "branch": "square-grid-large-card-sizes"
     },
     {
       "body": "## Purpose\nCast the LVGL part and state enum values to the selector type before combining them in the two pressed-state style calls. This removes the deprecated enum-enum conversion warning during firmware compilation.\n\n## Impact\nNo runtime behavior changes. The pressed button styling remains the same.\n\n## Checks\n- `git diff --check` passed.\n- JC4880P443 factory firmware compiled successfully with ESPHome 2026.9.0 (`guition-esp32-p4-jc4880p443.factory.yaml`).",
@@ -3461,8 +3466,8 @@
       "title": "Enlarge P4 cover art playback buttons",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2098",
       "mergeSha": "7b43091ca77607fd23b96e8316ec1f5ab01aa76a",
-      "disposition": "Port in progress",
-      "evidence": "Committed and pushed on #142 foundation. Host contracts and 4.3-inch P4 factory build passed on b695c6f93; P4-86 factory build running before PR publication.",
+      "disposition": "Ported",
+      "evidence": "Separate dependent port on #142; Cover Art contracts and both 4.3-inch P4 and P4-86 factory builds passed. Physical testing pending.",
       "changedFiles": [
         "components/espcontrol/cover_art.h",
         "scripts/check_cover_art_contract.py"
@@ -3484,10 +3489,11 @@
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
           "esphome": "2026.9.1",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2098-firmware-p486.log"
         }
-      ]
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/146"
     },
     {
       "body": "## Summary\n\nThe JC8012P4A1 V3 firmware and WiFi co-processor update switches now use the shared enabled-by-default, persistent settings. Device-slot regeneration no longer reintroduces V3-specific off overrides. The separate V3 test build uses the same default while retaining its unpublished test manifest.\n\n## Practical impact\n\nNew JC8012P4A1 V3 installations will check for released firmware updates automatically, like V1 and V2. Users can still turn automatic updates off. The V3 setup guide, hardware comments, and MIPI driver notes now distinguish the released production profile from the earlier test build.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated V3 upgrade wording, V3 hardware labels, and driver usage notes.\n- Updated the test build guide to reflect enabled-by-default update switches.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- 10.1-inch JC8012P4A1 V3 production firmware; V3 test package configuration.\n\n## Notes for testing\n\n- Passed: `python3 scripts/check_device_profiles.py`\n- Passed: `python3 scripts/generate_device_slots.py --check`\n- Passed: `python3 scripts/check_device_matrix.py`\n- Passed: `git diff --check`\n- Please confirm on a JC8012P4A1 V3 that firmware and C6 automatic update switches start enabled and remain enabled after reboot. No physical-device test has been performed.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [x] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.",
@@ -3643,7 +3649,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2110",
       "mergeSha": "961e1934cfaabee0f6d254c6687a3422a898bc56",
       "disposition": "Ported",
-      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits.",
+      "evidence": "Individual ready-for-review port; targeted checks passed. See PR for destination adaptations and validation limits. Review fixes pushed through f88581060: actual signal crashes retain failure status and independent checks continue; cancellation behavior remains tested.",
       "changedFiles": [
         ".github/workflows/ci.yml",
         ".github/workflows/pr-process.yml",
@@ -4944,9 +4950,9 @@
     "Already present": 72,
     "Not applicable": 10,
     "Closed without merging": 9,
-    "Ported": 23,
-    "Needs review": 37,
-    "Port in progress": 1
+    "Ported": 25,
+    "Needs review": 34,
+    "Port in progress": 2
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
