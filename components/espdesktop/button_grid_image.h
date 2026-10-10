@@ -2147,11 +2147,12 @@ inline void image_card_request_source_url(ImageCardCtx *ctx, bool source_changed
     image_card_log_diagnostics(ctx, "tile-refresh-duplicate", width, height);
     return;
   }
+  ctx->revision.tile_requested = ctx->revision.latest;
   if (!replace_pending_request && !image_card_memory_available(ctx, "tile", decode_width, decode_height)) {
     ctx->next_download_retry_ms = now + IMAGE_CARD_RETRY_INTERVAL_MS;
-    if (ctx->scheduled_tile_request) {
-      image_card_finish_scheduled_tile_request(ctx, false);
-      ctx->next_download_retry_ms = 0;
+    if (ctx->scheduled_tile_request || (!ctx->media_artwork && image_entity && ctx->revision.tile_dirty())) {
+      image_card_handle_download_error(ctx);
+      return;
     }
     if (!ctx->image_ready) {
       image_card_hide(ctx);

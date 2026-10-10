@@ -69,6 +69,7 @@ ImageCardCtx contexts[2];
 [[maybe_unused]] constexpr uint32_t IMAGE_CARD_API_RETRY_INTERVAL_MS = 250;
 constexpr int IMAGE_CARD_STARTUP_DOWNLOAD_RETRIES = 3;
 bool enough_memory = true;
+int memory_checks = 0;
 ImageCardCtx *active_download = nullptr;
 ImageCardCtx *&image_card_active_download_context() { return active_download; }
 void image_card_release_download_slot(ImageCardCtx *ctx, bool = true) {
@@ -84,7 +85,7 @@ lv_obj_t *image_card_loading_widget(lv_obj_t *) { return nullptr; }
 void image_card_position_widget(lv_obj_t *, lv_obj_t *) {}
 void image_card_refresh_loading_layout(lv_obj_t *) {}
 void image_card_hide_loading(ImageCardCtx *) {}
-bool image_card_memory_available(ImageCardCtx *, const char *, int, int) { return enough_memory; }
+bool image_card_memory_available(ImageCardCtx *, const char *, int, int) { ++memory_checks; return enough_memory; }
 void image_card_tile_request_size(int width, int height, int *w, int *h) { *w=width; *h=height; }
 std::string image_card_sized_url(const std::string &url, int, int) { return url; }
 bool connected = true;
@@ -142,7 +143,7 @@ void reset() {
   contexts[1] = {};
   contexts[1].active = false;
   active_download = nullptr;
-  enough_memory = true;
+  enough_memory = true; memory_checks = 0;
   tile.cancelled = modal.cancelled = false;
   tile.reject_url = modal.reject_url = false;
   image_card_page_visible() = nullptr;
@@ -213,6 +214,17 @@ int main() {
     image_card_refresh_due();
     assert(tile_requests == 1); // Retained availability recovery keeps the due schedule usable.
   }
+  reset(); ctx.image_ready = true; enough_memory = false;
+  ctx.revision.observe("memory-rejected");
+  image_card_handle_picture(&ctx, ctx.source_url);
+  assert(memory_checks == 1 && tile_requests == 0 && !ctx.download_active && ctx.image_ready);
+  const auto memory_retry = ctx.revision_retry_ms;
+  assert(memory_retry > esphome::now && ctx.next_download_retry_ms == 0);
+  image_card_refresh_due(); assert(memory_checks == 1);
+  esphome::now = memory_retry - 1;
+  image_card_refresh_due(); assert(memory_checks == 1);
+  ++esphome::now; image_card_refresh_due();
+  assert(memory_checks == 2 && ctx.revision_retry_ms > esphome::now);
   reset(); ctx.image_ready = true; tile.reject_url = true;
   ctx.revision.observe("rejected");
   image_card_handle_picture(&ctx, ctx.source_url);
