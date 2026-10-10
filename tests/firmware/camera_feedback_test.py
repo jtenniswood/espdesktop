@@ -455,6 +455,30 @@ int main() {
  screensaver_callback("camera.old", 1)("unavailable");
  screensaver_callback("camera.front", 0)("unavailable");
  assert(!camera_screensaver_entity_unavailable && camera_screensaver_show_unavailable.calls == 2);
+ // Image entities must recover even when HA reuses the pre-outage timestamp.
+ ctx.active = true; ctx.media_artwork = false; ctx.entity_id = "image.poster";
+ ctx.revision = {}; ctx.camera_entity_unavailable = false;
+ subscribe_image_card_entity_state(&ctx, ctx.entity_id);
+ const std::string timestamp = "2026-09-23T12:00:00Z";
+ state_callback(timestamp);
+ assert(ctx.revision.latest == 1 && ctx.revision.timestamp == timestamp);
+ for (const auto *status : {"unknown", "unavailable"}) {
+   state_callback(status);
+   assert(ctx.camera_entity_unavailable && ctx.revision.timestamp.empty());
+   const auto revision = ctx.revision.latest;
+   const int before = pictures;
+   state_callback(timestamp);
+   assert(!ctx.camera_entity_unavailable && ctx.revision.latest == revision + 1);
+   assert(pictures == before + 1);
+   state_callback(timestamp); assert(pictures == before + 1);
+   // Retained-state reads use exactly the same recovery/deduplication path.
+   state_callback(status); retained_state = timestamp;
+   const int retained_before = pictures;
+   image_card_refresh_entity_state(&ctx);
+   assert(!ctx.camera_entity_unavailable && pictures == retained_before + 1);
+   image_card_refresh_entity_state(&ctx); assert(pictures == retained_before + 1);
+ }
+
 }
 '''
 with tempfile.TemporaryDirectory(prefix='camera-feedback-') as temp:
