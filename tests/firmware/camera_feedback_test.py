@@ -382,6 +382,7 @@ int main() {
  state_callback("idle");
  assert(!ctx.camera_entity_unavailable && ctx.camera_download_errors == 0);
  assert(!image_card_camera_retry_blocked(&ctx) && pictures == 1);
+ assert(ctx.explicit_picture_refresh); // Recovery bypasses an idle activity cadence.
  // Resuming the shared image pipeline must revalidate retained availability.
  ctx.camera_entity_unavailable = true;
  ctx.active = true;
