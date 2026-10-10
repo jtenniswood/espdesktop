@@ -562,3 +562,6 @@ add_test(NAME camera_refresh_runtime_test COMMAND
 
 add_test(NAME shared_speaker_state_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/shared_speaker_state_test.py)
+
+add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/speaker_announcement_duck_test.py)

@@ -89,6 +89,16 @@ media_player:
       num_channels: 1
       sources:
         - speaker_announcement_http_source
+    on_state:
+      - lambda: |-
+          const bool announcing = id(device_speaker).state ==
+              esphome::media_player::MEDIA_PLAYER_STATE_ANNOUNCING;
+          static bool previously_announcing = false;
+          if (announcing == previously_announcing) return;
+          previously_announcing = announcing;
+          const uint8_t reduction = announcing ? 20 : 0;
+          id(speaker_media_input).apply_ducking(reduction, 250);
+          id(speaker_sendspin_input).apply_ducking(reduction, 250);
     on_play:
       - switch.turn_on: speaker_amplifier
     on_announcement:
