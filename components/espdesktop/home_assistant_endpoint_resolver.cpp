@@ -32,6 +32,11 @@ void HomeAssistantEndpointResolver::configure(const std::string &mode,
   const auto next_mode = mode == "Manual" ? Mode::MANUAL : Mode::AUTOMATIC;
   const auto next_protocol = normalize_protocol(protocol);
   const auto next_client = normalize_address(client);
+  // Origin-change callbacks still hold the departing peer until the delayed
+  // API hook updates it. They must not republish or probe that old destination.
+  if (waiting_for_peer_configuration_ && !next_client.empty() &&
+      next_client != pending_peer_) return;
+  waiting_for_peer_configuration_ = false;
   const auto parsed_manual = parse_origin(build_origin("http", manual_host, 80));
   const std::string next_manual_host = parsed_manual.empty()
       ? std::string() : parsed_manual.substr(7, parsed_manual.size() - 10);
@@ -85,12 +90,25 @@ void HomeAssistantEndpointResolver::request_discovery() {
   retry_stage_ = 0;
 }
 
-void HomeAssistantEndpointResolver::invalidate_connection() {
-  // A replacement API session can have the same peer address. Its downloads
-  // and probes must still belong to a different generation.
+void HomeAssistantEndpointResolver::invalidate_connection(const std::string &next_peer) {
+  pending_peer_ = normalize_address(next_peer);
+  waiting_for_peer_configuration_ = true;
   ++origin_generation_;
   healthy_ = recovery_ = recovery_requested_ = false;
   transport_failures_ = 0;
+  health_ = "Checking connection";
+  const bool same_verified_peer = !verified_peer_.empty() &&
+      normalize_address(next_peer) == verified_peer_ && origin_ == verified_origin_;
+  if (!same_verified_peer) {
+    // Do not query the departing peer during the delayed API reconfiguration.
+    client_address_.clear();
+    if (normalize_address(next_peer) != verified_peer_) {
+      verified_peer_.clear();
+      verified_origin_.clear();
+    }
+    publish({}, Source::DISCOVERING);
+  }
+  // A replacement API session, including the same peer, owns a new generation.
   records_.clear();
   request_discovery();
 }
@@ -114,13 +132,23 @@ void HomeAssistantEndpointResolver::publish(std::string origin, Source source) {
 
 void HomeAssistantEndpointResolver::accept_discovery(const std::vector<ServiceRecord> &records) {
   if (mode_ != Mode::AUTOMATIC || client_address_.empty()) return;
-  records_ = records;
-  const bool ambiguous = discover(records_, client_address_, protocol_, port_).ambiguous;
-  if (healthy_ && !ambiguous) {
+  const auto next = discover(records, client_address_, protocol_, port_);
+  const auto previous = discover(records_, client_address_, protocol_, port_);
+  const bool advertised = std::any_of(next.candidates.begin(), next.candidates.end(),
+      [](const Candidate &candidate) { return candidate.source == Source::AUTOMATIC; });
+  const bool unchanged = next.candidates.size() == previous.candidates.size() &&
+      std::equal(next.candidates.begin(), next.candidates.end(), previous.candidates.begin(),
+          [](const Candidate &a, const Candidate &b) {
+            return a.origin == b.origin && a.source == b.source &&
+                   a.require_local_destination == b.require_local_destination;
+          });
+  if (healthy_ && !next.ambiguous && (!advertised || unchanged)) {
+    // A missed discovery must not erase the last advertised candidate set.
     next_query_ms_ = esphome::millis() + RETRY_DELAYS_MS[2];
     return;
   }
-  if (ambiguous) healthy_ = false;
+  records_ = records;
+  healthy_ = false;
   begin_selection(recovery_);
 }
 

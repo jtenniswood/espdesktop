@@ -137,7 +137,7 @@ int main() {
   assert(replaced_probe.calls.back() == "https://10.20.30.40:9444");
   const auto old_connection = replaced_resolver.generation();
   replaced_probe.reply(EndpointProbeOutcome::READY, 200);
-  replaced_resolver.invalidate_connection();
+  replaced_resolver.invalidate_connection("10.20.30.40");
   replaced_resolver.loop();
   assert(replaced_resolver.origin().empty());
   assert(replaced_resolver.generation() != old_connection);
@@ -149,17 +149,17 @@ int main() {
   same_peer_probe.reply(EndpointProbeOutcome::READY, 200); same_peer.loop();
   assert(same_peer.origin() == "https://10.20.30.40:9443");
   const auto verified_generation = same_peer.generation();
-  same_peer.invalidate_connection(); same_peer.accept_discovery({}); same_peer.loop();
+  same_peer.invalidate_connection("10.20.30.40"); same_peer.accept_discovery({}); same_peer.loop();
   assert(same_peer.generation() != verified_generation);
   assert(same_peer_probe.calls.back() == "https://10.20.30.40:9443");
   same_peer_probe.reply(EndpointProbeOutcome::READY, 200); same_peer.loop();
   assert(same_peer.origin() == "https://10.20.30.40:9443" && same_peer.health() == "Connection checked");
   // Real API disconnect-first path clears the peer before its replacement arrives.
   same_peer.configure("Automatic", "http", 8123, "");
-  same_peer.invalidate_connection();
+  same_peer.invalidate_connection("10.20.30.40");
   assert(same_peer.origin().empty());
   same_peer.configure("Automatic", "http", 8123, "10.20.30.40");
-  same_peer.invalidate_connection();
+  same_peer.invalidate_connection("10.20.30.40");
   same_peer.accept_discovery({}); same_peer.loop();
   assert(same_peer_probe.calls.back() == "https://10.20.30.40:9443");
   same_peer_probe.reply(EndpointProbeOutcome::READY, 200); same_peer.loop();
@@ -202,4 +202,47 @@ int main() {
   observer.complete(replaced, 9, 0, TransferFailure::TRANSPORT, true);
   assert(notices == 3);
   observer.set({}, {});
+  // A changed valid advertisement is re-evaluated even while the old HTTP listener responds.
+  FakeProbe changed_probe;
+  HomeAssistantEndpointResolver changed(&changed_probe); changed.setup();
+  changed.configure("Automatic", "http", 8123, "10.20.30.40");
+  changed.accept_discovery({server}); changed.loop();
+  changed_probe.reply(EndpointProbeOutcome::READY, 200); changed.loop();
+  const auto original_calls = changed_probe.calls.size();
+  changed.accept_discovery({server}); changed.accept_discovery({});
+  changed.accept_discovery({server}); changed.loop();
+  assert(changed_probe.calls.size() == original_calls);
+  changed.report_download(changed.origin(), changed.generation(), 404, false, false);
+  auto moved = server; moved.port = 8124; moved.internal_url = "https://10.20.30.40:9444";
+  changed.accept_discovery({moved}); changed.loop();
+  assert(changed_probe.calls.back() == "https://10.20.30.40:9444");
+  changed_probe.reply(EndpointProbeOutcome::READY, 200); changed.loop();
+  assert(changed.origin() == moved.internal_url);
+
+  // Different-peer connect-before-disconnect clears the token destination immediately.
+  int cleared_callbacks = 0; uint32_t callback_generation = 0;
+  std::string yaml_peer = "10.20.30.40";
+  changed.set_change_callback([&]() {
+    ++cleared_callbacks;
+    callback_generation = changed.generation();
+    // The real Cover Art callback reconfigures using its still-old YAML peer.
+    changed.configure("Automatic", "http", 8123, yaml_peer);
+  });
+  const auto old_peer_generation = changed.generation();
+  const auto calls_before_replacement = changed_probe.calls.size();
+  changed.invalidate_connection("10.20.30.41");
+  assert(changed.origin().empty() && cleared_callbacks == 1);
+  assert(changed.generation() != old_peer_generation);
+  assert(callback_generation == changed.generation());
+  changed.accept_discovery({server}); changed.loop();
+  assert(changed_probe.calls.size() == calls_before_replacement);
+  yaml_peer = "10.20.30.41"; // The delayed API hook now owns the new peer.
+  changed.configure("Automatic", "http", 8123, yaml_peer);
+  auto replacement = moved; replacement.addresses = {"10.20.30.41"};
+  replacement.internal_url = "https://10.20.30.41:9444";
+  changed.accept_discovery({replacement}); changed.loop();
+  assert(changed_probe.calls.back() == replacement.internal_url);
+  changed_probe.reply(EndpointProbeOutcome::READY, 200); changed.loop();
+  assert(changed.origin() == replacement.internal_url);
+
 }

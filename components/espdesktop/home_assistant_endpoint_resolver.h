@@ -24,7 +24,7 @@ class HomeAssistantEndpointResolver {
                  uint16_t port, const std::string &client_address,
                  const std::string &manual_host = "");
   void request_discovery();
-  void invalidate_connection();
+  void invalidate_connection(const std::string &next_peer);
   void set_change_callback(ChangeCallback callback) { change_callback_ = std::move(callback); }
   const std::string &origin() const { return origin_; }
   const std::string &status() const { return status_; }
@@ -51,6 +51,8 @@ class HomeAssistantEndpointResolver {
   uint16_t port_{8123};
   std::string client_address_, manual_host_, origin_;
   std::string verified_peer_, verified_origin_;
+  std::string pending_peer_;
+  bool waiting_for_peer_configuration_{false};
   home_assistant_endpoint::Source verified_source_{home_assistant_endpoint::Source::DISCOVERING};
   std::string status_{"Discovering"}, health_{"Checking connection"};
   home_assistant_endpoint::Source source_{home_assistant_endpoint::Source::DISCOVERING};

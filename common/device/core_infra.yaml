@@ -40,7 +40,7 @@ api:
   on_client_connected:
     - lambda: |-
         if (client_info.find("Home Assistant") != std::string::npos) {
-          id(espdesktop_app).home_assistant_endpoint().invalidate_connection();
+          id(espdesktop_app).home_assistant_endpoint().invalidate_connection(client_address);
           id(ha_refresh_after_connect).execute(client_info, client_address);
         }
   on_client_disconnected:
