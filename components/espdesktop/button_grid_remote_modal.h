@@ -127,6 +127,10 @@ inline bool espdesktop_open_modal(const std::string &entity_id, bool ui_ready) {
 }
 
 inline void espdesktop_close_modal() {
+  if (alarm_display_takeover_active()) {
+    ESP_LOGW("close_modal", "Rejected request: alarm display is active");
+    return;
+  }
   control_modal_close_nested_menu();
   control_modal_force_close_active();
 }
