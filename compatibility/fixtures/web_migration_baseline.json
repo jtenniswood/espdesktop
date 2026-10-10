@@ -59,7 +59,7 @@
       "temperatureDegreeSymbol": true,
       "subpageChevron": true,
       "timezone": "Europe/London (GMT+0)",
-      "temperatureUnit": "\u00b0F",
+      "temperatureUnit": "°F",
       "language": "en",
       "clockFormat": "12h",
       "hasNtpServer1": false,
@@ -190,8 +190,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2677901,
-    "gzip": 1067266,
+    "minified": 2677574,
+    "gzip": 1067226,
     "gzipTolerance": 9216
   }
 }

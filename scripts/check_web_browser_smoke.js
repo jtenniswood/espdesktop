@@ -6246,6 +6246,11 @@ async function assertNamingOfflineBackups(browser) {
     await page.getByRole("button", { name: "Export", exact: true }).click();
     const download = await downloadPromise;
     const exported = JSON.parse(fs.readFileSync(await download.path(), "utf8"));
+    for (const key of ["voice_services", "alarm_delay_audio", "alarm_delay_tts",
+      "alarm_delay_entry_announcement", "alarm_delay_exit_announcement",
+      "alarm_delay_beep_volume", "alarm_delay_final_countdown"]) {
+      assert(!Object.hasOwn(exported.settings, key), `new backup omits retired audio setting ${key}`);
+    }
     assert(!Object.hasOwn(exported, "identity"), "naming outage omits optional metadata");
     assert(exported.native_config, "naming outage still exports configuration");
     await page.getByText("Backup exported without the panel name because naming is unavailable.").waitFor();
