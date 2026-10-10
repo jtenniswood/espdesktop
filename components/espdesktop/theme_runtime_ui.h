@@ -2,6 +2,10 @@
 
 #include "theme_runtime_static.h"
 
+// Implemented by the image-card header included later by the grid builder.
+inline void image_card_refresh_placeholder_theme(lv_obj_t *button,
+                                                  uint32_t background,
+                                                  uint32_t foreground);
 inline void image_card_refresh_theme(uint32_t fit_background_color);
 
 // Runtime LVGL targets for the palette refresh boundary. Dark -> Dark leaves

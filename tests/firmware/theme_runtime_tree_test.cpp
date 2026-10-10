@@ -157,7 +157,6 @@ int bounded_grid_slots(int count) {
   return count;
 }
 void *lv_obj_get_user_data(lv_obj_t *object) { return object->user_data; }
-inline void image_card_refresh_placeholder_theme(lv_obj_t *, uint32_t, uint32_t);
 struct BtnSlot { lv_obj_t *btn = nullptr; };
 struct TestSubpage {
   lv_obj_t *screen = nullptr;
