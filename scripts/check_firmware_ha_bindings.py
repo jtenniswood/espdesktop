@@ -3493,7 +3493,7 @@ def firmware_open_modal_api_errors(root: Path, package_paths: tuple[Path, ...]) 
     modal_script_end = scripts_text.find("  - id: open_remote_subpage", modal_script_start)
     modal_script = scripts_text[modal_script_start:modal_script_end if modal_script_end >= 0 else None]
     api_required = ("action: open_modal", "entity_id: string", "id: open_entity_modal")
-    script_required = ("mode: restart", "espdesktop_can_open_modal(entity_id,",
+    script_required = ("mode: restart", "espdesktop_can_prepare_modal(entity_id,",
                       "script.execute: screensaver_wake", "script.wait: screensaver_wake",
                       "espdesktop_open_modal(entity_id,", "script.execute: screensaver_idle_check",
                       "script.execute: home_screen_idle_check")
@@ -7955,7 +7955,7 @@ def run_self_test() -> int:
         )
         api.write_text(original)
         assert not firmware_open_modal_api_errors(root, (package,))
-        for token in ("mode: restart", "espdesktop_can_open_modal", "script.wait: screensaver_wake",
+        for token in ("mode: restart", "espdesktop_can_prepare_modal", "script.wait: screensaver_wake",
                       "espdesktop_open_modal", "script.execute: home_screen_idle_check"):
             source_path = api if token in original else scripts
             source_text = original if source_path == api else scripts.read_text(encoding="utf-8")

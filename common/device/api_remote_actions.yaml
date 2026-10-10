@@ -32,7 +32,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return espdesktop_can_open_modal(entity_id,
+              return espdesktop_can_prepare_modal(entity_id,
                 !id(connectivity_setup_display_active) &&
                 grid_phase2_complete() &&
                 !navigation_home_targets().empty());

@@ -70,6 +70,8 @@ std::string navigation_trim(const std::string &s) {
   return first == std::string::npos ? "" : s.substr(first, s.find_last_not_of(" \r\n\t") - first + 1);
 }
 bool locked = false, alarm = false, fail_open = false, phase2_ready = true;
+bool pipeline_suspended = false;
+bool image_card_pipeline_suspended() { return pipeline_suspended; }
 bool grid_phase2_complete() { return phase2_ready; }
 bool screen_lock_enabled() { return locked; }
 bool alarm_display_takeover_active() { return alarm; }
@@ -355,5 +357,15 @@ int main() {
   assert(active_subpage_slot == 3 && current_page == &other_page);
   locked = false;
   assert(espdesktop_close_subpage(&home) && active_subpage_slot == 0 && current_page == &home);
+  configs["suspended_image"] = {"camera.front", "image", "", ""};
+  first.active = false; pipeline_suspended = true;
+  homes = {{1, 0, "Camera", "suspended_image", &one}}; pages.clear();
+  assert(espdesktop_can_prepare_modal("camera.front", true));
+  assert(!espdesktop_can_open_modal("camera.front", true));
+  assert(!espdesktop_can_prepare_modal("camera.missing", true));
+  locked = true; assert(!espdesktop_can_prepare_modal("camera.front", true)); locked = false;
+  alarm = true; assert(!espdesktop_can_prepare_modal("camera.front", true)); alarm = false;
+  first.active = true; pipeline_suspended = false;
+  assert(espdesktop_open_modal("camera.front", true));
   return 0;
 }
