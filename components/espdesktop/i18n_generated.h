@@ -170,6 +170,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Západ slunce dolů";
   if (std::strcmp(text, "Sunset Up") == 0) return "Západ slunce nahoru";
   if (std::strcmp(text, "Swing") == 0) return "Kývání";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontální kývání";
   if (std::strcmp(text, "Target") == 0) return "Cíl";
   if (std::strcmp(text, "Today") == 0) return "Dnes";
   if (std::strcmp(text, "Too many") == 0) return "Příliš mnoho";
@@ -456,6 +457,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgang ned";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgang op";
   if (std::strcmp(text, "Swing") == 0) return "Sving";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontal sving";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "I dag";
   if (std::strcmp(text, "Too many") == 0) return "For mange";
@@ -736,6 +738,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Sonnenuntergang ab";
   if (std::strcmp(text, "Sunset Up") == 0) return "Sonnenuntergang auf";
   if (std::strcmp(text, "Swing") == 0) return "Schwenken";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontales Schwenken";
   if (std::strcmp(text, "Target") == 0) return "Ziel";
   if (std::strcmp(text, "Today") == 0) return "Heute";
   if (std::strcmp(text, "Too many") == 0) return "Zu viele";
@@ -1023,6 +1026,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Puesta de sol abajo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Puesta de sol arriba";
   if (std::strcmp(text, "Swing") == 0) return "Oscilación";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilación horizontal";
   if (std::strcmp(text, "Target") == 0) return "Objetivo";
   if (std::strcmp(text, "Today") == 0) return "Hoy";
   if (std::strcmp(text, "Too many") == 0) return "Demasiados";
@@ -1321,6 +1325,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Auringonlasku alas";
   if (std::strcmp(text, "Sunset Up") == 0) return "Auringonlasku ylös";
   if (std::strcmp(text, "Swing") == 0) return "Kääntö";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vaakasuuntainen kääntö";
   if (std::strcmp(text, "Target") == 0) return "Tavoite";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Väliaikainen pito";
   if (std::strcmp(text, "Today") == 0) return "Tänään";
@@ -1606,6 +1611,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Coucher bas";
   if (std::strcmp(text, "Sunset Up") == 0) return "Coucher haut";
   if (std::strcmp(text, "Swing") == 0) return "Oscillation";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscillation horizontale";
   if (std::strcmp(text, "Target") == 0) return "Cible";
   if (std::strcmp(text, "Today") == 0) return "Aujourd'hui";
   if (std::strcmp(text, "Too many") == 0) return "Trop nombreux";
@@ -1910,6 +1916,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "שקיעה";
   if (std::strcmp(text, "Sunset Up") == 0) return "זריחה";
   if (std::strcmp(text, "Swing") == 0) return "נדנוד";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "נדנוד אופקי";
   if (std::strcmp(text, "Target") == 0) return "יעד";
   if (std::strcmp(text, "Temporaryhold") == 0) return "החזקה זמנית";
   if (std::strcmp(text, "Today") == 0) return "היום";
@@ -2210,6 +2217,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Naplemente le";
   if (std::strcmp(text, "Sunset Up") == 0) return "Naplemente fel";
   if (std::strcmp(text, "Swing") == 0) return "Legyezés";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vízszintes legyezés";
   if (std::strcmp(text, "Target") == 0) return "Célérték";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Ideiglenes tartás";
   if (std::strcmp(text, "Today") == 0) return "Ma";
@@ -2504,6 +2512,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Tramonto giù";
   if (std::strcmp(text, "Sunset Up") == 0) return "Tramonto su";
   if (std::strcmp(text, "Swing") == 0) return "Oscillazione";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscillazione orizzontale";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Temporaneo";
   if (std::strcmp(text, "Today") == 0) return "Oggi";
   if (std::strcmp(text, "Too many") == 0) return "Troppi";
@@ -2789,6 +2798,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgang ned";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgang opp";
   if (std::strcmp(text, "Swing") == 0) return "Sving";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontal sving";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "I dag";
   if (std::strcmp(text, "Too many") == 0) return "For mange";
@@ -3080,6 +3090,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Zon onder";
   if (std::strcmp(text, "Sunset Up") == 0) return "Zon op";
   if (std::strcmp(text, "Swing") == 0) return "Zwenken";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontaal zwenken";
   if (std::strcmp(text, "Target") == 0) return "Doel";
   if (std::strcmp(text, "Today") == 0) return "Vandaag";
   if (std::strcmp(text, "Too many") == 0) return "Te veel";
@@ -3359,6 +3370,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Zachód słońca dół";
   if (std::strcmp(text, "Sunset Up") == 0) return "Zachód słońca góra";
   if (std::strcmp(text, "Swing") == 0) return "Ruch wahadłowy";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Ruch poziomy";
   if (std::strcmp(text, "Target") == 0) return "Cel";
   if (std::strcmp(text, "Today") == 0) return "Dziś";
   if (std::strcmp(text, "Too many") == 0) return "Za dużo";
@@ -3650,6 +3662,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Pôr do sol alto";
   if (std::strcmp(text, "Swing") == 0) return "Oscilação";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(text, "Target") == 0) return "Alvo";
   if (std::strcmp(text, "Today") == 0) return "Hoje";
   if (std::strcmp(text, "Too many") == 0) return "Muitos";
@@ -3939,6 +3952,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Pôr do sol alto";
   if (std::strcmp(text, "Swing") == 0) return "Oscilação";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(text, "Target") == 0) return "Alvo";
   if (std::strcmp(text, "Today") == 0) return "Hoje";
   if (std::strcmp(text, "Too many") == 0) return "Demasiados";
@@ -4233,6 +4247,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Apus jos";
   if (std::strcmp(text, "Sunset Up") == 0) return "Apus sus";
   if (std::strcmp(text, "Swing") == 0) return "Balans";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Balans orizontal";
   if (std::strcmp(text, "Target") == 0) return "Țintă";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Menținere temporară";
   if (std::strcmp(text, "Today") == 0) return "Astăzi";
@@ -4537,6 +4552,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Закат: стемнело";
   if (std::strcmp(text, "Sunset Up") == 0) return "Закат: посветлело";
   if (std::strcmp(text, "Swing") == 0) return "Колебание";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Горизонтальное колебание";
   if (std::strcmp(text, "Target") == 0) return "Цель";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Временное удержание";
   if (std::strcmp(text, "Today") == 0) return "Сегодня";
@@ -4832,6 +4848,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Západ slnka dole";
   if (std::strcmp(text, "Sunset Up") == 0) return "Západ slnka hore";
   if (std::strcmp(text, "Swing") == 0) return "Kývanie";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontálne kývanie";
   if (std::strcmp(text, "Target") == 0) return "Cieľ";
   if (std::strcmp(text, "Today") == 0) return "Dnes";
   if (std::strcmp(text, "Too many") == 0) return "Príliš veľa";
@@ -5127,6 +5144,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Sončni zahod dol";
   if (std::strcmp(text, "Sunset Up") == 0) return "Sončni zahod gor";
   if (std::strcmp(text, "Swing") == 0) return "Nihanje";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vodoravno nihanje";
   if (std::strcmp(text, "Target") == 0) return "Cilj";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Začasno zadržanje";
   if (std::strcmp(text, "Today") == 0) return "Danes";
@@ -5417,6 +5435,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgång ner";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgång upp";
   if (std::strcmp(text, "Swing") == 0) return "Svängning";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontell svängning";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "Idag";
   if (std::strcmp(text, "Too many") == 0) return "För många";
@@ -5712,6 +5731,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Gün batımı aşağı";
   if (std::strcmp(text, "Sunset Up") == 0) return "Gün batımı yukarı";
   if (std::strcmp(text, "Swing") == 0) return "Salınım";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Yatay salınım";
   if (std::strcmp(text, "Target") == 0) return "Hedef";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Geçici tutma";
   if (std::strcmp(text, "Today") == 0) return "Bugün";
@@ -6014,6 +6034,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Захід сонця вниз";
   if (std::strcmp(text, "Sunset Up") == 0) return "Захід сонця вгору";
   if (std::strcmp(text, "Swing") == 0) return "Коливання";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Горизонтальне коливання";
   if (std::strcmp(text, "Target") == 0) return "Ціль";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Тимчасове утримання";
   if (std::strcmp(text, "Today") == 0) return "Сьогодні";
@@ -6321,6 +6342,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sunset Down";
   if (std::strcmp(key, "sunset_up") == 0) return "Sunset Up";
   if (std::strcmp(key, "swing") == 0) return "Swing";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontal Swing";
   if (std::strcmp(key, "target") == 0) return "Target";
   if (std::strcmp(key, "temporaryhold") == 0) return "Temporaryhold";
   if (std::strcmp(key, "today") == 0) return "Today";
@@ -6621,6 +6643,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Západ slunce dolů";
   if (std::strcmp(key, "sunset_up") == 0) return "Západ slunce nahoru";
   if (std::strcmp(key, "swing") == 0) return "Kývání";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontální kývání";
   if (std::strcmp(key, "target") == 0) return "Cíl";
   if (std::strcmp(key, "today") == 0) return "Dnes";
   if (std::strcmp(key, "too_many") == 0) return "Příliš mnoho";
@@ -6910,6 +6933,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgang ned";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgang op";
   if (std::strcmp(key, "swing") == 0) return "Sving";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontal sving";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "I dag";
   if (std::strcmp(key, "too_many") == 0) return "For mange";
@@ -7193,6 +7217,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sonnenuntergang ab";
   if (std::strcmp(key, "sunset_up") == 0) return "Sonnenuntergang auf";
   if (std::strcmp(key, "swing") == 0) return "Schwenken";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontales Schwenken";
   if (std::strcmp(key, "target") == 0) return "Ziel";
   if (std::strcmp(key, "today") == 0) return "Heute";
   if (std::strcmp(key, "too_many") == 0) return "Zu viele";
@@ -7483,6 +7508,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Puesta de sol abajo";
   if (std::strcmp(key, "sunset_up") == 0) return "Puesta de sol arriba";
   if (std::strcmp(key, "swing") == 0) return "Oscilación";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilación horizontal";
   if (std::strcmp(key, "target") == 0) return "Objetivo";
   if (std::strcmp(key, "today") == 0) return "Hoy";
   if (std::strcmp(key, "too_many") == 0) return "Demasiados";
@@ -7784,6 +7810,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Auringonlasku alas";
   if (std::strcmp(key, "sunset_up") == 0) return "Auringonlasku ylös";
   if (std::strcmp(key, "swing") == 0) return "Kääntö";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vaakasuuntainen kääntö";
   if (std::strcmp(key, "target") == 0) return "Tavoite";
   if (std::strcmp(key, "temporaryhold") == 0) return "Väliaikainen pito";
   if (std::strcmp(key, "today") == 0) return "Tänään";
@@ -8072,6 +8099,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Coucher bas";
   if (std::strcmp(key, "sunset_up") == 0) return "Coucher haut";
   if (std::strcmp(key, "swing") == 0) return "Oscillation";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscillation horizontale";
   if (std::strcmp(key, "target") == 0) return "Cible";
   if (std::strcmp(key, "today") == 0) return "Aujourd'hui";
   if (std::strcmp(key, "too_many") == 0) return "Trop nombreux";
@@ -8379,6 +8407,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "שקיעה";
   if (std::strcmp(key, "sunset_up") == 0) return "זריחה";
   if (std::strcmp(key, "swing") == 0) return "נדנוד";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "נדנוד אופקי";
   if (std::strcmp(key, "target") == 0) return "יעד";
   if (std::strcmp(key, "temporaryhold") == 0) return "החזקה זמנית";
   if (std::strcmp(key, "today") == 0) return "היום";
@@ -8682,6 +8711,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Naplemente le";
   if (std::strcmp(key, "sunset_up") == 0) return "Naplemente fel";
   if (std::strcmp(key, "swing") == 0) return "Legyezés";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vízszintes legyezés";
   if (std::strcmp(key, "target") == 0) return "Célérték";
   if (std::strcmp(key, "temporaryhold") == 0) return "Ideiglenes tartás";
   if (std::strcmp(key, "today") == 0) return "Ma";
@@ -8979,6 +9009,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Tramonto giù";
   if (std::strcmp(key, "sunset_up") == 0) return "Tramonto su";
   if (std::strcmp(key, "swing") == 0) return "Oscillazione";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscillazione orizzontale";
   if (std::strcmp(key, "temporaryhold") == 0) return "Temporaneo";
   if (std::strcmp(key, "today") == 0) return "Oggi";
   if (std::strcmp(key, "too_many") == 0) return "Troppi";
@@ -9267,6 +9298,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgang ned";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgang opp";
   if (std::strcmp(key, "swing") == 0) return "Sving";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontal sving";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "I dag";
   if (std::strcmp(key, "too_many") == 0) return "For mange";
@@ -9560,6 +9592,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Zon onder";
   if (std::strcmp(key, "sunset_up") == 0) return "Zon op";
   if (std::strcmp(key, "swing") == 0) return "Zwenken";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontaal zwenken";
   if (std::strcmp(key, "target") == 0) return "Doel";
   if (std::strcmp(key, "today") == 0) return "Vandaag";
   if (std::strcmp(key, "too_many") == 0) return "Te veel";
@@ -9842,6 +9875,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Zachód słońca dół";
   if (std::strcmp(key, "sunset_up") == 0) return "Zachód słońca góra";
   if (std::strcmp(key, "swing") == 0) return "Ruch wahadłowy";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Ruch poziomy";
   if (std::strcmp(key, "target") == 0) return "Cel";
   if (std::strcmp(key, "today") == 0) return "Dziś";
   if (std::strcmp(key, "too_many") == 0) return "Za dużo";
@@ -10136,6 +10170,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(key, "sunset_up") == 0) return "Pôr do sol alto";
   if (std::strcmp(key, "swing") == 0) return "Oscilação";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(key, "target") == 0) return "Alvo";
   if (std::strcmp(key, "today") == 0) return "Hoje";
   if (std::strcmp(key, "too_many") == 0) return "Muitos";
@@ -10428,6 +10463,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(key, "sunset_up") == 0) return "Pôr do sol alto";
   if (std::strcmp(key, "swing") == 0) return "Oscilação";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(key, "target") == 0) return "Alvo";
   if (std::strcmp(key, "today") == 0) return "Hoje";
   if (std::strcmp(key, "too_many") == 0) return "Demasiados";
@@ -10725,6 +10761,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Apus jos";
   if (std::strcmp(key, "sunset_up") == 0) return "Apus sus";
   if (std::strcmp(key, "swing") == 0) return "Balans";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Balans orizontal";
   if (std::strcmp(key, "target") == 0) return "Țintă";
   if (std::strcmp(key, "temporaryhold") == 0) return "Menținere temporară";
   if (std::strcmp(key, "today") == 0) return "Astăzi";
@@ -11032,6 +11069,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Закат: стемнело";
   if (std::strcmp(key, "sunset_up") == 0) return "Закат: посветлело";
   if (std::strcmp(key, "swing") == 0) return "Колебание";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Горизонтальное колебание";
   if (std::strcmp(key, "target") == 0) return "Цель";
   if (std::strcmp(key, "temporaryhold") == 0) return "Временное удержание";
   if (std::strcmp(key, "today") == 0) return "Сегодня";
@@ -11330,6 +11368,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Západ slnka dole";
   if (std::strcmp(key, "sunset_up") == 0) return "Západ slnka hore";
   if (std::strcmp(key, "swing") == 0) return "Kývanie";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontálne kývanie";
   if (std::strcmp(key, "target") == 0) return "Cieľ";
   if (std::strcmp(key, "today") == 0) return "Dnes";
   if (std::strcmp(key, "too_many") == 0) return "Príliš veľa";
@@ -11628,6 +11667,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sončni zahod dol";
   if (std::strcmp(key, "sunset_up") == 0) return "Sončni zahod gor";
   if (std::strcmp(key, "swing") == 0) return "Nihanje";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vodoravno nihanje";
   if (std::strcmp(key, "target") == 0) return "Cilj";
   if (std::strcmp(key, "temporaryhold") == 0) return "Začasno zadržanje";
   if (std::strcmp(key, "today") == 0) return "Danes";
@@ -11921,6 +11961,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgång ner";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgång upp";
   if (std::strcmp(key, "swing") == 0) return "Svängning";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontell svängning";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "Idag";
   if (std::strcmp(key, "too_many") == 0) return "För många";
@@ -12219,6 +12260,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Gün batımı aşağı";
   if (std::strcmp(key, "sunset_up") == 0) return "Gün batımı yukarı";
   if (std::strcmp(key, "swing") == 0) return "Salınım";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Yatay salınım";
   if (std::strcmp(key, "target") == 0) return "Hedef";
   if (std::strcmp(key, "temporaryhold") == 0) return "Geçici tutma";
   if (std::strcmp(key, "today") == 0) return "Bugün";
@@ -12524,6 +12566,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Захід сонця вниз";
   if (std::strcmp(key, "sunset_up") == 0) return "Захід сонця вгору";
   if (std::strcmp(key, "swing") == 0) return "Коливання";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Горизонтальне коливання";
   if (std::strcmp(key, "target") == 0) return "Ціль";
   if (std::strcmp(key, "temporaryhold") == 0) return "Тимчасове утримання";
   if (std::strcmp(key, "today") == 0) return "Сьогодні";
