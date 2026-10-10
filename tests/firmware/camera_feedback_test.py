@@ -425,6 +425,14 @@ int main() {
  retained_state = "playing";
  refresh_visible_image_cards();
  assert(!ctx.camera_entity_unavailable && pictures > pictures_before_media_resume + 1);
+ // Timestamp-driven image tile failures retain the last successful frame.
+ ctx.media_artwork = false; ctx.entity_id = "image.poster"; ctx.refresh_schedule = {};
+ ctx.revision = {}; ctx.revision.tile_applied = 1; ctx.revision.tile_requested = 2;
+ ctx.image_ready = true; tile.available = true; tile_status.clear();
+ image_card_handle_download_error(&ctx);
+ assert(ctx.image_ready && tile.available && tile_status.empty());
+ assert(ctx.camera_download_errors == 0 && ctx.next_download_retry_ms == 0);
+ assert(ctx.revision_retry_ms == ctx.refresh_schedule.next_due && ctx.revision_retry_ms > now_ms);
  // Media Cover Art keeps its separate existing retry behavior.
  ctx.media_artwork = true; ctx.image_ready = true; tile_status.clear();
  image_card_handle_download_error(&ctx);

@@ -893,11 +893,17 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
 
 inline void image_card_handle_download_error(ImageCardCtx *ctx) {
   if (!ctx) return;
+  const bool revision_refresh = !ctx->media_artwork && ctx->entity_id.rfind("image.", 0) == 0 &&
+      ctx->revision.tile_requested != ctx->revision.tile_applied;
   const bool scheduled_request = image_card_finish_scheduled_tile_request(ctx, false);
+  if (revision_refresh) {
+    if (!scheduled_request) ctx->refresh_schedule.finished(esphome::millis(), false);
+    ctx->revision_retry_ms = ctx->refresh_schedule.next_due;
+  }
   image_card_release_download_slot(ctx);
   ESP_LOGW("image_card", "Image download failed for %s", ctx->entity_id.c_str());
   image_card_log_diagnostics(ctx, "tile-download-error");
-  if (scheduled_request) {
+  if (scheduled_request || revision_refresh) {
     ctx->next_download_retry_ms = 0;
     if (ctx->image_ready) image_card_hide_loading(ctx);
     else image_card_set_loading_state(ctx, "Unavailable", true);
@@ -3056,7 +3062,8 @@ inline void image_card_refresh_due(std::function<bool()> page_visible = nullptr)
           (ctx->revision_retry_ms == 0 || static_cast<int32_t>(now - ctx->revision_retry_ms) >= 0)) {
         image_card_queue_modal_source_request(ctx);
       } else if (visible && !image_card_modal_active_for(ctx) && ctx->revision.tile_dirty() &&
-                 !ctx->download_active && ctx->next_download_retry_ms == 0) {
+                 !ctx->download_active && ctx->next_download_retry_ms == 0 &&
+                 (ctx->revision_retry_ms == 0 || static_cast<int32_t>(now - ctx->revision_retry_ms) >= 0)) {
         image_card_request_source_url(ctx);
       }
     }

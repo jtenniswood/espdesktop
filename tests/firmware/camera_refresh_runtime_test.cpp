@@ -196,6 +196,20 @@ int main() {
     image_card_refresh_due();
     assert(tile_requests == 1); // Retained availability recovery keeps the due schedule usable.
   }
+  reset(); ctx.image_ready = true;
+  ctx.revision.observe("first"); ctx.revision.tile_applied = ctx.revision.latest;
+  ctx.revision.observe("replacement");
+  image_card_handle_picture(&ctx, ctx.source_url);
+  assert(tile_requests == 1);
+  image_card_handle_download_error(&ctx); tile.active = false;
+  const auto retry_at = ctx.revision_retry_ms;
+  assert(retry_at > esphome::now && !ctx.download_active && ctx.image_ready);
+  image_card_refresh_due(); assert(tile_requests == 1);
+  esphome::now = retry_at - 1;
+  image_card_refresh_due(); assert(tile_requests == 1);
+  ++esphome::now;
+  image_card_refresh_due(); assert(tile_requests == 2);
+
   reset();
   ctx.revision.observe("first");
   image_card_handle_picture(&ctx, ctx.source_url);
