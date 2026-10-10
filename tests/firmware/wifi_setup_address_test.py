@@ -8,11 +8,13 @@ with tempfile.TemporaryDirectory() as tmp:
  (d/'esphome/components/wifi/wifi_component.h').write_text('''#pragma once
 #include <string>
 #include <optional>
+#include <cstdio>
+namespace esphome::network { constexpr size_t IP_ADDRESS_BUFFER_SIZE = 40; }
 namespace esphome::wifi {
-struct IP { std::string value; bool is_set() const { return !value.empty(); } std::string str() const { return value; } };
+struct IP { std::string value; bool is_set() const { return !value.empty(); } char *str_to(char *buffer) const { std::snprintf(buffer, esphome::network::IP_ADDRESS_BUFFER_SIZE, "%s", value.c_str()); return buffer; } };
 struct Manual { IP static_ip; };
 struct AP { std::optional<Manual> manual; const auto &get_manual_ip() const { return manual; } };
-struct WiFi { IP live; AP ap; IP wifi_soft_ap_ip() const { return live; } const AP &get_ap() const { return ap; } };
+struct WiFi { IP live; AP ap; IP wifi_soft_ap_ip() const { return live; } AP get_ap() const { return ap; } };
 inline WiFi *global_wifi_component = nullptr;
 }
 ''')
@@ -35,6 +37,6 @@ int main() {
 }
 ''')
  for flags in [[],['-DUSE_WIFI','-DUSE_WIFI_AP'],['-DUSE_WIFI','-DUSE_WIFI_AP','-DUSE_WIFI_MANUAL_IP']]:
-  subprocess.run(['c++','-std=c++17','-Wall','-Wextra','-Werror',*flags,'-I'+str(d),'-I'+str(root/'components/espdesktop'),str(d/'test.cpp'),'-o',str(d/'test')],check=True)
+  subprocess.run(['c++','-std=c++17','-Wall','-Wextra','-Werror','-fsanitize=address','-fsanitize-address-use-after-scope',*flags,'-I'+str(d),'-I'+str(root/'components/espdesktop'),str(d/'test.cpp'),'-o',str(d/'test')],check=True)
   subprocess.run([str(d/'test')],check=True)
 print('Default, live/custom AP addresses, translations and Ethernet-only header passed.')

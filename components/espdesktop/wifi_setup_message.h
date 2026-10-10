@@ -10,11 +10,13 @@ inline std::string wifi_setup_address() {
 #if defined(USE_WIFI) && defined(USE_WIFI_AP)
   auto *wifi = esphome::wifi::global_wifi_component;
   if (wifi != nullptr) {
+    char address[esphome::network::IP_ADDRESS_BUFFER_SIZE];
     const auto live = wifi->wifi_soft_ap_ip();
-    if (live.is_set()) return live.str();
+    if (live.is_set()) return live.str_to(address);
 #ifdef USE_WIFI_MANUAL_IP
-    const auto &manual = wifi->get_ap().get_manual_ip();
-    if (manual.has_value() && manual->static_ip.is_set()) return manual->static_ip.str();
+    const auto ap = wifi->get_ap();
+    const auto &manual = ap.get_manual_ip();
+    if (manual.has_value() && manual->static_ip.is_set()) return manual->static_ip.str_to(address);
 #endif
   }
 #endif
