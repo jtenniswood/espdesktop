@@ -493,14 +493,41 @@ script:
               espdesktop::DisplayRequestSource::SCREEN_SCHEDULE);
           const bool schedule_ended = schedule_was_active && !schedule_night;
 
-          // Entering normal hours is a deliberate scheduled wake. Discard an
-          // automatic sleep request that was hidden beneath the night schedule,
-          // then let the normal idle/presence timers start a fresh cycle.
+          // A scheduled clock is already an idle presentation. Hand it straight
+          // to the current screensaver policy instead of briefly waking the UI.
+          // Inspect the winner before clearing USER_WAKE so both callback orders
+          // preserve a deliberate temporary wake across the schedule boundary.
+          const bool leaving_scheduled_clock = schedule_ended &&
+              controller.target_source_is(espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
+              controller.target_mode_is(espdesktop::DisplayMode::CLOCK);
           if (schedule_ended) {
             id(manual_wake_ms) = 0;
             id(screen_schedule_wake_timeout_check).stop();
             controller.clear(espdesktop::DisplayRequestSource::IDLE_TIMER);
             controller.clear(espdesktop::DisplayRequestSource::PRESENCE_SENSOR);
+            const bool sensor_idle = id(screensaver_mode).state == "sensor" &&
+                                     !id(presence_detected);
+            const bool companion_idle = id(screensaver_mode).state == "companion" &&
+                                        id(screensaver_companion_ready) &&
+                                        (!companion_connected() || screen_lock_enabled());
+            const bool playback_prevents_sleep =
+                id(cover_art_screensaver_enabled).state &&
+                id(media_player_sleep_prevention_enabled).state &&
+                id(media_player_playing);
+            if (leaving_scheduled_clock && id(schedule_enabled).state &&
+                !onboarding && !waiting_for_time &&
+                !id(screensaver_wake).is_running() &&
+                (id(screensaver_mode).state == "timer" || sensor_idle || companion_idle) &&
+                !playback_prevents_sleep) {
+              const auto idle_mode = id(screensaver_action_clock)
+                  ? espdesktop::DisplayMode::CLOCK
+                  : (id(screensaver_action_dimmed) ? espdesktop::DisplayMode::DIMMED
+                     : (id(screensaver_action_camera) ? espdesktop::DisplayMode::CAMERA
+                                                     : espdesktop::DisplayMode::DISPLAY_OFF));
+              controller.request(sensor_idle ? espdesktop::DisplayRequestSource::PRESENCE_SENSOR
+                                             : espdesktop::DisplayRequestSource::IDLE_TIMER,
+                                 idle_mode);
+            }
           }
 
           set_request(espdesktop::DisplayRequestSource::ONBOARDING, onboarding,

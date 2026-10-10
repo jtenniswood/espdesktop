@@ -34,7 +34,7 @@ def generate(root):
                   str(a["if"]["condition"]))
     active["if"].pop("else", None)
     scripts["display_mode_apply_transition"]["then"] = [active]
-    declarations = set(selected)
+    declarations = set(selected) | {"screensaver_wake"}
 
     def actions(items, owner):
         result = []
