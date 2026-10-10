@@ -180,8 +180,19 @@ export default defineConfig({
   // ESP Web Tools 10.4.0 still imports the generated .js stylesheet names from
   // Material Web 2.4.1. Material Web 2.5.0 publishes those modules as .cssresult.js.
   vite: {
-    // Keep installer imports on the same stylesheet bridge in development.
-    optimizeDeps: { exclude: ['esp-web-tools'] },
+    optimizeDeps: {
+      esbuildOptions: {
+        plugins: [{
+          name: 'material-web-25-installer-styles-dev',
+          setup(build) {
+            build.onResolve({ filter: /^@material\/web\/(.+\/internal\/.+styles)\.js$/ }, ({ path }) => {
+              const match = path.match(/^@material\/web\/(.+\/internal\/.+styles)\.js$/)
+              return match ? { path: materialWeb(`${match[1]}.cssresult.js`) } : undefined
+            })
+          },
+        }],
+      },
+    },
     plugins: [
       {
         name: 'material-web-25-installer-styles',
