@@ -2178,8 +2178,13 @@ inline void image_card_request_source_url(ImageCardCtx *ctx, bool source_changed
   int max_source_dim = request_width > request_height ? request_width : request_height;
   std::string effective_url = ctx->image->request_update_url(ctx->url, max_source_dim);
   if (effective_url.empty()) {
-    image_card_finish_scheduled_tile_request(ctx, false);
-    image_card_release_download_slot(ctx);
+    if (ctx->scheduled_tile_request || (!ctx->media_artwork &&
+        ctx->entity_id.rfind("image.", 0) == 0 && ctx->revision.tile_dirty())) {
+      image_card_handle_download_error(ctx);
+    } else {
+      image_card_finish_scheduled_tile_request(ctx, false);
+      image_card_release_download_slot(ctx);
+    }
   }
   if (!effective_url.empty()) {
     ctx->url = effective_url;

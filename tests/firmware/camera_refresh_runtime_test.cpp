@@ -20,7 +20,7 @@ using lv_obj_t = int;
 int tile_requests = 0, modal_requests = 0;
 struct FakeImage {
   std::string url;
-  bool cancelled = false, active = false;
+  bool cancelled = false, active = false, reject_url = false;
   bool has_image() const { return true; }
   const std::string &get_url() const { return url; }
   bool request_is_active() const { return active; }
@@ -29,6 +29,7 @@ struct FakeImage {
   void set_resize_mode(esphome::artwork_image::ImageResizeMode) {}
   std::string request_update_url(const std::string &value, int) {
     ++tile_requests;
+    if (reject_url) return "";
     url = value;
     active = true;
     return value;
@@ -143,6 +144,7 @@ void reset() {
   active_download = nullptr;
   enough_memory = true;
   tile.cancelled = modal.cancelled = false;
+  tile.reject_url = modal.reject_url = false;
   image_card_page_visible() = nullptr;
   contexts[0].image = &tile;
   contexts[0].modal_image = &modal;
@@ -211,6 +213,17 @@ int main() {
     image_card_refresh_due();
     assert(tile_requests == 1); // Retained availability recovery keeps the due schedule usable.
   }
+  reset(); ctx.image_ready = true; tile.reject_url = true;
+  ctx.revision.observe("rejected");
+  image_card_handle_picture(&ctx, ctx.source_url);
+  assert(tile_requests == 1 && !ctx.download_active && ctx.image_ready);
+  const auto rejection_retry = ctx.revision_retry_ms;
+  assert(rejection_retry > esphome::now);
+  image_card_refresh_due(); assert(tile_requests == 1);
+  esphome::now = rejection_retry - 1;
+  image_card_refresh_due(); assert(tile_requests == 1);
+  ++esphome::now;
+  image_card_refresh_due(); assert(tile_requests == 2 && ctx.revision_retry_ms > esphome::now);
   reset(); ctx.image_ready = true;
   ctx.revision.observe("first"); ctx.revision.tile_applied = ctx.revision.latest;
   ctx.revision.observe("replacement");
