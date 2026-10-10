@@ -1,4 +1,6 @@
 #pragma once
+#include "esphome/core/defines.h"
+#ifdef USE_MEDIA_PLAYER
 #include <cmath>
 #include "esphome/core/component.h"
 #include "esphome/components/media_player/media_player.h"
@@ -51,3 +53,5 @@ class SharedSpeakerState : public esphome::Component {
   bool syncing_{false};
 };
 }  // namespace espdesktop
+
+#endif  // USE_MEDIA_PLAYER
