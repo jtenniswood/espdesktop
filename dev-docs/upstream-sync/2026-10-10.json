@@ -6733,7 +6733,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -9882,15 +9882,18 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
-          "status": "running",
+          "status": "failed",
           "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/4457cfdf37a308155c3ac7b6cb07e9defbaf5575cebe16bc99a4bbb93ad07f1a.log.gz",
+          "logSha256": "4457cfdf37a308155c3ac7b6cb07e9defbaf5575cebe16bc99a4bbb93ad07f1a",
+          "archiveSha256": "9842e7b35a7a62abba0822f1d7ebd7e80b4111f5a0ae6dd250ef6506629c16f5"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -9898,7 +9901,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -9906,7 +9909,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
           "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc4880p443-v3.log",
           "device": "guition-esp32-p4-jc4880p443-v3",
           "esphome": "2026.9.1"
@@ -9914,7 +9917,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-p4-jc1060p470-ethernet-ethernet.log",
           "network_transport": "ethernet",
           "device": "guition-esp32-p4-jc1060p470-ethernet",
@@ -10087,7 +10090,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "85fb3ef3cafc07946d45eb68c052830c2253320f",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2163-85fb3ef3c-slot-reuse-final-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -10095,7 +10098,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "85fb3ef3cafc07946d45eb68c052830c2253320f",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2163-85fb3ef3c-slot-reuse-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -10103,7 +10106,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "85fb3ef3cafc07946d45eb68c052830c2253320f",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2163-85fb3ef3c-slot-reuse-final-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -10111,7 +10114,7 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "85fb3ef3cafc07946d45eb68c052830c2253320f",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2163-85fb3ef3c-slot-reuse-final-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
@@ -10261,7 +10264,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "848fed9e2fc7fa558e3155d7a967af588d58f5d9",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2179-848fed9e2-slot-reuse-final-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
@@ -10269,7 +10272,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "848fed9e2fc7fa558e3155d7a967af588d58f5d9",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2179-848fed9e2-slot-reuse-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -10277,7 +10280,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "848fed9e2fc7fa558e3155d7a967af588d58f5d9",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2179-848fed9e2-slot-reuse-final-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -10285,7 +10288,7 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "848fed9e2fc7fa558e3155d7a967af588d58f5d9",
-          "status": "planned",
+          "status": "waiting_for_wifi_sdk_fix",
           "log": "/private/tmp/2179-848fed9e2-slot-reuse-final-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
