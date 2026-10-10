@@ -511,7 +511,8 @@ script:
                 id(cover_art_screensaver_enabled).state &&
                 id(media_player_sleep_prevention_enabled).state &&
                 id(media_player_playing);
-            if (leaving_scheduled_clock && !onboarding && !waiting_for_time &&
+            if (leaving_scheduled_clock && id(schedule_enabled).state &&
+                !onboarding && !waiting_for_time &&
                 !id(screensaver_wake).is_running() &&
                 (id(screensaver_mode).state == "timer" || sensor_idle) &&
                 !playback_prevents_sleep) {
