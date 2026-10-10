@@ -2963,8 +2963,8 @@
       "title": "Fix Home Assistant artwork endpoint discovery and recovery",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2067",
       "mergeSha": "377d2d381c43a46c62eb98b64a30ab009d8fd021",
-      "disposition": "Port in progress",
-      "evidence": "Source endpoint discovery/probe/transfer observer port adapted to destination app and Companion controls. Fixing outstanding Manual-to-Automatic source review gap; endpoint tests and pinned ESPHome package-merge validation in progress.",
+      "disposition": "Ported",
+      "evidence": "Separate dependent port on #155; all fast checks including76 host tests, endpoint/probe/transport tests, pinned ESPHome boot package-merging over all factory entries,7-inch browser and docs passed. Fixed source Manual-to-Automatic gap with regression rejecting old reuse. Regenerated destination contracts/assets and measured migration baseline. Representative firmware/physical tests pending.",
       "changedFiles": [
         "common/config/entity_names.yaml",
         "common/device/core_infra.yaml",
@@ -3027,7 +3027,9 @@
         "tests/web/state_contract.test.ts"
       ],
       "branch": "fix-artwork-endpoint-discovery",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/157",
+      "revision": "4306cf031"
     },
     {
       "body": "## Summary\n\n- Use the known working comma-separated Sonos discovery template in the Standard Integrations section.\n- Keep the Music Assistant versioned JSON example and clarify the difference between the two formats.\n\n## Validation\n\n- `git diff --check` passed.\n- The supplied template is reported to work; no Home Assistant or device testing was run for this documentation-only change.\n",
@@ -3324,8 +3326,8 @@
       "title": "Fix browser USB installation on newer P4 chips",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2082",
       "mergeSha": "2fa94910941ccaa2d0d6393dfdf615c36fd87a21",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Bundled installer dependencies and guarded deployment port applied; public S3 flow preserved. Power-sequence regression and docs build passed; built-site browser import failure being diagnosed before publication.",
       "changedFiles": [
         ".github/workflows/ci.yml",
         ".github/workflows/pages.yml",
@@ -3341,7 +3343,8 @@
         "package.json",
         "scripts/check_docs_installer.js",
         "scripts/check_tasks_data.py"
-      ]
+      ],
+      "branch": "bundle-browser-usb-installer"
     },
     {
       "body": "## Purpose\n\nPin the `@material/web` override to 2.4.1, the newest version compatible with `esp-web-tools` 10.4.0. Version 2.5.0 removes internal stylesheet modules that this `esp-web-tools` release still imports, which breaks the documentation bundle.\n\n## Checks\n\n- `npm ci` with npm 11: passed\n- `npm run docs:build`: passed (85 pages, link and anchor checks passed)\n- GitHub Actions for the current commit: running\n\nNo physical device test is expected for this dependency change.\n",
@@ -5266,9 +5269,9 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 35,
-    "Port in progress": 1,
-    "Needs review": 24
+    "Ported": 36,
+    "Needs review": 23,
+    "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
