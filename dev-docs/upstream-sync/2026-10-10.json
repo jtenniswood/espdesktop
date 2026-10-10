@@ -2612,7 +2612,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2008",
       "mergeSha": "a7d43cbf0cbb52e3d6102f6dccff7d0d9b91abd7",
       "disposition": "Ported",
-      "evidence": "Separate dependent feature port on #154. All fast checks including75 firmware host tests passed; production resolver/driver/lifecycle and HA guard self-tests passed. Device capabilities/packages, destination assets/snapshot and docs regenerated. Includes deferred #1920 modal harness changes. Full representative compiles queued; physical tests pending. GitHub CI Gate and docs passed. Rebased onto #155 to include image recovery and camera review corrections; combined runtime and HA tests passed. Remote close now preserves critical alarm controls; resolver/close tests passed on updated camera foundation.",
+      "evidence": "Remote modal/subpage/navigation port on final #155 image-recovery foundation. Screen locks, stale/canceled requests, startup readiness and critical alarm controls preserved. Remote home/card/voice navigation now keeps alarm overlays; actual YAML navigation lambda, resolver/driver/lifecycle and latest hidden-image production regressions passed. Full fast75 host/172 web checks passed, then final parent rebased and relevant production paths rechecked. Latest3-target builds queued; historical ones passed. Physical testing pending.",
       "changedFiles": [
         "common/device/api_navigate.yaml",
         "common/device/api_open_modal.yaml",
@@ -2664,7 +2664,7 @@
       "branch": "add-remote-modal-navigation",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/156",
-      "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
+      "revision": "f297abd6fc21fdca497de7f1e770dbd7ebea33db",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -2783,6 +2783,22 @@
           }
         },
         {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
+          "status": "planned",
+          "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
+          "status": "planned",
+          "log": "/private/tmp/2008-supplemental-latest-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "ee394c28530dc3bba7f977305eb1c36e04d425b7",
           "status": "passed",
@@ -2799,14 +2815,20 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "compiledInputHashes": {
+            "button_grid_image.h": "548fa199640163d2b4e76b9687105910de60e2d854bf97419de9a6f7b3ecdb39",
+            "button_grid_media.h": "9ad9ea35ad5ef231f5c3eebf9d5e62f7171d8454fb5ca27286f85abfe7347b27",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
-          "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
+          "revision": "f297abd6fc21fdca497de7f1e770dbd7ebea33db",
           "status": "planned",
           "log": "/private/tmp/2008-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
@@ -2814,13 +2836,25 @@
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
-          "revision": "56848a40f17dc8afaa9c94e04955390ff56fa0bd",
+          "revision": "f297abd6fc21fdca497de7f1e770dbd7ebea33db",
           "status": "planned",
           "log": "/private/tmp/2008-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "f297abd6fc21fdca497de7f1e770dbd7ebea33db",
+          "status": "planned",
+          "log": "/private/tmp/2008-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
         }
-      ]
+      ],
+      "reviewThreads": [
+        "PRRT_kwDOUR8kMs6rFNSI"
+      ],
+      "reviewStatus": "Addressed"
     },
     {
       "body": "## Summary\n\nMedia titles such as `RAINING IN \uff2f\uff33\uff21\uff2b\uff21 \ud83c\udf27\ufe0f` currently show missing-glyph boxes. This change displays `RAINING IN OSAKA` by converting fullwidth ASCII forms to ordinary text and omitting emoji sequences, without adding font glyphs.\n\n## Practical impact\n\n- Apply the same display-only cleanup to Now Playing cards, the expanded media player, and the Cover Art screensaver.\n- Preserve supported accented, Greek, and Cyrillic text, existing S-with-dot-below fallback, and ordinary digits, `#`, `*`, `\u00a9`, `\u00ae`, and `\u2122`. Other scripts still depend on existing font coverage; this is not universal Unicode font support.\n- Remove joined emoji, modifiers, flags, keycaps, and emoji presentation controls. Bound artist text at complete UTF-8 characters.\n- Preserve original metadata for track identity and artwork updates. No Home Assistant values, actions, or font sizes change.\n- Include a compact generated Unicode 17.0 emoji table, its regeneration script and license, and regression tests that compile production media renderers.\n\nRelated context: #1270 (missing media-title characters) and #423 (emoji font memory constraints). This does not add emoji rendering or close either issue.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated the Media card documentation and developer font guidelines. Updated generated check-matrix documentation for the new test inputs.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- Shared media rendering affects all supported displays. The contributor tested the fix on a Guition ESP32-S3 4848S040 (4-inch square) and reported that it works perfectly. Other display models have not been physically tested for this change.\n- This successful device test predates the final upstream synchronization. The synchronized branch includes upstream's S3 LVGL buffer update; the final head has not been re-flashed as part of submission preparation.\n\nValidation results:\n\n- **PASS:** Guition 4848S040 factory firmware compiled with pinned ESPHome 2026.9.0 / ESP-IDF 5.5.5. Used `builds/guition-esp32-s3-4848s040.factory.yaml` in an isolated Linux checkout with local component/font path substitutions. Flash usage 67.2%; static RAM usage 60.7%. No device was flashed during submission preparation.\n- **PASS:** Full host firmware test suite, including `media_display_text_test` and `media_display_integration_test`; web unit tests; generated outputs; product/schema/configuration checks; Cover Art contract checks.\n- **PASS:** All six firmware UI playbook checks: parser, modals, modal layouts, card runtime, display tokens, and Home Assistant bindings (including guard self-tests). Updated the existing binding guard to recognize and enforce the new display-only normalization path.\n- **PASS:** Documentation build.\n- **KNOWN BASELINE FAILURE:** `npm run check:ci` stops at `scripts/check_web_smoke.js:711`, assertion `date preview follows selected language month names`. Reproduced under Node.js 24.21.0 on both this branch and unchanged upstream `b32be4c76` in the same environment. No web preview code is changed by this PR. Consequently, the complete CI profile is not claimed as passing; checks after that failure were not all run. The firmware playbook checks and docs build above were run separately.\n\n## Notes for testing\n\nBased on the repository's generated device-testing guidance:\n\n1. Compile and flash this branch for the target display. Confirm normal boot, touch, and navigation.\n2. Play https://www.youtube.com/watch?v=MZhivjxcF-M and confirm `RAINING IN OSAKA` appears without emoji or missing-glyph boxes.\n3. Check Now Playing, the expanded player, and the Cover Art screensaver for consistent text, layout, and icons.\n4. Check supported accented/Greek/Cyrillic text, emoji-only titles, joined emoji, flags, keycaps, and long artist names. Emoji-only titles use the view's existing empty-title fallback.\n5. Change tracks and confirm title, artist, artwork, progress, and playback controls continue updating.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -2928,7 +2962,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
       "disposition": "Ported",
-      "evidence": "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions queued. Physical testing pending.",
+      "evidence": "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions queued. Physical testing pending. Hidden image revisions now stay dirty until the card is visible, both in picture callbacks and maintenance. Actual production hidden/visible transition test and full fast74 host checks passed; review resolved after push.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -2971,7 +3005,7 @@
       ],
       "branch": "add-camera-refresh-settings",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
-      "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
+      "revision": "32f17fd53dfcbf39a709fca54ae9879dde9af5d8",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -3082,6 +3116,22 @@
           }
         },
         {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
+          "status": "planned",
+          "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
+          "status": "planned",
+          "log": "/private/tmp/1920-supplemental-latest-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "7b1eb0daa509bcac31085d259619cca1e5711df7",
           "status": "passed",
@@ -3098,14 +3148,20 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "compiledInputHashes": {
+            "button_grid_image.h": "becb2e2f1d964919f05ad5c4f71ca4d961d7c7df81ff0685224cac9fa2f8ee63",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
-          "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
+          "revision": "32f17fd53dfcbf39a709fca54ae9879dde9af5d8",
           "status": "planned",
           "log": "/private/tmp/1920-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
@@ -3113,10 +3169,18 @@
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
-          "revision": "9f3a62e0debff1b23c24d576c33d41c5f6536856",
+          "revision": "32f17fd53dfcbf39a709fca54ae9879dde9af5d8",
           "status": "planned",
           "log": "/private/tmp/1920-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "32f17fd53dfcbf39a709fca54ae9879dde9af5d8",
+          "status": "planned",
+          "log": "/private/tmp/1920-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
         }
       ],
@@ -3128,7 +3192,8 @@
         "PRRT_kwDOUR8kMs6rEG5I",
         "PRRT_kwDOUR8kMs6rEjBX",
         "PRRT_kwDOUR8kMs6rFMMH",
-        "PRRT_kwDOUR8kMs6rFMMK"
+        "PRRT_kwDOUR8kMs6rFMMK",
+        "PRRT_kwDOUR8kMs6rFQ4U"
       ]
     },
     {
@@ -3163,7 +3228,7 @@
       "branch": "retry-recovered-image-entities",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
-      "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
+      "revision": "b80ba9a00e8665fec12263d0c4a40ff11994d53d",
       "firmwareBuilds": [
         {
           "device": "guition-esp32-s3-4848s040",
@@ -3282,6 +3347,22 @@
           }
         },
         {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
+          "status": "planned",
+          "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
+          "status": "planned",
+          "log": "/private/tmp/2062-supplemental-latest-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "aca86ee226967ac4f1547d0a3742f2914d13e4c7",
           "status": "passed",
@@ -3298,14 +3379,20 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "compiledInputHashes": {
+            "button_grid_image.h": "d4ca7aaa5b77ecb57cd9665f74027e38355fecca56d3f417b48311c8b0efe109",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
-          "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
+          "revision": "b80ba9a00e8665fec12263d0c4a40ff11994d53d",
           "status": "planned",
           "log": "/private/tmp/2062-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
@@ -3313,10 +3400,18 @@
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
-          "revision": "eeb46278c2e263e8d97e587c04b7fca4167b2ed5",
+          "revision": "b80ba9a00e8665fec12263d0c4a40ff11994d53d",
           "status": "planned",
           "log": "/private/tmp/2062-supplemental-latest-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "b80ba9a00e8665fec12263d0c4a40ff11994d53d",
+          "status": "planned",
+          "log": "/private/tmp/2062-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
         }
       ]
@@ -3359,7 +3454,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2067",
       "mergeSha": "377d2d381c43a46c62eb98b64a30ab009d8fd021",
       "disposition": "Ported",
-      "evidence": "Endpoint discovery/probe/health and transfer outcomes ported while preserving Companion owned images. Automatic mode never preserves manual origins; immediate cached/local/fallback/token reads arm retries before callbacks. Full fast77 host/product/browser/boot resolver checks passed; actual owned-buffer and synchronous/asynchronous runtime regressions passed. Rebased final camera preemption/memory corrections, production tests rechecked. Historical3-target compiles passed; final builds queued.",
+      "evidence": "Endpoint discovery/probe/health and transfer outcomes ported while preserving Companion owned images. Automatic mode never preserves manual origins; immediate cached/local/fallback/token reads arm retries before callbacks. Full fast77 host/product/browser/boot resolver checks passed; actual owned-buffer and synchronous/asynchronous runtime regressions passed. Rebased final camera preemption/memory corrections, production tests rechecked. Historical3-target compiles passed; final builds queued. Final hidden-image camera parent rebased; actual camera feedback/runtime regressions rechecked after combining retained-read and visibility tests.",
       "changedFiles": [
         "common/config/entity_names.yaml",
         "common/device/core_infra.yaml",
@@ -3424,7 +3519,7 @@
       "branch": "fix-artwork-endpoint-discovery",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/157",
-      "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
+      "revision": "8f2c85c56f742d3fdd70fc0d8c9029c7779777ce",
       "firmwareBuilds": [
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
@@ -3493,6 +3588,22 @@
           }
         },
         {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
+          "status": "planned",
+          "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
+          "status": "planned",
+          "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
           "status": "passed",
@@ -3508,18 +3619,26 @@
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
-          "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
-          "status": "planned",
+          "revision": "8f2c85c56f742d3fdd70fc0d8c9029c7779777ce",
+          "status": "running",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
-          "revision": "88fc70447af384bb34b660c945fe9ee64db0fb05",
+          "revision": "8f2c85c56f742d3fdd70fc0d8c9029c7779777ce",
           "status": "planned",
           "log": "/private/tmp/2067-final-camera-clock-firmware-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "8f2c85c56f742d3fdd70fc0d8c9029c7779777ce",
+          "status": "planned",
+          "log": "/private/tmp/2067-verified-8f2c85c56-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
         }
       ]
@@ -3814,10 +3933,16 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "d44c137570a7483daa6f7109848353c85e08b6f6",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2021-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "compiledInputHashes": {
+            "button_grid_image.h": "69800a6eef9b42b78096fc97c166eacad07bcaae7cf32cdf9d1175d070ee7f37",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4068,10 +4193,16 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "2696cab9a5089a5df5c55cdd553b44df67bf5df4",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2089-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "compiledInputHashes": {
+            "button_grid_image.h": "69800a6eef9b42b78096fc97c166eacad07bcaae7cf32cdf9d1175d070ee7f37",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4255,10 +4386,16 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "c055bb06a76c5adca7cb7c7eceb822ad29227e4e",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2086-final-camera-clock-firmware-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "compiledInputHashes": {
+            "button_grid_image.h": "69800a6eef9b42b78096fc97c166eacad07bcaae7cf32cdf9d1175d070ee7f37",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -4866,7 +5003,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2111",
       "mergeSha": "37c84adfe7f15e156fec5ddaea7e38e51bdab204",
       "disposition": "Ported",
-      "evidence": "Missing application/OTA headroom reporting and automatic firmware PR gate ported. All PR jobs use disposable GitHub-hosted runners, preserving optional single-device manual input and destination nightly/release cleanup. Recovery logging/font savings separately ported in#150; public C6 route remains absent. Nine overflow/missing/empty/ambiguous/failure-preservation reporting tests, full fast72 host/172 web/product/release checks, workflow shell/YAML and docs passed. GitHub full firmware matrix pending.",
+      "evidence": "Missing application/OTA headroom reporting and automatic firmware PR gate ported. All PR jobs use disposable GitHub-hosted runners, preserving optional single-device manual input and destination nightly/release cleanup. Recovery logging/font savings separately ported in#150; public C6 route remains absent. Nine overflow/missing/empty/ambiguous/failure-preservation reporting tests, full fast72 host/172 web/product/release checks, workflow shell/YAML and docs passed. GitHub full firmware matrix pending. Actual GitHub PR trigger accepted, detect/matrix/testing guidance passed, eight serialized device matrix jobs (15 factory/recovery images) started.",
       "changedFiles": [
         ".github/workflows/firmware-compile.yml",
         ".github/workflows/nightly-firmware.yml",
@@ -4879,7 +5016,8 @@
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/165",
       "branch": "report-firmware-ota-headroom",
-      "revision": "5128f047c6191842420fa095a1636228ccda21f1"
+      "revision": "5128f047c6191842420fa095a1636228ccda21f1",
+      "workflowRun": "https://github.com/jtenniswood/espdesktop/actions/runs/38065274519"
     },
     {
       "body": "## Summary\n\nFix browser firmware installation failing during download or silently returning from \u201cInstalling\u201d without changing the display's firmware. Related to #2104.\n\nPublic binary downloads omit browser credentials, and the shared update configuration explicitly enables ESPHome's browser OTA platform. The browser keeps installation active through routine update-status refreshes, preserves errors, and confirms completion only when the panel reports the requested version. A lost connection is treated as uncertain until the version is checked; an unconfirmed installation times out visibly.\n\n## Practical impact\n\nRestores Previous firmware uploads on supported displays and prevents the interface from claiming an uninstalled version. Development builds remain labelled as development builds. The existing JC8012P4A1 V3 browser-upload rejection and updates-disabled configuration remain in place.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes: Explain keeping the setup page open, confirmation after restart, and checking the current version after failures.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAutomated validation:\n- `node --test tests/web/unit/firmware_update.test.js` \u2014 passed. Covers routine NO UPDATE responses during rollback, actual-version confirmation, persistent errors, fixed timeout, native fallback, and lost upload connections.\n- `ESPCONTROL_BROWSER_PROFILE=esp32-p4-86 ESPCONTROL_BROWSER_ACCEPTANCE_ONLY=1 node scripts/check_web_browser_smoke.js` \u2014 passed in Chromium with mocked firmware/device responses. Covers credential-free public downloads, authenticated device upload, uploaded bytes/filename, and a delayed download receiving NO UPDATE.\n- `npm run webserver:build` \u2014 regenerated embedded and development web assets.\n- `PATH=/tmp/espcontrol-pr-ci-venv/bin:$PATH npm run check:ci` \u2014 passed on commit `3dc87a7b0` (71 firmware tests plus web/unit/type/generated/configuration and repository checks).\n- P4-86 `dev.yaml` compiled successfully with pinned ESPHome 2026.9.0 in Docker, then uploaded through native ESPHome OTA. Generated firmware includes `USE_WEBSERVER_OTA`.\n- Physical P4-86 at `192.168.6.104`: multipart POST of the same corrected development image to `/update` transferred 7,024,095 bytes in 45.7 seconds, returned HTTP 200 / `Update Successful!`, and the panel restarted. Served `/0.js` matches the generated embedded bundle byte for byte. This verifies browser-style transport on hardware; the user subsequently confirmed the browser firmware installation works on the P4-86.\n- Review follow-up on `8ad7dc2d0`: `node --test tests/web/unit/firmware_update.test.js`, P4-profile Chromium acceptance, and the full `npm run check:ci` suite passed. New coverage includes a response arriving at the installation deadline, unreachable-device timeout, stale requests after a retry, and clearing errors for normal checks and both native installation paths.\n- `git diff --check` \u2014 passed.\n\nAffected display/device:\n\n- ESP32-P4-86 first; shared browser and update configuration affect supported displays. Other display hardware has not been flashed for this PR.\n\n## Notes for testing\n\nThe automated guidance requires device testing for these shared web and firmware changes. Loading a browser override alone is insufficient: the device also needs the browser OTA platform.\n\n1. Check out `fix-firmware-download`, install dependencies, and run `npm run webserver:build`.\n2. Using the pinned ESPHome environment and your local secrets, flash `devices/esp32-p4-86/dev.yaml` with `python3 scripts/local_esphome.py devices/esp32-p4-86/dev.yaml run --device <panel-IP> --no-logs`.\n3. Hard-refresh the panel setup page. Open Settings \u2192 Firmware \u2192 Previous firmware, select v2.8.6, and confirm Install. Verify the upload completes, the panel restarts on v2.8.6, and settings and touch/navigation still work.\n4. Test with display password protection enabled to check authenticated uploads. An interrupted or rejected upload should leave a visible result instead of silently clearing the install state.\n\nThe user confirmed the P4-86 browser firmware installation works on `3dc87a7b0` (September 29, 2026). The subsequent review fixes make the final version check wait for its asynchronous response and clear stale errors when a new attempt starts; they have automated coverage and have not been reflashed to the panel.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\n\n",
@@ -4892,8 +5030,8 @@
       "title": "Fix browser firmware uploads and silent installation failures",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2109",
       "mergeSha": "0f53a59d322bf7e3f59eb8ec35728bdcdeb674c1",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Browser OTA platform and truthful installed-version/timeout/error handling ported, preserving destination credential-free downloads, authenticated upload, Dev Build label and V3/disabled-update guards. Browser regression exposed source pending-transfer cancellation; explicit transfer ownership fixed and actual asynchronous download/upload/status regression passed. Full fast72 host/173 web/product/generated checks, P4-86 Chromium acceptance and docs passed. Final S3/7P4/4.3P4/P4-86 compiles queued. No physical upload/flash. Source2156 follow-up pause API port in progress separately.",
       "changedFiles": [
         "common/addon/firmware_update.yaml",
         "docs/features/firmware-updates.md",
@@ -4909,6 +5047,43 @@
         "src/webserver/application/state_loader_api.ts",
         "tests/web/firmware_update.test.ts",
         "tests/web/unit/firmware_update.test.js"
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/166",
+      "branch": "confirm-browser-firmware-installs",
+      "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
+          "status": "planned",
+          "log": "/private/tmp/2109-supplemental-latest-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
+          "status": "planned",
+          "log": "/private/tmp/2109-supplemental-latest-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
+          "status": "planned",
+          "log": "/private/tmp/2109-supplemental-latest-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
+          "status": "planned",
+          "log": "/private/tmp/2109-supplemental-latest-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        }
       ]
     },
     {
@@ -5304,8 +5479,8 @@
       "title": "Keep firmware install state during OTA download",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2156",
       "mergeSha": "86d61c8cf7b2397e8d8cbfb55376dd0431e5bd54",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Ported",
+      "evidence": "Separate source follow-up stacked on #166: pause confirmation instead of clearing the intended version/status while metadata loads. Keep parent transfer/confirmation separation and lost-connection safeguards. Actual delayed-metadata/download/upload tests passed; full fast72 host/173 web/product/generated checks and P4-86 Chromium acceptance passed. Destination baseline measured; final3-target compiles queued.",
       "changedFiles": [
         "docs/public/webserver/bundles/82e50b6210ef171ce4bed957bfd092fcb733355f3e82c7ac548261703a912dfa/www.js",
         "docs/public/webserver/bundles/cd11005007013f152fa7a6e0a112d54126ca6089bb4663c93e7bd04c80396a9a/www.js",
@@ -5315,6 +5490,35 @@
         "src/webserver/application/public_firmware_install.ts",
         "src/webserver/state/app_state.ts",
         "src/webserver/state/types.ts"
+      ],
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/167",
+      "branch": "preserve-firmware-transfer-target",
+      "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
+      "firmwareBuilds": [
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
+          "status": "planned",
+          "log": "/private/tmp/2156-visibility-navigation-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
+          "status": "planned",
+          "log": "/private/tmp/2156-visibility-navigation-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
+          "status": "planned",
+          "log": "/private/tmp/2156-visibility-navigation-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        }
       ]
     },
     {
@@ -6026,8 +6230,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 44,
-    "Needs review": 16
+    "Ported": 46,
+    "Needs review": 14
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
