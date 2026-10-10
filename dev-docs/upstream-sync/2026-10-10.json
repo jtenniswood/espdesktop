@@ -3557,14 +3557,16 @@
       "title": "Update Material Web to latest compatible v2.4.1",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2083",
       "mergeSha": "21893557af500b452bc98c5ad6c03f28d64236fb",
-      "disposition": "Port in progress",
-      "evidence": "Separate dependent upgrade from bundled installer Material Web2.2.0 to2.4.1; destination lock regeneration and browser/docs validation running.",
+      "disposition": "Ported",
+      "evidence": "Separate dependency port on #158; destination lock regenerated to Material Web2.4.1, actual flash-power tests, docs build/link and built-site S3 installer/mock-serial tests passed. No firmware changed; physical USB acceptance pending.",
       "changedFiles": [
         "package-lock.json",
         "package.json"
       ],
       "branch": "update-installer-material-web",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/158"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/158",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/159",
+      "revision": "545b9d715"
     },
     {
       "body": "## Summary\n\nHalve the extra vertical padding around controls in expanded panels such as Card Settings and Source: top padding goes from 30px to 15px and bottom padding from 28px to 14px. Regenerate the served web assets.\n\n## Practical impact\n\nExpanded settings panels are more compact. Horizontal padding, control sizes, and spacing between fields stay the same. Existing compact media settings and firmware subpanel overrides retain their current spacing.\n\n## Documentation decision\n\n- [x] No docs needed for this cosmetic spacing adjustment.\n\nDocs notes:\n\nNo documentation update is needed for this cosmetic spacing adjustment; configuration and setup instructions are unchanged.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n\nValidation: `python3 scripts/build.py www`, `npm run check:web-smoke`, `npm run check:web-browser-smoke`, `npm run check:web-asset-manifest`, `npm run check:product`, and `git diff --check`.\n\nAffected display/device:\n\n- The shared web configurator for all supported P4 and S3 displays. Physical device testing has not been performed.\n\n## Notes for testing\n\nThe automated guidance flags all displays because this changes shared web assets. On any supported display, test branch `halve-panel-spacing` by serving its generated editor:\n\n```bash\npython3 -m http.server 8080 --directory docs/public/webserver/embedded\n```\n\nPoint the local device `dev.yaml` at `http://<computer-ip>:8080/www.js`, then hard-refresh the setup page. Expand the clock's Card Settings panel and the media playlist Source panel. Confirm the padding above and below controls is half its previous size, with no clipping, and that toggles, selectors, and collapsing/expanding panels still work.\n\n## PR status\n\n- [x] Ready for device test.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -3914,14 +3916,16 @@
       "title": "Update @material/web to 2.5.0",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2097",
       "mergeSha": "4ae9685ad3f0d7b5d6e42fc431af709c82dfd014",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Material Web2.5.0 and stylesheet bridge adapted for destination hoisted dependency resolution. Library, docs and browser checks passed; commit/push/PR publication in progress.",
       "changedFiles": [
         "docs/.vitepress/config.mts",
         "docs/.vitepress/theme/usb-installer.ts",
         "package-lock.json",
         "package.json"
-      ]
+      ],
+      "branch": "support-installer-material-web-25",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/159"
     },
     {
       "body": "## Purpose\nIncrease the play/pause button size on the P4 4 inch and P4 4.3 inch cover art screensaver.\n\n## Practical impact\nThe square P4 4 inch uses a 144 px button. The P4 4.3 inch uses a 112 px button in either orientation, with track-panel space reserved for the larger control. Other display sizes keep their existing button dimensions.\n\n## Checks\n- `python3 scripts/check_cover_art_contract.py` passed.\n- ESPHome 2026.9.0 builds succeeded for both target devices.\n- GitHub CI, generated-file validation, and docs checks passed for the current PR commit.\n\n## Device testing\nThe current PR candidate was flashed over OTA to the P4 4 inch (`192.168.6.104`) and P4 4.3 inch (`192.168.6.101`). Both responded after reboot. Please confirm the button is easy to use and track details remain visible on the screens.",
@@ -5525,8 +5529,8 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 37,
-    "Needs review": 22,
+    "Ported": 38,
+    "Needs review": 21,
     "Port in progress": 1
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
