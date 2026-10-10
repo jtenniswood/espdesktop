@@ -137,3 +137,5 @@ This table is generated from the card contract and typed `registry.register(...)
 Camera and media Cover Art cards can use rectangular and larger spans that fit
 the active display grid. The editor size menu and saved-config normalization
 use the grid bounds; Wi-Fi sharing retains its separate size allow-list.
+
+On a 3×3 square grid, ordinary and Companion cards also support 3×2 and 2×3 spans. Wi-Fi sharing keeps its separate square-only rules.
