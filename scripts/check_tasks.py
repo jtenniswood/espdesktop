@@ -810,7 +810,7 @@ def run_process(
     finally:
         controller.remove(process)
     return_code = process.returncode
-    code = 130 if controller.interrupted or return_code < 0 else return_code
+    code = 130 if controller.interrupted else 128 - return_code if return_code < 0 else return_code
     return code, output or ""
 
 
@@ -1430,6 +1430,21 @@ def self_test() -> None:
                 raise AssertionError(f"CI did not collect independent failures: {collected_statuses}")
             if forbidden_marker.exists() or not independent_marker.exists():
                 raise AssertionError("CI ran a blocked task or skipped independent work")
+
+            for signum in (signal.SIGKILL, signal.SIGSEGV, signal.SIGTERM):
+                after_crash = root / f"after-crash-{workers}-{signum}"
+                crash = (sys.executable, "-c",
+                    "import os, resource; resource.setrlimit(resource.RLIMIT_CORE, (0, 0)); "
+                    f"os.kill(os.getpid(), {int(signum)})")
+                with redirect_stdout(StringIO()):
+                    crash_code, crashed = execute_tasks([
+                        Task("native-crash", (crash,), parallel_safe=True),
+                        Task("independent-after-crash", ((sys.executable, "-c",
+                            f"from pathlib import Path; Path({str(after_crash)!r}).touch()"),),
+                            parallel_safe=True)], root, profile="ci", domain=None,
+                        requested_task=None, jobs=workers)
+                if crash_code != 1 or not after_crash.exists() or crashed["tasks"][0]["exit_code"] != 128 + signum:
+                    raise AssertionError("native task signals must fail without cancelling independent checks")
 
             with redirect_stdout(StringIO()):
                 interrupted_code, interrupted_summary = execute_tasks(
