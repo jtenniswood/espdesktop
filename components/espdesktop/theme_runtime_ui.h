@@ -2,6 +2,11 @@
 
 #include "theme_runtime_static.h"
 
+// Implemented by the image-card header included later by the grid builder.
+inline void image_card_refresh_placeholder_theme(lv_obj_t *button,
+                                                  uint32_t background,
+                                                  uint32_t foreground);
+
 // Runtime LVGL targets for the palette refresh boundary. Dark -> Dark leaves
 // existing styles, state, and Home Assistant bindings alone.
 
