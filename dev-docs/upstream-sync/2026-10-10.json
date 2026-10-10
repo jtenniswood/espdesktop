@@ -2525,7 +2525,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -2609,7 +2609,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5"
@@ -2656,7 +2656,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c"
@@ -3216,7 +3216,7 @@
       "destinationBaseBranch": "retry-recovered-image-entities",
       "reviewVerification": {
         "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -3347,7 +3347,7 @@
       ],
       "reviewVerification": {
         "revision": "2729945b2db3f05054c319d385a26294207d7c58",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -3900,7 +3900,7 @@
       "destinationBaseBranch": "main",
       "reviewVerification": {
         "revision": "e6dd5c97954a7959366b018d9b9c4304655adbf2",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -4416,7 +4416,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "f0e592807c9a2ef4d01c5f1578e7e047683780a5",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -4455,7 +4455,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "42667ce1c36bace80a8f9742b2dfd88db65e1ed1",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -4962,7 +4962,7 @@
       ],
       "reviewVerification": {
         "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -5532,7 +5532,7 @@
       ],
       "reviewVerification": {
         "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -5627,7 +5627,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5756,7 +5756,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d44c137570a7483daa6f7109848353c85e08b6f6",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5801,7 +5801,7 @@
       ],
       "reviewVerification": {
         "revision": "e1e2af19952a1b43ebee30cb5c6ff68b8fe63931",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5832,7 +5832,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "197b7cdbc435b50c9f32d02986b61a70ab078d39",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5863,7 +5863,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "edacf8e17b14e388aa2881476b778ca3635c27d6",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "edacf8e17b14e388aa2881476b778ca3635c27d6"
@@ -6107,7 +6107,7 @@
       ],
       "reviewVerification": {
         "revision": "2696cab9a5089a5df5c55cdd553b44df67bf5df4",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6172,7 +6172,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3"
@@ -6210,7 +6210,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "39eaebc80000e91d857f3fbb2402b9bc7aaf3c5c",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6256,7 +6256,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6370,7 +6370,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c055bb06a76c5adca7cb7c7eceb822ad29227e4e",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6830,7 +6830,7 @@
       ],
       "reviewVerification": {
         "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": [
           "PRRT_kwDOUR8kMs6rGR1a"
         ]
@@ -6882,7 +6882,7 @@
       ],
       "reviewVerification": {
         "revision": "0ddaccd2f8455c9f21a525a5e3eaf1353dab71bf",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6940,7 +6940,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6992,7 +6992,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6"
@@ -7053,7 +7053,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "29f5be9d7765814bd12f27c8baf2de54898faed7",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "29f5be9d7765814bd12f27c8baf2de54898faed7"
@@ -7176,7 +7176,7 @@
       ],
       "reviewVerification": {
         "revision": "f885810607a1011e354dae224404802ae2d45128",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "f885810607a1011e354dae224404802ae2d45128"
@@ -7267,7 +7267,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "a69f0c0ff1c8cbe401697fbd8dc84e8d274a4ced",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7295,7 +7295,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "4df5458874b90445450cd70d1f5ad8c260bd7347",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "4df5458874b90445450cd70d1f5ad8c260bd7347"
@@ -7377,7 +7377,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "5f2d163a917422f2c28148b62f70948e7464f23a",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "5f2d163a917422f2c28148b62f70948e7464f23a"
@@ -7451,7 +7451,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d3bf15ca60358d419c092a0ef7c30ce98d436ee9",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7498,7 +7498,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "ed4e4163834a78fe8e7eacdb9dfb465c3fcdbe2d",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7545,7 +7545,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "ff4576898346b170a3e1072013b2391c58e2b6b6",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7580,7 +7580,7 @@
       ],
       "reviewVerification": {
         "revision": "03f465428f2f59f5d6da78e0f744f73526bafd74",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "03f465428f2f59f5d6da78e0f744f73526bafd74"
@@ -7630,7 +7630,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "5128f047c6191842420fa095a1636228ccda21f1",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7747,7 +7747,7 @@
       ],
       "reviewVerification": {
         "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": [
           "PRRT_kwDOUR8kMs6rFdGL"
         ]
@@ -7793,7 +7793,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "444d08a6d83a6813906d4d3ca86372c436eab656",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "444d08a6d83a6813906d4d3ca86372c436eab656"
@@ -7822,7 +7822,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "fe26768f89c84931a70544a67bed2576a9994aab",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "fe26768f89c84931a70544a67bed2576a9994aab"
@@ -8238,7 +8238,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "7a764ab631c7be629da3088d8b08025ccea78aba",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -8331,7 +8331,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c6a678b4800eab576992d301f443848189c5f170",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -8444,7 +8444,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "03fecaed0be5f47e27f12adc63a27881e846da6c",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -8491,7 +8491,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2"
@@ -8539,7 +8539,7 @@
       ],
       "reviewVerification": {
         "revision": "0b18d20009f6fb482aaf1dcdfc5ec24dbc505bce",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "0b18d20009f6fb482aaf1dcdfc5ec24dbc505bce"
@@ -8586,7 +8586,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d44b6bd73d254d7b784862958f1ba1390cf58db8",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "d44b6bd73d254d7b784862958f1ba1390cf58db8"
@@ -8621,7 +8621,7 @@
       ],
       "reviewVerification": {
         "revision": "b611474d0eea99fdf07b6e859618092162318def",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "b611474d0eea99fdf07b6e859618092162318def"
@@ -8743,7 +8743,7 @@
       ],
       "reviewVerification": {
         "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -8774,7 +8774,7 @@
       ],
       "reviewVerification": {
         "revision": "a29c6585a99ca70680317513f0ad167762c61c23",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "a29c6585a99ca70680317513f0ad167762c61c23"
@@ -8867,7 +8867,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -8995,7 +8995,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "58e642bc1e1afd6de0e15e283cc785d34917b93a",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "58e642bc1e1afd6de0e15e283cc785d34917b93a"
@@ -9068,7 +9068,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "de979d5df3ac2239aaf28ba71e78e05a384ee7ae",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     },
@@ -9192,7 +9192,7 @@
       ],
       "reviewVerification": {
         "revision": "522afc2a77ae8ae4be25e1a5b45f9c264922d673",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -9223,7 +9223,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "bc8be55b74343d44079453836d7ec043ae9086e0",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "bc8be55b74343d44079453836d7ec043ae9086e0"
@@ -9274,7 +9274,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147"
@@ -9629,7 +9629,7 @@
       ],
       "reviewVerification": {
         "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757"
@@ -9665,7 +9665,7 @@
       ],
       "reviewVerification": {
         "revision": "066fb7b0f9d2088b9732c8f8490785e6a8710b0e",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "066fb7b0f9d2088b9732c8f8490785e6a8710b0e"
@@ -9810,7 +9810,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -9867,7 +9867,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "e52a136f19c9df4631e42141b762f7bb9abe495d",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "e52a136f19c9df4631e42141b762f7bb9abe495d"
@@ -10102,11 +10102,11 @@
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "Awaiting review verification for the updated revision",
+      "reviewStatus": "No unresolved review findings at the verified revision",
       "reviewThreads": [],
       "reviewVerification": {
-        "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8"
@@ -10363,7 +10363,7 @@
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "Awaiting review verification for the updated revision",
+      "reviewStatus": "No unresolved review findings at the verified revision",
       "reviewThreads": [
         "PRRT_kwDOUR8kMs6rHbKb",
         "PRRT_kwDOUR8kMs6rHkEV",
@@ -10371,11 +10371,12 @@
         "PRRT_kwDOUR8kMs6rH-D4",
         "PRRT_kwDOUR8kMs6rIGA3",
         "PRRT_kwDOUR8kMs6rIRb0",
-        "PRRT_kwDOUR8kMs6rIWCR"
+        "PRRT_kwDOUR8kMs6rIWCR",
+        "PRRT_kwDOUR8kMs6rIvXn"
       ],
       "reviewVerification": {
-        "revision": "85fb3ef3cafc07946d45eb68c052830c2253320f",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "revision": "d8efd03acf147292967fd953088755775279556e",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "d8efd03acf147292967fd953088755775279556e",
@@ -10605,11 +10606,11 @@
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "Awaiting review verification for the updated revision",
+      "reviewStatus": "No unresolved review findings at the verified revision",
       "reviewThreads": [],
       "reviewVerification": {
-        "revision": "848fed9e2fc7fa558e3155d7a967af588d58f5d9",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "revision": "c282126515afb70c2f00ee46ef3baaded4497ae9",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
       "revision": "c282126515afb70c2f00ee46ef3baaded4497ae9",
@@ -10733,7 +10734,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "756522a86902c510049a65fb9f71ceb98585f8c6",
-        "checkedAt": "2026-10-10T22:57:54.449634+00:00",
+        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       }
     }
