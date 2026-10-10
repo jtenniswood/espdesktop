@@ -25,6 +25,7 @@ export const SSE_ALIAS_GROUPS = {
   mediaPlayerSleepPreventionEntity: ["text-media_player_sleep_prevention_entity"],
   coverArt: ["switch-screen_saver__cover_art", "switch-screen_saver_cover_art", "switch-screensaver_cover_art"],
   coverArtSource: ["select-cover_art_source"],
+  clockDate: ["switch-screen_saver__show_date", "switch-screen_saver_show_date", "switch-clock_screensaver_show_date"],
   clockOverlay: ["switch-screen_saver__clock_overlay", "switch-screen_saver_clock_overlay", "switch-clock_overlay_enabled"],
   metadataOverlay: ["switch-screen_saver__metadata_overlay", "switch-screen_saver_metadata_overlay", "switch-metadata_overlay_enabled"],
   coverArtEntity: ["text-screen_saver__cover_art_entity", "text-screen_saver_cover_art_entity", "text-cover_art_media_player_entity"],
@@ -82,6 +83,7 @@ export function applySseHandlerAliases(handlers: SseHandlers): void {
   addSseAliases(handlers, SSE_ALIAS_GROUPS.mediaPlayerSleepPreventionEntity, "text-media_player_sleep_prevention_entity");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArt, "switch-screen_saver__cover_art");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtSource, "select-cover_art_source");
+  addSseAliases(handlers, SSE_ALIAS_GROUPS.clockDate, "switch-screen_saver__show_date");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockOverlay, "switch-screen_saver__clock_overlay");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.metadataOverlay, "switch-screen_saver__metadata_overlay");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtEntity, "text-screen_saver__cover_art_entity");
