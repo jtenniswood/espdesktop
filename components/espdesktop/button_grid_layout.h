@@ -240,6 +240,30 @@ inline void parse_order_string(const std::string &order_str, int num_slots, Orde
   }
 }
 
+// Read every configured token before applying a smaller portrait home capacity.
+// The saved order and span data remain unchanged for the next landscape render.
+inline void parse_order_for_layout(const std::string &order_str, int configured_slots,
+                                   int active_slots, OrderResult &result) {
+  const int configured = bounded_grid_slots(configured_slots > 0 ? configured_slots : active_slots);
+  const int active = bounded_grid_slots(active_slots);
+  parse_order_string(order_str, configured, result);
+  if (active >= configured) return;
+  bool relocate = false;
+  for (int i = 0; i < configured; ++i) {
+    const int slot = result.positions[i];
+    if ((i < active && slot > active) ||
+        (i >= active && slot > 0 && slot <= active)) relocate = true;
+  }
+  if (!relocate) return;
+  int visible[MAX_GRID_SLOTS] = {};
+  int count = 0;
+  for (int i = 0; i < configured; ++i) {
+    const int slot = result.positions[i];
+    if (slot > 0 && slot <= active && count < active) visible[count++] = slot;
+  }
+  memcpy(result.positions, visible, sizeof(visible));
+}
+
 // Saved layouts can originate on a larger display or an older web editor.
 // Downgrade any card that extends beyond the active grid before passing its
 // cell coordinates to LVGL.

@@ -68,6 +68,13 @@ export function runPreviewGridTests(): void {
   const subpage = buildSubpageGrid({ order: ["B", "19", "20"], buttons: Array<any>(20).fill({}) }, 18, 3);
   deepEqual(subpage.grid.slice(0, 3), [-2, 19, 20], "subpage reconstruction preserves valid high IDs");
 
+  const rebuiltPortrait = buildSubpageGrid({
+    order: ["B", ...Array<string>(17).fill(""), "19", "20"], buttons: Array<any>(20).fill({}),
+  }, 20, 3, 18);
+  equal(rebuiltPortrait.grid.length, 20, "subpage rebuild keeps full saved capacity");
+  deepEqual(rebuiltPortrait.grid.slice(0, 3), [-2, 19, 20], "reopening a portrait subpage brings tail cards into visible cells");
+  deepEqual(rebuiltPortrait.grid.slice(18), [0, 0], "rebuilt subpage has no lost visible cards in its tail");
+
   const duplicateGrid = Array.from({ length: 20 }, (_, index) => index + 1);
   duplicateGrid[1] = 0;
   duplicateGrid[2] = 0;

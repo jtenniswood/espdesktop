@@ -413,6 +413,7 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append('            bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";')
         lines.append(f"            cfg.cols = portrait ? {device['portrait_cols']} : {device['cols']};")
         if "portrait_slots" in device:
+            lines.append(f"            cfg.configured_slots = {device['slots']};")
             lines.append(f"            cfg.num_slots = portrait ? {device['portrait_slots']} : {device['slots']};")
             if device["portrait_slots"] < device["slots"]:
                 lines.append("            if (portrait) {")

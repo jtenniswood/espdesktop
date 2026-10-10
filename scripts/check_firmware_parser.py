@@ -928,6 +928,17 @@ int main() {
   assert(parsed.row_span[8] == 3 && parsed.col_span[8] == 4);
   assert(parsed.row_span[9] == 1 && parsed.col_span[9] == 5);
 
+  OrderResult portrait_order;
+  parse_order_for_layout("19,20,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18", 20, 18, portrait_order);
+  for (int i = 0; i < 18; ++i) assert(portrait_order.positions[i] == i + 1);
+  parse_order_for_layout("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,,,17,18", 20, 18, portrait_order);
+  for (int i = 0; i < 18; ++i) assert(portrait_order.positions[i] == i + 1);
+  parse_order_for_layout("19w,20,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18", 20, 20, portrait_order);
+  assert(portrait_order.positions[0] == 19 && portrait_order.positions[1] == 20);
+  assert(portrait_order.col_span[18] == 2);
+  parse_order_for_layout("1,,,2", 0, 6, portrait_order);
+  assert(portrait_order.positions[0] == 1 && portrait_order.positions[3] == 2);
+
   OrderResult overlap;
   parse_order_string("1b,2,3,4,5,6", 9, overlap);
   OrderResult cleared;

@@ -61,6 +61,7 @@ script:
           GridConfig cfg = {};
           bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";
           cfg.cols = portrait ? 3 : 5;
+          cfg.configured_slots = 20;
           cfg.num_slots = portrait ? 18 : 20;
           if (portrait) {
             lv_obj_add_flag(slots[18].btn, LV_OBJ_FLAG_HIDDEN);
@@ -253,6 +254,7 @@ script:
           GridConfig cfg = {};
           bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";
           cfg.cols = portrait ? 3 : 5;
+          cfg.configured_slots = 20;
           cfg.num_slots = portrait ? 18 : 20;
           if (portrait) {
             lv_obj_add_flag(slots[18].btn, LV_OBJ_FLAG_HIDDEN);
@@ -484,6 +486,7 @@ esphome:
             GridConfig cfg = {};
             bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";
             cfg.cols = portrait ? 3 : 5;
+            cfg.configured_slots = 20;
             cfg.num_slots = portrait ? 18 : 20;
             if (portrait) {
               lv_obj_add_flag(slots[18].btn, LV_OBJ_FLAG_HIDDEN);
@@ -667,6 +670,7 @@ esphome:
             GridConfig cfg = {};
             bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";
             cfg.cols = portrait ? 3 : 5;
+            cfg.configured_slots = 20;
             cfg.num_slots = portrait ? 18 : 20;
             if (portrait) {
               lv_obj_add_flag(slots[18].btn, LV_OBJ_FLAG_HIDDEN);
