@@ -595,6 +595,10 @@ inline void image_card_hide(ImageCardCtx *ctx) {
 
 inline void image_card_apply_media_overlay_tint(ImageCardCtx *ctx);
 
+inline bool image_card_media_artwork_visible(const ImageCardCtx *ctx) {
+  return ctx && ctx->widget && !lv_obj_has_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+}
+
 inline void image_card_sync_media_artwork_visibility(ImageCardCtx *ctx) {
   if (!ctx || !ctx->media_artwork || !ctx->widget) return;
   if (ctx->media_artwork_suppressed || !ctx->image_ready || !ctx->image) {
@@ -611,8 +615,9 @@ inline void image_card_sync_media_artwork_visibility(ImageCardCtx *ctx) {
       lv_obj_clear_flag(ctx->media_overlay, LV_OBJ_FLAG_HIDDEN);
       lv_obj_move_foreground(ctx->media_overlay);
     }
-    if (ctx->media_artwork_applied) ctx->media_artwork_applied();
   }
+  // Consumers also need to refresh their fallback when artwork is hidden.
+  if (ctx->media_artwork_applied) ctx->media_artwork_applied();
   lv_obj_invalidate(ctx->widget);
   if (ctx->btn) lv_obj_invalidate(ctx->btn);
   notify_dashboard_content_changed();
@@ -655,6 +660,7 @@ inline void image_card_clear_media_artwork(ImageCardCtx *ctx) {
   ctx->last_download_completed_ms = 0;
   image_card_hide(ctx);
   if (ctx->media_overlay) lv_obj_add_flag(ctx->media_overlay, LV_OBJ_FLAG_HIDDEN);
+  if (ctx->media_artwork_applied) ctx->media_artwork_applied();
 }
 
 inline void image_card_layout_modal_loading(ImageCardCtx *ctx) {
@@ -1419,7 +1425,7 @@ inline void setup_image_card(BtnSlot &s) {
 
   lv_obj_t *loading = lv_obj_create(s.btn);
   lv_obj_set_size(loading, lv_pct(100), lv_pct(100));
-  lv_obj_set_style_bg_color(loading, lv_color_hex(TERTIARY_GREY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(loading, lv_color_hex(theme_display_color(current_theme().surface_secondary)), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(loading, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(loading, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(loading, 0, LV_PART_MAIN);
@@ -1432,14 +1438,14 @@ inline void setup_image_card(BtnSlot &s) {
   const lv_font_t *loading_icon_font = image_card_icon_font_for_slot(s);
   const lv_font_t *loading_label_font = image_card_label_font_for_slot(s);
   image_card_apply_loading_fonts(loading, loading_icon_font, loading_label_font);
-  lv_obj_set_style_text_color(loading_icon, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(loading_icon, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_opa(loading_icon, LV_OPA_COVER, LV_PART_MAIN);
   lv_label_set_display_text(loading_icon, IMAGE_CARD_LOADING_ICON);
   apply_icon_width_compensation(loading_icon);
 
   lv_obj_t *loading_label = lv_label_create(loading);
   image_card_apply_loading_fonts(loading, loading_icon_font, loading_label_font);
-  lv_obj_set_style_text_color(loading_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(loading_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_opa(loading_label, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_text_align(loading_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   lv_label_set_display_text(loading_label, espdesktop_i18n("Loading"));
@@ -2291,7 +2297,7 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
   image_card_log_diagnostics(ctx, "modal-display-takeover-began");
   image_card_style_modal_back_button(ui.back_btn, shell.layout);
 
-  lv_obj_set_style_bg_color(ui.panel, lv_color_hex(DARK_OVERLAY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(ui.panel, lv_color_hex(current_theme().overlay), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(ui.panel, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_clip_corner(ui.panel, true, LV_PART_MAIN);
 
@@ -2315,9 +2321,9 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
     image_card_abort_modal_open(ctx, "loading widget setup failed");
     return;
   }
-  lv_obj_set_style_bg_color(ui.loading_widget, lv_color_hex(SECONDARY_GREY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(ui.loading_widget, lv_color_hex(theme_display_color(current_theme().surface_primary)), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(ui.loading_widget, LV_OPA_70, LV_PART_MAIN);
-  lv_obj_set_style_border_color(ui.loading_widget, lv_color_hex(DARK_BORDER), LV_PART_MAIN);
+  lv_obj_set_style_border_color(ui.loading_widget, lv_color_hex(theme_display_color(current_theme().border)), LV_PART_MAIN);
   lv_obj_set_style_border_width(ui.loading_widget, 1, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(ui.loading_widget, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_all(ui.loading_widget, 0, LV_PART_MAIN);
@@ -2331,7 +2337,7 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
     return;
   }
   if (ctx->icon_font) lv_obj_set_style_text_font(loading_icon, ctx->icon_font, LV_PART_MAIN);
-  lv_obj_set_style_text_color(loading_icon, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(loading_icon, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_opa(loading_icon, LV_OPA_COVER, LV_PART_MAIN);
   lv_label_set_display_text(loading_icon, IMAGE_CARD_LOADING_ICON);
   apply_icon_width_compensation(loading_icon);
@@ -2342,7 +2348,7 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
     return;
   }
   if (ctx->label_font) lv_obj_set_style_text_font(loading_label, ctx->label_font, LV_PART_MAIN);
-  lv_obj_set_style_text_color(loading_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(loading_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_opa(loading_label, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_text_align(loading_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   lv_label_set_long_mode(loading_label, LV_LABEL_LONG_DOT);

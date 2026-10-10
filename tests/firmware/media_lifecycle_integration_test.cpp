@@ -151,7 +151,7 @@ std::string media_card_mode(const std::string &sensor) { return sensor; }
 bool media_playback_button_mode(const std::string &mode) { return mode == "play_pause"; }
 bool media_control_modal_mode(const std::string &mode) { return mode == "control_modal"; }
 struct lv_font_t {};
-constexpr unsigned DEFAULT_SLIDER_COLOR = 0;
+constexpr unsigned DEFAULT_ACCENT_COLOR = 0;
 struct CardPalette { bool has_on = false; unsigned on_val = 0, off_val = 0, sensor_val = 0; };
 enum class DisplayModalLayoutFamily { COMPACT_PORTRAIT };
 struct DisplayProfile { struct { DisplayModalLayoutFamily layout_family; } modal{}; };
@@ -230,6 +230,7 @@ void grid_delete_media_playlist_runtime_ptr(void *) { CHECK(false); }
 bool media_play_pause_show_state(const ParsedCfg &) { CHECK(false); return false; }
 std::string media_cover_art_secondary_entity(const ParsedCfg &) { CHECK(false); return {}; }
 void subscribe_media_cover_art(MediaNowPlayingCtx *, const std::string &) {}
+void media_cover_art_unregister_theme(MediaNowPlayingCtx *) {}
 template<typename... T> MediaPlaylistCtx *create_media_playlist_context(T...) { CHECK(false); return nullptr; }
 template<typename... T> MediaVolumeCtx *create_media_volume_context(T...) { CHECK(false); return nullptr; }
 template<typename... T> MediaPlaylistCtx *media_driver_track_playlist(T...) { CHECK(false); return nullptr; }

@@ -29,7 +29,11 @@ import {
     normalizeScreensaverDimmedBrightness,
     normalizeTemperatureUnit,
     normalizeTimeOfDay,
+    normalizeThemeMode,
+    normalizeThemeAutoMethod,
+    parseThemeSunOffset,
 } from "../model/settings";
+import { syncThemeSettingsUi } from "./theme_settings_ui";
 import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
 import { languageOptionsWithFallback, syncLanguageSelect } from "./language_state";
@@ -410,6 +414,38 @@ export function createAppStateEventHandlersFeature(
                 state.brightnessMode = normalizeBrightnessMode(d.value || val);
                 syncScreenScheduleUi();
             },
+            "select-screen__theme_mode": function (this: any, val?: any, d?: any) {
+                state.themeMode = normalizeThemeMode(d.value || val);
+                syncThemeSettingsUi(state, runtime);
+                renderPreview();
+            },
+            "select-screen__theme_auto_method": function (this: any, val?: any, d?: any) {
+                state.themeAutoMethod = normalizeThemeAutoMethod(d.value || val);
+                syncThemeSettingsUi(state, runtime);
+            },
+            "text_sensor-screen__active_theme": function (this: any, val?: any) {
+                state.themeActive = val === "Light" ? "Light" : "Dark";
+                syncThemeSettingsUi(state, runtime);
+                renderPreview();
+            },
+            "text-screen__theme_light_start": function (this: any, val?: any) {
+                state.themeLightStart = normalizeTimeOfDay(val, "07:00");
+                syncThemeSettingsUi(state, runtime);
+            },
+            "text-screen__theme_dark_start": function (this: any, val?: any) {
+                state.themeDarkStart = normalizeTimeOfDay(val, "20:00");
+                syncThemeSettingsUi(state, runtime);
+            },
+            "number-screen__theme_sunrise_offset": function (this: any, val?: any) {
+                const offset = parseThemeSunOffset(val);
+                if (offset !== null) state.themeSunriseOffset = offset;
+                syncThemeSettingsUi(state, runtime);
+            },
+            "number-screen__theme_sunset_offset": function (this: any, val?: any) {
+                const offset = parseThemeSunOffset(val);
+                if (offset !== null) state.themeSunsetOffset = offset;
+                syncThemeSettingsUi(state, runtime);
+            },
             "light-display_backlight": function (this: any, val?: any, d?: any) {
                 var brightness: any = parseFloat(d && d.brightness);
                 if (isFinite(brightness)) {
@@ -562,10 +598,12 @@ export function createAppStateEventHandlersFeature(
             "text_sensor-screen__sunrise": function (this: any, val?: any) {
                 state.sunrise = val;
                 updateSunInfo();
+                syncThemeSettingsUi(state, runtime);
             },
             "text_sensor-screen__sunset": function (this: any, val?: any) {
                 state.sunset = val;
                 updateSunInfo();
+                syncThemeSettingsUi(state, runtime);
             },
             "text_sensor-network_transport": function (this: any, val?: any) {
                 state.networkTransport = normalizeNetworkTransport(val);

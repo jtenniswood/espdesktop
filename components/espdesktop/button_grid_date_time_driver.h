@@ -21,7 +21,7 @@ inline bool date_time_driver_setup_visual(
 
   if (palette.has_sensor_color) {
     lv_obj_set_style_bg_color(
-      slot.btn, lv_color_hex(palette.sensor_val),
+      slot.btn, lv_color_hex(palette.surface_sensor_val),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) |
         static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
   }
