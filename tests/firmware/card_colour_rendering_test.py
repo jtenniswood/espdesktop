@@ -41,7 +41,7 @@ struct lv_obj_t {
   std::vector<lv_obj_t *> children;
   std::string content;
 };
-struct BtnSlot { lv_obj_t *btn, *icon_lbl = nullptr, *text_lbl = nullptr; };
+struct BtnSlot { lv_obj_t *btn, *icon_lbl = nullptr, *text_lbl = nullptr, *sensor_container = nullptr, *subpage_lbl = nullptr; };
 struct AlarmCardCtx { lv_obj_t *btn; uint32_t off_color; bool off_theme_owned = false; int theme_red_percent = 100, theme_green_percent = 100, theme_blue_percent = 100; };
 struct DisplayProfile {
   struct { int red_percent = 100, green_percent = 100, blue_percent = 100; } color;
@@ -102,6 +102,11 @@ constexpr int LV_OPA_50 = 128, MEDIA_CONTROL_SPEAKER_VOLUME_TEXT_OPA = 204;
 using lv_coord_t = int;
 void lv_obj_add_flag(lv_obj_t *obj, int flag) { obj->flags |= flag; }
 void lv_obj_clear_flag(lv_obj_t *obj, int flag) { obj->flags &= ~flag; }
+void set_card_disabled_state(lv_obj_t *, bool) {}
+void lv_obj_set_user_data(lv_obj_t *, void *) {}
+void lv_obj_set_style_pad_all(lv_obj_t *, int, int) {}
+void lv_obj_set_style_radius(lv_obj_t *, int, int) {}
+void lv_obj_del(lv_obj_t *) {}
 void lv_obj_set_style_opa(lv_obj_t *, int, int) {}
 void lv_obj_set_style_text_opa(lv_obj_t *, int, int) {}
 int lv_obj_get_height(lv_obj_t *) { return 40; }
@@ -146,7 +151,7 @@ groups = (
     ("button_grid_display.h", "", ("display_correct_color",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("companion_controls.h", "", ("companion_apply_card_focus",)),
-    ("button_grid_grid.h", "", ("card_palette_for_config",)),
+    ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
     ("button_grid_weather_driver.h", "espdesktop::cards", ("weather_driver_apply_background",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color", "subscribe_sensor_text_card_value")),
@@ -207,6 +212,17 @@ int main() {
         for (auto *label : {&card, &music, &idle, &title, &artist})
           assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : readable_text_color_for_bg(background)));
       }
+      // Reusing persistent icon/text widgets for an ordinary card clears ownership.
+      card.children = {&music, &idle};
+      BtnSlot reused{&card, &music, &idle};
+      apply_button_colors(&card, true, 0x6633B9, true, 0xFFEC16);
+      reset_card_slot_dynamic_children(reused);
+      for (auto *label : {&music, &idle}) {
+        assert(!lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2));
+        assert(label->text[0] == display_text_color_for_bg(0xFFEC16));
+      }
+      send_event(&card, LV_EVENT_RELEASED);
+      assert(music.text[0] == display_text_color_for_bg(0xFFEC16));
       cover.custom_fallback_background = false;
       media_cover_art_apply_theme(&cover, *theme);
       assert(card.background[0] == theme->surface_card);
