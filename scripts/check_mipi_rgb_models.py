@@ -22,6 +22,7 @@ from esphome.const import (
 )
 
 from components.mipi_rgb import models
+from scripts.local_esphome import pinned_esphome_version
 
 
 ALL_TRANSFORMS = (CONF_MIRROR_X, CONF_MIRROR_Y, CONF_SWAP_XY)
@@ -35,6 +36,10 @@ def load_models() -> dict[str, DriverChip]:
 
 
 def main() -> int:
+    expected = pinned_esphome_version()
+    if ESPHOME_VERSION != expected:
+        print(f"ESPHome {expected} is required by .github/esphome.env; imported {ESPHOME_VERSION}.")
+        return 1
     registered_models = load_models()
     if not registered_models:
         print("No MIPI RGB models were registered.")
