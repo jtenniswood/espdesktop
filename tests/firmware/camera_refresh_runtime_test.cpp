@@ -19,14 +19,20 @@ using lv_coord_t = int;
 using lv_obj_t = int;
 int tile_requests = 0, modal_requests = 0;
 struct FakeImage {
+  esphome::artwork_image::ImageResizeMode resize_mode = esphome::artwork_image::ImageResizeMode::COVER;
+  int width = 100, height = 100, releases = 0;
   std::string url;
   bool cancelled = false, active = false, reject_url = false;
   bool has_image() const { return true; }
   const std::string &get_url() const { return url; }
   bool request_is_active() const { return active; }
   void cancel_update() { cancelled = true; active = false; }
-  void set_target_size(int, int) {}
-  void set_resize_mode(esphome::artwork_image::ImageResizeMode) {}
+  void set_target_size(int w, int h) { width = w; height = h; }
+  int get_fixed_width() const { return width; }
+  int get_fixed_height() const { return height; }
+  auto get_resize_mode() const { return resize_mode; }
+  void set_resize_mode(esphome::artwork_image::ImageResizeMode mode) { resize_mode = mode; }
+  void release() { ++releases; }
   std::string request_update_url(const std::string &value, int) {
     ++tile_requests;
     if (reject_url) return "";
@@ -37,6 +43,8 @@ struct FakeImage {
 };
 struct ImageCardCtx {
   bool active = true, media_artwork = false, image_ready = true;
+  bool modal_fit = false;
+  uint32_t fit_background_color = 0;
   bool diagnostics_enabled = false, remote_icon = false;
   lv_obj_t *fallback_icon_label = nullptr;
   uint32_t camera_retry_after_ms = 0;
@@ -85,6 +93,7 @@ lv_obj_t *image_card_loading_widget(lv_obj_t *) { return nullptr; }
 void image_card_position_widget(lv_obj_t *, lv_obj_t *) {}
 void image_card_refresh_loading_layout(lv_obj_t *) {}
 void image_card_hide_loading(ImageCardCtx *) {}
+void image_card_clear_widget_source(lv_obj_t *) {}
 bool image_card_memory_available(ImageCardCtx *, const char *, int, int) { ++memory_checks; return enough_memory; }
 void image_card_tile_request_size(int width, int height, int *w, int *h) { *w=width; *h=height; }
 std::string image_card_sized_url(const std::string &url, int, int) { return url; }
@@ -144,7 +153,7 @@ void reset() {
   contexts[1].active = false;
   active_download = nullptr;
   enough_memory = true; memory_checks = 0;
-  tile.cancelled = modal.cancelled = false;
+  tile = {}; modal = {};
   tile.reject_url = modal.reject_url = false;
   image_card_page_visible() = nullptr;
   contexts[0].image = &tile;
@@ -161,6 +170,42 @@ void finish_tile() {
   ctx.revision.tile_applied = ctx.revision.tile_requested;
 }
 int main() {
+  // The saved full-image choice must reach the actual tile download, including
+  // after a previously cropped image has been cached at the same card size.
+  for (const auto *entity : {"camera.test", "image.test"}) {
+    reset();
+    auto &card = contexts[0];
+    card.entity_id = entity;
+    card.modal_fit = true;
+    const auto previous_mode = tile.get_resize_mode();
+    tile.set_resize_mode(image_card_tile_resize_mode(&card));
+    assert(image_card_reset_cached_tile_if_changed(&card, 100, 100, previous_mode, 0));
+    assert(!card.image_ready && !card.requested_once && card.last_download_completed_ms == 0);
+    assert(tile.releases == 1 && !card.source_url.empty());
+    image_card_handle_picture(&card, card.source_url);
+    assert(tile_requests == 1 && tile.get_resize_mode() == esphome::artwork_image::ImageResizeMode::FIT);
+    finish_tile();
+    card.image_ready = true;
+    assert(!image_card_reset_cached_tile_if_changed(&card, 100, 100, tile.get_resize_mode(), 0));
+    assert(tile.releases == 1);
+    // An unchanged fitted image must be decoded again after its surface color changes.
+    card.fit_background_color = 0x304860;
+    assert(image_card_reset_cached_tile_if_changed(&card, 100, 100, tile.get_resize_mode(), 0));
+    assert(tile.releases == 2 && !card.image_ready);
+    card.image_ready = true;
+    assert(!image_card_reset_cached_tile_if_changed(
+      &card, 100, 100, tile.get_resize_mode(), card.fit_background_color));
+    card.modal_fit = false;
+    const auto fitted_mode = tile.get_resize_mode();
+    tile.set_resize_mode(image_card_tile_resize_mode(&card));
+    assert(image_card_reset_cached_tile_if_changed(
+      &card, 100, 100, fitted_mode, card.fit_background_color));
+    image_card_handle_picture(&card, card.source_url);
+    assert(tile_requests == 2 && tile.get_resize_mode() == esphome::artwork_image::ImageResizeMode::COVER);
+  }
+  reset();
+  contexts[0].media_artwork = contexts[0].modal_fit = true;
+  assert(image_card_tile_resize_mode(&contexts[0]) == esphome::artwork_image::ImageResizeMode::COVER);
   reset();
   auto &ctx = contexts[0];
   for (const auto mode : {espdesktop::camera::RefreshMode::PERIODIC, espdesktop::camera::RefreshMode::ACTIVITY}) {
