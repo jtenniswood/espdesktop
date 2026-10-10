@@ -189,7 +189,7 @@ export function createConfigCodecFeature(
         );
     }
     function cardSupportsExtraLargeSize(this: any, b?: any) {
-        return cardRequiresSquareSize(b) || cardIsWifiSharing(b);
+        return cardRequiresSquareSize(b) || cardIsWifiSharing(b) || cardSupportsMaxSize(b);
     }
     function cardSupportsMaxSize(this: any, b?: any) {
         return !!(b && b.type === "image");
@@ -405,8 +405,8 @@ export function createConfigCodecFeature(
             return;
         b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
     }
-    function normalizeSavedConfigImageOptions(this: any, options?: any, _b?: any) {
-        return normalizeImageOptions(options || "");
+    function normalizeSavedConfigImageOptions(this: any, options?: any, b?: any) {
+        return normalizeImageOptions(options || "", b && b.entity);
     }
     function normalizeSavedConfigClimateFields(this: any, b?: any) {
         if (!b)
@@ -708,7 +708,7 @@ export function createConfigCodecFeature(
             options = normalizePresenceOptions(options);
         }
         else if (type === "image") {
-            options = normalizeImageOptions(options);
+            options = normalizeImageOptions(options, b && b.entity);
         }
         else if (type === "wifi_qr" || type === "wifi_qr_card") {
             var wifiButton: any = EspDesktopModel.cloneCardConfig(b || {});
