@@ -131,11 +131,19 @@ int media_control_volume_max_pct(MediaControlCtx *) { return 100; }
 size_t lv_obj_get_child_cnt(lv_obj_t *obj) { return obj->children.size(); }
 lv_obj_t *lv_obj_get_child(lv_obj_t *obj, size_t index) { return obj->children[index]; }
 '''
+source += r'''
+std::string focused_app;
+bool focus_allowed = true;
+bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
+std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
+bool companion_action_active(const std::string &id) { return id == focused_app; }
+'''
 grid = (headers / "button_grid_grid.h").read_text()
 
 groups = (
     ("button_grid_display.h", "", ("display_correct_color",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
+    ("companion_controls.h", "", ("companion_apply_card_focus",)),
     ("button_grid_grid.h", "", ("card_palette_for_config",)),
     ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
     ("button_grid_weather_driver.h", "espdesktop::cards", ("weather_driver_apply_background",)),
@@ -275,6 +283,16 @@ int main() {
           assert(value.text[0] == display_text_color_for_bg(colour.active));
           set_card_checked_state(&button, false);
           assert(value.text[0] == colour.text);
+          focused_app = "app"; focus_allowed = true;
+          companion_apply_card_focus(&button, "app");
+          assert(value.text[0] == display_text_color_for_bg(colour.active));
+          focused_app.clear(); companion_apply_card_focus(&button, "app");
+          assert(value.text[0] == colour.text);
+          focused_app = "browser"; companion_apply_card_focus(&button, "app", "url.page");
+          assert(value.text[0] == display_text_color_for_bg(colour.active));
+          focus_allowed = false; companion_apply_card_focus(&button, "app", "url.page");
+          assert(value.text[0] == colour.text);
+          focus_allowed = true; focused_app.clear();
           for (const char *state : {"42", "0", "42"}) {
             apply_sensor_active_color(&button, true, esphome::StringRef(state), palette.on_val, palette.sensor_val, false, true, true);
             const auto expected = std::string(state) == "0" ? colour.base : colour.active;
