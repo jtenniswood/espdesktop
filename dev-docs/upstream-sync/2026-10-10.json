@@ -4448,7 +4448,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2067",
       "mergeSha": "377d2d381c43a46c62eb98b64a30ab009d8fd021",
       "disposition": "Ported",
-      "evidence": "Endpoint discovery/probe/health and transfer outcomes ported while preserving Companion owned images. Automatic mode never preserves manual origins; immediate cached/local/fallback/token reads arm retries before callbacks. Full fast77 host/product/browser/boot resolver checks passed; actual owned-buffer and synchronous/asynchronous runtime regressions passed. Rebased final camera preemption/memory corrections, production tests rechecked. Historical3-target compiles passed; final builds queued. Final hidden-image camera parent rebased; actual camera feedback/runtime regressions rechecked after combining retained-read and visibility tests. Cached access-token callback deadline now armed before retained read; actual cached/pending recursive callbacks tested. Full fast77 host/172 web passed before parent update, production regressions passed after rebase. Same-peer reconnect retains verified nondefault artwork origin when discovery is empty, while preserving discovered-candidate priority and clearing origins on peer change. Actual resolver/camera tests and fullfast passed; review resolved. Cache verified endpoint with its peer across real configure(empty) disconnect-first path; publishempty while disconnected, restoreONLYsamepeer, clearcacheonpeer/protocol/port/manual-policychanges. Actualnormaldisconnect/reconnect/newpeer regression and fullfast77host172webPASS; Gthsresolved. Currentparentchain updatedwithcamera cadence andonboarding guard; finalchainvalidatedbeforelaterSharedSpeakerParent correction. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision. Reviews HgcR/HkuI resolved: healthy routes reselect changed valid advertisements; different-peer reconnect clears the route immediately, and a pending-peer guard prevents actual origin-change callbacks using the old YAML address from restoring it. Production resolver scenarios and final full fast checks passed (77 host/172 web). Hr20 resolved: successful tokenized artwork now records its peer, origin and source as verified, retaining a working non-default route after same-peer reconnect even when manifest access is denied. Production resolver regression and full fast checks passed (77 host/172 web).",
+      "evidence": "Artwork endpoint discovery ported with peer-bound authenticated-origin caching, stale-peer callback guards and refreshed mDNS advertisement selection. Full required CI and all three final-revision representative firmware builds passed at 9bf72fef6. Physical Home Assistant reconnect and artwork testing remains pending; earlier fixes and checks are retained in the JSON validation history.",
       "changedFiles": [
         "common/config/entity_names.yaml",
         "common/device/core_infra.yaml",
@@ -4941,7 +4941,10 @@
         "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
         "checkedAt": "2026-10-10T22:57:54.449634+00:00",
         "unresolvedThreads": []
-      }
+      },
+      "validationHistory": [
+        "Endpoint discovery/probe/health and transfer outcomes ported while preserving Companion owned images. Automatic mode never preserves manual origins; immediate cached/local/fallback/token reads arm retries before callbacks. Full fast77 host/product/browser/boot resolver checks passed; actual owned-buffer and synchronous/asynchronous runtime regressions passed. Rebased final camera preemption/memory corrections, production tests rechecked. Historical3-target compiles passed; final builds queued. Final hidden-image camera parent rebased; actual camera feedback/runtime regressions rechecked after combining retained-read and visibility tests. Cached access-token callback deadline now armed before retained read; actual cached/pending recursive callbacks tested. Full fast77 host/172 web passed before parent update, production regressions passed after rebase. Same-peer reconnect retains verified nondefault artwork origin when discovery is empty, while preserving discovered-candidate priority and clearing origins on peer change. Actual resolver/camera tests and fullfast passed; review resolved. Cache verified endpoint with its peer across real configure(empty) disconnect-first path; publishempty while disconnected, restoreONLYsamepeer, clearcacheonpeer/protocol/port/manual-policychanges. Actualnormaldisconnect/reconnect/newpeer regression and fullfast77host172webPASS; Gthsresolved. Currentparentchain updatedwithcamera cadence andonboarding guard; finalchainvalidatedbeforelaterSharedSpeakerParent correction. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision. Reviews HgcR/HkuI resolved: healthy routes reselect changed valid advertisements; different-peer reconnect clears the route immediately, and a pending-peer guard prevents actual origin-change callbacks using the old YAML address from restoring it. Production resolver scenarios and final full fast checks passed (77 host/172 web). Hr20 resolved: successful tokenized artwork now records its peer, origin and source as verified, retaining a working non-default route after same-peer reconnect even when manifest access is denied. Production resolver regression and full fast checks passed (77 host/172 web)."
+      ]
     },
     {
       "body": "## Summary\n\n- Use the known working comma-separated Sonos discovery template in the Standard Integrations section.\n- Keep the Music Assistant versioned JSON example and clarify the difference between the two formats.\n\n## Validation\n\n- `git diff --check` passed.\n- The supplied template is reported to work; no Home Assistant or device testing was run for this documentation-only change.\n",
@@ -5439,18 +5442,42 @@
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2073-9f4d92ef1-final-review-esp32-p4-86.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/98c02cbb08466a7e8783d7564f7caaaff356bb576e0c33fe7ca1c18f35c78793.log.gz",
+          "logSha256": "98c02cbb08466a7e8783d7564f7caaaff356bb576e0c33fe7ca1c18f35c78793",
+          "archiveSha256": "c266de03a1de25d319690415406a1873bce1e5186926c5d058c579bedfab09ab"
         },
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2073-9f4d92ef1-final-review-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/2e2a610a3ba6bd1e0475914eabafdd07504b284945674efff30f9d47d75c5027.log.gz",
+          "logSha256": "2e2a610a3ba6bd1e0475914eabafdd07504b284945674efff30f9d47d75c5027",
+          "archiveSha256": "2b1ed4da0664bc2e4ee8802dd90f83dd1237167c8d898ae2605357e715734ca4"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
@@ -9855,7 +9882,7 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "df8cbfc69cb9e421b7e36f86c7938987d75d5301",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2182-df8cbfc69-declaration-final-guition-esp32-s3-4848s040.log",
           "device": "guition-esp32-s3-4848s040",
           "esphome": "2026.9.1"
