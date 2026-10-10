@@ -163,6 +163,33 @@ void finish_tile() {
 int main() {
   reset();
   auto &ctx = contexts[0];
+  for (const auto mode : {espdesktop::camera::RefreshMode::PERIODIC, espdesktop::camera::RefreshMode::ACTIVITY}) {
+    reset(); ctx.entity_id = "camera.test";
+    ctx.image_ready = true; ctx.requested_once = true;
+    ctx.refresh_schedule.mode = mode;
+    ctx.refresh_schedule.begin(esphome::now, false);
+    ctx.refresh_schedule.next_due = esphome::now + 10000;
+    image_card_handle_picture(&ctx, "http://ha/new-token");
+    assert(ctx.source_url == "http://ha/new-token" && tile_requests == 0);
+    esphome::now += 10000;
+    if (mode == espdesktop::camera::RefreshMode::ACTIVITY) {
+      image_card_handle_picture(&ctx, "http://ha/idle-token");
+      assert(tile_requests == 0 && ctx.source_url == "http://ha/idle-token");
+      ctx.refresh_schedule.activate(esphome::now);
+    }
+    image_card_handle_picture(&ctx, "http://ha/due-token");
+    assert(tile_requests == 1);
+    finish_tile(); ctx.image_ready = true;
+    ctx.last_download_completed_ms = esphome::now;
+    ctx.explicit_picture_refresh = true;
+    image_card_handle_picture(&ctx, ctx.source_url);
+    assert(tile_requests == 2); // Explicit reload bypasses cadence and recent-frame suppression.
+    reset(); ctx.entity_id = "camera.test"; ctx.image_ready = false;
+    ctx.refresh_schedule.mode = mode;
+    image_card_handle_picture(&ctx, "http://ha/initial-token");
+    assert(tile_requests == 1); // First frame still loads with an idle activity window.
+  }
+  reset();
   // Maintenance can open periodic mode while the initial ordinary request runs.
   ctx.entity_id = "camera.test"; ctx.image_ready = false;
   ctx.last_download_completed_ms = 0;
