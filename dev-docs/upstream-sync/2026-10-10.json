@@ -2601,8 +2601,8 @@
       "title": "Open modals and subpages from Home Assistant",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2008",
       "mergeSha": "a7d43cbf0cbb52e3d6102f6dccff7d0d9b91abd7",
-      "disposition": "Port in progress",
-      "evidence": "Remote modal/subpage actions port being validated on camera foundation. Production resolver/driver/lifecycle regression and HA guard self-tests passed; device capabilities/packages being regenerated before full fast graph. Source1920 remote-modal harness fixes now included.",
+      "disposition": "Ported",
+      "evidence": "Separate dependent feature port on #154. All fast checks including75 firmware host tests passed; production resolver/driver/lifecycle and HA guard self-tests passed. Device capabilities/packages, destination assets/snapshot and docs regenerated. Includes deferred #1920 modal harness changes. Full representative compiles queued; physical tests pending.",
       "changedFiles": [
         "common/device/api_navigate.yaml",
         "common/device/api_open_modal.yaml",
@@ -2652,7 +2652,35 @@
         "tests/firmware/remote_modal_test.py"
       ],
       "branch": "add-remote-modal-navigation",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/156",
+      "revision": "c38e089cedf226d9f175ab7d9461f5611fe46b11",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "c38e089cedf226d9f175ab7d9461f5611fe46b11",
+          "esphome": "2026.9.1",
+          "status": "running",
+          "log": "/private/tmp/2008-final-firmware-guition-esp32-s3-4848s040.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "c38e089cedf226d9f175ab7d9461f5611fe46b11",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2008-final-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "c38e089cedf226d9f175ab7d9461f5611fe46b11",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2008-final-firmware-guition-esp32-p4-jc4880p443.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nMedia titles such as `RAINING IN \uff2f\uff33\uff21\uff2b\uff21 \ud83c\udf27\ufe0f` currently show missing-glyph boxes. This change displays `RAINING IN OSAKA` by converting fullwidth ASCII forms to ordinary text and omitting emoji sequences, without adding font glyphs.\n\n## Practical impact\n\n- Apply the same display-only cleanup to Now Playing cards, the expanded media player, and the Cover Art screensaver.\n- Preserve supported accented, Greek, and Cyrillic text, existing S-with-dot-below fallback, and ordinary digits, `#`, `*`, `\u00a9`, `\u00ae`, and `\u2122`. Other scripts still depend on existing font coverage; this is not universal Unicode font support.\n- Remove joined emoji, modifiers, flags, keycaps, and emoji presentation controls. Bound artist text at complete UTF-8 characters.\n- Preserve original metadata for track identity and artwork updates. No Home Assistant values, actions, or font sizes change.\n- Include a compact generated Unicode 17.0 emoji table, its regeneration script and license, and regression tests that compile production media renderers.\n\nRelated context: #1270 (missing media-title characters) and #423 (emoji font memory constraints). This does not add emoji rendering or close either issue.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated the Media card documentation and developer font guidelines. Updated generated check-matrix documentation for the new test inputs.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- Shared media rendering affects all supported displays. The contributor tested the fix on a Guition ESP32-S3 4848S040 (4-inch square) and reported that it works perfectly. Other display models have not been physically tested for this change.\n- This successful device test predates the final upstream synchronization. The synchronized branch includes upstream's S3 LVGL buffer update; the final head has not been re-flashed as part of submission preparation.\n\nValidation results:\n\n- **PASS:** Guition 4848S040 factory firmware compiled with pinned ESPHome 2026.9.0 / ESP-IDF 5.5.5. Used `builds/guition-esp32-s3-4848s040.factory.yaml` in an isolated Linux checkout with local component/font path substitutions. Flash usage 67.2%; static RAM usage 60.7%. No device was flashed during submission preparation.\n- **PASS:** Full host firmware test suite, including `media_display_text_test` and `media_display_integration_test`; web unit tests; generated outputs; product/schema/configuration checks; Cover Art contract checks.\n- **PASS:** All six firmware UI playbook checks: parser, modals, modal layouts, card runtime, display tokens, and Home Assistant bindings (including guard self-tests). Updated the existing binding guard to recognize and enforce the new display-only normalization path.\n- **PASS:** Documentation build.\n- **KNOWN BASELINE FAILURE:** `npm run check:ci` stops at `scripts/check_web_smoke.js:711`, assertion `date preview follows selected language month names`. Reproduced under Node.js 24.21.0 on both this branch and unchanged upstream `b32be4c76` in the same environment. No web preview code is changed by this PR. Consequently, the complete CI profile is not claimed as passing; checks after that failure were not all run. The firmware playbook checks and docs build above were run separately.\n\n## Notes for testing\n\nBased on the repository's generated device-testing guidance:\n\n1. Compile and flash this branch for the target display. Confirm normal boot, touch, and navigation.\n2. Play https://www.youtube.com/watch?v=MZhivjxcF-M and confirm `RAINING IN OSAKA` appears without emoji or missing-glyph boxes.\n3. Check Now Playing, the expanded player, and the Cover Art screensaver for consistent text, layout, and icons.\n4. Check supported accented/Greek/Cyrillic text, emoji-only titles, joined emoji, flags, keycaps, and long artist names. Emoji-only titles use the view's existing empty-title fallback.\n5. Change tracks and confirm title, artist, artwork, progress, and playback controls continue updating.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -2703,6 +2731,30 @@
           "esphome": "2026.9.1",
           "status": "passed",
           "log": "/private/tmp/2031-external-firmware-s3.log"
+        },
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "2729945b2db3f05054c319d385a26294207d7c58",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2031-final-firmware-guition-esp32-s3-4848s040.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "2729945b2db3f05054c319d385a26294207d7c58",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2031-final-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "2729945b2db3f05054c319d385a26294207d7c58",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2031-final-firmware-guition-esp32-p4-jc4880p443.log"
         }
       ]
     },
@@ -2718,7 +2770,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
       "disposition": "Ported",
-      "evidence": "Separate ready feature port; all fast-profile checks including74 firmware host tests,172 web tests, config/backup/model/generated/types and7-inch browser refresh settings passed. Primary contracts and destination assets/snapshot regenerated; maintainer docs passed. Companion webapp icon and S3 camera paths retained. Representative compiles/physical tests pending; source remote-modal fixture will be adapted with #2008.",
+      "evidence": "Separate ready feature port; all fast-profile checks including74 firmware host tests,172 web tests, config/backup/model/generated/types and7-inch browser refresh settings passed. Primary contracts and destination assets/snapshot regenerated; maintainer docs passed. Companion webapp icon and S3 camera paths retained. Representative compiles/physical tests pending; source remote-modal harness corrections now included with destination #156.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -2761,7 +2813,39 @@
       ],
       "branch": "add-camera-refresh-settings",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
-      "revision": "8208ec758"
+      "revision": "8208ec758",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "8208ec758b0cd1c8e363737332695572a678d836",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/1920-final-firmware-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "63585daef4d0679319daf9289b02c5466b6364a3724439416205e510aab756d0",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "8208ec758b0cd1c8e363737332695572a678d836",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/1920-final-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "8208ec758b0cd1c8e363737332695572a678d836",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/1920-final-firmware-guition-esp32-p4-jc4880p443.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\n- Home Assistant `image.*` entities report their image-update timestamp as the entity state, while the `/api/image_proxy/` URL only changes when the access token rotates (every 5 minutes). The camera card treated a same-URL state update like any other repeat and held it behind the 30-second refresh guard (`IMAGE_CARD_MIN_REPEAT_REFRESH_MS`), so an image entity that Home Assistant updates every few seconds looked frozen on the panel: one download per token rotation plus at most one per 30 seconds.\n- Track the timestamp per image card (`image_entity_revision.h`). A new timestamp is a pending revision that bypasses the recent-refresh guard once, then is acknowledged when the tile or expanded-view download is issued. Repeated timestamps, `unknown`/`unavailable`, token rotation and camera entities keep the existing behaviour.\n- This is a small subset of the image-revision semantics in #1920, kept independent so it can land on its own and so the 4-inch S3 (which has camera cards since v2.10.0) gets it too. Fixes the \"picture does not update often\" case for image entities described in #1921.\n\n## Practical impact\n\n- An `image.*` camera card follows the entity's own update rate. On a Guition 4848S040 with a template image that refreshes every 10 seconds, the tile now reloads every 10 seconds instead of once a minute (verified by the panel log: `Downloading camera image for image.\u2026` every state change, no `Skipping recent image refresh`).\n- Nothing changes for `camera.*` entities, media cover art, or image entities whose state does not change.\n- No new settings, saved options, web configurator or backup changes.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- `docs/card-types/cameras.md`: added the image-entity bullet under \"How It Works on the Panel\" and extended the \"picture does not update often\" troubleshooting row.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- All camera-card displays; the change is in the shared `button_grid_image.h`. Device-tested on Guition 4848S040 (4-inch S3). P4 displays not tested by me.\n\n## Notes for testing\n\n- Host tests: new `image_entity_revision_test` passes; `firmware-card-runtime`, `firmware-parser`, `firmware-ha-bindings`, `generated`, `card-contract-outputs`, `dev-docs`, `docs-build`, `memory-monitor`, `camera-test-endpoint`, `pr-process`, `pr-testing-guidance` pass. (On macOS/clang seven pre-existing host tests fail identically on `main` because of `-Wunused-variable` under `-Werror`; not related.)\n- Firmware: `builds/guition-esp32-s3-4848s040.factory.yaml` compiled with the pinned ESPHome 2026.9.0 image and flashed OTA to a 4848S040.\n- To reproduce: a template `image` entity with a `time_pattern` trigger every 10 seconds on a Camera card; watch the panel log (`/events`) for `image_card: Downloading camera image` every 10 seconds while the card is visible, and `Skipping recent image refresh` no longer appearing for that entity. Token rotation still downloads as before.\n\n## PR status\n\n- [ ] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [x] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n",
@@ -2795,7 +2879,39 @@
       "branch": "retry-recovered-image-entities",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
-      "revision": "2ba472188"
+      "revision": "2ba472188",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "2ba472188ea4b35bb672718bb71a5ca73e077a69",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2062-final-firmware-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "e7573f623c1dcc50c0ba7715013b170c54a1468e97afb25e74496aede862dcce",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241"
+          }
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "2ba472188ea4b35bb672718bb71a5ca73e077a69",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2062-final-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "2ba472188ea4b35bb672718bb71a5ca73e077a69",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2062-final-firmware-guition-esp32-p4-jc4880p443.log"
+        }
+      ]
     },
     {
       "body": "## Purpose\nAllow cover art and camera cards to use larger tile spans, including rectangular layouts, while limiting the size menu to spans supported by each device grid.\n\n## Practical impact\nCover art can grow beyond square-only sizes. Camera and cover art size menus now avoid offering spans larger than the active device's row and column count.\n\n## How it was checked\n- Config compatibility and web migration baseline checks passed locally.\n- GitHub CI and docs build passed on the latest commit.\n- Physical display testing is still needed.\n\n## Manual testing\nOn a 7-inch display, open the card size menu for a Cover Art card and a Camera card. Confirm 2x2 and the larger sizes that fit the grid can be selected and saved. Repeat on a smaller device and confirm sizes larger than its grid are not offered.\n\nRelated to #2064. Leave the issue open until the fix has been tested on a display.",
@@ -3275,7 +3391,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2089",
       "mergeSha": "4606e8113920c6e3f5594fb711313430e6a0db9b",
       "disposition": "Ported",
-      "evidence": "Separate dependent port on #152; all fast-profile checks including73 host tests, production callback/order/idle-action regressions and parent-behavior mutation passed. Onboarding guard retained; docs passed. Representative firmware and physical testing pending.",
+      "evidence": "Separate dependent port on #152; all fast-profile checks including73 host tests, production callback/order/idle-action regressions and parent-behavior mutation passed. Onboarding guard retained; docs passed. Representative firmware and physical testing pending. Time-loss review fixed and mutation/regressions passed at95eb25d15; queue updated for that final revision.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "dev-docs/display-lifecycle.md",
@@ -3285,7 +3401,33 @@
       "branch": "handoff-night-clock-to-idle",
       "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/152",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/153",
-      "revision": "982653e44"
+      "revision": "95eb25d15",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "95eb25d15867eafe62fee23e23f7cc5c407d2f77",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2089-final-firmware-guition-esp32-s3-4848s040.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "95eb25d15867eafe62fee23e23f7cc5c407d2f77",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2089-final-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "95eb25d15867eafe62fee23e23f7cc5c407d2f77",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2089-final-firmware-guition-esp32-p4-jc4880p443.log"
+        }
+      ]
     },
     {
       "body": "## Purpose\nRestore the three voice audio files that older `esp32-p4-86` package versions download from `main`.\n\n## Impact\nUsers still building a release such as `v2.11.0` can resolve the wake chime, timer alert, and STT failure chime URLs after the files were removed with voice support. Current firmware configuration stays unchanged.\n\n## Checks\n- Confirmed all three files match the assets from `v2.11.0`.\n- ESPHome 2026.9.0 compiled the PR checkout's `devices/esp32-p4-86/dev.yaml` and OTA flashed the 4-inch P4 at `192.168.6.104` successfully; the device responded to ping after reboot.\n- The legacy `v2.11.0` package reproduction still needs verification after this PR is merged, when its `main` URLs will resolve to these restored assets.\n- Existing cover-art code emitted two deprecation warnings; compilation and upload succeeded.",
@@ -4318,6 +4460,46 @@
           "esphome": "2026.9.1",
           "status": "passed",
           "log": "/private/tmp/2136-firmware-s3.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "158f27e56e0377848546d837d886aa3643bc811f",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2136-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "158f27e56e0377848546d837d886aa3643bc811f",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/2136-firmware-guition-esp32-p4-jc4880p443.log"
+        },
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2136-final-firmware-guition-esp32-s3-4848s040.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2136-final-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
+          "esphome": "2026.9.1",
+          "status": "planned",
+          "log": "/private/tmp/2136-final-firmware-guition-esp32-p4-jc4880p443.log"
         }
       ]
     },
@@ -5063,8 +5245,7 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 34,
-    "Port in progress": 1,
+    "Ported": 35,
     "Needs review": 25
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
