@@ -47,6 +47,7 @@ struct ImageCardCtx {
   lv_obj_t *widget = nullptr, *btn = nullptr;
   uint32_t retry_deadline_ms = 0, last_tile_request_started_ms = 0;
   uint32_t access_token_request_started_ms = 0;
+  std::string pending_fallback_picture;
   std::string entity_id = "image.test", source_url = "http://ha/image?token=old", url, access_token;
   uint8_t media_artwork_retry_mask = 0;
   uint32_t last_download_completed_ms = 99000, next_picture_retry_ms = 0, next_download_retry_ms = 0;
@@ -105,12 +106,24 @@ bool image_card_has_separate_modal_image(ImageCardCtx *) { return true; }
 std::string string_ref_limited(const std::string &s, size_t n) { return s.substr(0, n); }
 std::string image_card_base_url(ImageCardCtx *) { return "http://ha"; }
 std::string image_card_join_url(const std::string &, const std::string &s) { return s; }
-std::string image_card_entity_proxy_path(const std::string &) { return ""; }
+bool use_proxy = false, prefer_local = false;
+std::string image_card_entity_proxy_path(const std::string &) { return use_proxy ? "/camera" : ""; }
+bool image_card_prefer_local_picture(ImageCardCtx *) { return prefer_local; }
 std::string image_card_proxy_path_with_token(const std::string &s, const std::string &) { return s; }
-bool image_card_valid_access_token(const std::string &) { return true; }
+bool image_card_valid_access_token(const std::string &token) { return !token.empty(); }
 bool image_card_home_assistant_proxy_authed(const std::string &) { return true; }
-bool ha_read_retained_attribute(const std::string &, const std::string &,
-                                std::function<void(std::string)>, void * = nullptr) {
+bool cached_read = false, pending_read = false;
+std::function<void(std::string)> deferred_picture;
+int picture_reads = 0;
+bool ha_read_retained_attribute(const std::string &, const std::string &attribute,
+                                std::function<void(std::string)> callback, void *owner = nullptr) {
+  assert(owner == &contexts[0]);
+  ++picture_reads;
+  if (cached_read) {
+    callback(attribute == "entity_picture_local" ? "" : "http://ha/image?token=cached");
+    return true;
+  }
+  if (pending_read) { deferred_picture = callback; return true; }
   return false;
 }
 void image_card_log_diagnostics(ImageCardCtx *, const char *, int = 0, int = 0) {}
@@ -120,7 +133,8 @@ void image_card_set_loading_state(ImageCardCtx *, const char *, bool = false) {}
 void image_card_show_camera_unavailable(ImageCardCtx *) {}
 bool image_card_startup_retry_active(ImageCardCtx *, uint32_t = 0) { return false; }
 bool image_card_access_token_request_expired(const ImageCardCtx *, uint32_t = 0) { return false; }
-void image_card_wait_for_picture(ImageCardCtx *) {}
+void image_card_wait_for_picture(ImageCardCtx *ctx) { ctx->next_picture_retry_ms = esphome::now + 2000; }
+void image_card_request_picture(ImageCardCtx *);
 void image_card_schedule_picture_retry(ImageCardCtx *ctx, uint32_t delay) { ctx->next_picture_retry_ms = esphome::now + delay; }
 void image_card_schedule_source_refresh(ImageCardCtx *ctx, uint32_t delay, const char *) { ctx->next_download_retry_ms = esphome::now + delay; }
 void image_card_request_source_url(ImageCardCtx *ctx, bool source_changed = false);
@@ -145,6 +159,8 @@ void image_card_request_current_picture(ImageCardCtx *) {}
 #include "camera_refresh_runtime_functions.h"
 
 void reset() {
+  cached_read = pending_read = prefer_local = use_proxy = false;
+  deferred_picture = {}; picture_reads = 0;
   contexts[0] = {};
   contexts[1] = {};
   contexts[1].active = false;
@@ -244,6 +260,26 @@ int main() {
   image_card_refresh_due(); assert(tile_requests == 1);
   ++esphome::now;
   image_card_refresh_due(); assert(tile_requests == 2);
+
+  reset();
+  // Real retained reads may deliver cached results during the request call.
+  cached_read = true;
+  image_card_request_picture(&ctx);
+  assert(ctx.next_picture_retry_ms == 0 && picture_reads == 1);
+  reset(); cached_read = true; prefer_local = true;
+  image_card_request_picture(&ctx);
+  assert(ctx.next_picture_retry_ms == 0 && picture_reads == 2); // local then fallback
+  reset(); cached_read = true; use_proxy = true;
+  image_card_request_picture(&ctx);
+  assert(ctx.next_picture_retry_ms == 0 && !ctx.access_token_request_pending);
+  reset(); pending_read = true;
+  image_card_request_picture(&ctx);
+  assert(ctx.next_picture_retry_ms == esphome::now + 2000 && deferred_picture);
+  deferred_picture("http://ha/image?token=async");
+  assert(ctx.next_picture_retry_ms == 0);
+  reset(); // Rejected/pending reads still get the normal retry deadline.
+  image_card_request_picture(&ctx);
+  assert(ctx.next_picture_retry_ms == esphome::now + 2000);
 
   reset();
   ctx.revision.observe("first");

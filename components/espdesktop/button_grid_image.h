@@ -1958,6 +1958,7 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
     const uint32_t generation = ha_subscription_generation();
     ctx->access_token_request_pending = true;
     ctx->access_token_request_started_ms = esphome::millis();
+    image_card_wait_for_picture(ctx);
     bool requested = ha_read_retained_attribute(
       entity_id,
       std::string("access_token"),
@@ -1984,13 +1985,12 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
       ctx->access_token_request_started_ms = 0;
       image_card_log_diagnostics(ctx, "picture-attribute-request-queued");
       image_card_wait_for_picture(ctx);
-    } else {
-      image_card_wait_for_picture(ctx);
     }
     return;
   }
   if (image_card_prefer_local_picture(ctx)) {
     const uint32_t generation = ha_subscription_generation();
+    image_card_wait_for_picture(ctx);
     bool requested_local = ha_read_retained_attribute(
       entity_id,
       std::string("entity_picture_local"),
@@ -2009,6 +2009,7 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
             image_card_handle_picture(ctx, esphome::StringRef(fallback));
             return;
           }
+          image_card_wait_for_picture(ctx);
           bool fallback_requested = ha_read_retained_attribute(
             entity_id,
             std::string("entity_picture"),
@@ -2020,16 +2021,14 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
             ctx
           );
           if (!fallback_requested) image_card_handle_picture(ctx, picture);
-          else image_card_wait_for_picture(ctx);
         }),
       ctx
     );
-    if (requested_local) {
-      image_card_wait_for_picture(ctx);
-      return;
-    }
+    if (requested_local) return;
   }
   const uint32_t generation = ha_subscription_generation();
+  // Cached reads can deliver synchronously; the callback clears this wait.
+  image_card_wait_for_picture(ctx);
   bool requested = ha_read_retained_attribute(
     entity_id,
     std::string("entity_picture"),
@@ -2049,8 +2048,6 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
     ESP_LOGD("image_card", "Queued entity_picture retry for %s: connected=%d state_connected=%d",
              entity_id.c_str(), ha_api_connected(), ha_api_state_connected());
     image_card_log_diagnostics(ctx, "picture-retry-queued");
-    image_card_wait_for_picture(ctx);
-  } else if (requested) {
     image_card_wait_for_picture(ctx);
   }
 }
