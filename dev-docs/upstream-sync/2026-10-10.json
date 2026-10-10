@@ -2601,8 +2601,8 @@
       "title": "Open modals and subpages from Home Assistant",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2008",
       "mergeSha": "a7d43cbf0cbb52e3d6102f6dccff7d0d9b91abd7",
-      "disposition": "Needs review",
-      "evidence": "",
+      "disposition": "Port in progress",
+      "evidence": "Remote modal/subpage actions port being validated on camera foundation. Production resolver/driver/lifecycle regression and HA guard self-tests passed; device capabilities/packages being regenerated before full fast graph. Source1920 remote-modal harness fixes now included.",
       "changedFiles": [
         "common/device/api_navigate.yaml",
         "common/device/api_open_modal.yaml",
@@ -2650,7 +2650,9 @@
         "tests/firmware/media_lifecycle_integration_test.cpp",
         "tests/firmware/remote_modal_test.cpp.in",
         "tests/firmware/remote_modal_test.py"
-      ]
+      ],
+      "branch": "add-remote-modal-navigation",
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154"
     },
     {
       "body": "## Summary\n\nMedia titles such as `RAINING IN \uff2f\uff33\uff21\uff2b\uff21 \ud83c\udf27\ufe0f` currently show missing-glyph boxes. This change displays `RAINING IN OSAKA` by converting fullwidth ASCII forms to ordinary text and omitting emoji sequences, without adding font glyphs.\n\n## Practical impact\n\n- Apply the same display-only cleanup to Now Playing cards, the expanded media player, and the Cover Art screensaver.\n- Preserve supported accented, Greek, and Cyrillic text, existing S-with-dot-below fallback, and ordinary digits, `#`, `*`, `\u00a9`, `\u00ae`, and `\u2122`. Other scripts still depend on existing font coverage; this is not universal Unicode font support.\n- Remove joined emoji, modifiers, flags, keycaps, and emoji presentation controls. Bound artist text at complete UTF-8 characters.\n- Preserve original metadata for track identity and artwork updates. No Home Assistant values, actions, or font sizes change.\n- Include a compact generated Unicode 17.0 emoji table, its regeneration script and license, and regression tests that compile production media renderers.\n\nRelated context: #1270 (missing media-title characters) and #423 (emoji font memory constraints). This does not add emoji rendering or close either issue.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n\n- Updated the Media card documentation and developer font guidelines. Updated generated check-matrix documentation for the new test inputs.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n\n- Shared media rendering affects all supported displays. The contributor tested the fix on a Guition ESP32-S3 4848S040 (4-inch square) and reported that it works perfectly. Other display models have not been physically tested for this change.\n- This successful device test predates the final upstream synchronization. The synchronized branch includes upstream's S3 LVGL buffer update; the final head has not been re-flashed as part of submission preparation.\n\nValidation results:\n\n- **PASS:** Guition 4848S040 factory firmware compiled with pinned ESPHome 2026.9.0 / ESP-IDF 5.5.5. Used `builds/guition-esp32-s3-4848s040.factory.yaml` in an isolated Linux checkout with local component/font path substitutions. Flash usage 67.2%; static RAM usage 60.7%. No device was flashed during submission preparation.\n- **PASS:** Full host firmware test suite, including `media_display_text_test` and `media_display_integration_test`; web unit tests; generated outputs; product/schema/configuration checks; Cover Art contract checks.\n- **PASS:** All six firmware UI playbook checks: parser, modals, modal layouts, card runtime, display tokens, and Home Assistant bindings (including guard self-tests). Updated the existing binding guard to recognize and enforce the new display-only normalization path.\n- **PASS:** Documentation build.\n- **KNOWN BASELINE FAILURE:** `npm run check:ci` stops at `scripts/check_web_smoke.js:711`, assertion `date preview follows selected language month names`. Reproduced under Node.js 24.21.0 on both this branch and unchanged upstream `b32be4c76` in the same environment. No web preview code is changed by this PR. Consequently, the complete CI profile is not claimed as passing; checks after that failure were not all run. The firmware playbook checks and docs build above were run separately.\n\n## Notes for testing\n\nBased on the repository's generated device-testing guidance:\n\n1. Compile and flash this branch for the target display. Confirm normal boot, touch, and navigation.\n2. Play https://www.youtube.com/watch?v=MZhivjxcF-M and confirm `RAINING IN OSAKA` appears without emoji or missing-glyph boxes.\n3. Check Now Playing, the expanded player, and the Cover Art screensaver for consistent text, layout, and icons.\n4. Check supported accented/Greek/Cyrillic text, emoji-only titles, joined emoji, flags, keycaps, and long artist names. Emoji-only titles use the view's existing empty-title fallback.\n5. Change tracks and confirm title, artist, artwork, progress, and playback controls continue updating.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -2784,14 +2786,16 @@
       "title": "Retry image entity downloads after recovery",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2062",
       "mergeSha": "1adcca416a1831cc30d310f158a97a2508bda79b",
-      "disposition": "Port in progress",
-      "evidence": "Source recovery fix applied on #154; production subscription and retained-state regression added for unknown/unavailable\u2192same timestamp, duplicate suppression being validated.",
+      "disposition": "Ported",
+      "evidence": "Separate dependent port on #154. Actual subscription and retained-state tests recover unknown/unavailable entities with same timestamp and suppress healthy duplicates; regression rejects parent behavior. Camera refresh runtime, HA, maintainer docs and diff checks passed. Exact-revision firmware/physical tests pending.",
       "changedFiles": [
         "components/espcontrol/button_grid_image.h",
         "components/espcontrol/camera_refresh_policy.h"
       ],
       "branch": "retry-recovered-image-entities",
-      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154"
+      "dependsOnDestinationPr": "https://github.com/jtenniswood/espdesktop/pull/154",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/155",
+      "revision": "2ba472188"
     },
     {
       "body": "## Purpose\nAllow cover art and camera cards to use larger tile spans, including rectangular layouts, while limiting the size menu to spans supported by each device grid.\n\n## Practical impact\nCover art can grow beyond square-only sizes. Camera and cover art size menus now avoid offering spans larger than the active device's row and column count.\n\n## How it was checked\n- Config compatibility and web migration baseline checks passed locally.\n- GitHub CI and docs build passed on the latest commit.\n- Physical display testing is still needed.\n\n## Manual testing\nOn a 7-inch display, open the card size menu for a Cover Art card and a Camera card. Confirm 2x2 and the larger sizes that fit the grid can be selected and saved. Repeat on a smaller device and confirm sizes larger than its grid are not offered.\n\nRelated to #2064. Leave the issue open until the fix has been tested on a display.",
@@ -3070,7 +3074,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1792",
       "mergeSha": "ba9380223b37e43ecf2467a321dcedba822d654b",
       "disposition": "Ported",
-      "evidence": "Separate ready port; all fast-profile checks including73 host firmware tests passed with documented Mac host-tool setup. Production scheduling/backlight/ownership regressions and onboarding mutation, HA binding self-tests and docs passed. Physical testing and representative compiles pending.",
+      "evidence": "Separate ready port; all fast-profile checks including73 host firmware tests passed with documented Mac host-tool setup. Production scheduling/backlight/ownership regressions and onboarding mutation, HA binding self-tests and docs passed. Physical testing and representative compiles pending. All three exact-revision S3/7-inch P4/4.3-inch P4 factory builds passed.",
       "changedFiles": [
         "common/addon/backlight.yaml",
         "common/addon/backlight_schedule.yaml",
@@ -3089,7 +3093,33 @@
       ],
       "branch": "fix-scheduled-display-wake",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/152",
-      "revision": "98d8ad3e7"
+      "revision": "98d8ad3e7",
+      "firmwareBuilds": [
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/1792-firmware-guition-esp32-s3-4848s040.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/1792-firmware-guition-esp32-p4-jc1060p470.log"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
+          "esphome": "2026.9.1",
+          "status": "passed",
+          "log": "/private/tmp/1792-firmware-guition-esp32-p4-jc4880p443.log"
+        }
+      ]
     },
     {
       "body": "## Summary\n\nAdds Home Assistant horizontal climate swing support as a separate, capability-aware `Horizontal Swing` control. Entities that expose `swing_horizontal_modes` receive a horizontal tab and modal quick option; entities without horizontal modes keep the existing UI unchanged.\n\nHorizontal selections use `climate.set_swing_horizontal_mode` with `swing_horizontal_mode`, while vertical swing remains independent. Existing icons are reused with semantic mappings for left/right, up/down, top/bottom, generic swing, and exact off values; full mode labels remain visible.\n\nThe change also updates climate subscriptions, default/configurable tab order, product contracts and generated web artifacts, firmware translations, documentation, and regression coverage. Related to #2014.\n\n## Validation\n\n- `npm run check:product` \u2014 passed.\n- `npm run docs:build` \u2014 passed.\n- Targeted climate firmware tests \u2014 passed.\n- Full firmware CTest suite with `ASAN_OPTIONS=detect_leaks=0` \u2014 60/60 passed. The two media lifecycle tests fail in the default environment before assertions because LeakSanitizer cannot run under the hosted ptrace environment; both pass with leak detection disabled.\n- ESPHome 2026.9.0 Docker compiles \u2014 passed for `guition-esp32-p4-jc1060p470`, `guition-esp32-p4-jc4880p443`, and `guition-esp32-s3-4848s040`.\n\n## Limitations\n\n- `npm run check:web-browser-smoke` completed generated-output checks but stalled in the existing panel-naming browser journey and was interrupted; no browser-smoke pass is claimed.\n- Physical testing remains: verify an entity exposing both vertical and horizontal modes and confirm each control changes only its corresponding Home Assistant setting.\n",
@@ -5033,9 +5063,9 @@
     "Already present": 72,
     "Not applicable": 11,
     "Closed without merging": 9,
-    "Ported": 33,
-    "Needs review": 26,
-    "Port in progress": 1
+    "Ported": 34,
+    "Port in progress": 1,
+    "Needs review": 25
   },
   "status": "In progress: source patches and discussions cached; remaining entries require detailed review and individual ports.",
   "previousSyncProof": {
