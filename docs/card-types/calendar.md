@@ -14,7 +14,7 @@ Date and clock cards are read-only — tapping them does nothing.
 
 1. Select a card and change its type to **Date & Time**.
 2. Choose **Clock**, **Date**, or **Time & Date** from the **Type** dropdown.
-3. On a **Wide** or **Large** card, turn on **Large Clock** if you want the main value scaled much larger. On a **Wide** card, the label underneath is hidden so the larger value has room.
+3. In **Clock** mode, **Large Clock** is available at every card size. Wide and Large cards use it by default, as do cards wider than two columns; you can turn it off. On wider clocks, **Center Clock** centers the large display. For Date and Time & Date modes, the existing Large-card option remains available.
 4. Apply the configuration so the panel restarts with the new card.
 
 ## How It Works on the Panel
