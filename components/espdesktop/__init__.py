@@ -14,7 +14,7 @@ from esphome.core import CORE, CoroPriority, coroutine_with_priority
 import os
 
 CODEOWNERS = ["@jtenniswood"]
-AUTO_LOAD = ["mdns", "json", "socket"]
+AUTO_LOAD = ["mdns", "json", "socket", "media_player"]
 
 CONF_ACTION_RESPONSES = "action_responses"
 CONF_PANEL_CONFIG = "panel_config"
