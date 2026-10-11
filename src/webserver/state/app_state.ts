@@ -73,7 +73,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     screenRotationInitialTimer: null,
     pendingButtonOrderRaw: null, sunrise: "", sunset: "", firmwareVersion: "", firmwareLatestVersion: "",
     firmwareUpdateState: "", firmwareReleaseUrl: "", firmwareChecking: false,
-    firmwareVersionRefreshPending: false, firmwareInstallTargetVersion: "", firmwareInstallPostPending: false,
+    firmwareVersionRefreshPending: false, firmwareInstallTargetVersion: "", firmwareInstallPostPending: false, firmwareInstallTransferPending: false,
     firmwareInstallStatus: "", firmwareInstallError: "", firmwareUpdateControlsSupported: false,
     firmwareInstallControlsSupported: false, firmwareOtaUrl: "", firmwareOtaFilename: "", firmwareOtaMd5: "",
     firmwareVersionOptions: [], firmwareSelectedVersion: "", firmwareVersionIndexLoaded: false,
