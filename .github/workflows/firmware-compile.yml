@@ -87,7 +87,7 @@ jobs:
         env:
           REQUESTED_DEVICE: ${{ inputs.device }}
         run: |
-          MATRIX=$(python3 scripts/device_matrix.py pr)
+          MATRIX=$(python3 scripts/device_matrix.py nightly)
           if [ -n "$REQUESTED_DEVICE" ]; then
             MATRIX=$(jq -ce --arg slug "$REQUESTED_DEVICE" \
               '.include |= map(select(.slug == $slug)) | select(.include | length == 1)' \

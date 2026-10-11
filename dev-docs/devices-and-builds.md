@@ -116,6 +116,11 @@ builds/<slug>.factory.yaml
 Release checks validate that these outputs stay aligned with device profiles and
 public firmware expectations.
 
+The `pr` matrix selects one representative device per chip family, including
+a P4 recovery image where applicable. The `nightly` and `release` matrices
+continue to include every device. This selection is exposed by
+`python3 scripts/device_matrix.py pr`.
+
 ## Device Build Flags
 
 Per-device `platformio_options.build_flags` are escape hatches. Prefer manifest
