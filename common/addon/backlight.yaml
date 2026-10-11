@@ -435,6 +435,31 @@ script:
             - script.execute: backlight_apply_brightness
       - lambda: |-
           image_card_resume_pipeline();
+      # Re-arm the cover art delay whenever the display settles back on the plain
+      # active screen while media is playing. The delay timer is armed on wake and
+      # playback edges, but any active transition first runs hide_cover_art_view,
+      # which stops that timer; e.g. closing a modal after a touch wake leaves the
+      # panel on the home screen with no timer and no further edge to restart it
+      # (issue #2129). This landing hook restarts it. Skipped while a modal/alarm
+      # takeover is up, so cover art never appears over an open modal.
+      - if:
+          condition:
+            lambda: |-
+              auto &display = id(espdesktop_app).display();
+              return id(cover_art_screensaver_enabled).state &&
+                     id(cover_art_media_playing) &&
+                     (id(cover_art_companion_source_active) ||
+                      !id(cover_art_media_player_entity).state.empty()) &&
+                     (id(cover_art_manual_pause_until_ms) != 0 ||
+                      id(media_player_sleep_prevention_enabled).state ||
+                      (id(screensaver_mode).state != "timer" &&
+                       id(screensaver_mode).state != "sensor")) &&
+                     display.target_mode_is(espdesktop::DisplayMode::ACTIVE) &&
+                     !display.takeover_active(espdesktop::DisplayTakeoverKind::INTERACTIVE) &&
+                     !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL) &&
+                     !alarm_display_takeover_active();
+          then:
+            - script.execute: cover_art_start_delay
 
   - id: display_mode_effect_setup_dimmed
     mode: restart
