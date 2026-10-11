@@ -116,6 +116,18 @@ builds/<slug>.factory.yaml
 Release checks validate that these outputs stay aligned with device profiles and
 public firmware expectations.
 
+Release preflight checks the complete generated task and checked-in web asset
+manifest before preparing version-specific web assets. The later release check graph uses validation
+tooling from the workflow revision with `--root` pointing at the tagged source,
+and records that earlier generated validation through
+`--preverified-task generated --preverified-task web-asset-manifest`. Other
+checks run against the prepared assets.
+
+The `pr` matrix selects one representative device per chip family, including
+a P4 recovery image where applicable. The `nightly` and `release` matrices
+continue to include every device. This selection is exposed by
+`python3 scripts/device_matrix.py pr`.
+
 ## Device Build Flags
 
 Per-device `platformio_options.build_flags` are escape hatches. Prefer manifest
@@ -165,3 +177,7 @@ or notes for a flag that no device uses.
 
 Use [Add or Change a Supported Device](playbooks/add-supported-device.md) for the
 complete checklist, generator order, stop conditions, and checks.
+
+## Offline C6 Recovery Size
+
+Recovery firmware also embeds the C6 image. Its recovery-only package limits logging to INFO (including per-tag overrides) and uses two-bit Cover Art title shading to fit the existing application partition. Recovery progress, warnings, errors, title glyphs, size and layout remain available. Normal factory and OTA builds retain their normal logging and font shading.

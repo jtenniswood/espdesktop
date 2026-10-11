@@ -161,6 +161,7 @@ export interface AppState {
   coverArtAttributeConditions: string;
   coverArtFilteringEnabled: boolean;
   coverArtDelay: number;
+  coverArtPlaybackControlOn: boolean;
   coverArtTrackOverlayDuration: number;
   coverArtHideExternalInputOn: boolean;
   homeAssistantArtworkProtocol: string;
@@ -237,6 +238,7 @@ export interface AppState {
   firmwareVersionRefreshPending: boolean;
   firmwareInstallTargetVersion: string;
   firmwareInstallPostPending: boolean;
+  firmwareInstallTransferPending: boolean;
   firmwareInstallStatus: string;
   firmwareInstallError: string;
   firmwareUpdateControlsSupported: boolean;

@@ -62,6 +62,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
+import { loadUsbInstaller } from '../usb-installer'
 
 const devices = [
   {
@@ -104,7 +105,7 @@ const devices = [
     name: 'JC4880P443',
     size: '4.3 in',
     detail: '480 × 800 portrait',
-    warning: 'Only for the original JC4880P443 with ESP32-P4 silicon below v3.0. For SKU V3 / v3.x chips, select the separate JC4880P443 V3 recovery image.',
+warning: 'Only for the original JC4880P443 with ESP32-P4 silicon below v3.0. The 4.3-inch SKU V3 / v3.x chip is not supported; do not use this recovery image on it.',
   },
   {
     slug: 'guition-esp32-p4-jc4880p443-v3',
@@ -168,7 +169,7 @@ onMounted(async () => {
   if (!supported.value) return
 
   try {
-    await import('https://unpkg.com/esp-web-tools@10/dist/web/install-button.js')
+    await loadUsbInstaller()
     await checkManifest()
   } catch (error) {
     loadError.value = `Failed to load the USB installer. ${error?.message || ''}`.trim()

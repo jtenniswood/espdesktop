@@ -1035,12 +1035,21 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: let the playback-start event activate cover art before mirrored playback state settles")
     sync_text_body = yaml_script_body(text, "cover_art_sync_track_text")
     source_display_normalized = sync_text_body is not None and re.search(
-        r"normalize_display_text\(\s*decode_html_entities\(id\(cover_art_media_source\)\)\)",
+        r"const std::string title\s*=\s*espdesktop::media::normalize_media_display_text\(\s*"
+        r"id\(cover_art_external_input_active\) && !id\(cover_art_media_source\)\.empty\(\)\s*"
+        r"\? decode_html_entities\(id\(cover_art_media_source\)\)\s*"
+        r": id\(cover_art_title\)\);",
         sync_text_body,
     )
+    title_display_normalized = source_display_normalized and "normalize_display_text(title)" in sync_text_body
+    artist_display_normalized = sync_text_body is not None and re.search(
+        r"const std::string artist\s*=\s*espdesktop::media::normalize_media_display_text\(\s*"
+        r"id\(cover_art_artist\)\);",
+        sync_text_body,
+    ) and "normalize_display_text(artist)" in sync_text_body
     if sync_text_body is not None and (
-        "normalize_display_text(id(cover_art_title))" not in sync_text_body
-        or "normalize_display_text(id(cover_art_artist))" not in sync_text_body
+        not title_display_normalized
+        or not artist_display_normalized
         or source_display_normalized is None
     ):
         errors.append(f"{rel}: normalize decoded cover art metadata only at the label boundary")
@@ -1192,7 +1201,7 @@ def firmware_cover_art_lifecycle_controller_errors(
         errors.append(f"{cover_art_rel}: wait for controller dismissal before releasing cover art resources")
     if "script.wait: display_mode_clear_cover_art" not in playback_restore:
         errors.append(f"{cover_art_rel}: wait for controller dismissal before restoring playback UI")
-    if "DisplayRequestSource::MEDIA_PLAYBACK" in reconcile:
+    if re.search(r"(?:set_request|controller\.request)\(\s*espdesktop::DisplayRequestSource::MEDIA_PLAYBACK", reconcile):
         errors.append(f"{backlight_rel}: do not rebuild media requests from the compatibility cover art flag")
     if (
         "previous_cover_generation" not in reconcile
@@ -1373,19 +1382,14 @@ def firmware_media_sleep_prevention_errors(
 
 def firmware_touch_cover_art_delay_errors(paths: tuple[Path, ...], root: Path) -> list[str]:
     errors: list[str] = []
-    required_sequence = (
-        "on_touch:\n"
-        "      - script.execute: cover_art_pause_after_touch\n"
-        "      - script.wait: cover_art_pause_after_touch\n"
-        "      - script.execute: screensaver_wake"
-    )
+    required_sequence = "on_touch:\n      - script.execute: cover_art_handle_touch"
     for path in paths:
         text = path.read_text(encoding="utf-8")
-        if "on_touch:" not in text or "script.execute: screensaver_wake" not in text:
+        if "on_touch:" not in text:
             continue
         if required_sequence not in text:
             errors.append(
-                f"{path.relative_to(root)}: restart the cover art Show After delay before every touchscreen wake"
+                f"{path.relative_to(root)}: route touches through cover art before waking the screen"
             )
     return errors
 
@@ -2356,7 +2360,7 @@ def firmware_image_card_startup_errors(
         or "ctx->media_artwork_retry_mask = 0;" not in text
         or "ctx->pending_fallback_picture.clear();" not in text
         or "artwork_picture_response_clears_retry" not in text
-        or "inline void image_card_refresh_due()" not in text
+        or "inline void image_card_refresh_due(" not in text
         or text.count("image_card_request_current_picture(ctx);") < 2
         or "media_artwork_retry_mask" not in text
         or "artwork_source_request_mask" not in text
@@ -3095,7 +3099,14 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
             adapter_body is not None
             and "espdesktop::DisplayMode::COVER_ART" in adapter_body
             and "id: cover_art_hide_effect" in adapter_body
-            and "DisplayRequestSource::MEDIA_PLAYBACK" not in reconcile_body
+            and (
+                "DisplayRequestSource::MEDIA_PLAYBACK" not in reconcile_body
+                or (
+                    "if (!controller.target_mode_is(espdesktop::DisplayMode::COVER_ART))" in reconcile_body
+                    and "if (id(cover_art_playback_control).retains_pause(id(cover_art_active_media_player_entity)))" in reconcile_body
+                    and "controller.request(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK" not in reconcile_body
+                )
+            )
         )
         legacy_clears_cover_art = (
             "if (schedule_night && id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART))" in reconcile_body
@@ -6028,6 +6039,17 @@ def run_self_test() -> int:
         ("normalize decoded cover art metadata only at the label boundary",),
     )
     expect_cover_art_refresh_errors(
+        "cover art metadata bypasses media unicode cleanup",
+        "script:\n"
+        "  - id: cover_art_sync_track_text\n"
+        "    then:\n"
+        "      - lambda: |-\n"
+        "          return normalize_display_text(id(cover_art_title));\n"
+        "          return normalize_display_text(id(cover_art_artist));\n"
+        "          return normalize_display_text(decode_html_entities(id(cover_art_media_source)));\n",
+        ("normalize decoded cover art metadata only at the label boundary",),
+    )
+    expect_cover_art_refresh_errors(
         "stale cover refresh guard present",
         "globals:\n"
         "  - id: cover_art_runtime\n"
@@ -6039,10 +6061,12 @@ def run_self_test() -> int:
         "  - id: cover_art_sync_track_text\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          return normalize_display_text(id(cover_art_title));\n"
-        "          return normalize_display_text(id(cover_art_artist));\n"
-        "          return normalize_display_text(\n"
-        "            decode_html_entities(id(cover_art_media_source)));\n"
+        "          const std::string title = espdesktop::media::normalize_media_display_text(\n"
+        "            id(cover_art_external_input_active) && !id(cover_art_media_source).empty()\n"
+        "              ? decode_html_entities(id(cover_art_media_source)) : id(cover_art_title));\n"
+        "          return normalize_display_text(title);\n"
+        "          const std::string artist = espdesktop::media::normalize_media_display_text(id(cover_art_artist));\n"
+        "          return normalize_display_text(artist);\n"
         "  - id: cover_art_resolve_home_assistant_base_url\n"
         "    then:\n"
         "      - lambda: |-\n"
