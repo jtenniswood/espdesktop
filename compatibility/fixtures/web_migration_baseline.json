@@ -78,6 +78,7 @@
       "coverArtSecondaryMediaPlayerEntity": "",
       "coverArtAttributeConditions": "",
       "coverArtDelay": 10,
+      "coverArtPlaybackControl": true,
       "coverArtTrackOverlayDuration": 5,
       "coverArtHideExternalInput": true,
       "coverArtHomeAssistantEndpointMode": "Manual",
