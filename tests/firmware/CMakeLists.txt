@@ -587,6 +587,8 @@ add_test(NAME remote_modal_test COMMAND
 add_test(NAME clock_image_overlay_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/clock_image_overlay_test.py)
 
+add_test(NAME portrait_subpage_order_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/portrait_subpage_order_test.py)
 add_test(NAME clock_screensaver_time_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/clock_screensaver_time_test.py)
 add_executable(camera_refresh_policy_test camera_refresh_policy_test.cpp)
