@@ -279,6 +279,16 @@
       "mdi": "arrow-up-down"
     },
     {
+      "name": "Awning",
+      "codepoint": "F1B87",
+      "mdi": "awning"
+    },
+    {
+      "name": "Awning Outline",
+      "codepoint": "F1B88",
+      "mdi": "awning-outline"
+    },
+    {
       "name": "Battery",
       "codepoint": "F0079",
       "mdi": "battery"
@@ -737,6 +747,26 @@
       "name": "Folder Play",
       "codepoint": "F19FA",
       "mdi": "folder-play"
+    },
+    {
+      "name": "Folder Account Outline",
+      "codepoint": "F0B9C",
+      "mdi": "folder-account-outline"
+    },
+    {
+      "name": "Folder Home Outline",
+      "codepoint": "F10B6",
+      "mdi": "folder-home-outline"
+    },
+    {
+      "name": "Folder Key Outline",
+      "codepoint": "F10EC",
+      "mdi": "folder-key-outline"
+    },
+    {
+      "name": "Folder Open Outline",
+      "codepoint": "F0DCF",
+      "mdi": "folder-open-outline"
     },
     {
       "name": "Fountain",
