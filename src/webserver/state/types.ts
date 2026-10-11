@@ -166,9 +166,11 @@ export interface AppState {
   coverArtTrackOverlayDuration: number;
   coverArtHideExternalInputOn: boolean;
   homeAssistantArtworkProtocol: string;
+  homeAssistantArtworkHost: string;
   coverArtHomeAssistantPort: number;
   homeAssistantArtworkEndpointMode: string;
   homeAssistantArtworkEndpointStatus: string;
+  homeAssistantArtworkEndpointHealth: string;
   screensaverMode: string;
   _screensaverModeReceived: boolean;
   screensaverAction: string;
