@@ -604,6 +604,14 @@ target_include_directories(reset_policy_test PRIVATE ../../components/espdesktop
 add_test(NAME reset_policy_test COMMAND reset_policy_test)
 add_test(NAME reset_ota_wrapper_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/reset_ota_wrapper_test.py)
+add_test(NAME wifi_reset_override_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_reset_override_test.py)
+add_test(NAME wifi_reset_boot_codegen_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_reset_boot_codegen_test.py)
+add_test(NAME wifi_setup_address_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_setup_address_test.py)
+add_test(NAME wifi_setup_package_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_setup_package_test.py)
 
 add_test(NAME cover_art_playback_source_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_playback_source_test.py ${CMAKE_CXX_COMPILER})
