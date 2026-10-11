@@ -43,6 +43,24 @@ esphome:
                   else:
                     - script.execute: show_update_complete_next_boot
 
+# Browser uploads (Previous firmware) require their own OTA platform.
+# The V3 web_server.ota: false override continues to reject browser uploads.
+ota:
+  - platform: web_server
+    on_begin:
+      then:
+        - script.execute: show_update_writing
+        - script.wait: show_update_writing
+    on_end:
+      then:
+        - globals.set:
+            id: firmware_update_complete_pending
+            value: 'true'
+        - lambda: 'global_preferences->sync();'
+    on_error:
+      then:
+        - script.execute: show_update_failed
+
 globals:
   - id: update_check_counter
     type: int
