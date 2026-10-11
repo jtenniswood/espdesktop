@@ -105,4 +105,10 @@ interval:
   - interval: 250ms
     then:
       - lambda: |-
-          image_card_refresh_due();
+          image_card_refresh_due([]() {
+            const auto &display = id(espdesktop_app).display();
+            return (display.current_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                    display.current_mode_is(espdesktop::DisplayMode::DIMMED)) &&
+                   (display.target_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                    display.target_mode_is(espdesktop::DisplayMode::DIMMED));
+          });
