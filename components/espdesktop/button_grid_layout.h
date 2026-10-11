@@ -240,6 +240,55 @@ inline void parse_order_string(const std::string &order_str, int num_slots, Orde
   }
 }
 
+// A compacted portrait layout must keep every card origin. A span that would
+// cover another origin becomes a single cell only for this temporary layout.
+inline bool grid_span_overlaps_anchor(const int *positions, int position,
+                                      int slots, int cols, int rows, int width,
+                                      int reserved = -1, int offset = 0) {
+  if (cols <= 0) return false;
+  for (int r = 0; r < rows; ++r) {
+    for (int c = 0; c < width; ++c) {
+      if (r == 0 && c == 0) continue;
+      const int cell = position + r * cols + c;
+      if (position % cols + c >= cols || cell >= slots || cell == reserved) return true;
+      const int index = cell - offset;
+      if (index >= 0 && positions[index] > 0) return true;
+    }
+  }
+  return false;
+}
+
+// Read every configured token before applying a smaller portrait home capacity.
+// The saved order and span data remain unchanged for the next landscape render.
+inline void parse_order_for_layout(const std::string &order_str, int configured_slots,
+                                   int active_slots, OrderResult &result, int cols = 0) {
+  const int configured = bounded_grid_slots(configured_slots > 0 ? configured_slots : active_slots);
+  const int active = bounded_grid_slots(active_slots);
+  parse_order_string(order_str, configured, result);
+  if (active >= configured) return;
+  bool relocate = false;
+  for (int i = 0; i < configured; ++i) {
+    const int slot = result.positions[i];
+    if ((i < active && slot > active) ||
+        (i >= active && slot > 0 && slot <= active)) relocate = true;
+  }
+  if (!relocate) return;
+  int visible[MAX_GRID_SLOTS] = {};
+  int count = 0;
+  for (int i = 0; i < configured; ++i) {
+    const int slot = result.positions[i];
+    if (slot > 0 && slot <= active && count < active) visible[count++] = slot;
+  }
+  memcpy(result.positions, visible, sizeof(visible));
+  for (int pos = 0; pos < active; ++pos) {
+    const int slot = result.positions[pos];
+    if (slot > 0 && grid_span_overlaps_anchor(result.positions, pos, active, cols,
+                                               result.row_span[slot - 1], result.col_span[slot - 1])) {
+      result.row_span[slot - 1] = result.col_span[slot - 1] = 1;
+    }
+  }
+}
+
 // Saved layouts can originate on a larger display or an older web editor.
 // Downgrade any card that extends beyond the active grid before passing its
 // cell coordinates to LVGL.
