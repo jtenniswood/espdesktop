@@ -116,6 +116,13 @@ builds/<slug>.factory.yaml
 Release checks validate that these outputs stay aligned with device profiles and
 public firmware expectations.
 
+Release preflight checks the complete generated task and checked-in web asset
+manifest before preparing version-specific web assets. The later release check graph uses validation
+tooling from the workflow revision with `--root` pointing at the tagged source,
+and records that earlier generated validation through
+`--preverified-task generated --preverified-task web-asset-manifest`. Other
+checks run against the prepared assets.
+
 The `pr` matrix selects one representative device per chip family, including
 a P4 recovery image where applicable. The `nightly` and `release` matrices
 continue to include every device. This selection is exposed by
