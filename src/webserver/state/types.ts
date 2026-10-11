@@ -146,6 +146,8 @@ export interface AppState {
   presenceEntity: string;
   screensaverCameraEntity: string;
   screensaverCameraSupported: boolean;
+  clockDateSupported: boolean;
+  clockDateOn: boolean;
   clockOverlaySupported: boolean;
   screensaverMetadataEntity: string;
   metadataOverlayOn: boolean;
