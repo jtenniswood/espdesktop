@@ -10087,16 +10087,45 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
           "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2182-df00c957b-wifi-sdk-final-guition-esp32-p4-jc4880p443-v3.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "d382ac16fa02eb9aa6479729dca2e97710b339b5610f548b473e69883c512def",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "872e1d626304467c570fe87c449cfeaf5574cc6377edf5daecc563c87f54ba15",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc4880p443-v3",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/8b3f4e11182c4b4e956920973e950c12a9482d192aa54e15fd1ff52b79ea36b8.log.gz",
+          "logSha256": "8b3f4e11182c4b4e956920973e950c12a9482d192aa54e15fd1ff52b79ea36b8",
+          "archiveSha256": "c75d51e2e690af37eeb589d2686265b0c21e0eae045b4b393749cc1285b265e0"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
-          "status": "planned",
+          "status": "failed",
           "log": "/private/tmp/2182-df00c957b-wifi-sdk-final-guition-esp32-p4-jc1060p470-ethernet.log",
+          "network_transport": "ethernet",
+          "validForPortValidation": false,
+          "note": "Invalid test configuration: the temporary overlay was in builds/.esphome, shifting relative asset paths. Firmware compilation did not start. Retried from the normal builds directory.",
+          "device": "guition-esp32-p4-jc1060p470-ethernet",
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/db800d8b7c4b42522cd98660da32b908c513fbdf5a7251cff55ff5e0231914a0.log.gz",
+          "logSha256": "db800d8b7c4b42522cd98660da32b908c513fbdf5a7251cff55ff5e0231914a0",
+          "archiveSha256": "76b3ad3d31e26eb20aa0f87bea7ed749e9a998eac9146a9c6ea1ce224bddd540"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
+          "status": "running",
+          "log": "/private/tmp/2182-df00c957b-ethernet-correct-directory.log",
           "network_transport": "ethernet",
           "device": "guition-esp32-p4-jc1060p470-ethernet",
           "esphome": "2026.9.1"
