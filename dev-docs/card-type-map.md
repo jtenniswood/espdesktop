@@ -135,3 +135,7 @@ This table is generated from the card contract and typed `registry.register(...)
 <!-- END GENERATED CARD TYPE MAP -->
 
 Camera refresh defaults to Off. Periodic refresh applies to the expanded view at 5, 10 or 30 seconds. On activity uses a binary sensor or event entity and refreshes visible images every five seconds for 30 seconds, extending the window after another activation. Hidden pages, other modals and screensavers stop downloads without replaying old activity on return. Home Assistant image entities refresh on image-update timestamp changes rather than credential rotation; errors retain the last image and back off. Companion web-app icon loading retains its existing behavior.
+
+Camera and media Cover Art cards can use rectangular and larger spans that fit
+the active display grid. The editor size menu and saved-config normalization
+use the grid bounds; Wi-Fi sharing retains its separate size allow-list.
