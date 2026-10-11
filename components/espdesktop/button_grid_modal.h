@@ -241,6 +241,187 @@ struct ControlModalNestedShell {
   lv_obj_t *panel = nullptr;
 };
 
+// Only the shared shell chrome is owned here. Modal-specific controls keep
+// their own state/accent colors and can register a separate refresh adapter.
+// Select lists own up to 64 rows; fan/climate controls need up to 52/51
+// simultaneous targets, including hidden tabs. Keep allocation bounded.
+constexpr uint8_t CONTROL_MODAL_THEME_PRESSED_CAPACITY = 64;
+
+struct ControlModalThemeTargets {
+  lv_obj_t *overlay = nullptr;
+  lv_obj_t *panel = nullptr;
+  lv_obj_t *close_button = nullptr;
+  bool nested = false;
+  bool content_owned = false;
+  lv_obj_t *theme_tabs[10]{};
+  uint8_t theme_tab_count = 0;
+  lv_obj_t *theme_pressed[CONTROL_MODAL_THEME_PRESSED_CAPACITY]{};
+  uint8_t theme_pressed_count = 0;
+  lv_obj_t *theme_disabled[8]{};
+  uint8_t theme_disabled_count = 0;
+};
+
+inline ControlModalThemeTargets (&control_modal_theme_targets())[2] {
+  static ControlModalThemeTargets targets[2]{};
+  return targets;
+}
+
+inline ControlModalThemeTargets *control_modal_theme_owner(lv_obj_t *obj) {
+  if (!obj) return nullptr;
+  for (auto &targets : control_modal_theme_targets()) {
+    if (!targets.panel || targets.content_owned) continue;
+    for (lv_obj_t *parent = obj; parent; parent = lv_obj_get_parent(parent))
+      if (parent == targets.panel) return &targets;
+  }
+  return nullptr;
+}
+
+inline void control_modal_theme_child_deleted(lv_event_t *event) {
+  lv_obj_t *obj = static_cast<lv_obj_t *>(lv_event_get_target(event));
+  for (auto &targets : control_modal_theme_targets()) {
+    for (uint8_t i = 0; i < targets.theme_tab_count;) {
+      if (targets.theme_tabs[i] != obj) { ++i; continue; }
+      for (uint8_t j = i + 1; j < targets.theme_tab_count; ++j)
+        targets.theme_tabs[j - 1] = targets.theme_tabs[j];
+      targets.theme_tabs[--targets.theme_tab_count] = nullptr;
+    }
+    for (uint8_t i = 0; i < targets.theme_pressed_count;) {
+      if (targets.theme_pressed[i] != obj) { ++i; continue; }
+      for (uint8_t j = i + 1; j < targets.theme_pressed_count; ++j)
+        targets.theme_pressed[j - 1] = targets.theme_pressed[j];
+      targets.theme_pressed[--targets.theme_pressed_count] = nullptr;
+    }
+    for (uint8_t i = 0; i < targets.theme_disabled_count;) {
+      if (targets.theme_disabled[i] != obj) { ++i; continue; }
+      for (uint8_t j = i + 1; j < targets.theme_disabled_count; ++j)
+        targets.theme_disabled[j - 1] = targets.theme_disabled[j];
+      targets.theme_disabled[--targets.theme_disabled_count] = nullptr;
+    }
+  }
+}
+
+inline void control_modal_track_theme_tab(lv_obj_t *tab) {
+  auto *targets = control_modal_theme_owner(tab);
+  if (!targets) return;
+  for (uint8_t i = 0; i < targets->theme_tab_count; ++i)
+    if (targets->theme_tabs[i] == tab) return;
+  if (targets->theme_tab_count < 10) {
+    bool tracked = false;
+    for (uint8_t i = 0; i < targets->theme_pressed_count; ++i)
+      if (targets->theme_pressed[i] == tab) tracked = true;
+    for (uint8_t i = 0; i < targets->theme_disabled_count; ++i)
+      if (targets->theme_disabled[i] == tab) tracked = true;
+    if (!tracked) lv_obj_add_event_cb(tab, control_modal_theme_child_deleted, LV_EVENT_DELETE, nullptr);
+    targets->theme_tabs[targets->theme_tab_count++] = tab;
+  } else {
+    ESP_LOGW("theme", "Modal tab targets full (10); control will not follow theme changes");
+  }
+}
+
+inline void control_modal_track_theme_pressed(lv_obj_t *button) {
+  auto *targets = control_modal_theme_owner(button);
+  if (!targets) return;
+  for (uint8_t i = 0; i < targets->theme_pressed_count; ++i)
+    if (targets->theme_pressed[i] == button) return;
+  if (targets->theme_pressed_count < CONTROL_MODAL_THEME_PRESSED_CAPACITY) {
+    bool tracked = false;
+    for (uint8_t i = 0; i < targets->theme_tab_count; ++i)
+      if (targets->theme_tabs[i] == button) tracked = true;
+    for (uint8_t i = 0; i < targets->theme_disabled_count; ++i)
+      if (targets->theme_disabled[i] == button) tracked = true;
+    if (!tracked) lv_obj_add_event_cb(button, control_modal_theme_child_deleted, LV_EVENT_DELETE, nullptr);
+    targets->theme_pressed[targets->theme_pressed_count++] = button;
+  } else {
+    ESP_LOGW("theme", "Modal pressed targets full (%u); control will not follow theme changes",
+             static_cast<unsigned>(CONTROL_MODAL_THEME_PRESSED_CAPACITY));
+  }
+}
+
+inline void control_modal_track_theme_disabled(lv_obj_t *button) {
+  auto *targets = control_modal_theme_owner(button);
+  if (!targets) return;
+  for (uint8_t i = 0; i < targets->theme_disabled_count; ++i)
+    if (targets->theme_disabled[i] == button) return;
+  if (targets->theme_disabled_count < 8) {
+    bool tracked = false;
+    for (uint8_t i = 0; i < targets->theme_tab_count; ++i)
+      if (targets->theme_tabs[i] == button) tracked = true;
+    for (uint8_t i = 0; i < targets->theme_pressed_count; ++i)
+      if (targets->theme_pressed[i] == button) tracked = true;
+    if (!tracked) lv_obj_add_event_cb(button, control_modal_theme_child_deleted, LV_EVENT_DELETE, nullptr);
+    targets->theme_disabled[targets->theme_disabled_count++] = button;
+  } else {
+    ESP_LOGW("theme", "Modal disabled targets full (8); control will not follow theme changes");
+  }
+}
+
+inline void control_modal_apply_readable_content_foreground(lv_obj_t *obj,
+                                                             uint32_t color) {
+  if (!obj) return;
+  if (lv_obj_check_type(obj, &lv_label_class))
+    lv_obj_set_style_text_color(obj, lv_color_hex(color), LV_PART_MAIN);
+  const uint32_t child_count = lv_obj_get_child_cnt(obj);
+  for (uint32_t i = 0; i < child_count; ++i)
+    control_modal_apply_readable_content_foreground(lv_obj_get_child(obj, i), color);
+}
+
+inline void control_modal_apply_theme(void *context, const ThemePalette &theme) {
+  const auto &targets = *static_cast<ControlModalThemeTargets *>(context);
+  if (targets.nested && targets.overlay) {
+    lv_obj_set_style_bg_color(targets.overlay, lv_color_hex(theme.overlay), LV_PART_MAIN);
+  }
+  if (targets.panel) {
+    lv_obj_set_style_bg_color(targets.panel,
+                              lv_color_hex(theme_display_color(theme.surface_secondary)),
+                              LV_PART_MAIN);
+  }
+  if (targets.close_button) {
+    theme_restyle_pressed_fill(targets.close_button, theme);
+    lv_obj_t *label = lv_obj_get_child(targets.close_button, 0);
+    if (label) lv_obj_set_style_text_color(label, lv_color_hex(theme.text_primary), LV_PART_MAIN);
+  }
+  if (!targets.content_owned && targets.panel)
+    theme_restyle_tree(targets.panel, theme_refresh_previous(), theme);
+  if (!targets.content_owned) {
+    for (uint8_t i = 0; i < targets.theme_tab_count; ++i)
+      theme_restyle_tab(targets.theme_tabs[i], theme);
+    for (uint8_t i = 0; i < targets.theme_pressed_count; ++i) {
+      lv_obj_t *button = targets.theme_pressed[i];
+      theme_restyle_pressed_fill(button, theme);
+      if (button && lv_obj_has_flag(button, LV_OBJ_FLAG_USER_1) &&
+          !lv_obj_has_flag(button, LV_OBJ_FLAG_USER_3)) {
+        const lv_color32_t button_color = lv_color_to_32(
+            lv_obj_get_style_bg_color(button, LV_PART_MAIN), LV_OPA_COVER);
+        const uint32_t button_rgb = (static_cast<uint32_t>(button_color.red) << 16) |
+                                    (static_cast<uint32_t>(button_color.green) << 8) |
+                                    button_color.blue;
+        control_modal_apply_readable_content_foreground(
+            button, readable_text_color_for_bg(button_rgb));
+      }
+    }
+    for (uint8_t i = 0; i < targets.theme_disabled_count; ++i)
+      theme_restyle_disabled_step(targets.theme_disabled[i], theme);
+  }
+}
+
+inline void control_modal_register_theme(const ControlModalThemeTargets &targets) {
+  auto &stored = control_modal_theme_targets()[targets.nested ? 1 : 0];
+  const bool new_owner = stored.overlay != targets.overlay;
+  stored = targets;
+  if (!stored.overlay) return;
+  if (!register_theme_refresh(stored.overlay, control_modal_apply_theme, &stored))
+    ESP_LOGW("theme", "Refresh registry full; modal will not follow theme changes");
+  if (new_owner) {
+    lv_obj_add_event_cb(stored.overlay, [](lv_event_t *event) {
+      lv_obj_t *owner = static_cast<lv_obj_t *>(lv_event_get_target(event));
+      unregister_theme_refresh(owner);
+      for (auto &entry : control_modal_theme_targets())
+        if (entry.overlay == owner) entry = {};
+    }, LV_EVENT_DELETE, nullptr);
+  }
+  apply_current_theme();
+}
+
 struct ControlModalToastShell {
   lv_obj_t *box = nullptr;
 };
@@ -426,7 +607,7 @@ inline lv_obj_t *control_modal_create_tab_row(lv_obj_t *panel) {
   if (!panel) return nullptr;
   lv_obj_t *tab_row = lv_obj_create(panel);
   if (!tab_row) return nullptr;
-  lv_obj_set_style_bg_color(tab_row, lv_color_hex(SECONDARY_GREY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(tab_row, lv_color_hex(theme_display_color(current_theme().surface_primary)), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(tab_row, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(tab_row, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(tab_row, 0, LV_PART_MAIN);
@@ -551,7 +732,7 @@ inline void control_modal_style_overlay(lv_obj_t *overlay) {
 
 inline void control_modal_style_panel(lv_obj_t *panel, lv_coord_t radius) {
   if (!panel) return;
-  lv_obj_set_style_bg_color(panel, lv_color_hex(TERTIARY_GREY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(panel, lv_color_hex(theme_display_color(current_theme().surface_secondary)), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(panel, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(panel, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(panel, 0, LV_PART_MAIN);
@@ -610,7 +791,8 @@ inline void control_modal_apply_step_buttons_layout(lv_obj_t *minus_btn,
 
 inline void control_modal_apply_pressed_fill(lv_obj_t *btn) {
   if (!btn) return;
-  lv_obj_set_style_bg_color(btn, lv_color_hex(SECONDARY_GREY),
+  control_modal_track_theme_pressed(btn);
+  lv_obj_set_style_bg_color(btn, lv_color_hex(theme_display_color(current_theme().surface_primary)),
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
   lv_obj_set_style_bg_opa(btn, LV_OPA_COVER,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
@@ -644,6 +826,7 @@ inline void control_modal_setup_binary_toggle(
 inline void control_modal_apply_pressed_fill_color(lv_obj_t *btn,
                                                    uint32_t pressed_color) {
   if (!btn) return;
+  theme_set_content_pressed_fill(btn);
   control_modal_apply_pressed_fill(btn);
   lv_obj_set_style_bg_color(btn, lv_color_hex(pressed_color),
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
@@ -677,7 +860,7 @@ inline lv_obj_t *control_modal_create_flat_icon_button(
   lv_obj_t *label = lv_label_create(btn);
   if (label) {
     lv_label_set_display_text(label, icon);
-    lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+    lv_obj_set_style_text_color(label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
     if (icon_zoom != 256) lv_obj_set_style_transform_zoom(label, icon_zoom, LV_PART_MAIN);
@@ -709,7 +892,7 @@ inline lv_obj_t *control_modal_create_round_button(lv_obj_t *parent, lv_coord_t 
     return nullptr;
   }
   lv_label_set_display_text(label, text);
-  lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
   lv_obj_center(label);
@@ -730,7 +913,7 @@ inline void control_modal_style_chrome_button(lv_obj_t *btn,
 
 inline void control_modal_style_translucent_chrome_button(lv_obj_t *btn) {
   if (!btn) return;
-  lv_obj_set_style_bg_color(btn, lv_color_hex(DARK_OVERLAY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(btn, lv_color_hex(current_theme().overlay), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(btn, LV_OPA_50, LV_PART_MAIN);
   lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN);
@@ -811,7 +994,7 @@ inline ControlModalShell control_modal_open_shell(ControlModalKind kind,
   if (button_text) {
     shell.close_btn = control_modal_create_round_button(
       shell.panel, 32, button_text, icon_font,
-      DARK_BORDER, SECONDARY_GREY, width_compensation_percent);
+      theme_display_color(current_theme().border), theme_display_color(current_theme().surface_primary), width_compensation_percent);
     if (!shell.close_btn) {
       ESP_LOGW("control_modal", "Unable to create modal close button");
       lv_obj_del(shell.overlay);
@@ -826,6 +1009,8 @@ inline ControlModalShell control_modal_open_shell(ControlModalKind kind,
   }
 
   control_modal_set_active(kind, shell.overlay, close_callback, definition.dismiss_policy);
+  control_modal_register_theme({shell.overlay, shell.panel, shell.close_btn, false,
+                                kind == ControlModalKind::IMAGE_CARD});
   set_clock_bar_modal_label(card_label);
   return shell;
 }
@@ -833,7 +1018,7 @@ inline ControlModalShell control_modal_open_shell(ControlModalKind kind,
 inline void control_modal_style_nested_overlay(lv_obj_t *overlay) {
   if (!overlay) return;
   lv_obj_set_size(overlay, lv_pct(100), lv_pct(100));
-  lv_obj_set_style_bg_color(overlay, lv_color_hex(DARK_OVERLAY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(overlay, lv_color_hex(current_theme().overlay), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(overlay, LV_OPA_50, LV_PART_MAIN);
   lv_obj_set_style_border_width(overlay, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_all(overlay, 0, LV_PART_MAIN);
@@ -843,7 +1028,7 @@ inline void control_modal_style_nested_overlay(lv_obj_t *overlay) {
 inline void control_modal_style_nested_panel(lv_obj_t *panel, lv_coord_t radius) {
   if (!panel) return;
   lv_obj_set_height(panel, LV_SIZE_CONTENT);
-  lv_obj_set_style_bg_color(panel, lv_color_hex(TERTIARY_GREY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(panel, lv_color_hex(theme_display_color(current_theme().surface_secondary)), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(panel, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(panel, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(panel, 0, LV_PART_MAIN);
@@ -877,6 +1062,7 @@ inline ControlModalNestedShell control_modal_open_nested_menu(lv_coord_t width,
   active.overlay = shell.overlay;
   active.close_callback = close_callback;
   active.closing = false;
+  control_modal_register_theme({shell.overlay, shell.panel, nullptr, true});
   return shell;
 }
 
@@ -911,7 +1097,7 @@ inline lv_obj_t *control_modal_create_title(lv_obj_t *parent,
   lv_label_set_display_text(title, text.c_str());
   lv_label_set_long_mode(title, LV_LABEL_LONG_DOT);
   lv_obj_set_width(title, width);
-  lv_obj_set_style_text_color(title, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(title, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (font) lv_obj_set_style_text_font(title, font, LV_PART_MAIN);
   (void) width_compensation_percent;
@@ -949,6 +1135,7 @@ inline lv_obj_t *control_modal_create_list_row(lv_obj_t *parent,
   lv_obj_set_width(btn, lv_pct(100));
   lv_obj_set_height(btn, height);
   lv_obj_set_style_radius(btn, radius, LV_PART_MAIN);
+  theme_set_content_background(btn, active);
   lv_obj_set_style_bg_color(btn, lv_color_hex(active ? active_color : inactive_color), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
@@ -960,7 +1147,7 @@ inline lv_obj_t *control_modal_create_list_row(lv_obj_t *parent,
   lv_label_set_display_text(value, label.c_str());
   lv_label_set_long_mode(value, LV_LABEL_LONG_DOT);
   lv_obj_set_width(value, lv_pct(100));
-  lv_obj_set_style_text_color(value, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(value, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_align(value, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (font) lv_obj_set_style_text_font(value, font, LV_PART_MAIN);
   (void) width_compensation_percent;
@@ -991,7 +1178,7 @@ inline lv_obj_t *control_modal_create_text_button(
   lv_obj_t *label = lv_label_create(btn);
   lv_label_set_display_text(label, text.c_str());
   lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
-  lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
 

@@ -51,6 +51,7 @@ struct SunCalcResult {
   bool valid;
   char sunrise_str[32];
   char sunset_str[32];
+  bool solar_valid;  // Actual rise/set calculation; brightness retains its fallback schedule.
 };
 
 inline SunCalcResult recalc_sunrise_sunset(
@@ -69,7 +70,7 @@ inline SunCalcResult recalc_sunrise_sunset(
     return r;
   }
 
-  calc_sunrise_sunset(year, month, day, lat, lon, tz_offset,
+  r.solar_valid = calc_sunrise_sunset(year, month, day, lat, lon, tz_offset,
                       r.rise_h, r.rise_m, r.set_h, r.set_m);
   r.valid = true;
 

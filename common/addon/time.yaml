@@ -501,6 +501,7 @@ script:
             update_calendar_cards_time(false, 0, 0, 0, 0, false);
             update_timezone_cards(false, 0, active_timezone, use_12h);
           }
+      - script.execute: theme_settings_refresh
 
 interval:
   - interval: 5s

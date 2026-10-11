@@ -1168,6 +1168,8 @@ def main() -> int:
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
         shutil.copy2(LAYOUT_HEADER.with_name("card_availability.h"), tmp_path / "card_availability.h")
+        for name in ("theme_palette.h", "display_color.h"):
+            shutil.copy2(LAYOUT_HEADER.with_name(name), tmp_path / name)
         (tmp_path / "lvgl.h").write_text("", encoding="utf-8")
         shutil.copy2(LIMITS_HEADER, tmp_path / "button_grid_limits.h")
         shutil.copy2(STRING_HEADER, tmp_path / "button_grid_string.h")
