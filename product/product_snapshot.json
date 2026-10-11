@@ -799,7 +799,8 @@
             "clock_date_font": "font_text_body"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true
+          "esp32C6FirmwareUpdate": true,
+          "apiOpenModalAction": true
         }
       },
       "settings": {
