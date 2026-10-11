@@ -92,6 +92,9 @@ bool connectivity_setup_display_active = false, schedule_presence_detected = fal
 uint32_t manual_wake_ms = 0, cover_art_transition_generation = 0, cover_art_download_generation = 0;
 uint32_t camera_screensaver_transition_generation = 0;
 std::string cover_art_active_media_player_entity;
+struct TextState { std::string state; } cover_art_media_player_entity;
+bool cover_art_companion_source_active = false;
+uint32_t cover_art_manual_pause_until_ms = 0;
 struct CoverArtPlaybackControl {
   bool retains_pause(const std::string &) const { return false; }
   void reset() {}
