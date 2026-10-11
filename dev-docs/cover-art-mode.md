@@ -104,3 +104,7 @@ playback controls belong to Home Assistant artwork only: Companion ownership
 hides the button, clears retained HA pause state, and blocks commands to a saved
 HA player. Ownership also participates in the layout cache key. The production
 playback-lambda regression covers this separation and rejects a removed guard.
+
+Closing a modal after an artwork wake restarts Show After once the display settles on the normal active screen. Open modals and alarm takeovers prevent the restart. Companion artwork can restart the delay without a Home Assistant media-player entity.
+
+For timer/sensor screensavers with playback sleep prevention off, ordinary modal closure leaves the normal idle timeout in charge. A manual dismissal of existing artwork still restarts Show After.

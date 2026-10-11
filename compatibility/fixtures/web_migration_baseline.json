@@ -59,7 +59,7 @@
       "temperatureDegreeSymbol": true,
       "subpageChevron": true,
       "timezone": "Europe/London (GMT+0)",
-      "temperatureUnit": "\u00b0F",
+      "temperatureUnit": "°F",
       "language": "en",
       "clockFormat": "12h",
       "hasNtpServer1": false,
@@ -78,6 +78,7 @@
       "coverArtSecondaryMediaPlayerEntity": "",
       "coverArtAttributeConditions": "",
       "coverArtDelay": 10,
+      "coverArtPlaybackControl": true,
       "coverArtTrackOverlayDuration": 5,
       "coverArtHideExternalInput": true,
       "coverArtHomeAssistantEndpointMode": "Manual",
@@ -99,8 +100,7 @@
       "screensaverMetadataEntity": "",
       "metadataOverlay": false,
       "screensaverCameraImageMode": "Fit",
-      "clockOverlay": false,
-      "coverArtPlaybackControl": true
+      "clockOverlay": false
     },
     "screenInput": {
       "brightness_day": 80,
@@ -191,8 +191,12 @@
     ]
   },
   "bundleSize": {
-    "minified": 2678287,
-    "gzip": 1066850,
+    "minified": 2678430,
+    "gzip": 1066875,
     "gzipTolerance": 9216
+  },
+  "bundleBudget": {
+    "minified": 2750000,
+    "gzip": 1150000
   }
 }
