@@ -170,6 +170,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Západ slunce dolů";
   if (std::strcmp(text, "Sunset Up") == 0) return "Západ slunce nahoru";
   if (std::strcmp(text, "Swing") == 0) return "Kývání";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontální kývání";
   if (std::strcmp(text, "Target") == 0) return "Cíl";
   if (std::strcmp(text, "Today") == 0) return "Dnes";
   if (std::strcmp(text, "Too many") == 0) return "Příliš mnoho";
@@ -455,6 +456,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgang ned";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgang op";
   if (std::strcmp(text, "Swing") == 0) return "Sving";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontal sving";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "I dag";
   if (std::strcmp(text, "Too many") == 0) return "For mange";
@@ -734,6 +736,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Sonnenuntergang ab";
   if (std::strcmp(text, "Sunset Up") == 0) return "Sonnenuntergang auf";
   if (std::strcmp(text, "Swing") == 0) return "Schwenken";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontales Schwenken";
   if (std::strcmp(text, "Target") == 0) return "Ziel";
   if (std::strcmp(text, "Today") == 0) return "Heute";
   if (std::strcmp(text, "Too many") == 0) return "Zu viele";
@@ -1020,6 +1023,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Puesta de sol abajo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Puesta de sol arriba";
   if (std::strcmp(text, "Swing") == 0) return "Oscilación";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilación horizontal";
   if (std::strcmp(text, "Target") == 0) return "Objetivo";
   if (std::strcmp(text, "Today") == 0) return "Hoy";
   if (std::strcmp(text, "Too many") == 0) return "Demasiados";
@@ -1317,6 +1321,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Auringonlasku alas";
   if (std::strcmp(text, "Sunset Up") == 0) return "Auringonlasku ylös";
   if (std::strcmp(text, "Swing") == 0) return "Kääntö";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vaakasuuntainen kääntö";
   if (std::strcmp(text, "Target") == 0) return "Tavoite";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Väliaikainen pito";
   if (std::strcmp(text, "Today") == 0) return "Tänään";
@@ -1601,6 +1606,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Coucher bas";
   if (std::strcmp(text, "Sunset Up") == 0) return "Coucher haut";
   if (std::strcmp(text, "Swing") == 0) return "Oscillation";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscillation horizontale";
   if (std::strcmp(text, "Target") == 0) return "Cible";
   if (std::strcmp(text, "Today") == 0) return "Aujourd'hui";
   if (std::strcmp(text, "Too many") == 0) return "Trop nombreux";
@@ -1751,7 +1757,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Arm Night") == 0) return "דריכה ללילה";
   if (std::strcmp(text, "Arm Vacation") == 0) return "דריכה לחופשה";
   if (std::strcmp(text, "Armed Away") == 0) return "דרוך מחוץ לבית";
-  if (std::strcmp(text, "Armed Custom") == 0) return "דרוך מותאם";
+  if (std::strcmp(text, "Armed Custom") == 0) return "דרוך מותאם אישית";
   if (std::strcmp(text, "Armed Home") == 0) return "דרוך בבית";
   if (std::strcmp(text, "Armed Night") == 0) return "דרוך ללילה";
   if (std::strcmp(text, "Armed Vacation") == 0) return "דרוך לחופשה";
@@ -1766,7 +1772,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Clock") == 0) return "שעון";
   if (std::strcmp(text, "Close") == 0) return "סגירה";
   if (std::strcmp(text, "Closed") == 0) return "סגור";
-  if (std::strcmp(text, "Closing") == 0) return "נסגר";
+  if (std::strcmp(text, "Closing") == 0) return "בסגירה";
   if (std::strcmp(text, "Cloudy") == 0) return "מעונן";
   if (std::strcmp(text, "Cloudy Alert") == 0) return "התראת עננות";
   if (std::strcmp(text, "Configure") == 0) return "להגדרה";
@@ -1808,7 +1814,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Heavy Snow") == 0) return "שלג כבד";
   if (std::strcmp(text, "High") == 0) return "גבוה";
   if (std::strcmp(text, "High target") == 0) return "יעד עליון";
-  if (std::strcmp(text, "Holduntil") == 0) return "החזקה עד";
+  if (std::strcmp(text, "Holduntil") == 0) return "קיבוע עד";
   if (std::strcmp(text, "Home") == 0) return "בבית";
   if (std::strcmp(text, "Hourly") == 0) return "כל שעה";
   if (std::strcmp(text, "Hurricane") == 0) return "הוריקן";
@@ -1847,30 +1853,30 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Next") == 0) return "הבא";
   if (std::strcmp(text, "Night") == 0) return "לילה";
   if (std::strcmp(text, "No") == 0) return "לא";
-  if (std::strcmp(text, "Nohold") == 0) return "ללא החזקה";
+  if (std::strcmp(text, "Nohold") == 0) return "ללא קיבוע";
   if (std::strcmp(text, "None") == 0) return "ללא";
   if (std::strcmp(text, "No options") == 0) return "אין אפשרויות";
   if (std::strcmp(text, "No presets") == 0) return "אין מצבים מוגדרים";
   if (std::strcmp(text, "No sources") == 0) return "אין מקורות";
   if (std::strcmp(text, "Source") == 0) return "מקור";
-  if (std::strcmp(text, "Not available") == 0) return "אינו זמין";
+  if (std::strcmp(text, "Not available") == 0) return "לא זמין";
   if (std::strcmp(text, "Off") == 0) return "כבוי";
-  if (std::strcmp(text, "On") == 0) return "פועל";
+  if (std::strcmp(text, "On") == 0) return "מופעל";
   if (std::strcmp(text, "Open") == 0) return "פתיחה";
-  if (std::strcmp(text, "Opening") == 0) return "נפתח";
+  if (std::strcmp(text, "Opening") == 0) return "בפתיחה";
   if (std::strcmp(text, "Option") == 0) return "אפשרות";
   if (std::strcmp(text, "Oscillating") == 0) return "מסתובב";
   if (std::strcmp(text, "Oscillation") == 0) return "סיבוב";
   if (std::strcmp(text, "Partly Cloudy") == 0) return "מעונן חלקית";
   if (std::strcmp(text, "Partly Cloudy Night") == 0) return "לילה מעונן חלקית";
-  if (std::strcmp(text, "Partly Lightning") == 0) return "ברקים חלקית";
-  if (std::strcmp(text, "Partly Rainy") == 0) return "גשום חלקית";
-  if (std::strcmp(text, "Partly Snow And Rain") == 0) return "שלג וגשם חלקית";
-  if (std::strcmp(text, "Partly Snowy") == 0) return "מושלג חלקית";
+  if (std::strcmp(text, "Partly Lightning") == 0) return "ברקים מקומיים";
+  if (std::strcmp(text, "Partly Rainy") == 0) return "גשם מקומי";
+  if (std::strcmp(text, "Partly Snow And Rain") == 0) return "שלג וגשם מקומיים";
+  if (std::strcmp(text, "Partly Snowy") == 0) return "שלג מקומי";
   if (std::strcmp(text, "Pause") == 0) return "השהיה";
   if (std::strcmp(text, "Paused") == 0) return "מושהה";
   if (std::strcmp(text, "Pending") == 0) return "בהמתנה";
-  if (std::strcmp(text, "Permanenthold") == 0) return "החזקה קבועה";
+  if (std::strcmp(text, "Permanenthold") == 0) return "קיבוע תמידי";
   if (std::strcmp(text, "PIN was not accepted") == 0) return "הקוד לא התקבל";
   if (std::strcmp(text, "Play/Pause") == 0) return "ניגון/השהיה";
   if (std::strcmp(text, "Playing") == 0) return "מנגן";
@@ -1887,14 +1893,15 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Run this script?") == 0) return "להריץ את הסקריפט?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(text, "Screen Locked") == 0) return "המסך נעול";
-  if (std::strcmp(text, "Screen Unlocked") == 0) return "המסך משוחרר";
-  if (std::strcmp(text, "Skip Next") == 0) return "לרצועה הבאה";
-  if (std::strcmp(text, "Skip Previous") == 0) return "לרצועה הקודמת";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "נעילת המסך בוטלה";
+  if (std::strcmp(text, "Skip Next") == 0) return "הרצועה הבאה";
+  if (std::strcmp(text, "Skip Previous") == 0) return "הרצועה הקודמת";
   if (std::strcmp(text, "Snowy") == 0) return "מושלג";
   if (std::strcmp(text, "Snowy And Rain") == 0) return "שלג וגשם";
   if (std::strcmp(text, "Spot Clean") == 0) return "ניקוי נקודתי";
   if (std::strcmp(text, "Start") == 0) return "הפעלה";
-  if (std::strcmp(text, "Still") == 0) return "נייח";
+  if (std::strcmp(text, "Start / Dock") == 0) return "הפעלה / עגינה";
+  if (std::strcmp(text, "Still") == 0) return "קבוע";
   if (std::strcmp(text, "Subpage") == 0) return "תת-עמוד";
   if (std::strcmp(text, "Stop") == 0) return "עצירה";
   if (std::strcmp(text, "Stopped") == 0) return "הופסק";
@@ -1904,8 +1911,9 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "שקיעה";
   if (std::strcmp(text, "Sunset Up") == 0) return "זריחה";
   if (std::strcmp(text, "Swing") == 0) return "נדנוד";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "נדנוד אופקי";
   if (std::strcmp(text, "Target") == 0) return "יעד";
-  if (std::strcmp(text, "Temporaryhold") == 0) return "החזקה זמנית";
+  if (std::strcmp(text, "Temporaryhold") == 0) return "קיבוע זמני";
   if (std::strcmp(text, "Today") == 0) return "היום";
   if (std::strcmp(text, "Too many") == 0) return "יותר מדי";
   if (std::strcmp(text, "Toggle this device?") == 0) return "להחליף את מצב המכשיר?";
@@ -1917,10 +1925,10 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Turn on this device?") == 0) return "להפעיל את המכשיר?";
   if (std::strcmp(text, "Unavailable") == 0) return "לא זמין";
   if (std::strcmp(text, "Unknown") == 0) return "לא ידוע";
-  if (std::strcmp(text, "Unlock") == 0) return "שחרור נעילה";
+  if (std::strcmp(text, "Unlock") == 0) return "ביטול נעילה";
   if (std::strcmp(text, "Unsupported") == 0) return "לא נתמך";
   if (std::strcmp(text, "Vacation") == 0) return "חופשה";
-  if (std::strcmp(text, "Vacationhold") == 0) return "החזקת חופשה";
+  if (std::strcmp(text, "Vacationhold") == 0) return "קיבוע לחופשה";
   if (std::strcmp(text, "Vacuum") == 0) return "שואב אבק";
   if (std::strcmp(text, "Version unknown") == 0) return "גרסה לא ידועה";
   if (std::strcmp(text, "Volume") == 0) return "עוצמה";
@@ -1941,7 +1949,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Booting") == 0) return "אתחול";
   if (std::strcmp(text, "Connect an Ethernet cable\nand wait for a network address") == 0) return "חברו כבל רשת\nוהמתינו לכתובת רשת";
   if (std::strcmp(text, "Connect to the setup hotspot\nthen open 192.168.4.1") == 0) return "התחברו לרשת ההגדרה\nופתחו את 192.168.4.1";
-  if (std::strcmp(text, "Connect to") == 0) return "התחבר אל";
+  if (std::strcmp(text, "Connect to") == 0) return "התחברו אל";
   if (std::strcmp(text, "Connect to WiFi") == 0) return "התחברות ל-WiFi";
   if (std::strcmp(text, "Scan to connect") == 0) return "סרקו כדי להתחבר";
   if (std::strcmp(text, "Network") == 0) return "רשת";
@@ -1954,8 +1962,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Ethernet Setup") == 0) return "הגדרת רשת קווית";
   if (std::strcmp(text, "Installing update") == 0) return "מתקין עדכון";
   if (std::strcmp(text, "Checking for updates") == 0) return "בודק עדכונים";
-  if (std::strcmp(text, "Latest installed") == 0) return "מותקנת הגרסה החדשה";
-  if (std::strcmp(text, "Update available") == 0) return "קיים עדכון";
+  if (std::strcmp(text, "Latest installed") == 0) return "מותקנת הגרסה העדכנית";
+  if (std::strcmp(text, "Update available") == 0) return "יש עדכון";
   if (std::strcmp(text, "Up-to-date") == 0) return "מעודכן";
   if (std::strcmp(text, "Install") == 0) return "התקנה";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
@@ -1966,14 +1974,14 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "See the install guide for help") == 0) return "לעזרה עיינו במדריך ההתקנה";
   if (std::strcmp(text, "Settings > Devices & Services") == 0) return "הגדרות > מכשירים ושירותים";
   if (std::strcmp(text, "Setup") == 0) return "הגדרה";
-  if (std::strcmp(text, "Starting up") == 0) return "מתחיל";
+  if (std::strcmp(text, "Starting up") == 0) return "בהפעלה";
   if (std::strcmp(text, "The screen may turn off\nDo not power off") == 0) return "המסך עשוי לכבות\nאין לנתק מהחשמל";
   if (std::strcmp(text, "Try installing the update again") == 0) return "נסו להתקין את העדכון שוב";
   if (std::strcmp(text, "Trying to reconnect\nto your saved network") == 0) return "מנסה להתחבר מחדש\nלרשת השמורה";
   if (std::strcmp(text, "Update complete") == 0) return "העדכון הושלם";
   if (std::strcmp(text, "Update failed") == 0) return "העדכון נכשל";
   if (std::strcmp(text, "WiFi Disconnected") == 0) return "WiFi מנותק";
-  if (std::strcmp(text, "to configure your network settings") == 0) return "כדי להגדיר את הגדרות הרשת";
+  if (std::strcmp(text, "to configure your network settings") == 0) return "כדי להגדיר את הרשת";
   if (std::strcmp(text, "Configure your WiFi") == 0) return "הגדרת WiFi";
   if (std::strcmp(text, "Speaker Group") == 0) return "קבוצת רמקולים";
   if (std::strcmp(text, "Speakers") == 0) return "רמקולים";
@@ -2035,9 +2043,9 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "free") == 0) return "פנוי";
   if (std::strcmp(text, "left") == 0) return "נותר";
   if (std::strcmp(text, "Timer") == 0) return "טיימר";
-  if (std::strcmp(text, "Confirm") == 0) return "לאשר";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "רשת Wi-Fi לאורחים";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "מצב ה-Wi-Fi לא השתנה";
+  if (std::strcmp(text, "Confirm") == 0) return "לאישור";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "רשת אורחים";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "מצב ה-WiFi לא השתנה";
   return text;
 }
 
@@ -2203,6 +2211,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Naplemente le";
   if (std::strcmp(text, "Sunset Up") == 0) return "Naplemente fel";
   if (std::strcmp(text, "Swing") == 0) return "Legyezés";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vízszintes legyezés";
   if (std::strcmp(text, "Target") == 0) return "Célérték";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Ideiglenes tartás";
   if (std::strcmp(text, "Today") == 0) return "Ma";
@@ -2496,6 +2505,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Tramonto giù";
   if (std::strcmp(text, "Sunset Up") == 0) return "Tramonto su";
   if (std::strcmp(text, "Swing") == 0) return "Oscillazione";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscillazione orizzontale";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Temporaneo";
   if (std::strcmp(text, "Today") == 0) return "Oggi";
   if (std::strcmp(text, "Too many") == 0) return "Troppi";
@@ -2780,6 +2790,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgang ned";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgang opp";
   if (std::strcmp(text, "Swing") == 0) return "Sving";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontal sving";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "I dag";
   if (std::strcmp(text, "Too many") == 0) return "For mange";
@@ -3070,6 +3081,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Zon onder";
   if (std::strcmp(text, "Sunset Up") == 0) return "Zon op";
   if (std::strcmp(text, "Swing") == 0) return "Zwenken";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontaal zwenken";
   if (std::strcmp(text, "Target") == 0) return "Doel";
   if (std::strcmp(text, "Today") == 0) return "Vandaag";
   if (std::strcmp(text, "Too many") == 0) return "Te veel";
@@ -3348,6 +3360,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Zachód słońca dół";
   if (std::strcmp(text, "Sunset Up") == 0) return "Zachód słońca góra";
   if (std::strcmp(text, "Swing") == 0) return "Ruch wahadłowy";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Ruch poziomy";
   if (std::strcmp(text, "Target") == 0) return "Cel";
   if (std::strcmp(text, "Today") == 0) return "Dziś";
   if (std::strcmp(text, "Too many") == 0) return "Za dużo";
@@ -3638,6 +3651,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Pôr do sol alto";
   if (std::strcmp(text, "Swing") == 0) return "Oscilação";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(text, "Target") == 0) return "Alvo";
   if (std::strcmp(text, "Today") == 0) return "Hoje";
   if (std::strcmp(text, "Too many") == 0) return "Muitos";
@@ -3926,6 +3940,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Pôr do sol alto";
   if (std::strcmp(text, "Swing") == 0) return "Oscilação";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(text, "Target") == 0) return "Alvo";
   if (std::strcmp(text, "Today") == 0) return "Hoje";
   if (std::strcmp(text, "Too many") == 0) return "Demasiados";
@@ -4219,6 +4234,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Apus jos";
   if (std::strcmp(text, "Sunset Up") == 0) return "Apus sus";
   if (std::strcmp(text, "Swing") == 0) return "Balans";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Balans orizontal";
   if (std::strcmp(text, "Target") == 0) return "Țintă";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Menținere temporară";
   if (std::strcmp(text, "Today") == 0) return "Astăzi";
@@ -4522,6 +4538,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Закат: стемнело";
   if (std::strcmp(text, "Sunset Up") == 0) return "Закат: посветлело";
   if (std::strcmp(text, "Swing") == 0) return "Колебание";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Горизонтальное колебание";
   if (std::strcmp(text, "Target") == 0) return "Цель";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Временное удержание";
   if (std::strcmp(text, "Today") == 0) return "Сегодня";
@@ -4816,6 +4833,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Západ slnka dole";
   if (std::strcmp(text, "Sunset Up") == 0) return "Západ slnka hore";
   if (std::strcmp(text, "Swing") == 0) return "Kývanie";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontálne kývanie";
   if (std::strcmp(text, "Target") == 0) return "Cieľ";
   if (std::strcmp(text, "Today") == 0) return "Dnes";
   if (std::strcmp(text, "Too many") == 0) return "Príliš veľa";
@@ -5110,6 +5128,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Sončni zahod dol";
   if (std::strcmp(text, "Sunset Up") == 0) return "Sončni zahod gor";
   if (std::strcmp(text, "Swing") == 0) return "Nihanje";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vodoravno nihanje";
   if (std::strcmp(text, "Target") == 0) return "Cilj";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Začasno zadržanje";
   if (std::strcmp(text, "Today") == 0) return "Danes";
@@ -5399,6 +5418,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgång ner";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgång upp";
   if (std::strcmp(text, "Swing") == 0) return "Svängning";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontell svängning";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "Idag";
   if (std::strcmp(text, "Too many") == 0) return "För många";
@@ -5693,6 +5713,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Gün batımı aşağı";
   if (std::strcmp(text, "Sunset Up") == 0) return "Gün batımı yukarı";
   if (std::strcmp(text, "Swing") == 0) return "Salınım";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Yatay salınım";
   if (std::strcmp(text, "Target") == 0) return "Hedef";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Geçici tutma";
   if (std::strcmp(text, "Today") == 0) return "Bugün";
@@ -5994,6 +6015,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Захід сонця вниз";
   if (std::strcmp(text, "Sunset Up") == 0) return "Захід сонця вгору";
   if (std::strcmp(text, "Swing") == 0) return "Коливання";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Горизонтальне коливання";
   if (std::strcmp(text, "Target") == 0) return "Ціль";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Тимчасове утримання";
   if (std::strcmp(text, "Today") == 0) return "Сьогодні";
@@ -6300,6 +6322,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sunset Down";
   if (std::strcmp(key, "sunset_up") == 0) return "Sunset Up";
   if (std::strcmp(key, "swing") == 0) return "Swing";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontal Swing";
   if (std::strcmp(key, "target") == 0) return "Target";
   if (std::strcmp(key, "temporaryhold") == 0) return "Temporaryhold";
   if (std::strcmp(key, "today") == 0) return "Today";
@@ -6599,6 +6622,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Západ slunce dolů";
   if (std::strcmp(key, "sunset_up") == 0) return "Západ slunce nahoru";
   if (std::strcmp(key, "swing") == 0) return "Kývání";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontální kývání";
   if (std::strcmp(key, "target") == 0) return "Cíl";
   if (std::strcmp(key, "today") == 0) return "Dnes";
   if (std::strcmp(key, "too_many") == 0) return "Příliš mnoho";
@@ -6887,6 +6911,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgang ned";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgang op";
   if (std::strcmp(key, "swing") == 0) return "Sving";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontal sving";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "I dag";
   if (std::strcmp(key, "too_many") == 0) return "For mange";
@@ -7169,6 +7194,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sonnenuntergang ab";
   if (std::strcmp(key, "sunset_up") == 0) return "Sonnenuntergang auf";
   if (std::strcmp(key, "swing") == 0) return "Schwenken";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontales Schwenken";
   if (std::strcmp(key, "target") == 0) return "Ziel";
   if (std::strcmp(key, "today") == 0) return "Heute";
   if (std::strcmp(key, "too_many") == 0) return "Zu viele";
@@ -7458,6 +7484,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Puesta de sol abajo";
   if (std::strcmp(key, "sunset_up") == 0) return "Puesta de sol arriba";
   if (std::strcmp(key, "swing") == 0) return "Oscilación";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilación horizontal";
   if (std::strcmp(key, "target") == 0) return "Objetivo";
   if (std::strcmp(key, "today") == 0) return "Hoy";
   if (std::strcmp(key, "too_many") == 0) return "Demasiados";
@@ -7758,6 +7785,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Auringonlasku alas";
   if (std::strcmp(key, "sunset_up") == 0) return "Auringonlasku ylös";
   if (std::strcmp(key, "swing") == 0) return "Kääntö";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vaakasuuntainen kääntö";
   if (std::strcmp(key, "target") == 0) return "Tavoite";
   if (std::strcmp(key, "temporaryhold") == 0) return "Väliaikainen pito";
   if (std::strcmp(key, "today") == 0) return "Tänään";
@@ -8045,6 +8073,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Coucher bas";
   if (std::strcmp(key, "sunset_up") == 0) return "Coucher haut";
   if (std::strcmp(key, "swing") == 0) return "Oscillation";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscillation horizontale";
   if (std::strcmp(key, "target") == 0) return "Cible";
   if (std::strcmp(key, "today") == 0) return "Aujourd'hui";
   if (std::strcmp(key, "too_many") == 0) return "Trop nombreux";
@@ -8197,7 +8226,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "arm_night") == 0) return "דריכה ללילה";
   if (std::strcmp(key, "arm_vacation") == 0) return "דריכה לחופשה";
   if (std::strcmp(key, "armed_away") == 0) return "דרוך מחוץ לבית";
-  if (std::strcmp(key, "armed_custom") == 0) return "דרוך מותאם";
+  if (std::strcmp(key, "armed_custom") == 0) return "דרוך מותאם אישית";
   if (std::strcmp(key, "armed_home") == 0) return "דרוך בבית";
   if (std::strcmp(key, "armed_night") == 0) return "דרוך ללילה";
   if (std::strcmp(key, "armed_vacation") == 0) return "דרוך לחופשה";
@@ -8212,7 +8241,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "clock") == 0) return "שעון";
   if (std::strcmp(key, "close") == 0) return "סגירה";
   if (std::strcmp(key, "closed") == 0) return "סגור";
-  if (std::strcmp(key, "closing") == 0) return "נסגר";
+  if (std::strcmp(key, "closing") == 0) return "בסגירה";
   if (std::strcmp(key, "cloudy") == 0) return "מעונן";
   if (std::strcmp(key, "cloudy_alert") == 0) return "התראת עננות";
   if (std::strcmp(key, "configure") == 0) return "להגדרה";
@@ -8254,7 +8283,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "heavy_snow") == 0) return "שלג כבד";
   if (std::strcmp(key, "high") == 0) return "גבוה";
   if (std::strcmp(key, "high_target") == 0) return "יעד עליון";
-  if (std::strcmp(key, "holduntil") == 0) return "החזקה עד";
+  if (std::strcmp(key, "holduntil") == 0) return "קיבוע עד";
   if (std::strcmp(key, "home") == 0) return "בבית";
   if (std::strcmp(key, "hourly") == 0) return "כל שעה";
   if (std::strcmp(key, "hurricane") == 0) return "הוריקן";
@@ -8293,31 +8322,31 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "next") == 0) return "הבא";
   if (std::strcmp(key, "night") == 0) return "לילה";
   if (std::strcmp(key, "no") == 0) return "לא";
-  if (std::strcmp(key, "nohold") == 0) return "ללא החזקה";
+  if (std::strcmp(key, "nohold") == 0) return "ללא קיבוע";
   if (std::strcmp(key, "none") == 0) return "ללא";
   if (std::strcmp(key, "no_options") == 0) return "אין אפשרויות";
   if (std::strcmp(key, "no_presets") == 0) return "אין מצבים מוגדרים";
   if (std::strcmp(key, "no_sources") == 0) return "אין מקורות";
   if (std::strcmp(key, "source") == 0) return "מקור";
-  if (std::strcmp(key, "not_available") == 0) return "אינו זמין";
+  if (std::strcmp(key, "not_available") == 0) return "לא זמין";
   if (std::strcmp(key, "off") == 0) return "כבוי";
-  if (std::strcmp(key, "on") == 0) return "פועל";
+  if (std::strcmp(key, "on") == 0) return "מופעל";
   if (std::strcmp(key, "open") == 0) return "פתיחה";
-  if (std::strcmp(key, "opening") == 0) return "נפתח";
+  if (std::strcmp(key, "opening") == 0) return "בפתיחה";
   if (std::strcmp(key, "state_open") == 0) return "פתוח";
   if (std::strcmp(key, "option") == 0) return "אפשרות";
   if (std::strcmp(key, "oscillating") == 0) return "מסתובב";
   if (std::strcmp(key, "oscillation") == 0) return "סיבוב";
   if (std::strcmp(key, "partly_cloudy") == 0) return "מעונן חלקית";
   if (std::strcmp(key, "partly_cloudy_night") == 0) return "לילה מעונן חלקית";
-  if (std::strcmp(key, "partly_lightning") == 0) return "ברקים חלקית";
-  if (std::strcmp(key, "partly_rainy") == 0) return "גשום חלקית";
-  if (std::strcmp(key, "partly_snow_and_rain") == 0) return "שלג וגשם חלקית";
-  if (std::strcmp(key, "partly_snowy") == 0) return "מושלג חלקית";
+  if (std::strcmp(key, "partly_lightning") == 0) return "ברקים מקומיים";
+  if (std::strcmp(key, "partly_rainy") == 0) return "גשם מקומי";
+  if (std::strcmp(key, "partly_snow_and_rain") == 0) return "שלג וגשם מקומיים";
+  if (std::strcmp(key, "partly_snowy") == 0) return "שלג מקומי";
   if (std::strcmp(key, "pause") == 0) return "השהיה";
   if (std::strcmp(key, "paused") == 0) return "מושהה";
   if (std::strcmp(key, "pending") == 0) return "בהמתנה";
-  if (std::strcmp(key, "permanenthold") == 0) return "החזקה קבועה";
+  if (std::strcmp(key, "permanenthold") == 0) return "קיבוע תמידי";
   if (std::strcmp(key, "pin_was_not_accepted") == 0) return "הקוד לא התקבל";
   if (std::strcmp(key, "play_pause") == 0) return "ניגון/השהיה";
   if (std::strcmp(key, "playing") == 0) return "מנגן";
@@ -8334,14 +8363,15 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "run_this_script") == 0) return "להריץ את הסקריפט?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(key, "screen_locked") == 0) return "המסך נעול";
-  if (std::strcmp(key, "screen_unlocked") == 0) return "המסך משוחרר";
-  if (std::strcmp(key, "skip_next") == 0) return "לרצועה הבאה";
-  if (std::strcmp(key, "skip_previous") == 0) return "לרצועה הקודמת";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "נעילת המסך בוטלה";
+  if (std::strcmp(key, "skip_next") == 0) return "הרצועה הבאה";
+  if (std::strcmp(key, "skip_previous") == 0) return "הרצועה הקודמת";
   if (std::strcmp(key, "snowy") == 0) return "מושלג";
   if (std::strcmp(key, "snowy_and_rain") == 0) return "שלג וגשם";
   if (std::strcmp(key, "spot_clean") == 0) return "ניקוי נקודתי";
   if (std::strcmp(key, "start") == 0) return "הפעלה";
-  if (std::strcmp(key, "still") == 0) return "נייח";
+  if (std::strcmp(key, "start_dock") == 0) return "הפעלה / עגינה";
+  if (std::strcmp(key, "still") == 0) return "קבוע";
   if (std::strcmp(key, "subpage") == 0) return "תת-עמוד";
   if (std::strcmp(key, "stop") == 0) return "עצירה";
   if (std::strcmp(key, "stopped") == 0) return "הופסק";
@@ -8351,8 +8381,9 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "שקיעה";
   if (std::strcmp(key, "sunset_up") == 0) return "זריחה";
   if (std::strcmp(key, "swing") == 0) return "נדנוד";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "נדנוד אופקי";
   if (std::strcmp(key, "target") == 0) return "יעד";
-  if (std::strcmp(key, "temporaryhold") == 0) return "החזקה זמנית";
+  if (std::strcmp(key, "temporaryhold") == 0) return "קיבוע זמני";
   if (std::strcmp(key, "today") == 0) return "היום";
   if (std::strcmp(key, "too_many") == 0) return "יותר מדי";
   if (std::strcmp(key, "toggle_this_device") == 0) return "להחליף את מצב המכשיר?";
@@ -8364,10 +8395,10 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "turn_on_this_device") == 0) return "להפעיל את המכשיר?";
   if (std::strcmp(key, "unavailable") == 0) return "לא זמין";
   if (std::strcmp(key, "unknown") == 0) return "לא ידוע";
-  if (std::strcmp(key, "unlock") == 0) return "שחרור נעילה";
+  if (std::strcmp(key, "unlock") == 0) return "ביטול נעילה";
   if (std::strcmp(key, "unsupported") == 0) return "לא נתמך";
   if (std::strcmp(key, "vacation") == 0) return "חופשה";
-  if (std::strcmp(key, "vacationhold") == 0) return "החזקת חופשה";
+  if (std::strcmp(key, "vacationhold") == 0) return "קיבוע לחופשה";
   if (std::strcmp(key, "vacuum") == 0) return "שואב אבק";
   if (std::strcmp(key, "version_unknown") == 0) return "גרסה לא ידועה";
   if (std::strcmp(key, "volume") == 0) return "עוצמה";
@@ -8400,8 +8431,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "ethernet_setup") == 0) return "הגדרת רשת קווית";
   if (std::strcmp(key, "installing_update") == 0) return "מתקין עדכון";
   if (std::strcmp(key, "checking_for_updates") == 0) return "בודק עדכונים";
-  if (std::strcmp(key, "latest_installed") == 0) return "מותקנת הגרסה החדשה";
-  if (std::strcmp(key, "update_available") == 0) return "קיים עדכון";
+  if (std::strcmp(key, "latest_installed") == 0) return "מותקנת הגרסה העדכנית";
+  if (std::strcmp(key, "update_available") == 0) return "יש עדכון";
   if (std::strcmp(key, "up_to_date") == 0) return "מעודכן";
   if (std::strcmp(key, "update_firmware") == 0) return "התקנה";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
@@ -8412,15 +8443,15 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "לעזרה עיינו במדריך ההתקנה";
   if (std::strcmp(key, "settings_devices_services") == 0) return "הגדרות > מכשירים ושירותים";
   if (std::strcmp(key, "setup") == 0) return "הגדרה";
-  if (std::strcmp(key, "starting_up") == 0) return "מתחיל";
+  if (std::strcmp(key, "starting_up") == 0) return "בהפעלה";
   if (std::strcmp(key, "the_screen_may_turn_off_do_not_power_off") == 0) return "המסך עשוי לכבות\nאין לנתק מהחשמל";
   if (std::strcmp(key, "try_installing_the_update_again") == 0) return "נסו להתקין את העדכון שוב";
   if (std::strcmp(key, "trying_to_reconnect_to_your_saved_network") == 0) return "מנסה להתחבר מחדש\nלרשת השמורה";
   if (std::strcmp(key, "update_complete") == 0) return "העדכון הושלם";
   if (std::strcmp(key, "update_failed") == 0) return "העדכון נכשל";
   if (std::strcmp(key, "wifi_disconnected") == 0) return "WiFi מנותק";
-  if (std::strcmp(key, "connect_to") == 0) return "התחבר אל";
-  if (std::strcmp(key, "to_configure_your_network_settings") == 0) return "כדי להגדיר את הגדרות הרשת";
+  if (std::strcmp(key, "connect_to") == 0) return "התחברו אל";
+  if (std::strcmp(key, "to_configure_your_network_settings") == 0) return "כדי להגדיר את הרשת";
   if (std::strcmp(key, "wifi_setup") == 0) return "הגדרת WiFi";
   if (std::strcmp(key, "speaker_group") == 0) return "קבוצת רמקולים";
   if (std::strcmp(key, "speakers") == 0) return "רמקולים";
@@ -8484,9 +8515,9 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "פנוי";
   if (std::strcmp(key, "stat_remaining") == 0) return "נותר";
   if (std::strcmp(key, "timer") == 0) return "טיימר";
-  if (std::strcmp(key, "timer_confirm") == 0) return "לאשר";
-  if (std::strcmp(key, "guest_wifi") == 0) return "רשת Wi-Fi לאורחים";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "מצב ה-Wi-Fi לא השתנה";
+  if (std::strcmp(key, "timer_confirm") == 0) return "לאישור";
+  if (std::strcmp(key, "guest_wifi") == 0) return "רשת אורחים";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "מצב ה-WiFi לא השתנה";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8653,6 +8684,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Naplemente le";
   if (std::strcmp(key, "sunset_up") == 0) return "Naplemente fel";
   if (std::strcmp(key, "swing") == 0) return "Legyezés";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vízszintes legyezés";
   if (std::strcmp(key, "target") == 0) return "Célérték";
   if (std::strcmp(key, "temporaryhold") == 0) return "Ideiglenes tartás";
   if (std::strcmp(key, "today") == 0) return "Ma";
@@ -8949,6 +8981,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Tramonto giù";
   if (std::strcmp(key, "sunset_up") == 0) return "Tramonto su";
   if (std::strcmp(key, "swing") == 0) return "Oscillazione";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscillazione orizzontale";
   if (std::strcmp(key, "temporaryhold") == 0) return "Temporaneo";
   if (std::strcmp(key, "today") == 0) return "Oggi";
   if (std::strcmp(key, "too_many") == 0) return "Troppi";
@@ -9236,6 +9269,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgang ned";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgang opp";
   if (std::strcmp(key, "swing") == 0) return "Sving";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontal sving";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "I dag";
   if (std::strcmp(key, "too_many") == 0) return "For mange";
@@ -9528,6 +9562,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Zon onder";
   if (std::strcmp(key, "sunset_up") == 0) return "Zon op";
   if (std::strcmp(key, "swing") == 0) return "Zwenken";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontaal zwenken";
   if (std::strcmp(key, "target") == 0) return "Doel";
   if (std::strcmp(key, "today") == 0) return "Vandaag";
   if (std::strcmp(key, "too_many") == 0) return "Te veel";
@@ -9809,6 +9844,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Zachód słońca dół";
   if (std::strcmp(key, "sunset_up") == 0) return "Zachód słońca góra";
   if (std::strcmp(key, "swing") == 0) return "Ruch wahadłowy";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Ruch poziomy";
   if (std::strcmp(key, "target") == 0) return "Cel";
   if (std::strcmp(key, "today") == 0) return "Dziś";
   if (std::strcmp(key, "too_many") == 0) return "Za dużo";
@@ -10102,6 +10138,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(key, "sunset_up") == 0) return "Pôr do sol alto";
   if (std::strcmp(key, "swing") == 0) return "Oscilação";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(key, "target") == 0) return "Alvo";
   if (std::strcmp(key, "today") == 0) return "Hoje";
   if (std::strcmp(key, "too_many") == 0) return "Muitos";
@@ -10393,6 +10430,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(key, "sunset_up") == 0) return "Pôr do sol alto";
   if (std::strcmp(key, "swing") == 0) return "Oscilação";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(key, "target") == 0) return "Alvo";
   if (std::strcmp(key, "today") == 0) return "Hoje";
   if (std::strcmp(key, "too_many") == 0) return "Demasiados";
@@ -10689,6 +10727,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Apus jos";
   if (std::strcmp(key, "sunset_up") == 0) return "Apus sus";
   if (std::strcmp(key, "swing") == 0) return "Balans";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Balans orizontal";
   if (std::strcmp(key, "target") == 0) return "Țintă";
   if (std::strcmp(key, "temporaryhold") == 0) return "Menținere temporară";
   if (std::strcmp(key, "today") == 0) return "Astăzi";
@@ -10995,6 +11034,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Закат: стемнело";
   if (std::strcmp(key, "sunset_up") == 0) return "Закат: посветлело";
   if (std::strcmp(key, "swing") == 0) return "Колебание";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Горизонтальное колебание";
   if (std::strcmp(key, "target") == 0) return "Цель";
   if (std::strcmp(key, "temporaryhold") == 0) return "Временное удержание";
   if (std::strcmp(key, "today") == 0) return "Сегодня";
@@ -11292,6 +11332,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Západ slnka dole";
   if (std::strcmp(key, "sunset_up") == 0) return "Západ slnka hore";
   if (std::strcmp(key, "swing") == 0) return "Kývanie";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontálne kývanie";
   if (std::strcmp(key, "target") == 0) return "Cieľ";
   if (std::strcmp(key, "today") == 0) return "Dnes";
   if (std::strcmp(key, "too_many") == 0) return "Príliš veľa";
@@ -11589,6 +11630,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sončni zahod dol";
   if (std::strcmp(key, "sunset_up") == 0) return "Sončni zahod gor";
   if (std::strcmp(key, "swing") == 0) return "Nihanje";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vodoravno nihanje";
   if (std::strcmp(key, "target") == 0) return "Cilj";
   if (std::strcmp(key, "temporaryhold") == 0) return "Začasno zadržanje";
   if (std::strcmp(key, "today") == 0) return "Danes";
@@ -11881,6 +11923,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgång ner";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgång upp";
   if (std::strcmp(key, "swing") == 0) return "Svängning";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontell svängning";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "Idag";
   if (std::strcmp(key, "too_many") == 0) return "För många";
@@ -12178,6 +12221,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Gün batımı aşağı";
   if (std::strcmp(key, "sunset_up") == 0) return "Gün batımı yukarı";
   if (std::strcmp(key, "swing") == 0) return "Salınım";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Yatay salınım";
   if (std::strcmp(key, "target") == 0) return "Hedef";
   if (std::strcmp(key, "temporaryhold") == 0) return "Geçici tutma";
   if (std::strcmp(key, "today") == 0) return "Bugün";
@@ -12482,6 +12526,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Захід сонця вниз";
   if (std::strcmp(key, "sunset_up") == 0) return "Захід сонця вгору";
   if (std::strcmp(key, "swing") == 0) return "Коливання";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Горизонтальне коливання";
   if (std::strcmp(key, "target") == 0) return "Ціль";
   if (std::strcmp(key, "temporaryhold") == 0) return "Тимчасове утримання";
   if (std::strcmp(key, "today") == 0) return "Сьогодні";

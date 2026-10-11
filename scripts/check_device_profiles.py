@@ -369,7 +369,7 @@ def test_v3_release_configuration() -> None:
     assert "ref: ${espdesktop_component_ref}" in package, "V3 MIPI source must use the configured component ref"
     assert "components: [mipi_dsi]" in package, "V3 must retain the patched MIPI component"
     assert "web_server:\n  ota: false" in package, "V3 browser firmware uploads must be disabled"
-    assert package.count("restore_mode: ALWAYS_OFF") >= 2, "V3 update switches must default off"
+    assert "restore_mode: ALWAYS_OFF" not in package, "V3 firmware update switches must use shared defaults"
     assert "espdesktop_component_url: \"file:///config\"" in factory
     assert "espdesktop_component_ref: \"HEAD\"" in factory
     assert 'js_include: "../docs/public/webserver/embedded/www.js"' in factory
@@ -999,7 +999,10 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
     pr = device_matrix.pr_matrix(profiles)
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in release["include"]], "release matrix")
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in nightly["include"]], "nightly matrix")
-    assert_profile_slugs(profile_slugs, [entry["slug"] for entry in pr["include"]], "PR matrix")
+    pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr["include"]]
+    expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
+    assert len(pr_chips) == len(set(pr_chips)), "PR matrix repeats a chip family"
+    assert set(pr_chips) == expected_chips, "PR matrix does not cover every chip family"
 
 
 def test_public_firmware_slugs(profile_slugs: list[str]) -> None:

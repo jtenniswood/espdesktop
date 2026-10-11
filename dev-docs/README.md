@@ -51,6 +51,8 @@ usage documentation lives in the root `README.md` and under `docs/`.
 
 ## Upstream Ports
 
+- [EspControl monthly sync: 10 September–10 October 2026](upstream-sync/2026-10-10.md) — all 152 source PRs, 60 individual port PRs and validation evidence.
+- [October firmware compiler logs](upstream-sync/2026-10-10-firmware-logs/README.md) — compressed output with hashes, including retained failed attempts.
 - [EspControl sync: 1–22 September 2026](upstream-sync/2026-09-22.md) — complete source PR accounting and destination adaptations.
 
 ## Historical Records

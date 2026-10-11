@@ -18,6 +18,7 @@ export function registerCalendarCardTypes(
     const { cardBadgeLabelHtml, cardLargeNumbersHidePreviewLabel, cardSensorPreviewHtml } = fields;
     const {
         dateTimeCardTimeParts,
+        dateTimeCardDateParts,
         metadataForHomeAssistantSupport,
         metadata,
         monthNameForIndex,
@@ -56,8 +57,11 @@ export function registerCalendarCardTypes(
             const buttonClass = hideLabel
                 ? (isDateTime ? "sp-clock-wide-large" : "sp-date-time-wide-large")
                 : undefined;
-            const day = String(current.getUTCDate());
-            const month = monthNameForIndex(current.getUTCMonth());
+            const date = isDateTime
+                ? dateTimeCardDateParts()
+                : { day: String(current.getUTCDate()), month: monthNameForIndex(current.getUTCMonth()) };
+            const day = date.day;
+            const month = date.month;
             if (isDateTime) {
                 const time = dateTimeCardTimeParts();
                 return {

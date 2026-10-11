@@ -52,7 +52,8 @@ constexpr const char *LIGHT_CONTROL_TABS_OPTION = card_runtime_option_name_light
 constexpr const char *LIGHT_CONTROL_DEFAULT_TABS_VALUE = "power|brightness|temperature|color";
 constexpr const char *COVER_CONTROL_TABS_OPTION = card_runtime_option_name_cover_tabs();
 constexpr const char *CLIMATE_CONTROL_TABS_OPTION = "climate_tabs";
-constexpr const char *CLIMATE_CONTROL_DEFAULT_TABS_VALUE = "temperature|mode|preset|fan|swing";
+constexpr const char *CLIMATE_CONTROL_DEFAULT_TABS_VALUE =
+  "temperature|mode|preset|fan|swing|horizontal_swing";
 constexpr const char *FAN_CONTROL_TABS_OPTION = card_runtime_option_name_fan_tabs();
 constexpr const char *FAN_LIGHT_ENTITY_OPTION = card_runtime_option_name_fan_light_entity();
 constexpr const char *FAN_CONTROL_DEFAULT_TABS_VALUE = "power|speed|preset|oscillation|direction";
@@ -572,7 +573,7 @@ inline std::string cover_card_options_normalized(const std::string &options,
 
 inline bool climate_control_tab_token_valid(const std::string &value) {
   return value == "temperature" || value == "mode" || value == "preset" ||
-         value == "fan" || value == "swing";
+         value == "fan" || value == "swing" || value == "horizontal_swing";
 }
 
 inline std::string normalize_climate_control_tabs_value(const std::string &value) {
@@ -924,13 +925,16 @@ inline const char *subpage_companion_stat_default_unit(const std::string &entity
 inline std::string date_time_card_options_normalized(const std::string &options,
                                                      const ParsedCfg &p) {
   if (!card_large_numbers_supported(p)) return "";
+  std::string out;
   if (cfg_option_token_present(options, "large_numbers") ||
       large_numbers_explicitly_disabled(options)) {
-    std::string out;
     append_large_numbers_option(out, options);
-    return out;
   }
-  return "";
+  if (p.type == "clock" && cfg_option_token_present(options, "center_clock")) {
+    if (!out.empty()) out += ",";
+    out += "center_clock";
+  }
+  return out;
 }
 
 inline std::string companion_metric_options_normalized(const std::string &options) {

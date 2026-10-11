@@ -117,11 +117,11 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-sensor-preview{display:flex;align-items:baseline;gap:.18em;color:#fff}" +
         ".sp-climate-temp-card .sp-sensor-preview{position:absolute;left:var(--btn-pad);top:var(--btn-pad)}" +
         ".sp-climate-temp-card .sp-btn-label-row{margin-top:auto}" +
-        ".sp-btn-big .sp-sensor-preview-large .sp-sensor-value,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-weight:100}" +
+        ".sp-btn-big .sp-sensor-preview-large .sp-sensor-value,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-weight:300}" +
         ".sp-btn-big .sp-sensor-preview-large .sp-sensor-unit,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-unit{transform:translateY(var(--large-sensor-unit-offset-y,-20px))}" +
-        ".sp-date-time-wide-large{justify-content:center;align-items:center}" +
-        ".sp-clock-wide-large{justify-content:center;align-items:flex-start}" +
-        ".sp-clock-wide-large .sp-sensor-value{font-family:Roboto,sans-serif;font-weight:100}" +
+        ".sp-clock-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-family:Roboto,sans-serif;font-weight:300}" +
+        ".sp-clock-left-mid{justify-content:center;align-items:flex-start}" +
+        ".sp-clock-centered{justify-content:center;align-items:center}" +
         ".sp-forecast-preview{white-space:nowrap;gap:0}" +
         ".sp-sensor-value{font-size:var(--btn-icon);line-height:1;font-weight:300}" +
         ".sp-sensor-unit{font-size:var(--btn-label);line-height:1;color:#fff}" +
@@ -510,7 +510,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-disclosure.sp-open .sp-disclosure-badge,.sp-disclosure-badge.sp-hidden{display:none}" +
         ".sp-disclosure-chevron{display:inline-flex;width:20px;height:20px;color:var(--text3);transition:transform .25s ease;flex-shrink:0}" +
         ".sp-disclosure-chevron svg{width:100%;height:100%}" +
-        ".sp-disclosure-body{display:none;padding:30px 14px 28px}" +
+        ".sp-disclosure-body{display:none;padding:15px 14px 14px}" +
         ".sp-media-card-settings .sp-disclosure-body{padding:14px}" +
         ".sp-app-subpage-settings .sp-disclosure-body{padding:8px 14px 10px}" +
         ".sp-app-subpage-settings .sp-disclosure-body>.sp-field{margin-bottom:12px}" +
