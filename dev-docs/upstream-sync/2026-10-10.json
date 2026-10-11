@@ -6848,10 +6848,23 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc4880p443.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "shared_speaker_state.h": "9d0d6e2dad00d22616182c918790ba8307e8467fcd4af3788d0d252c1df3362f",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/681f83ca015da1c38ec798e54cb15ca49ab1f9b6e8bb9170805351c3b86d4f4c.log.gz",
+          "logSha256": "681f83ca015da1c38ec798e54cb15ca49ab1f9b6e8bb9170805351c3b86d4f4c",
+          "archiveSha256": "825e522388ab20f3109903cc9096603ca6d88a0bf7f78c0212b0f7f190bb11ad"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
@@ -10762,15 +10775,30 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2179-44efe3617-shared-header-final-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "c543386fa7df81269dbc6d75abec28cceaedbf4cf852e88b3187451f9b9a8411",
+            "button_grid_media.h": "43893f179e28577881455d8d6330e3800d5259742a679b872a130b317fd632f6",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/5b16857725a7992a446f594daf3c152c3fc05ba276d9b7704f54a37f9713efd7.log.gz",
+          "logSha256": "5b16857725a7992a446f594daf3c152c3fc05ba276d9b7704f54a37f9713efd7",
+          "archiveSha256": "fe9aeb81fdd267ba5d4edc7c8e2cf899048fd3c8c1c4625eb86a6e48a5df2e10"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2179-44efe3617-shared-header-final-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
