@@ -204,10 +204,9 @@ jobs:
 
   docs:
     name: Build Docs
-    needs: [sync-icons, validate]
+    needs: sync-icons
     if: >-
       always() &&
-      needs.validate.result == 'success' &&
       (github.event_name == 'pull_request' || needs.sync-icons.outputs.changed != 'true')
     runs-on: ubuntu-latest
     steps:
