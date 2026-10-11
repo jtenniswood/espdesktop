@@ -128,6 +128,7 @@ class CompanionService final : public Component {
   std::atomic<bool> focus_targets_supported_{false};
   bool now_playing_artwork_follows_{false};
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
+  std::vector<std::string> catalogue_enabled_icons_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   uint16_t application_definition_count_{0};
   uint16_t web_app_definition_count_{0};

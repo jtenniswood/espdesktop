@@ -794,6 +794,9 @@ final class CompanionConnection: NSObject {
     }
 
     func publishCatalogue() {
+        // An initial empty scan is provisional; publishing it would prune the
+        // panel's persistent icons before discovery supplies the real app list.
+        guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
         lastFocusedActionIdentifiers = nil
         let supportedWindowActions = Self.supportedWindowActionIDs(

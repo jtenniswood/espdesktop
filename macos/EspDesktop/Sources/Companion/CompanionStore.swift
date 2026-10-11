@@ -286,6 +286,7 @@ final class CompanionStore: NSObject, ObservableObject {
 
     private let applicationCatalogue = ApplicationCatalogue()
     private var applicationScan: Task<Void, Never>?
+    private(set) var applicationCatalogueReady = false
 
     func refreshApplications() {
         guard applicationScan == nil else { return }
@@ -307,6 +308,7 @@ final class CompanionStore: NSObject, ObservableObject {
                 defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
             }
             availableApps = applications
+            applicationCatalogueReady = true
             applicationScan = nil
             if isConnected { connection.publishCatalogue() }
         }

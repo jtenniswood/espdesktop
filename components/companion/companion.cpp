@@ -584,15 +584,26 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           page != (page == 0 ? 0 : this->catalogue_next_page_)) return false;
       if (page == 0) {
         this->catalogue_actions_.clear();
+        this->catalogue_enabled_icons_.clear();
         this->catalogue_generation_ = catalogue_generation;
         this->catalogue_next_page_ = 0;
       }
       for (const auto &item : payload->items) {
-        if (this->catalogue_actions_.size() >= MAX_CATALOGUE_ACTIONS) break;
         const std::string id = item.id;
         const std::string label = item.label;
-        if (safe_field(id, 96) && safe_utf8_field(label, 96))
-          this->catalogue_actions_.emplace_back(id, label);
+        if (!safe_field(id, 96) || !safe_utf8_field(label, 96)) continue;
+        const bool retain_action = this->catalogue_actions_.size() < MAX_CATALOGUE_ACTIONS;
+        if (retain_action) this->catalogue_actions_.emplace_back(id, label);
+        // Keep icon eligibility for configured cards even when their app is
+        // outside the bounded browser catalogue. The reference set is bounded
+        // by the panel configuration rather than the Mac's installed app count.
+        if ((retain_action || app_icon_store().is_referenced(id)) &&
+            id.rfind("folder.", 0) != 0 && id.rfind("shortcut.", 0) != 0 &&
+            id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
+            id.rfind("webapp.", 0) != 0 && id.rfind("urlcard.", 0) != 0 &&
+            std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==
+                this->catalogue_enabled_icons_.end())
+          this->catalogue_enabled_icons_.push_back(id);
       }
       this->catalogue_next_page_ = page + 1;
       if (complete) {
@@ -603,16 +614,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         std::vector<std::string> configured_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-          enabled_app_icons.clear();
-        }
-        for (const auto &item : this->catalogue_actions_) {
-          const auto &id = item.first;
-          if (id.rfind("folder.", 0) == 0 || id.rfind("shortcut.", 0) == 0 ||
-              id.rfind("window.", 0) == 0 || id.rfind("metrics.", 0) == 0) continue;
-          {
-            std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-            enabled_app_icons.push_back(id);
-          }
+          enabled_app_icons = this->catalogue_enabled_icons_;
         }
         std::vector<std::string> enabled_icons;
         {
