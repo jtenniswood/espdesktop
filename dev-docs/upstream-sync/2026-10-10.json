@@ -3866,10 +3866,22 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "e6dd5c97954a7959366b018d9b9c4304655adbf2",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/1920-e6dd5c979-final-review-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "df26e24fa1f8244d3bca7b4b4cffbb33365b888929584f14602e6895c3c1c82f",
+            "button_grid_media.h": "3417b830ce8c9aa41150ec1335056cf727c74ae1008cdae728075f378c2055ee",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/3f881e5c3aa0da719a1d96c3394787a8faa80a319061247e9d323412ea307914.log.gz",
+          "logSha256": "3f881e5c3aa0da719a1d96c3394787a8faa80a319061247e9d323412ea307914",
+          "archiveSha256": "eb638429f24587d93ea80b18fa788dc003281769d011d79ea4cbbe1f24636837"
         }
       ],
       "reviewStatus": "No unresolved review findings at the verified revision",
@@ -5508,7 +5520,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2073-9f4d92ef1-final-review-guition-esp32-p4-jc1060p470.log",
           "device": "guition-esp32-p4-jc1060p470",
           "esphome": "2026.9.1"
@@ -9884,7 +9896,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2182",
       "mergeSha": "2245062f4b54da5767f76aedf9bf96afd4b03a09",
       "disposition": "Ported",
-      "evidence": "Offline captive portal with embedded gzip/Brotli assets and saved confirmation; IPv4DNS/scan filtering/no-cache; shared development/adopted USBImprov provisioning; registered ResetBoot preserves complete-reset disablecompiledWiFi override across reprovision/reboot and partial-reset credentials. Preserves destination Mac pairing/protected-reset epoch transport. DefaultEspDesktop_MAC4 AP andcustomnames/passwords retained. Fixed sourcecustomAPaddressfinding usingpinnedSDKlive/manualIPv4 reader withUSE_WIFI/MANUAL_IPguards andtranslatedaddressplaceholderall22languages; regeneratedi18nassets. Ethernetincludeguard retained. Fullfast85host172web/WifiUDP/reset/boot-codegen/package/browserchecksPASS2182-fast-final.log, all9factoryconfigsPASS, S3actualbrowser/dialogPASS, docsMac/S3PASS. Latestrebased38cf42283fullfastPASS2182-reviewed-parent-fast.log. FivepublishedfirmwarebuildsqueuedincludingEthernet-onlyoverlay. No physicaltesting. Old08eGitHubCIGatePASS beforeparentrebase; latestCIpendingverification. Final reviewed camera/theme dependencies updated; full fast checks passed (86 host/172 web) at published 7be1a2afb. Five exact-revision firmware builds queued, including Ethernet-only overlay. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published df8cbfc69. Final S3 compilation exposed the removed IPAddress.str() API and duplicate source/copied header includes. Switched to the pinned SDK str_to buffer API, retained the returned AP object while reading manual settings, and included the canonical copied component header. Regression now models SDK return types and runs with address/use-after-scope sanitizers. Full required CI passed (2182-wifi-sdk-final-ci.log); corrected factory builds requeued.",
+      "evidence": "Wi-Fi setup/reset improvements and live/custom AP browser addresses ported with the pinned SDK address API and canonical helper include. Full required CI and all five final configuration builds passed at df00c957b (S3, 7-inch P4, original/production 4.3-inch P4, plus 7-inch Ethernet). The invalid earlier Ethernet overlay is identified separately and excluded from firmware validation. Physical onboarding/reset testing remains pending.",
       "changedFiles": [
         "common/addon/connectivity.yaml",
         "common/device/screen_loading.yaml",
@@ -10124,11 +10136,26 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2182-df00c957b-ethernet-correct-directory.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "d382ac16fa02eb9aa6479729dca2e97710b339b5610f548b473e69883c512def",
+            "button_grid_media.h": "a17d1bd31618815efd909db671fc28d82643f580dc9dccde3145dc8e6c4e6d39",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "872e1d626304467c570fe87c449cfeaf5574cc6377edf5daecc563c87f54ba15",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "network_transport": "ethernet",
           "device": "guition-esp32-p4-jc1060p470-ethernet",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/28b62527a79d60087bec95fecd2e191a26ee7bd3db9b7beaa689fe9173f2ad84.log.gz",
+          "logSha256": "28b62527a79d60087bec95fecd2e191a26ee7bd3db9b7beaa689fe9173f2ad84",
+          "archiveSha256": "1e3799927bb6855101be5d3cabbbe276dd7da6bb320f2c6136184f1c7710e79f"
         }
       ],
       "reviewStatus": "No unresolved review findings at the verified revision",
@@ -10138,7 +10165,10 @@
         "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
-      "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8"
+      "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
+      "validationHistory": [
+        "Offline captive portal with embedded gzip/Brotli assets and saved confirmation; IPv4DNS/scan filtering/no-cache; shared development/adopted USBImprov provisioning; registered ResetBoot preserves complete-reset disablecompiledWiFi override across reprovision/reboot and partial-reset credentials. Preserves destination Mac pairing/protected-reset epoch transport. DefaultEspDesktop_MAC4 AP andcustomnames/passwords retained. Fixed sourcecustomAPaddressfinding usingpinnedSDKlive/manualIPv4 reader withUSE_WIFI/MANUAL_IPguards andtranslatedaddressplaceholderall22languages; regeneratedi18nassets. Ethernetincludeguard retained. Fullfast85host172web/WifiUDP/reset/boot-codegen/package/browserchecksPASS2182-fast-final.log, all9factoryconfigsPASS, S3actualbrowser/dialogPASS, docsMac/S3PASS. Latestrebased38cf42283fullfastPASS2182-reviewed-parent-fast.log. FivepublishedfirmwarebuildsqueuedincludingEthernet-onlyoverlay. No physicaltesting. Old08eGitHubCIGatePASS beforeparentrebase; latestCIpendingverification. Final reviewed camera/theme dependencies updated; full fast checks passed (86 host/172 web) at published 7be1a2afb. Five exact-revision firmware builds queued, including Ethernet-only overlay. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published df8cbfc69. Final S3 compilation exposed the removed IPAddress.str() API and duplicate source/copied header includes. Switched to the pinned SDK str_to buffer API, retained the returned AP object while reading manual settings, and included the canonical copied component header. Regression now models SDK return types and runs with address/use-after-scope sanitizers. Full required CI passed (2182-wifi-sdk-final-ci.log); corrected factory builds requeued."
+      ]
     },
     {
       "body": "## Summary\n\nAdds a shared component with 20 round colour swatches to **Custom Colours** and **Appearance**. Users choose one card colour; its active state uses a lighter shade. The palette includes a grey row, distinct blues, pure red and white, and the existing `FF8C00` orange. The reset icon appears only while its section is open.\n\nRelated to #878.\n\n## Practical impact\n\n- Colours survive reopening editors, changing other options, Wi-Fi credential edits, saved-configuration normalization, both subpage formats and Dark/Light theme changes. Main and secondary-page sensor and information cards use their selected backgrounds.\n- Device and web preview share the foreground rules: mid-tone colours retain white content, while pale backgrounds use dark content. Cyan retains white content in its lighter active state. State changes, presses, confirmations, selected modal/speaker controls and triggered alarms preserve the correct contrast.\n- Custom backgrounds remain fixed while theme-owned child surfaces, slider tracks and disabled labels refresh with the theme. Uncustomised cards continue following the selected theme.\n- Media fallback previews and device tiles honour custom colours. Track Position and Now Playing Progress use a lighter fill on darker backgrounds and a darker fill on pale backgrounds, including white, so progress stays visible. Shades are derived before display calibration.\n- Image and full QR cards omit colour controls because their backgrounds are fixed. Visible artwork retains white text. Older saved colours remain available as a custom swatch.\n\n## Documentation decision\n\n- [x] Updated public docs or release-facing notes for user-visible behavior/configuration.\n- [ ] No docs needed because this does not change user-visible behavior/configuration.\n- [ ] Docs follow-up needed before merge; explain below.\n\nDocs notes:\n- Appearance guide and FAQ cover the palette, automatic shades, reset, foreground behaviour and fixed-background exclusions. Appearance also explains media fallback colours and visible progress fills.\n\n## Testing\n\n- [x] Automated/local checks passed or were run where practical.\n- [x] Device testing is required before merge.\n- [ ] Device testing is not required; explain why in Notes for testing.\n\nAffected display/device, if applicable:\n- Shared card code affects all EspControl displays. Test the 7-inch P4 V1, 10-inch P4 V3 and 4-inch P4 / P4-86 before merge, including secondary pages.\n\n## Notes for testing\n\nLatest revision: `739301419`.\n\n- Custom colours now survive Action changes to Option Select/Local, all 12 transitions between Light control types, and Webhook editor reopening and header edits/clearing. New production-renderer regressions reproduced each failure before its fix and pass afterward. All 31 web unit test files, TypeScript, runtime coverage and web smoke/generated-output checks passed at `739301419`; web assets were regenerated.\n- [Latest GitHub validation, documentation and the CI gate passed](https://github.com/jtenniswood/espcontrol/actions/runs/37974517014) at `739301419`. The P4 and S3 firmware checks are still running.\n- Merged `origin/main` (`2245062f4`) to clear generated-asset conflicts that prevented CI from starting, preserving its Wi-Fi setup/reset changes. Rebuilt the combined web assets.\n- Fixed the failing `card-runtime-coverage` CI check by regenerating `compatibility/fixtures/card_runtime_surface_baseline.json`. The stale entry was the Cover Art preview fingerprint; its generator now reports the baseline as current. [GitHub validation and the CI gate passed](https://github.com/jtenniswood/espcontrol/actions/runs/37971561708) on `c7bb99006`.\n- All 84 host firmware tests passed. The three ESPHome-dependent package/code-generation tests also passed in pinned ESPHome 2026.9.1: Wi-Fi setup package expansion, reset startup code generation and Home Assistant reconnect recovery. Together these cover all 87 firmware test entries, including production colour/state rendering, main/subpage media-driver routing, calibrated progress colours, theme refreshes, disabled content and alarm contrast. Captive-portal DNS tests passed with and without station IPv6.\n- All 31 web unit test files, preview/feature checks, TypeScript, web smoke, generated-output freshness and documentation build checks passed. Chromium verified actual overlay/fill colours and placeholder/artwork text in 120 media-preview combinations across both themes and page levels. The distinct-fill regression fails before the fix and passes afterward. Web assets were regenerated.\n- Factory builds passed for 7-inch P4 V1, 4.3-inch P4 and S3 at `4efce28db`. All five changed colour/media headers remain identical after merging main. The final merged 4.3-inch factory build passed at `c7bb99006`, with staged colour/media and Wi-Fi/reset sources matching this commit. GitHub\u2019s P4 landscape build passed on `c7bb99006`; the S3 build was still running when the web-only mode fixes were pushed. Firmware checks will rerun on the latest revision.\n- Earlier factory builds passed on `f46f96a37`; GitHub P4 and S3 builds and all checks passed on `68730d218`. Earlier OTA uploads were verified on 7-inch P4 V1 (`355213e7e`), 10-inch P4 V3 (`f285e7fda`) and P4-86 (`983a4f9a6`). These are historical results; this latest revision has not been flashed or physically tested.\n\nManual testing:\n1. Choose a colour in Custom Colours or Appearance, save and reopen. Change another card option, Connect-card credentials or Webhook headers and confirm the colour remains after saving and reopening. Change an Action card to Option Select and Local, and change a Light card between All Controls, Switch, Brightness and Colour Temperature; save and reopen each one to check the colour remains. Check palette/reset behaviour and older saved-colour preservation.\n2. Compare main and secondary-page sensors, presence/door cards and media cards. While media is playing, check Track Position and Now Playing Progress with cyan, grey and white cards: the fill must remain visible against the selected background. Check Cover Art loading/unavailable fallbacks and their text contrast.\n3. Switch Dark/Light while a custom card is active or unavailable. Turn it off or release it afterward; verify inactive text contrast, muted labels, slider tracks and preserved backgrounds. Confirm uncustomised cards follow the theme.\n4. Check confirmations, selected modal/speaker rows and triggered alarms with a bright accent. Confirm Image and full QR cards have no Custom Colours section.\n\n## PR status\n\n- [x] Checks running or waiting.\n- [ ] Needs automated fix.\n- [ ] Ready for device test.\n- [ ] Device test failed; details below.\n- [ ] Device tested successfully.\n- [ ] Ready to merge after user confirmation.\n\n## Issue handling\n\n- [x] Do not close related issues until the user confirms the fix works.\n",
@@ -10152,7 +10182,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2163",
       "mergeSha": "24ce0424ae7a37d3d6460a4ed187662d9aa92a59",
       "disposition": "Ported",
-      "evidence": "Adds persistent custom card backgrounds, 20 swatches, automatic active shades and matching device/web contrast, including calibrated media progress. Preserves Companion, image placeholders, subpage formats and backups. Fixes upstream sensor-source colour loss with a production controller regression. Final full fast checks passed (86 firmware host and 180 web tests); all nine pinned ESPHome factory configurations, real Chromium swatch selection/reset, nine native browser layouts and docs passed. Broad legacy browser suite exposed an existing screensaver Sensor-mode expectation; native coverage is recorded separately. Full firmware builds await parent review updates; physical device testing remains required. HbKb resolved: generic type selection preserves normalized colour around target defaults and Cover Art alias resets. Tests execute the actual selection method with destructive registry defaults, legacy and malformed colours; full fast checks passed (86 host/182 web), actual swatch browser and web smoke passed. Bundle baseline measured again at 2699454/1078577 gzip. Review HkEV resolved: Companion normalization, metric resets and shortcut/preset changes preserve valid custom colours. Production regressions cover nine Companion modes and preset recognition. Final reviewed parent full fast checks passed (87 host/184 web), actual swatch browser passed; regenerated bundle measured at 2699645/1078650 gzip. HrFQ resolved: Companion app and URL focus changes use the checked-state helper so descendant text follows the active/inactive custom background. Production focus/colour regressions and full fast checks passed (87 host/184 web). H-D4 resolved: alarm background ownership now comes from the validated child palette, preserving parent alarm-option inheritance without freezing a normal child background. Actual environment/binding/theme-switch regression and full fast checks passed (88 host/184 web). Retired Companion playback cards now clear saved custom colour instead of restoring an empty coloured switch. The real built configuration parser/serializer regression and full required CI passed (88 firmware tests, 185 web tests; 2163-retired-colour-final-ci.log). Final firmware builds requeued on published f7ca68285. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published 83dc649ab. Recursive contrast syncing preserves foreground ownership for image label shadows and Cover Art labels. Real production colour/state callbacks pass press/release regressions for visible artwork and fallback cards, preserving ordinary label contrast. Full required CI passed (88 firmware tests,185 web tests; 2163-overlay-contrast-final-ci.log). Final four device builds requeued on cbbc0b145. Persistent slot icon/text labels now clear foreground protection before contrast syncing when replaced by an ordinary card. The actual production slot reset regression passed. Full required CI passed (88 firmware tests,185 web tests; 2163-slot-reuse-final-ci.log). Final four device builds requeued on 85fb3ef3c. Rebased over the checked onboarding SDK address/include fix; authored differences from prior 85fb3ef3c are exactly those three parent files. Own colour and slot-reuse changes retained. Final four firmware builds requeued. Artwork label foreground ownership now applies only while artwork is visible. Fallback labels read current button-state contrast on theme/metadata refresh and follow pressed/released/checked shading, including 9D9D9D to BABABA threshold crossing. Actual production colour regressions and full required CI passed (88 firmware tests,185 web tests; 2163-fallback-contrast-final-ci.log). Final device builds requeued.",
+      "evidence": "Adds persistent custom card backgrounds, 20 swatches, automatic active shades and matching device/web contrast, including calibrated media progress. Preserves Companion, image placeholders, subpage formats and backups. Fixes upstream sensor-source colour loss with a production controller regression. Final full fast checks passed (86 firmware host and 180 web tests); all nine pinned ESPHome factory configurations, real Chromium swatch selection/reset, nine native browser layouts and docs passed. Broad legacy browser suite exposed an existing screensaver Sensor-mode expectation; native coverage is recorded separately. Full firmware builds await parent review updates; physical device testing remains required. HbKb resolved: generic type selection preserves normalized colour around target defaults and Cover Art alias resets. Tests execute the actual selection method with destructive registry defaults, legacy and malformed colours; full fast checks passed (86 host/182 web), actual swatch browser and web smoke passed. Bundle baseline measured again at 2699454/1078577 gzip. Review HkEV resolved: Companion normalization, metric resets and shortcut/preset changes preserve valid custom colours. Production regressions cover nine Companion modes and preset recognition. Final reviewed parent full fast checks passed (87 host/184 web), actual swatch browser passed; regenerated bundle measured at 2699645/1078650 gzip. HrFQ resolved: Companion app and URL focus changes use the checked-state helper so descendant text follows the active/inactive custom background. Production focus/colour regressions and full fast checks passed (87 host/184 web). H-D4 resolved: alarm background ownership now comes from the validated child palette, preserving parent alarm-option inheritance without freezing a normal child background. Actual environment/binding/theme-switch regression and full fast checks passed (88 host/184 web). Retired Companion playback cards now clear saved custom colour instead of restoring an empty coloured switch. The real built configuration parser/serializer regression and full required CI passed (88 firmware tests, 185 web tests; 2163-retired-colour-final-ci.log). Final firmware builds requeued on published f7ca68285. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published 83dc649ab. Recursive contrast syncing preserves foreground ownership for image label shadows and Cover Art labels. Real production colour/state callbacks pass press/release regressions for visible artwork and fallback cards, preserving ordinary label contrast. Full required CI passed (88 firmware tests,185 web tests; 2163-overlay-contrast-final-ci.log). Final four device builds requeued on cbbc0b145. Persistent slot icon/text labels now clear foreground protection before contrast syncing when replaced by an ordinary card. The actual production slot reset regression passed. Full required CI passed (88 firmware tests,185 web tests; 2163-slot-reuse-final-ci.log). Final four device builds requeued on 85fb3ef3c. Rebased over the checked onboarding SDK address/include fix; authored differences from prior 85fb3ef3c are exactly those three parent files. Own colour and slot-reuse changes retained. Final four firmware builds requeued. Artwork label foreground ownership now applies only while artwork is visible. Fallback labels read current button-state contrast on theme/metadata refresh and follow pressed/released/checked shading, including 9D9D9D to BABABA threshold crossing. Actual production colour regressions and full required CI passed (88 firmware tests,185 web tests; 2163-fallback-contrast-final-ci.log). Final device builds requeued. Actual S3 firmware compilation exposed an inline contrast-helper declaration without its definition in the Companion component translation unit. Shared the five contrast/state functions in a narrow LVGL header included by both grid layout and Companion controls. Parser test copying, production regressions and cache input coverage updated. Full required CI passed (88 firmware tests,185 web tests; 2163-contrast-header-final-ci.log). All four device targets queued at the published shared-header revision.",
       "changedFiles": [
         "common/config/parser_runtime_card_normalization_fixtures.json",
         "compatibility/fixtures/card_runtime_surface_baseline.json",
@@ -10227,7 +10257,7 @@
         "tests/web/unit/media_preview_colours.test.js"
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/180",
-      "latestPortRevision": "d8efd03acf147292967fd953088755775279556e",
+      "latestPortRevision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
       "branch": "add-custom-card-colours",
       "destinationBaseBranch": "improve-wifi-setup-reset",
       "firmwareBuilds": [
@@ -10362,37 +10392,101 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "d8efd03acf147292967fd953088755775279556e",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2163-d8efd03ac-fallback-final-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "9d98aaeae6160cb5bd5d65289148784e783ac983b9331be29d719ae5ab3ac5dd",
+            "button_grid_media.h": "f7b4f29f1c8f50c90fcd9f78606756c2b058ba79013a2bb22fefe125c87fe92d",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/19f2af75bf4359e0ad89ee09062d2c87da1aa8bf3b4a84c06696bceac13be8d6.log.gz",
+          "logSha256": "19f2af75bf4359e0ad89ee09062d2c87da1aa8bf3b4a84c06696bceac13be8d6",
+          "archiveSha256": "c7552bc961e7f54c177ad00155a12597c7932c9d187f6ddb9bdf6b4087feebea"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "d8efd03acf147292967fd953088755775279556e",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2163-d8efd03ac-fallback-final-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "9d98aaeae6160cb5bd5d65289148784e783ac983b9331be29d719ae5ab3ac5dd",
+            "button_grid_media.h": "f7b4f29f1c8f50c90fcd9f78606756c2b058ba79013a2bb22fefe125c87fe92d",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/ef4324a1ecd6a9fbb3e38864e60595437045735ca96eba7ddbdcc0009afae90f.log.gz",
+          "logSha256": "ef4324a1ecd6a9fbb3e38864e60595437045735ca96eba7ddbdcc0009afae90f",
+          "archiveSha256": "1eeddf63daf6d16f85872b81fd31186f96dee99ac682734db2fe78f1d89fcb52"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "d8efd03acf147292967fd953088755775279556e",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2163-d8efd03ac-fallback-final-guition-esp32-p4-jc4880p443.log",
+          "note": "Queued job replaced by the shared contrast-header correction before compilation.",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "d8efd03acf147292967fd953088755775279556e",
-          "status": "planned",
+          "status": "superseded",
           "log": "/private/tmp/2163-d8efd03ac-fallback-final-esp32-p4-86.log",
+          "note": "Queued job replaced by the shared contrast-header correction before compilation.",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
+          "status": "planned",
+          "log": "/private/tmp/2163-73904b84f-shared-header-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
+          "status": "planned",
+          "log": "/private/tmp/2163-73904b84f-shared-header-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
+          "status": "planned",
+          "log": "/private/tmp/2163-73904b84f-shared-header-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
+          "status": "planned",
+          "log": "/private/tmp/2163-73904b84f-shared-header-final-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "No unresolved review findings at the verified revision",
+      "reviewStatus": "Awaiting review verification for the updated revision",
       "reviewThreads": [
         "PRRT_kwDOUR8kMs6rHbKb",
         "PRRT_kwDOUR8kMs6rHkEV",
@@ -10408,9 +10502,10 @@
         "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
-      "revision": "d8efd03acf147292967fd953088755775279556e",
+      "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
       "previousPortRevisions": [
-        "2b1dbe517d7084a857995295daf07520f83ec04e"
+        "2b1dbe517d7084a857995295daf07520f83ec04e",
+        "d8efd03acf147292967fd953088755775279556e"
       ]
     },
     {
@@ -10425,7 +10520,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2179",
       "mergeSha": "5f38cbccbfcaa5a46653e5e6c3748acab0fae41f",
       "disposition": "Ported",
-      "evidence": "Adds configurable popup tab ordering/visibility and optional independent power entity shared by All Controls and Cover Art. Retains custom colours and external playback routing. Upstream offline-power and three-state pool corrections included; actual destination modal-open guard adapted to new availability helper. Full final fast checks passed (90 host/181 web), all nine pinned factory configurations, real Chromium native/media editor journeys for nine layouts and docs passed. Bundle and contracts regenerated and size measured. Remote-modal fixture adaptation awaits combined compatibility validation with separate PR156; full firmware builds await reviewed parent wave. Physical device testing remains required. Final PR now uses shared integrate-colours-navigation base a3cbb37a5 (parents PR180 and PR156); old duplicate availability helper replaced with Power-aware implementation. Actual remote opening of usable Power with offline playback, plus existing suspended-image/lock/alarm/startup cases, passed. Final full fast checks passed (92 host/185 web), all nine factory configurations passed at the published combined revision. Browser acceptance rerun is in progress; firmware builds pending. Final combined Chromium acceptance passed for all nine layouts at published f6fa4f62b; all nine factory configurations and full 92-host/185-web tests passed. The ready PR now targets integrate-colours-navigation. Final reviewed parent base 4d617e85d includes Companion focus and alarm child-palette corrections. Complete required CI profile passed at the published revision (93 host/185 web); final firmware jobs use this exact head. Rebased onto shared dependency 98fa6d027, which includes the published card-colour PR and retired Companion restore fix. Full required CI passed (93 firmware tests, 186 web tests; 2179-retired-colour-final-ci.log). Final firmware builds requeued on published 11b2fd0a2. Final combined dependency is 8398035a6, including the production image placeholder declaration and retired Companion restore fix. Full required CI passed on published 679f5b5df (93 firmware tests,186 web tests; 2179-theme-declaration-final-ci.log). Four final firmware builds requeued. Rebased onto combined dependency 0fe5d70a5 including published card-colour overlay protection. Full required CI passed (93 firmware tests,186 web tests; 2179-overlay-contrast-final-ci.log). Final four device builds requeued on f80a3de7b. Rebased onto combined dependency a93ac5419 including the slot foreground ownership reset. Full required CI passed (93 firmware tests,186 web tests; 2179-slot-reuse-final-ci.log). Final four device builds requeued on 848fed9e2. Rebased onto shared dependency c6c9f10d9 including the onboarding SDK API/header/lifetime correction. Full required CI passed (93 firmware tests,186 web tests; 2179-wifi-sdk-final-ci.log). Final four firmware builds requeued. Rebased onto shared dependency cf6cf1935 with the corrected artwork/fallback ownership and current-state contrast. Full required CI passed (93 firmware tests,186 web tests; 2179-fallback-contrast-final-ci.log). Final four firmware builds requeued.",
+      "evidence": "Adds configurable popup tab ordering/visibility and optional independent power entity shared by All Controls and Cover Art. Retains custom colours and external playback routing. Upstream offline-power and three-state pool corrections included; actual destination modal-open guard adapted to new availability helper. Full final fast checks passed (90 host/181 web), all nine pinned factory configurations, real Chromium native/media editor journeys for nine layouts and docs passed. Bundle and contracts regenerated and size measured. Remote-modal fixture adaptation awaits combined compatibility validation with separate PR156; full firmware builds await reviewed parent wave. Physical device testing remains required. Final PR now uses shared integrate-colours-navigation base a3cbb37a5 (parents PR180 and PR156); old duplicate availability helper replaced with Power-aware implementation. Actual remote opening of usable Power with offline playback, plus existing suspended-image/lock/alarm/startup cases, passed. Final full fast checks passed (92 host/185 web), all nine factory configurations passed at the published combined revision. Browser acceptance rerun is in progress; firmware builds pending. Final combined Chromium acceptance passed for all nine layouts at published f6fa4f62b; all nine factory configurations and full 92-host/185-web tests passed. The ready PR now targets integrate-colours-navigation. Final reviewed parent base 4d617e85d includes Companion focus and alarm child-palette corrections. Complete required CI profile passed at the published revision (93 host/185 web); final firmware jobs use this exact head. Rebased onto shared dependency 98fa6d027, which includes the published card-colour PR and retired Companion restore fix. Full required CI passed (93 firmware tests, 186 web tests; 2179-retired-colour-final-ci.log). Final firmware builds requeued on published 11b2fd0a2. Final combined dependency is 8398035a6, including the production image placeholder declaration and retired Companion restore fix. Full required CI passed on published 679f5b5df (93 firmware tests,186 web tests; 2179-theme-declaration-final-ci.log). Four final firmware builds requeued. Rebased onto combined dependency 0fe5d70a5 including published card-colour overlay protection. Full required CI passed (93 firmware tests,186 web tests; 2179-overlay-contrast-final-ci.log). Final four device builds requeued on f80a3de7b. Rebased onto combined dependency a93ac5419 including the slot foreground ownership reset. Full required CI passed (93 firmware tests,186 web tests; 2179-slot-reuse-final-ci.log). Final four device builds requeued on 848fed9e2. Rebased onto shared dependency c6c9f10d9 including the onboarding SDK API/header/lifetime correction. Full required CI passed (93 firmware tests,186 web tests; 2179-wifi-sdk-final-ci.log). Final four firmware builds requeued. Rebased onto shared dependency cf6cf1935 with the corrected artwork/fallback ownership and current-state contrast. Full required CI passed (93 firmware tests,186 web tests; 2179-fallback-contrast-final-ci.log). Final four firmware builds requeued. Rebased onto shared dependency ab0f43de9 with the contrast/state definitions visible to both grid and Companion components. Full required CI passed (93 firmware tests,186 web tests; 2179-contrast-header-final-ci.log). Final four device builds requeued.",
       "changedFiles": [
         "common/config/media_card_normalization_fixtures.json",
         "components/espcontrol/button_grid_card_runtime.h",
@@ -10470,7 +10565,7 @@
         "tests/web/unit/media_preview_colours.test.js"
       ],
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/181",
-      "latestPortRevision": "c282126515afb70c2f00ee46ef3baaded4497ae9",
+      "latestPortRevision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
       "branch": "add-media-popup-controls",
       "destinationBaseBranch": "integrate-colours-navigation",
       "firmwareBuilds": [
@@ -10633,18 +10728,51 @@
           "log": "/private/tmp/2179-c28212651-fallback-final-esp32-p4-86.log",
           "device": "esp32-p4-86",
           "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+          "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
+          "status": "planned",
+          "log": "/private/tmp/2179-44efe3617-shared-header-final-guition-esp32-s3-4848s040.log",
+          "device": "guition-esp32-s3-4848s040",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
+          "status": "planned",
+          "log": "/private/tmp/2179-44efe3617-shared-header-final-guition-esp32-p4-jc1060p470.log",
+          "device": "guition-esp32-p4-jc1060p470",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
+          "status": "planned",
+          "log": "/private/tmp/2179-44efe3617-shared-header-final-guition-esp32-p4-jc4880p443.log",
+          "device": "guition-esp32-p4-jc4880p443",
+          "esphome": "2026.9.1"
+        },
+        {
+          "entrypoint": "builds/esp32-p4-86.factory.yaml",
+          "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
+          "status": "planned",
+          "log": "/private/tmp/2179-44efe3617-shared-header-final-esp32-p4-86.log",
+          "device": "esp32-p4-86",
+          "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "No unresolved review findings at the verified revision",
+      "reviewStatus": "Awaiting review verification for the updated revision",
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c282126515afb70c2f00ee46ef3baaded4497ae9",
         "checkedAt": "2026-10-10T23:54:47.956212+00:00",
         "unresolvedThreads": []
       },
-      "revision": "c282126515afb70c2f00ee46ef3baaded4497ae9",
+      "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
       "previousPortRevisions": [
-        "3ef79515cdb52e932fb334a1dc67fcfa6d6ba8f1"
+        "3ef79515cdb52e932fb334a1dc67fcfa6d6ba8f1",
+        "c282126515afb70c2f00ee46ef3baaded4497ae9"
       ]
     },
     {
