@@ -9,8 +9,7 @@
       "ethernet-selection"
     ],
     "input": [
-      "touchscreen",
-      "physical-volume-buttons"
+      "touchscreen"
     ]
   },
   "config": {

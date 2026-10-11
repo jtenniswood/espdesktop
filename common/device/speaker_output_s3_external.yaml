@@ -1,6 +1,13 @@
 # Optional external I2S amplifier output for ESP32-S3 panels without a free
 # onboard audio path. Connect BCLK to GPIO41, LRCLK to GPIO42, DOUT to GPIO43,
 # and provide power and ground to the external I2S DAC/amplifier.
+
+# GPIO43 is shared with UART0 transmit on the 4848S040. Disable serial logs
+# only when this optional speaker package claims that pin for I2S output.
+logger:
+  baud_rate: 0
+  hardware_uart: UART0
+
 i2s_audio:
   - id: speaker_i2s
     i2s_lrclk_pin: GPIO42
