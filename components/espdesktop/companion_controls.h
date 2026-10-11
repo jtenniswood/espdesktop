@@ -34,6 +34,7 @@
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
 #include "card_availability.h"
+#include "card_text_contrast.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
@@ -674,12 +675,11 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   if (!companion_card_focus_allowed(url_config)) {
-    lv_obj_clear_state(button, LV_STATE_CHECKED);
+    set_card_checked_state(button, false);
     return;
   }
   const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-  if (companion_action_active(focus_id)) lv_obj_add_state(button, LV_STATE_CHECKED);
-  else lv_obj_clear_state(button, LV_STATE_CHECKED);
+  set_card_checked_state(button, companion_action_active(focus_id));
 }
 
 struct CompanionViewRegistry {

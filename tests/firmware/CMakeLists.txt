@@ -41,6 +41,7 @@ add_custom_command(
   DEPENDS generate_theme_modal_test.py ../../components/espdesktop/button_grid_modal.h
     ../../components/espdesktop/button_grid_subscriptions.h
     ../../components/espdesktop/button_grid_media.h
+    ../../components/espdesktop/card_availability.h
   VERBATIM)
 add_executable(theme_runtime_tree_test theme_runtime_tree_test.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/theme_modal_adapter.h)
@@ -138,6 +139,8 @@ target_include_directories(button_grid_foundations_test PRIVATE
   ../../components/espdesktop
 )
 add_test(NAME button_grid_foundations_test COMMAND button_grid_foundations_test)
+add_test(NAME card_colour_rendering_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/card_colour_rendering_test.py ${CMAKE_CXX_COMPILER})
 
 add_executable(grid_navigation_service_test
   grid_navigation_service_test.cpp
@@ -616,6 +619,14 @@ target_include_directories(reset_policy_test PRIVATE ../../components/espdesktop
 add_test(NAME reset_policy_test COMMAND reset_policy_test)
 add_test(NAME reset_ota_wrapper_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/reset_ota_wrapper_test.py)
+add_test(NAME wifi_reset_override_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_reset_override_test.py)
+add_test(NAME wifi_reset_boot_codegen_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_reset_boot_codegen_test.py)
+add_test(NAME wifi_setup_address_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_setup_address_test.py)
+add_test(NAME wifi_setup_package_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_setup_package_test.py)
 
 add_test(NAME cover_art_playback_source_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_playback_source_test.py ${CMAKE_CXX_COMPILER})
@@ -670,3 +681,5 @@ add_test(NAME cover_art_clock_transition_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_clock_transition_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME cover_art_active_landing_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_active_landing_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME alarm_palette_ownership_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/alarm_palette_ownership_test.py)

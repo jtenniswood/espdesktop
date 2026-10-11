@@ -1738,6 +1738,7 @@ inline void image_card_configure_label(BtnSlot &s, const ParsedCfg &p) {
   const lv_font_t *font = lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN);
   if (font) lv_obj_set_style_text_font(shadow, font, LV_PART_MAIN);
   lv_obj_set_style_text_color(shadow, lv_color_hex(0x000000), LV_PART_MAIN);
+  lv_obj_add_flag(shadow, LV_OBJ_FLAG_USER_2);
   lv_obj_set_style_text_opa(shadow, LV_OPA_50, LV_PART_MAIN);
   lv_obj_set_style_text_align(shadow, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   lv_obj_set_style_bg_opa(shadow, LV_OPA_TRANSP, LV_PART_MAIN);

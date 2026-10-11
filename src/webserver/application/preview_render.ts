@@ -3,9 +3,12 @@ import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, previewEffectiveTheme } from "../state/preview_theme";
+import { configOptionValue, lighterCardColor } from "../model/config_primitives";
 import { escHtml } from "./ui_primitives";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
+    cardPreviewTextColor,
+    cardProgressColor,
     cardTypePickerDetails,
     cardTypePickerOptions,
     defaultCardTypeForPicker,
@@ -291,24 +294,39 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     previewTypeDef = null;
                 }
                 var slotSz: any = c.sizes[slot];
+                var cardOffColor: any = configOptionValue(b.options, "card_off_color").replace(/^#/, "").toUpperCase();
+                if (!/^[0-9A-F]{6}$/.test(cardOffColor)) cardOffColor = "";
+                var cardOnColor: any = lighterCardColor(cardOffColor);
                 var typePreview: any = previewTypeDef && previewTypeDef.renderPreview
-                    ? previewTypeDef.renderPreview(b, { escHtml: escHtml, cardSize: slotSz || 1 })
+                    ? previewTypeDef.renderPreview(b, {
+                        escHtml: escHtml, cardSize: slotSz || 1,
+                        cardBackgroundColor: cardOffColor,
+                        cardProgressColor: cardProgressColor(cardOffColor),
+                        cardTextColor: cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary,
+                    })
                     : null;
                 const btn: any = document.createElement("div");
                 btn.className = "sp-btn" +
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
                     (c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
-                btn.style.backgroundColor = "#" + color;
+                btn.style.backgroundColor = "#" + (cardOffColor || color);
+                btn.style.setProperty("--card-active-color", "#" + (cardOnColor || state.onColor || WEB_UI_COLORS.primary));
+                var contrastBackground: any = cardOffColor || color;
                 btn.draggable = !isConfigLocked();
                 btn.setAttribute("data-pos", pos);
                 btn.setAttribute("data-slot", slot);
                 var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
                 if (!typePreview && hasWhenOn && typeof cardOnPattern === "function" && cardOnPattern(b) === "stripes") {
-                    var onColor: any = state.onColor && state.onColor.length === 6 ? state.onColor : WEB_UI_COLORS.primary;
+                    var onColor: any = cardOnColor || (state.onColor && state.onColor.length === 6 ? state.onColor : WEB_UI_COLORS.primary);
+                    contrastBackground = onColor;
                     btn.style.backgroundImage =
                         "repeating-linear-gradient(135deg,#" + onColor + " 0,#" + onColor +
                             " 12px,rgba(255,255,255,.22) 12px,rgba(255,255,255,.22) 20px)";
+                }
+                if (!btn.classList.contains("sp-image-card")) {
+                    btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
+                        ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
                 var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
                 var sensorBadge: any = hasWhenOn
@@ -325,8 +343,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
-                    const backgroundColor = typeof typePreview.appIconBackgroundColor === "string"
-                        ? typePreview.appIconBackgroundColor : "";
+                    const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
+                        ? typePreview.appIconBackgroundColor : "");
                     const fillCard = typePreview.appIconFill === true;
                     const mediumIcon = !fillCard && typePreview.appIconMedium === true;
                     const mediumIconLabelHidden = mediumIcon && typePreview.appIconLabelHidden === true;

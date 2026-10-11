@@ -1,6 +1,7 @@
 #pragma once
 
 #include "card_availability.h"
+#include "card_text_contrast.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
@@ -415,13 +416,20 @@ inline void apply_button_colors(lv_obj_t *btn, bool has_on, uint32_t on_val,
   if (has_on) {
     lv_obj_set_style_bg_color(btn, lv_color_hex(on_val),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
+    lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(on_val)),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
     lv_obj_set_style_bg_color(btn, lv_color_hex(on_val),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+    lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(on_val)),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
   }
   if (has_off) {
     lv_obj_set_style_bg_color(btn, lv_color_hex(off_val),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+    lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(off_val)),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
   }
+  if (has_on || has_off) bind_card_text_contrast_events(btn);
 }
 
 inline uint32_t card_pattern_highlight_color(uint32_t color) {
@@ -451,30 +459,6 @@ inline void apply_button_on_pattern(lv_obj_t *btn, const std::string &options,
   lv_obj_set_style_bg_grad_dir(btn, LV_GRAD_DIR_HOR, checked);
   lv_obj_set_style_bg_grad_color(btn, highlight, pressed);
   lv_obj_set_style_bg_grad_dir(btn, LV_GRAD_DIR_HOR, pressed);
-}
-
-inline void apply_card_descendant_text_color(lv_obj_t *obj, lv_color_t color) {
-  if (!obj) return;
-  int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(obj));
-  for (int32_t i = 0; i < count; i++) {
-    lv_obj_t *child = lv_obj_get_child(obj, i);
-    if (!child) continue;
-    lv_obj_set_style_text_color(child, color, LV_PART_MAIN);
-    apply_card_descendant_text_color(child, color);
-  }
-}
-
-inline void sync_card_checked_text_color(lv_obj_t *btn) {
-  if (!btn) return;
-  apply_card_descendant_text_color(
-    btn, lv_obj_get_style_text_color(btn, LV_PART_MAIN));
-}
-
-inline void set_card_checked_state(lv_obj_t *btn, bool checked) {
-  if (!btn) return;
-  if (checked) lv_obj_add_state(btn, LV_STATE_CHECKED);
-  else lv_obj_clear_state(btn, LV_STATE_CHECKED);
-  sync_card_checked_text_color(btn);
 }
 
 // Match the main-page button widget label behavior so longer titles wrap

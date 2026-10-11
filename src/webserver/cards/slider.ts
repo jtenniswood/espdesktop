@@ -1,3 +1,4 @@
+import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
     cardContractCard,
@@ -216,7 +217,7 @@ export function registerSliderCardTypes(
                     if (modalSettingsDisclosure)
                         modalSettingsDisclosure.style.display = "none";
                     var previousOptions: any = b.options || "";
-                    b.options = "";
+                    b.options = preserveCardColorOptions(b.options, "");
                     if (b.options !== previousOptions)
                         helpers.saveField("options", b.options);
                 }
