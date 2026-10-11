@@ -78,6 +78,7 @@
       "coverArtSecondaryMediaPlayerEntity": "",
       "coverArtAttributeConditions": "",
       "coverArtDelay": 10,
+      "coverArtPlaybackControl": true,
       "coverArtTrackOverlayDuration": 5,
       "coverArtHideExternalInput": true,
       "coverArtHomeAssistantEndpointMode": "Manual",
@@ -190,8 +191,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2676919,
-    "gzip": 1066715,
+    "minified": 2678448,
+    "gzip": 1066859,
     "gzipTolerance": 9216
   }
 }
