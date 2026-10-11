@@ -83,6 +83,7 @@ TASKS = (
          domains=("firmware",),
          inputs=(
              "tests/firmware/**",
+             "components/gsl3680/**",
              "components/espdesktop/device_reset.*",
              "components/espdesktop/reset_policy.h",
              "components/espdesktop/reset_interlock.h",
