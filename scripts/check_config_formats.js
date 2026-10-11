@@ -456,6 +456,25 @@ assert.deepStrictEqual(
   [[1, "Single (1x1)"], [4, "Large (2x2)"], [7, "Extra Large (3x3)"], [9, "Max Tall (2x3)"], [10, "Massive (3x4)"]],
   "10-inch Wifi card size menu adds 2x3 and 3x4 portrait sizes",
 );
+// Square-grid spans must survive save/transfer for ordinary and Companion cards.
+for (const squareHooks of [s3Hooks, fourInchHooks]) {
+  for (const card of [{ type: "sensor", sensor: "local", entity: "sensor.office" },
+    { type: "companion", entity: "com.apple.Safari" }, { type: "companion_stat", entity: "cpu" }]) {
+    for (const size of [8, 9]) {
+      assert.strictEqual(squareHooks.normalizeCardSizeForConfig(card, size), size);
+      assert.ok(Array.from(squareHooks.cardSizeMenuOptions(card)).some(option => option.size === size));
+      if (card.type === "companion_stat") continue; // transfer capability is checked separately
+      const moved = squareHooks.cardTransferEntriesFromEnvelopeForTest({ cards: [{ ...card, label: "Square", size }] }, false, true);
+      assert.strictEqual(moved.entries[0].size, size, "square-grid transfer keeps six-cell size");
+    }
+  }
+  for (const type of ["wifi_qr", "wifi_qr_card"]) {
+    for (const size of [8, 9]) {
+      assert.strictEqual(squareHooks.normalizeCardSizeForConfig({ type }, size), 1);
+      assert.ok(!Array.from(squareHooks.cardSizeMenuOptions({ type })).some(option => option.size === size));
+    }
+  }
+}
 const transferredSensor = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office", size: 10 }],
 }, false, true);
