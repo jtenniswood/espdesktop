@@ -541,7 +541,7 @@ jobs:
   espdesktop-release:
     name: Sign and notarize EspDesktop
     needs: preflight
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7.0.1
         with:
