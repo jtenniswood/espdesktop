@@ -85,10 +85,12 @@ def clock_bar_icon_offset_lines(name: str, button: str, label: str) -> list[str]
 def battery_substitution_lines(device: dict) -> list[str]:
     if device["slug"] != "guition-esp32-p4-jc8012p4a1":
         return [
+            '  theme_battery_hud_label: "nullptr"',
             '  battery_status_apply_code: ""',
             '  battery_status_hide_code: ""',
         ]
     return [
+        '  theme_battery_hud_label: "id(battery_status_icon_label)"',
         "  battery_status_apply_code: |-",
         "    if (id(battery_status_enabled).state) {",
         *clock_bar_icon_offset_lines("battery_status_icon_x", "battery_status_button",
@@ -107,6 +109,7 @@ def battery_substitution_lines(device: dict) -> list[str]:
 def voice_substitution_lines(device: dict) -> list[str]:
     if not package_data(device).get("localVoiceServices"):
         return [
+            '  theme_voice_hud_label: "nullptr"',
             '  voice_clock_bar_hide_code: ""',
             '  voice_clock_bar_apply_code: ""',
             "  navigate_voice_target_code: |-",
@@ -132,6 +135,7 @@ def voice_substitution_lines(device: dict) -> list[str]:
             "          voice_clock_bar_icon_x_box);",
         ]
     return [
+        '  theme_voice_hud_label: "id(voice_clock_bar_mute_icon_label)"',
         "  voice_clock_bar_hide_code: |-",
         "    lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
         "  voice_clock_bar_apply_code: |-",
@@ -146,7 +150,7 @@ def voice_substitution_lines(device: dict) -> list[str]:
         '                        microphone_muted ? "\\U000F036D" :',
         '                        output_muted ? "\\U000F04C4" : "\\U000F036C");',
         "      lv_obj_set_style_text_color(id(voice_clock_bar_mute_icon_label),",
-        "                                  lv_color_hex(0xFFFFFF),",
+        "                                  lv_color_hex(current_theme().clockbar_text),",
         "                                  LV_PART_MAIN);",
         "    } else {",
         "      lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
@@ -246,6 +250,7 @@ def package_file_text(device: dict) -> str:
                 package.get("deviceFontPackageKey", "fonts_device"),
                 "!include device/fonts.yaml",
             ),
+            include_line("theme_colors", "!include ../../common/theme/colors.yaml"),
             include_line("button_theme", "!include ../../common/theme/button.yaml"),
             "  # ---------------------------------------------------------------------------",
             "  # Configuration (text/select/number components for web UI)",
@@ -263,6 +268,10 @@ def package_file_text(device: dict) -> str:
             ),
         ]
     )
+    if package.get("apiOpenModalAction", True) or package.get("apiNavigateAction", True):
+        lines.append(include_line("api_remote_actions", "!include ../../common/device/api_remote_actions.yaml"))
+    if package.get("apiOpenModalAction", True):
+        lines.append(include_line("api_open_modal", "!include ../../common/device/api_open_modal.yaml"))
     if package.get("apiNavigateAction", True):
         lines.append(include_line("api_navigate", "!include ../../common/device/api_navigate.yaml"))
     lines.extend(
@@ -334,12 +343,6 @@ def package_file_text(device: dict) -> str:
                 "    components: [mipi_dsi]",
                 "    refresh: 1s",
                 "",
-                "switch:",
-                "  - id: !extend auto_update_switch",
-                "    restore_mode: ALWAYS_OFF",
-                "  - id: !extend c6_auto_update_switch",
-                "    restore_mode: ALWAYS_OFF",
-                "",
                 "web_server:",
                 "  ota: false",
                 "",
@@ -406,11 +409,20 @@ def cfg_lines(device: dict) -> list[str]:
     image_card_count = int(device["image_slot_capacity"])
     lines = [
         "            GridConfig cfg = {};",
-        f"            cfg.num_slots = {device['slots']};",
     ]
+    if "portrait_slots" not in device:
+        lines.append(f"            cfg.num_slots = {device['slots']};")
     if "portrait_cols" in device:
         lines.append('            bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";')
         lines.append(f"            cfg.cols = portrait ? {device['portrait_cols']} : {device['cols']};")
+        if "portrait_slots" in device:
+            lines.append(f"            cfg.configured_slots = {device['slots']};")
+            lines.append(f"            cfg.num_slots = portrait ? {device['portrait_slots']} : {device['slots']};")
+            if device["portrait_slots"] < device["slots"]:
+                lines.append("            if (portrait) {")
+                for slot in range(device["portrait_slots"], device["slots"]):
+                    lines.append(f"              lv_obj_add_flag(slots[{slot}].btn, LV_OBJ_FLAG_HIDDEN);")
+                lines.append("            }")
         if device.get("rotate_width_compensation", False):
             lines.append("            cfg.width_compensation_vertical = portrait;")
     else:
@@ -805,6 +817,8 @@ def script_block(device: dict) -> str:
         "    mode: restart",
         "    then:",
         "      - delay: 3s",
+        "      - wait_until:",
+        "          lambda: 'return !alarm_display_takeover_active();'",
         "      - lambda: |-",
         refresh_block(device, "SUBPAGE REFRESH"),
         *refresh_subpage_arrays(device),
@@ -823,6 +837,8 @@ def script_block(device: dict) -> str:
                 "  - id: apply_button_grid",
                 "    mode: single",
                 "    then:",
+                "      - wait_until:",
+                "          lambda: 'return !alarm_display_takeover_active();'",
                 "      - lambda: |-",
                 refresh_block(device),
                 *refresh_subpage_arrays(device),

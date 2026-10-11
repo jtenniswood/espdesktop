@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "appId": "net.whatsapp.WhatsApp",
+  "label": "WhatsApp",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Mark a chat unread",
+      "shortcut": "command+control+shift+u",
+      "icon": "Message Video"
+    },
+    {
+      "id": "1",
+      "label": "Mute a chat",
+      "shortcut": "command+control+shift+m",
+      "icon": "Message Video"
+    },
+    {
+      "id": "2",
+      "label": "Archive a chat",
+      "shortcut": "command+control+shift+e",
+      "icon": "Message Video"
+    },
+    {
+      "id": "3",
+      "label": "Pin a chat",
+      "shortcut": "command+control+shift+p",
+      "icon": "Message Video"
+    },
+    {
+      "id": "4",
+      "label": "Start a new chat",
+      "shortcut": "command+control+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "5",
+      "label": "Start a new group",
+      "shortcut": "command+control+shift+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "6",
+      "label": "Open the emoji panel",
+      "shortcut": "command+control+e",
+      "icon": "Folder"
+    },
+    {
+      "id": "7",
+      "label": "Open Extended Search",
+      "shortcut": "command+k",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "8",
+      "label": "Lock WhatsApp",
+      "shortcut": "command+control+l",
+      "icon": "Application"
+    }
+  ]
+}

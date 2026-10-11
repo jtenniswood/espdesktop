@@ -1,5 +1,11 @@
 import { defineConfig } from 'vitepress'
+import { createRequire } from 'node:module'
 import { faqSchema, hostname, jsonLd, writeRedirects } from './discovery'
+
+// Resolve the installer's exact dependency whether npm hoists it or nests it.
+const installerRequire = createRequire(createRequire(import.meta.url).resolve('esp-web-tools'))
+const materialWeb = (path: string) => installerRequire.resolve(`@material/web/${path}`)
+
 
 const defaultImage = {
   url: `${hostname}images/4848s040-hero.jpg`,
@@ -165,11 +171,40 @@ export default defineConfig({
     'card-types/{actions,alarms,buttons,calendar,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,internal-relays,lawn-mower,lights,local-actions,local-sensors,locks,media,option-select,presence,screen-lock,sensors,sliders,switches,timers,timezones,vacuum,weather,weather-forecast,webhooks,wifi-share}.md',
     'features/{appearance,backlight,backup,battery,clock,clock-bar,firmware-updates,idle,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
     'getting-started/{c6-recovery,home-assistant-actions,manual-esphome-setup,migrate-esphome-media-player}.md',
-    'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
+    'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc4880p443-v3,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
     'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
   ],
   markdown: { config: faqSchema },
   buildEnd: ({ outDir }) => writeRedirects(outDir),
+
+  // ESP Web Tools 10.4.0 still imports the generated .js stylesheet names from
+  // Material Web 2.4.1. Material Web 2.5.0 publishes those modules as .cssresult.js.
+  vite: {
+    optimizeDeps: {
+      esbuildOptions: {
+        plugins: [{
+          name: 'material-web-25-installer-styles-dev',
+          setup(build) {
+            build.onResolve({ filter: /^@material\/web\/(.+\/internal\/.+styles)\.js$/ }, ({ path }) => {
+              const match = path.match(/^@material\/web\/(.+\/internal\/.+styles)\.js$/)
+              return match ? { path: materialWeb(`${match[1]}.cssresult.js`) } : undefined
+            })
+          },
+        }],
+      },
+    },
+    plugins: [
+      {
+        name: 'material-web-25-installer-styles',
+        enforce: 'pre',
+        resolveId(source) {
+          const match = source.match(/^@material\/web\/(.+\/internal\/.+styles)\.js$/)
+          if (!match) return
+          return materialWeb(`${match[1]}.cssresult.js`)
+        },
+      },
+    ],
+  },
 
   sitemap: {
     hostname,

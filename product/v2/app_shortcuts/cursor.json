@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.todesktop.230313mzl4w4u92",
+  "label": "Cursor",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Toggle the Cursor side panel",
+      "shortcut": "command+i",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Open Inline Edit",
+      "shortcut": "command+k",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open the Command Palette",
+      "shortcut": "command+shift+p",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Force-send a message",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Cancel generation",
+      "shortcut": "command+shift+delete",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Add selected code to chat",
+      "shortcut": "command+shift+l",
+      "icon": "Application"
+    }
+  ]
+}

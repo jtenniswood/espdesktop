@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "com.apple.dt.Xcode",
+  "label": "Xcode",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Build the current scheme",
+      "shortcut": "command+b",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Run the current scheme",
+      "shortcut": "command+r",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Test the current scheme",
+      "shortcut": "command+u",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Open Quickly",
+      "shortcut": "command+shift+o",
+      "icon": "Folder"
+    },
+    {
+      "id": "4",
+      "label": "Open Quick Actions",
+      "shortcut": "command+shift+a",
+      "icon": "Folder"
+    },
+    {
+      "id": "5",
+      "label": "Find in the workspace",
+      "shortcut": "command+shift+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "6",
+      "label": "Reveal the current file in the Project navigator",
+      "shortcut": "command+shift+j",
+      "icon": "Folder"
+    },
+    {
+      "id": "7",
+      "label": "Open the Report navigator",
+      "shortcut": "command+9",
+      "icon": "Folder"
+    }
+  ]
+}

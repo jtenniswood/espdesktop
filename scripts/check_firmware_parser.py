@@ -929,6 +929,23 @@ int main() {
   assert(parsed.row_span[8] == 3 && parsed.col_span[8] == 4);
   assert(parsed.row_span[9] == 1 && parsed.col_span[9] == 5);
 
+  OrderResult portrait_order;
+  parse_order_for_layout("19,20,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18", 20, 18, portrait_order);
+  for (int i = 0; i < 18; ++i) assert(portrait_order.positions[i] == i + 1);
+  parse_order_for_layout("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,,,17,18", 20, 18, portrait_order);
+  for (int i = 0; i < 18; ++i) assert(portrait_order.positions[i] == i + 1);
+  parse_order_for_layout("19w,20,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18", 20, 20, portrait_order);
+  assert(portrait_order.positions[0] == 19 && portrait_order.positions[1] == 20);
+  assert(portrait_order.col_span[18] == 2);
+  parse_order_for_layout("1,,,2", 0, 6, portrait_order);
+  assert(portrait_order.positions[0] == 1 && portrait_order.positions[3] == 2);
+
+  parse_order_for_layout("19,1w,,2,,,,,,,,,,,,,,,3", 20, 18, portrait_order, 3);
+  OrderResult compacted;
+  clear_spanned_cells(portrait_order, 18, 3, compacted);
+  assert(compacted.positions[0] == 1 && compacted.positions[1] == 2 && compacted.positions[2] == 3);
+  assert(compacted.col_span[0] == 1);
+
   OrderResult overlap;
   parse_order_string("1b,2,3,4,5,6", 9, overlap);
   OrderResult cleared;
@@ -1152,9 +1169,12 @@ def main() -> int:
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
         shutil.copy2(LAYOUT_HEADER.with_name("card_availability.h"), tmp_path / "card_availability.h")
+        for name in ("theme_palette.h", "display_color.h"):
+            shutil.copy2(LAYOUT_HEADER.with_name(name), tmp_path / name)
         (tmp_path / "lvgl.h").write_text("", encoding="utf-8")
         shutil.copy2(LIMITS_HEADER, tmp_path / "button_grid_limits.h")
         shutil.copy2(STRING_HEADER, tmp_path / "button_grid_string.h")
+        shutil.copy2(STRING_HEADER.parent / "camera_refresh_policy.h", tmp_path / "camera_refresh_policy.h")
         shutil.copy2(DISPLAY_TEXT_HEADER, tmp_path / "display_text.h")
         lvgl_stub = tmp_path / "esphome" / "components" / "lvgl" / "lvgl_esphome.h"
         lvgl_stub.parent.mkdir(parents=True, exist_ok=True)

@@ -25,7 +25,7 @@ inline void weather_driver_apply_background(
     BtnSlot &slot, const CardPalette &palette) {
   if (!palette.has_sensor_color) return;
   lv_obj_set_style_bg_color(
-    slot.btn, lv_color_hex(palette.sensor_val),
+    slot.btn, lv_color_hex(palette.surface_sensor_val),
     static_cast<lv_style_selector_t>(LV_PART_MAIN) |
       static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
 }

@@ -15,20 +15,35 @@ def definition(name):
     assert len(matches) == 1, name
     return matches[0]
 
+picture_handler = definition('image_card_handle_picture')
+assert re.search(
+    r'ha_read_retained_attribute\(\s*entity_id,\s*std::string\("access_token"\),'
+    r'.*?\n\s*\}\),\s*ctx\s*\);',
+    picture_handler,
+    re.S,
+), 'picture retry access-token reads must be coalesced per card owner'
+
 source = r'''
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <functional>
 #include <string>
+#include "camera_refresh_policy.h"
 #include "image_pipeline_policy.h"
 uint32_t now_ms = 0;
 namespace esphome {
 uint32_t millis() { return now_ms; }
 using StringRef = std::string;
 namespace artwork_image {
+enum class ImageResizeMode { FIT, COVER };
 struct ArtworkImage {
+ void set_target_size(int, int) {}
+ void set_resize_mode(ImageResizeMode) {}
+ std::string request_update_url(const std::string &url, int) { return url; }
  bool available = true; int released = 0, cancelled = 0;
+ uint32_t fit_background_color = 0;
+ void set_fit_background_color(uint32_t color) { fit_background_color = color; }
  bool has_image() { return available; }
  int get_width() { return 320; } int get_height() { return 240; }
  void release() { available = false; ++released; }
@@ -40,23 +55,31 @@ namespace espdesktop { enum class DisplayTakeoverKind { INTERACTIVE }; }
 using Image = esphome::artwork_image::ArtworkImage;
 struct Timer { void *data; uint32_t delay; };
 using lv_timer_t = Timer;
-struct Widget { bool hidden = false; };
+struct Widget { bool hidden = false; uint32_t background = 0; int invalidations = 0; };
 struct Resettable { void reset() {} };
 struct ImageCardCtx {
  bool active = true, media_artwork = false, image_ready = true;
  bool camera_entity_unavailable = false, download_active = false, modal_fit = false;
+ uint32_t fit_background_color = 0;
  bool diagnostics_enabled = false; uint32_t last_modal_request_started_ms = 0;
  uint8_t camera_download_errors = 0, startup_download_errors = 0;
  uint32_t camera_retry_after_ms = 0, next_download_retry_ms = 0;
+ uint32_t access_token_request_started_ms = 0;
  uint32_t next_picture_retry_ms = 0, last_download_completed_ms = 0;
  Image *image = nullptr, *modal_image = nullptr;
- Widget *widget = nullptr;
+ Widget *widget = nullptr, *btn = nullptr;
  std::string entity_id = "camera.front", source_url = "snapshot", url = "snapshot";
  std::string modal_url = "snapshot", modal_source_url = "snapshot";
  std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;
  bool requested_once = false, access_token_request_pending = false, camera_refresh_pending = false;
+ bool scheduled_tile_request = false, explicit_picture_refresh = false;
  bool media_artwork_refresh_forced = false;
  uint32_t retry_deadline_ms = 0, media_artwork_retry_mask = 0, media_artwork_timeout_retries = 0;
+ uint32_t revision_retry_ms = 0;
+ espdesktop::camera::RefreshSchedule refresh_schedule;
+ espdesktop::camera::ActivityTrigger activity_trigger;
+ espdesktop::camera::ImageRevision revision;
+ std::string refresh_trigger_entity;
  std::string access_token, pending_fallback_picture;
  Resettable media_artwork_refresh, media_artwork_trigger;
  Timer *modal_cleanup_timer = nullptr, *media_artwork_trigger_timer = nullptr, *media_artwork_timer = nullptr;
@@ -69,6 +92,7 @@ struct ImageCardModalUi {
 struct ImageCardModalCache {
  Image *image = nullptr; std::string entity_id, source_url;
  uint32_t cached_at_ms = 0; bool modal_fit = false; Timer *expiry_timer = nullptr; bool ready = false;
+ uint32_t fit_background_color = 0;
 };
 ImageCardModalUi ui;
 ImageCardModalCache cache;
@@ -83,7 +107,12 @@ bool suspended = false;
 bool &image_card_pipeline_suspended_state() { return suspended; }
 bool image_card_pipeline_suspended() { return suspended; }
 bool ha_api_connected() { return true; }
+bool ha_api_state_connected() { return true; }
 bool image_card_context_visible_on_active_screen(ImageCardCtx *) { return true; }
+bool image_card_context_on_active_screen(ImageCardCtx *ctx) {
+ return image_card_context_visible_on_active_screen(ctx);
+}
+std::function<bool()> &image_card_page_visible() { static std::function<bool()> page; return page; }
 bool image_card_modal_active_for(ImageCardCtx *ctx) { return ui.active == ctx; }
 std::string tile_status, modal_status;
 int cleared = 0, pictures = 0, tile_requests = 0, modal_requests = 0, recovered = 0;
@@ -95,8 +124,7 @@ void image_card_show_modal_loading(ImageCardCtx *, const char *s) { modal_status
 void image_card_clear_widget_source(Widget *) { ++cleared; }
 void image_card_hide_loading(ImageCardCtx *) { tile_status.clear(); }
 void image_card_release_download_slot(ImageCardCtx *c) { c->download_active = false; }
-void image_card_log_diagnostics(ImageCardCtx *, const char *) {}
-bool image_card_startup_retry_active(ImageCardCtx *, uint32_t) { return true; }
+void image_card_log_diagnostics(ImageCardCtx *, const char *, int = 0, int = 0) {}
 void image_card_cancel_modal_request_timer() {}
 enum class ControlModalKind { NONE, IMAGE_CARD };
 struct Modal { ControlModalKind kind = ControlModalKind::NONE; } active_modal;
@@ -111,16 +139,32 @@ Timer *lv_timer_create(void (*)(Timer *), uint32_t delay, void *data) {
 constexpr uint32_t IMAGE_CARD_CONSTRAINED_MODAL_CACHE_TTL_MS = 15000;
 constexpr uint32_t IMAGE_CARD_RETRY_INTERVAL_MS = 2000;
 constexpr uint32_t IMAGE_CARD_STARTUP_RETRY_MS = 30000;
+constexpr uint32_t IMAGE_CARD_ATTRIBUTE_REQUEST_TIMEOUT_MS = 10000;
 constexpr uint32_t IMAGE_CARD_MODAL_REFRESH_DELAY_MS = 1000;
 constexpr int LV_OBJ_FLAG_HIDDEN = 1;
 bool lv_obj_has_flag(Widget *w, int) { return w->hidden; }
 void lv_obj_move_background(Widget *) {}
 void lv_obj_move_foreground(Widget *) {}
-void lv_obj_invalidate(Widget *) {}
+constexpr int LV_PART_MAIN = 0;
+uint32_t lv_color_hex(uint32_t color) { return color; }
+void lv_obj_set_style_bg_color(Widget *w, uint32_t color, int) { w->background = color; }
+void lv_obj_invalidate(Widget *w) { ++w->invalidations; }
 void image_card_set_widget_source(Widget *, Image *) {}
 void image_card_hide_modal_loading(ImageCardCtx *) { modal_status.clear(); }
 bool image_card_has_separate_modal_image(ImageCardCtx *ctx) { return ctx->modal_image != ctx->image; }
 bool image_card_apply_modal_geometry(ImageCardCtx *, Image *) { return true; }
+bool image_card_modal_has_preview(ImageCardCtx *ctx) { return ctx->modal_image->has_image(); }
+void image_card_show_modal_download_failure(ImageCardCtx *) {}
+bool image_card_modal_refresh_supported() { return true; }
+using lv_coord_t = int;
+void lv_obj_update_layout(Widget *) {}
+int lv_obj_get_width(Widget *) { return 320; }
+int lv_obj_get_height(Widget *) { return 240; }
+void image_card_limit_target_size(int w, int h, int *width, int *height) { *width=w; *height=h; }
+bool memory_available = true;
+bool image_card_memory_available(ImageCardCtx *, const char *, int, int) { return memory_available; }
+std::string image_card_sized_url(const std::string &url, int, int) { return url; }
+void image_card_preempt_active_tile_for_modal() {}
 void notify_dashboard_content_changed() {}
 constexpr uint32_t IMAGE_CARD_STARTUP_DOWNLOAD_RETRIES = 10;
 constexpr int IMAGE_CARD_MAX_CONTEXTS = 1;
@@ -144,21 +188,33 @@ void image_card_request_current_picture(ImageCardCtx *) { ++pictures; }
 void image_card_refresh_current_picture(ImageCardCtx *) { ++pictures; }
 void image_card_request_source_url(ImageCardCtx *) { ++tile_requests; }
 bool image_card_queue_modal_source_request(ImageCardCtx *) { ++modal_requests; return true; }
+void image_card_cancel_scheduled_tile_request(ImageCardCtx *ctx) {
+ ctx->scheduled_tile_request = false;
+ ctx->refresh_schedule.in_flight = false;
+}
+void image_card_begin_refresh_schedule(ImageCardCtx *ctx) {
+ ctx->refresh_schedule.begin(now_ms, false);
+}
 void image_card_apply_downloaded(ImageCardCtx *) { ++recovered; }
 #define ESP_LOGI(...) test_log(__VA_ARGS__)
 template<typename... Args> void test_log(Args...) {}
 #define ESP_LOGW(...) do {} while(false)
 '''
 # Use unchanged production definitions, rather than reproducing their logic.
-for name in ('image_card_modal_cache_expired', 'image_card_cancel_modal_cache_expiry',
+for name in ('image_card_startup_retry_active', 'image_card_schedule_picture_retry',
+             'image_card_access_token_request_expired', 'image_card_show_camera_unavailable',
+             'image_card_wait_for_picture',
+             'image_card_modal_cache_expired', 'image_card_cancel_modal_cache_expiry',
              'image_card_release_modal_cache', 'image_card_modal_cache_expiry_timer_cb',
-             'image_card_schedule_modal_cache_expiry', 'image_card_show_camera_unavailable',
+             'image_card_schedule_modal_cache_expiry',
              'image_card_camera_retry_blocked', 'image_card_camera_download_failed',
-             'image_card_handle_download_error', 'image_card_modal_has_tile_fallback',
+             'image_card_finish_scheduled_tile_request', 'image_card_handle_download_error',
+             'image_card_modal_has_tile_fallback',
              'image_card_modal_cache_matches', 'image_card_modal_needs_open_refresh',
              'image_card_apply_entity_state', 'subscribe_image_card_entity_state',
              'image_card_refresh_entity_state',
-             'image_card_hide_modal', 'image_card_apply_modal_downloaded'):
+             'image_card_hide_modal', 'image_card_apply_modal_downloaded', 'image_card_refresh_theme',
+             'image_card_handle_modal_download_error', 'image_card_request_modal_source_url'):
     source += definition(name) + '\n'
 # The polling callback checks get_url as well as availability.
 source = source.replace('bool has_image() {', 'std::string get_url() { return "snapshot"; }\n bool has_image() {')
@@ -200,6 +256,75 @@ void screensaver_download_error() {
 ''' + error_callback + '\n}\n'
 source += r'''
 int main() {
+ // Pending camera cards leave the startup spinner after its grace period,
+ // retry missing HA state, and preserve an already displayed image.
+ ImageCardCtx waiting;
+ Widget waiting_widget;
+ waiting.widget = &waiting_widget;
+ waiting.image_ready = false;
+ waiting.retry_deadline_ms = 10000;
+ now_ms = 0;
+ image_card_wait_for_picture(&waiting);
+ assert(tile_status == "Loading" && waiting.next_picture_retry_ms == 2000);
+ assert(!waiting_widget.hidden);
+ now_ms = 10000;
+ image_card_wait_for_picture(&waiting);
+ assert(tile_status == "Unavailable" && waiting.next_picture_retry_ms == 12000);
+ assert(waiting_widget.hidden);
+ waiting.image_ready = true;
+ waiting_widget.hidden = false;
+ image_card_wait_for_picture(&waiting);
+ assert(tile_status.empty() && !waiting_widget.hidden);
+ waiting.image_ready = false;
+ waiting.camera_entity_unavailable = true;
+ waiting.next_picture_retry_ms = 0;
+ image_card_wait_for_picture(&waiting);
+ assert(tile_status == "Unavailable" && waiting.next_picture_retry_ms == 0);
+ waiting.access_token_request_pending = true;
+ waiting.access_token_request_started_ms = now_ms;
+ assert(!image_card_access_token_request_expired(&waiting, now_ms + 9999));
+ assert(image_card_access_token_request_expired(&waiting, now_ms + 10000));
+
+ // Follow runtime palette changes on tiles, open expanded images, and a
+ // retained modal cache. Crop and media artwork remain image-owned.
+ for (bool fit : {false, true}) {
+  for (bool media : {false, true}) {
+   Image tile, expanded;
+   Widget button, tile_widget, expanded_widget;
+   auto &card = contexts[0]; card = {};
+   card.image = &tile; card.modal_image = &expanded;
+   card.btn = &button; card.widget = &tile_widget;
+   card.modal_fit = fit; card.media_artwork = media;
+   ui = {}; ui.active = &card; ui.image_widget = &expanded_widget;
+   cache = {}; cache.image = &expanded;
+   cache.ready = fit && !media; cache.modal_fit = fit;
+   for (uint32_t color : {0x212121u, 0xffffffu, 0x212121u}) {
+    image_card_refresh_theme(color);
+    if (fit && !media) {
+     assert(card.fit_background_color == color && tile.fit_background_color == color);
+     assert(expanded.fit_background_color == color && cache.fit_background_color == color);
+     assert(button.background == color && tile_widget.invalidations > 0);
+     assert(expanded_widget.invalidations > 0);
+    } else {
+     assert(card.fit_background_color == 0 && tile.fit_background_color == 0);
+     assert(expanded.fit_background_color == 0 && button.background == 0);
+     assert(tile_widget.invalidations == 0 && expanded_widget.invalidations == 0);
+    }
+    const int invalidations = tile_widget.invalidations;
+    image_card_refresh_theme(color);
+    assert(tile_widget.invalidations == invalidations);
+    assert(tile.released == 0 && expanded.released == 0);
+    assert(tile.cancelled == 0 && expanded.cancelled == 0);
+   }
+   if (fit && !media) {
+    card.active = false; ui.active = nullptr;
+    image_card_refresh_theme(0xffffff);
+    assert(expanded.fit_background_color == 0xffffff && cache.fit_background_color == 0xffffff);
+    assert(tile.fit_background_color == 0x212121);
+   }
+  }
+ }
+ contexts[0] = {}; ui = {}; cache = {};
  // Original-image failures try a bounded snapshot on the next loop; bounded
  // failures retain backoff, and stale/inactive sessions cannot enable fallback.
  screensaver_download_error();
@@ -229,6 +354,11 @@ int main() {
  assert(!image_card_modal_needs_open_refresh(&ctx));
  ctx.modal_fit = true; assert(image_card_modal_needs_open_refresh(&ctx));
  ctx.modal_fit = false;
+ ctx.fit_background_color = 0x304860;
+ assert(!image_card_modal_cache_matches(&ctx));
+ cache.fit_background_color = ctx.fit_background_color;
+ assert(image_card_modal_cache_matches(&ctx));
+ ctx.fit_background_color = cache.fit_background_color = 0;
  image_card_schedule_modal_cache_expiry(&modal);
  assert(cache.expiry_timer->delay == 2100);
  now_ms = 75000;
@@ -282,15 +412,70 @@ int main() {
  image_card_apply_modal_downloaded(&ctx);
  assert(cache.ready && ctx.camera_download_errors == 0 && modal_status.empty());
  assert(ctx.next_download_retry_ms == now_ms + 1000);
+ // Scheduled modal failures keep the cached frame and use the 30-second schedule.
+ ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::PERIODIC;
+ ctx.refresh_schedule.interval_ms = 30000;
+ ctx.refresh_schedule.begin(now_ms, false); ctx.refresh_schedule.started();
+ ctx.next_download_retry_ms = now_ms + 2000;
+ modal.available = true; cache.ready = true; modal_status.clear();
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && modal_status.empty());
+ assert(ctx.next_download_retry_ms == 0 && ctx.camera_download_errors == 0);
+ assert(!ctx.refresh_schedule.in_flight && ctx.refresh_schedule.next_due == now_ms + 30000);
+ assert(!ctx.refresh_schedule.due(now_ms + 2000, true));
+ assert(ctx.refresh_schedule.due(now_ms + 30000, true));
+ // An initial ACTIVITY open without an event window still owns the legacy retry.
+ ctx.entity_id = "camera.front"; ctx.refresh_schedule = {};
+ ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::ACTIVITY;
+ ctx.refresh_schedule.begin(now_ms, false); ctx.refresh_schedule.started();
+ ctx.next_download_retry_ms = 0;
+ image_card_handle_modal_download_error(&ctx);
+ assert(!ctx.refresh_schedule.window && !ctx.refresh_schedule.in_flight);
+ assert(ctx.next_download_retry_ms > now_ms && ctx.camera_download_errors > 0);
+ ctx.camera_download_errors = 0; ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::PERIODIC;
+ ctx.refresh_schedule.interval_ms = 30000;
+ // Memory refusal happens before downloader I/O, but still belongs to the schedule.
+ memory_available = false; ctx.refresh_schedule.begin(now_ms, false);
+ cache.ready = true; modal.available = true;
+ assert(!image_card_request_modal_source_url(&ctx));
+ assert(ctx.refresh_schedule.in_flight);
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && ctx.next_download_retry_ms == 0);
+ assert(!ctx.refresh_schedule.in_flight && ctx.refresh_schedule.next_due == now_ms + 30000);
+ // The same preflight preserves timestamp ownership for OFF-mode image updates.
+ ctx.entity_id = "image.poster"; ctx.refresh_schedule = {};
+ ctx.revision.latest = 3; ctx.revision.modal_applied = 2;
+ assert(!image_card_request_modal_source_url(&ctx));
+ assert(ctx.revision.modal_requested == 3);
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && ctx.revision_retry_ms > now_ms);
+ memory_available = true;
+ // Timestamp-driven image refreshes use the revision backoff even in OFF mode.
+ ctx.entity_id = "image.poster"; ctx.refresh_schedule = {};
+ ctx.revision.modal_requested = 2; ctx.revision.modal_applied = 1;
+ ctx.refresh_schedule.started(); cache.ready = true; modal.available = true;
+ image_card_handle_modal_download_error(&ctx);
+ assert(cache.ready && modal.available && ctx.next_download_retry_ms == 0);
+ assert(ctx.camera_download_errors == 0 && ctx.revision_retry_ms > now_ms);
+ assert(ctx.revision_retry_ms == ctx.refresh_schedule.next_due);
+ ctx.entity_id = "camera.front"; ctx.revision = {};
+ ctx.refresh_schedule = {};
  // Unavailable HA state cancels requests, waits, then restarts on recovery.
  subscribe_image_card_entity_state(&ctx, ctx.entity_id);
+ const int tile_cancelled_before_unavailable = tile.cancelled;
+ const int modal_cancelled_before_unavailable = modal.cancelled;
+ ctx.refresh_schedule.started(); ctx.scheduled_tile_request = true;
  state_callback("unavailable");
- assert(ctx.camera_entity_unavailable && tile.cancelled == 1 && modal.cancelled == 1);
+ assert(!ctx.refresh_schedule.in_flight && !ctx.scheduled_tile_request);
+ assert(ctx.camera_entity_unavailable &&
+        tile.cancelled == tile_cancelled_before_unavailable + 1 &&
+        modal.cancelled == modal_cancelled_before_unavailable + 1);
  assert(image_card_camera_retry_blocked(&ctx));
  assert(ctx.next_download_retry_ms == 0 && pictures == 0);
  state_callback("idle");
  assert(!ctx.camera_entity_unavailable && ctx.camera_download_errors == 0);
  assert(!image_card_camera_retry_blocked(&ctx) && pictures == 1);
+ assert(ctx.explicit_picture_refresh); // Recovery bypasses an idle activity cadence.
  // Resuming the shared image pipeline must revalidate retained availability.
  ctx.camera_entity_unavailable = true;
  ctx.active = true;
@@ -315,14 +500,21 @@ int main() {
  constrained = true;
  // Tokens may rotate while callbacks are suspended; never reuse the old token.
  ctx.access_token = "old-token";
+ ctx.refresh_schedule.mode = espdesktop::camera::RefreshMode::ACTIVITY;
+ ctx.refresh_schedule.begin(now_ms, false);
+ ctx.refresh_schedule.activate(now_ms);
+ ctx.refresh_schedule.started(); ctx.scheduled_tile_request = true;
  image_card_suspend_pipeline();
+ assert(!ctx.refresh_schedule.in_flight && !ctx.scheduled_tile_request);
+ now_ms += 31000; // The activity window can expire while the screensaver owns memory.
+ const int pictures_before_suspended_resume = pictures;
  assert(suspended && !ctx.active && ctx.access_token.empty());
  assert(!ctx.access_token_request_pending);
  // Visible cameras revalidate availability when the real resume path runs.
  ctx.camera_entity_unavailable = true;
  image_card_resume_pipeline();
  assert(!suspended && ctx.active && !ctx.camera_entity_unavailable);
- assert(retained_state_reads == 3);
+ assert(retained_state_reads == 3 && pictures > pictures_before_suspended_resume);
  // An unavailable media player must not acquire the camera-only blocker on wake.
  ctx.media_artwork = true; ctx.entity_id = "media_player.lounge";
  image_card_suspend_pipeline();
@@ -334,6 +526,14 @@ int main() {
  retained_state = "playing";
  refresh_visible_image_cards();
  assert(!ctx.camera_entity_unavailable && pictures > pictures_before_media_resume + 1);
+ // Timestamp-driven image tile failures retain the last successful frame.
+ ctx.media_artwork = false; ctx.entity_id = "image.poster"; ctx.refresh_schedule = {};
+ ctx.revision = {}; ctx.revision.tile_applied = 1; ctx.revision.tile_requested = 2;
+ ctx.image_ready = true; tile.available = true; tile_status.clear();
+ image_card_handle_download_error(&ctx);
+ assert(ctx.image_ready && tile.available && tile_status.empty());
+ assert(ctx.camera_download_errors == 0 && ctx.next_download_retry_ms == 0);
+ assert(ctx.revision_retry_ms == ctx.refresh_schedule.next_due && ctx.revision_retry_ms > now_ms);
  // Media Cover Art keeps its separate existing retry behavior.
  ctx.media_artwork = true; ctx.image_ready = true; tile_status.clear();
  image_card_handle_download_error(&ctx);
@@ -356,6 +556,30 @@ int main() {
  screensaver_callback("camera.old", 1)("unavailable");
  screensaver_callback("camera.front", 0)("unavailable");
  assert(!camera_screensaver_entity_unavailable && camera_screensaver_show_unavailable.calls == 2);
+ // Image entities must recover even when HA reuses the pre-outage timestamp.
+ ctx.active = true; ctx.media_artwork = false; ctx.entity_id = "image.poster";
+ ctx.revision = {}; ctx.camera_entity_unavailable = false;
+ subscribe_image_card_entity_state(&ctx, ctx.entity_id);
+ const std::string timestamp = "2026-09-23T12:00:00Z";
+ state_callback(timestamp);
+ assert(ctx.revision.latest == 1 && ctx.revision.timestamp == timestamp);
+ for (const auto *status : {"unknown", "unavailable"}) {
+   state_callback(status);
+   assert(ctx.camera_entity_unavailable && ctx.revision.timestamp.empty());
+   const auto revision = ctx.revision.latest;
+   const int before = pictures;
+   state_callback(timestamp);
+   assert(!ctx.camera_entity_unavailable && ctx.revision.latest == revision + 1);
+   assert(pictures == before + 1);
+   state_callback(timestamp); assert(pictures == before + 1);
+   // Retained-state reads use exactly the same recovery/deduplication path.
+   state_callback(status); retained_state = timestamp;
+   const int retained_before = pictures;
+   image_card_refresh_entity_state(&ctx);
+   assert(!ctx.camera_entity_unavailable && pictures == retained_before + 1);
+   image_card_refresh_entity_state(&ctx); assert(pictures == retained_before + 1);
+ }
+
 }
 '''
 with tempfile.TemporaryDirectory(prefix='camera-feedback-') as temp:
@@ -364,6 +588,7 @@ with tempfile.TemporaryDirectory(prefix='camera-feedback-') as temp:
     cpp.write_text(source)
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else 'c++', '-std=c++17',
                     '-Wall', '-Wextra', '-Werror', '-I', str(root / 'components/artwork_image'),
+                    '-I', str(root / 'components/espdesktop'),
                     str(cpp), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
 print('Camera cache lifecycle, availability, retry backoff and recovery passed.')

@@ -136,6 +136,10 @@ script:
     mode: restart
     then:
       - lambda: |-
+          register_theme_hud(id(temperatures), id(display_time),
+                             id(network_status_icon_label),
+                             id(night_mode_status_icon_label), ${theme_voice_hud_label},
+                             ${theme_battery_hud_label});
           ClockBarVisibility visibility = clock_bar_resolve_visibility(
               id(clock_bar_enabled).state,
               id(main_page)->obj,
@@ -518,6 +522,21 @@ switch:
             - script.execute: screensaver_idle_check
 
   - platform: template
+    name: "${entity_screen_saver_cover_art_playback_control}"
+    internal: true
+    id: cover_art_playback_control_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    icon: "mdi:play-pause"
+    entity_category: config
+    web_server:
+      sorting_group_id: sg_screensaver
+    on_turn_on:
+      - script.execute: cover_art_refresh_playback_setting
+    on_turn_off:
+      - script.execute: cover_art_refresh_playback_setting
+
+  - platform: template
     name: "${entity_screen_saver_cover_art}"
     internal: true
     id: cover_art_screensaver_enabled
@@ -532,6 +551,21 @@ switch:
       - script.execute: cover_art_playback_refresh
     on_turn_off:
       - script.execute: cover_art_disable
+
+  - platform: template
+    name: "${entity_screen_saver_show_date}"
+    internal: true
+    id: clock_screensaver_show_date
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    icon: "mdi:calendar"
+    entity_category: config
+    web_server:
+      sorting_group_id: sg_screensaver
+    on_turn_on:
+      - script.execute: clock_screensaver_update_time
+    on_turn_off:
+      - script.execute: clock_screensaver_update_time
 
   - platform: template
     name: "${entity_screen_saver_clock_overlay}"

@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "appId": "com.apple.iWork.Pages",
+  "label": "Pages",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create a new document (open the template choo…",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Open the next tab in the sidebar",
+      "shortcut": "control+keybackquote",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Open the previous tab in the sidebar",
+      "shortcut": "control+shift+keybackquote",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Insert a new line after the insertion point",
+      "shortcut": "control+o",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Find",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Find next (while in the Find window)",
+      "shortcut": "command+g",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Find previous (while in the Find window)",
+      "shortcut": "command+shift+g",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Place the selected text in the Find & Replace…",
+      "shortcut": "command+e",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Open a new comment for the selected text, obj…",
+      "shortcut": "command+shift+k",
+      "icon": "Application"
+    }
+  ]
+}

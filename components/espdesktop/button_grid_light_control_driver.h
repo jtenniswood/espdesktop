@@ -1,5 +1,7 @@
 #pragma once
 
+#include "card_modal_target.h"
+
 // Shared lifecycle driver for Light Control cards. The specialised modal,
 // colour, temperature, brightness, and Home Assistant helpers remain in
 // button_grid_sliders.h; this driver owns the grid and subpage boundary.
@@ -44,7 +46,7 @@ inline T *light_control_driver_track(
 }
 
 struct LightControlDriverEnvironment {
-  uint32_t accent_color = DEFAULT_SLIDER_COLOR;
+  uint32_t accent_color = DEFAULT_ACCENT_COLOR;
   const lv_font_t *number_font = nullptr;
   const lv_font_t *label_font = nullptr;
   const lv_font_t *icon_font = nullptr;
@@ -57,7 +59,7 @@ inline LightControlDriverEnvironment light_control_driver_environment(
     const BtnSlot &slot) {
   LightControlDriverEnvironment environment;
   environment.accent_color = palette.has_on
-    ? palette.on_val : DEFAULT_SLIDER_COLOR;
+    ? palette.on_val : DEFAULT_ACCENT_COLOR;
   environment.number_font = display_volume_number_font(display);
   environment.label_font = display_volume_label_font(display)
     ? display_volume_label_font(display)
@@ -119,6 +121,16 @@ inline bool light_control_driver_handle_main_click(
     ? static_cast<LightControlCtx *>(lv_obj_get_user_data(button)) : nullptr;
   if (light) light_control_open_modal(light);
   return true;
+}
+
+// Explicit modal-only route; it must never activate the card's command path.
+inline ModalTarget light_control_driver_modal_target(
+    const Context &context, const ParsedCfg &config, lv_obj_t *button) {
+  if (!light_control_driver_matches(context)) return {};
+  auto *runtime = button
+    ? static_cast<LightControlCtx *>(lv_obj_get_user_data(button)) : nullptr;
+  return modal_target(runtime, config.entity, ControlModalKind::LIGHT_CONTROL,
+                      light_control_can_open_modal(runtime), light_control_open_modal);
 }
 
 }  // namespace espdesktop::cards

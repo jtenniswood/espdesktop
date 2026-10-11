@@ -279,6 +279,15 @@ export const ENTITY_CATALOG = {
         "screen_schedule_sensor_entity"
       ]
     },
+    "screen_saver_cover_art_playback_control": {
+      "domain": "switch",
+      "name": "Screen Saver: Cover Art Playback Control",
+      "objectIds": [
+        "screen_saver__cover_art_playback_control",
+        "screen_saver_cover_art_playback_control",
+        "cover_art_playback_control_enabled"
+      ]
+    },
     "screen_saver_media_player_sleep_prevention": {
       "domain": "switch",
       "name": "Screen Saver: Media Player Sleep Prevention",
@@ -382,6 +391,13 @@ export const ENTITY_CATALOG = {
         "home_assistant_artwork_endpoint_status"
       ]
     },
+    "home_assistant_artwork_endpoint_health": {
+      "domain": "text_sensor",
+      "name": "Home Assistant Artwork Connection Health",
+      "objectIds": [
+        "home_assistant_artwork_endpoint_health"
+      ]
+    },
     "home_assistant_artwork_protocol": {
       "domain": "select",
       "name": "Home Assistant Artwork Protocol",
@@ -395,6 +411,13 @@ export const ENTITY_CATALOG = {
       "name": "Home Assistant Artwork Port",
       "objectIds": [
         "home_assistant_artwork_port"
+      ]
+    },
+    "home_assistant_artwork_host": {
+      "domain": "text",
+      "name": "Home Assistant Artwork Host",
+      "objectIds": [
+        "home_assistant_artwork_host"
       ]
     },
     "screen_saver_daytime_clock_brightness": {
@@ -461,6 +484,15 @@ export const ENTITY_CATALOG = {
         "screen_saver__clock",
         "screen_saver_clock",
         "clock_screensaver_enabled"
+      ]
+    },
+    "screen_saver_show_date": {
+      "domain": "switch",
+      "name": "Screen Saver: Show Date",
+      "objectIds": [
+        "screen_saver__show_date",
+        "screen_saver_show_date",
+        "clock_screensaver_show_date"
       ]
     },
     "screen_saver_clock_overlay": {
@@ -535,6 +567,34 @@ export const ENTITY_CATALOG = {
         "screen_brightness_mode",
         "brightness_mode"
       ]
+    },
+    "screen_theme_mode": {
+      "domain": "select",
+      "name": "Screen: Theme Mode"
+    },
+    "screen_theme_auto_method": {
+      "domain": "select",
+      "name": "Screen: Theme Auto Method"
+    },
+    "screen_theme_light_start": {
+      "domain": "text",
+      "name": "Screen: Theme Light Start"
+    },
+    "screen_theme_dark_start": {
+      "domain": "text",
+      "name": "Screen: Theme Dark Start"
+    },
+    "screen_theme_sunrise_offset": {
+      "domain": "number",
+      "name": "Screen: Theme Sunrise Offset"
+    },
+    "screen_theme_sunset_offset": {
+      "domain": "number",
+      "name": "Screen: Theme Sunset Offset"
+    },
+    "screen_active_theme": {
+      "domain": "text_sensor",
+      "name": "Screen: Active Theme"
     },
     "screen_schedule_enabled": {
       "domain": "switch",
@@ -800,6 +860,7 @@ export const ENTITY_CATALOG = {
       "screen_saver_camera_image_mode",
       "presence_sensor_entity",
       "screen_schedule_sensor_entity",
+      "screen_saver_cover_art_playback_control",
       "screen_saver_media_player_sleep_prevention",
       "media_player_sleep_prevention_entity",
       "screen_saver_cover_art",
@@ -812,8 +873,10 @@ export const ENTITY_CATALOG = {
       "screen_saver_hide_cover_art_external_input",
       "home_assistant_artwork_endpoint_mode",
       "home_assistant_artwork_endpoint_status",
+      "home_assistant_artwork_endpoint_health",
       "home_assistant_artwork_protocol",
       "home_assistant_artwork_port",
+      "home_assistant_artwork_host",
       "screen_saver_daytime_clock_brightness",
       "screen_saver_nighttime_clock_brightness",
       "screen_saver_clock_brightness",
@@ -823,6 +886,7 @@ export const ENTITY_CATALOG = {
       "screensaver_timeout",
       "home_screen_timeout",
       "screen_saver_clock",
+      "screen_saver_show_date",
       "screen_saver_clock_overlay",
       "screen_timezone",
       "screen_active_timezone",
@@ -837,6 +901,13 @@ export const ENTITY_CATALOG = {
       "wifi_strength",
       "display_backlight",
       "screen_brightness_mode",
+      "screen_theme_mode",
+      "screen_theme_auto_method",
+      "screen_theme_light_start",
+      "screen_theme_dark_start",
+      "screen_theme_sunrise_offset",
+      "screen_theme_sunset_offset",
+      "screen_active_theme",
       "screen_schedule_enabled",
       "screen_schedule_trigger",
       "screen_schedule_sensor_activation",

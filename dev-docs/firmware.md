@@ -45,6 +45,11 @@ Image-card context capacity is generated from the product profile's
 `capabilities.imageSlots`, alongside downloader wiring. The S3 two-slot package
 extends the shared constrained package. Cache reuse and expiry scheduling use
 the same host-tested lifetime policy, including clock rollover and timestamp zero.
+Expanded camera images on the 480 × 480 S3 display request up to 480 px on
+the long side. Existing memory checks still gate decoding, and P4 displays
+retain their 800 px expanded-image target. This applies to experimental Home
+Assistant image cards when Home Assistant support is enabled.
+
 The S3 retention window starts on modal close; reopening a matching retained
 image skips the modal download. Camera transfer errors invalidate modal reuse
 and show Unavailable in both views. Retries back off from 2 to 30 seconds,
@@ -52,6 +57,14 @@ including while the modal is open; explicit unavailable/unknown entity states
 suspend downloads until Home Assistant reports recovery.
 
 ## Adding Firmware Support for a Card
+
+The experimental Home Assistant fan picker defaults new cards to All Controls.
+Other fan modes remain available, and saved cards retain their chosen mode.
+
+Experimental Home Assistant fan cards in All Controls mode retain their configured
+tile label through state updates. A blank label uses the Home Assistant friendly
+name, falling back to the translated Fan label; power highlighting and icons
+still update.
 
 Use an existing card with similar behavior as the architectural template:
 
@@ -229,3 +242,19 @@ Remove or downgrade noisy logs before finalizing a change.
   its context and points `user_data` at the new context. If a card creates a
   timer or async callback, check that the button still points at the same context
   before writing to shared labels.
+
+### Home Assistant HTTP endpoint discovery
+
+`HomeAssistantEndpointResolver` matches mDNS to the native API peer, preserves
+complete internal origins and serializes candidate checks through a transient
+background probe. Probe jobs have a three-second result deadline; a DNS/socket
+operation still unwinding holds the single worker slot so retries cannot pile up.
+Only origin changes notify image consumers. Selection generations discard stale
+probe results; origin generations discard stale image feedback. The shared
+artwork transfer observer emits main-loop outcomes for HA proxy paths without
+retaining tokens. Two consecutive transport failures schedule one recovery cycle;
+HTTP, content, allocation and cancellation failures do not reselect endpoints.
+
+The endpoint policy and resolver lifecycle tests run without ESP hardware. A
+manifest response verifies connectivity, not camera authorization or image data.
+Manual mode and saved backup fields retain their previous semantics.

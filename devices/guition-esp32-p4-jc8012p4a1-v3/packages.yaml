@@ -36,6 +36,7 @@ substitutions:
   main_page_compact_pad_top: "5"
   clock_bar_item_gap: "78"
   clock_bar_visual_gap: "10"
+  theme_voice_hud_label: "nullptr"
   voice_clock_bar_hide_code: ""
   voice_clock_bar_apply_code: ""
   navigate_voice_target_code: |-
@@ -80,6 +81,7 @@ substitutions:
   cover_art_text_color: "0xFFF5E0"
   cover_art_square_overlay: "false"
   cover_art_live_image_updates: "false"
+  theme_battery_hud_label: "nullptr"
   battery_status_apply_code: ""
   battery_status_hide_code: ""
   image_card_slot_capacity: "6"
@@ -97,6 +99,7 @@ packages:
   esp32_c6_firmware_update: !include ../../common/device/esp32_c6_firmware_update.yaml
   icons:           !include ../../common/assets/icons.yaml
   fonts_device:    !include device/fonts.yaml
+  theme_colors:    !include ../../common/theme/colors.yaml
   button_theme:    !include ../../common/theme/button.yaml
   # ---------------------------------------------------------------------------
   # Configuration (text/select/number components for web UI)
@@ -132,6 +135,8 @@ packages:
   # Addons
   # ---------------------------------------------------------------------------
   connectivity:    !include ../../common/addon/connectivity.yaml
+  api_remote_actions: !include ../../common/device/api_remote_actions.yaml
+  api_open_modal:  !include ../../common/device/api_open_modal.yaml
   api_navigate:    !include ../../common/device/api_navigate.yaml
   time_sync:       !include ../../common/addon/time.yaml
   backlight:       !include ../../common/addon/backlight.yaml
@@ -168,12 +173,6 @@ external_components:
       path: components
     components: [mipi_dsi]
     refresh: 1s
-
-switch:
-  - id: !extend auto_update_switch
-    restore_mode: ALWAYS_OFF
-  - id: !extend c6_auto_update_switch
-    restore_mode: ALWAYS_OFF
 
 web_server:
   ota: false

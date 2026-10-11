@@ -3,6 +3,7 @@
     "guition-esp32-p4-jc1060p470",
     "guition-esp32-p4-jc1060p470-v2",
     "guition-esp32-p4-jc4880p443",
+    "guition-esp32-p4-jc4880p443-v3",
     "guition-esp32-p4-jc8012p4a1",
     "guition-esp32-p4-jc8012p4a1-v2",
     "guition-esp32-p4-jc8012p4a1-v3",
@@ -99,7 +100,10 @@
       "screensaverMetadataEntity": "",
       "metadataOverlay": false,
       "screensaverCameraImageMode": "Fit",
-      "clockOverlay": false
+      "clockOverlay": false,
+      "clockDate": false,
+      "coverArtPlaybackControl": true,
+      "coverArtHomeAssistantHost": ""
     },
     "screenInput": {
       "brightness_day": 80,
@@ -190,8 +194,12 @@
     ]
   },
   "bundleSize": {
-    "minified": 2647864,
-    "gzip": 1064928,
+    "minified": 2699458,
+    "gzip": 1070491,
     "gzipTolerance": 9216
+  },
+  "bundleBudget": {
+    "minified": 2750000,
+    "gzip": 1150000
   }
 }

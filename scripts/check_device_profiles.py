@@ -319,7 +319,17 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
         sensors = sensor_path.read_text(encoding="utf-8")
         assert f'device_slug: "{slug}"' in package, f"{slug}: packages.yaml missing device slug"
         assert f'firmware_manifest_slug: "{slug}"' in package, f"{slug}: packages.yaml missing manifest slug"
-        assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
+        portrait_slots = profile["layout"].get("portraitSlots")
+        if portrait_slots is None:
+            assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
+        else:
+            assert f"cfg.num_slots = portrait ? {portrait_slots} : {profile['slots']};" in sensors, (
+                f"{slug}: sensors.yaml missing portrait slot capacity"
+            )
+            for slot in range(portrait_slots, profile["slots"]):
+                assert f"lv_obj_add_flag(slots[{slot}].btn, LV_OBJ_FLAG_HIDDEN);" in sensors, (
+                    f"{slug}: sensors.yaml must hide portrait-only unavailable slot {slot + 1}"
+                )
         test_native_panel_config_bindings(slug, profile, device)
         label_lines = profile["web"]["btn"]["labelLines"]
         label_lines_tall = profile["web"]["btn"]["labelLinesDouble"]
@@ -369,12 +379,27 @@ def test_v3_release_configuration() -> None:
     assert "ref: ${espdesktop_component_ref}" in package, "V3 MIPI source must use the configured component ref"
     assert "components: [mipi_dsi]" in package, "V3 must retain the patched MIPI component"
     assert "web_server:\n  ota: false" in package, "V3 browser firmware uploads must be disabled"
-    assert package.count("restore_mode: ALWAYS_OFF") >= 2, "V3 update switches must default off"
+    assert "restore_mode: ALWAYS_OFF" not in package, "V3 firmware update switches must use shared defaults"
     assert "espdesktop_component_url: \"file:///config\"" in factory
     assert "espdesktop_component_ref: \"HEAD\"" in factory
     assert 'js_include: "../docs/public/webserver/embedded/www.js"' in factory
     assert f"!include {V3_SLUG}.factory.yaml" in recovery
     assert "esp32_c6_recovery.yaml" in recovery
+
+
+def test_jc4880p443_v3_configuration() -> None:
+    slug = "guition-esp32-p4-jc4880p443-v3"
+    device = (ROOT / "devices" / slug / "device" / "device.yaml").read_text(encoding="utf-8")
+    package = (ROOT / "devices" / slug / "packages.yaml").read_text(encoding="utf-8")
+    original = (ROOT / "devices" / "guition-esp32-p4-jc4880p443" / "device" / "device.yaml").read_text(encoding="utf-8")
+    assert "engineering_sample: false" in device and "cpu_frequency: 360MHz" in device
+    assert "engineering_sample: true" in original, "Original profile must still target older P4 silicon"
+    assert "mode: hex" in device and "model: JC4880P443" in device
+    assert "platform: gt911" in device and "frequency: 100kHz" in device
+    assert "artwork_image, mipi_dsi]" in device, "Production P4 requires the DSI clock fix"
+    assert "url: ${espdesktop_component_url}" in device and "ref: ${espdesktop_component_ref}" in device
+    for suffix in (".yaml", ".factory.yaml", ".recovery.yaml"):
+        assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
 def test_public_api_encryption_policy(profile_slugs: list[str]) -> None:
@@ -1016,7 +1041,10 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
     pr = device_matrix.pr_matrix(profiles)
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in release["include"]], "release matrix")
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in nightly["include"]], "nightly matrix")
-    assert_profile_slugs(profile_slugs, [entry["slug"] for entry in pr["include"]], "PR matrix")
+    pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr["include"]]
+    expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
+    assert len(pr_chips) == len(set(pr_chips)), "PR matrix repeats a chip family"
+    assert set(pr_chips) == expected_chips, "PR matrix does not cover every chip family"
 
 
 def test_public_firmware_slugs(profile_slugs: list[str]) -> None:
@@ -1036,6 +1064,7 @@ def main() -> int:
     test_s3_exposes_camera_and_media_cover_art(profiles)
     test_generated_yaml(profiles)
     test_v3_release_configuration()
+    test_jc4880p443_v3_configuration()
     test_public_api_encryption_policy(profile_slugs)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()

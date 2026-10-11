@@ -45,6 +45,7 @@ def assert_profile_contract(fixtures: dict, profiles: dict[str, dict]) -> None:
     fixture_by_slug = {entry["slug"]: entry for entry in fixtures["layouts"]}
     missing = sorted(set(profiles) - set(fixture_by_slug))
     allowed_aliases = {
+        "guition-esp32-p4-jc4880p443-v3": "guition-esp32-p4-jc4880p443",
         "guition-esp32-p4-jc8012p4a1-v2": "guition-esp32-p4-jc8012p4a1",
         "guition-esp32-p4-jc8012p4a1-v3": "guition-esp32-p4-jc8012p4a1",
         "guition-esp32-p4-jc1060p470-v2": "guition-esp32-p4-jc1060p470",
@@ -127,6 +128,15 @@ def cpp_assertions(entry: dict, index: int) -> list[str]:
         "    assert(tabs.tab_size > 0);",
         "    assert(tabs.row_left >= 0);",
         "    assert(tabs.row_left + tabs.frame_width <= layout.panel_width);",
+        "    // Climate controls can expose six tabs when vertical and horizontal swing are available.",
+        "    TabRequest climate_tabs_request;",
+        "    climate_tabs_request.tab_count = 6;",
+        "    climate_tabs_request.show_tab_bar = true;",
+        "    const TabLayout climate_tabs = calculate_tabs(profile, layout, climate_tabs_request);",
+        "    assert(climate_tabs.show_tab_bar);",
+        "    assert(climate_tabs.tab_count == 6);",
+        "    assert(climate_tabs.row_left >= 0);",
+        "    assert(climate_tabs.row_left + climate_tabs.frame_width <= layout.panel_width);",
         "    ContentRequest content_request;",
         "    content_request.show_tab_bar = true;",
         "    content_request.tab_frame_height = tabs.frame_height;",

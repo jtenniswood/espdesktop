@@ -12,6 +12,7 @@
 
 #include "button_grid_card_runtime.h"
 #include "button_grid_string.h"
+#include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
 #include "app_shortcuts_generated.h"
 #include "button_grid_saved_config_action_generated.h"
@@ -51,7 +52,8 @@ constexpr const char *LIGHT_CONTROL_TABS_OPTION = card_runtime_option_name_light
 constexpr const char *LIGHT_CONTROL_DEFAULT_TABS_VALUE = "power|brightness|temperature|color";
 constexpr const char *COVER_CONTROL_TABS_OPTION = card_runtime_option_name_cover_tabs();
 constexpr const char *CLIMATE_CONTROL_TABS_OPTION = "climate_tabs";
-constexpr const char *CLIMATE_CONTROL_DEFAULT_TABS_VALUE = "temperature|mode|preset|fan|swing";
+constexpr const char *CLIMATE_CONTROL_DEFAULT_TABS_VALUE =
+  "temperature|mode|preset|fan|swing|horizontal_swing";
 constexpr const char *FAN_CONTROL_TABS_OPTION = card_runtime_option_name_fan_tabs();
 constexpr const char *FAN_LIGHT_ENTITY_OPTION = card_runtime_option_name_fan_light_entity();
 constexpr const char *FAN_CONTROL_DEFAULT_TABS_VALUE = "power|speed|preset|oscillation|direction";
@@ -471,7 +473,8 @@ inline std::string normalize_image_modal_mode(const std::string &value) {
   return card_runtime_image_modal_mode(value);
 }
 
-inline std::string image_card_options_normalized(const std::string &options) {
+inline std::string image_card_options_normalized(const std::string &options,
+                                                 const std::string &entity = "") {
   std::string out;
   if (cfg_option_token_present(options, IMAGE_LABEL_OPTION)) {
     out = IMAGE_LABEL_OPTION;
@@ -485,6 +488,23 @@ inline std::string image_card_options_normalized(const std::string &options) {
   if (modal_mode != card_runtime_image_modal_mode_default()) {
     if (!out.empty()) out += ",";
     out += std::string(IMAGE_MODAL_MODE_OPTION) + "=" + modal_mode;
+  }
+  if (entity.empty() || entity.rfind("camera.", 0) == 0) {
+    const auto mode = espdesktop::camera::refresh_mode(cfg_option_value(options, "image_modal_refresh_mode"));
+    const std::string trigger = cfg_option_value(options, "image_modal_refresh_trigger");
+    auto append = [&out](const char *key, const std::string &value) {
+      if (!out.empty()) out += ",";
+      out += std::string(key) + "=" + value;
+    };
+    if (mode == espdesktop::camera::RefreshMode::PERIODIC) {
+      append("image_modal_refresh_mode", "periodic");
+      const uint32_t interval = espdesktop::camera::refresh_interval_ms(
+          cfg_option_value(options, "image_modal_refresh_interval"));
+      if (interval != 10000) append("image_modal_refresh_interval", std::to_string(interval / 1000));
+    } else if (mode == espdesktop::camera::RefreshMode::ACTIVITY && espdesktop::camera::valid_trigger(trigger)) {
+      append("image_modal_refresh_mode", "activity");
+      append("image_modal_refresh_trigger", trigger);
+    }
   }
   return out;
 }
@@ -553,7 +573,7 @@ inline std::string cover_card_options_normalized(const std::string &options,
 
 inline bool climate_control_tab_token_valid(const std::string &value) {
   return value == "temperature" || value == "mode" || value == "preset" ||
-         value == "fan" || value == "swing";
+         value == "fan" || value == "swing" || value == "horizontal_swing";
 }
 
 inline std::string normalize_climate_control_tabs_value(const std::string &value) {
@@ -905,13 +925,16 @@ inline const char *subpage_companion_stat_default_unit(const std::string &entity
 inline std::string date_time_card_options_normalized(const std::string &options,
                                                      const ParsedCfg &p) {
   if (!card_large_numbers_supported(p)) return "";
+  std::string out;
   if (cfg_option_token_present(options, "large_numbers") ||
       large_numbers_explicitly_disabled(options)) {
-    std::string out;
     append_large_numbers_option(out, options);
-    return out;
   }
-  return "";
+  if (p.type == "clock" && cfg_option_token_present(options, "center_clock")) {
+    if (!out.empty()) out += ",";
+    out += "center_clock";
+  }
+  return out;
 }
 
 inline std::string companion_metric_options_normalized(const std::string &options) {
@@ -1229,8 +1252,8 @@ inline void normalize_saved_config_image_fields(ParsedCfg &p) {
 }
 
 inline std::string normalize_saved_config_image_options(
-    const std::string &options, const ParsedCfg &) {
-  return image_card_options_normalized(options);
+    const std::string &options, const ParsedCfg &p) {
+  return image_card_options_normalized(options, p.entity);
 }
 
 inline void normalize_saved_config_climate_fields(ParsedCfg &p) {

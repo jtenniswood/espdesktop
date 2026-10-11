@@ -6,7 +6,10 @@ import {
     normalizeLanguage,
     normalizeTemperatureUnit,
     normalizeTimeOfDay,
+    normalizeThemeMode,
+    normalizeThemeAutoMethod,
 } from "../model/settings";
+import { syncThemeSettingsUi } from "./theme_settings_ui";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
@@ -46,7 +49,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, nativePanelConfig: Pick<NativePanelConfigController, "writeSetting">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postVoiceServices">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "buildAlarmDelayAudioSettingsCard" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, nativePanelConfig: Pick<NativePanelConfigController, "writeSetting">): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { appendSettingsSection, buildAlarmDelayAudioSettingsCard, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -55,7 +58,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { colorField, condField, createRangeSlider, fieldLabel, makeCollapsibleCard, segmentControl, selectField, textInput, toggleRow } = fields;
     const { createActionButton, buildApplyBar } = shell;
     const { entityName, entityInput } = entityState;
-    const { postText, postSelect, postScreensaverMode, postScreensaverTimeout, postHomeScreenTimeout } = requestApi;
+    const { postText, postSelect, postNumber, postScreensaverMode, postScreensaverTimeout, postHomeScreenTimeout } = requestApi;
     const { bindTextPost } = codec;
     const { appendTimezoneOption, syncInput, updateClock, updateSunInfo, updateTempPreview } = statusPreview;
     const { syncPreviewOrientation } = core;
@@ -90,6 +93,53 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         });
         appearBody.appendChild(onColor);
         els.setOnColor = onColor;
+        var themeModes: any = segmentControl([
+            ["Dark", "Dark"], ["Light", "Light"], ["Auto", "Automatic"],
+        ], normalizeThemeMode(state.themeMode), function (this: any, mode?: any) {
+            state.themeMode = normalizeThemeMode(mode);
+            postSelect(entityName("screen_theme_mode"), state.themeMode);
+            syncThemeSettingsUi(state, runtime);
+            renderPreview();
+        }, "sp-segment sp-segment-scroll sp-theme-mode-segment");
+        themeModes.segment.id = "sp-set-theme-mode";
+        appearBody.appendChild(fieldLabel("Theme"));
+        appearBody.appendChild(themeModes.segment);
+        els.setThemeModeButtons = themeModes.buttons;
+        var themeAutoFields: any = condField();
+        var themeAutoMethods: any = segmentControl([
+            ["Time", "Time"], ["Sunrise / Sunset", "Automatic"],
+        ], normalizeThemeAutoMethod(state.themeAutoMethod), function (this: any, method?: any) {
+            state.themeAutoMethod = normalizeThemeAutoMethod(method);
+            postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
+            syncThemeSettingsUi(state, runtime);
+        });
+        themeAutoMethods.segment.id = "sp-set-theme-auto-method";
+        themeAutoFields.appendChild(fieldLabel("Automatic theme"));
+        themeAutoFields.appendChild(themeAutoMethods.segment);
+        els.setThemeAutoMethodButtons = themeAutoMethods.buttons;
+        var themeSunInfo: any = document.createElement("div");
+        themeSunInfo.className = "sp-sun-info";
+        themeSunInfo.id = "sp-theme-sun-info";
+        themeAutoFields.appendChild(themeSunInfo);
+        els.setThemeSunInfo = themeSunInfo;
+        var themeScheduleFields: any = condField();
+        var themeLightStart: any = createTimeInput("Light from", "sp-set-theme-light-start", state.themeLightStart, "07:00", function (this: any, value?: any) {
+            state.themeLightStart = normalizeTimeOfDay(value, "07:00");
+            postText(entityName("screen_theme_light_start"), state.themeLightStart);
+        });
+        themeScheduleFields.appendChild(themeLightStart.wrap);
+        els.setThemeLightStart = themeLightStart.input;
+        var themeDarkStart: any = createTimeInput("Dark from", "sp-set-theme-dark-start", state.themeDarkStart, "20:00", function (this: any, value?: any) {
+            state.themeDarkStart = normalizeTimeOfDay(value, "20:00");
+            postText(entityName("screen_theme_dark_start"), state.themeDarkStart);
+        });
+        themeScheduleFields.appendChild(themeDarkStart.wrap);
+        els.setThemeDarkStart = themeDarkStart.input;
+        themeAutoFields.appendChild(themeScheduleFields);
+        els.setThemeScheduleFields = themeScheduleFields;
+        appearBody.appendChild(themeAutoFields);
+        els.setThemeAutoFields = themeAutoFields;
+        syncThemeSettingsUi(state, runtime);
         var appearanceResetButton: any = createActionButton("sp-icon-button sp-card-header-action", "", "restore", "Reset colours to defaults");
         appearanceResetButton.title = "Reset colours";
         appearanceResetButton.addEventListener("click", function (this: any, event?: any) {
@@ -452,6 +502,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setClockBrightnessNight = timerClockControls.clockBrightnessNight;
         els.setClockBrightnessNightVal = timerClockControls.clockBrightnessNightVal;
         els.setClockBrightnessField = timerClockControls.brightnessField;
+        els.setClockDateToggle = timerClockControls.dateToggle;
         var coverArtCard: any = buildCoverArtSettingsCard();
         ssBody.appendChild(timerPanel);
         els.setSSTimeout = timeoutSelect;
@@ -534,6 +585,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setSensorClockBrightnessNight = sensorClockControls.clockBrightnessNight;
         els.setSensorClockBrightnessNightVal = sensorClockControls.clockBrightnessNightVal;
         els.setSensorClockBrightnessField = sensorClockControls.brightnessField;
+        els.setSensorClockDateToggle = sensorClockControls.dateToggle;
         var companionPanel: any = document.createElement("div");
         var companionClockControls: any = createScreensaverThenControls("sp-set-companion-clock-mode", "When disconnected");
         companionPanel.appendChild(companionClockControls.clockField);
@@ -556,6 +608,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.setCompanionClockBrightnessNight = companionClockControls.clockBrightnessNight;
         els.setCompanionClockBrightnessNightVal = companionClockControls.clockBrightnessNightVal;
         els.setCompanionClockBrightnessField = companionClockControls.brightnessField;
+        els.setCompanionClockDateToggle = companionClockControls.dateToggle;
         syncClockScreensaverControls();
         syncMediaPlayerSleepPreventionUi();
         syncCoverArtScreensaverUi();

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.anthropic.claudefordesktop",
+  "label": "Claude Desktop",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Quick Entry (alternative)",
+      "shortcut": "option+space",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Show Code-tab shortcuts",
+      "shortcut": "command+keyslash",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "New Code session",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Next Code session",
+      "shortcut": "control+tab",
+      "icon": "Application"
+    }
+  ]
+}

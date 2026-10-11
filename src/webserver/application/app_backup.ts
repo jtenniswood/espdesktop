@@ -22,7 +22,11 @@ import {
     normalizeScreensaverDimmedBrightness,
     normalizeTemperatureUnit,
     normalizeTimeOfDay,
+    normalizeThemeMode,
+    normalizeThemeAutoMethod,
+    parseThemeSunOffset,
 } from "../model/settings";
+import { syncThemeSettingsUi } from "./theme_settings_ui";
 import type { BackupImportController } from "../features/backup_import_controller";
 import type { BackupExportController } from "../features/backup_export_controller";
 import type { BackupFileController } from "../features/backup_file_controller";
@@ -113,6 +117,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postScreensaverCameraImageMode,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
+        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
         postClockOverlay,
@@ -123,6 +128,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postCoverArtTrackOverlayDuration,
         postCoverArtHideExternalInput,
         postHomeAssistantArtworkProtocol,
+        postHomeAssistantArtworkHost,
         postHomeAssistantArtworkPort,
         postHomeAssistantArtworkEndpointMode,
     } = controllers.artworkPostApi;
@@ -282,14 +288,17 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity || state.coverArtMediaPlayerEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
+                clock_date: state.clockDateOn,
                 clock_overlay: state.clockOverlayOn,
                 cover_art_media_player_entity: state.coverArtMediaPlayerEntity,
                 cover_art_secondary_media_player_entity: state.coverArtSecondaryMediaPlayerEntity,
                 cover_art_attribute_conditions: state.coverArtAttributeConditions,
                 cover_art_delay: state.coverArtDelay,
+                cover_art_playback_control: state.coverArtPlaybackControlOn,
                 cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
                 cover_art_hide_external_input: state.coverArtHideExternalInputOn,
                 home_assistant_artwork_protocol: normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol),
+                home_assistant_artwork_host: String(state.homeAssistantArtworkHost || "").trim().slice(0, 253),
                 home_assistant_artwork_port: normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort),
                 home_assistant_artwork_endpoint_mode: normalizeHomeAssistantArtworkEndpointMode(
                     state.homeAssistantArtworkEndpointMode,
@@ -313,6 +322,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_day: Math.round(state.brightnessDayVal),
                 brightness_night: Math.round(state.brightnessNightVal),
                 brightness_mode: normalizeBrightnessMode(state.brightnessMode),
+                theme_mode: normalizeThemeMode(state.themeMode),
+                theme_auto_method: normalizeThemeAutoMethod(state.themeAutoMethod),
+                theme_light_start: normalizeTimeOfDay(state.themeLightStart, "07:00"),
+                theme_dark_start: normalizeTimeOfDay(state.themeDarkStart, "20:00"),
+                theme_sunrise_offset: state.themeSunriseOffset,
+                theme_sunset_offset: state.themeSunsetOffset,
                 manual_brightness: Math.round(state.manualBrightnessVal),
                 brightness_dawn_time: normalizeTimeOfDay(state.brightnessDawnTime, "06:00"),
                 brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
@@ -338,7 +353,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         backupFileController.import(function (data: any) {
             void (async () => {
                 // Validate the complete backup before offering identity changes.
-                backupImportController.plan(data, { device: controllers.layout.deviceId, slots: controllers.layout.numSlots });
+                const validatedPlan = backupImportController.plan(data, { device: controllers.layout.deviceId, slots: controllers.layout.numSlots });
+                const themeScreen = validatedPlan.backupPlan.screen || {};
+                for (const key of ["theme_sunrise_offset", "theme_sunset_offset"]) {
+                    if (Object.prototype.hasOwnProperty.call(themeScreen, key) && parseThemeSunOffset(themeScreen[key]) === null)
+                        throw new Error("Invalid " + key.replace(/_/g, " ") + " in backup; use a whole number from -180 to 180 minutes.");
+                }
                 const restoredName = await controllers.identity?.chooseRestoreName(data);
                 if (restoredName === null) return;
                 async function applyBackupRestorePlan(this: any, plannedImport: any) {
@@ -528,8 +548,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
                     postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
+                    postCoverArtPlaybackControl(importedSettings.coverArtPlaybackControl);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
                     postCoverArtSource(importedSettings.coverArtSource);
+                    if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
                     if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
                     if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
                         controllers.artworkPostApi.postMetadataOverlay(importedSettings.metadataOverlay);
@@ -540,6 +562,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
                     postCoverArtHideExternalInput(importedSettings.coverArtHideExternalInput);
                     postHomeAssistantArtworkProtocol(importedSettings.coverArtHomeAssistantProtocol);
+                    postHomeAssistantArtworkHost(importedSettings.coverArtHomeAssistantHost);
                     postHomeAssistantArtworkPort(importedSettings.coverArtHomeAssistantPort);
                     postHomeAssistantArtworkEndpointMode(importedSettings.coverArtHomeAssistantEndpointMode);
                     if (firmwareUpdateControlsVisible()) {
@@ -605,14 +628,17 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
                     state.coverArtScreensaverOn = importedSettings.coverArtScreensaver;
                     state.coverArtSource = importedSettings.coverArtSource;
+                    state.clockDateOn = importedSettings.clockDate;
                     state.clockOverlayOn = importedSettings.clockOverlay;
                     state.coverArtMediaPlayerEntity = importedSettings.coverArtMediaPlayerEntity;
                     state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
                     state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
                     state.coverArtDelay = importedSettings.coverArtDelay;
+                    state.coverArtPlaybackControlOn = importedSettings.coverArtPlaybackControl;
                     state.coverArtTrackOverlayDuration = importedSettings.coverArtTrackOverlayDuration;
                     state.coverArtHideExternalInputOn = importedSettings.coverArtHideExternalInput;
                     state.homeAssistantArtworkProtocol = importedSettings.coverArtHomeAssistantProtocol;
+                    state.homeAssistantArtworkHost = importedSettings.coverArtHomeAssistantHost;
                     state.coverArtHomeAssistantPort = importedSettings.coverArtHomeAssistantPort;
                     state.homeAssistantArtworkEndpointMode = importedSettings.coverArtHomeAssistantEndpointMode;
                     state.autoUpdate = importedSettings.autoUpdate;
@@ -676,6 +702,21 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.brightnessDayVal = importedScreenSettings.brightnessDayVal;
                     state.brightnessNightVal = importedScreenSettings.brightnessNightVal;
                     state.brightnessMode = importedScreenSettings.brightnessMode;
+                    // Optional fields keep older backups compatible and leave
+                    // an existing theme choice alone when those fields are absent.
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
+                        state.themeMode = normalizeThemeMode(screenSettings.theme_mode);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_auto_method") ||
+                        screenSettings.theme_mode === "Sun" || screenSettings.theme_mode === "Schedule")
+                        state.themeAutoMethod = normalizeThemeAutoMethod(screenSettings.theme_auto_method || screenSettings.theme_mode);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_light_start"))
+                        state.themeLightStart = normalizeTimeOfDay(screenSettings.theme_light_start, "07:00");
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_dark_start"))
+                        state.themeDarkStart = normalizeTimeOfDay(screenSettings.theme_dark_start, "20:00");
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunrise_offset"))
+                        state.themeSunriseOffset = parseThemeSunOffset(screenSettings.theme_sunrise_offset)!;
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunset_offset"))
+                        state.themeSunsetOffset = parseThemeSunOffset(screenSettings.theme_sunset_offset)!;
                     state.manualBrightnessVal = importedScreenSettings.manualBrightnessVal;
                     state.brightnessDawnTime = importedScreenSettings.brightnessDawnTime;
                     state.brightnessDuskTime = importedScreenSettings.brightnessDuskTime;
@@ -694,6 +735,19 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postNumber(entityName("screen_daytime_brightness"), state.brightnessDayVal);
                     postNumber(entityName("screen_nighttime_brightness"), state.brightnessNightVal);
                     postBrightnessMode(state.brightnessMode);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_light_start"))
+                        requestApi.postText(entityName("screen_theme_light_start"), state.themeLightStart);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_dark_start"))
+                        requestApi.postText(entityName("screen_theme_dark_start"), state.themeDarkStart);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunrise_offset"))
+                        requestApi.postNumber(entityName("screen_theme_sunrise_offset"), state.themeSunriseOffset);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunset_offset"))
+                        requestApi.postNumber(entityName("screen_theme_sunset_offset"), state.themeSunsetOffset);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_auto_method") ||
+                        screenSettings.theme_mode === "Sun" || screenSettings.theme_mode === "Schedule")
+                        requestApi.postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
+                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
+                        requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
                     if (state.brightnessMode === "manual")
                         postDisplayBacklightBrightness(state.manualBrightnessVal);
                     postBrightnessDawnTime(state.brightnessDawnTime);
@@ -719,6 +773,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         els.setNightBrightnessVal.textContent = Math.round(state.brightnessNightVal) + "%";
                     }
                     syncScreenScheduleUi();
+                    syncThemeSettingsUi(state, controllers.runtime);
                 }
                 state.selectedSlots = [];
                 state.lastClickedSlot = -1;

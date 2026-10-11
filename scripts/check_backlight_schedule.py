@@ -5,11 +5,97 @@ from pathlib import Path
 import subprocess
 import tempfile
 import textwrap
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "common" / "addon" / "backlight_schedule.yaml"
 FADE_SOURCE = ROOT / "common" / "addon" / "backlight.yaml"
+
+
+def check_theme_entity_wiring(source: str) -> None:
+    """Keep HA and web writes on the same restored ESPHome entities."""
+    class Loader(yaml.SafeLoader):
+        pass
+
+    Loader.add_constructor("!lambda", lambda loader, node: loader.construct_scalar(node))
+    package = yaml.load(source, Loader)
+
+    def entity(section: str, entity_id: str) -> dict:
+        return next(item for item in package[section] if item.get("id") == entity_id)
+
+    for entity_id in ("screen_theme_mode", "screen_theme_auto_method"):
+        item = entity("select", entity_id)
+        assert not item.get("internal", False), f"{entity_id} must be visible in HA"
+        assert item["restore_value"] is True
+        assert {"script.execute": "theme_settings_refresh"} in item["on_value"]["then"]
+
+    assert entity("select", "screen_theme_mode")["options"] == ["Dark", "Light", "Auto"]
+    assert entity("select", "screen_theme_auto_method")["options"] == [
+        "Time", "Sunrise / Sunset"
+    ]
+    for entity_id in ("screen_theme_light_start", "screen_theme_dark_start"):
+        item = entity("text", entity_id)
+        assert not item.get("internal", False) and item["restore_value"] is True
+        actions = item["set_action"]
+        assert "parse_theme_time" in actions[0]["lambda"]
+        assert f"id({entity_id}).publish_state(x);" in actions[0]["lambda"]
+        assert "id(theme_settings_refresh).execute();" in actions[0]["lambda"]
+
+    for entity_id in ("screen_theme_sunrise_offset", "screen_theme_sunset_offset"):
+        item = entity("number", entity_id)
+        assert not item.get("internal", False) and item["restore_value"] is True
+        assert (item["min_value"], item["max_value"], item["step"]) == (-180, 180, 1)
+        actions = item["set_action"]
+        assert "parse_theme_sun_offset" in actions[0]["lambda"]
+        assert f"id({entity_id}).publish_state(x);" in actions[0]["lambda"]
+        assert "id(theme_settings_refresh).execute();" in actions[0]["lambda"]
+
+    active = entity("text_sensor", "screen_active_theme")
+    assert not active.get("internal", False)
+    refresh = entity("script", "theme_settings_refresh")["then"][0]["lambda"]
+    assert "apply_theme_resolution" in refresh
+    assert "id(screen_active_theme).publish_state(active);" in refresh
+    assert "parse_theme_sun_offset" in refresh and "&& offsets_valid" in refresh
+    migration = package["esphome"]["on_boot"][0]["then"][0]["lambda"]
+    assert "make_entity_preference<size_t>()" in migration
+    assert "preference.load(&old_index)" in migration and "migrate_legacy_theme_index" in migration
+    print("theme HA entity persistence and refresh wiring: ok")
+
+
+def force_off_adapter(source: str) -> str:
+    """Exercise the production off guard and actions, including legacy guards."""
+    class Loader(yaml.SafeLoader):
+        pass
+
+    Loader.add_constructor("!lambda", lambda loader, node: loader.construct_scalar(node))
+    scripts = yaml.load(source[source.index("script:\n"):], Loader)["script"]
+    script = next(item for item in scripts if item["id"] == "backlight_force_display_off")
+
+    def actions(items):
+        result = []
+        for item in items:
+            kind, value = next(iter(item.items()))
+            if kind == "if":
+                condition = value["condition"]
+                if "light.is_on" in condition:
+                    predicate = f"return id({condition['light.is_on']}).current_values.is_on();"
+                else:
+                    predicate = condition["lambda"]
+                result.append(f"if (([&] {{ {predicate} }})()) {{ {actions(value['then'])} }}")
+            elif kind == "light.turn_off":
+                assert value["transition_length"] == "0s"
+                result.append(f"{{ auto call = id({value['id']}).turn_off(); "
+                              "call.set_transition_length(0); call.perform(); }")
+            elif kind == "output.turn_off":
+                result.append(f"id({value}).turn_off();")
+            elif kind == "lambda":
+                result.append(value)
+            else:
+                raise ValueError(f"Unsupported off action: {kind}")
+        return "\n".join(result)
+
+    return actions(script["then"])
 
 
 def check_recovery(source: str) -> None:
@@ -24,6 +110,9 @@ def check_recovery(source: str) -> None:
     fade_end = fade_source.index("      - while:", fade_start)
     with tempfile.TemporaryDirectory(prefix="backlight-recovery-") as directory:
         output = Path(directory)
+        (output / "backlight_force_off.inc").write_text(
+            force_off_adapter(fade_source), encoding="utf-8"
+        )
         (output / "backlight_brightness_adapter.inc").write_text(
             textwrap.dedent(source[start:end]), encoding="utf-8"
         )
@@ -38,7 +127,7 @@ def check_recovery(source: str) -> None:
             "-o", str(binary),
         ], check=True)
         subprocess.run([str(binary)], check=True)
-    print("backlight interrupted-fade recovery: ok")
+    print("backlight interrupted-fade recovery and reported off state: ok")
 
 
 def check_clock_switches_without_fade() -> None:
@@ -101,6 +190,7 @@ def main() -> None:
     )
 
     print("backlight schedule startup guard: ok")
+    check_theme_entity_wiring(text)
     check_recovery(text)
     check_clock_switches_without_fade()
 

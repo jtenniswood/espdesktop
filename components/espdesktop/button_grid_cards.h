@@ -518,7 +518,7 @@ inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
 inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p);
 
 inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
-                                 uint32_t sensor_color = TERTIARY_GREY) {
+                                 uint32_t sensor_color = theme_display_color(current_theme().surface_secondary)) {
   lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   if (companion_metric_key_valid(p.entity)) {
     lv_label_set_display_text(s.icon_lbl, find_icon(companion_metric_icon(p.entity)));

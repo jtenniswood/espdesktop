@@ -29,13 +29,6 @@ external_components:
     components: [mipi_dsi]
     refresh: 1s
 
-switch:
-  - id: !extend auto_update_switch
-    restore_mode: ALWAYS_OFF
-  # Preserve the working C6 firmware throughout the initial hardware test.
-  - id: !extend c6_auto_update_switch
-    restore_mode: ALWAYS_OFF
-
 web_server:
   ota: false
   # Load the complete branch editor: the release-manifest bridge rejects dev-v3-*
@@ -43,7 +36,7 @@ web_server:
   js_url: "https://cdn.jsdelivr.net/gh/jtenniswood/espdesktop@${espdesktop_component_ref}/docs/public/webserver/embedded/www.js?device=${device_slug}&v=${firmware_version}"
 
 esphome:
-  min_version: 2026.9.0
+  min_version: 2026.9.1
   on_boot:
     - priority: -100
       then:
