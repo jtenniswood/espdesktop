@@ -8,7 +8,7 @@
   ],
   "fast": [
     "firmware-tests", "web-unit", "generated", "companion-contract", "device-manifest", "device-manifest-output", "product-schema", "product-model-v2",
-    "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
+    "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "ci-tooling", "pr-process",
     "pr-testing-guidance", "config", "backup-contract", "model-contract", "state-contract", "device-api",
     "preview-features", "memory-monitor", "camera-test-endpoint", "cover-art-contract",
     "web-smoke", "web-asset-manifest", "types", "saved-config-parity", "saved-config-shadow", "saved-config-production", "firmware-parser", "firmware-modals", "backlight-schedule", "photo-metadata", "firmware-modal-layouts", "firmware-display-tokens",
@@ -18,7 +18,7 @@
   ],
   "ci": [
     "firmware-tests", "web-unit", "generated", "companion-contract", "device-manifest", "device-manifest-output", "product-schema", "product-model-v2",
-    "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
+    "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "ci-tooling", "pr-process",
     "pr-testing-guidance", "config", "backup-contract", "model-contract", "state-contract", "device-api",
     "preview-features", "memory-monitor", "camera-test-endpoint", "cover-art-contract",
     "web-smoke", "web-asset-manifest", "types", "saved-config-parity", "saved-config-shadow", "saved-config-production", "firmware-parser", "firmware-modals", "backlight-schedule", "photo-metadata", "firmware-modal-layouts", "firmware-display-tokens",
@@ -28,7 +28,7 @@
   ],
   "all": [
     "firmware-tests", "web-unit", "generated", "companion-contract", "device-manifest", "device-manifest-output", "product-schema", "product-model-v2",
-    "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
+    "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "ci-tooling", "pr-process",
     "pr-testing-guidance", "config", "backup-contract", "model-contract", "state-contract", "device-api",
     "preview-features", "memory-monitor", "camera-test-endpoint", "cover-art-contract",
     "web-smoke", "web-asset-manifest", "types", "saved-config-parity", "saved-config-shadow", "saved-config-production", "firmware-parser", "firmware-modals", "backlight-schedule", "photo-metadata", "firmware-modal-layouts", "firmware-display-tokens",
