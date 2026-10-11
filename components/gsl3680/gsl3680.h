@@ -23,6 +23,7 @@ constexpr static const char *const TAG = "touchscreen.gsl3680";
 class GSL3680 : public touchscreen::Touchscreen, public i2c::I2CDevice {
     public:
         void setup() override;
+        void dump_config() override;
         void update_touches() override;
 
         void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin_ = pin; }
@@ -31,6 +32,11 @@ class GSL3680 : public touchscreen::Touchscreen, public i2c::I2CDevice {
     protected:
         InternalGPIOPin *interrupt_pin_{};
         InternalGPIOPin *reset_pin_{};
+        const char *startup_stage_{"not started"};
+        esphome::i2c::ErrorCode startup_error_{esphome::i2c::ERROR_OK};
+        uint32_t diagnostic_page_{}, diagnostic_actual_{}, diagnostic_expected_{};
+        uint8_t diagnostic_register_{};
+        bool firmware_verified_{};
         // size_t width_ = 1280;
         // size_t height_ = 800;
         // esp_lcd_touch_handle_t tp_{};
@@ -41,6 +47,7 @@ class GSL3680 : public touchscreen::Touchscreen, public i2c::I2CDevice {
         esphome::i2c::ErrorCode read_configuration();
         esphome::i2c::ErrorCode clear_registers();
         esphome::i2c::ErrorCode load_firmware();
+        esphome::i2c::ErrorCode verify_firmware();
         esphome::i2c::ErrorCode start();
         esphome::i2c::ErrorCode read_ram();
 };

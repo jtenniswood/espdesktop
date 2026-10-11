@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "bundles": [
     {
-      "id": "3db657524d2b206eed3297e29026b94e54a1f94364bea52a25c614fa82f6198f",
-      "sha256": "3db657524d2b206eed3297e29026b94e54a1f94364bea52a25c614fa82f6198f",
-      "path": "bundles/3db657524d2b206eed3297e29026b94e54a1f94364bea52a25c614fa82f6198f/www.js",
+      "id": "1fcd3de43876c292d27f1ef59ff70157c277653ad677a0c3f3b7ac85f27af545",
+      "sha256": "1fcd3de43876c292d27f1ef59ff70157c277653ad677a0c3f3b7ac85f27af545",
+      "path": "bundles/1fcd3de43876c292d27f1ef59ff70157c277653ad677a0c3f3b7ac85f27af545/www.js",
       "deviceProfiles": [
         "guition-esp32-p4-jc1060p470",
         "guition-esp32-p4-jc1060p470-v2",
@@ -21,9 +21,9 @@
       "webAssetVersion": 2
     },
     {
-      "id": "3db657524d2b206eed3297e29026b94e54a1f94364bea52a25c614fa82f6198f",
-      "sha256": "3db657524d2b206eed3297e29026b94e54a1f94364bea52a25c614fa82f6198f",
-      "path": "bundles/3db657524d2b206eed3297e29026b94e54a1f94364bea52a25c614fa82f6198f/www.js",
+      "id": "1fcd3de43876c292d27f1ef59ff70157c277653ad677a0c3f3b7ac85f27af545",
+      "sha256": "1fcd3de43876c292d27f1ef59ff70157c277653ad677a0c3f3b7ac85f27af545",
+      "path": "bundles/1fcd3de43876c292d27f1ef59ff70157c277653ad677a0c3f3b7ac85f27af545/www.js",
       "deviceProfiles": [
         "guition-esp32-p4-jc1060p470",
         "guition-esp32-p4-jc1060p470-v2",
