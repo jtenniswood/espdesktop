@@ -81,7 +81,7 @@ external_components:
       url: ${espdesktop_component_url}
       ref: ${espdesktop_component_ref}
       path: components
-    components: [espdesktop, web_server_idf, artwork_image, sendspin]
+    components: [espdesktop, web_server_idf, artwork_image]
     refresh: 1s
 
 espdesktop:
@@ -203,10 +203,6 @@ packages:
 logger:
   hardware_uart: UART0
   logs:
-    sendspin.hub: DEBUG
-    sendspin.player: DEBUG
-    sendspin.sync_task: DEBUG
-    sendspin.media_source: DEBUG
     speaker_source_media_player: DEBUG
 
 # ---------------------------------------------------------------------------
