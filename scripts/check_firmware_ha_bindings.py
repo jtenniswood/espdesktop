@@ -1616,8 +1616,9 @@ def firmware_media_power_binding_errors(firmware_dir: Path, root: Path) -> list[
         'std::string("supported_features")',
         "media_playback_subscribe_volume(state)",
         "media_control_send_power_action",
-        'send_media_player_action(ctx->entity_id, "media_player.turn_on")',
-        'send_media_player_action(ctx->entity_id, "media_player.turn_off")',
+        "ctx && !ctx->power_entity.empty()",
+        'send_media_player_action(ctx->power_entity, "homeassistant.turn_on")',
+        'send_media_player_action(ctx->power_entity, "homeassistant.turn_off")',
     )
     capability_required = (
         "SUPPORT_TURN_ON = 128",
@@ -1630,7 +1631,7 @@ def firmware_media_power_binding_errors(firmware_dir: Path, root: Path) -> list[
         needle not in capability_text for needle in capability_required
     ):
         errors.append(
-            "components/espdesktop: keep media Power gated by supported_features and dispatch explicit turn_on/turn_off actions"
+            "components/espdesktop: keep media Power gated by its optional entity and dispatch explicit turn_on/turn_off actions"
         )
 
     match = MEDIA_CONTROL_STATE_PATTERN.search(media_text)
@@ -4471,9 +4472,10 @@ def valid_media_power_binding_text() -> tuple[str, str]:
         "#endif\n"
         "}\n\n"
         "inline bool media_seek_pending_active() { return false; }\n"
+        "inline bool media_control_power_supported() { return ctx && !ctx->power_entity.empty(); }\n"
         "inline void media_control_send_power_action(MediaControlCtx *ctx) {\n"
-        "  send_media_player_action(ctx->entity_id, \"media_player.turn_on\");\n"
-        "  send_media_player_action(ctx->entity_id, \"media_player.turn_off\");\n"
+        "  send_media_player_action(ctx->power_entity, \"homeassistant.turn_on\");\n"
+        "  send_media_player_action(ctx->power_entity, \"homeassistant.turn_off\");\n"
         "}\n"
     )
     capability_text = (
