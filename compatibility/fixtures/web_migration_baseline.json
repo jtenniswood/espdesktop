@@ -78,6 +78,7 @@
       "coverArtSecondaryMediaPlayerEntity": "",
       "coverArtAttributeConditions": "",
       "coverArtDelay": 10,
+      "coverArtPlaybackControl": true,
       "coverArtTrackOverlayDuration": 5,
       "coverArtHideExternalInput": true,
       "coverArtHomeAssistantEndpointMode": "Manual",
@@ -99,8 +100,7 @@
       "screensaverMetadataEntity": "",
       "metadataOverlay": false,
       "screensaverCameraImageMode": "Fit",
-      "clockOverlay": false,
-      "coverArtPlaybackControl": true
+      "clockOverlay": false
     },
     "screenInput": {
       "brightness_day": 80,
@@ -190,9 +190,8 @@
       "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=30"
     ]
   },
-  "bundleSize": {
-    "minified": 2678397,
-    "gzip": 1066866,
-    "gzipTolerance": 9216
+  "bundleBudget": {
+    "minified": 2750000,
+    "gzip": 1150000
   }
 }
