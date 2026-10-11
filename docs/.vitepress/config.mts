@@ -1,5 +1,11 @@
 import { defineConfig } from 'vitepress'
+import { createRequire } from 'node:module'
 import { faqSchema, hostname, jsonLd, writeRedirects } from './discovery'
+
+// Resolve the installer's exact dependency whether npm hoists it or nests it.
+const installerRequire = createRequire(createRequire(import.meta.url).resolve('esp-web-tools'))
+const materialWeb = (path: string) => installerRequire.resolve(`@material/web/${path}`)
+
 
 const defaultImage = {
   url: `${hostname}images/4848s040-hero.jpg`,
@@ -170,6 +176,35 @@ export default defineConfig({
   ],
   markdown: { config: faqSchema },
   buildEnd: ({ outDir }) => writeRedirects(outDir),
+
+  // ESP Web Tools 10.4.0 still imports the generated .js stylesheet names from
+  // Material Web 2.4.1. Material Web 2.5.0 publishes those modules as .cssresult.js.
+  vite: {
+    optimizeDeps: {
+      esbuildOptions: {
+        plugins: [{
+          name: 'material-web-25-installer-styles-dev',
+          setup(build) {
+            build.onResolve({ filter: /^@material\/web\/(.+\/internal\/.+styles)\.js$/ }, ({ path }) => {
+              const match = path.match(/^@material\/web\/(.+\/internal\/.+styles)\.js$/)
+              return match ? { path: materialWeb(`${match[1]}.cssresult.js`) } : undefined
+            })
+          },
+        }],
+      },
+    },
+    plugins: [
+      {
+        name: 'material-web-25-installer-styles',
+        enforce: 'pre',
+        resolveId(source) {
+          const match = source.match(/^@material\/web\/(.+\/internal\/.+styles)\.js$/)
+          if (!match) return
+          return materialWeb(`${match[1]}.cssresult.js`)
+        },
+      },
+    ],
+  },
 
   sitemap: {
     hostname,
