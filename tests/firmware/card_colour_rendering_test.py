@@ -149,7 +149,8 @@ grid = (headers / "button_grid_grid.h").read_text()
 
 groups = (
     ("button_grid_display.h", "", ("display_correct_color",)),
-    ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
+    ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
+    ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors")),
     ("companion_controls.h", "", ("companion_apply_card_focus",)),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
