@@ -58,6 +58,9 @@ suspend downloads until Home Assistant reports recovery.
 
 ## Adding Firmware Support for a Card
 
+The experimental Home Assistant fan picker defaults new cards to All Controls.
+Other fan modes remain available, and saved cards retain their chosen mode.
+
 Experimental Home Assistant fan cards in All Controls mode retain their configured
 tile label through state updates. A blank label uses the Home Assistant friendly
 name, falling back to the translated Fan label; power highlighting and icons
