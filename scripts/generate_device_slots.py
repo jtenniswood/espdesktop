@@ -85,10 +85,12 @@ def clock_bar_icon_offset_lines(name: str, button: str, label: str) -> list[str]
 def battery_substitution_lines(device: dict) -> list[str]:
     if device["slug"] != "guition-esp32-p4-jc8012p4a1":
         return [
+            '  theme_battery_hud_label: "nullptr"',
             '  battery_status_apply_code: ""',
             '  battery_status_hide_code: ""',
         ]
     return [
+        '  theme_battery_hud_label: "id(battery_status_icon_label)"',
         "  battery_status_apply_code: |-",
         "    if (id(battery_status_enabled).state) {",
         *clock_bar_icon_offset_lines("battery_status_icon_x", "battery_status_button",
@@ -107,6 +109,7 @@ def battery_substitution_lines(device: dict) -> list[str]:
 def voice_substitution_lines(device: dict) -> list[str]:
     if not package_data(device).get("localVoiceServices"):
         return [
+            '  theme_voice_hud_label: "nullptr"',
             '  voice_clock_bar_hide_code: ""',
             '  voice_clock_bar_apply_code: ""',
             "  navigate_voice_target_code: |-",
@@ -132,6 +135,7 @@ def voice_substitution_lines(device: dict) -> list[str]:
             "          voice_clock_bar_icon_x_box);",
         ]
     return [
+        '  theme_voice_hud_label: "id(voice_clock_bar_mute_icon_label)"',
         "  voice_clock_bar_hide_code: |-",
         "    lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
         "  voice_clock_bar_apply_code: |-",
@@ -146,7 +150,7 @@ def voice_substitution_lines(device: dict) -> list[str]:
         '                        microphone_muted ? "\\U000F036D" :',
         '                        output_muted ? "\\U000F04C4" : "\\U000F036C");',
         "      lv_obj_set_style_text_color(id(voice_clock_bar_mute_icon_label),",
-        "                                  lv_color_hex(0xFFFFFF),",
+        "                                  lv_color_hex(current_theme().clockbar_text),",
         "                                  LV_PART_MAIN);",
         "    } else {",
         "      lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
@@ -246,6 +250,7 @@ def package_file_text(device: dict) -> str:
                 package.get("deviceFontPackageKey", "fonts_device"),
                 "!include device/fonts.yaml",
             ),
+            include_line("theme_colors", "!include ../../common/theme/colors.yaml"),
             include_line("button_theme", "!include ../../common/theme/button.yaml"),
             "  # ---------------------------------------------------------------------------",
             "  # Configuration (text/select/number components for web UI)",

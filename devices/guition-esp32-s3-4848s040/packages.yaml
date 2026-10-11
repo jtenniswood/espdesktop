@@ -36,6 +36,7 @@ substitutions:
   main_page_compact_pad_top: "4"
   clock_bar_item_gap: "60"
   clock_bar_visual_gap: "8"
+  theme_voice_hud_label: "nullptr"
   voice_clock_bar_hide_code: ""
   voice_clock_bar_apply_code: ""
   navigate_voice_target_code: |-
@@ -80,6 +81,7 @@ substitutions:
   cover_art_text_color: "0xFFFFFF"
   cover_art_square_overlay: "true"
   cover_art_live_image_updates: "false"
+  theme_battery_hud_label: "nullptr"
   battery_status_apply_code: ""
   battery_status_hide_code: ""
   image_card_slot_capacity: "2"
@@ -96,6 +98,7 @@ packages:
   device:          !include device/device.yaml
   icons:           !include ../../common/assets/icons.yaml
   fonts_device:    !include device/fonts.yaml
+  theme_colors:    !include ../../common/theme/colors.yaml
   button_theme:    !include ../../common/theme/button.yaml
   # ---------------------------------------------------------------------------
   # Configuration (text/select/number components for web UI)

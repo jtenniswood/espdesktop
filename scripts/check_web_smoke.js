@@ -526,7 +526,7 @@ assert(
   "standard card icons stay in the top-left corner at every size",
 );
 assert(
-  cardStylesSource.includes("font-size:var(--btn-icon);line-height:1;color:#fff;z-index:1}"),
+  cardStylesSource.includes("font-size:var(--btn-icon);line-height:1;color:var(--preview-text-primary);z-index:1}"),
   "standard card icons stay above slider preview fills",
 );
 assert(
@@ -1519,14 +1519,14 @@ const mediaNowPlayingPreview = hooks.buttonTypePreviewFor("media", {
 assert(mediaNowPlayingPreview.iconHtml.includes("Track Title"), "media now-playing preview uses the shared mock title");
 assert(mediaNowPlayingPreview.labelHtml.includes("Artist Name"), "media now-playing preview uses the shared mock artist");
 assert(mediaNowPlayingPreview.labelHtml.includes("sp-media-now-artist"), "media now-playing preview keeps artist styling");
-assert(previewStylesSource.includes(".sp-media-now-artist{font-size:var(--btn-label);line-height:1.2;color:#fff;font-weight:var(--btn-label-weight,400)}"), "media artists use standard card-label typography");
+assert(previewStylesSource.includes(".sp-media-now-artist{font-size:var(--btn-label);line-height:1.2;color:var(--preview-text-primary);font-weight:var(--btn-label-weight,400)}"), "media artists use standard card-label typography");
 
 const mediaCoverArtPreview = hooks.buttonTypePreviewFor("media", {
   entity: "media_player.office",
   sensor: "cover_art",
   type: "media",
 });
-assert.strictEqual(mediaCoverArtPreview.buttonClass, "sp-image-card", "media cover art preview uses the image-card wrapper");
+assert(mediaCoverArtPreview.buttonClass.split(/\s+/).includes("sp-image-card"), "media cover art preview uses the image-card wrapper");
 assert(mediaCoverArtPreview.iconHtml.includes("sp-image-preview"), "media cover art preview uses the shared camera-card surface");
 assert(!mediaCoverArtPreview.iconHtml.includes("sp-media-cover-preview"), "media cover art preview omits the old decorative mock");
 assert(mediaCoverArtPreview.labelHtml.includes("sp-image-label"), "media cover art preview uses the shared padded image label");
