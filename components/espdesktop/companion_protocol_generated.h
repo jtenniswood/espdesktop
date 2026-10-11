@@ -147,6 +147,36 @@ struct ArtworkAbort {
 struct ArtworkRequest {
   uint32_t generation{};
 };
+struct AppIconRequest {
+  std::string appId{};
+  std::optional<std::string> sha256{};
+};
+struct AppIconBegin {
+  std::string appId{};
+  uint32_t generation{};
+  uint32_t byteLength{};
+  std::string sha256{};
+  std::string format{};
+};
+struct AppIconUnchanged {
+  std::string appId{};
+  std::string sha256{};
+};
+struct AppIconUnavailable {
+  std::string appId{};
+};
+struct AppIconAck {
+  uint32_t generation{};
+  uint32_t nextOffset{};
+};
+struct AppIconEnd {
+  std::string appId{};
+  uint32_t generation{};
+};
+struct AppIconAbort {
+  std::string appId{};
+  uint32_t generation{};
+};
 struct Error {
   std::string code{};
   std::optional<uint32_t> lastSequence{};
@@ -343,6 +373,50 @@ inline void encode(JsonObject root, const ArtworkRequest &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["generation"] = message.generation;
 }
+inline void encode(JsonObject root, const AppIconRequest &message) {
+  root["type"] = "app_icon.request";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["appId"] = message.appId;
+  if (message.sha256) root["sha256"] = *message.sha256;
+}
+inline void encode(JsonObject root, const AppIconBegin &message) {
+  root["type"] = "app_icon.begin";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["appId"] = message.appId;
+  root["generation"] = message.generation;
+  root["byteLength"] = message.byteLength;
+  root["sha256"] = message.sha256;
+  root["format"] = message.format;
+}
+inline void encode(JsonObject root, const AppIconUnchanged &message) {
+  root["type"] = "app_icon.unchanged";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["appId"] = message.appId;
+  root["sha256"] = message.sha256;
+}
+inline void encode(JsonObject root, const AppIconUnavailable &message) {
+  root["type"] = "app_icon.unavailable";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["appId"] = message.appId;
+}
+inline void encode(JsonObject root, const AppIconAck &message) {
+  root["type"] = "app_icon.ack";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["generation"] = message.generation;
+  root["nextOffset"] = message.nextOffset;
+}
+inline void encode(JsonObject root, const AppIconEnd &message) {
+  root["type"] = "app_icon.end";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["appId"] = message.appId;
+  root["generation"] = message.generation;
+}
+inline void encode(JsonObject root, const AppIconAbort &message) {
+  root["type"] = "app_icon.abort";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["appId"] = message.appId;
+  root["generation"] = message.generation;
+}
 inline void encode(JsonObject root, const Error &message) {
   root["type"] = "error";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -378,7 +452,7 @@ inline void encode(JsonObject root, const FocusTargets &message) {
   }
   }
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, Error, CatalogueDefinitionsPage, FocusTargets>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -814,6 +888,111 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
     }
     ArtworkRequest result;
+    result.generation = root["generation"].as<uint32_t>();
+    return result;
+  }
+  if (type == "app_icon.request") {
+    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    if (!root["sha256"].isUnbound()) {
+      if (!(string_valid(root["sha256"], 64, 64) && hex_valid(root["sha256"]))) return std::nullopt;
+    }
+    AppIconRequest result;
+    result.appId = root["appId"].as<std::string>();
+    if (!root["sha256"].isUnbound()) result.sha256 = root["sha256"].as<std::string>();
+    return result;
+  }
+  if (type == "app_icon.begin") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["byteLength"], 62208, 172800, true))) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["sha256"], 64, 64) && hex_valid(root["sha256"]))) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["format"], 8, 8) && (root["format"].as<std::string>() == "rgb565a8"))) return std::nullopt;
+    }
+    AppIconBegin result;
+    result.appId = root["appId"].as<std::string>();
+    result.generation = root["generation"].as<uint32_t>();
+    result.byteLength = root["byteLength"].as<uint32_t>();
+    result.sha256 = root["sha256"].as<std::string>();
+    result.format = root["format"].as<std::string>();
+    return result;
+  }
+  if (type == "app_icon.unchanged") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["sha256"], 64, 64) && hex_valid(root["sha256"]))) return std::nullopt;
+    }
+    AppIconUnchanged result;
+    result.appId = root["appId"].as<std::string>();
+    result.sha256 = root["sha256"].as<std::string>();
+    return result;
+  }
+  if (type == "app_icon.unavailable") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    AppIconUnavailable result;
+    result.appId = root["appId"].as<std::string>();
+    return result;
+  }
+  if (type == "app_icon.ack") {
+    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["nextOffset"], 0, 172800, true))) return std::nullopt;
+    }
+    AppIconAck result;
+    result.generation = root["generation"].as<uint32_t>();
+    result.nextOffset = root["nextOffset"].as<uint32_t>();
+    return result;
+  }
+  if (type == "app_icon.end") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
+    }
+    AppIconEnd result;
+    result.appId = root["appId"].as<std::string>();
+    result.generation = root["generation"].as<uint32_t>();
+    return result;
+  }
+  if (type == "app_icon.abort") {
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
+    }
+    AppIconAbort result;
+    result.appId = root["appId"].as<std::string>();
     result.generation = root["generation"].as<uint32_t>();
     return result;
   }

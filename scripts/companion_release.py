@@ -27,7 +27,7 @@ def compatibility(root=ROOT):
                                    'companionProtocol': contract['protocol']['version']}],
         'releasePolicy': 'coordinated',
         'savedPanelConfigVersion': json.loads((root / 'product/release_contract.json').read_text())['panelConfigDocumentVersion'],
-        'wireFixturesSha256': digest(root / 'compatibility/fixtures/companion_protocol_v3.json'),
+        'wireFixturesSha256': digest(root / 'compatibility/fixtures/companion_protocol_v4.json'),
     }
 
 

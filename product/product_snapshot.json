@@ -5320,6 +5320,14 @@
         "domains": [],
         "options": [
           {
+            "name": "custom_icon",
+            "label": "Use custom icon",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "app_shortcuts",
             "label": "App Subpage",
             "kind": "flag",
@@ -5375,6 +5383,38 @@
             "omitDefault": true
           },
           {
+            "name": "app_bg_color",
+            "label": "App background colour",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "app_hide_label",
+            "label": "Hide app label",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "app_icon_fill",
+            "label": "Fill card with app icon",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "app_icon_medium",
+            "label": "Use medium app icon size",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "webapp_icon_title",
             "label": "Large icon with title",
             "kind": "flag",
@@ -5424,6 +5464,7 @@
           },
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
+            "custom_icon",
             "app_shortcuts",
             "finder_open_behavior",
             "finder_open_override",
@@ -5431,7 +5472,11 @@
             "app_shortcut_preset",
             "large_numbers",
             "stat_labels_off",
-            "webapp_icon_title"
+            "webapp_icon_title",
+            "app_bg_color",
+            "app_hide_label",
+            "app_icon_fill",
+            "app_icon_medium"
           ],
           "optionHook": "normalize_date_time_options"
         },

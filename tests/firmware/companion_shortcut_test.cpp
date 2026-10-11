@@ -76,6 +76,7 @@ int main() {
   safari_launch.type = "companion";
   safari_launch.entity = "com.apple.Safari";
   safari_launch.options = "app_shortcuts";
+  assert(companion_app_icon_enabled(safari_launch));
   assert(companion_app_shortcuts_enabled(safari_launch));
   assert(companion_card_options_normalized(safari_launch) == "app_shortcuts");
   safari_launch.options = "app_shortcuts,app_shortcuts_auto_switch";
@@ -92,6 +93,7 @@ int main() {
   assert(companion_app_shortcut_tabs_normalized(safari_launch) == "9|3|0");
   ParsedCfg codex_launch = safari_launch;
   codex_launch.entity = "com.openai.codex";
+  assert(companion_app_icon_enabled(codex_launch));
   assert(companion_app_shortcuts_enabled(codex_launch));
   ParsedCfg slack_launch = safari_launch;
   slack_launch.entity = "com.tinyspeck.slackmacgap";
@@ -109,6 +111,12 @@ int main() {
   assert(companion_shortcut_preset_normalized(edited_preset) == "custom");
   safari_launch.sensor = "url.https%3A%2F%2Fexample.com";
   assert(!companion_app_shortcuts_enabled(safari_launch));
+
+  ParsedCfg web_app;
+  web_app.type = "companion";
+  web_app.entity = "webapp.google-docs";
+  assert(companion_app_launch_card(web_app));
+  assert(!companion_app_icon_enabled(web_app));
 
   ParsedCfg companion_stat_subpage;
   companion_stat_subpage.type = "subpage";

@@ -1,11 +1,15 @@
 {
-  "version": 3,
+  "version": 5,
   "protocol": {
-    "version": 3,
-    "path": "/companion/v3",
+    "version": 4,
+    "path": "/companion/v4",
     "maximumTextFrameBytes": 16384,
     "maximumArtworkBytes": 262144,
     "artworkChunkBytes": 12288,
+    "appIconChunkBytes": 4096,
+    "appIconSide": 240,
+    "appIconsCapability": "app_icons",
+    "appIconsAlphaCapability": "app_icons_alpha",
     "messages": [
       {
         "id": "hello",
@@ -335,8 +339,8 @@
           },
           "actionIds": {
             "type": "array",
-            "maxItems": 64,
             "optional": true,
+            "maxItems": 64,
             "items": {
               "type": "string",
               "minLength": 1,
@@ -654,6 +658,163 @@
         ]
       },
       {
+        "id": "app_icon.request",
+        "direction": "panel_to_mac",
+        "authorization": "session",
+        "fields": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "hex64",
+            "optional": true
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "app_icon.begin",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "byteLength": {
+            "type": "integer",
+            "minimum": 62208,
+            "maximum": 172800
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "hex64"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "rgb565a8"
+            ],
+            "minLength": 8,
+            "maxLength": 8
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "app_icon.unchanged",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "hex64"
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "app_icon.unavailable",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "app_icon.ack",
+        "direction": "panel_to_mac",
+        "authorization": "session",
+        "fields": {
+          "generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "nextOffset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 172800
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "app_icon.end",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "app_icon.abort",
+        "direction": "bidirectional",
+        "authorization": "session",
+        "fields": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
         "id": "error",
         "direction": "bidirectional",
         "authorization": "public",
@@ -762,7 +923,9 @@
           "connected"
         ]
       }
-    ]
+    ],
+    "appIconLegacySide": 144,
+    "appIconsHighResolutionCapability": "app_icons_240"
   },
   "security": {
     "pairingAuthorization": "device_web_access",
@@ -787,12 +950,6 @@
       "defaultIcon": "Shortcut Command"
     },
     {
-      "id": "webapp",
-      "label": "Web App",
-      "capability": "applications",
-      "defaultIcon": "Web"
-    },
-    {
       "id": "url",
       "label": "Open URL",
       "capability": "applications",
@@ -815,6 +972,12 @@
       "label": "Window control",
       "capability": "window_actions",
       "defaultIcon": "Monitor"
+    },
+    {
+      "id": "webapp",
+      "label": "Web App",
+      "capability": "applications",
+      "defaultIcon": "Web"
     }
   ],
   "windowActions": [

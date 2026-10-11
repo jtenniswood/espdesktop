@@ -1797,6 +1797,7 @@ async function verifyLocalFirmwareProfileSelection() {
     "/api/v1/capabilities",
     "/companion/actions",
     "/api/v1/capabilities",
+    "/api/v1/capabilities",
   ]);
   assert(
     sandbox.__domEvents.some((event) => event.type === "DOMContentLoaded"),

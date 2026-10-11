@@ -335,12 +335,27 @@ inline lv_obj_t *&clock_bar_companion_icon_widget() {
   return widget;
 }
 
+inline lv_obj_t *&clock_bar_time_widget() {
+  static lv_obj_t *widget = nullptr;
+  return widget;
+}
+
 inline int &clock_bar_left_title_origin_x() {
   static int value = 12;
   return value;
 }
 
 inline int &clock_bar_left_title_origin_y() {
+  static int value = 8;
+  return value;
+}
+
+inline int &clock_bar_left_icon_origin_x() {
+  static int value = 0;
+  return value;
+}
+
+inline int &clock_bar_left_icon_origin_y() {
   static int value = 8;
   return value;
 }
@@ -355,6 +370,8 @@ struct ClockBarLeftTextWidths {
   int title = 176;
 };
 
+constexpr lv_coord_t CLOCK_BAR_COMPANION_ICON_SIZE = 32;
+
 inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
   static ClockBarLeftTextWidths widths;
   return widths;
@@ -363,6 +380,22 @@ inline ClockBarLeftTextWidths &clock_bar_left_text_widths() {
 inline std::string &clock_bar_modal_label() {
   static std::string label;
   return label;
+}
+inline const lv_font_t *&clock_bar_card_label_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+inline const lv_font_t *&clock_bar_companion_subpage_title_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+inline const lv_font_t *&clock_bar_temperature_default_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+inline lv_obj_t *&clock_bar_temperature_default_font_owner() {
+  static lv_obj_t *owner = nullptr;
+  return owner;
 }
 inline bool clock_bar_companion_icon_should_show() {
   return clock_bar_companion_icon_widget() &&
@@ -391,7 +424,8 @@ inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   if (!label) return;
   const auto &widths = clock_bar_left_text_widths();
   const bool showing_title = !clock_bar_left_title().empty();
-  const int icon_space = clock_bar_companion_icon_should_show() ? 26 : 0;
+  const int icon_space = clock_bar_companion_icon_should_show()
+      ? CLOCK_BAR_COMPANION_ICON_SIZE + 8 : 0;
   const int width = !showing_title
       ? widths.temperature : std::max(1, widths.title - icon_space);
   lv_obj_set_width(label, width);
@@ -407,8 +441,8 @@ inline void clock_bar_sync_companion_icon(bool visible) {
   if (show) lv_obj_clear_flag(widget, LV_OBJ_FLAG_HIDDEN);
   else lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
   if (show) {
-    lv_obj_set_pos(widget, clock_bar_left_title_origin_x(),
-                   clock_bar_left_title_origin_y());
+    lv_obj_set_pos(widget, clock_bar_left_icon_origin_x(),
+                   clock_bar_left_icon_origin_y());
     lv_obj_move_foreground(widget);
   }
 }
@@ -416,6 +450,16 @@ inline void clock_bar_refresh_left_title() {
   const auto context = clock_bar_refresh_context();
   auto &labels = clock_bar_temperature_labels();
   if (!labels.empty() && labels[0]) {
+    const bool showing_app_title = !clock_bar_companion_subpage_label().empty() &&
+                                   clock_bar_modal_label().empty();
+    const lv_font_t *title_font = showing_app_title
+        ? (clock_bar_companion_subpage_title_font()
+            ? clock_bar_companion_subpage_title_font()
+            : (clock_bar_temperature_default_font_owner() == labels[0]
+                ? clock_bar_temperature_default_font() : clock_bar_card_label_font()))
+        : (clock_bar_temperature_default_font_owner() == labels[0]
+            ? clock_bar_temperature_default_font() : nullptr);
+    if (title_font) lv_obj_set_style_text_font(labels[0], title_font, LV_PART_MAIN);
     lv_label_set_display_text(labels[0], clock_bar_left_title().c_str());
     clock_bar_update_left_text_width(labels[0]);
     if (clock_bar_left_title().empty()) lv_obj_add_flag(labels[0], LV_OBJ_FLAG_HIDDEN);
@@ -444,6 +488,18 @@ inline void set_clock_bar_temperature_labels(lv_obj_t **labels, size_t count) {
   for (size_t i = 0; labels && i < count; i++) {
     out.push_back(labels[i]);
   }
+  if (!out.empty() && out[0] && clock_bar_temperature_default_font_owner() != out[0]) {
+    clock_bar_temperature_default_font_owner() = out[0];
+    clock_bar_temperature_default_font() =
+        lv_obj_get_style_text_font(out[0], LV_PART_MAIN);
+  }
+}
+
+inline void clock_bar_set_card_label_font(const lv_font_t *font) {
+  if (!font || clock_bar_card_label_font() == font) return;
+  clock_bar_card_label_font() = font;
+  if (!clock_bar_companion_subpage_label().empty() && clock_bar_modal_label().empty())
+    clock_bar_refresh_left_title();
 }
 
 inline void clock_bar_set_widget_hidden(lv_obj_t *obj, bool hidden) {
@@ -565,6 +621,11 @@ inline void refresh_clock_bar_temperature_label_values(
     return;
   }
 
+  // The home clock owns the left slot; temperature updates must not overlap it.
+  if (clock_bar_time_widget() && !lv_obj_has_flag(clock_bar_time_widget(), LV_OBJ_FLAG_HIDDEN)) {
+    for (lv_obj_t *label : labels) clock_bar_set_widget_hidden(label, true);
+    return;
+  }
   // The left label also holds subpage titles, which do not require Home Assistant.
   const auto configured = clock_bar_home_assistant_configured_provider();
   if (!configured || !configured()) {
@@ -755,14 +816,13 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
   clock_bar_left_title_origin_x() = left_x;
   clock_bar_left_title_origin_y() = label_y;
   left_widths.temperature = temperature_width;
-  // Titles can use the free space up to the centered clock, rather than a
-  // temperature-sized box. Retain a gap so text cannot run into the time.
+  // Keep titles in the left portion of the bar, clear of status controls.
   const int title_width = (clock_bar_current_screen_width(480) - time_width) / 2 - left_x - 8;
   left_widths.title = title_width > 0 ? title_width : temperature_width;
   clock_bar_prepare_text_label(
       temperature_label, temperature_width, LV_TEXT_ALIGN_LEFT);
   clock_bar_update_left_text_width(temperature_label);
-  clock_bar_prepare_text_label(display_time, time_width, LV_TEXT_ALIGN_CENTER);
+  clock_bar_prepare_text_label(display_time, time_width, LV_TEXT_ALIGN_LEFT);
 
   clock_bar_set_widget_hidden(temperature_label, !temperature_visible);
   clock_bar_set_widget_hidden(display_time, !time_visible);
@@ -775,7 +835,7 @@ inline void apply_clock_bar_fixed_layout(lv_obj_t *temperature_label,
     lv_obj_move_background(temperature_label);
   }
   if (display_time) {
-    lv_obj_align(display_time, LV_ALIGN_TOP_RIGHT, -right_x, label_y);
+    lv_obj_align(display_time, LV_ALIGN_TOP_LEFT, left_x, label_y);
     lv_obj_move_background(display_time);
   }
   if (network_status_button) {

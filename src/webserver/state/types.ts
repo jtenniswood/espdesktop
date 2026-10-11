@@ -112,6 +112,8 @@ export interface AppState {
   sizes: Record<string, number>;
   buttons: CardConfig[];
   onColor: string;
+  appIconCustomColourControlEnabled: boolean;
+  appIconAutoColourGenerationEnabled: boolean;
   selectedSlots: number[];
   lastClickedSlot: number;
   clockBarSelectedItem: string;
