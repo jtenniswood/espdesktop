@@ -669,3 +669,5 @@ add_test(NAME cover_art_clock_transition_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_clock_transition_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME cover_art_active_landing_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_active_landing_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME alarm_palette_ownership_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/alarm_palette_ownership_test.py)
