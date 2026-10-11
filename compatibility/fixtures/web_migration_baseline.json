@@ -78,7 +78,6 @@
       "coverArtSecondaryMediaPlayerEntity": "",
       "coverArtAttributeConditions": "",
       "coverArtDelay": 10,
-      "coverArtPlaybackControl": true,
       "coverArtTrackOverlayDuration": 5,
       "coverArtHideExternalInput": true,
       "coverArtHomeAssistantEndpointMode": "Manual",
@@ -100,7 +99,8 @@
       "screensaverMetadataEntity": "",
       "metadataOverlay": false,
       "screensaverCameraImageMode": "Fit",
-      "clockOverlay": false
+      "clockOverlay": false,
+      "coverArtPlaybackControl": true
     },
     "screenInput": {
       "brightness_day": 80,
@@ -191,8 +191,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2678777,
-    "gzip": 1066915,
+    "minified": 2681959,
+    "gzip": 1067758,
     "gzipTolerance": 9216
   },
   "bundleBudget": {
