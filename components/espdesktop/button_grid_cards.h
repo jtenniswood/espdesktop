@@ -26,7 +26,14 @@ struct CompanionAppIconImageData {
 #endif
   esphome::RAMAllocator<uint8_t> pixel_allocator{
       esphome::RAMAllocator<uint8_t>::ALLOC_EXTERNAL};
-  uint8_t *pixels = pixel_allocator.allocate(esphome::companion::APP_ICON_PIXEL_BYTES);
+  uint8_t *pixels = nullptr;
+
+  bool prepare_pixels(const std::string &id) {
+    std::array<uint8_t, 32> hash{};
+    if (!esphome::companion::app_icon_store().hash_for(id, &hash)) return false;
+    if (!pixels) pixels = pixel_allocator.allocate(esphome::companion::APP_ICON_PIXEL_BYTES);
+    return pixels != nullptr;
+  }
   lv_obj_t *fallback_icon = nullptr;
   lv_obj_t *card_label = nullptr;
   std::string application_id;
@@ -47,6 +54,14 @@ struct CompanionAppIconImageData {
   bool palette_applied = false;
   bool fill_card = false;
   bool medium_icon = false;
+
+  void release_pixels() {
+    if (!pixels) return;
+    pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
+    pixels = nullptr;
+    descriptor.data = nullptr;
+    image_loaded = false;
+  }
 
   ~CompanionAppIconImageData() {
     if (pixels) pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
@@ -125,7 +140,15 @@ inline void companion_update_app_icon_card_palette(
 inline void companion_refresh_app_icon_connection_state(bool online);
 
 inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
-  if (!image || !source.pixels || source.application_id.empty() ||
+  if (image && lv_obj_get_screen(image) != lv_scr_act()) {
+    lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
+    source.release_pixels();
+    source.accent_palette = {};
+    if (source.fallback_icon) lv_obj_clear_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
+    companion_apply_app_icon_card_palette(source, lv_obj_get_parent(image));
+    return false;
+  }
+  if (!image || source.application_id.empty() || !source.prepare_pixels(source.application_id) ||
       !esphome::companion::app_icon_store().copy_pixels(
           source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES)) {
     source.image_loaded = false;

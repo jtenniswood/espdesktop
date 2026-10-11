@@ -3110,9 +3110,9 @@ inline lv_obj_t *image_card_create_clock_bar_icon_container(lv_obj_t *parent) {
 inline bool image_card_set_clock_bar_cached_app_icon(
     lv_obj_t *widget, CompanionAppIconImageData *source,
     const std::string &application_id) {
-  if (!widget || !source || !source->pixels || application_id.empty()) return false;
+  if (!widget || !source || application_id.empty()) return false;
   auto &store = esphome::companion::app_icon_store();
-  if (!store.begin() || !store.copy_pixels(
+  if (!store.begin() || !source->prepare_pixels(application_id) || !store.copy_pixels(
           application_id, source->pixels, esphome::companion::APP_ICON_PIXEL_BYTES)) return false;
   source->application_id = application_id;
   source->companion_online = companion_connected();
@@ -3173,8 +3173,15 @@ inline void image_card_set_clock_bar_companion_icon(
   static CompanionAppIconImageData *app_icon_data = nullptr;
 #endif
   static std::string active_key;
-  const std::string key = entity_id + "|" + icon_name + "|" + source_url +
+  std::string key = entity_id + "|" + icon_name + "|" + source_url +
       (use_cached_app_icon ? "|cached-app-icon" : "");
+#ifdef USE_COMPANION
+  if (use_cached_app_icon) {
+    std::array<uint8_t, 32> hash{};
+    if (esphome::companion::app_icon_store().hash_for(entity_id, &hash))
+      key.append(reinterpret_cast<const char *>(hash.data()), hash.size());
+  }
+#endif
   auto &labels = clock_bar_temperature_labels();
   lv_obj_t *parent = labels.empty() || !labels[0] ? nullptr : lv_obj_get_parent(labels[0]);
   if (entity_id.empty() || icon_name.empty() || !parent) {

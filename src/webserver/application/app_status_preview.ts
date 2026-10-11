@@ -270,15 +270,25 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
                 container.appendChild(title);
                 if (parent && companionAppShortcutFolderEnabled(parent) &&
                     companionSavedCardMode(parent) === "app" && parent.entity) {
-                    void companionAppIconPreviewData(parent.entity, "", document).then(function (previewIcon) {
-                        if (!previewIcon || !title.isConnected) return;
+                    const applicationId = parent.entity;
+                    const loadHeaderIcon = (attempt: number): void => {
+                      if (!title.isConnected) return;
+                      void companionAppIconPreviewData(applicationId, "", document).then(function (previewIcon) {
+                        if (!title.isConnected) return;
+                        if (!previewIcon) {
+                            if (attempt < 12) window.setTimeout(() => loadHeaderIcon(attempt + 1),
+                                Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
+                            return;
+                        }
                         const icon = document.createElement("img");
                         icon.className = "sp-clockbar-subpage-icon";
                         icon.alt = "";
                         icon.setAttribute("aria-hidden", "true");
                         icon.src = previewIcon.dataUrl;
                         title.prepend(icon);
-                    });
+                      });
+                    };
+                    loadHeaderIcon(0);
                 }
                 return;
             }

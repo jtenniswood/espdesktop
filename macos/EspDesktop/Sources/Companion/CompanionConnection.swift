@@ -530,7 +530,9 @@ final class CompanionConnection: NSObject {
                 artworkGeneration = 0
                 artworkOffset = 0
             }
-            if !pendingAppIconRequests.contains(where: { $0.appId == payload.appId }) {
+            if let index = pendingAppIconRequests.firstIndex(where: { $0.appId == payload.appId }) {
+                pendingAppIconRequests[index] = payload
+            } else {
                 pendingAppIconRequests.append(payload)
             }
             processNextAppIconRequest()
@@ -539,8 +541,10 @@ final class CompanionConnection: NSObject {
             if payload.generation == appIconGeneration, Int(payload.nextOffset) == appIconOffset {
                 sendNextAppIconChunk()
             }
-        case .appIconAbort:
+        case .appIconAbort(let payload):
             guard sessionAuthenticated else { return false }
+            guard payload.appId == appIconIdentifier,
+                  payload.generation == appIconGeneration else { return true }
             appIconData = nil
             appIconIdentifier = ""
             appIconOffset = 0

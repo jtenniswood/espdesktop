@@ -415,7 +415,8 @@ void CompanionService::defer_session_(std::function<void()> callback) {
 
 void CompanionService::handle_message_(int socket_fd, const std::string &message) {
   if (message.empty() || message.front() != '{') {
-    this->send_(socket_fd, "{\"type\":\"error\",\"protocol\":3,\"code\":\"json_required\"}");
+    this->send_(socket_fd, "{\"type\":\"error\",\"protocol\":" +
+        std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"code\":\"json_required\"}");
     this->expire_unauthenticated_socket_(socket_fd);
     return;
   }
@@ -558,6 +559,12 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
                                        app_icons_high_resolution_supported);
+      std::vector<std::string> configured_icons;
+      {
+        std::lock_guard<std::mutex> lock(app_icon_state_mutex);
+        if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
+      }
+      for (const auto &id : configured_icons) this->request_app_icon(id);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported,
                             window_actions = std::move(window_actions)]() mutable {
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
@@ -614,24 +621,12 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           enabled_icons = enabled_app_icons;
           configured_icons = app_icon_requests;
           requested_app_icons.clear();
-          for (const auto &id : configured_icons)
-            if (std::find(enabled_app_icons.begin(), enabled_app_icons.end(), id) != enabled_app_icons.end())
-              requested_app_icons.push_back(id);
         }
         app_icon_store().set_enabled_applications(enabled_icons);
         this->defer_session_([] { companion_app_icon_ready(""); });
         for (const auto &id : configured_icons) {
           if (std::find(enabled_icons.begin(), enabled_icons.end(), id) == enabled_icons.end()) continue;
-          std::array<uint8_t, 32> hash{};
-          const bool has_hash = app_icon_store().hash_for(id, &hash);
-          if (this->app_icons_supported_.load() &&
-              !this->send_(socket_fd, "{\"type\":\"app_icon.request\",\"protocol\":" +
-                std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"appId\":\"" + id + "\"" +
-                (has_hash ? ",\"sha256\":\"" + hex(hash.data(), hash.size()) + "\"" : "") + "}")) {
-            std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-            requested_app_icons.erase(std::remove(requested_app_icons.begin(), requested_app_icons.end(), id),
-                                      requested_app_icons.end());
-          }
+          this->request_app_icon(id);
         }
       }
       return true;
@@ -661,9 +656,12 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->app_icon_sha256_ = expected;
       this->app_icon_generation_ = payload->generation;
       this->app_icon_offset_ = 0;
-      this->send_(socket_fd, "{\"type\":\"app_icon.ack\",\"protocol\":" +
+      if (!this->send_(socket_fd, "{\"type\":\"app_icon.ack\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"generation\":" +
-          std::to_string(payload->generation) + ",\"nextOffset\":0}");
+          std::to_string(payload->generation) + ",\"nextOffset\":0}")) {
+        this->set_connected_(false, socket_fd);
+        httpd_sess_trigger_close(this->server_, socket_fd);
+      }
       return true;
     }
     if (const auto *payload = std::get_if<companion_protocol::AppIconUnchanged>(&*decoded)) {
@@ -673,8 +671,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
     if (const auto *payload = std::get_if<companion_protocol::AppIconUnavailable>(&*decoded)) {
-      (void) payload;
-      this->reset_app_icon_transfer_();
+      {
+        std::lock_guard<std::mutex> lock(app_icon_state_mutex);
+        requested_app_icons.erase(
+            std::remove(requested_app_icons.begin(), requested_app_icons.end(), payload->appId),
+            requested_app_icons.end());
+      }
+      if (payload->appId == this->app_icon_application_id_) this->reset_app_icon_transfer_();
       return true;
     }
     if (const auto *payload = std::get_if<companion_protocol::AppIconEnd>(&*decoded)) {
@@ -974,9 +977,12 @@ void CompanionService::handle_binary_(int socket_fd, const uint8_t *data, size_t
     }
     std::memcpy(this->app_icon_buffer_ + this->app_icon_offset_, data + 12, chunk_size);
     this->app_icon_offset_ += chunk_size;
-    this->send_(socket_fd, "{\"type\":\"app_icon.ack\",\"protocol\":" +
+    if (!this->send_(socket_fd, "{\"type\":\"app_icon.ack\",\"protocol\":" +
         std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"generation\":" +
-        std::to_string(generation) + ",\"nextOffset\":" + std::to_string(this->app_icon_offset_) + "}");
+        std::to_string(generation) + ",\"nextOffset\":" + std::to_string(this->app_icon_offset_) + "}")) {
+      this->set_connected_(false, socket_fd);
+      httpd_sess_trigger_close(this->server_, socket_fd);
+    }
     return;
   }
   if (!this->artwork_buffer_ || size < 9 || size > MAX_ARTWORK_CHUNK_BYTES + 8) {

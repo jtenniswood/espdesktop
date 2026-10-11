@@ -25,8 +25,8 @@ definitions; adding a file requires no app-specific code.
 - `macos/EspDesktop/` owns macOS permissions, approved resources, providers, and
   action execution. Folder paths and arbitrary commands never cross the protocol.
 
-Protocol v3 uses typed JSON control messages on `/companion/v3`; only bounded
-artwork chunks are binary. New messages and card modes must be added to the
+Protocol v4 uses typed JSON control messages on `/companion/v4`; only bounded
+artwork and app-icon chunks are binary. New messages and card modes must be added to the
 product contract before they are implemented. Pairing starts when an unpaired display’s Companion setup page is opened.
 The endpoint applies the configured device web authentication before starting
 a pairing window or returning its code. Without device web authentication,
@@ -48,7 +48,7 @@ The authored protocol includes payload fields, bounds, conditional requirements,
 message direction and legal session states. Generated C++ and Swift decoders
 validate messages before dispatch. Both test suites consume
 `compatibility/fixtures/companion_protocol_v4.json`, including malformed and
-wrong-session cases. Protocol v3 remains the wire format.
+wrong-session cases. Protocol v4 remains the wire format.
 
 `EspDesktopAppCore` owns Companion runtime state, wiring callbacks, pending
 requests, and the LVGL view registry. Simple status reads do not copy catalogues.

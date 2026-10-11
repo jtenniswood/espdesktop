@@ -977,11 +977,21 @@ function composeApplicationContext(): ApplicationContext {
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
     systemSection, preview, connectorsPage, nativePanelConfig,
   );
+  let customColourSettingEdited = false;
+  let automaticColourSettingEdited = false;
+  runtime.els.appIconCustomColourControlToggle?.addEventListener("change", () => {
+    customColourSettingEdited = true;
+  });
+  runtime.els.appIconAutoColourGenerationToggle?.addEventListener("change", () => {
+    automaticColourSettingEdited = true;
+  });
   void nativePanelConfig.readSettings().then((settings) => {
-    const customColourControlEnabled = panelSettingEnabled(
+    const customColourControlEnabled = customColourSettingEdited
+      ? state.appIconCustomColourControlEnabled : panelSettingEnabled(
       settings[APP_ICON_CUSTOM_COLOUR_CONTROL_SETTING],
     );
-    const autoColourGenerationEnabled = panelSettingEnabled(
+    const autoColourGenerationEnabled = automaticColourSettingEdited
+      ? state.appIconAutoColourGenerationEnabled : panelSettingEnabled(
       settings[APP_ICON_AUTO_COLOUR_GENERATION_SETTING],
     );
     const appIconColourSettingsChanged =
