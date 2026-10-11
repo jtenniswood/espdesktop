@@ -1579,9 +1579,6 @@
           "networkCoprocessor": true,
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
-          "extraPackages": {
-            "physical_volume_button": "!include device/physical_volume_button${network_package_suffix}.yaml"
-          },
           "backlightPwmFrequency": {
             "wifi": "100Hz",
             "ethernet": "20000Hz"

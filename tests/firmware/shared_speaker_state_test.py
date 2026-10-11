@@ -4,6 +4,7 @@ import subprocess,tempfile
 root=Path(__file__).resolve().parents[2]
 with tempfile.TemporaryDirectory() as tmp:
  d=Path(tmp);(d/'esphome/core').mkdir(parents=True);(d/'esphome/components/media_player').mkdir(parents=True)
+ (d/'esphome/core/defines.h').write_text('#pragma once\n#define USE_MEDIA_PLAYER\n')
  (d/'esphome/core/component.h').write_text('namespace esphome { namespace setup_priority { constexpr float LATE=-100; } struct Component { virtual void setup() {} virtual float get_setup_priority() const { return 0; } }; }\n')
  (d/'esphome/components/media_player/media_player.h').write_text('''#pragma once
 #include <cassert>
