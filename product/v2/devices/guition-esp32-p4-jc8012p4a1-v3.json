@@ -16,12 +16,8 @@
       "docsPath": "/screens/jc8012p4a1-v3"
     },
     "web": {
-      "portrait": {"slots": 18}
-    },
-    "firmware": {
-      "package": {
-        "substitutions": {"speaker_amplifier_pin": "\"GPIO20\""},
-        "extraPackages": {"speaker_output": "!include ../../common/device/speaker_output_p4.yaml"}
+      "portrait": {
+        "slots": 18
       }
     }
   },

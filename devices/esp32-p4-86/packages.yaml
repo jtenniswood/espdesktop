@@ -43,7 +43,11 @@ substitutions:
   screen_saver_clock_default_brightness: "35"
   screen_schedule_clock_min_brightness: "1"
   screen_schedule_clock_default_brightness: "10"
-  speaker_amplifier_pin: "GPIO53"
+  voice_wake_chime_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_wake_chime.flac"
+  voice_timer_alert_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac"
+  voice_stt_failure_chime_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac"
+  alarm_delay_entry_beep_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac"
+  alarm_delay_exit_beep_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac"
   network_transport: "wifi"
   disable_updates: "false"
   network_package_suffix: ${ "_ethernet" if network_transport == "ethernet" else "" }
@@ -134,7 +138,8 @@ packages:
   network:         !include ../../common/addon/network${network_package_suffix}.yaml
   memory_diag:     !include ../../common/addon/memory_diagnostics.yaml
   fw_update:       !include ../../common/addon/firmware_update${firmware_update_package_suffix}.yaml
-  speaker_output:  !include ../../common/device/speaker_output_p4.yaml
+  voice_assistant: !include device/voice_assistant.yaml
+  physical_volume_button: !include device/physical_volume_button${network_package_suffix}.yaml
 
   # ---------------------------------------------------------------------------
   # Screens (loading must be first page for LVGL startup)

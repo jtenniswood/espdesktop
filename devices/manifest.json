@@ -185,16 +185,12 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\"",
-            "speaker_amplifier_pin": "\"GPIO11\""
+            "screen_schedule_clock_default_brightness": "\"10\""
           },
           "deviceFontPackageKey": "fonts_device",
           "networkCoprocessor": true,
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
-          "extraPackages": {
-            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-          },
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
@@ -385,16 +381,12 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\"",
-            "speaker_amplifier_pin": "\"GPIO11\""
+            "screen_schedule_clock_default_brightness": "\"10\""
           },
           "deviceFontPackageKey": "fonts_device",
           "networkCoprocessor": true,
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
-          "extraPackages": {
-            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-          },
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
@@ -578,20 +570,16 @@
             "clock_bar_item_gap": "\"96\"",
             "clock_bar_visual_gap": "\"12\"",
             "clock_font_size": "\"140\"",
+            "clock_date_font": "font_text_body",
             "clock_cx": "\"240\"",
             "clock_cy": "\"400\"",
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\"",
-            "speaker_amplifier_pin": "\"GPIO11\"",
-            "clock_date_font": "font_text_body"
+            "screen_schedule_clock_default_brightness": "\"10\""
           },
           "deviceFontPackageKey": "fonts_lg",
           "esp32C6FirmwareUpdate": true,
-          "extraPackages": {
-            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-          },
           "apiOpenModalAction": true
         }
       }
@@ -775,14 +763,12 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\"",
-            "speaker_amplifier_pin": "\"GPIO20\""
+            "screen_schedule_clock_default_brightness": "\"10\""
           },
           "deviceFontPackageKey": "fonts_device",
           "esp32C6FirmwareUpdate": true,
           "extraPackages": {
-            "battery": "!include device/battery.yaml",
-            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
+            "battery": "!include device/battery.yaml"
           },
           "apiOpenModalAction": true
         }
@@ -967,14 +953,10 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\"",
-            "speaker_amplifier_pin": "\"GPIO20\""
+            "screen_schedule_clock_default_brightness": "\"10\""
           },
           "deviceFontPackageKey": "fonts_device",
           "esp32C6FirmwareUpdate": true,
-          "extraPackages": {
-            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-          },
           "apiOpenModalAction": true
         }
       }
@@ -1160,14 +1142,10 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\"",
-            "speaker_amplifier_pin": "\"GPIO20\""
+            "screen_schedule_clock_default_brightness": "\"10\""
           },
           "deviceFontPackageKey": "fonts_device",
           "esp32C6FirmwareUpdate": true,
-          "extraPackages": {
-            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-          },
           "apiOpenModalAction": true
         }
       }
@@ -1351,7 +1329,11 @@
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
             "screen_schedule_clock_default_brightness": "\"10\"",
-            "speaker_amplifier_pin": "\"GPIO53\""
+            "voice_wake_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_wake_chime.flac\"",
+            "voice_timer_alert_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac\"",
+            "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
+            "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
+            "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\""
           },
           "deviceFontPackageKey": "fonts_device",
           "touchscreenPackage": true,
@@ -1359,13 +1341,16 @@
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
           "extraPackages": {
-            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
+            "voice_assistant": "!include device/voice_assistant.yaml",
+            "physical_volume_button": "!include device/physical_volume_button${network_package_suffix}.yaml"
           },
           "backlightPwmFrequency": {
             "wifi": "100Hz",
             "ethernet": "20000Hz"
           },
-          "apiOpenModalAction": true
+          "apiOpenModalAction": true,
+          "localVoiceServices": true,
+          "alarmDelayAudio": true
         }
       }
     },
@@ -1565,9 +1550,6 @@
             "screen_schedule_clock_default_brightness": "\"10\""
           },
           "deviceFontPackageKey": "fonts_device",
-          "extraPackages": {
-            "speaker_output": "!include ../../common/device/speaker_output_s3_external.yaml"
-          },
           "apiNavigateAction": true,
           "apiOpenModalAction": true
         }
