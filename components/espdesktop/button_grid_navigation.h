@@ -397,7 +397,7 @@ inline void navigation_register_subpage_card(int slot, int index,
   if (entry == nullptr) return;
   entry->cards.push_back({index, card_slot.btn, card_slot, definition,
                           neutral_background, sensor_surface, secondary_surface, image_card,
-                          static_cast<int>(entry->cards.size()));
+                          static_cast<int>(entry->cards.size())});
 }
 
 inline void navigation_retire_subpage(int slot, lv_obj_t *main_page_obj) {
