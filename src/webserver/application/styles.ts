@@ -510,7 +510,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-disclosure.sp-open .sp-disclosure-badge,.sp-disclosure-badge.sp-hidden{display:none}" +
         ".sp-disclosure-chevron{display:inline-flex;width:20px;height:20px;color:var(--text3);transition:transform .25s ease;flex-shrink:0}" +
         ".sp-disclosure-chevron svg{width:100%;height:100%}" +
-        ".sp-disclosure-body{display:none;padding:30px 14px 28px}" +
+        ".sp-disclosure-body{display:none;padding:15px 14px 14px}" +
         ".sp-media-card-settings .sp-disclosure-body{padding:14px}" +
         ".sp-app-subpage-settings .sp-disclosure-body{padding:8px 14px 10px}" +
         ".sp-app-subpage-settings .sp-disclosure-body>.sp-field{margin-bottom:12px}" +
