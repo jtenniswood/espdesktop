@@ -122,6 +122,7 @@ struct FanControlModalUi {
   lv_obj_t *power_off_btn = nullptr;
   ControlModalBinaryToggle power_toggle;
   lv_obj_t *speed_group = nullptr;
+  lv_obj_t *speed_value_lbl = nullptr;
   lv_obj_t *speed_slider = nullptr;
   lv_obj_t *speed_fill = nullptr;
   lv_obj_t *speed_handle = nullptr;
