@@ -591,16 +591,14 @@ target_include_directories(camera_refresh_policy_test PRIVATE ../../components/e
 add_test(NAME camera_refresh_policy_test COMMAND camera_refresh_policy_test)
 add_test(NAME camera_refresh_runtime_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_refresh_runtime_test.py)
-<<<<<<< HEAD
 add_test(NAME cover_art_clock_transition_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_clock_transition_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME cover_art_active_landing_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_active_landing_test.py ${CMAKE_CXX_COMPILER})
-=======
+
 
 add_test(NAME shared_speaker_state_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/shared_speaker_state_test.py)
 
 add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/speaker_announcement_duck_test.py)
->>>>>>> origin/remove-local-voice-alarm-audio
