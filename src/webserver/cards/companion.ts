@@ -494,11 +494,17 @@ export function registerCompanionCardTypes(
     function rememberCompanionApplications(actions: readonly CompanionAction[]): boolean {
         const applications = companionApplicationActions(actions);
         for (const action of applications) companionApplicationLabels.set(action.id, action.label);
+        const iconHashesChanged = applications.some(action =>
+            action.iconHash !== companionApplications.find(previous => previous.id === action.id)?.iconHash) ||
+            companionApplications.some(previous => previous.iconHash &&
+                !applications.some(action => action.id === previous.id));
         const changed = applications.length !== companionApplications.length ||
             applications.some((action, index) =>
                 action.id !== companionApplications[index]?.id ||
                 action.label !== companionApplications[index]?.label);
         companionApplications = applications;
+        if (iconHashesChanged)
+            document.dispatchEvent(new Event("espdesktop:app-icon-cache-cleared"));
         return changed;
     }
 

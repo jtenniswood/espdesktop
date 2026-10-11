@@ -1,7 +1,7 @@
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
 import type { WebAppDefinition } from "../generated/web_apps";
 
-export interface CompanionAction { readonly id: string; readonly label: string; }
+export interface CompanionAction { readonly id: string; readonly label: string; readonly iconHash?: string; }
 export interface CompanionDefinitions {
   readonly applications: readonly AppShortcutApplication[];
   readonly webApplications: readonly WebAppDefinition[];
@@ -76,7 +76,8 @@ export function createCompanionCatalogueMonitor(
       if (run !== generation) return;
       const changed = lastActions === null || lastActions.length !== actions.length ||
         lastActions.some((action, index) =>
-          action.id !== actions[index]?.id || action.label !== actions[index]?.label);
+          action.id !== actions[index]?.id || action.label !== actions[index]?.label ||
+          action.iconHash !== actions[index]?.iconHash);
       if (changed) {
         lastActions = actions;
         onActions(actions);

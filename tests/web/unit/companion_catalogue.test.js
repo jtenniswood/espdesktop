@@ -160,3 +160,42 @@ test("disconnect stops catalogue refreshes and ignores an in-flight response", a
   assert.equal(shown.length, 0);
   assert.equal(scheduled.size, 0);
 });
+
+
+test("connected catalogue refreshes changed icon hashes without label changes", async () => {
+  const scheduled = new Map();
+  let timerID = 0;
+  let hash = "a".repeat(64);
+  const updates = [];
+  const catalogue = createCompanionCatalogue(async () => ({
+    ok: true,
+    json: async () => [{ id: "com.example.app", label: "Example", ...(hash ? { iconHash: hash } : {}) }],
+  }));
+  const monitor = createCompanionCatalogueMonitor(
+    () => catalogue.load(true),
+    (actions) => updates.push(actions),
+    (callback) => { scheduled.set(++timerID, callback); return timerID; },
+    (id) => scheduled.delete(id),
+  );
+  const refresh = async () => {
+    const [id, callback] = scheduled.entries().next().value;
+    scheduled.delete(id);
+    callback();
+    await new Promise((resolve) => setImmediate(resolve));
+  };
+  monitor.start();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(updates.length, 1);
+  assert.equal(updates[0][0].iconHash, hash);
+  await refresh();
+  assert.equal(updates.length, 1, "unchanged icons do not rerender or redownload");
+  hash = "b".repeat(64);
+  await refresh();
+  assert.equal(updates.length, 2);
+  assert.equal(updates[1][0].iconHash, hash);
+  hash = "";
+  await refresh();
+  assert.equal(updates.length, 3, "evicted icons also invalidate the previous preview");
+  assert.equal(updates[2][0].iconHash, undefined);
+  monitor.stop();
+});

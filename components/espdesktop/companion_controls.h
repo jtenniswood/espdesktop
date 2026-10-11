@@ -17,6 +17,9 @@
 
 #include "companion_capabilities_generated.h"
 #include "companion_runtime_access.h"
+#ifdef USE_COMPANION
+#include "../companion/app_icon_store.h"
+#endif
 #include "web_apps_generated.h"
 #include "companion_pairing_policy.h"
 #include "companion_timezone.h"
@@ -1029,7 +1032,23 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
         if (!first) json += ",";
         first = false;
         json += "{\"id\":\"" + companion_json_escape(action.id) +
-          "\",\"label\":\"" + companion_json_escape(action.label) + "\"}";
+          "\",\"label\":\"" + companion_json_escape(action.label) + "\"";
+#ifdef USE_COMPANION
+        // The browser already polls this catalogue. Include cache freshness so
+        // updated icons refresh open previews without downloading unchanged pixels.
+        std::array<uint8_t, 32> icon_hash{};
+        if (esphome::companion::app_icon_store().hash_for(action.id, &icon_hash)) {
+          static constexpr char digits[] = "0123456789abcdef";
+          std::string encoded_hash;
+          encoded_hash.reserve(icon_hash.size() * 2);
+          for (const uint8_t byte : icon_hash) {
+            encoded_hash += digits[byte >> 4];
+            encoded_hash += digits[byte & 0x0F];
+          }
+          json += ",\"iconHash\":\"" + encoded_hash + "\"";
+        }
+#endif
+        json += "}";
       }
     }
     if (!definitions) json += "]";
