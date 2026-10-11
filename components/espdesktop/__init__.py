@@ -152,7 +152,7 @@ async def to_code(config):
     cg.add_build_flag(f"-I{comp_dir}")
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/clock_bar.h"'), prepend=True)
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/backlight.h"'), prepend=True)
-    cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/wifi_setup_message.h"'), prepend=True)
+    cg.add_global(cg.RawStatement('#include "esphome/components/espdesktop/wifi_setup_message.h"'), prepend=True)
     cg.add_global(
         cg.RawStatement('#include "esphome/components/espdesktop/theme_settings.h"'),
         prepend=True,
