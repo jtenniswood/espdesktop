@@ -1441,6 +1441,10 @@ inline void companion_refresh_app_icon_visibility() {
   }
 }
 
+inline void companion_app_icon_screen_changed(lv_event_t *) {
+  companion_refresh_app_icon_visibility();
+}
+
 inline void companion_refresh_cached_app_icon(const std::string &application_id) {
   esphome::companion::app_icon_store().begin();
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
@@ -1959,6 +1963,17 @@ inline void grid_phase2(
     const std::string &on_hex,
     lv_obj_t *main_page_obj) {
   ESP_LOGI("sensors", "Phase 2: subscriptions + subpages start (%lu ms)", esphome::millis());
+#ifdef USE_COMPANION
+  if (main_page_obj) {
+    // Main can be shown directly after Wi-Fi setup or a screensaver, without
+    // going through subpage navigation. Rebuild only its visible icon buffers.
+    lv_obj_remove_event_cb(main_page_obj, companion_app_icon_screen_changed);
+    lv_obj_add_event_cb(main_page_obj, companion_app_icon_screen_changed,
+                        LV_EVENT_SCREEN_LOADED, nullptr);
+    lv_obj_add_event_cb(main_page_obj, companion_app_icon_screen_changed,
+                        LV_EVENT_SCREEN_UNLOADED, nullptr);
+  }
+#endif
   grid_log_memory("start");
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
