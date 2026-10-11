@@ -100,6 +100,7 @@
       "metadataOverlay": false,
       "screensaverCameraImageMode": "Fit",
       "clockOverlay": false,
+      "coverArtHomeAssistantHost": "",
       "coverArtPlaybackControl": true,
       "clockDate": false
     },
@@ -192,8 +193,8 @@
     ]
   },
   "bundleSize": {
-    "minified": 2686229,
-    "gzip": 1068617,
+    "minified": 2689291,
+    "gzip": 1068958,
     "gzipTolerance": 9216
   },
   "bundleBudget": {
