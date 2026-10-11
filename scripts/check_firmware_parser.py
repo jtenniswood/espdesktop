@@ -1160,6 +1160,7 @@ def main() -> int:
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
         shutil.copy2(LAYOUT_HEADER.with_name("card_availability.h"), tmp_path / "card_availability.h")
+        shutil.copy2(LAYOUT_HEADER.with_name("card_text_contrast.h"), tmp_path / "card_text_contrast.h")
         for name in ("theme_palette.h", "display_color.h"):
             shutil.copy2(LAYOUT_HEADER.with_name(name), tmp_path / name)
         (tmp_path / "lvgl.h").write_text("", encoding="utf-8")
