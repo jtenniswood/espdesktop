@@ -4,6 +4,7 @@ import subprocess,tempfile
 root=Path(__file__).resolve().parents[2]
 with tempfile.TemporaryDirectory() as tmp:
  d=Path(tmp);(d/'esphome/core').mkdir(parents=True);(d/'esphome/components/media_player').mkdir(parents=True)
+ (d/'esphome/core/defines.h').write_text('#define USE_MEDIA_PLAYER\n')
  (d/'esphome/core/component.h').write_text('namespace esphome { namespace setup_priority { constexpr float LATE=-100; } struct Component { virtual void setup() {} virtual float get_setup_priority() const { return 0; } }; }\n')
  (d/'esphome/components/media_player/media_player.h').write_text('''#pragma once
 #include <cassert>
@@ -55,4 +56,10 @@ int main(){
 ''')
  subprocess.run(['c++','-std=c++17','-Wall','-Wextra','-Werror','-I'+str(d),'-I'+str(root/'components/espdesktop'),str(d/'test.cpp'),'-o',str(d/'test')],check=True)
  subprocess.run([str(d/'test')],check=True)
-print('Shared speaker restored volume, bidirectional mute/volume, announcement and callback feedback passed.')
+ # ESPHome includes component headers even on profiles without media_player.
+ (d/'esphome/core/defines.h').write_text('')
+ (d/'esphome/components/media_player/media_player.h').unlink()
+ (d/'disabled.cpp').write_text('#include "shared_speaker_state.h"\nint main() { return 0; }\n')
+ subprocess.run(['c++','-std=c++17','-Wall','-Wextra','-Werror','-I'+str(d),'-I'+str(root/'components/espdesktop'),str(d/'disabled.cpp'),'-o',str(d/'disabled')],check=True)
+ subprocess.run([str(d/'disabled')],check=True)
+print('Shared speaker enabled gain/callback tests and disabled header without media-player dependency passed.')
