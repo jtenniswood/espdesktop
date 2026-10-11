@@ -27,10 +27,12 @@ Try another USB-C cable. Some cables only provide power; the first install needs
 
 ## Connect the Display to WiFi
 
-1. Wait for the display's setup hotspot to appear. This can take up to 90 seconds.
-2. Connect your phone or computer to the hotspot. If its setup page does not open, visit `http://192.168.4.1`.
-3. Select your 2.4 GHz WiFi network and enter its password.
-4. When the display reconnects, note the address shown on screen.
+If the USB installer offers **Connect to WiFi**, you can enter your network details there. Otherwise:
+
+1. Wait up to 90 seconds for the `EspDesktop_XXXX` hotspot shown on the display. `XXXX` is the last four MAC-address characters; custom hotspot names are preserved.
+2. Connect your phone or computer to the hotspot. If its offline setup page does not open, visit the address shown on the display (normally `http://192.168.4.1`).
+3. Choose your 2.4 GHz network from **Available Networks**, or enter its name manually. Enter the password and select **Save**.
+4. When **WiFi details saved** appears, reconnect your phone or computer to home WiFi, then note the display's address.
 
 Open that address in a browser to reach the display's setup page. Choose **Connectors → Mac Companion** when pairing, then follow [Install and Pair the Mac App](/getting-started/mac-app).
 
