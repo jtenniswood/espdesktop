@@ -517,11 +517,33 @@
         }
       }
     },
+    "audio": {
+      "local-voice-services": {
+        "firmware": {
+          "package": {
+            "localVoiceServices": true,
+            "alarmDelayAudio": true,
+            "extraPackages": {
+              "voice_assistant": "!include device/voice_assistant.yaml"
+            }
+          }
+        }
+      }
+    },
     "input": {
       "touchscreen": {
         "firmware": {
           "package": {
             "touchscreenPackage": true
+          }
+        }
+      },
+      "physical-volume-buttons": {
+        "firmware": {
+          "package": {
+            "extraPackages": {
+              "physical_volume_button": "!include device/physical_volume_button${network_package_suffix}.yaml"
+            }
           }
         }
       }
@@ -545,16 +567,6 @@
         "public": {
           "name": "Guition JC1060P470",
           "docsPath": "/screens/jc1060p470"
-        },
-        "firmware": {
-          "package": {
-            "substitutions": {
-              "speaker_amplifier_pin": "\"GPIO11\""
-            },
-            "extraPackages": {
-              "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-            }
-          }
         }
       },
       "overrides": {
@@ -588,16 +600,6 @@
         "public": {
           "name": "Guition JC1060P470 new panel (V2 label)",
           "docsPath": "/screens/jc1060p470-v2"
-        },
-        "firmware": {
-          "package": {
-            "substitutions": {
-              "speaker_amplifier_pin": "\"GPIO11\""
-            },
-            "extraPackages": {
-              "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-            }
-          }
         }
       },
       "overrides": {
@@ -775,11 +777,7 @@
               "screen_saver_clock_min_brightness": "\"1\"",
               "screen_saver_clock_default_brightness": "\"35\"",
               "screen_schedule_clock_min_brightness": "\"1\"",
-              "screen_schedule_clock_default_brightness": "\"10\"",
-              "speaker_amplifier_pin": "\"GPIO11\""
-            },
-            "extraPackages": {
-              "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
+              "screen_schedule_clock_default_brightness": "\"10\""
             }
           }
         }
@@ -802,11 +800,7 @@
         "firmware": {
           "package": {
             "extraPackages": {
-              "battery": "!include device/battery.yaml",
-              "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-            },
-            "substitutions": {
-              "speaker_amplifier_pin": "\"GPIO20\""
+              "battery": "!include device/battery.yaml"
             }
           }
         }
@@ -834,16 +828,6 @@
         "public": {
           "name": "Guition JC8012P4A1 new panel (2628+)",
           "docsPath": "/screens/jc8012p4a1-v2"
-        },
-        "firmware": {
-          "package": {
-            "substitutions": {
-              "speaker_amplifier_pin": "\"GPIO20\""
-            },
-            "extraPackages": {
-              "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-            }
-          }
         }
       },
       "overrides": {
@@ -866,22 +850,29 @@
         "artwork": "landscape-1280x800"
       },
       "config": {
+        "layout": {
+          "portraitSlots": 18
+        },
         "public": {
           "name": "Guition JC8012P4A1 V3 (production silicon)",
           "docsPath": "/screens/jc8012p4a1-v3"
         },
-        "firmware": {
-          "package": {
-            "substitutions": {
-              "speaker_amplifier_pin": "\"GPIO20\""
-            },
-            "extraPackages": {
-              "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
-            }
+        "web": {
+          "portrait": {
+            "slots": 18
           }
         }
       },
       "overrides": {
+        "layout": {
+          "portraitCols": 3
+        },
+        "web": {
+          "portrait": {
+            "cols": 3,
+            "rows": 6
+          }
+        },
         "firmware": {
           "package": {
             "substitutions": {
@@ -901,8 +892,10 @@
           "network-coprocessor",
           "ethernet-selection"
         ],
+        "audio": "local-voice-services",
         "input": [
-          "touchscreen"
+          "touchscreen",
+          "physical-volume-buttons"
         ]
       },
       "config": {
@@ -1060,10 +1053,11 @@
               "screen_saver_clock_default_brightness": "\"35\"",
               "screen_schedule_clock_min_brightness": "\"1\"",
               "screen_schedule_clock_default_brightness": "\"10\"",
-              "speaker_amplifier_pin": "\"GPIO53\""
-            },
-            "extraPackages": {
-              "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
+              "voice_wake_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_wake_chime.flac\"",
+              "voice_timer_alert_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac\"",
+              "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
+              "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
+              "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\""
             }
           }
         }
@@ -1256,10 +1250,7 @@
               "screen_schedule_clock_min_brightness": "\"1\"",
               "screen_schedule_clock_default_brightness": "\"10\""
             },
-            "apiNavigateAction": true,
-            "extraPackages": {
-              "speaker_output": "!include ../../common/device/speaker_output_s3_external.yaml"
-            }
+            "apiNavigateAction": true
           }
         }
       }
