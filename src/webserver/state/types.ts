@@ -112,6 +112,8 @@ export interface AppState {
   sizes: Record<string, number>;
   buttons: CardConfig[];
   onColor: string;
+  appIconCustomColourControlEnabled: boolean;
+  appIconAutoColourGenerationEnabled: boolean;
   selectedSlots: number[];
   lastClickedSlot: number;
   clockBarSelectedItem: string;
@@ -190,6 +192,13 @@ export interface AppState {
   brightnessDayVal: number;
   brightnessNightVal: number;
   brightnessMode: string;
+  themeMode: string;
+  themeAutoMethod: string;
+  themeActive: string;
+  themeLightStart: string;
+  themeDarkStart: string;
+  themeSunriseOffset: number;
+  themeSunsetOffset: number;
   manualBrightnessVal: number;
   brightnessDawnTime: string;
   brightnessDuskTime: string;

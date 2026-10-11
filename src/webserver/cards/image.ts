@@ -9,7 +9,8 @@ import {
     cardContractPickerKey,
 } from "../generated/card_contract";
 import { escHtml, iconSlug } from "../application/ui_primitives";
-import { WEB_UI_COLORS } from "../state/ui_tokens";
+import { state } from "../state/app_instance";
+import { PREVIEW_THEME_COLORS, previewEffectiveTheme } from "../state/preview_theme";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ConfigImageOptionsFeature } from "../application/config_image_options";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
@@ -90,7 +91,7 @@ export function registerImageCardTypes(
         syncIconField();
     }
     function renderImageModalSettings(this: any, panel?: any, b?: any, helpers?: any) {
-        var modeField: any = helpers.selectField("Expanded Image", helpers.idPrefix + "image-modal-mode", imageModalModeOptions(), imageModalMode(b));
+        var modeField: any = helpers.selectField("Image fit", helpers.idPrefix + "image-modal-mode", imageModalModeOptions(), imageModalMode(b));
         panel.appendChild(modeField.field);
         modeField.select.addEventListener("change", function (this: any) {
             setImageModalMode(b, this.value);
@@ -180,7 +181,7 @@ export function registerImageCardTypes(
             });
             nameField.field.setAttribute("data-sp-card-primary", "name");
             renderImageLabelSettings(panel, b, helpers);
-            var modalSettingsDisclosure: any = helpers.disclosureSection("Modal Settings", helpers.idPrefix + "image-modal-settings", false);
+            var modalSettingsDisclosure: any = helpers.disclosureSection("Image Settings", helpers.idPrefix + "image-modal-settings", false);
             renderImageModalSettings(modalSettingsDisclosure.section, b, helpers);
             panel.appendChild(modalSettingsDisclosure.panel);
             const refreshSettings = helpers.disclosureSection("Refresh Settings", helpers.idPrefix + "image-refresh-settings", false);
@@ -188,7 +189,7 @@ export function registerImageCardTypes(
             panel.appendChild(refreshSettings.panel);
         },
         renderPreview: function (this: any, b?: any, helpers?: any) {
-            var tertiaryColor: any = WEB_UI_COLORS.tertiary;
+            var tertiaryColor: any = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)].surfaceSecondary;
             var label: any = imageLabelEnabled(b) ? String((b && b.label) || "Camera").trim() : "";
             var iconName: any = b && b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : "camera";
             var icon: any = imageIconEnabled(b) ? '<span class="sp-image-preview-icon mdi mdi-' + iconName + '"></span>' : "";

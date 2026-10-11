@@ -17,6 +17,9 @@
 
 #include "companion_capabilities_generated.h"
 #include "companion_runtime_access.h"
+#ifdef USE_COMPANION
+#include "../companion/app_icon_store.h"
+#endif
 #include "web_apps_generated.h"
 #include "companion_pairing_policy.h"
 #include "companion_timezone.h"
@@ -31,6 +34,7 @@
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
 #include "card_availability.h"
+#include "card_text_contrast.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
@@ -139,6 +143,16 @@ inline CompanionConnectionChangedHandler &companion_connection_changed_handler()
 inline void register_companion_connection_changed_handler(
     CompanionConnectionChangedHandler handler) {
   companion_connection_changed_handler() = std::move(handler);
+}
+
+inline std::vector<CompanionConnectionChangedHandler> &companion_connection_changed_observers() {
+  static std::vector<CompanionConnectionChangedHandler> observers;
+  return observers;
+}
+
+inline void add_companion_connection_changed_observer(
+    CompanionConnectionChangedHandler handler) {
+  if (handler) companion_connection_changed_observers().push_back(std::move(handler));
 }
 
 inline CompanionArtworkHandler &companion_artwork_handler() {
@@ -441,6 +455,8 @@ inline void companion_set_connected(bool connected) {
   }
   auto &connection_changed = companion_connection_changed_handler();
   if (connection_changed) connection_changed(connected);
+  for (const auto &observer : companion_connection_changed_observers())
+    if (observer) observer(connected);
 }
 
 inline void register_companion_action_sender(CompanionActionSender sender) {
@@ -659,12 +675,11 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   if (!companion_card_focus_allowed(url_config)) {
-    lv_obj_clear_state(button, LV_STATE_CHECKED);
+    set_card_checked_state(button, false);
     return;
   }
   const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-  if (companion_action_active(focus_id)) lv_obj_add_state(button, LV_STATE_CHECKED);
-  else lv_obj_clear_state(button, LV_STATE_CHECKED);
+  set_card_checked_state(button, companion_action_active(focus_id));
 }
 
 struct CompanionViewRegistry {
@@ -1017,7 +1032,23 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
         if (!first) json += ",";
         first = false;
         json += "{\"id\":\"" + companion_json_escape(action.id) +
-          "\",\"label\":\"" + companion_json_escape(action.label) + "\"}";
+          "\",\"label\":\"" + companion_json_escape(action.label) + "\"";
+#ifdef USE_COMPANION
+        // The browser already polls this catalogue. Include cache freshness so
+        // updated icons refresh open previews without downloading unchanged pixels.
+        std::array<uint8_t, 32> icon_hash{};
+        if (esphome::companion::app_icon_store().hash_for(action.id, &icon_hash)) {
+          static constexpr char digits[] = "0123456789abcdef";
+          std::string encoded_hash;
+          encoded_hash.reserve(icon_hash.size() * 2);
+          for (const uint8_t byte : icon_hash) {
+            encoded_hash += digits[byte >> 4];
+            encoded_hash += digits[byte & 0x0F];
+          }
+          json += ",\"iconHash\":\"" + encoded_hash + "\"";
+        }
+#endif
+        json += "}";
       }
     }
     if (!definitions) json += "]";
@@ -1165,6 +1196,27 @@ class CompanionPairingResetHandler : public esphome::web_server_idf::AsyncWebHan
   }
 };
 
+class CompanionAppIconCacheClearHandler : public esphome::web_server_idf::AsyncWebHandler {
+ public:
+  bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
+    if (request->method() != HTTP_POST) return false;
+    char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    return request->url_to(url_buf) == "/companion/app-icons/clear";
+  }
+
+  void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
+    if (!companion_authorize_web_request(request)) return;
+    auto &clear_cache = companion_runtime_service().clear_app_icon_cache;
+    const bool cleared = clear_cache && clear_cache();
+    httpd_req_t *raw_request = *request;
+    httpd_resp_set_status(raw_request, cleared ? "200 OK" : "503 Service Unavailable");
+    httpd_resp_set_type(raw_request, "application/json");
+    httpd_resp_set_hdr(raw_request, "Cache-Control", "no-store");
+    const char *body = cleared ? "{\"cleared\":true}" : "{\"cleared\":false}";
+    httpd_resp_send(raw_request, body, HTTPD_RESP_USE_STRLEN);
+  }
+};
+
 inline void register_companion_actions_endpoint(
     esphome::web_server_idf::AsyncWebServer &server) {
   static bool registered = false;
@@ -1173,6 +1225,7 @@ inline void register_companion_actions_endpoint(
   server.addHandler(new CompanionFocusTargetsHandler());
   server.addHandler(new CompanionPairingHandler());
   server.addHandler(new CompanionPairingResetHandler());
+  server.addHandler(new CompanionAppIconCacheClearHandler());
   registered = true;
 }
 

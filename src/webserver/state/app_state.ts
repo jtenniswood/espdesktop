@@ -29,6 +29,8 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
   const buttons = Array.from({ length: deviceConfig.slots }, emptyCardConfig);
   return {
     grid, sizes: {}, buttons, onColor: WEB_UI_COLORS.primary,
+    appIconCustomColourControlEnabled: true,
+    appIconAutoColourGenerationEnabled: true,
     selectedSlots: [], lastClickedSlot: -1, clockBarSelectedItem: "", activeTab: "screen",
     _indoorOn: false, _outdoorOn: false, _indoorVal: null, _outdoorVal: null,
     indoorEntity: "", outdoorEntity: "", clockBarTemperatureEntities: [],
@@ -58,7 +60,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     screensaverDimmedBrightnessDay: 10, screensaverDimmedBrightnessNight: 10,
     screensaverTimeout: 300, screensaverTimeoutMin: 60, screensaverTimeoutMax: 3600,
     screensaverTimeoutLimitsLoaded: false, homeScreenTimeout: 60, brightnessDayVal: 100,
-    brightnessNightVal: 75, brightnessMode: "sunrise_sunset", manualBrightnessVal: 100, brightnessDawnTime: "06:00",
+    brightnessNightVal: 75, brightnessMode: "sunrise_sunset", themeMode: "Dark", themeAutoMethod: "Time", themeActive: "Dark", themeLightStart: "07:00", themeDarkStart: "20:00", themeSunriseOffset: 0, themeSunsetOffset: 0, manualBrightnessVal: 100, brightnessDawnTime: "06:00",
     brightnessDuskTime: "18:00", scheduleTrigger: "disabled", _scheduleTriggerReceived: false,
     scheduleEnabled: false, scheduleSensorActivation: "off", scheduleSensorEntity: "", scheduleOnHour: 6, scheduleOffHour: 23, scheduleMode: "screen_off",
     scheduleWakeTimeout: 60, scheduleWakeBrightness: 10, scheduleDimmedBrightness: 10,

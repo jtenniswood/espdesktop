@@ -69,8 +69,7 @@ inline void switch_confirmation_confirm() {
     else send_turn_off_action(ui.cfg.entity);
   }
   if (ui.btn_obj && !action_script_confirmation_enabled(ui.cfg) && !is_garage_command) {
-    if (ui.turn_on) lv_obj_add_state(ui.btn_obj, LV_STATE_CHECKED);
-    else lv_obj_clear_state(ui.btn_obj, LV_STATE_CHECKED);
+    set_card_checked_state(ui.btn_obj, ui.turn_on);
   }
   switch_confirmation_hide_modal();
 }
@@ -113,13 +112,13 @@ inline void switch_confirmation_open_modal(const ParsedCfg &p, lv_obj_t *btn_obj
   lv_label_set_display_text(ui.message_lbl, message.c_str());
   lv_label_set_long_mode(ui.message_lbl, LV_LABEL_LONG_WRAP);
   lv_obj_set_width(ui.message_lbl, content_w);
-  lv_obj_set_style_text_color(ui.message_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(ui.message_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_align(ui.message_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (message_font) lv_obj_set_style_text_font(ui.message_lbl, message_font, LV_PART_MAIN);
 
   ui.no_btn = control_modal_create_text_button(
     ui.panel, switch_confirmation_no_text(p), button_max_w, button_min_w, button_h,
-    button_h / 2, DARK_BORDER, button_font);
+    button_h / 2, theme_display_color(current_theme().border), button_font);
   uint32_t confirm_color = current_button_primary_color();
   ui.confirm_btn = control_modal_create_text_button(
     ui.panel, switch_confirmation_yes_text(p), button_max_w, button_min_w, button_h,

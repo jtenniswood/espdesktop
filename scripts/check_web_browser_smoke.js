@@ -1126,6 +1126,65 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     true,
     `${label}: color controls should be visible`,
   );
+  const themeModes = page.locator("#sp-set-theme-mode");
+  assert.deepStrictEqual(await themeModes.locator("button").allTextContents(),
+    ["Dark", "Light", "Automatic"], `${label}: theme modes render`);
+  await themeModes.getByRole("button", { name: "Automatic" }).click();
+  assert(await page.locator("#sp-set-theme-auto-method").isVisible(),
+    `${label}: Auto exposes its method`);
+  assert(await page.locator("#sp-set-theme-light-start").isVisible(),
+    `${label}: Time exposes Light start`);
+  assert(await page.locator("#sp-set-theme-dark-start").isVisible(),
+    `${label}: Time exposes Dark start`);
+  await page.locator("#sp-set-theme-auto-method").getByRole("button", { name: "Automatic" }).click();
+  assert.strictEqual(await page.locator("#sp-set-theme-sunrise-offset").count(), 0,
+    `${label}: solar method does not expose sunrise offset control`);
+  assert.strictEqual(await page.locator("#sp-set-theme-sunset-offset").count(), 0,
+    `${label}: solar method does not expose sunset offset control`);
+  assert(!(await page.locator("#sp-set-theme-light-start").isVisible()),
+    `${label}: solar method hides time inputs`);
+  await themeModes.getByRole("button", { name: "Light" }).click();
+  const lightPreview = await page.locator(".sp-screen").evaluate((screen) => {
+    // Some layouts occupy every slot, so exercise the preview-only empty slot
+    // style with a temporary element under the same themed screen.
+    const placeholder = document.createElement("div");
+    placeholder.className = "sp-empty-cell";
+    placeholder.innerHTML = '<span class="sp-add-icon"></span>';
+    screen.appendChild(placeholder);
+    const result = {
+      background: getComputedStyle(screen).backgroundColor,
+      outline: getComputedStyle(placeholder).borderTopColor,
+      foreground: getComputedStyle(placeholder.querySelector(".sp-add-icon")).color,
+      card: getComputedStyle(screen).getPropertyValue("--preview-surface-card").trim(),
+      sensor: getComputedStyle(screen).getPropertyValue("--preview-surface-sensor").trim(),
+    };
+    placeholder.remove();
+    return result;
+  });
+  assert.strictEqual(lightPreview.background, "rgb(227, 227, 227)", `${label}: preview uses Light background`);
+  assert.strictEqual(lightPreview.card, "#FFFFFF", `${label}: Light cards retain their separate white fill`);
+  assert.strictEqual(lightPreview.sensor, "#F5F5F5", `${label}: Light sensors retain their separate grey fill`);
+  assert.notStrictEqual(lightPreview.outline, lightPreview.background,
+    `${label}: Light placeholder dashed outline separates from its background`);
+  assert.strictEqual(lightPreview.foreground, "rgb(51, 51, 51)",
+    `${label}: Light placeholder icon uses semantic foreground`);
+  await page.evaluate(() => window.__seedEspState([{
+    id: "text_sensor-screen__active_theme", state: "Light", value: "Light",
+  }]));
+  await themeModes.getByRole("button", { name: "Automatic" }).click();
+  assert(await page.locator(".sp-screen").evaluate((screen) => screen.classList.contains("sp-theme-light")),
+    `${label}: Auto preview follows Active Theme`);
+  await themeModes.getByRole("button", { name: "Dark" }).click();
+  const darkPreview = await page.locator(".sp-screen").evaluate((screen) => ({
+    background: getComputedStyle(screen).backgroundColor,
+    card: getComputedStyle(screen).getPropertyValue("--preview-surface-card").trim(),
+    sensor: getComputedStyle(screen).getPropertyValue("--preview-surface-sensor").trim(),
+  }));
+  assert.strictEqual(darkPreview.background, "rgb(0, 0, 0)", `${label}: Dark restores the main background`);
+  assert.strictEqual(darkPreview.card, "#313131", `${label}: Dark restores the main card fill`);
+  assert.strictEqual(darkPreview.sensor, "#212121", `${label}: Dark restores the main sensor fill`);
+  assert(!(await page.locator("#sp-set-theme-light-start").isVisible()),
+    `${label}: manual theme hides Auto inputs`);
   assert.deepStrictEqual(
     await page
       .locator("#sp-settings .sp-settings-status-title")
@@ -6349,12 +6408,28 @@ async function assertResetControls(browser) {
           await dialog.dismiss();
           assert.fail("Complete reset must not open a browser prompt");
         });
-        const confirmation = page.getByRole("dialog", { name: "Complete reset?", exact: true });
+        const confirmation = page.getByRole("dialog", { name: "Complete reset", exact: true });
         await card.getByRole("button", { name: label, exact: true }).click();
         assert(await confirmation.isVisible());
-        assert.strictEqual(await confirmation.locator("input").count(), 0);
+        if (process.env.ESPDESKTOP_RESET_SCREENSHOT) {
+          await page.screenshot({ path: process.env.ESPDESKTOP_RESET_SCREENSHOT });
+        }
+        const confirmationInput = confirmation.getByRole("textbox", { name: "Type RESET to confirm", exact: true });
+        const resetButton = confirmation.getByRole("button", { name: label, exact: true });
+        assert(await confirmationInput.evaluate(el => el === document.activeElement));
+        assert(await resetButton.isDisabled());
+        assert(await confirmation.locator(".sp-reset-warning").isVisible());
+        await page.setViewportSize({ width: 320, height: 700 });
+        assert(await confirmation.evaluate(el => el.scrollWidth <= el.clientWidth), "confirmation must fit a narrow phone");
+        await page.setViewportSize(testCase.viewport);
+        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and the Home Assistant API key will be erased."));
+        for (const text of ["", "reset", " RESET", "RESET ", "RESE"]) {
+          await confirmationInput.fill(text);
+          await confirmationInput.press("Enter");
+          assert(await resetButton.isDisabled());
+          assert.strictEqual(resetState.requests.length, 0, "invalid typed confirmation must not reset");
+        }
         assert.strictEqual(resetState.requests.length, 0, "opening confirmation must not reset");
-        assert(await confirmation.getByRole("button", { name: "Cancel", exact: true }).evaluate(el => el === document.activeElement));
         await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
         await confirmation.waitFor({ state: "detached" });
         assert.strictEqual(resetState.requests.length, 0, "cancel must not reset");
@@ -6363,7 +6438,13 @@ async function assertResetControls(browser) {
         await confirmation.waitFor({ state: "detached" });
         assert.strictEqual(resetState.requests.length, 0, "Escape must not reset");
         await card.getByRole("button", { name: label, exact: true }).click();
-        await confirmation.getByRole("button", { name: label, exact: true }).click();
+        assert.strictEqual(await confirmationInput.inputValue(), "", "reopening must clear confirmation");
+        await confirmationInput.fill("RESET");
+        assert(await resetButton.isEnabled());
+        await confirmationInput.fill("RESE");
+        assert(await resetButton.isDisabled(), "editing confirmation must disable reset again");
+        await confirmationInput.fill("RESET");
+        await resetButton.click();
       } else {
         page.once("dialog", dialog => dialog.dismiss());
         await card.getByRole("button", { name: label, exact: true }).click();
@@ -6541,10 +6622,53 @@ async function assertHomeAssistantConnectorLayout(browser) {
   }
 }
 
+async function assertColourSwatches(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { homeAssistantSupport: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), seededEvents());
+    await page.getByRole("tab", { name: "Settings" }).click();
+    const primary = page.locator("#sp-set-on-color");
+    if (!await primary.isVisible()) await page.getByText("Appearance", { exact: true }).click();
+    assert.strictEqual(await primary.locator("button").count(), 21, "20 presets plus the existing custom colour");
+    assert.strictEqual(await primary.locator('[data-color="0073FF"]').getAttribute("aria-pressed"), "true");
+    await primary.locator('[data-color="00BCD4"]').click();
+    assert.strictEqual(await primary.locator('[data-color="00BCD4"]').getAttribute("aria-pressed"), "true");
+    await page.getByRole("tab", { name: "Screen" }).click();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    const colours = page.locator('.sp-settings-modal .sp-card-color-presets');
+    assert.strictEqual(await colours.locator("button").count(), 20);
+    await colours.locator('[data-color="6633B9"]').click();
+    assert.strictEqual(await colours.locator('[data-color="6633B9"]').getAttribute("aria-pressed"), "true");
+    await page.getByRole("button", { name: "Reset colours to defaults", exact: true }).click();
+    assert.strictEqual(await colours.locator('[aria-pressed="true"]').count(), 0);
+    assert.deepStrictEqual(errors, []);
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await chromium.launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
+      await assertColourSwatches(browser);
+      console.log("Card and Appearance colour swatch browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_RESET_ONLY === "1") {
+      await assertResetControls(browser);
+      console.log("Factory reset confirmation browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("Home Assistant connector layout browser checks passed.");

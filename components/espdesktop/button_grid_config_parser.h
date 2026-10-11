@@ -244,6 +244,46 @@ inline std::string cfg_option_value(const std::string &options, const char *name
   return "";
 }
 
+inline std::string normalize_card_color_value(std::string value) {
+  if (!value.empty() && value[0] == '#') value.erase(0, 1);
+  if (value.size() != 6) return "";
+  for (char &ch : value) {
+    if (!std::isxdigit(static_cast<unsigned char>(ch))) return "";
+    ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+  }
+  return value;
+}
+
+inline std::string card_color_options_normalized(const std::string &options) {
+  const char *names[] = {"card_off_color", "card_on_color"};
+  for (const char *name : names) {
+    const std::string value = normalize_card_color_value(cfg_option_value(options, name));
+    if (!value.empty()) {
+      return "card_off_color=" + value;
+    }
+  }
+  return "";
+}
+
+inline std::string options_without_card_colors(const std::string &options) {
+  std::string out;
+  size_t start = 0;
+  while (start < options.size()) {
+    size_t end = options.find(',', start);
+    if (end == std::string::npos) end = options.size();
+    const std::string token = options.substr(start, end - start);
+    if (token.compare(0, 14, "card_on_color=") != 0 &&
+        token.compare(0, 15, "card_off_color=") != 0) {
+      if (!token.empty()) {
+        if (!out.empty()) out += ",";
+        out += token;
+      }
+    }
+    start = end + 1;
+  }
+  return out;
+}
+
 inline bool large_numbers_explicitly_disabled(const std::string &options) {
   return cfg_option_value(options, "large_numbers") == "off";
 }
@@ -1374,6 +1414,19 @@ inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
          p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
 }
 
+inline bool companion_app_launch_card(const ParsedCfg &p) {
+  return p.type == "companion" && !p.entity.empty() && p.sensor.empty() &&
+         p.entity.rfind("folder.", 0) != 0 &&
+         p.entity.rfind("shortcut.", 0) != 0 &&
+         p.entity.rfind("window.", 0) != 0 &&
+         p.entity.rfind("stat.", 0) != 0;
+}
+
+inline bool companion_app_icon_enabled(const ParsedCfg &p) {
+  return companion_app_launch_card(p) &&
+         p.entity.rfind("webapp.", 0) != 0;
+}
+
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
   if (p.entity.rfind("folder.", 0) == 0 &&
       cfg_option_value(p.options, "finder_open_behavior") == "same_window") {
@@ -1424,17 +1477,33 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     out += "app_shortcut_preset=" + encode_compact_field(preset);
     return out;
   }
-  if (!companion_app_shortcuts_enabled(p)) return out;
-  if (!out.empty()) out += ",";
-  out += "app_shortcuts";
-  const std::string tabs = companion_app_shortcut_tabs_normalized(p);
-  if (!tabs.empty()) {
-    out += ",app_shortcuts_tabs=" + encode_compact_field(tabs);
+  const auto add_token = [&out](const std::string &token) {
+    if (!out.empty()) out += ",";
+    out += token;
+  };
+  if (companion_app_shortcuts_enabled(p)) {
+    add_token("app_shortcuts");
+    const std::string tabs = companion_app_shortcut_tabs_normalized(p);
+    if (!tabs.empty()) add_token("app_shortcuts_tabs=" + encode_compact_field(tabs));
+  }
+  if (p.type == "companion" && p.entity.rfind("shortcut.", 0) != 0) {
+    const std::string custom_color = cfg_option_value(p.options, "app_bg_color");
+    if (custom_color.size() == 6 && std::all_of(custom_color.begin(), custom_color.end(),
+        [](unsigned char ch) { return std::isxdigit(ch); })) {
+      add_token("app_bg_color=" + custom_color);
+    }
+    if (companion_app_launch_card(p)) {
+      if (cfg_option_token_present(p.options, "app_hide_label")) add_token("app_hide_label");
+      if (cfg_option_token_present(p.options, "app_icon_fill")) add_token("app_icon_fill");
+      if (cfg_option_token_present(p.options, "app_icon_medium")) add_token("app_icon_medium");
+    }
   }
   return out;
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  const std::string card_colors = card_color_options_normalized(p.options);
+  p.options = options_without_card_colors(p.options);
   // Retired Mac playback cards become empty slots, including inside subpages.
   if (p.type == "companion" && (p.entity == "media.play_pause" ||
       p.entity == "media.previous" || p.entity == "media.next")) return ParsedCfg{};
@@ -1512,6 +1581,10 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_sensor(p, was_legacy_text_sensor,
                                 normalize_saved_config_sensor_fields,
                                 sensor_card_options_normalized);
+  if (!card_colors.empty()) {
+    if (!p.options.empty()) p.options += ",";
+    p.options += card_colors;
+  }
   return p;
 }
 

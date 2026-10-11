@@ -11,6 +11,7 @@ Usage:
     python scripts/build.py i18n          # sync firmware translations only
     python scripts/build.py companion     # sync shared Companion capabilities
     python scripts/build.py www           # build www.js only
+    python scripts/build.py portal        # build offline WiFi setup pages only
     python scripts/build.py www --retain-current-bundle  # retain a release bundle
     python scripts/build.py www --legacy-web-manifest PATH  # use the published bundle as the legacy bundle
     python scripts/build.py www --temporary-output DIR  # isolated fresh bundles
@@ -367,11 +368,16 @@ def load_companion_capabilities_data():
         raise BuildError("Companion protocol requires a positive version")
     if not isinstance(protocol.get("path"), str) or not protocol["path"].startswith("/companion/"):
         raise BuildError("Companion protocol path must be under /companion/")
-    for key in ("maximumTextFrameBytes", "maximumArtworkBytes", "artworkChunkBytes"):
+    for key in ("maximumTextFrameBytes", "maximumArtworkBytes", "artworkChunkBytes", "appIconChunkBytes", "appIconSide", "appIconLegacySide"):
         if not isinstance(protocol.get(key), int) or protocol[key] < 1:
             raise BuildError(f"Companion protocol requires a positive {key}")
+    for key in ("appIconsCapability", "appIconsAlphaCapability", "appIconsHighResolutionCapability"):
+        if not isinstance(protocol.get(key), str) or not protocol[key]:
+            raise BuildError(f"Companion protocol requires an {key} string")
     if protocol["artworkChunkBytes"] > protocol["maximumArtworkBytes"]:
         raise BuildError("Companion artwork chunks cannot exceed the maximum artwork size")
+    if protocol["appIconChunkBytes"] > 4096:
+        raise BuildError("Companion app icon chunks cannot exceed 4096 bytes")
     messages = protocol.get("messages")
     message_ids = [item.get("id") for item in messages] if isinstance(messages, list) else []
     if not message_ids or any(not isinstance(item, str) or not item for item in message_ids) or len(message_ids) != len(set(message_ids)):
@@ -811,6 +817,9 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_PROTOCOL_VERSION = {protocol['version']} as const;\n"
         f"export const COMPANION_PROTOCOL_PATH = {json.dumps(protocol['path'])} as const;\n"
         f"export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = {protocol['maximumTextFrameBytes']} as const;\n"
+        f"export const COMPANION_APP_ICON_SIDE = {protocol['appIconSide']} as const;\n"
+        f"export const COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])} as const;\n"
+        f"export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])} as const;\n"
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
         f"export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = {companion_ts_literal([{key: item[key] for key in ('id', 'label', 'group')} for item in data['windowActions']])};\n"
@@ -838,6 +847,12 @@ def gen_companion_capabilities_h(data):
         f"constexpr size_t COMPANION_MAXIMUM_TEXT_FRAME_BYTES = {protocol['maximumTextFrameBytes']};\n",
         f"constexpr size_t COMPANION_MAXIMUM_ARTWORK_BYTES = {protocol['maximumArtworkBytes']};\n",
         f"constexpr size_t COMPANION_ARTWORK_CHUNK_BYTES = {protocol['artworkChunkBytes']};\n",
+        f"constexpr size_t COMPANION_APP_ICON_CHUNK_BYTES = {protocol['appIconChunkBytes']};\n",
+        f"constexpr size_t COMPANION_APP_ICON_SIDE = {protocol['appIconSide']};\n",
+        f"constexpr size_t COMPANION_APP_ICON_PIXEL_BYTES = {protocol['appIconSide'] * protocol['appIconSide'] * 3};\n",
+        f"constexpr const char *COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])};\n",
+        f"constexpr const char *COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])};\n",
+        f"constexpr const char *COMPANION_APP_ICONS_HIGH_RESOLUTION_CAPABILITY = {json.dumps(protocol['appIconsHighResolutionCapability'])};\n",
         f"constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = {data['security']['pairingWindowSeconds']};\n\n",
         f"constexpr bool COMPANION_BROWSER_STARTS_PAIRING = {str(data['security']['pairingAuthorization'] == 'device_web_access').lower()};\n",
         f"constexpr bool COMPANION_BROWSER_EXPOSES_PAIRING_CODE = {str(data['security']['browserExposesPairingCode']).lower()};\n",
@@ -900,6 +915,13 @@ def gen_companion_capabilities_swift(data):
         f"    static let maximumTextFrameBytes = {data['protocol']['maximumTextFrameBytes']}\n",
         f"    static let maximumArtworkBytes = {data['protocol']['maximumArtworkBytes']}\n",
         f"    static let artworkChunkBytes = {data['protocol']['artworkChunkBytes']}\n",
+        f"    static let appIconChunkBytes = {data['protocol']['appIconChunkBytes']}\n",
+        f"    static let appIconSide = {data['protocol']['appIconSide']}\n",
+        f"    static let appIconLegacySide = {data['protocol']['appIconLegacySide']}\n",
+        f"    static let appIconPixelBytes = {data['protocol']['appIconSide'] * data['protocol']['appIconSide'] * 3}\n",
+        f"    static let appIconsCapability = {json.dumps(data['protocol']['appIconsCapability'])}\n",
+        f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
+        f"    static let appIconsHighResolutionCapability = {json.dumps(data['protocol']['appIconsHighResolutionCapability'])}\n",
         f"    static let pairingWindowSeconds = {data['security']['pairingWindowSeconds']}\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]
@@ -4484,6 +4506,26 @@ def build_www(
 # Main
 # ===========================================================================
 
+def sync_captive_portal(check_only=False):
+    result = subprocess.run(
+        ["node", str(ROOT / "scripts/captive_portal_assets.js")],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    if result.returncode:
+        raise BuildError(result.stderr or "Captive portal asset generation failed")
+    dirty = []
+    for relative, generated in json.loads(result.stdout).items():
+        path = ROOT / relative
+        if path.exists() and path.read_text() == generated:
+            continue
+        dirty.append(Path(relative))
+        if check_only:
+            print(f"Stale captive portal asset: {relative}; run python3 scripts/build.py portal")
+        else:
+            write_generated_text(path, generated)
+    return dirty
+
+
 def main():
     global GENERATED_TRANSACTION
     args = sys.argv[1:]
@@ -4527,6 +4569,7 @@ def main():
     try:
         for cmd in commands:
             if cmd == "all":
+                portal_dirty = sync_captive_portal(check_only=check_only)
                 entity_dirty = sync_entity_names(check_only=check_only)
                 i18n_dirty = sync_i18n(check_only=check_only)
                 contract_dirty = sync_card_contract(check_only=check_only)
@@ -4538,16 +4581,24 @@ def main():
                     retain_current_bundle=retain_current_bundle,
                     legacy_web_manifest=legacy_web_manifest,
                 )
-                if check_only and (entity_dirty or i18n_dirty or contract_dirty or companion_dirty or device_dirty or icon_dirty or www_dirty):
+                if check_only and (portal_dirty or entity_dirty or i18n_dirty or contract_dirty or companion_dirty or device_dirty or icon_dirty or www_dirty):
                     exit_code = 1
-                elif not entity_dirty and not i18n_dirty and not contract_dirty and not device_dirty and not icon_dirty and not www_dirty:
+                elif not portal_dirty and not entity_dirty and not i18n_dirty and not contract_dirty and not companion_dirty and not device_dirty and not icon_dirty and not www_dirty:
                     print("All outputs are up to date.")
                 else:
                     total = (
                         len(entity_dirty) + len(i18n_dirty) + len(contract_dirty) + len(companion_dirty) + len(device_dirty) +
-                        len(icon_dirty) + len(www_dirty)
+                        len(icon_dirty) + len(www_dirty) + len(portal_dirty)
                     )
                     print(f"Updated {total} target(s).")
+            elif cmd == "portal":
+                dirty = sync_captive_portal(check_only=check_only)
+                if check_only and dirty:
+                    exit_code = 1
+                elif not dirty:
+                    print("Captive portal assets are in sync.")
+                else:
+                    print(f"Built {len(dirty)} captive portal asset(s).")
             elif cmd == "entities":
                 dirty = sync_entity_names(check_only=check_only)
                 if check_only and dirty:
@@ -4614,7 +4665,7 @@ def main():
                 print(f"Unknown command: {cmd}")
                 print(
                     "Usage: python scripts/build.py "
-                    "[all|entities|contract|devices|icons|i18n|www] [--check] "
+                    "[all|entities|contract|devices|icons|i18n|portal|www] [--check] "
                     "[--retain-current-bundle] [--legacy-web-manifest PATH]"
                 )
                 exit_code = 1

@@ -88,7 +88,8 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
     "Home Assistant support stays disabled unless firmware advertises explicit opt-in");
   equal(await client.save((current) => ({ ...current, settings: { ...current.settings, button_order: "1d" } })), "saved", "guarded native save succeeds");
   const put = requests.find((entry) => entry.request?.method === "PUT");
-  equal(put?.request?.headers?.["If-Match"], "\"7\"", "native save uses the document generation");
+  equal(put?.path, "/api/v1/config/generation/7", "native save sends the document generation in the URL path");
+  equal(put?.request?.headers?.["X-Panel-Config-Generation"], "7", "native save sends the generation in a firmware-readable header");
 
   let retries = 0;
   const retryClient = createNativePanelConfigClient(async (path, request) => {

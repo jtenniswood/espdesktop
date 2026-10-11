@@ -12,8 +12,11 @@
 inline void refresh_visible_image_cards();
 inline void image_card_set_clock_bar_companion_icon(
     const std::string &entity_id, const std::string &icon_name,
-    const std::string &source_url);
+    const std::string &source_url, bool use_cached_app_icon = false);
 inline void navigation_refresh_subpage_label();
+#ifdef USE_COMPANION
+inline void companion_refresh_app_icon_visibility();
+#endif
 
 // ── Home Assistant-driven home-screen navigation ─────────────────────
 
@@ -37,6 +40,10 @@ struct NavigationSubpageEntry {
     lv_obj_t *button = nullptr;
     BtnSlot slot{};
     SubpageBtn definition{};
+bool neutral_background = true;
+    bool sensor_surface = false;
+    bool secondary_surface = false;
+    bool image_card = false;
     int display_order = 0;
   };
   std::vector<Card> cards;
@@ -269,6 +276,9 @@ inline std::string navigation_active_subpage_label() {
 }
 
 inline void navigation_refresh_subpage_label() {
+#ifdef USE_COMPANION
+  companion_refresh_app_icon_visibility();
+#endif
   if (network_status_modal_ui().overlay) {
     set_clock_bar_companion_subpage_label(espdesktop_i18n(std::string("Settings")));
     image_card_set_clock_bar_companion_icon("", "", "");
@@ -292,7 +302,9 @@ inline void navigation_refresh_subpage_label() {
       ? (web_app ? "Web" : "Monitor") : config.icon;
   const std::string icon_url = web_app
       ? companion_web_app_icon_url(config.entity) : "";
-  image_card_set_clock_bar_companion_icon(config.entity, icon_name, icon_url);
+  image_card_set_clock_bar_companion_icon(
+      config.entity, icon_name, icon_url,
+      !web_app && companion_app_icon_enabled(config));
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(
@@ -365,11 +377,16 @@ inline void navigation_register_subpage_back_button(int slot,
 
 inline void navigation_register_subpage_card(int slot, int index,
                                              const BtnSlot &card_slot,
-                                             const SubpageBtn &definition) {
+                                             const SubpageBtn &definition,
+                                             bool neutral_background,
+                                             bool sensor_surface,
+                                             bool secondary_surface = false,
+                                             bool image_card = false) {
   if (index <= 0 || card_slot.btn == nullptr) return;
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   if (entry == nullptr) return;
   entry->cards.push_back({index, card_slot.btn, card_slot, definition,
+                          neutral_background, sensor_surface, secondary_surface, image_card,
                           static_cast<int>(entry->cards.size())});
 }
 

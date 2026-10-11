@@ -2,7 +2,13 @@ import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
-import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "../model/config_primitives";
+import {
+    configOptionEnabled,
+    configOptionValue,
+    normalizedCardColorOptions,
+    setConfigOptionValue,
+    withoutCardColorOptions,
+} from "../model/config_primitives";
 import {
     CARD_SIZE_EXTRA_LARGE,
     CARD_SIZE_LANDSCAPE_LARGE,
@@ -48,7 +54,7 @@ import { normalizeSavedConfigLightControl } from "../generated/saved_config_ligh
 import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
 import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
 import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
-import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
+import { normalizeCompanionCardOptions } from "./companion_shortcut_folder";
 import type { CardRegistry } from "./card_registry";
 import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
 import type { ConfigMediaOptionsFeature } from "./config_media_options";
@@ -468,11 +474,13 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
             for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
+            cardColorOptions = "";
         }
         if (b)
-            b.options = b.options || "";
+            b.options = withoutCardColorOptions(b.options || "");
         if (b)
             migrateSavedConfigActionLegacy(b);
         var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
@@ -514,6 +522,7 @@ export function createConfigCodecFeature(
         if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
+        if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
         return b;
     }
     function isBrightnessSliderType(this: any, type?: any) {
@@ -641,6 +650,8 @@ export function createConfigCodecFeature(
         if (type === "door_window")
             precision = normalizeDoorWindowSubtype(precision);
         var options: any = b && b.options || "";
+        var cardColorOptions: any = normalizedCardColorOptions(options);
+        options = withoutCardColorOptions(options);
         if (type === "") {
             options = normalizeSwitchConfirmationOptions(options);
         }
@@ -676,7 +687,7 @@ export function createConfigCodecFeature(
                 options = copyLargeNumbersOption("", options);
                 if (configOptionEnabled(b?.options, "stat_labels_off"))
                     options = options ? options + ",stat_labels_off" : "stat_labels_off";
-            } else options = normalizeCompanionAppShortcutOptions({
+            } else options = normalizeCompanionCardOptions({
                     ...(b || {}),
                     type,
                     entity: b && b.entity,
@@ -784,6 +795,7 @@ export function createConfigCodecFeature(
             unit = "";
             precision = "";
         }
+        if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
         return trimConfigFields([
             (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
             label,

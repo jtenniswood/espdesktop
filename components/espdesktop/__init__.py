@@ -33,6 +33,7 @@ espdesktop_ns = cg.global_ns.namespace("espdesktop")
 EspDesktopApp = espdesktop_ns.class_("EspDesktopApp", cg.Component)
 PanelIdentity = espdesktop_ns.class_("PanelIdentity", cg.Component)
 SharedSpeakerState = espdesktop_ns.class_("SharedSpeakerState", cg.Component)
+ResetBoot = espdesktop_ns.namespace("reset").class_("ResetBoot", cg.Component)
 
 PANEL_CONFIG_BUTTON_SCHEMA = cv.Schema(
     {
@@ -62,6 +63,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_ID): cv.declare_id(EspDesktopApp),
         cv.GenerateID("identity_id"): cv.declare_id(PanelIdentity),
         cv.GenerateID("shared_speaker_state_id"): cv.declare_id(SharedSpeakerState),
+        cv.GenerateID("reset_boot_id"): cv.declare_id(ResetBoot),
         cv.Optional("shared_speaker_players"): cv.All(
             cv.ensure_list(cv.use_id(media_player.MediaPlayer)), cv.Length(min=2, max=2)
         ),
@@ -107,6 +109,8 @@ async def to_code(config):
     password = web_auth.get("password", config[CONF_WEB_AUTH_PASSWORD])
     cg.add(espdesktop_ns.namespace("reset").early_startup(
         compiled_networks, username, password))
+    reset_boot = cg.new_Pvariable(config["reset_boot_id"])
+    await cg.register_component(reset_boot, {})
     if players := config.get("shared_speaker_players"):
         cg.add_global(cg.RawStatement('#include "esphome/components/espdesktop/shared_speaker_state.h"'), prepend=True)
         shared = cg.new_Pvariable(config["shared_speaker_state_id"])
@@ -160,6 +164,11 @@ async def to_code(config):
     cg.add_build_flag(f"-I{comp_dir}")
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/clock_bar.h"'), prepend=True)
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/backlight.h"'), prepend=True)
+    cg.add_global(cg.RawStatement('#include "esphome/components/espdesktop/wifi_setup_message.h"'), prepend=True)
+    cg.add_global(
+        cg.RawStatement('#include "esphome/components/espdesktop/theme_settings.h"'),
+        prepend=True,
+    )
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/cover_art.h"'), prepend=True)
     if config[CONF_ACTION_RESPONSES]:
         cg.add_define("USE_API_HOMEASSISTANT_ACTION_RESPONSES")

@@ -64,6 +64,8 @@ struct GridConfig {
 
 #include "button_grid_image.h"
 
+inline void navigation_refresh_subpage_label();
+
 inline void grid_log_memory(const char *stage) {
 #ifdef ESP_PLATFORM
   ESP_LOGI("sensors", "Phase 2 %s heap: internal=%u largest=%u psram=%u",
@@ -137,14 +139,61 @@ inline void configure_grid_layout(lv_obj_t *page, int num_slots, int cols) {
   lv_obj_update_layout(page);
 }
 
-struct CardPalette {
-  bool has_on = false;
-  bool has_off = false;
-  bool has_sensor_color = false;
-  uint32_t on_val = DEFAULT_SLIDER_COLOR;
-  uint32_t off_val = SECONDARY_GREY;
-  uint32_t sensor_val = TERTIARY_GREY;
-};
+#ifdef USE_COMPANION
+inline void grid_update_companion_app_icon_palette(
+    BtnSlot &slot, const ParsedCfg &config, const CardPalette &palette,
+    const DisplayProfile &display) {
+  if (!slot.btn) return;
+  if (!slot.app_icon_img)
+    slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
+  if (!slot.app_icon_img) return;
+  auto *source = static_cast<CompanionAppIconImageData *>(
+      lv_obj_get_user_data(slot.app_icon_img));
+  if (!source) return;
+  static bool connection_observer_registered = false;
+  if (!connection_observer_registered) {
+    add_companion_connection_changed_observer([](bool online) {
+      companion_refresh_app_icon_connection_state(online);
+    });
+    connection_observer_registered = true;
+  }
+  espdesktop::configuration::companion_app_icon_colour_settings_changed_handler() = []() {
+    companion_refresh_app_icon_connection_state(companion_connected());
+  };
+  companion_update_app_icon_card_palette(
+      *source, slot.btn, companion_app_icon_enabled(config),
+      palette.off_val,
+      palette.on_val,
+      display.color.red_percent, display.color.green_percent,
+      display.color.blue_percent,
+      cfg_option_value(config.options, "card_off_color").empty()
+          ? cfg_option_value(config.options, "app_bg_color")
+          : cfg_option_value(config.options, "card_off_color"),
+      companion_connected());
+}
+#endif
+inline CardPalette card_palette_for_config(const CardPalette &defaults,
+                                            const ParsedCfg &config,
+                                            const DisplayProfile &display) {
+  CardPalette palette = defaults;
+  bool valid = false;
+  const std::string off = cfg_option_value(config.options, "card_off_color");
+  if (!off.empty()) {
+    const uint32_t raw = parse_hex_color(off, valid);
+    if (valid) {
+      palette.has_off = true;
+      palette.off_val = display_correct_color(raw, display);
+      palette.has_sensor_color = true;
+      palette.sensor_val = palette.off_val;
+      palette.surface_sensor_val = palette.off_val;
+      palette.custom_background = true;
+      palette.has_on = true;
+      palette.on_val = display_correct_color(lighter_card_color(raw), display);
+      palette.progress_val = display_correct_color(card_progress_color(raw), display);
+    }
+  }
+  return palette;
+}
 
 template<typename T>
 inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr);
@@ -301,18 +350,32 @@ inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
 }
 
 inline bool card_slot_static_child(const BtnSlot &s, lv_obj_t *child) {
-  return child == s.icon_lbl || child == s.sensor_container ||
-         child == s.text_lbl || child == s.subpage_lbl;
+  const bool is_static_child = child == s.icon_lbl || child == s.sensor_container ||
+                               child == s.text_lbl || child == s.subpage_lbl;
+#ifdef USE_COMPANION
+  return is_static_child || child == s.app_icon_img ||
+         (s.app_icon_img == nullptr &&
+          child == grid_find_companion_app_icon_image(s.btn));
+#else
+  return is_static_child;
+#endif
 }
 
 inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   if (!s.btn) return;
+  // Persistent slot labels must lose the previous card owner before contrast sync.
+  if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_USER_2);
+  if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_USER_2);
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_state(s.btn, LV_STATE_CHECKED);
   sync_card_checked_text_color(s.btn);
   set_card_disabled_state(s.btn, false);
   lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);
   if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+#ifdef USE_COMPANION
+  if (!s.app_icon_img) s.app_icon_img = grid_find_companion_app_icon_image(s.btn);
+  if (s.app_icon_img) lv_obj_add_flag(s.app_icon_img, LV_OBJ_FLAG_HIDDEN);
+#endif
   if (s.sensor_container) lv_obj_set_user_data(s.sensor_container, nullptr);
   if (s.text_lbl) {
     lv_obj_set_style_bg_opa(s.text_lbl, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -355,6 +418,8 @@ inline void clear_media_cover_art(MediaNowPlayingCtx *ctx) {
   if (!ctx) return;
   if (ctx->cover_art) {
     lv_obj_t *widget = ctx->cover_art->widget;
+    // Teardown must not restyle labels that are being removed with the owner.
+    ctx->cover_art->media_artwork_applied = nullptr;
     image_card_clear_media_artwork(ctx->cover_art);
     ctx->cover_art->active = false;
     ctx->cover_art->widget = nullptr;
@@ -369,7 +434,6 @@ inline void clear_media_cover_art(MediaNowPlayingCtx *ctx) {
     ctx->cover_art->media_artwork_suppressed = false;
     ctx->cover_art->media_overlay = nullptr;
     ctx->cover_art->media_overlay_artwork_tint = false;
-    ctx->cover_art->media_artwork_applied = nullptr;
     if (widget) lv_obj_del(widget);
     ctx->cover_art = nullptr;
   }
@@ -440,6 +504,7 @@ inline void setup_media_cover_art(BtnSlot &s, const ParsedCfg &p,
   art->media_overlay = overlay;
   art->media_overlay_artwork_tint = show_track_details;
   art->media_artwork_applied = [media_ctx]() {
+    media_cover_art_apply_theme(media_ctx, current_theme());
     media_cover_art_refresh_geometry(media_ctx);
   };
   art->pending_fallback_picture.clear();
@@ -456,6 +521,7 @@ inline void setup_media_cover_art(BtnSlot &s, const ParsedCfg &p,
   if (art->image_ready) {
     image_card_sync_media_artwork_visibility(art);
   }
+  media_cover_art_apply_theme(media_ctx, current_theme());
   media_cover_art_refresh_geometry(media_ctx);
   image_card_log_diagnostics(art, "bind-media-artwork");
 }
@@ -539,10 +605,11 @@ inline void subscribe_media_cover_art(MediaNowPlayingCtx *ctx,
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,
                               const GridConfig &cfg,
-                              const CardPalette &palette,
+                              const CardPalette &default_palette,
                               int row_span = 1,
                               int col_span = 1) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
+  const CardPalette palette = card_palette_for_config(default_palette, p, display);
   const auto family = context.family;
   grid_prepare_timer_visual_reset(s.btn);
   espdesktop::cards::status_entity_driver_cleanup(s, p, context);
@@ -563,8 +630,13 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   espdesktop::cards::alarm_driver_cleanup(s, p, context);
   espdesktop::cards::media_driver_cleanup(s, p, context);
   reset_card_slot_dynamic_children(s);
+#ifdef USE_COMPANION
+  companion_reset_card_app_icon_palette(s);
+#endif
+  theme_set_content_background(s.btn, palette.custom_background);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
+  sync_card_checked_text_color(s.btn);
   apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
   apply_standard_sensor_number_style(s, display);
   if (s.unit_lbl) lv_obj_clear_flag(s.unit_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -591,7 +663,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (context.known) screen_lock_register_controlled_button(s.btn);
 
   if (espdesktop::cards::timer_driver_setup_visual(s, p, context)) return;
-  if (espdesktop::cards::image_driver_setup_visual(s, p, context)) {
+  if (espdesktop::cards::image_driver_setup_visual(s, p, context, palette)) {
     espdesktop::cards::image_driver_attach_interaction(s, p, context);
     espdesktop::cards::image_driver_refresh_layout(s, p, context);
     return;
@@ -662,6 +734,10 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   }
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
+#ifdef USE_COMPANION
+    if (p.type == "companion")
+      grid_update_companion_app_icon_palette(s, p, palette, display);
+#endif
     image_card_bind_companion_webapp_icon(s, p, cfg);
     espdesktop::cards::basic_action_driver_attach_interaction(s, p, context);
     espdesktop::cards::basic_action_driver_refresh_layout(
@@ -922,6 +998,15 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
                                 int col_span = 1) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto context = card_runtime_context(p);
+  if (s.text_lbl) {
+    // Card labels inherit their font from the button theme. Read the font from
+    // the themed button itself so the subpage title follows the exact font
+    // selected for card labels on this display.
+    const lv_font_t *card_label_font = s.btn
+        ? lv_obj_get_style_text_font(s.btn, LV_PART_MAIN)
+        : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN);
+    clock_bar_set_card_label_font(card_label_font);
+  }
   if (cfg.label_lines > 0) {
     apply_card_label_line_clamp(s.text_lbl, cfg, row_span);
   } else if (cfg.wrap_tall_labels && row_span > 1) {
@@ -931,6 +1016,15 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
   display_apply_main_width(s.icon_lbl, display);
   control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);
+#ifdef USE_COMPANION
+  if (companion_app_launch_card(p) && companion_app_icon_enabled(p) &&
+      !cfg_option_token_present(p.options, "app_icon_fill") &&
+      cfg_option_token_present(p.options, "app_icon_medium") && s.text_lbl &&
+      !lv_obj_has_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN)) {
+    lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_DOT);
+    lv_obj_set_width(s.text_lbl, lv_pct(100));
+  }
+#endif
   if (espdesktop::cards::navigation_driver_refresh_layout(
         s, p, context, cfg)) return;
 
@@ -1025,6 +1119,32 @@ inline void grid_refresh_layout(
 
 // ── Phase 1: Visual setup ────────────────────────────────────────────
 
+inline bool grid_card_uses_secondary_surface(
+    const espdesktop::cards::Context &context, const ParsedCfg &config) {
+  if (espdesktop::cards::numeric_selectable_driver_option_select(context, config))
+    return true;
+  if (context.family != espdesktop::cards::Family::MEDIA) return false;
+  const std::string mode = media_card_mode(config.sensor);
+  return mode == "position" ||
+         (mode == "now_playing" && media_now_playing_progress_enabled(config));
+}
+
+inline bool grid_card_uses_sensor_surface(
+    const espdesktop::cards::Context &context, const ParsedCfg &config) {
+  using Driver = espdesktop::card_runtime::CardDriverId;
+  switch (context.runtime.driver) {
+    case Driver::SENSOR:
+    case Driver::STATUS_ENTITY:
+    case Driver::WEATHER:
+    case Driver::DATE_TIME:
+      return true;
+    case Driver::IMAGE:
+      return image_card_modal_fit_enabled(config);
+    default:
+      return false;
+  }
+}
+
 inline void grid_phase1(
     BtnSlot *slots, const GridConfig &cfg,
     const std::string &order_str,
@@ -1041,6 +1161,10 @@ inline void grid_phase1(
   // Clear image references before visual setup removes their old LVGL widgets.
   espdesktop::cards::image_driver_reset_pool(cfg);
   int NS = bounded_grid_slots(cfg.num_slots);
+  bool neutral_buttons[MAX_GRID_SLOTS]{};
+  bool sensor_surfaces[MAX_GRID_SLOTS]{};
+  bool secondary_surfaces[MAX_GRID_SLOTS]{};
+  bool image_cards[MAX_GRID_SLOTS]{};
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   if (COLS > MAX_GRID_SLOTS) COLS = MAX_GRID_SLOTS;
   for (int i = 0; i < NS; i++)
@@ -1073,17 +1197,19 @@ inline void grid_phase1(
 
   bool has_on;
   uint32_t on_val = parse_hex_color(on_hex, has_on);
-  uint32_t off_val = display_correct_color(DEFAULT_SECONDARY_COLOR_RAW, display);
-  uint32_t sensor_val = display_correct_color(DEFAULT_TERTIARY_COLOR_RAW, display);
+  uint32_t off_val = display_correct_color(current_theme().surface_card, display);
+  uint32_t sensor_val = display_correct_color(current_theme().surface_secondary, display);
+  uint32_t surface_sensor_val = display_correct_color(current_theme().surface_sensor, display);
   if (has_on) on_val = display_correct_color(on_val, display);
 
   CardPalette palette;
   palette.has_on = has_on;
   palette.has_off = true;
   palette.has_sensor_color = true;
-  palette.on_val = has_on ? on_val : DEFAULT_SLIDER_COLOR;
+  palette.on_val = has_on ? on_val : DEFAULT_ACCENT_COLOR;
   palette.off_val = off_val;
   palette.sensor_val = sensor_val;
+  palette.surface_sensor_val = surface_sensor_val;
   set_current_button_primary_color(palette.on_val);
 
   bump_ha_subscription_generation();
@@ -1112,12 +1238,22 @@ inline void grid_phase1(
 
     ParsedCfg p = parse_cfg(scfg);
     const auto context = card_runtime_context(p);
+    const bool custom_background = card_palette_for_config(palette, p, display).custom_background;
+    neutral_buttons[idx - 1] = context.family != espdesktop::cards::Family::IMAGE &&
+        espdesktop::cards::media_driver_theme_owned_surface(context, p);
+    sensor_surfaces[idx - 1] = !custom_background && grid_card_uses_sensor_surface(context, p);
+    secondary_surfaces[idx - 1] = grid_card_uses_secondary_surface(context, p);
+    image_cards[idx - 1] = context.family == espdesktop::cards::Family::IMAGE;
     display_apply_main_width(s.icon_lbl, display);
     display_apply_slot_text_width(s, display);
     setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
     refresh_card_layout(s, p, cfg, row_span, col_span);
   }
   screen_lock_apply();
+  register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
+                      cfg.color_correction_red_percent,
+                      cfg.color_correction_green_percent,
+                      cfg.color_correction_blue_percent, secondary_surfaces, image_cards);
   ESP_LOGI("sensors", "Phase 1: done (%lu ms)", esphome::millis());
 }
 
@@ -1357,6 +1493,73 @@ inline void grid_delete_runtime_ptr(void *ptr) {
   delete static_cast<T *>(ptr);
 }
 
+#ifdef USE_COMPANION
+inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
+  if (!owner) return nullptr;
+  void *image_data = nullptr;
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.owner == owner &&
+        allocation.deleter == grid_delete_runtime_ptr<CompanionAppIconImageData>) {
+      image_data = allocation.ptr;
+      break;
+    }
+  }
+  if (!image_data) return nullptr;
+  const int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(owner));
+  for (int32_t i = 0; i < count; i++) {
+    lv_obj_t *child = lv_obj_get_child(owner, i);
+    if (child && lv_obj_get_user_data(child) == image_data) return child;
+  }
+  return nullptr;
+}
+
+inline void companion_refresh_app_icon_visibility() {
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->app_icon_mode) continue;
+    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    if (image && (lv_obj_get_screen(image) != lv_scr_act() || !source->image_loaded))
+      companion_apply_cached_app_icon(*source, image);
+  }
+}
+
+inline void companion_app_icon_screen_changed(lv_event_t *) {
+  companion_refresh_app_icon_visibility();
+}
+
+inline void companion_refresh_cached_app_icon(const std::string &application_id) {
+  esphome::companion::app_icon_store().begin();
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->app_icon_mode ||
+        (!application_id.empty() && source->application_id != application_id)) continue;
+    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    if (image) companion_apply_cached_app_icon(*source, image);
+  }
+  navigation_refresh_subpage_label();
+}
+
+inline void companion_refresh_app_icon_connection_state(bool online) {
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->app_icon_mode) continue;
+    source->companion_online = online;
+    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    if (image && source->image_loaded) {
+      // Reload the unmodified cached pixels before switching between the
+      // monochrome offline icon and the original-color online icon.
+      companion_apply_cached_app_icon(*source, image);
+    } else {
+      source->accent_palette = {};
+      companion_apply_app_icon_card_palette(*source, allocation.owner);
+    }
+  }
+}
+#endif
+
 inline void grid_prepare_timer_visual_reset(lv_obj_t *owner) {
   for (const auto &allocation : grid_runtime_allocations()) {
     if (allocation.owner == owner &&
@@ -1498,7 +1701,8 @@ inline void grid_prepare_media_runtime_for_visual_reset(lv_obj_t *owner) {
 
 inline void grid_release_runtime_allocations(
     lv_obj_t *owner, void *preserve_primary = nullptr,
-    void *preserve_secondary = nullptr) {
+    void *preserve_secondary = nullptr,
+    void *preserve_tertiary = nullptr) {
   if (owner == nullptr) return;
   // Close before any context is freed, including an inactive subpage's owner.
   navigation_close_modals_for_display_takeover();
@@ -1512,7 +1716,8 @@ inline void grid_release_runtime_allocations(
       // persistent Phase 1 widgets; deleting them here leaves LVGL user_data
       // pointing at freed memory before the media driver rebinds subscriptions.
       if (allocation.ptr == preserve_primary ||
-          allocation.ptr == preserve_secondary) {
+          allocation.ptr == preserve_secondary ||
+          allocation.ptr == preserve_tertiary) {
         if (write_index != read_index) allocations[write_index] = allocation;
         write_index++;
         continue;
@@ -1781,7 +1986,14 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
   if (slots == nullptr) return;
   for (int i = 0; i < slot_count; i++) {
     void *visual_context = nullptr;
+    void *media_context = nullptr;
     void *slider_context = nullptr;
+#ifdef USE_COMPANION
+    if (!slots[i].app_icon_img)
+      slots[i].app_icon_img = grid_find_companion_app_icon_image(slots[i].btn);
+    if (slots[i].app_icon_img != nullptr)
+      visual_context = lv_obj_get_user_data(slots[i].app_icon_img);
+#endif
     ParsedCfg config = parse_cfg(slots[i].config->state);
     const auto context = card_runtime_context(config);
     if (espdesktop::cards::media_driver_matches(context) &&
@@ -1790,7 +2002,8 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
       if (mode == "now_playing" || mode == "cover_art") {
         MediaNowPlayingCtx *now_playing = static_cast<MediaNowPlayingCtx *>(
           lv_obj_get_user_data(slots[i].sensor_container));
-        visual_context = now_playing;
+        media_context = now_playing;
+        if (!visual_context) visual_context = now_playing;
         if (now_playing != nullptr && now_playing->progress_slider != nullptr) {
           slider_context = lv_obj_get_user_data(now_playing->progress_slider);
         }
@@ -1802,7 +2015,7 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
       }
     }
     grid_release_runtime_allocations(
-      slots[i].btn, visual_context, slider_context);
+      slots[i].btn, visual_context, media_context, slider_context);
   }
 }
 
@@ -1829,6 +2042,17 @@ inline void grid_phase2(
     const std::string &on_hex,
     lv_obj_t *main_page_obj) {
   ESP_LOGI("sensors", "Phase 2: subscriptions + subpages start (%lu ms)", esphome::millis());
+#ifdef USE_COMPANION
+  if (main_page_obj) {
+    // Main can be shown directly after Wi-Fi setup or a screensaver, without
+    // going through subpage navigation. Rebuild only its visible icon buffers.
+    lv_obj_remove_event_cb(main_page_obj, companion_app_icon_screen_changed);
+    lv_obj_add_event_cb(main_page_obj, companion_app_icon_screen_changed,
+                        LV_EVENT_SCREEN_LOADED, nullptr);
+    lv_obj_add_event_cb(main_page_obj, companion_app_icon_screen_changed,
+                        LV_EVENT_SCREEN_UNLOADED, nullptr);
+  }
+#endif
   grid_log_memory("start");
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
@@ -1882,17 +2106,19 @@ inline void grid_phase2(
 
   bool has_on;
   uint32_t on_val = parse_hex_color(on_hex, has_on);
-  uint32_t off_val = display_correct_color(DEFAULT_SECONDARY_COLOR_RAW, display);
-  uint32_t sensor_val = display_correct_color(DEFAULT_TERTIARY_COLOR_RAW, display);
+  uint32_t off_val = display_correct_color(current_theme().surface_card, display);
+  uint32_t sensor_val = display_correct_color(current_theme().surface_secondary, display);
+  uint32_t surface_sensor_val = display_correct_color(current_theme().surface_sensor, display);
   if (has_on) on_val = display_correct_color(on_val, display);
 
   CardPalette palette;
   palette.has_on = has_on;
   palette.has_off = true;
   palette.has_sensor_color = true;
-  palette.on_val = has_on ? on_val : DEFAULT_SLIDER_COLOR;
+  palette.on_val = has_on ? on_val : DEFAULT_ACCENT_COLOR;
   palette.off_val = off_val;
   palette.sensor_val = sensor_val;
+  palette.surface_sensor_val = surface_sensor_val;
   set_current_button_primary_color(palette.on_val);
 
   OrderResult parsed, order;
@@ -1914,43 +2140,44 @@ inline void grid_phase2(
 
     ParsedCfg p = parse_cfg(scfg);
     const auto context = card_runtime_context(p);
+    const CardPalette card_palette = card_palette_for_config(palette, p, display);
     int row_span = order.row_span[idx - 1] > 0 ? order.row_span[idx - 1] : 1;
     int col_span = order.col_span[idx - 1] > 0 ? order.col_span[idx - 1] : 1;
     if (cfg.info_only && info_only_hidden_card_type(context)) continue;
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
     if (espdesktop::cards::image_driver_bind_main(
-          s, p, context, cfg)) continue;
+          s, p, context, cfg, palette)) continue;
     if (espdesktop::cards::wifi_qr_driver_bind_main(s, p, context)) continue;
     auto light_control_environment =
       espdesktop::cards::light_control_driver_environment(
-        palette, display, s);
+        card_palette, display, s);
     if (espdesktop::cards::light_control_driver_bind_main(
           s, p, context, light_control_environment)) continue;
     auto fan_control_environment =
       espdesktop::cards::fan_control_driver_environment(
-        palette, display, s);
+        card_palette, display, s);
     if (espdesktop::cards::fan_control_driver_bind_main(
           s, p, context, fan_control_environment)) continue;
     auto climate_control_environment =
       espdesktop::cards::climate_control_driver_environment(
-        palette, display, s);
+        card_palette, display, s);
     if (espdesktop::cards::climate_control_driver_bind_main(
           s, p, context, climate_control_environment)) continue;
     auto alarm_environment = espdesktop::cards::alarm_driver_environment(
-      palette, display, s, cfg, main_page_obj, NS, COLS);
+      card_palette, display, s, cfg, main_page_obj, NS, COLS);
     if (espdesktop::cards::alarm_driver_bind_main(
           s, p, context, alarm_environment)) continue;
     auto cover_modal_environment =
       espdesktop::cards::cover_modal_driver_environment(
-        palette, display, s);
+      card_palette, display, s);
     if (espdesktop::cards::cover_modal_driver_bind_main(
           s, p, context, cover_modal_environment)) continue;
     auto media_environment = espdesktop::cards::media_driver_environment(
-      palette, display, s, cfg);
+      card_palette, display, s, cfg);
     if (espdesktop::cards::media_driver_bind_main(
           s, p, context, media_environment)) continue;
     if (espdesktop::cards::timer_driver_bind_data(s, p, context)) continue;
-    if (bind_basic_sensor_card(s, p, context, palette, col_span)) continue;
+    if (bind_basic_sensor_card(s, p, context, card_palette, col_span)) continue;
     espdesktop::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
     toggle_state.sensor_text_mode = &sensor_text_mode[idx - 1];
@@ -1958,10 +2185,10 @@ inline void grid_phase2(
     toggle_state.icon_off = &icon_off_cp[idx - 1];
     toggle_state.icon_on = &icon_on_cp[idx - 1];
     if (espdesktop::cards::basic_action_driver_bind_main(
-          s, p, context, cfg, palette, display, main_page_obj, COLS,
+          s, p, context, cfg, card_palette, display, main_page_obj, COLS,
           toggle_state)) continue;
     if (espdesktop::cards::numeric_selectable_driver_bind_main(
-          s, p, context, palette, display)) continue;
+          s, p, context, card_palette, display)) continue;
     if (espdesktop::cards::cleaning_driver_bind_main(
           s, p, context)) continue;
     if (espdesktop::cards::access_cover_driver_bind_main(
@@ -1979,9 +2206,8 @@ inline void grid_phase2(
   }
 
   if (cfg.info_only) {
-    // Info-only profiles still bind main-card runtimes in phase 2. They do not
-    // build subpages, but remote modal actions can safely use those runtimes.
     grid_phase2_complete_state() = true;
+    refresh_theme_grid_after_rebuild();
     return;
   }
 
@@ -2064,7 +2290,7 @@ inline void grid_phase2(
 
     lv_obj_t *back_btn = create_grid_card_button(
       sub_scr, sp_radius, sp_pad, sp_btn_fnt, sp_txt_color);
-    apply_button_colors(back_btn, false, DEFAULT_SLIDER_COLOR, true, off_val);
+    apply_button_colors(back_btn, false, DEFAULT_ACCENT_COLOR, true, off_val);
     set_grid_card_cell(
       back_btn, sub_scr,
       sp_ord.back_pos % COLS, sp_ord.back_pos / COLS,
@@ -2124,6 +2350,7 @@ inline void grid_phase2(
       ParsedCfg sb_cfg = parsed_cfg_from_subpage_btn(sb);
       const auto context = card_runtime_context(
           sb_cfg, espdesktop::cards::Surface::SUBPAGE);
+      const CardPalette card_palette = card_palette_for_config(palette, sb_cfg, display);
       int col, row;
       if (sp_ord.has_back_token) { col = gp % COLS; row = gp / COLS; }
       else { int op = gp + 1; col = op % COLS; row = op / COLS; }
@@ -2136,7 +2363,13 @@ inline void grid_phase2(
       BtnSlot sub_slot = create_dynamic_card_slot(
         sb_btn, sp_icon_fnt, display_sensor_font(display), sp_btn_fnt, sp_txt_color,
         cfg.subpage_chevron_font);
-      navigation_register_subpage_card(si + 1, bn, sub_slot, sb);
+      navigation_register_subpage_card(
+          si + 1, bn, sub_slot, sb,
+          context.family != espdesktop::cards::Family::IMAGE &&
+              espdesktop::cards::media_driver_theme_owned_surface(context, sb_cfg),
+          !card_palette.custom_background && grid_card_uses_sensor_surface(context, sb_cfg),
+          grid_card_uses_secondary_surface(context, sb_cfg),
+          context.family == espdesktop::cards::Family::IMAGE);
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
       setup_card_visual(sub_slot, sb_cfg, context, cfg, palette, rs, cs);
@@ -2146,30 +2379,30 @@ inline void grid_phase2(
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
 
       if (espdesktop::cards::image_driver_bind_subpage(
-            sub_slot, sb_cfg, context, cfg)) continue;
+            sub_slot, sb_cfg, context, cfg, palette)) continue;
       if (espdesktop::cards::wifi_qr_driver_bind_subpage(
             sub_slot, sb_cfg, context)) continue;
       auto light_control_environment =
         espdesktop::cards::light_control_driver_environment(
-          palette, display, sub_slot);
+          card_palette, display, sub_slot);
       light_control_environment.add_parent_indicator =
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espdesktop::cards::light_control_driver_bind_subpage(
             sub_slot, sb_cfg, context, light_control_environment)) continue;
       auto fan_control_environment =
         espdesktop::cards::fan_control_driver_environment(
-          palette, display, sub_slot);
+          card_palette, display, sub_slot);
       fan_control_environment.add_parent_indicator =
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espdesktop::cards::fan_control_driver_bind_subpage(
             sub_slot, sb_cfg, context, fan_control_environment)) continue;
       auto climate_control_environment =
         espdesktop::cards::climate_control_driver_environment(
-          palette, display, sub_slot);
+          card_palette, display, sub_slot);
       if (espdesktop::cards::climate_control_driver_bind_subpage(
             sub_slot, sb_cfg, context, climate_control_environment)) continue;
       auto alarm_environment = espdesktop::cards::alarm_driver_environment(
-        palette, display, sub_slot, cfg, sub_scr, NS, COLS);
+        card_palette, display, sub_slot, cfg, sub_scr, NS, COLS);
       alarm_environment.parent_config = &p;
       alarm_environment.add_parent_indicator =
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
@@ -2177,13 +2410,13 @@ inline void grid_phase2(
             sub_slot, sb_cfg, context, alarm_environment)) continue;
       auto cover_modal_environment =
         espdesktop::cards::cover_modal_driver_environment(
-          palette, display, sub_slot);
+          card_palette, display, sub_slot);
       cover_modal_environment.add_parent_indicator =
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espdesktop::cards::cover_modal_driver_bind_subpage(
             sub_slot, sb_cfg, context, cover_modal_environment)) continue;
       auto media_environment = espdesktop::cards::media_driver_environment(
-        palette, display, sub_slot, cfg);
+        card_palette, display, sub_slot, cfg);
       media_environment.add_parent_indicator =
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espdesktop::cards::media_driver_bind_subpage(
@@ -2192,11 +2425,11 @@ inline void grid_phase2(
             sub_slot, sb_cfg, context, [&](const std::string &entity_id) {
               add_parent_indicator(entity_id, timer_card_state_active_ref);
             })) continue;
-      if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette, cs)) continue;
+      if (bind_basic_sensor_card(sub_slot, sb_cfg, context, card_palette, cs)) continue;
       espdesktop::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
       action_environment.parent_config = &p;
-      action_environment.palette = palette;
+      action_environment.palette = card_palette;
       action_environment.display = display;
       action_environment.grid_page = sub_scr;
       action_environment.grid_cols = COLS;
@@ -2228,7 +2461,7 @@ inline void grid_phase2(
             sub_slot, sb_cfg, context, action_environment)) continue;
       espdesktop::cards::NumericSelectableSubpageEnvironment
         numeric_environment;
-      numeric_environment.palette = palette;
+      numeric_environment.palette = card_palette;
       numeric_environment.display = display;
       numeric_environment.add_parent_indicator =
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
@@ -2271,7 +2504,8 @@ inline void grid_phase2(
   }
   refresh_weather_forecast_cards();
   ha_log_subscription_diagnostics("grid-complete");
-  grid_phase2_complete_state() = true;
+    grid_phase2_complete_state() = true;
+    refresh_theme_grid_after_rebuild();
   grid_log_memory("end");
   ESP_LOGI("sensors", "Phase 2: done (%lu ms)", esphome::millis());
 }

@@ -75,6 +75,7 @@ substitutions:
   cover_art_text_color: "0xFFF5E0"
   cover_art_square_overlay: "false"
   cover_art_live_image_updates: "false"
+  theme_battery_hud_label: "id(battery_status_icon_label)"
   battery_status_apply_code: |-
     if (id(battery_status_enabled).state) {
       const int battery_status_icon_x_box = lv_obj_get_width(id(battery_status_button));
@@ -104,6 +105,7 @@ packages:
   esp32_c6_firmware_update: !include ../../common/device/esp32_c6_firmware_update.yaml
   icons:           !include ../../common/assets/icons.yaml
   fonts_device:    !include device/fonts.yaml
+  theme_colors:    !include ../../common/theme/colors.yaml
   button_theme:    !include ../../common/theme/button.yaml
   # ---------------------------------------------------------------------------
   # Configuration (text/select/number components for web UI)

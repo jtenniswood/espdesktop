@@ -3,11 +3,22 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 
 #include "panel_config_document.h"
 
 namespace espdesktop::configuration {
+
+inline bool &companion_app_icon_auto_colour_generation_enabled() {
+  static bool enabled = true;
+  return enabled;
+}
+
+inline std::function<void()> &companion_app_icon_colour_settings_changed_handler() {
+  static std::function<void()> handler;
+  return handler;
+}
 
 // A live text field used by the existing YAML grid wiring. Persistence and
 // runtime publication are deliberately separate operations: compatibility
@@ -56,6 +67,8 @@ class PanelConfigTextBindings {
                           size_t value_size, bool persist);
 
   std::string device_profile_;
+  bool app_icon_custom_colour_control_enabled_{true};
+  bool app_icon_auto_colour_generation_enabled_{true};
   PanelConfigTextValue *button_order_{nullptr};
   PanelConfigTextValue *button_on_color_{nullptr};
   std::array<ButtonSources, PANEL_CONFIG_MAX_SLOT_COUNT> buttons_{};
