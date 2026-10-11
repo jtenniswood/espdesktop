@@ -100,7 +100,8 @@
       "metadataOverlay": false,
       "screensaverCameraImageMode": "Fit",
       "clockOverlay": false,
-      "clockDate": false
+      "clockDate": false,
+      "coverArtPlaybackControl": true
     },
     "screenInput": {
       "brightness_day": 80,
@@ -191,8 +192,12 @@
     ]
   },
   "bundleSize": {
-    "minified": 2678289,
-    "gzip": 1066914,
+    "minified": 2686107,
+    "gzip": 1068610,
     "gzipTolerance": 9216
+  },
+  "bundleBudget": {
+    "minified": 2750000,
+    "gzip": 1150000
   }
 }
