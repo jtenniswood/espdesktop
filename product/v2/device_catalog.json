@@ -892,7 +892,6 @@
           "network-coprocessor",
           "ethernet-selection"
         ],
-        "audio": "local-voice-services",
         "input": [
           "touchscreen",
           "physical-volume-buttons"
