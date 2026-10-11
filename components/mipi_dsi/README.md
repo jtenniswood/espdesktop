@@ -15,5 +15,10 @@ The JC8012P4A1 V3 and JC4880P443 V3 profiles load this external component;
 other devices continue to use ESPHome's bundled driver. Keep the copy pinned to the
 tested ESPHome version and remove it when the upstream fix is available.
 
+The released JC8012P4A1 V3 profile and its separate V3 test package load this
+external component; other devices continue to use ESPHome's bundled driver.
+Keep the copy pinned to the tested ESPHome version and remove it when the
+upstream fix is available.
+
 Diagnosis and XTAL experiments were supplied by Horstexplorer and
 MichaelMKKelly in https://github.com/jtenniswood/espcontrol/pull/1954.
