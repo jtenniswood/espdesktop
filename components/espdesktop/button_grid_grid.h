@@ -76,6 +76,18 @@ inline void grid_log_memory(const char *stage) {
 #endif
 }
 
+// Remote modal requests must wait until the subscription/runtime phase has
+// finished. Phase 1 has already registered navigation targets, but the card
+// contexts and subpage runtimes are not safe to use until phase 2 completes.
+inline bool &grid_phase2_complete_state() {
+  static bool complete = false;
+  return complete;
+}
+
+inline bool grid_phase2_complete() {
+  return grid_phase2_complete_state();
+}
+
 inline DisplayProfile display_profile_from_grid_config(const GridConfig &cfg) {
   DisplayProfile profile;
   profile.fonts.icon = cfg.icon_font;
@@ -1037,6 +1049,9 @@ inline void grid_phase1(
     const std::string &on_hex,
     lv_obj_t *main_page_obj = nullptr) {
   ESP_LOGI("sensors", "Phase 1: visual setup start (%lu ms)", esphome::millis());
+  grid_phase2_complete_state() = false;
+  // Remote controls may be open over a non-grid page when widgets are rebuilt.
+  navigation_close_modals_for_display_takeover();
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
@@ -1272,6 +1287,7 @@ inline bool grid_refresh_subpage_layouts(
         ESP_LOGW("sensors", "Subpage %d is missing card %d", si + 1, button_index);
         continue;
       }
+      card->display_order = gp;
       const int col = sp_order.has_back_token ? gp % COLS : (gp + 1) % COLS;
       const int row = sp_order.has_back_token ? gp / COLS : (gp + 1) / COLS;
       const int col_span = sp_order.col_span[button_index - 1] > 0
@@ -1523,6 +1539,8 @@ inline void grid_release_runtime_allocations(
     lv_obj_t *owner, void *preserve_primary = nullptr,
     void *preserve_secondary = nullptr) {
   if (owner == nullptr) return;
+  // Close before any context is freed, including an inactive subpage's owner.
+  navigation_close_modals_for_display_takeover();
   std::vector<GridRuntimeAllocation> &allocations = grid_runtime_allocations();
   size_t write_index = 0;
   for (size_t read_index = 0; read_index < allocations.size(); read_index++) {
@@ -2002,6 +2020,7 @@ inline void grid_phase2(
   }
 
   if (cfg.info_only) {
+    grid_phase2_complete_state() = true;
     refresh_theme_grid_after_rebuild();
     return;
   }
@@ -2298,7 +2317,8 @@ inline void grid_phase2(
   }
   refresh_weather_forecast_cards();
   ha_log_subscription_diagnostics("grid-complete");
-  refresh_theme_grid_after_rebuild();
+    grid_phase2_complete_state() = true;
+    refresh_theme_grid_after_rebuild();
   grid_log_memory("end");
   ESP_LOGI("sensors", "Phase 2: done (%lu ms)", esphome::millis());
 }
