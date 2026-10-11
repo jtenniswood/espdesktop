@@ -12,6 +12,15 @@ function deepEqual(actual: unknown, expected: unknown, message: string): void {
 
 export function runPreviewPlacementControllerTests(): void {
   const controller = createPreviewPlacementController();
+  for (const isSubpage of [false, true]) {
+    const result = controller.moveSingle({
+      grid: [isSubpage ? -2 : 1, 2, 3, ...Array<number>(15).fill(0), 19, 20],
+      sizes: { "19": 3 }, maxSlots: 18, maxSlotId: isSubpage ? 20 : 18, selected: [],
+    }, 1, 4, 3);
+    equal(result.accepted, true, "portrait move succeeds");
+    deepEqual(result.grid.slice(18), [19, 20], "single-card move preserves the landscape tail");
+    equal(result.sizes["19"], 3, "single-card move preserves hidden sizing");
+  }
   const moved = controller.moveSingle({
     grid: [1, -1, 2, 3, 0, 0, 0, 0, 0, 0],
     sizes: { "1": 3 },

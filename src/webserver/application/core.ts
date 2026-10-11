@@ -22,7 +22,7 @@ export interface CoreFeature {
     syncPreviewGridTop(layout?: any, scale?: any): void;
     clockBarVisibleInPreview(): boolean;
     syncPreviewStyleVars(layout?: any, scale?: any): void;
-    normalizeGridSpansForLayout(grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any): any;
+    normalizeGridSpansForLayout(grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxSlotId?: any): any;
     syncPreviewOrientation(preservePendingGrid?: any): void;
     subpageStateDisplayMode(button?: any): string;
     mockNowIso: any;
@@ -132,10 +132,10 @@ export function createCoreFeature(
         r.setProperty("--subpage-right", scaledCqw(subpageBadge.right, scale));
         r.setProperty("--subpage-fs", scaledCqw(subpageBadge.fontSize, scale));
     }
-    function normalizeGridSpansForLayout(this: any, grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any) {
+    function normalizeGridSpansForLayout(this: any, grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxSlotId?: any) {
         var previousOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
         EspDesktopModel.clearSpans(grid, maxSlots);
-        EspDesktopModel.applySpans(grid, sizes || {}, maxSlots, gridCols);
+        EspDesktopModel.applySpans(grid, sizes || {}, maxSlots, gridCols, maxSlotId);
         var normalizedOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
         if (normalizedOrder !== previousOrder && typeof onChanged === "function")
             onChanged(normalizedOrder);
@@ -145,8 +145,9 @@ export function createCoreFeature(
         var layout: any = activeLayout();
         var screen: any = layout.screen || applicationLayout.config.screen;
         var scale: any = previewLayoutScale(layout);
+        applicationLayout.previewSlots = layout.slots || applicationLayout.totalSlots;
         applicationLayout.gridCols = layout.cols || applicationLayout.config.cols;
-        applicationLayout.gridRows = layout.rows || Math.ceil(applicationLayout.numSlots / applicationLayout.gridCols);
+        applicationLayout.gridRows = layout.rows || Math.ceil(applicationLayout.previewSlots / applicationLayout.gridCols);
         var r: any = document.documentElement.style;
         r.setProperty("--screen-w", screen.width || applicationLayout.config.screen.width);
         r.setProperty("--screen-aspect", screen.aspect || applicationLayout.config.screen.aspect);
@@ -157,7 +158,7 @@ export function createCoreFeature(
             ? applicationLayout.config.largeSensorUnitOffsetPercent : -10;
         r.setProperty("--large-sensor-unit-offset-y", "calc(var(--btn-icon) * 2.5 * " + (largeSensorUnitOffsetPercent / 100) + ")");
         if (!preservePendingGrid && state.grid && state.grid.length) {
-            normalizeGridSpansForLayout(state.grid, state.sizes, applicationLayout.numSlots, applicationLayout.gridCols, function (this: any, normalizedOrder?: any) {
+            normalizeGridSpansForLayout(state.grid, state.sizes, applicationLayout.previewSlots, applicationLayout.gridCols, function (this: any, normalizedOrder?: any) {
                 if (runtime.orderReceived)
                     postButtonOrder(normalizedOrder);
             });
@@ -168,7 +169,7 @@ export function createCoreFeature(
                 if (!sp || !sp.grid || !sp.grid.length)
                     continue;
                 var previousSubpageOrder: any = JSON.stringify(serializeSubpageGrid(sp));
-                normalizeGridSpansForLayout(sp.grid, sp.sizes, applicationLayout.numSlots, applicationLayout.gridCols);
+                normalizeGridSpansForLayout(sp.grid, sp.sizes, applicationLayout.previewSlots, applicationLayout.gridCols, undefined, sp.buttons.length);
                 sp.order = serializeSubpageGrid(sp);
                 if (JSON.stringify(sp.order) !== previousSubpageOrder) {
                     saveSubpage(homeSlot);
