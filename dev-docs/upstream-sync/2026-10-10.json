@@ -2525,7 +2525,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -2609,7 +2609,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5"
@@ -2656,7 +2656,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c"
@@ -3216,7 +3216,7 @@
       "destinationBaseBranch": "retry-recovered-image-entities",
       "reviewVerification": {
         "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -3347,7 +3347,7 @@
       ],
       "reviewVerification": {
         "revision": "2729945b2db3f05054c319d385a26294207d7c58",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -3363,7 +3363,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/1920",
       "mergeSha": "7777d3830d16c5a0624654b53c1a4cf9bc19f60a",
       "disposition": "Ported",
-      "evidence": "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions previously queued. Physical testing pending. Hidden image revisions now stay dirty until the card is visible, both in picture callbacks and maintenance. Actual production hidden/visible transition test and full fast74 host checks passed; review resolved after push. Initial ordinary transfer completion now seeds an already-open periodic cadence instead of immediately downloading twice. Actual production completion/maintenance regression and full fast74 host checks passed; dependent #155/#156/#157 rebased and production tests rechecked. Latest activity-without-window retry and unavailable-camera schedule findings fixed; full fast74 host/172 web passed and production availability/activity regressions passed. Revision-driven image tile failures now retain the last successful frame and respect the revision retry deadline. Actual UI/error and production maintenance regressions passed, as did full fast74/172 checks. Dependent ports updated and final builds requeued. Activity-window completion now credits ordinary initial transfers, preventing immediate duplicates; actual completion/5-second cadence regression and full fast74/172 passed. Synchronous rejected image revision URLs now use the same preview-preserving backoff; actual rejected-request/due-time regression and fullfast74/172 passed. Dependents updated and exact-head builds requeued. Dirty image revisions are consumed before memory preflight; rejected revisions preserve previews and follow deadline backoff rather than repeat legacy-loop preflights. Actual memory-count/backoff runtime regression and fullfast passed; review resolved. Latest S3 suspension clears scheduledtile ownership and in_flight before release; actual suspend/resume with expiredactivitywindow and camera runtime/fullfastPASS; GsNwresolved. New unsolicited credential-update cadence finding G0fX remains. Camera picture/token URL updates retain credentials but respect tile periodic deadlines/activity windows; initial and explicit reloads stillwork. Actualcadence/idleactivity/initial/explicit runtime regressions/fullfast74/172PASS at3829675f9, G0fXresolved. NewsuccessfulrevisionbackoffresetfindingHGGu pending. Review HGGu resolved: successful image revision downloads clear retry deadlines and failure counts even in Off mode. Production runtime regression and full fast checks passed at the published revision. Hb2h resolved: recovering availability sets explicit picture refresh so an idle activity schedule cannot keep a camera hidden. Production availability and picture-handler tests plus full fast checks passed.",
+      "evidence": "Camera refresh settings ported with retained-image retry/backoff, activity cadence and entity-picture recovery guards. Production regressions and all 3 final-revision recorded factory builds passed at e6dd5c979. Physical device testing remains pending; earlier checks and fixes are retained in the JSON validation history.",
       "changedFiles": [
         "common/config/image_card_normalization_fixtures.json",
         "common/device/image_cards.yaml",
@@ -3912,11 +3912,14 @@
       "destinationBaseBranch": "main",
       "reviewVerification": {
         "revision": "e6dd5c97954a7959366b018d9b9c4304655adbf2",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
         "eaacd8550b34bedaede81ffba984829921c4e73c"
+      ],
+      "validationHistory": [
+        "Camera refresh/timestamp ownership ported with preview retention, availability/cancel recovery, no hidden activity replay, memory preflight ownership and preempted schedule ownership corrections. Production runtime/feedback tests, full fast74 host/172 web checks and real7P4 browser help/settings passed. Availability recovery is separately covered by#155. All observed review findings resolved after push. Historical3-target firmware builds passed; final latest revisions previously queued. Physical testing pending. Hidden image revisions now stay dirty until the card is visible, both in picture callbacks and maintenance. Actual production hidden/visible transition test and full fast74 host checks passed; review resolved after push. Initial ordinary transfer completion now seeds an already-open periodic cadence instead of immediately downloading twice. Actual production completion/maintenance regression and full fast74 host checks passed; dependent #155/#156/#157 rebased and production tests rechecked. Latest activity-without-window retry and unavailable-camera schedule findings fixed; full fast74 host/172 web passed and production availability/activity regressions passed. Revision-driven image tile failures now retain the last successful frame and respect the revision retry deadline. Actual UI/error and production maintenance regressions passed, as did full fast74/172 checks. Dependent ports updated and final builds requeued. Activity-window completion now credits ordinary initial transfers, preventing immediate duplicates; actual completion/5-second cadence regression and full fast74/172 passed. Synchronous rejected image revision URLs now use the same preview-preserving backoff; actual rejected-request/due-time regression and fullfast74/172 passed. Dependents updated and exact-head builds requeued. Dirty image revisions are consumed before memory preflight; rejected revisions preserve previews and follow deadline backoff rather than repeat legacy-loop preflights. Actual memory-count/backoff runtime regression and fullfast passed; review resolved. Latest S3 suspension clears scheduledtile ownership and in_flight before release; actual suspend/resume with expiredactivitywindow and camera runtime/fullfastPASS; GsNwresolved. New unsolicited credential-update cadence finding G0fX remains. Camera picture/token URL updates retain credentials but respect tile periodic deadlines/activity windows; initial and explicit reloads stillwork. Actualcadence/idleactivity/initial/explicit runtime regressions/fullfast74/172PASS at3829675f9, G0fXresolved. NewsuccessfulrevisionbackoffresetfindingHGGu pending. Review HGGu resolved: successful image revision downloads clear retry deadlines and failure counts even in Off mode. Production runtime regression and full fast checks passed at the published revision. Hb2h resolved: recovering availability sets explicit picture refresh so an idle activity schedule cannot keep a camera hidden. Production availability and picture-handler tests plus full fast checks passed."
       ]
     },
     {
@@ -4428,7 +4431,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "f0e592807c9a2ef4d01c5f1578e7e047683780a5",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -4467,7 +4470,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "42667ce1c36bace80a8f9742b2dfd88db65e1ed1",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -4974,7 +4977,7 @@
       ],
       "reviewVerification": {
         "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -5030,7 +5033,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2073",
       "mergeSha": "2f8d6e892912506440e0efb4f09c7c1400610bf3",
       "disposition": "Ported",
-      "evidence": "Removed P4-86 local Voice Services/alarm delay audio, controls and obsolete docs/assets, preserving visual countdowns, external HA media, Mac Companion artwork and protected remote navigation. Full fast checks passed (74 firmware host,172 web), actual P4-86 Chromium acceptance and docs/site links passed. Four representative builds queued; no physical device testing. Depends on destination PR156 remote navigation. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. New exports omit seven retired voice/alarm-audio fields; old import compatibility retained. Full fast74/172 and actual P4-86 downloaded-backup/browser acceptance passed. Final embedded bundle regenerated and builds updated. Actual P4-86 compile at aa99987e4 failed: removed volume popup clock title field still referenced. Restored destination field and pushed1e20d3cc7; fresh P4-86 compile running, remaining targets updated. Earlier failed build retained; no final compile pass claimed yet. Three unused legacy chime files restored byte-identical to main for pinned packages with main-branch download URLs; local Voice Services remain removed. Rebase preserves lock/alarm guard and ordinary Voice card navigation. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Restored visual Entry/Exit Delays countdown documentation, leaving removedaudiooptions absent. Docs/sitePASS; G0hJresolved. Latest3fb9a6898docs-onlyfollowupinheritsreviewedalarmrebuildwait; generated guardprofilesallvalid. Currentparentchain updatedwithcamera cadence andonboarding guard; finalchainvalidatedbeforelaterSharedSpeakerParent correction. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision.",
+      "evidence": "Local voice and alarm audio removed while preserving the destination camera, modal and media-card behavior. Production regressions and all 4 final-revision recorded factory builds passed at 9f4d92ef1. Physical device testing remains pending; earlier checks and fixes are retained in the JSON validation history.",
       "changedFiles": [
         "builds/esp32-p4-86.yaml",
         "common/addon/backlight.yaml",
@@ -5520,18 +5523,42 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2073-9f4d92ef1-final-review-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/baa006d233cf2d3fec07a1d4fdc445945ccf63a0f41b0483a07858649783c7cd.log.gz",
+          "logSha256": "baa006d233cf2d3fec07a1d4fdc445945ccf63a0f41b0483a07858649783c7cd",
+          "archiveSha256": "99994821cc0d49323473d2f18ea4f3e0f3191f5915932df82cc85332e7ad6227"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2073-9f4d92ef1-final-review-guition-esp32-p4-jc4880p443.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/260030565de1ab1506f97912ac12c6d83b22213fb2c22e7e1bac32b8c6469136.log.gz",
+          "logSha256": "260030565de1ab1506f97912ac12c6d83b22213fb2c22e7e1bac32b8c6469136",
+          "archiveSha256": "d141f9c35f020246c4e0927a50f657392aaa049bcb5d877a8146957420c23a11"
         }
       ],
       "reviewStatus": "No unresolved review findings at the verified revision",
@@ -5544,11 +5571,14 @@
       ],
       "reviewVerification": {
         "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
         "e2711789f3387847904dd9f4b86e1e5778338d94"
+      ],
+      "validationHistory": [
+        "Removed P4-86 local Voice Services/alarm delay audio, controls and obsolete docs/assets, preserving visual countdowns, external HA media, Mac Companion artwork and protected remote navigation. Full fast checks passed (74 firmware host,172 web), actual P4-86 Chromium acceptance and docs/site links passed. Four representative builds queued; no physical device testing. Depends on destination PR156 remote navigation. Rebased onto latest reviewed camera parent; actual production runtime/feedback and applicable remote-navigation tests rechecked. New exports omit seven retired voice/alarm-audio fields; old import compatibility retained. Full fast74/172 and actual P4-86 downloaded-backup/browser acceptance passed. Final embedded bundle regenerated and builds updated. Actual P4-86 compile at aa99987e4 failed: removed volume popup clock title field still referenced. Restored destination field and pushed1e20d3cc7; fresh P4-86 compile running, remaining targets updated. Earlier failed build retained; no final compile pass claimed yet. Three unused legacy chime files restored byte-identical to main for pinned packages with main-branch download URLs; local Voice Services remain removed. Rebase preserves lock/alarm guard and ordinary Voice card navigation. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Restored visual Entry/Exit Delays countdown documentation, leaving removedaudiooptions absent. Docs/sitePASS; G0hJresolved. Latest3fb9a6898docs-onlyfollowupinheritsreviewedalarmrebuildwait; generated guardprofilesallvalid. Currentparentchain updatedwithcamera cadence andonboarding guard; finalchainvalidatedbeforelaterSharedSpeakerParent correction. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision."
       ]
     },
     {
@@ -5639,7 +5669,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5768,7 +5798,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d44c137570a7483daa6f7109848353c85e08b6f6",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5813,7 +5843,7 @@
       ],
       "reviewVerification": {
         "revision": "e1e2af19952a1b43ebee30cb5c6ff68b8fe63931",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5844,7 +5874,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "197b7cdbc435b50c9f32d02986b61a70ab078d39",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5875,7 +5905,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "edacf8e17b14e388aa2881476b778ca3635c27d6",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "edacf8e17b14e388aa2881476b778ca3635c27d6"
@@ -6119,7 +6149,7 @@
       ],
       "reviewVerification": {
         "revision": "2696cab9a5089a5df5c55cdd553b44df67bf5df4",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6184,7 +6214,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3"
@@ -6222,7 +6252,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "39eaebc80000e91d857f3fbb2402b9bc7aaf3c5c",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6268,7 +6298,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6382,7 +6412,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c055bb06a76c5adca7cb7c7eceb822ad29227e4e",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6818,7 +6848,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc4880p443.log",
           "device": "guition-esp32-p4-jc4880p443",
           "esphome": "2026.9.1"
@@ -6842,7 +6872,7 @@
       ],
       "reviewVerification": {
         "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": [
           "PRRT_kwDOUR8kMs6rGR1a"
         ]
@@ -6894,7 +6924,7 @@
       ],
       "reviewVerification": {
         "revision": "0ddaccd2f8455c9f21a525a5e3eaf1353dab71bf",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6952,7 +6982,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7004,7 +7034,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6"
@@ -7065,7 +7095,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "29f5be9d7765814bd12f27c8baf2de54898faed7",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "29f5be9d7765814bd12f27c8baf2de54898faed7"
@@ -7188,7 +7218,7 @@
       ],
       "reviewVerification": {
         "revision": "f885810607a1011e354dae224404802ae2d45128",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "f885810607a1011e354dae224404802ae2d45128"
@@ -7279,7 +7309,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "a69f0c0ff1c8cbe401697fbd8dc84e8d274a4ced",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7307,7 +7337,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "4df5458874b90445450cd70d1f5ad8c260bd7347",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "4df5458874b90445450cd70d1f5ad8c260bd7347"
@@ -7389,7 +7419,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "5f2d163a917422f2c28148b62f70948e7464f23a",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "5f2d163a917422f2c28148b62f70948e7464f23a"
@@ -7463,7 +7493,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d3bf15ca60358d419c092a0ef7c30ce98d436ee9",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7510,7 +7540,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "ed4e4163834a78fe8e7eacdb9dfb465c3fcdbe2d",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7557,7 +7587,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "ff4576898346b170a3e1072013b2391c58e2b6b6",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7592,7 +7622,7 @@
       ],
       "reviewVerification": {
         "revision": "03f465428f2f59f5d6da78e0f744f73526bafd74",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "03f465428f2f59f5d6da78e0f744f73526bafd74"
@@ -7642,7 +7672,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "5128f047c6191842420fa095a1636228ccda21f1",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7759,7 +7789,7 @@
       ],
       "reviewVerification": {
         "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": [
           "PRRT_kwDOUR8kMs6rFdGL"
         ]
@@ -7805,7 +7835,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "444d08a6d83a6813906d4d3ca86372c436eab656",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "444d08a6d83a6813906d4d3ca86372c436eab656"
@@ -7834,7 +7864,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "fe26768f89c84931a70544a67bed2576a9994aab",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "fe26768f89c84931a70544a67bed2576a9994aab"
@@ -8250,7 +8280,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "7a764ab631c7be629da3088d8b08025ccea78aba",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -8343,7 +8373,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c6a678b4800eab576992d301f443848189c5f170",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -8456,7 +8486,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "03fecaed0be5f47e27f12adc63a27881e846da6c",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -8503,7 +8533,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2"
@@ -8551,7 +8581,7 @@
       ],
       "reviewVerification": {
         "revision": "0b18d20009f6fb482aaf1dcdfc5ec24dbc505bce",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "0b18d20009f6fb482aaf1dcdfc5ec24dbc505bce"
@@ -8598,7 +8628,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d44b6bd73d254d7b784862958f1ba1390cf58db8",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "d44b6bd73d254d7b784862958f1ba1390cf58db8"
@@ -8633,7 +8663,7 @@
       ],
       "reviewVerification": {
         "revision": "b611474d0eea99fdf07b6e859618092162318def",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "b611474d0eea99fdf07b6e859618092162318def"
@@ -8755,7 +8785,7 @@
       ],
       "reviewVerification": {
         "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -8786,7 +8816,7 @@
       ],
       "reviewVerification": {
         "revision": "a29c6585a99ca70680317513f0ad167762c61c23",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "a29c6585a99ca70680317513f0ad167762c61c23"
@@ -8879,7 +8909,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -9007,7 +9037,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "58e642bc1e1afd6de0e15e283cc785d34917b93a",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "58e642bc1e1afd6de0e15e283cc785d34917b93a"
@@ -9080,7 +9110,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "de979d5df3ac2239aaf28ba71e78e05a384ee7ae",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     },
@@ -9204,7 +9234,7 @@
       ],
       "reviewVerification": {
         "revision": "522afc2a77ae8ae4be25e1a5b45f9c264922d673",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -9235,7 +9265,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "bc8be55b74343d44079453836d7ec043ae9086e0",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "bc8be55b74343d44079453836d7ec043ae9086e0"
@@ -9286,7 +9316,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147"
@@ -9641,7 +9671,7 @@
       ],
       "reviewVerification": {
         "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757"
@@ -9677,7 +9707,7 @@
       ],
       "reviewVerification": {
         "revision": "066fb7b0f9d2088b9732c8f8490785e6a8710b0e",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "066fb7b0f9d2088b9732c8f8490785e6a8710b0e"
@@ -9822,7 +9852,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -9879,7 +9909,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "e52a136f19c9df4631e42141b762f7bb9abe495d",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "e52a136f19c9df4631e42141b762f7bb9abe495d"
@@ -10162,7 +10192,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
@@ -10486,7 +10516,7 @@
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "Awaiting review verification for the updated revision",
+      "reviewStatus": "No unresolved review findings at the verified revision",
       "reviewThreads": [
         "PRRT_kwDOUR8kMs6rHbKb",
         "PRRT_kwDOUR8kMs6rHkEV",
@@ -10498,8 +10528,8 @@
         "PRRT_kwDOUR8kMs6rIvXn"
       ],
       "reviewVerification": {
-        "revision": "d8efd03acf147292967fd953088755775279556e",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
@@ -10762,11 +10792,11 @@
           "esphome": "2026.9.1"
         }
       ],
-      "reviewStatus": "Awaiting review verification for the updated revision",
+      "reviewStatus": "No unresolved review findings at the verified revision",
       "reviewThreads": [],
       "reviewVerification": {
-        "revision": "c282126515afb70c2f00ee46ef3baaded4497ae9",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       },
       "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
@@ -10891,7 +10921,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "756522a86902c510049a65fb9f71ceb98585f8c6",
-        "checkedAt": "2026-10-10T23:54:47.956212+00:00",
+        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
         "unresolvedThreads": []
       }
     }
