@@ -870,7 +870,8 @@ script:
           lv_obj_set_style_text_color(id(cover_art_playback_icon), lv_color_hex(icon_color), LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(cover_art_playback_button), button_color, LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(cover_art_playback_button), pressed_color,
-                                    LV_PART_MAIN | LV_STATE_PRESSED);
+                                    static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+                                        static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
 
   - id: cover_art_clear_image_source
     mode: restart
@@ -905,7 +906,8 @@ script:
           lv_obj_set_style_text_color(id(cover_art_playback_icon), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(cover_art_playback_button), button_color, LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(cover_art_playback_button), lv_color_lighten(button_color, 48),
-                                    LV_PART_MAIN | LV_STATE_PRESSED);
+                                    static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+                                        static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
       - script.execute: cover_art_clear_image_source
       - script.wait: cover_art_clear_image_source
       - lvgl.widget.hide: cover_art_image_widget
@@ -3122,14 +3124,25 @@ script:
             - if:
                 condition:
                   lambda: |-
-                    return id(media_player_sleep_prevention_enabled).state ||
-                           (id(screensaver_mode).state != "timer" &&
-                            id(screensaver_mode).state != "sensor") ||
-                           !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE);
+                    const bool clock_screensaver_active =
+                        id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::CLOCK);
+                    return !clock_screensaver_active &&
+                           (id(media_player_sleep_prevention_enabled).state ||
+                            (id(screensaver_mode).state != "timer" &&
+                             id(screensaver_mode).state != "sensor") ||
+                            !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE));
                 then:
                   - script.execute: cover_art_start_delay
                 else:
-                  - script.execute: screensaver_idle_check
+                  - if:
+                      condition:
+                        lambda: |-
+                          return id(espdesktop_app).display().target_mode_is(
+                              espdesktop::DisplayMode::CLOCK);
+                      then:
+                        - script.execute: show_cover_art_view
+                      else:
+                        - script.execute: screensaver_idle_check
 
   - id: cover_art_delayed_playback_stopped
     mode: restart
