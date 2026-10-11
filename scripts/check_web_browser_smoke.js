@@ -1714,10 +1714,23 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: track overlay duration visibility should match square cover art layout`,
   );
   if (options.coverArtSquareOverlay) {
+    const playbackToggle = screensaverSettings.locator("#sp-set-ss-playback-control");
+    assert(await playbackToggle.isChecked(), `${label}: persistent playback control defaults on`);
+    assert(await playbackToggle.evaluate((el) => {
+      const awake = document.querySelector("#sp-set-ss-media-sleep-prevention");
+      return !!(awake.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }), `${label}: playback toggle follows keep-screen-awake`);
+    await screensaverSettings.locator("#sp-set-ss-playback-control + .sp-toggle-track").click();
+    assert(!(await playbackToggle.isChecked()), `${label}: persistent playback control can be disabled`);
+    await screensaverSettings.locator("#sp-set-ss-playback-control + .sp-toggle-track").click();
+    assert(await playbackToggle.isChecked(), `${label}: persistent playback control can be re-enabled`);
     assert(
       await coverArtCard.locator("#sp-set-ss-track-overlay").isVisible(),
       `${label}: track overlay duration should render inside screensaver settings`,
     );
+  } else {
+    assert.strictEqual(await page.locator("#sp-set-ss-playback-control").count(), 0,
+      `${label}: persistent playback setting is hidden on larger screens`);
   }
   await externalSources.locator("> .sp-disclosure-button").click();
   const coverArtSecondaryInfo = coverArtCard.locator("#sp-set-ss-cover-art-secondary-player-info");
@@ -3032,6 +3045,47 @@ async function assertCoverSettingsPanels(page, label) {
   });
 }
 
+async function assertCameraRefreshSettings(page, posts, label) {
+  await page.getByRole("tab", { name: "Screen" }).click();
+  const before = posts.length;
+  await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  await page.getByRole("button", { name: "Camera Card card type", exact: true }).click();
+  await page.locator("#sp-inp-entity").fill("camera.front_door");
+  await page.locator("#sp-inp-entity").dispatchEvent("change");
+  await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Refresh Settings" })
+    .locator("> .sp-disclosure-button").click();
+  const mode = page.locator("#sp-inp-image-refresh-mode");
+  const interval = page.locator("#sp-inp-image-refresh-interval");
+  const trigger = page.locator("#sp-inp-image-refresh-trigger");
+  assert.strictEqual(await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Modal Settings" })
+    .locator("#sp-inp-image-refresh-mode").count(), 0,
+    `${label}: refresh controls must sit outside Modal Settings`);
+  assert(await page.getByText("On activity refreshes them every 5 seconds", { exact: false }).count() === 1);
+  assert.strictEqual(await mode.inputValue(), "off", `${label}: camera refresh is opt-in`);
+  assert(!(await interval.isVisible()));
+  await mode.selectOption("periodic");
+  assert.strictEqual(await interval.inputValue(), "10");
+  await interval.selectOption("5");
+  assert(!(await trigger.isVisible()));
+  await mode.selectOption("activity");
+  assert(await trigger.isVisible());
+  assert(!(await interval.isVisible()));
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  const error = page.getByText("Choose a binary sensor or event entity for activity refresh.", { exact: true });
+  assert(await error.isVisible());
+  await trigger.fill("camera.other");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  assert(await error.isVisible());
+  await trigger.fill("event.doorbell");
+  assert.strictEqual(await error.count(), 0);
+  assert.strictEqual(posts.length, before, `${label}: invalid refresh drafts must not save`);
+  await page.locator("#sp-inp-entity").fill("image.front_door");
+  assert(!(await mode.isVisible()), `${label}: image entities use revision events instead of polling controls`);
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay").classList.contains("sp-visible"));
+}
+
 async function assertMediaCoverArtSettingsPanels(page, label) {
   await page.getByRole("tab", { name: "Screen" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
@@ -3375,7 +3429,10 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   assert.strictEqual(await page.locator('.sp-main [data-slot="4"] .sp-media-group-count').count(), 0, `${label}: speaker group preview should not invent a member count`);
   assert.strictEqual(await page.locator("#sp-inp-label").inputValue(), "Whole House", `${label}: speaker group should expose its preserved custom label`);
   await page.locator("#sp-inp-icon").fill("Home");
-  await page.locator("#sp-inp-icon").press("Enter");
+  const homeIconOption = page.locator(".sp-icon-dropdown .sp-icon-option").filter({
+    has: page.locator(".sp-icon-option-label", { hasText: /^Home$/ }),
+  });
+  await homeIconOption.click();
   await page.waitForSelector('.sp-main [data-slot="4"] .mdi-home', { state: "attached" });
   assert(await page.locator('.sp-main [data-slot="4"] .mdi-home').count(), `${label}: speaker group preview should use its selected icon`);
   await helper.fill("");
@@ -6171,6 +6228,7 @@ async function runCase(browser, testCase) {
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
       await assertFanOptionalLightSettings(page, testCase.name);
       await assertWebhookSettingsPanel(page, posts, testCase.name);
+      await assertCameraRefreshSettings(page, posts, testCase.name);
       await assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase);
     }
     await assertInternalControlsPanel(page, posts, testCase.name);
