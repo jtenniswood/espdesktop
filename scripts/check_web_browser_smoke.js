@@ -1714,10 +1714,23 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: track overlay duration visibility should match square cover art layout`,
   );
   if (options.coverArtSquareOverlay) {
+    const playbackToggle = screensaverSettings.locator("#sp-set-ss-playback-control");
+    assert(await playbackToggle.isChecked(), `${label}: persistent playback control defaults on`);
+    assert(await playbackToggle.evaluate((el) => {
+      const awake = document.querySelector("#sp-set-ss-media-sleep-prevention");
+      return !!(awake.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }), `${label}: playback toggle follows keep-screen-awake`);
+    await screensaverSettings.locator("#sp-set-ss-playback-control + .sp-toggle-track").click();
+    assert(!(await playbackToggle.isChecked()), `${label}: persistent playback control can be disabled`);
+    await screensaverSettings.locator("#sp-set-ss-playback-control + .sp-toggle-track").click();
+    assert(await playbackToggle.isChecked(), `${label}: persistent playback control can be re-enabled`);
     assert(
       await coverArtCard.locator("#sp-set-ss-track-overlay").isVisible(),
       `${label}: track overlay duration should render inside screensaver settings`,
     );
+  } else {
+    assert.strictEqual(await page.locator("#sp-set-ss-playback-control").count(), 0,
+      `${label}: persistent playback setting is hidden on larger screens`);
   }
   await externalSources.locator("> .sp-disclosure-button").click();
   const coverArtSecondaryInfo = coverArtCard.locator("#sp-set-ss-cover-art-secondary-player-info");
@@ -3375,7 +3388,10 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   assert.strictEqual(await page.locator('.sp-main [data-slot="4"] .sp-media-group-count').count(), 0, `${label}: speaker group preview should not invent a member count`);
   assert.strictEqual(await page.locator("#sp-inp-label").inputValue(), "Whole House", `${label}: speaker group should expose its preserved custom label`);
   await page.locator("#sp-inp-icon").fill("Home");
-  await page.locator("#sp-inp-icon").press("Enter");
+  const homeIconOption = page.locator(".sp-icon-dropdown .sp-icon-option").filter({
+    has: page.locator(".sp-icon-option-label", { hasText: /^Home$/ }),
+  });
+  await homeIconOption.click();
   await page.waitForSelector('.sp-main [data-slot="4"] .mdi-home', { state: "attached" });
   assert(await page.locator('.sp-main [data-slot="4"] .mdi-home').count(), `${label}: speaker group preview should use its selected icon`);
   await helper.fill("");
