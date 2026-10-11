@@ -152,6 +152,7 @@ constexpr int LV_OPA_COVER = 255;
 constexpr int LV_OPA_50 = 128;
 constexpr int LV_OBJ_FLAG_CLICKABLE = 1;
 constexpr int LV_OBJ_FLAG_HIDDEN = 2;
+constexpr int LV_OBJ_FLAG_USER_2 = 4;
 constexpr int LV_GRAD_DIR_HOR = 1;
 inline int lv_color_hex(uint32_t value) { return static_cast<int>(value); }
 inline int lv_pct(int value) { return value; }
@@ -1176,6 +1177,7 @@ def main() -> int:
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
         shutil.copy2(LAYOUT_HEADER.with_name("card_availability.h"), tmp_path / "card_availability.h")
+        shutil.copy2(LAYOUT_HEADER.with_name("card_text_contrast.h"), tmp_path / "card_text_contrast.h")
         for name in ("theme_palette.h", "display_color.h"):
             shutil.copy2(LAYOUT_HEADER.with_name(name), tmp_path / name)
         (tmp_path / "lvgl.h").write_text("", encoding="utf-8")

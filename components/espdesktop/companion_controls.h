@@ -31,6 +31,7 @@
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
 #include "card_availability.h"
+#include "card_text_contrast.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
@@ -652,8 +653,6 @@ struct CompanionSliderRef {
   const char *icon_off = nullptr;
   const char *icon_on = nullptr;
 };
-
-inline void set_card_checked_state(lv_obj_t *button, bool checked);
 
 inline void companion_apply_card_focus(lv_obj_t *button, const std::string &action_id,
                                        const std::string &url_config = "") {
