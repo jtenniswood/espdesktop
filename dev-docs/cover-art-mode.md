@@ -106,3 +106,7 @@ HA player. Ownership also participates in the layout cache key. The production
 playback-lambda regression covers this separation and rejects a removed guard.
 
 When playback starts while the clock screensaver is active, artwork replaces the clock immediately. Playback starting on the active screen still uses Show After. The existing schedule, alarm and source-ownership checks still apply.
+
+Closing a modal after an artwork wake restarts Show After once the display settles on the normal active screen. Open modals and alarm takeovers prevent the restart. Companion artwork can restart the delay without a Home Assistant media-player entity.
+
+For timer/sensor screensavers with playback sleep prevention off, ordinary modal closure leaves the normal idle timeout in charge. A manual dismissal of existing artwork still restarts Show After.
