@@ -28,7 +28,7 @@ export interface FirmwareUpdateFeature {
     setInfo(data?: any): void;
     stopInstallRefresh(): void;
     stopInstallRefreshIfComplete(): boolean;
-    startInstallRefresh(): void;
+    startInstallRefresh(restartWindow?: boolean): void;
     clearWebOtaFallback(): void;
     scheduleWebOtaFallback(): void;
 }
@@ -39,7 +39,7 @@ export function createFirmwareUpdateFeature(
     firmwareVersion: FirmwareVersionFeature,
     dependencies: {
         postInstall(): void;
-        refreshVersion(): void;
+        refreshVersion(): Promise<void>;
         installViaWebOta(info?: any): void;
         c6UpdateKnownAvailable(): boolean;
     },
@@ -49,6 +49,7 @@ export function createFirmwareUpdateFeature(
     // ── Firmware Update State ─────────────────────────────────────────────
     var firmwareInstallRefreshTimer: any = null;
     var firmwareInstallRefreshUntil: any = 0;
+    let firmwareInstallRefreshGeneration = 0;
     var firmwareWebOtaFallbackTimer: any = null;
     const webOtaFallbackDelayMs = 12000;
     function firmwareUpdateAvailable(this: any) {
@@ -181,10 +182,6 @@ export function createFirmwareUpdateFeature(
             state.firmwareOtaFilename = String(info.ota_filename).trim();
         if (info.ota_md5)
             state.firmwareOtaMd5 = String(info.ota_md5).trim();
-        if (state.firmwareUpdateState === "NO UPDATE" &&
-            !isSpecificFirmwareVersion(state.firmwareVersion)) {
-            setFirmwareVersion(latest);
-        }
         syncFirmwareVersionSelect();
         renderFirmwareUpdateStatus();
         return true;
@@ -259,6 +256,9 @@ export function createFirmwareUpdateFeature(
             status = escHtml(state.firmwareInstallError);
             cls += " sp-update-error";
         }
+        else if (state.firmwareInstallStatus) {
+            status = escHtml(state.firmwareInstallStatus);
+        }
         els.fwStatus.className = cls;
         els.fwStatus.innerHTML = status;
         if (els.fwCheckBtn) {
@@ -302,21 +302,17 @@ export function createFirmwareUpdateFeature(
                 state.firmwareInstallPostPending = false;
             }
         }
-        if (installWindowActive && updateState === "UPDATE AVAILABLE") {
+        // Keep the controls busy while the final asynchronous refresh is pending.
+        if ((state.firmwareInstallTransferPending ||
+            (state.firmwareInstallTargetVersion && firmwareInstallRefreshUntil)) &&
+            (updateState === "UPDATE AVAILABLE" || updateState === "NO UPDATE")) {
             updateState = "INSTALLING";
         }
         state.firmwareUpdateState = updateState;
-        if (state.firmwareUpdateState)
-            state.firmwareInstallError = "";
         state.firmwareReleaseUrl = d.release_url || state.firmwareReleaseUrl || "";
-        if (state.firmwareUpdateState === "NO UPDATE" &&
-            !isSpecificFirmwareVersion(state.firmwareVersion) &&
-            isSpecificFirmwareVersion(state.firmwareLatestVersion)) {
-            setFirmwareVersion(state.firmwareLatestVersion);
-        }
         if (state.firmwareUpdateState)
             state.firmwareChecking = false;
-        if (state.firmwareUpdateState === "INSTALLING") {
+        if (state.firmwareUpdateState === "INSTALLING" && !state.firmwareInstallTransferPending) {
             startFirmwareInstallRefresh();
         }
         else {
@@ -324,11 +320,8 @@ export function createFirmwareUpdateFeature(
         }
         renderFirmwareUpdateStatus();
     }
-    function firmwareVersionMatches(this: any, version?: any, expected?: any) {
-        return String(version == null ? "" : version).trim() ===
-            String(expected == null ? "" : expected).trim();
-    }
     function stopFirmwareInstallRefresh(this: any) {
+        firmwareInstallRefreshGeneration++;
         if (firmwareInstallRefreshTimer)
             clearTimeout(firmwareInstallRefreshTimer);
         firmwareInstallRefreshTimer = null;
@@ -336,30 +329,59 @@ export function createFirmwareUpdateFeature(
         clearFirmwareWebOtaFallback();
         state.firmwareInstallTargetVersion = "";
         state.firmwareInstallPostPending = false;
+        state.firmwareInstallTransferPending = false;
         state.firmwareInstallStatus = "";
     }
     function stopFirmwareInstallRefreshIfComplete(this: any) {
+        if (state.firmwareInstallTransferPending) return false;
         var target: any = state.firmwareInstallTargetVersion;
-        if (!target || state.firmwareUpdateState !== "NO UPDATE")
+        if (!isSpecificFirmwareVersion(target) || !firmwareVersionsSame(state.firmwareVersion, target))
             return false;
-        if (isSpecificFirmwareVersion(target) && !firmwareVersionMatches(state.firmwareVersion, target)) {
-            setFirmwareVersion(target);
-        }
         stopFirmwareInstallRefresh();
+        state.firmwareUpdateState = "";
+        state.firmwareInstallError = "";
+        state.firmwareInstallStatus = "Firmware " + target + " installed.";
+        renderFirmwareUpdateStatus();
         return true;
     }
-    function pollFirmwareInstallRefresh(this: any) {
+    async function pollFirmwareInstallRefresh(this: any) {
+        if (state.firmwareInstallTransferPending) return;
+        const generation = firmwareInstallRefreshGeneration;
         firmwareInstallRefreshTimer = null;
-        dependencies.refreshVersion();
+        let refreshTimeout: ReturnType<typeof setTimeout> | undefined;
+        try {
+            // Allow the last check to finish, but bound requests to an offline panel.
+            await Promise.race([
+                dependencies.refreshVersion(),
+                new Promise<void>(resolve => { refreshTimeout = setTimeout(resolve, 15000); }),
+            ]);
+        }
+        catch (_) {
+            // A failed refresh can be retried until the installation deadline.
+        }
+        finally {
+            clearTimeout(refreshTimeout);
+        }
+        // Version callbacks can complete this attempt, or a new attempt can start,
+        // while the requests above are pending.
+        if (generation !== firmwareInstallRefreshGeneration || !firmwareInstallRefreshUntil)
+            return;
         if (stopFirmwareInstallRefreshIfComplete())
             return;
         if (Date.now() >= firmwareInstallRefreshUntil) {
             stopFirmwareInstallRefresh();
+            state.firmwareUpdateState = "";
+            state.firmwareInstallError = "Firmware update could not be confirmed. Reconnect to the display and check its current version before retrying.";
+            renderFirmwareUpdateStatus();
             return;
         }
         firmwareInstallRefreshTimer = setTimeout(pollFirmwareInstallRefresh, 5000);
     }
-    function startFirmwareInstallRefresh(this: any) {
+    function startFirmwareInstallRefresh(this: any, restartWindow?: boolean) {
+        if (firmwareInstallRefreshUntil && !restartWindow)
+            return;
+        firmwareInstallRefreshGeneration++;
+        state.firmwareInstallError = "";
         if (!state.firmwareInstallTargetVersion && isSpecificFirmwareVersion(state.firmwareLatestVersion)) {
             state.firmwareInstallTargetVersion = state.firmwareLatestVersion;
         }

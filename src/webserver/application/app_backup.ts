@@ -113,6 +113,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postScreensaverCameraImageMode,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
+        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
         postClockOverlay,
@@ -288,6 +289,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 cover_art_secondary_media_player_entity: state.coverArtSecondaryMediaPlayerEntity,
                 cover_art_attribute_conditions: state.coverArtAttributeConditions,
                 cover_art_delay: state.coverArtDelay,
+                cover_art_playback_control: state.coverArtPlaybackControlOn,
                 cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
                 cover_art_hide_external_input: state.coverArtHideExternalInputOn,
                 home_assistant_artwork_protocol: normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol),
@@ -530,6 +532,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
                     postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
+                    postCoverArtPlaybackControl(importedSettings.coverArtPlaybackControl);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
                     postCoverArtSource(importedSettings.coverArtSource);
                     if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
@@ -613,6 +616,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
                     state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
                     state.coverArtDelay = importedSettings.coverArtDelay;
+                    state.coverArtPlaybackControlOn = importedSettings.coverArtPlaybackControl;
                     state.coverArtTrackOverlayDuration = importedSettings.coverArtTrackOverlayDuration;
                     state.coverArtHideExternalInputOn = importedSettings.coverArtHideExternalInput;
                     state.homeAssistantArtworkProtocol = importedSettings.coverArtHomeAssistantProtocol;

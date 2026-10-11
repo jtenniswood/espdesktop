@@ -11,8 +11,8 @@
   "summary": {
     "deviceProfiles": 8,
     "cardTypes": 44,
-    "entityNames": 109,
-    "icons": 388,
+    "entityNames": 110,
+    "icons": 394,
     "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
   },
@@ -3177,6 +3177,12 @@
             "label": "Large Clock",
             "kind": "flag",
             "omitDefault": true
+          },
+          {
+            "name": "center_clock",
+            "label": "Center Clock",
+            "kind": "flag",
+            "omitDefault": true
           }
         ],
         "normalization": {
@@ -3215,7 +3221,8 @@
           },
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
-            "large_numbers"
+            "large_numbers",
+            "center_clock"
           ],
           "optionHook": "normalize_date_time_options"
         },
@@ -3407,7 +3414,7 @@
             "name": "climate_tabs",
             "label": "Visible Tabs",
             "kind": "text",
-            "defaultValue": "temperature|mode|preset|fan|swing",
+            "defaultValue": "temperature|mode|preset|fan|swing|horizontal_swing",
             "omitDefault": true
           }
         ],
@@ -7026,6 +7033,19 @@
         ]
       },
       {
+        "key": "screen_saver_cover_art_playback_control",
+        "domain": "switch",
+        "name": "Screen Saver: Cover Art Playback Control",
+        "objectIds": [
+          "screen_saver__cover_art_playback_control",
+          "screen_saver_cover_art_playback_control",
+          "cover_art_playback_control_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
         "key": "screen_saver_media_player_sleep_prevention",
         "domain": "switch",
         "name": "Screen Saver: Media Player Sleep Prevention",
@@ -8071,6 +8091,16 @@
         "mdi": "arrow-up-down"
       },
       {
+        "name": "Awning",
+        "codepoint": "F1B87",
+        "mdi": "awning"
+      },
+      {
+        "name": "Awning Outline",
+        "codepoint": "F1B88",
+        "mdi": "awning-outline"
+      },
+      {
         "name": "Battery",
         "codepoint": "F0079",
         "mdi": "battery"
@@ -8529,6 +8559,26 @@
         "name": "Folder Play",
         "codepoint": "F19FA",
         "mdi": "folder-play"
+      },
+      {
+        "name": "Folder Account Outline",
+        "codepoint": "F0B9C",
+        "mdi": "folder-account-outline"
+      },
+      {
+        "name": "Folder Home Outline",
+        "codepoint": "F10B6",
+        "mdi": "folder-home-outline"
+      },
+      {
+        "name": "Folder Key Outline",
+        "codepoint": "F10EC",
+        "mdi": "folder-key-outline"
+      },
+      {
+        "name": "Folder Open Outline",
+        "codepoint": "F0DCF",
+        "mdi": "folder-open-outline"
       },
       {
         "name": "Fountain",
