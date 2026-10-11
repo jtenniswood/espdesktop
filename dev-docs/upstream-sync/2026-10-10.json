@@ -2525,7 +2525,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2d082fc427e5896c0bfade1910aa33078b07a064",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -2609,7 +2609,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "2f4fe20fb4d7a7fd26e031428eb79b5ada7d2aa5"
@@ -2656,7 +2656,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "1109e6ee24cd033ea594300ccab59fb5431edc2c"
@@ -3216,7 +3216,7 @@
       "destinationBaseBranch": "retry-recovered-image-entities",
       "reviewVerification": {
         "revision": "46d8c71a559c0f1f5ccf1e707a87b5e47231a581",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -3347,7 +3347,7 @@
       ],
       "reviewVerification": {
         "revision": "2729945b2db3f05054c319d385a26294207d7c58",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -3912,7 +3912,7 @@
       "destinationBaseBranch": "main",
       "reviewVerification": {
         "revision": "e6dd5c97954a7959366b018d9b9c4304655adbf2",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -4431,7 +4431,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "f0e592807c9a2ef4d01c5f1578e7e047683780a5",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -4470,7 +4470,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "42667ce1c36bace80a8f9742b2dfd88db65e1ed1",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -4977,7 +4977,7 @@
       ],
       "reviewVerification": {
         "revision": "9bf72fef6f00dff2b74e8388cb50df590ac3317d",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -5571,7 +5571,7 @@
       ],
       "reviewVerification": {
         "revision": "9f4d92ef196e798e2dae568f0e0977d2509b1d15",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -5669,7 +5669,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "98d8ad3e7f34a0d9b8ca31cee0c4b748ff7f3afc",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5798,7 +5798,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d44c137570a7483daa6f7109848353c85e08b6f6",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5843,7 +5843,7 @@
       ],
       "reviewVerification": {
         "revision": "e1e2af19952a1b43ebee30cb5c6ff68b8fe63931",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5874,7 +5874,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "197b7cdbc435b50c9f32d02986b61a70ab078d39",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -5905,7 +5905,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "edacf8e17b14e388aa2881476b778ca3635c27d6",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "edacf8e17b14e388aa2881476b778ca3635c27d6"
@@ -6149,7 +6149,7 @@
       ],
       "reviewVerification": {
         "revision": "2696cab9a5089a5df5c55cdd553b44df67bf5df4",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6214,7 +6214,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "988c1ba00d3a58ac2a42cdfe4e53497f3c65cbb3"
@@ -6252,7 +6252,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "39eaebc80000e91d857f3fbb2402b9bc7aaf3c5c",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6298,7 +6298,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c037b76a2492274937577f0a477c6ccbd1e4de2f",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6412,7 +6412,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c055bb06a76c5adca7cb7c7eceb822ad29227e4e",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6428,7 +6428,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2095",
       "mergeSha": "3859a569976a771ad48772b8815e5f5ff6c828b2",
       "disposition": "Ported",
-      "evidence": "Separate decoded HTTP/announcement and raw PCM Sendspin speaker pipelines ported with amplifier restart/pause guards. Added missing80percent ceiling on both players per source review. Preserve destination clock overrides, Companion endpoint/artwork and S3 relays. All8factory configs validate under pinned2026.9.1/local components; full fast74host172web and docs passed. After camera parent update actualruntime/feedback/remote tests passed. Eightfactory compiles previously queued, physicalspeaker tests pending. Later2144/2146 corrections pending separate ports; depends on PR168. Hardware-scope review is covered by required separate source2144 portPR173. This intermediate PR retains originalsource2095; finalaudio testbranchPR174 limitslocal outputtoP4-86. No scopefix claimedinsidePR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. SharedSpeakerState component runslate afterbothplayerssetup, initializes fromHAplayer andsynchronizesvolume/mute bothdirections whilepreservingplayback/URIstate. RestoresmuteAFTERvolume becauseSDKvolume unmutessinks; recursionguardandequal-statechecks avoidcallbackloops. P4/S3packageexplicitsharedplayerIDs/codegen. Actualproductionheaderrestored/mute/volume/zero/announcement-state/callbackloop regressions andfullfast75/172/all8configsPASS atffa4cf460, GvK4resolved. NewannouncementduckingHJCI findingpending. Announcement review correction: production P4/S3 callbacks duck both media and Sendspin mixer inputs by 20 dB during announcements, restoring after state changes without changing player volume/mute. Production callback regression, final full fast checks (76 host/172 web) and all eight pinned device configurations passed. HJCI resolved. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision.",
+      "evidence": "Speaker playback and shared volume/mute state ported. Full required host/web checks and all eight final-revision factory builds passed. Hardware scope is corrected by the required later PR #173; use the final audio chain through #174 for P4-86 device testing. Physical testing remains pending.",
       "changedFiles": [
         "common/device/speaker_output_p4.yaml",
         "common/device/speaker_output_s3_external.yaml",
@@ -6869,10 +6869,23 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
           "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc8012p4a1.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "shared_speaker_state.h": "9d0d6e2dad00d22616182c918790ba8307e8467fcd4af3788d0d252c1df3362f",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc8012p4a1",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/cc41bd303736c8a5dab73e1f6c22497afa78a2939383caeb03d9ebfc14ca2281.log.gz",
+          "logSha256": "cc41bd303736c8a5dab73e1f6c22497afa78a2939383caeb03d9ebfc14ca2281",
+          "archiveSha256": "b785220b36dfc8755d136cfc3cbd448204b17fac4922d3e92cd8993f6c1c058a"
         }
       ],
       "reviewStatus": "Speaker scope correction covered by separate PR173; thread remains unresolved on this earlier port",
@@ -6885,13 +6898,16 @@
       ],
       "reviewVerification": {
         "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": [
           "PRRT_kwDOUR8kMs6rGR1a"
         ]
       },
       "previousPortRevisions": [
         "e205973d99f1807bb714c2b19f148025fa7f3990"
+      ],
+      "validationHistory": [
+        "Separate decoded HTTP/announcement and raw PCM Sendspin speaker pipelines ported with amplifier restart/pause guards. Added missing80percent ceiling on both players per source review. Preserve destination clock overrides, Companion endpoint/artwork and S3 relays. All8factory configs validate under pinned2026.9.1/local components; full fast74host172web and docs passed. After camera parent update actualruntime/feedback/remote tests passed. Eightfactory compiles previously queued, physicalspeaker tests pending. Later2144/2146 corrections pending separate ports; depends on PR168. Hardware-scope review is covered by required separate source2144 portPR173. This intermediate PR retains originalsource2095; finalaudio testbranchPR174 limitslocal outputtoP4-86. No scopefix claimedinsidePR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. SharedSpeakerState component runslate afterbothplayerssetup, initializes fromHAplayer andsynchronizesvolume/mute bothdirections whilepreservingplayback/URIstate. RestoresmuteAFTERvolume becauseSDKvolume unmutessinks; recursionguardandequal-statechecks avoidcallbackloops. P4/S3packageexplicitsharedplayerIDs/codegen. Actualproductionheaderrestored/mute/volume/zero/announcement-state/callbackloop regressions andfullfast75/172/all8configsPASS atffa4cf460, GvK4resolved. NewannouncementduckingHJCI findingpending. Announcement review correction: production P4/S3 callbacks duck both media and Sendspin mixer inputs by 20 dB during announcements, restoring after state changes without changing player volume/mute. Production callback regression, final full fast checks (76 host/172 web) and all eight pinned device configurations passed. HJCI resolved. Latest camera review dependency carried across; targeted production camera/modal checks passed before force-with-lease publication. Final firmware validation is running against the recorded revision."
       ]
     },
     {
@@ -6937,7 +6953,7 @@
       ],
       "reviewVerification": {
         "revision": "0ddaccd2f8455c9f21a525a5e3eaf1353dab71bf",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -6995,7 +7011,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "b695c6f93dbb5b6dc3ac6b99f02428f73328344d",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7047,7 +7063,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "db8c86688f775bcf9af9585172d3c3549da1cdc6"
@@ -7108,7 +7124,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "29f5be9d7765814bd12f27c8baf2de54898faed7",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "29f5be9d7765814bd12f27c8baf2de54898faed7"
@@ -7231,7 +7247,7 @@
       ],
       "reviewVerification": {
         "revision": "f885810607a1011e354dae224404802ae2d45128",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "f885810607a1011e354dae224404802ae2d45128"
@@ -7322,7 +7338,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "a69f0c0ff1c8cbe401697fbd8dc84e8d274a4ced",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7350,7 +7366,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "4df5458874b90445450cd70d1f5ad8c260bd7347",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "4df5458874b90445450cd70d1f5ad8c260bd7347"
@@ -7432,7 +7448,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "5f2d163a917422f2c28148b62f70948e7464f23a",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "5f2d163a917422f2c28148b62f70948e7464f23a"
@@ -7506,7 +7522,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d3bf15ca60358d419c092a0ef7c30ce98d436ee9",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7553,7 +7569,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "ed4e4163834a78fe8e7eacdb9dfb465c3fcdbe2d",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7600,7 +7616,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "ff4576898346b170a3e1072013b2391c58e2b6b6",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7635,7 +7651,7 @@
       ],
       "reviewVerification": {
         "revision": "03f465428f2f59f5d6da78e0f744f73526bafd74",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "03f465428f2f59f5d6da78e0f744f73526bafd74"
@@ -7685,7 +7701,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "5128f047c6191842420fa095a1636228ccda21f1",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -7802,7 +7818,7 @@
       ],
       "reviewVerification": {
         "revision": "5134211ddc62032f6cf6b81500ff4c31c5c5aaff",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": [
           "PRRT_kwDOUR8kMs6rFdGL"
         ]
@@ -7848,7 +7864,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "444d08a6d83a6813906d4d3ca86372c436eab656",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "444d08a6d83a6813906d4d3ca86372c436eab656"
@@ -7877,7 +7893,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "fe26768f89c84931a70544a67bed2576a9994aab",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "fe26768f89c84931a70544a67bed2576a9994aab"
@@ -7894,7 +7910,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2144",
       "mergeSha": "66886d5a7c8b4d06e33e7db9b9e1ea3d5398c466",
       "disposition": "Ported",
-      "evidence": "Local speaker/Sendspin restricted to P4-86; seven other profiles restore network budgets and S3 serial logs, unused external amplifier package removed. Preserve destination clock overrides, Companion and P4-86 volume ceiling. Full fast74host172web and docs passed. All8factory configs validate and generate actual C++ under pinned2026.9.1; inspected constructor instances: onlyP4-86 retains speaker and Sendspin. Eight factory compiles previously queued; physical tests pending. Depends on PR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. Shared gain/mute coordinator retainedonlyforP4-86 afterunsupportedS3speakerfile deletion. Latest69c43fece fullfast75/172PASS; code fromvalidatedspeakerparent. Jobsupdatedpublishedrevision. Latest parent review changes retained P4-86-only audio and removed S3 package. Announcement fixture adapted to the supported P4 path; full fast checks passed (76 host/172 web). Full firmware validation exposed an optional audio header included by ESPHome on non-audio profiles. Fixed with USE_MEDIA_PLAYER guard, tested with enabled gain/mute callbacks and disabled compilation after removing the media-player header. Full fast checks passed (76 host/172 web); new exact-revision retry required. The failed older 6c384 revision is retained as historical evidence.",
+      "evidence": "Local speaker support restricted to P4-86, with optional audio headers guarded on other devices. Full required host/web checks and all eight final-revision factory builds passed. The older failed build remains historical evidence. Physical P4-86 speaker testing remains pending.",
       "changedFiles": [
         "common/device/speaker_output_s3_external.yaml",
         "devices/guition-esp32-p4-jc1060p470-v2/device/device.yaml",
@@ -8281,10 +8297,23 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "7a764ab631c7be629da3088d8b08025ccea78aba",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2144-7a764ab63-final-verified-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "7ba74f124e6b28f7f07e6269e491a87e289a06e030cfc98b84d28a100ed42d45",
+            "button_grid_media.h": "af2c2ab9651bff332faddb2a97f50ee07dfd1b63c7956898a2341f223089b193",
+            "backlight.h": "22ca7b1a9f0dfda7ad5f7492c919ad08cf662cac9d31bde12ca34312a150f1c8",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "shared_speaker_state.h": "8cd9b673fe0aeeb487e4ee04537c71fda10dcb1d1a58cec5dd2830a9ddf9ad60",
+            "device_reset.h": "ae6d05dd9b0a7947b848cec4e7f81947859226e83e3799c4a9637333bcc558ad",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/3bad8edf3e42e4033f8eb908f93f67138eb47798464eb1f911bb29684f1c43c9.log.gz",
+          "logSha256": "3bad8edf3e42e4033f8eb908f93f67138eb47798464eb1f911bb29684f1c43c9",
+          "archiveSha256": "bad2d8e416048e70b4acf0229e84b65c624ce714e4d221eca818713450acf74e"
         }
       ],
       "latestPortRevision": "7a764ab631c7be629da3088d8b08025ccea78aba",
@@ -8293,11 +8322,14 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "7a764ab631c7be629da3088d8b08025ccea78aba",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
         "839e62db29fceab7252c0f02d3a81de2f35458c9"
+      ],
+      "validationHistory": [
+        "Local speaker/Sendspin restricted to P4-86; seven other profiles restore network budgets and S3 serial logs, unused external amplifier package removed. Preserve destination clock overrides, Companion and P4-86 volume ceiling. Full fast74host172web and docs passed. All8factory configs validate and generate actual C++ under pinned2026.9.1; inspected constructor instances: onlyP4-86 retains speaker and Sendspin. Eight factory compiles previously queued; physical tests pending. Depends on PR172. Updated dependency chain includes camera memory-backoff and phase2 startup navigation fixes. Fullfast74/172 passed on final #174 chain; review-era firmware compiles requeued. Updated parentchain includes S3 suspension, alarm-preserving modal lifecycle, lockedclose_subpage and criticalalarmrebuildwait. Final174fullfast74host172webPASS at23b9f5d1d; newpublishedfirmwarejobsqueued. Shared gain/mute coordinator retainedonlyforP4-86 afterunsupportedS3speakerfile deletion. Latest69c43fece fullfast75/172PASS; code fromvalidatedspeakerparent. Jobsupdatedpublishedrevision. Latest parent review changes retained P4-86-only audio and removed S3 package. Announcement fixture adapted to the supported P4 path; full fast checks passed (76 host/172 web). Full firmware validation exposed an optional audio header included by ESPHome on non-audio profiles. Fixed with USE_MEDIA_PLAYER guard, tested with enabled gain/mute callbacks and disabled compilation after removing the media-player header. Full fast checks passed (76 host/172 web); new exact-revision retry required. The failed older 6c384 revision is retained as historical evidence."
       ]
     },
     {
@@ -8386,7 +8418,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "c6a678b4800eab576992d301f443848189c5f170",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -8499,7 +8531,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "03fecaed0be5f47e27f12adc63a27881e846da6c",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -8546,7 +8578,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "0ca2ccfadcb40dffd2a6121897be1e52f82908f2"
@@ -8594,7 +8626,7 @@
       ],
       "reviewVerification": {
         "revision": "0b18d20009f6fb482aaf1dcdfc5ec24dbc505bce",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "0b18d20009f6fb482aaf1dcdfc5ec24dbc505bce"
@@ -8641,7 +8673,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "d44b6bd73d254d7b784862958f1ba1390cf58db8",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "d44b6bd73d254d7b784862958f1ba1390cf58db8"
@@ -8676,7 +8708,7 @@
       ],
       "reviewVerification": {
         "revision": "b611474d0eea99fdf07b6e859618092162318def",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "b611474d0eea99fdf07b6e859618092162318def"
@@ -8798,7 +8830,7 @@
       ],
       "reviewVerification": {
         "revision": "d48ee4ff6b08ae37f7764d98a789b6c5e2c6c28d",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -8829,7 +8861,7 @@
       ],
       "reviewVerification": {
         "revision": "a29c6585a99ca70680317513f0ad167762c61c23",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "a29c6585a99ca70680317513f0ad167762c61c23"
@@ -8922,7 +8954,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "2d3b76a416cf621b42297b9642dbb61ada631942",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -9050,7 +9082,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "58e642bc1e1afd6de0e15e283cc785d34917b93a",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "58e642bc1e1afd6de0e15e283cc785d34917b93a"
@@ -9123,7 +9155,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "de979d5df3ac2239aaf28ba71e78e05a384ee7ae",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     },
@@ -9247,7 +9279,7 @@
       ],
       "reviewVerification": {
         "revision": "522afc2a77ae8ae4be25e1a5b45f9c264922d673",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "previousPortRevisions": [
@@ -9278,7 +9310,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "bc8be55b74343d44079453836d7ec043ae9086e0",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "bc8be55b74343d44079453836d7ec043ae9086e0"
@@ -9329,7 +9361,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "06261e6251343fe30c911a9b6bf1dbf2cbf60147"
@@ -9684,7 +9716,7 @@
       ],
       "reviewVerification": {
         "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "2fe34027aca8a628b2d9b52e11914acf1378a757"
@@ -9720,7 +9752,7 @@
       ],
       "reviewVerification": {
         "revision": "066fb7b0f9d2088b9732c8f8490785e6a8710b0e",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "066fb7b0f9d2088b9732c8f8490785e6a8710b0e"
@@ -9865,7 +9897,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "b341228ed348bc7e38a325f31702c4cf8dfeb4c6",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "validationHistory": [
@@ -9922,7 +9954,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "e52a136f19c9df4631e42141b762f7bb9abe495d",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "e52a136f19c9df4631e42141b762f7bb9abe495d"
@@ -10205,7 +10237,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "df00c957bec31b2aad6916ecd02337d720c0c7f8",
@@ -10225,7 +10257,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2163",
       "mergeSha": "24ce0424ae7a37d3d6460a4ed187662d9aa92a59",
       "disposition": "Ported",
-      "evidence": "Adds persistent custom card backgrounds, 20 swatches, automatic active shades and matching device/web contrast, including calibrated media progress. Preserves Companion, image placeholders, subpage formats and backups. Fixes upstream sensor-source colour loss with a production controller regression. Final full fast checks passed (86 firmware host and 180 web tests); all nine pinned ESPHome factory configurations, real Chromium swatch selection/reset, nine native browser layouts and docs passed. Broad legacy browser suite exposed an existing screensaver Sensor-mode expectation; native coverage is recorded separately. Full firmware builds await parent review updates; physical device testing remains required. HbKb resolved: generic type selection preserves normalized colour around target defaults and Cover Art alias resets. Tests execute the actual selection method with destructive registry defaults, legacy and malformed colours; full fast checks passed (86 host/182 web), actual swatch browser and web smoke passed. Bundle baseline measured again at 2699454/1078577 gzip. Review HkEV resolved: Companion normalization, metric resets and shortcut/preset changes preserve valid custom colours. Production regressions cover nine Companion modes and preset recognition. Final reviewed parent full fast checks passed (87 host/184 web), actual swatch browser passed; regenerated bundle measured at 2699645/1078650 gzip. HrFQ resolved: Companion app and URL focus changes use the checked-state helper so descendant text follows the active/inactive custom background. Production focus/colour regressions and full fast checks passed (87 host/184 web). H-D4 resolved: alarm background ownership now comes from the validated child palette, preserving parent alarm-option inheritance without freezing a normal child background. Actual environment/binding/theme-switch regression and full fast checks passed (88 host/184 web). Retired Companion playback cards now clear saved custom colour instead of restoring an empty coloured switch. The real built configuration parser/serializer regression and full required CI passed (88 firmware tests, 185 web tests; 2163-retired-colour-final-ci.log). Final firmware builds requeued on published f7ca68285. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published 83dc649ab. Recursive contrast syncing preserves foreground ownership for image label shadows and Cover Art labels. Real production colour/state callbacks pass press/release regressions for visible artwork and fallback cards, preserving ordinary label contrast. Full required CI passed (88 firmware tests,185 web tests; 2163-overlay-contrast-final-ci.log). Final four device builds requeued on cbbc0b145. Persistent slot icon/text labels now clear foreground protection before contrast syncing when replaced by an ordinary card. The actual production slot reset regression passed. Full required CI passed (88 firmware tests,185 web tests; 2163-slot-reuse-final-ci.log). Final four device builds requeued on 85fb3ef3c. Rebased over the checked onboarding SDK address/include fix; authored differences from prior 85fb3ef3c are exactly those three parent files. Own colour and slot-reuse changes retained. Final four firmware builds requeued. Artwork label foreground ownership now applies only while artwork is visible. Fallback labels read current button-state contrast on theme/metadata refresh and follow pressed/released/checked shading, including 9D9D9D to BABABA threshold crossing. Actual production colour regressions and full required CI passed (88 firmware tests,185 web tests; 2163-fallback-contrast-final-ci.log). Final device builds requeued. Actual S3 firmware compilation exposed an inline contrast-helper declaration without its definition in the Companion component translation unit. Shared the five contrast/state functions in a narrow LVGL header included by both grid layout and Companion controls. Parser test copying, production regressions and cache input coverage updated. Full required CI passed (88 firmware tests,185 web tests; 2163-contrast-header-final-ci.log). All four device targets queued at the published shared-header revision.",
+      "evidence": "Persistent custom card colours, contrast, Companion configuration and slot reuse ported with production regressions. Full required CI passed (88 firmware host tests and 185 web tests), and all four final-revision factory builds passed at 73904b84f. Physical device testing remains pending.",
       "changedFiles": [
         "common/config/parser_runtime_card_normalization_fixtures.json",
         "compatibility/fixtures/card_runtime_surface_baseline.json",
@@ -10499,34 +10531,94 @@
         {
           "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
           "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2163-73904b84f-shared-header-final-guition-esp32-s3-4848s040.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "9d98aaeae6160cb5bd5d65289148784e783ac983b9331be29d719ae5ab3ac5dd",
+            "button_grid_media.h": "f7b4f29f1c8f50c90fcd9f78606756c2b058ba79013a2bb22fefe125c87fe92d",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-s3-4848s040",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/66b8e2fd0ca746eebd5b35709768e894c27818ce4065a74ea5f241466a013256.log.gz",
+          "logSha256": "66b8e2fd0ca746eebd5b35709768e894c27818ce4065a74ea5f241466a013256",
+          "archiveSha256": "0d31e58650e138c864eb646ce57cf1a0d669af98c2a3cf116a7158e91c2ab632"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2163-73904b84f-shared-header-final-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "9d98aaeae6160cb5bd5d65289148784e783ac983b9331be29d719ae5ab3ac5dd",
+            "button_grid_media.h": "f7b4f29f1c8f50c90fcd9f78606756c2b058ba79013a2bb22fefe125c87fe92d",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/44372717ba8ecbf84f40c4ce7ecb04266190b7714807e3377241a3121e812dd6.log.gz",
+          "logSha256": "44372717ba8ecbf84f40c4ce7ecb04266190b7714807e3377241a3121e812dd6",
+          "archiveSha256": "356359fd4c19b91a9982501b58118d3b6e5c45abad7989620fb27d598a62977b"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2163-73904b84f-shared-header-final-guition-esp32-p4-jc4880p443.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "9d98aaeae6160cb5bd5d65289148784e783ac983b9331be29d719ae5ab3ac5dd",
+            "button_grid_media.h": "f7b4f29f1c8f50c90fcd9f78606756c2b058ba79013a2bb22fefe125c87fe92d",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/4ba7a71166b31adfa4c96ab096de0d0cfc21e73c38c1d21f6806883ec8def742.log.gz",
+          "logSha256": "4ba7a71166b31adfa4c96ab096de0d0cfc21e73c38c1d21f6806883ec8def742",
+          "archiveSha256": "fdd02f3970a1a4980d5758d624a9d1edba36dbd5fbf96062f45502f004a28d19"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2163-73904b84f-shared-header-final-esp32-p4-86.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "9d98aaeae6160cb5bd5d65289148784e783ac983b9331be29d719ae5ab3ac5dd",
+            "button_grid_media.h": "f7b4f29f1c8f50c90fcd9f78606756c2b058ba79013a2bb22fefe125c87fe92d",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/4429bdc7fd61ad0d8898eba1a09b132a9542cebf5788490290f6a3992bf81115.log.gz",
+          "logSha256": "4429bdc7fd61ad0d8898eba1a09b132a9542cebf5788490290f6a3992bf81115",
+          "archiveSha256": "6ab5db650fff72a245d540092292568f0d3fb43af59e6b34468c06002194af81"
         }
       ],
       "reviewStatus": "No unresolved review findings at the verified revision",
@@ -10542,13 +10634,16 @@
       ],
       "reviewVerification": {
         "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "73904b84f444f1b913bf3bcb9be901a4e3a08b3b",
       "previousPortRevisions": [
         "2b1dbe517d7084a857995295daf07520f83ec04e",
         "d8efd03acf147292967fd953088755775279556e"
+      ],
+      "validationHistory": [
+        "Adds persistent custom card backgrounds, 20 swatches, automatic active shades and matching device/web contrast, including calibrated media progress. Preserves Companion, image placeholders, subpage formats and backups. Fixes upstream sensor-source colour loss with a production controller regression. Final full fast checks passed (86 firmware host and 180 web tests); all nine pinned ESPHome factory configurations, real Chromium swatch selection/reset, nine native browser layouts and docs passed. Broad legacy browser suite exposed an existing screensaver Sensor-mode expectation; native coverage is recorded separately. Full firmware builds await parent review updates; physical device testing remains required. HbKb resolved: generic type selection preserves normalized colour around target defaults and Cover Art alias resets. Tests execute the actual selection method with destructive registry defaults, legacy and malformed colours; full fast checks passed (86 host/182 web), actual swatch browser and web smoke passed. Bundle baseline measured again at 2699454/1078577 gzip. Review HkEV resolved: Companion normalization, metric resets and shortcut/preset changes preserve valid custom colours. Production regressions cover nine Companion modes and preset recognition. Final reviewed parent full fast checks passed (87 host/184 web), actual swatch browser passed; regenerated bundle measured at 2699645/1078650 gzip. HrFQ resolved: Companion app and URL focus changes use the checked-state helper so descendant text follows the active/inactive custom background. Production focus/colour regressions and full fast checks passed (87 host/184 web). H-D4 resolved: alarm background ownership now comes from the validated child palette, preserving parent alarm-option inheritance without freezing a normal child background. Actual environment/binding/theme-switch regression and full fast checks passed (88 host/184 web). Retired Companion playback cards now clear saved custom colour instead of restoring an empty coloured switch. The real built configuration parser/serializer regression and full required CI passed (88 firmware tests, 185 web tests; 2163-retired-colour-final-ci.log). Final firmware builds requeued on published f7ca68285. Inherits the production image-placeholder refresh declaration fix; firmware builds queued on published 83dc649ab. Recursive contrast syncing preserves foreground ownership for image label shadows and Cover Art labels. Real production colour/state callbacks pass press/release regressions for visible artwork and fallback cards, preserving ordinary label contrast. Full required CI passed (88 firmware tests,185 web tests; 2163-overlay-contrast-final-ci.log). Final four device builds requeued on cbbc0b145. Persistent slot icon/text labels now clear foreground protection before contrast syncing when replaced by an ordinary card. The actual production slot reset regression passed. Full required CI passed (88 firmware tests,185 web tests; 2163-slot-reuse-final-ci.log). Final four device builds requeued on 85fb3ef3c. Rebased over the checked onboarding SDK address/include fix; authored differences from prior 85fb3ef3c are exactly those three parent files. Own colour and slot-reuse changes retained. Final four firmware builds requeued. Artwork label foreground ownership now applies only while artwork is visible. Fallback labels read current button-state contrast on theme/metadata refresh and follow pressed/released/checked shading, including 9D9D9D to BABABA threshold crossing. Actual production colour regressions and full required CI passed (88 firmware tests,185 web tests; 2163-fallback-contrast-final-ci.log). Final device builds requeued. Actual S3 firmware compilation exposed an inline contrast-helper declaration without its definition in the Companion component translation unit. Shared the five contrast/state functions in a narrow LVGL header included by both grid layout and Companion controls. Parser test copying, production regressions and cache input coverage updated. Full required CI passed (88 firmware tests,185 web tests; 2163-contrast-header-final-ci.log). All four device targets queued at the published shared-header revision."
       ]
     },
     {
@@ -10869,7 +10964,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       },
       "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
@@ -10997,7 +11092,7 @@
       "reviewThreads": [],
       "reviewVerification": {
         "revision": "756522a86902c510049a65fb9f71ceb98585f8c6",
-        "checkedAt": "2026-10-11T00:18:30.946119+00:00",
+        "checkedAt": "2026-10-11T01:11:00.756584+00:00",
         "unresolvedThreads": []
       }
     }
@@ -11008,7 +11103,7 @@
     "Closed without merging": 9,
     "Ported": 60
   },
-  "status": "All 152 source PRs reviewed; 60 individual ready-for-review port PRs are open. Final firmware validation and automated review follow-up are in progress.",
+  "status": "Source accounting and required final-revision automated validation complete. All 60 feature PRs remain open and ready for review pending physical device testing. Owner-approved unauthenticated browser installs and speaker scope dependency are recorded.",
   "previousSyncProof": {
     "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/74",
     "mergeSha": "58259b86a",
