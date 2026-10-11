@@ -41,6 +41,7 @@ add_custom_command(
   DEPENDS generate_theme_modal_test.py ../../components/espdesktop/button_grid_modal.h
     ../../components/espdesktop/button_grid_subscriptions.h
     ../../components/espdesktop/button_grid_media.h
+    ../../components/espdesktop/card_availability.h
   VERBATIM)
 add_executable(theme_runtime_tree_test theme_runtime_tree_test.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/theme_modal_adapter.h)
@@ -126,6 +127,8 @@ target_include_directories(button_grid_foundations_test PRIVATE
   ../../components/espdesktop
 )
 add_test(NAME button_grid_foundations_test COMMAND button_grid_foundations_test)
+add_test(NAME card_colour_rendering_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/card_colour_rendering_test.py ${CMAKE_CXX_COMPILER})
 
 add_executable(grid_navigation_service_test
   grid_navigation_service_test.cpp
