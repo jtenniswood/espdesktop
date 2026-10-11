@@ -263,6 +263,10 @@ def package_file_text(device: dict) -> str:
             ),
         ]
     )
+    if package.get("apiOpenModalAction", True) or package.get("apiNavigateAction", True):
+        lines.append(include_line("api_remote_actions", "!include ../../common/device/api_remote_actions.yaml"))
+    if package.get("apiOpenModalAction", True):
+        lines.append(include_line("api_open_modal", "!include ../../common/device/api_open_modal.yaml"))
     if package.get("apiNavigateAction", True):
         lines.append(include_line("api_navigate", "!include ../../common/device/api_navigate.yaml"))
     lines.extend(
@@ -808,6 +812,8 @@ def script_block(device: dict) -> str:
         "    mode: restart",
         "    then:",
         "      - delay: 3s",
+        "      - wait_until:",
+        "          lambda: 'return !alarm_display_takeover_active();'",
         "      - lambda: |-",
         refresh_block(device, "SUBPAGE REFRESH"),
         *refresh_subpage_arrays(device),
@@ -826,6 +832,8 @@ def script_block(device: dict) -> str:
                 "  - id: apply_button_grid",
                 "    mode: single",
                 "    then:",
+                "      - wait_until:",
+                "          lambda: 'return !alarm_display_takeover_active();'",
                 "      - lambda: |-",
                 refresh_block(device),
                 *refresh_subpage_arrays(device),
