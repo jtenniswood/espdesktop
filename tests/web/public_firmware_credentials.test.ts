@@ -24,7 +24,7 @@ export async function runPublicFirmwareCredentialsTest() {
   const feature = createPublicFirmwareInstallFeature(api, "test", {
     selectedInfo: () => info, setPublicVersions: noop, infoForVersion: () => info,
     setPublicInfo: noop, clearWebOtaFallback: noop, renderStatus: noop,
-    startInstallRefresh: noop, stopInstallRefresh: noop,
+    startInstallRefresh: noop, pauseInstallRefresh: noop, stopInstallRefresh: noop,
   } as any, { setConfigLocked: noop, showBanner: noop }, {
     getJsonQuietly: async (_url: any, _callback: any, options: any) => equal(options.credentials, "omit"),
   }, { connect: noop });
