@@ -6869,7 +6869,7 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
           "revision": "6f024f0925c5a637b43057c71daeaaec1951bf29",
-          "status": "planned",
+          "status": "running",
           "log": "/private/tmp/2095-6f024f092-final-review-guition-esp32-p4-jc8012p4a1.log",
           "device": "guition-esp32-p4-jc8012p4a1",
           "esphome": "2026.9.1"
@@ -10563,7 +10563,7 @@
       "url": "https://github.com/jtenniswood/espcontrol/pull/2179",
       "mergeSha": "5f38cbccbfcaa5a46653e5e6c3748acab0fae41f",
       "disposition": "Ported",
-      "evidence": "Adds configurable popup tab ordering/visibility and optional independent power entity shared by All Controls and Cover Art. Retains custom colours and external playback routing. Upstream offline-power and three-state pool corrections included; actual destination modal-open guard adapted to new availability helper. Full final fast checks passed (90 host/181 web), all nine pinned factory configurations, real Chromium native/media editor journeys for nine layouts and docs passed. Bundle and contracts regenerated and size measured. Remote-modal fixture adaptation awaits combined compatibility validation with separate PR156; full firmware builds await reviewed parent wave. Physical device testing remains required. Final PR now uses shared integrate-colours-navigation base a3cbb37a5 (parents PR180 and PR156); old duplicate availability helper replaced with Power-aware implementation. Actual remote opening of usable Power with offline playback, plus existing suspended-image/lock/alarm/startup cases, passed. Final full fast checks passed (92 host/185 web), all nine factory configurations passed at the published combined revision. Browser acceptance rerun is in progress; firmware builds pending. Final combined Chromium acceptance passed for all nine layouts at published f6fa4f62b; all nine factory configurations and full 92-host/185-web tests passed. The ready PR now targets integrate-colours-navigation. Final reviewed parent base 4d617e85d includes Companion focus and alarm child-palette corrections. Complete required CI profile passed at the published revision (93 host/185 web); final firmware jobs use this exact head. Rebased onto shared dependency 98fa6d027, which includes the published card-colour PR and retired Companion restore fix. Full required CI passed (93 firmware tests, 186 web tests; 2179-retired-colour-final-ci.log). Final firmware builds requeued on published 11b2fd0a2. Final combined dependency is 8398035a6, including the production image placeholder declaration and retired Companion restore fix. Full required CI passed on published 679f5b5df (93 firmware tests,186 web tests; 2179-theme-declaration-final-ci.log). Four final firmware builds requeued. Rebased onto combined dependency 0fe5d70a5 including published card-colour overlay protection. Full required CI passed (93 firmware tests,186 web tests; 2179-overlay-contrast-final-ci.log). Final four device builds requeued on f80a3de7b. Rebased onto combined dependency a93ac5419 including the slot foreground ownership reset. Full required CI passed (93 firmware tests,186 web tests; 2179-slot-reuse-final-ci.log). Final four device builds requeued on 848fed9e2. Rebased onto shared dependency c6c9f10d9 including the onboarding SDK API/header/lifetime correction. Full required CI passed (93 firmware tests,186 web tests; 2179-wifi-sdk-final-ci.log). Final four firmware builds requeued. Rebased onto shared dependency cf6cf1935 with the corrected artwork/fallback ownership and current-state contrast. Full required CI passed (93 firmware tests,186 web tests; 2179-fallback-contrast-final-ci.log). Final four firmware builds requeued. Rebased onto shared dependency ab0f43de9 with the contrast/state definitions visible to both grid and Companion components. Full required CI passed (93 firmware tests,186 web tests; 2179-contrast-header-final-ci.log). Final four device builds requeued.",
+      "evidence": "Media popup tabs and separate Power control ported, including offline-main/available-power behavior, shared colour/navigation compatibility and correct artwork/fallback contrast. Full required CI and all four final-revision factory builds passed at 44efe3617 (S3, 7-inch P4, 4.3-inch P4 and P4-86). Shared contrast definitions produced no used-without-definition warnings. Physical device testing remains pending; earlier checks and fixes are retained in the JSON validation history.",
       "changedFiles": [
         "common/config/media_card_normalization_fixtures.json",
         "components/espcontrol/button_grid_card_runtime.h",
@@ -10798,26 +10798,71 @@
         {
           "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
           "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
-          "status": "running",
+          "status": "passed",
           "log": "/private/tmp/2179-44efe3617-shared-header-final-guition-esp32-p4-jc1060p470.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "c543386fa7df81269dbc6d75abec28cceaedbf4cf852e88b3187451f9b9a8411",
+            "button_grid_media.h": "43893f179e28577881455d8d6330e3800d5259742a679b872a130b317fd632f6",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc1060p470",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/204e92a1955c460a64b69a49171bf7972bc4913433a47c6babdf82a304e835bb.log.gz",
+          "logSha256": "204e92a1955c460a64b69a49171bf7972bc4913433a47c6babdf82a304e835bb",
+          "archiveSha256": "765c65a1b5555a67ca5ac93c112d49adc9537964b761a4a82b7de6d59bef0a24"
         },
         {
           "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
           "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2179-44efe3617-shared-header-final-guition-esp32-p4-jc4880p443.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "c543386fa7df81269dbc6d75abec28cceaedbf4cf852e88b3187451f9b9a8411",
+            "button_grid_media.h": "43893f179e28577881455d8d6330e3800d5259742a679b872a130b317fd632f6",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "guition-esp32-p4-jc4880p443",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/376843ab2375e2e47987187028f12037bd61e73c965a7378fc444e33d454a8d9.log.gz",
+          "logSha256": "376843ab2375e2e47987187028f12037bd61e73c965a7378fc444e33d454a8d9",
+          "archiveSha256": "251b871dbbf1b8bbccfe277187b01ac66f71301e5f3fd42d81f8a33e31a4adf3"
         },
         {
           "entrypoint": "builds/esp32-p4-86.factory.yaml",
           "revision": "44efe3617b2c9fa19d3885799f78d11b13129a30",
-          "status": "planned",
+          "status": "passed",
           "log": "/private/tmp/2179-44efe3617-shared-header-final-esp32-p4-86.log",
+          "compiledInputHashes": {
+            "button_grid_image.h": "c543386fa7df81269dbc6d75abec28cceaedbf4cf852e88b3187451f9b9a8411",
+            "button_grid_media.h": "43893f179e28577881455d8d6330e3800d5259742a679b872a130b317fd632f6",
+            "backlight.h": "616f229ccaa46c5acf98812680c408e7812da031bbc75809f3c90c02fa86707d",
+            "display_mode_controller.h": "a075e547acab63fee2e2aa6ea79a32a084a3037ab9ddcdf74215f7b015a49241",
+            "theme_runtime_ui.h": "e718cbe96873e80f20ff2cd0430363250a1d5a7265e5f864c8745149ef15a271",
+            "theme_settings.h": "cbc54a1bcaacf5b8306f0788324704f2d2ad799bd4166c096bb27b4aa1541de3",
+            "device_reset.h": "b0e90c19a8fe59aa3c8c034cfb2c48b8b3dad74c302442d6bd0dfaac3ad84019",
+            "wifi_setup_message.h": "d1c1b5088b4ebb720de3b5813b62598905cf06b2cce4ed54d7c042dda0f20cd1",
+            "home_assistant_endpoint_resolver.h": "099d7a0ef96a26ccd561c855d63ef4c2c4284b078a8593be9b7aee415be53bd8",
+            "home_assistant_endpoint_resolver.cpp": "23221a7e08ba83bb3c0680fd97c7187a9cd2383303241743dfa2b818a4c9875a"
+          },
           "device": "esp32-p4-86",
-          "esphome": "2026.9.1"
+          "esphome": "2026.9.1",
+          "logArchive": "dev-docs/upstream-sync/2026-10-10-firmware-logs/be35589e2038b5439c8fb1c5d532f0daf10e896609578e2cd24976437837fd45.log.gz",
+          "logSha256": "be35589e2038b5439c8fb1c5d532f0daf10e896609578e2cd24976437837fd45",
+          "archiveSha256": "abc63ce8467efe2f1ece274371dc35e3adadf5b7cabf5d08dce4948f9234cb71"
         }
       ],
       "reviewStatus": "No unresolved review findings at the verified revision",
@@ -10831,6 +10876,9 @@
       "previousPortRevisions": [
         "3ef79515cdb52e932fb334a1dc67fcfa6d6ba8f1",
         "c282126515afb70c2f00ee46ef3baaded4497ae9"
+      ],
+      "validationHistory": [
+        "Adds configurable popup tab ordering/visibility and optional independent power entity shared by All Controls and Cover Art. Retains custom colours and external playback routing. Upstream offline-power and three-state pool corrections included; actual destination modal-open guard adapted to new availability helper. Full final fast checks passed (90 host/181 web), all nine pinned factory configurations, real Chromium native/media editor journeys for nine layouts and docs passed. Bundle and contracts regenerated and size measured. Remote-modal fixture adaptation awaits combined compatibility validation with separate PR156; full firmware builds await reviewed parent wave. Physical device testing remains required. Final PR now uses shared integrate-colours-navigation base a3cbb37a5 (parents PR180 and PR156); old duplicate availability helper replaced with Power-aware implementation. Actual remote opening of usable Power with offline playback, plus existing suspended-image/lock/alarm/startup cases, passed. Final full fast checks passed (92 host/185 web), all nine factory configurations passed at the published combined revision. Browser acceptance rerun is in progress; firmware builds pending. Final combined Chromium acceptance passed for all nine layouts at published f6fa4f62b; all nine factory configurations and full 92-host/185-web tests passed. The ready PR now targets integrate-colours-navigation. Final reviewed parent base 4d617e85d includes Companion focus and alarm child-palette corrections. Complete required CI profile passed at the published revision (93 host/185 web); final firmware jobs use this exact head. Rebased onto shared dependency 98fa6d027, which includes the published card-colour PR and retired Companion restore fix. Full required CI passed (93 firmware tests, 186 web tests; 2179-retired-colour-final-ci.log). Final firmware builds requeued on published 11b2fd0a2. Final combined dependency is 8398035a6, including the production image placeholder declaration and retired Companion restore fix. Full required CI passed on published 679f5b5df (93 firmware tests,186 web tests; 2179-theme-declaration-final-ci.log). Four final firmware builds requeued. Rebased onto combined dependency 0fe5d70a5 including published card-colour overlay protection. Full required CI passed (93 firmware tests,186 web tests; 2179-overlay-contrast-final-ci.log). Final four device builds requeued on f80a3de7b. Rebased onto combined dependency a93ac5419 including the slot foreground ownership reset. Full required CI passed (93 firmware tests,186 web tests; 2179-slot-reuse-final-ci.log). Final four device builds requeued on 848fed9e2. Rebased onto shared dependency c6c9f10d9 including the onboarding SDK API/header/lifetime correction. Full required CI passed (93 firmware tests,186 web tests; 2179-wifi-sdk-final-ci.log). Final four firmware builds requeued. Rebased onto shared dependency cf6cf1935 with the corrected artwork/fallback ownership and current-state contrast. Full required CI passed (93 firmware tests,186 web tests; 2179-fallback-contrast-final-ci.log). Final four firmware builds requeued. Rebased onto shared dependency ab0f43de9 with the contrast/state definitions visible to both grid and Companion components. Full required CI passed (93 firmware tests,186 web tests; 2179-contrast-header-final-ci.log). Final four device builds requeued."
       ]
     },
     {
