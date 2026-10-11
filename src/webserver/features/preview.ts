@@ -5,6 +5,8 @@ const SUBPAGE_CONNECTOR_OPTION = cardContractOptionName("subpage_connector");
 const SUBPAGE_KIND_OPTION = cardContractOptionName("subpage_kind");
 const WIFI_QR_TABS_OPTION = cardContractOptionName("wifi_tabs");
 
+import { lighterCardColor } from "../model/config_primitives";
+
 export interface Point {
   readonly x: number;
   readonly y: number;
@@ -185,6 +187,31 @@ export function cardTypeVisibleForConnector(key: string, connector: CardPickerCo
   if (connector === "mac_companion" && MAC_COMPANION_HIDDEN_CARD_TYPES.has(key)) return false;
   const source = cardTypeConnector(key);
   return connector === "mac_companion" ? source !== "home_assistant" : source !== "mac_companion";
+}
+
+export function cardPreviewTextColor(background: string): string {
+  const rgb = parseInt(background.replace(/^#/, ""), 16);
+  // Match the firmware's fixed-point luminance calculation and light-background threshold.
+  const linear = (channel: number) => {
+    const value = channel / 255;
+    return Math.round((value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4) * 1000000);
+  };
+  const red = (rgb >> 16) & 255, green = (rgb >> 8) & 255, blue = rgb & 255;
+  const luminance = Math.floor((linear(red) * 2126 + linear(green) * 7152 + linear(blue) * 722) / 10000);
+  // Saturated blue/cyan active shades retain white content after lightening.
+  const crossover = green >= red + 32 && blue >= red + 32 ? 550000 : 450000;
+  return luminance >= crossover ? "#212121" : "#FFFFFF";
+}
+
+export function cardProgressColor(background: string): string {
+  const hex = background.replace(/^#/, "").toUpperCase();
+  if (!/^[0-9A-F]{6}$/.test(hex)) return "";
+  if (cardPreviewTextColor(hex) === "#FFFFFF") return lighterCardColor(hex);
+  // Match the firmware's rounded 30% darkening on pale backgrounds.
+  return [0, 2, 4].map((offset) => {
+    const channel = parseInt(hex.slice(offset, offset + 2), 16);
+    return Math.floor((channel * 70 + 50) / 100).toString(16).padStart(2, "0");
+  }).join("").toUpperCase();
 }
 
 export function previewValue<T>(preview: Record<string, unknown> | null | undefined, key: string, fallback: T): T {

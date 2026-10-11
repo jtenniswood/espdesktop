@@ -1,5 +1,7 @@
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
+import { configOptionValue, setCardColor, preserveCardColorOptions } from "../model/config_primitives";
+import { createColorSwatches } from "../components/color_swatches";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
 import { iconSlug, mdiIcon, textSpan } from "./ui_primitives";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
@@ -610,6 +612,7 @@ export function createButtonSettingsFeature(
             draft.autoSelectedButton = null;
         }
         function selectCardType(this: any, newType?: any) {
+            var previousCardOptions = b.options;
             var pickerType: any = newType;
             newType = defaultButtonTypeForPicker(newType);
             var wasNewDraftWithoutType: any = isNewDraft && state.settingsDraft &&
@@ -641,6 +644,7 @@ export function createButtonSettingsFeature(
                 b.precision = "";
                 b.options = "";
             }
+            b.options = preserveCardColorOptions(previousCardOptions, b.options);
             if (wasNewDraftWithoutType && state.settingsDraft && state.settingsDraft.key === draftKey) {
                 state.settingsDraft.autoSelectedButton = cloneButtonConfig(b);
             }
@@ -918,6 +922,31 @@ export function createButtonSettingsFeature(
                 renderPreview();
             });
             panel.appendChild(patternField.field);
+        }
+        if (b.type !== "image" && b.type !== "wifi_qr_card") {
+            var cardAppearance: any = disclosureSection("Custom Colours", idPrefix + "card-colours", false);
+            var cardColorEditor: any = document.createElement("div");
+            cardColorEditor.className = "sp-card-color-editor";
+            function saveCardColor(this: any, hex?: any) {
+                b.options = setCardColor(b.options, hex);
+                presetGrid._syncColor(configOptionValue(b.options, "card_off_color"));
+                saveField("options", b.options);
+                renderPreview();
+            }
+            var presetGrid = createColorSwatches(configOptionValue(b.options, "card_off_color"), saveCardColor, "Card colour presets");
+            cardColorEditor.appendChild(presetGrid);
+            var resetCardColors: any = createActionButton("sp-icon-button sp-card-header-action", "", "restore", "Reset colours to defaults");
+            resetCardColors.title = "Reset colours";
+            resetCardColors.addEventListener("click", function () {
+                saveCardColor("");
+            });
+            var cardColorHeader: any = document.createElement("div");
+            cardColorHeader.className = "sp-card-color-header";
+            cardAppearance.panel.replaceChild(cardColorHeader, cardAppearance.button);
+            cardColorHeader.appendChild(cardAppearance.button);
+            cardColorHeader.appendChild(resetCardColors);
+            cardAppearance.section.appendChild(cardColorEditor);
+            panel.appendChild(cardAppearance.panel);
         }
         groupCardSettingsFields(panel, idPrefix);
         Object.keys(openDisclosureIds).forEach(function (this: any, id?: any) {
