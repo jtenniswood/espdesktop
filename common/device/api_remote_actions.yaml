@@ -13,12 +13,7 @@ script:
       - lambda: |-
           if (!grid_phase2_complete() || navigation_home_targets().empty() ||
               alarm_display_takeover_active() || screen_lock_enabled()) return;
-          if (navigation_is_voice_target(target) && !navigation_has_home_label_target(target)) {
-            navigation_hide_modals();
-            ${navigate_voice_target_code}
-          } else {
-            espdesktop_navigate(target, id(main_page)->obj);
-          }
+          espdesktop_navigate(target, id(main_page)->obj);
       - script.execute: screensaver_idle_check
       - script.execute: home_screen_idle_check
 
