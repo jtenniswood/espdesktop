@@ -9,7 +9,7 @@ Produce a new Developer ID signed, Apple-notarized EspDesktop app and install it
 
 ## Select and build the source
 
-- Resolve the EspDesktop repository from the active chat and read its applicable `AGENTS.md`. The usual primary checkout is `/Users/jtenniswood/Git/espdesktop`.
+- Resolve the active repository root with `git rev-parse --show-toplevel` from the chat's working directory and read its applicable `AGENTS.md`. Use that worktree for repository files and commands; do not substitute another checkout.
 - Honor a requested PR, branch, or worktree and retain its intended changes. When repeating the standalone workflow without a feature source in context, fetch and build latest `origin/main` in a unique, isolated detached worktree. Do not reset or update the primary checkout: its local `main` may be stale and contain unrelated changes.
 - Record the source commit and dirty state. This is packaging work; no commit or PR is needed unless source files actually change. Follow the repository branch/commit/push workflow for any necessary code fixes.
 - Read `macos/EspDesktop/Packaging/build_local.sh` and the standalone helper it calls. Use the local helper with the saved identity in `~/.config/espdesktop/signing-identity`; do not override it or fall back to ad-hoc signing. Verify a usable Developer ID Application identity with `security find-identity -v -p codesigning`.
@@ -24,7 +24,7 @@ Produce a new Developer ID signed, Apple-notarized EspDesktop app and install it
 - Stage the app in a unique output directory before replacing anything. Create the submission ZIP with `ditto -c -k --keepParent <staged.app> <submission.zip>`.
 - The Keychain profile `EspDesktop` worked in this workflow. Verify it is still usable, for example with `xcrun notarytool history --keychain-profile EspDesktop --output-format json`. Never print or export credentials. If credentials are unavailable, have the user repair them locally.
 - Submit the ZIP with `xcrun notarytool submit <submission.zip> --keychain-profile EspDesktop --output-format json`, saving the returned JSON and submission ID.
-- Resume that ID with `notarytool wait` using `--timeout 45s`, or `info`. Do not resubmit the same artifact after a timeout. After a few bounded waits, leave the installed app untouched and report the pending ID if Apple is still processing. Do not schedule polling.
+- Resume that ID with `xcrun notarytool wait <id> --keychain-profile EspDesktop --timeout 45s --output-format json`, or inspect it with `xcrun notarytool info <id> --keychain-profile EspDesktop --output-format json`. Keep the selected `DEVELOPER_DIR` environment for these commands. Do not resubmit the same artifact after a timeout. After a few bounded waits, leave the installed app untouched and report the pending ID if Apple is still processing. Do not schedule polling.
 - Require explicit `Accepted`. For `Invalid`, retrieve the submission log and diagnose within the authorized scope.
 - Run `xcrun stapler staple`, `xcrun stapler validate`, `codesign --verify --deep --strict`, and `spctl --assess --type execute --verbose=4` on the staged app. Require Gatekeeper acceptance with `source=Notarized Developer ID`.
 - Create the final app ZIP after stapling. A DMG is unnecessary for this local app request.
