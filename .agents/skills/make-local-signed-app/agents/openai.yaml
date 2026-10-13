@@ -1,0 +1,4 @@
+interface:
+  display_name: "make local signed app"
+  short_description: "Build, notarize, and install EspDesktop locally"
+  default_prompt: "Use $make-local-signed-app to build EspDesktop, upload it to Apple for notarization, and install and open it in Applications."
