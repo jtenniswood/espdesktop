@@ -219,7 +219,7 @@ def test_s3_low_heap_policy() -> None:
 
     for option in (
         'CONFIG_SPIRAM_USE_MALLOC: "y"',
-        'CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "1024"',
+        'CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "0"',
         'CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL: "32768"',
         'CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"',
     ):
