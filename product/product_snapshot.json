@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 44,
-    "entityNames": 118,
+    "entityNames": 111,
     "icons": 394,
     "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
@@ -1576,15 +1576,9 @@
           },
           "deviceFontPackageKey": "fonts_device",
           "touchscreenPackage": true,
-          "localVoiceServices": true,
-          "alarmDelayAudio": true,
           "networkCoprocessor": true,
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
-          "extraPackages": {
-            "voice_assistant": "!include device/voice_assistant.yaml",
-            "physical_volume_button": "!include device/physical_volume_button${network_package_suffix}.yaml"
-          },
           "backlightPwmFrequency": {
             "wifi": "100Hz",
             "ethernet": "20000Hz"
@@ -5364,6 +5358,14 @@
         "domains": [],
         "options": [
           {
+            "name": "custom_icon",
+            "label": "Use custom icon",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "app_shortcuts",
             "label": "App Subpage",
             "kind": "flag",
@@ -5419,6 +5421,38 @@
             "omitDefault": true
           },
           {
+            "name": "app_bg_color",
+            "label": "App background colour",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "app_hide_label",
+            "label": "Hide app label",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "app_icon_fill",
+            "label": "Fill card with app icon",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "app_icon_medium",
+            "label": "Use medium app icon size",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "webapp_icon_title",
             "label": "Large icon with title",
             "kind": "flag",
@@ -5468,6 +5502,7 @@
           },
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
+            "custom_icon",
             "app_shortcuts",
             "finder_open_behavior",
             "finder_open_override",
@@ -5475,7 +5510,11 @@
             "app_shortcut_preset",
             "large_numbers",
             "stat_labels_off",
-            "webapp_icon_title"
+            "webapp_icon_title",
+            "app_bg_color",
+            "app_hide_label",
+            "app_icon_fill",
+            "app_icon_medium"
           ],
           "optionHook": "normalize_date_time_options"
         },
@@ -7044,93 +7083,6 @@
         "name": "Battery",
         "groups": [
           "settings_battery"
-        ]
-      },
-      {
-        "key": "voice_services",
-        "domain": "switch",
-        "name": "Voice Services",
-        "objectIds": [
-          "voice_services",
-          "voice_services_enabled"
-        ],
-        "groups": [
-          "settings_voice"
-        ]
-      },
-      {
-        "key": "alarm_delay_audio",
-        "domain": "switch",
-        "name": "Alarm Delay: Audio",
-        "objectIds": [
-          "alarm_delay__audio",
-          "alarm_delay_audio",
-          "alarm_delay_audio_enabled"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_tts",
-        "domain": "switch",
-        "name": "Alarm Delay: TTS",
-        "objectIds": [
-          "alarm_delay__tts",
-          "alarm_delay_tts",
-          "alarm_delay_tts_enabled"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_entry_announcement",
-        "domain": "text",
-        "name": "Alarm Delay: Entry Announcement",
-        "objectIds": [
-          "alarm_delay__entry_announcement",
-          "alarm_delay_entry_announcement"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_exit_announcement",
-        "domain": "text",
-        "name": "Alarm Delay: Exit Announcement",
-        "objectIds": [
-          "alarm_delay__exit_announcement",
-          "alarm_delay_exit_announcement"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_beep_volume",
-        "domain": "number",
-        "name": "Alarm Delay: Beep Volume",
-        "objectIds": [
-          "alarm_delay__beep_volume",
-          "alarm_delay_beep_volume"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_final_countdown",
-        "domain": "number",
-        "name": "Alarm Delay: Final Countdown",
-        "objectIds": [
-          "alarm_delay__final_countdown",
-          "alarm_delay_final_countdown",
-          "alarm_delay_final_countdown_seconds"
-        ],
-        "groups": [
-          "settings_alarm_audio"
         ]
       },
       {

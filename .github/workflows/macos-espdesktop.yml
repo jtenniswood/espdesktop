@@ -5,7 +5,7 @@ on:
     paths:
       - 'macos/EspDesktop/**'
       - 'product/v2/companion_capabilities.json'
-      - 'compatibility/fixtures/companion_protocol_v3.json'
+      - 'compatibility/fixtures/companion_protocol_v4.json'
       - 'scripts/companion_protocol_codegen.py'
       - 'scripts/companion_release.py'
       - 'scripts/build.py'

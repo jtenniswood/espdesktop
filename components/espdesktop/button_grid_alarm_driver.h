@@ -65,7 +65,6 @@ struct AlarmDriverEnvironment {
   int width_compensation_percent = 100;
   std::function<void(espdesktop::DisplayTakeoverKind)> begin_display_takeover;
   std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;
-  AlarmDelayAudioHooks alarm_delay_audio;
   std::function<void(const std::string &)> add_parent_indicator;
 };
 
@@ -99,7 +98,6 @@ inline AlarmDriverEnvironment alarm_driver_environment(
     display_main_width_percent(display);
   environment.begin_display_takeover = grid_config.begin_display_takeover;
   environment.end_display_takeover = grid_config.end_display_takeover;
-  environment.alarm_delay_audio = grid_config.alarm_delay_audio;
   return environment;
 }
 
@@ -142,8 +140,6 @@ inline AlarmCardCtx *alarm_driver_bind_data(
   alarm->theme_green_percent = environment.theme_green_percent;
   alarm->theme_blue_percent = environment.theme_blue_percent;
   alarm->off_theme_owned = environment.off_theme_owned;
-  alarm_delay_audio_register_context(alarm);
-  alarm->audio_hooks = environment.alarm_delay_audio;
   if (context.surface == Surface::SUBPAGE) {
     alarm->grid_page = environment.grid_page;
   }

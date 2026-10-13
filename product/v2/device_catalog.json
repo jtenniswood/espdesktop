@@ -517,33 +517,11 @@
         }
       }
     },
-    "audio": {
-      "local-voice-services": {
-        "firmware": {
-          "package": {
-            "localVoiceServices": true,
-            "alarmDelayAudio": true,
-            "extraPackages": {
-              "voice_assistant": "!include device/voice_assistant.yaml"
-            }
-          }
-        }
-      }
-    },
     "input": {
       "touchscreen": {
         "firmware": {
           "package": {
             "touchscreenPackage": true
-          }
-        }
-      },
-      "physical-volume-buttons": {
-        "firmware": {
-          "package": {
-            "extraPackages": {
-              "physical_volume_button": "!include device/physical_volume_button${network_package_suffix}.yaml"
-            }
           }
         }
       }
@@ -1062,10 +1040,8 @@
           "network-coprocessor",
           "ethernet-selection"
         ],
-        "audio": "local-voice-services",
         "input": [
-          "touchscreen",
-          "physical-volume-buttons"
+          "touchscreen"
         ]
       },
       "config": {

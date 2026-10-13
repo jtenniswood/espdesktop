@@ -24,12 +24,11 @@ Tap the network status icon on the panel to open Settings. The page shows “Set
 
 The night mode moon appears whenever the [Night Schedule](/features/screen-schedule) is in its night period, in both **Time** and **Home Assistant** mode - in Home Assistant mode it follows the sensor entity and the activation state you chose. It is visible in practice when the schedule keeps the screen awake or dimmed rather than turning it off, and it disappears again when normal mode resumes.
 
-On firmware builds with local voice controls, turn on **Voice Services** to enable wake-word listening and show the microphone shortcut in the clock bar. Voice Services is off by default. When it is off, wake-word listening is stopped and the microphone/speaker shortcut is hidden. Tap the shortcut to adjust the device volume and access the microphone mute control. A microphone-off icon means voice listening is muted; a speaker-off icon means speaker output is muted. See [Voice Control](/features/voice-control) for the ESP32-P4 86 voice setup.
 
 The time format and timezone are configured separately in [Time Settings](/features/clock). The temperature unit is configured in [Temperature Settings](/features/temperature).
 
-Opening a card's controls shows its displayed card label to the left of the clock. Closing the controls restores the underlying page title or temperature. Voice controls show the translated **Voice** title.
+Opening a card's controls shows its displayed card label to the left of the clock. Closing the controls restores the underlying page title or temperature.
 
 The Settings shortcut remains accessible while card controls or a nested menu are open. Opening Settings closes those controls; Back returns to the underlying page. Hidden clock-bar controls remain hidden.
 
-On the 4-inch P4-86, Settings and Voice use larger icons and separate touch targets, with room between them for reliable taps.
+On the 4-inch P4-86, Settings uses a larger icon and touch target for reliable taps.

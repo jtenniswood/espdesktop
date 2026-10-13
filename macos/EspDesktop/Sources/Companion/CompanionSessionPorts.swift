@@ -16,8 +16,10 @@ protocol CompanionSessionPreferences: AnyObject {
 
 @MainActor
 protocol CompanionSessionResources: AnyObject {
+    var applicationCatalogueReady: Bool { get }
     func folderActions() -> [ApprovedFolder]
     func launchableApps() -> [LaunchableApp]
+    func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() -> String
     func focusedCompanionActionIdentifiers() -> [String]
     func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String])
@@ -53,6 +55,7 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func configuredWebAppIDs() -> [String] { [] }
     func focusedCompanionActionIdentifiers() -> [String] {

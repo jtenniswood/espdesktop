@@ -55,6 +55,19 @@ export class NativePanelConfigController {
     return this.client_ ? this.client_.discover() : Promise.resolve(false);
   }
 
+  async readSettings(): Promise<Record<string, string>> {
+    await this.waitForDiscovery();
+    const document = await this.client_?.load();
+    return document ? { ...document.settings } : {};
+  }
+
+  writeSetting(key: string, value: string): Promise<NativePanelConfigSaveOutcome> | null {
+    if (!key || key.length > 63) return null;
+    return this.schedule((current) => updateNativePanelConfigDocument(
+      current, this.dependencies.deviceProfile(), "settings", key, value,
+    ));
+  }
+
   supported(): boolean {
     return this.client_?.supported() ?? false;
   }

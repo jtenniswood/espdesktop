@@ -12,8 +12,11 @@
 inline void refresh_visible_image_cards();
 inline void image_card_set_clock_bar_companion_icon(
     const std::string &entity_id, const std::string &icon_name,
-    const std::string &source_url);
+    const std::string &source_url, bool use_cached_app_icon = false);
 inline void navigation_refresh_subpage_label();
+#ifdef USE_COMPANION
+inline void companion_refresh_app_icon_visibility();
+#endif
 
 // ── Home Assistant-driven home-screen navigation ─────────────────────
 
@@ -202,24 +205,6 @@ inline int navigation_slot_from_target(const std::string &target) {
   return slot;
 }
 
-inline bool navigation_is_voice_target(const std::string &target) {
-  std::string normalized = navigation_lower(navigation_trim(target));
-  return normalized == "voice" || normalized == "mic" ||
-         normalized == "microphone" || normalized == "speaker" ||
-         normalized == "volume" || normalized == "device_volume";
-}
-
-inline bool navigation_has_home_label_target(const std::string &target) {
-  std::string wanted = navigation_lower(navigation_trim(target));
-  if (wanted.empty()) return false;
-
-  for (auto &entry : navigation_home_targets()) {
-    if (entry.button == nullptr || entry.label.empty()) continue;
-    if (navigation_lower(entry.label) == wanted) return true;
-  }
-  return false;
-}
-
 inline NavigationHomeTargetEntry *navigation_find_label_target(
     const std::string &target, bool *duplicate_found = nullptr) {
   if (duplicate_found) *duplicate_found = false;
@@ -291,6 +276,9 @@ inline std::string navigation_active_subpage_label() {
 }
 
 inline void navigation_refresh_subpage_label() {
+#ifdef USE_COMPANION
+  companion_refresh_app_icon_visibility();
+#endif
   if (network_status_modal_ui().overlay) {
     set_clock_bar_companion_subpage_label(espdesktop_i18n(std::string("Settings")));
     image_card_set_clock_bar_companion_icon("", "", "");
@@ -314,7 +302,9 @@ inline void navigation_refresh_subpage_label() {
       ? (web_app ? "Web" : "Monitor") : config.icon;
   const std::string icon_url = web_app
       ? companion_web_app_icon_url(config.entity) : "";
-  image_card_set_clock_bar_companion_icon(config.entity, icon_name, icon_url);
+  image_card_set_clock_bar_companion_icon(
+      config.entity, icon_name, icon_url,
+      !web_app && companion_app_icon_enabled(config));
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(

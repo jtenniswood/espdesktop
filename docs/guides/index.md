@@ -1,6 +1,6 @@
 ---
 title: Home Assistant Touchscreen Setup and Control Guides
-description: Set up an EspDesktop room panel, media remote, camera display, or voice controller with practical guides and clear hardware requirements.
+description: Set up an EspDesktop room panel, media remote, or camera display with practical guides and clear hardware requirements.
 ---
 
 # What Would You Like to Control?
@@ -19,6 +19,8 @@ Use a [Media card](/card-types/media) with a `media_player` entity. Playback, vo
 
 For multiple speakers, follow [Speaker Groups](/features/speaker-groups) and confirm the players can join in Home Assistant first. For a dedicated album-art display, use [Media Cover Art](/features/media-cover-art). Existing users of the older controller can follow the [migration guide](/getting-started/migrate-esphome-media-player).
 
+To play audio directly from a supported panel, see [Speaker Playback](/guides/speaker-playback) for the supported P4 speaker output and S3 external-amplifier wiring.
+
 ## Show a Camera or Doorbell Snapshot
 
 Add a [Camera card](/card-types/cameras) for a Home Assistant `camera` or `image` entity. The panel shows still snapshots, not live video. S3 panels have two shared image slots; P4 panels have six, shared with Media Cover Art across all pages.
@@ -28,10 +30,6 @@ Check that the snapshot loads, then tap it to confirm the larger view works. For
 ## Show Your Immich Photos
 
 Install [EspDesktop Immich Companion](/immich/) to turn your photo library, albums, Memories or keyword searches into a slideshow. Follow [Connect to EspDesktop](/immich/display-setup) to use its Home Assistant image entity in the photo screensaver or a Camera card, with optional photo metadata.
-
-## Use Home Assistant Assist Voice Control
-
-Use the **4-inch P4 86 Panel** and follow [Voice Control](/features/voice-control). You need a configured Home Assistant Assist pipeline as well as the panel's microphones and speaker. Confirm a spoken command works before adjusting wake-word or audio settings. Other supported screens do not provide this voice feature.
 
 ## Maintain or Troubleshoot a Panel
 

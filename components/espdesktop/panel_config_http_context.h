@@ -3,6 +3,8 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <utility>
 
 namespace espdesktop::configuration {
 
@@ -16,6 +18,7 @@ struct PanelConfigHttpContext {
   const char *password{nullptr};
   std::atomic<bool> ready{false};
   std::atomic<bool> initialization_complete{false};
+  std::function<void(const uint8_t *, size_t)> configuration_saved;
 };
 
 inline PanelConfigHttpContext &panel_config_http_context() {
@@ -27,7 +30,8 @@ inline void bind_panel_config_http_context(ConfigurationService &service,
                                            uint8_t *document,
                                            size_t document_capacity,
                                            const char *username,
-                                           const char *password) {
+                                           const char *password,
+                                           std::function<void(const uint8_t *, size_t)> configuration_saved = {}) {
   PanelConfigHttpContext &context = panel_config_http_context();
   context.ready.store(false, std::memory_order_release);
   context.service = &service;
@@ -35,6 +39,7 @@ inline void bind_panel_config_http_context(ConfigurationService &service,
   context.document_capacity = document_capacity;
   context.username = username;
   context.password = password;
+  context.configuration_saved = std::move(configuration_saved);
   context.ready.store(document != nullptr && document_capacity != 0,
                       std::memory_order_release);
 }
