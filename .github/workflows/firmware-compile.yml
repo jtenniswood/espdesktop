@@ -90,7 +90,11 @@ jobs:
         env:
           REQUESTED_DEVICE: ${{ inputs.device }}
         run: |
-          MATRIX=$(python3 scripts/device_matrix.py nightly)
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            MATRIX=$(python3 scripts/device_matrix.py pr)
+          else
+            MATRIX=$(python3 scripts/device_matrix.py nightly)
+          fi
           if [ -n "$REQUESTED_DEVICE" ]; then
             MATRIX=$(jq -ce --arg slug "$REQUESTED_DEVICE" \
               '.include |= map(select(.slug == $slug)) | select(.include | length == 1)' \
