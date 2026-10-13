@@ -9,6 +9,9 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ESPDESKTOP_DOCKER_BUILD_CACHE_KEEP: 2GB
 
+permissions:
+  contents: read
+
 concurrency:
   group: nightly-firmware
   cancel-in-progress: true
@@ -75,6 +78,8 @@ jobs:
     name: Compile Firmware
     needs: device-matrix
     runs-on: self-hosted
+    outputs:
+      failed_targets: ${{ steps.firmware.outputs.failed_targets }}
     steps:
       - name: Prepare self-hosted workspace
         run: |
@@ -148,6 +153,7 @@ jobs:
           echo "ESPHOME_IMAGE=${ESPHOME_IMAGE}" >> "$GITHUB_ENV"
 
       - name: Compile firmware targets
+        id: firmware
         working-directory: espdesktop-nightly
         run: |
           SOURCE_DIR="${PWD}"
@@ -228,6 +234,7 @@ jobs:
             echo "::endgroup::"
           done < nightly-slugs.txt
 
+          echo "failed_targets=${failures# }" >> "$GITHUB_OUTPUT"
           if [ -n "${failures}" ]; then
             echo "::error::Firmware compile failures:${failures}"
             exit 1
@@ -241,3 +248,48 @@ jobs:
           rm -rf "${RUNNER_TEMP}/espdesktop-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -rf .esphome .firmware-builds
           bash scripts/reclaim_actions_disk.sh
+
+  report-failure:
+    name: Report Nightly Failure
+    needs: [device-matrix, compile]
+    if: ${{ always() && (needs.device-matrix.result == 'failure' || needs.compile.result == 'failure') }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create issue for failed nightly build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_REF: ${{ github.ref_name }}
+          MATRIX_RESULT: ${{ needs.device-matrix.result }}
+          COMPILE_RESULT: ${{ needs.compile.result }}
+          FAILED_TARGETS: ${{ needs.compile.outputs.failed_targets }}
+        run: |
+          python3 - <<'PY' > nightly-failure.md
+          import os
+
+          print("The nightly firmware build failed and needs investigation.\n")
+          print(f"- Build logs: {os.environ['RUN_URL']}")
+          print(f"- Attempt: {os.environ['RUN_ATTEMPT']}")
+          print(f"- Branch: `{os.environ['BUILD_REF']}`")
+          print(f"- Commit: `{os.environ['BUILD_SHA']}`")
+          print(f"- Device matrix: {os.environ['MATRIX_RESULT']}")
+          print(f"- Firmware compilation: {os.environ['COMPILE_RESULT']}")
+          print("\n### Failed firmware targets\n")
+          targets = os.environ.get("FAILED_TARGETS", "").split()
+          if targets:
+              for target in targets:
+                  print(f"- `{target}`")
+          else:
+              print("No target list was recorded. Check the logs for setup, matrix, or cleanup failures.")
+          print("\n### Action needed\n")
+          print("Investigate the linked logs, fix the cause in a pull request, and rerun the nightly workflow to verify all devices build successfully.")
+          PY
+          gh issue create \
+            --title "Nightly firmware build failed (run #${RUN_NUMBER}, attempt ${RUN_ATTEMPT})" \
+            --body-file nightly-failure.md
