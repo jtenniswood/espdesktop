@@ -137,7 +137,7 @@ script:
       - lambda: |-
           register_theme_hud(id(temperatures), id(display_time),
                              id(network_status_icon_label),
-                             id(night_mode_status_icon_label), ${theme_voice_hud_label},
+                             id(night_mode_status_icon_label), nullptr,
                              ${theme_battery_hud_label});
           ClockBarVisibility visibility = clock_bar_resolve_visibility(
               id(clock_bar_enabled).state,
