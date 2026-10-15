@@ -5,9 +5,9 @@
   "sourceRangeBase": "c6c07459c4af4cb9b9285e49363377883e9c9e51",
   "sourceRangeEnd": "98169408fa154c9fe240ed8a38ff1f6f3184b0a3",
   "counts": {
-    "Already present": 35,
+    "Already present": 33,
+    "Ported": 36,
     "Not applicable": 4,
-    "Ported": 34,
     "Covered by an open PR": 1
   },
   "pullRequests": [
@@ -32,7 +32,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/124",
       "destinationMergedAt": "2026-10-11T07:22:50Z",
-      "destinationMergeSha": "0231afa1d28fb7ae34e00ddd5d1889b8d42eb19b"
+      "destinationMergeSha": "0231afa1d28fb7ae34e00ddd5d1889b8d42eb19b",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -76,7 +77,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/161",
       "destinationMergedAt": "2026-10-11T07:39:08Z",
-      "destinationMergeSha": "c8d39c4953273e6179d1c8adc61d5690a35019b5"
+      "destinationMergeSha": "c8d39c4953273e6179d1c8adc61d5690a35019b5",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -100,7 +102,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/150",
       "destinationMergedAt": "2026-10-11T07:38:06Z",
-      "destinationMergeSha": "2965a269156ac4ed59f197582ea22f0308be12f5"
+      "destinationMergeSha": "2965a269156ac4ed59f197582ea22f0308be12f5",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -123,7 +126,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/149",
       "destinationMergedAt": "2026-10-11T08:16:45Z",
-      "destinationMergeSha": "b010cc9e2213241922cef95095b7390e1b8ae9b6"
+      "destinationMergeSha": "b010cc9e2213241922cef95095b7390e1b8ae9b6",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -150,7 +154,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/126",
       "destinationMergedAt": "2026-10-11T07:26:27Z",
-      "destinationMergeSha": "55db0fce2f6ce554f5f0f3ce37612b44cee272d4"
+      "destinationMergeSha": "55db0fce2f6ce554f5f0f3ce37612b44cee272d4",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -179,7 +184,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/165",
       "destinationMergedAt": "2026-10-11T09:08:45Z",
-      "destinationMergeSha": "3338b5e57e2e229dde1750143af6c68e841b1431"
+      "destinationMergeSha": "3338b5e57e2e229dde1750143af6c68e841b1431",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -214,7 +220,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/166",
       "destinationMergedAt": "2026-10-11T08:37:09Z",
-      "destinationMergeSha": "0e6c8c0acbbb9e23ef9fb39c9acff2bf926d4990"
+      "destinationMergeSha": "0e6c8c0acbbb9e23ef9fb39c9acff2bf926d4990",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -236,7 +243,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/132",
       "destinationMergedAt": "2026-10-11T07:35:15Z",
-      "destinationMergeSha": "4bbabff17aecd6dce2ff316fcca7f14ea8a7cb58"
+      "destinationMergeSha": "4bbabff17aecd6dce2ff316fcca7f14ea8a7cb58",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -256,7 +264,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/131",
       "destinationMergedAt": "2026-10-11T07:34:56Z",
-      "destinationMergeSha": "34ba5cdfb7b88704440de70cb59ecced79ca72f7"
+      "destinationMergeSha": "34ba5cdfb7b88704440de70cb59ecced79ca72f7",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -299,12 +308,14 @@
         "product/v2/devices/guition-esp32-p4-jc8012p4a1.json",
         "product/v2/devices/guition-esp32-s3-4848s040.json"
       ],
-      "disposition": "Already present",
-      "evidence": "Merged destination port https://github.com/jtenniswood/espdesktop/pull/173. Local speaker support restricted to P4-86, with optional audio headers guarded on other devices. Full required host/web checks and all eight final-revision factory builds passed. The older failed build remains historical evidence. Physical P4-86 speaker testing remains pending.",
+      "disposition": "Ported",
+      "evidence": "Earlier destination PR https://github.com/jtenniswood/espdesktop/pull/173 was merged into a parent feature branch after that parent reached main; its merge commit is absent from destination baseline. Restored the reviewed changes here, preserving later reset, captive portal, Companion and layout work. Regenerated packages now activate the retained Home Assistant speaker only on P4-86 (GPIO53); removed the unused S3 external speaker package and restored UART0 logging.",
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/173",
       "destinationMergedAt": "2026-10-11T08:36:47Z",
-      "destinationMergeSha": "6b99fb7ae527833b8df3a7dd7c486e917ab69b05"
+      "destinationMergeSha": "6b99fb7ae527833b8df3a7dd7c486e917ab69b05",
+      "priorPortOnDestinationBaseline": false,
+      "priorPortBaseBranch": "add-panel-speaker-playback"
     },
     {
       "author": {
@@ -341,12 +352,14 @@
         "docs/guides/speaker-playback.md",
         "tests/firmware/reset_policy_test.cpp"
       ],
-      "disposition": "Already present",
-      "evidence": "Merged destination port https://github.com/jtenniswood/espdesktop/pull/174. Removed Sendspin pipeline, vendor source and import/debug entries, preserving P4-86 HA encoded media/announcements,80percent ceiling and amplifier guards. Firmware validation is complete for the 1 recorded device builds at c6a678b48. Physical device testing remains pending. Earlier checks and fixes are retained in the JSON validation history.",
+      "disposition": "Ported",
+      "evidence": "Earlier destination PR https://github.com/jtenniswood/espdesktop/pull/174 was merged into a parent feature branch after that parent reached main; its merge commit is absent from destination baseline. Restored the reviewed changes here, preserving later reset, captive portal, Companion and layout work. Removed the native Sendspin component, pipeline, shared-player coordinator and registration; retained P4-86 Home Assistant media/announcements, volume ceiling and amplifier guards.",
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/174",
       "destinationMergedAt": "2026-10-11T08:36:53Z",
-      "destinationMergeSha": "8c6837f9ca5614cfd91302c75230fc259c5920eb"
+      "destinationMergeSha": "8c6837f9ca5614cfd91302c75230fc259c5920eb",
+      "priorPortOnDestinationBaseline": false,
+      "priorPortBaseBranch": "limit-local-speaker-to-p4-86"
     },
     {
       "author": {
@@ -376,7 +389,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/175",
       "destinationMergedAt": "2026-10-11T08:29:15Z",
-      "destinationMergeSha": "27c1978b94d85cb82f4670222a215b0295e11d4a"
+      "destinationMergeSha": "27c1978b94d85cb82f4670222a215b0295e11d4a",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -401,7 +415,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/130",
       "destinationMergedAt": "2026-10-11T07:34:39Z",
-      "destinationMergeSha": "d91c78f5d2be65206ae7a4c34173dda14f1c53d1"
+      "destinationMergeSha": "d91c78f5d2be65206ae7a4c34173dda14f1c53d1",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -442,7 +457,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/137",
       "destinationMergedAt": "2026-10-11T07:37:01Z",
-      "destinationMergeSha": "572fdbb63a57b12a3d60b19c912dc3263e570b3f"
+      "destinationMergeSha": "572fdbb63a57b12a3d60b19c912dc3263e570b3f",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -484,7 +500,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/139",
       "destinationMergedAt": "2026-10-11T07:49:25Z",
-      "destinationMergeSha": "3e524ab9d26568782fbe827cfb141567ef6e228e"
+      "destinationMergeSha": "3e524ab9d26568782fbe827cfb141567ef6e228e",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -510,7 +527,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/135",
       "destinationMergedAt": "2026-10-11T07:36:43Z",
-      "destinationMergeSha": "5441aea9779742fde463df67ea4eb70d1f6b90aa"
+      "destinationMergeSha": "5441aea9779742fde463df67ea4eb70d1f6b90aa",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -533,7 +551,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/151",
       "destinationMergedAt": "2026-10-11T07:38:24Z",
-      "destinationMergeSha": "efd16265402d55cbfe06454d9853c29a0acb2c3e"
+      "destinationMergeSha": "efd16265402d55cbfe06454d9853c29a0acb2c3e",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -555,7 +574,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/140",
       "destinationMergedAt": "2026-10-11T07:51:18Z",
-      "destinationMergeSha": "2f530a52ac806662ba56267b9b4c1be6f808a02f"
+      "destinationMergeSha": "2f530a52ac806662ba56267b9b4c1be6f808a02f",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -584,7 +604,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/167",
       "destinationMergedAt": "2026-10-11T08:53:33Z",
-      "destinationMergeSha": "f9af492763187e540aa12dc73b7f52a3e0848f91"
+      "destinationMergeSha": "f9af492763187e540aa12dc73b7f52a3e0848f91",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -669,7 +690,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/176",
       "destinationMergedAt": "2026-10-11T09:48:29Z",
-      "destinationMergeSha": "16f7d477b1f68345239c24131257d73b06f0879d"
+      "destinationMergeSha": "16f7d477b1f68345239c24131257d73b06f0879d",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -695,7 +717,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/171",
       "destinationMergedAt": "2026-10-11T08:24:00Z",
-      "destinationMergeSha": "12d6801f8f02fbe4f0e7e6b1cf6ee42cdff2e943"
+      "destinationMergeSha": "12d6801f8f02fbe4f0e7e6b1cf6ee42cdff2e943",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -740,7 +763,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/170",
       "destinationMergedAt": "2026-10-11T09:04:50Z",
-      "destinationMergeSha": "49cbf8f2f9ec9d4625e3fce662a698df9d422187"
+      "destinationMergeSha": "49cbf8f2f9ec9d4625e3fce662a698df9d422187",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -760,7 +784,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/134",
       "destinationMergedAt": "2026-10-11T07:36:25Z",
-      "destinationMergeSha": "2a793d9133b2067da96a469c08b2c2cf3e926c65"
+      "destinationMergeSha": "2a793d9133b2067da96a469c08b2c2cf3e926c65",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -788,7 +813,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/125",
       "destinationMergedAt": "2026-10-11T07:30:46Z",
-      "destinationMergeSha": "e0ef6b095097c6578d5b84b761b3be16489adcbd"
+      "destinationMergeSha": "e0ef6b095097c6578d5b84b761b3be16489adcbd",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -918,7 +944,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/177",
       "destinationMergedAt": "2026-10-11T09:14:07Z",
-      "destinationMergeSha": "ce01669f83c36b8d2c02049cfb4a914cf162f694"
+      "destinationMergeSha": "ce01669f83c36b8d2c02049cfb4a914cf162f694",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -945,7 +972,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/136",
       "destinationMergedAt": "2026-10-11T08:08:39Z",
-      "destinationMergeSha": "ad613e2eb17d770e4d4b75d27e530f1290596529"
+      "destinationMergeSha": "ad613e2eb17d770e4d4b75d27e530f1290596529",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -993,7 +1021,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/178",
       "destinationMergedAt": "2026-10-11T14:34:37Z",
-      "destinationMergeSha": "02593b97b4adfa0e7af7b35207e709de3cdf584d"
+      "destinationMergeSha": "02593b97b4adfa0e7af7b35207e709de3cdf584d",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -1018,7 +1047,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/133",
       "destinationMergedAt": "2026-10-11T07:35:34Z",
-      "destinationMergeSha": "a232213f3e7883b44d1780cac2636f8330851dae"
+      "destinationMergeSha": "a232213f3e7883b44d1780cac2636f8330851dae",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -1118,7 +1148,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/179",
       "destinationMergedAt": "2026-10-11T14:39:17Z",
-      "destinationMergeSha": "183ac890a3ab08588a301edd97f945fedf0514f5"
+      "destinationMergeSha": "183ac890a3ab08588a301edd97f945fedf0514f5",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -1210,7 +1241,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/180",
       "destinationMergedAt": "2026-10-11T14:39:37Z",
-      "destinationMergeSha": "5ce0ecdf36da2c36df849d9662db9714c291d0fd"
+      "destinationMergeSha": "5ce0ecdf36da2c36df849d9662db9714c291d0fd",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -1272,7 +1304,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/181",
       "destinationMergedAt": "2026-10-13T09:50:42Z",
-      "destinationMergeSha": "154339f33a2f5ece533d38fd3779f2faff868077"
+      "destinationMergeSha": "154339f33a2f5ece533d38fd3779f2faff868077",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -1329,7 +1362,8 @@
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/169",
       "destinationMergedAt": "2026-10-11T08:46:54Z",
-      "destinationMergeSha": "6b7da3c943ea0a569320084726b8d7e22cc9eb32"
+      "destinationMergeSha": "6b7da3c943ea0a569320084726b8d7e22cc9eb32",
+      "priorPortOnDestinationBaseline": true
     },
     {
       "author": {
@@ -2710,9 +2744,9 @@
     }
   ],
   "validation": {
-    "status": "Automated validation passed; physical device confirmation pending.",
+    "status": "In progress: restore two missing stacked speaker ports and validate the corrected firmware.",
     "physicalDeviceTesting": "Not performed. No flashing, merging or issue closure is authorized by this sync.",
-    "firmware": "All nine supported models passed: nine factory builds and eight recovery builds. Logs and application/OTA sizes verified at 992a4b284; subsequent workflow-comment, test and audit changes leave firmware inputs unchanged.",
+    "firmware": "Fresh nine-model firmware validation is required after restoring the speaker ports. Earlier successes are preserved as historical evidence and are not counted for current firmware.",
     "bundleBytes": {
       "minified": 2760835,
       "gzip": 1091806
@@ -2722,27 +2756,32 @@
       "gzip": 1150000
     },
     "hostTests": {
-      "passed": 130,
+      "status": "passed",
+      "passed": 129,
       "suite": "firmware CTest",
       "testedInputHashes": {
-        "components/espdesktop/button_grid_alarm.h": "619ecca947b99b7b265313d52fe1c026a84e7f724a5efb2f55e3fff37e650011",
-        "tests/firmware/alarm_pin_keypad_order_test.py": "2909cd68373b7a99fa61b2d56bd705e7e064d15fbe30829b639a5ed42e2cc18d",
-        "tests/firmware/CMakeLists.txt": "faf204b9653d5e918e9f821d25f6c0e348c719df3eb604b3f197c27b9b796030"
+        "components/espdesktop/__init__.py": "675b0938a48c45eb7570664891a43e54cdb850428e6235abe32aaceee1add692",
+        "common/device/speaker_output_p4.yaml": "4d3f3b4f0ecbe61d0918c964b2512a6029200866706c39729c22659ce8d3ab22",
+        "devices/esp32-p4-86/packages.yaml": "19a7cdd222c291f3c0ae3f51906b59a806c8f64a4357351c82ce78867e382316",
+        "tests/firmware/speaker_announcement_duck_test.py": "d13b61de1989484416294775c0de2ea8927e35b6bd0ebc981ba59b81ed9b0451",
+        "tests/firmware/CMakeLists.txt": "6a76833c3258c143c332710485a556e4d7f2a42131d6b35c9b271d29d12ff905"
       }
     },
     "localCi": {
       "status": "passed",
       "tasks": 51,
-      "testedChanges": "Alarm keypad fixed ordering, regression harness and the complete sync tree",
+      "testedChanges": "Restored stacked speaker ports and generated-device regression",
       "testedInputHashes": {
-        "components/espdesktop/button_grid_alarm.h": "619ecca947b99b7b265313d52fe1c026a84e7f724a5efb2f55e3fff37e650011",
-        "tests/firmware/alarm_pin_keypad_order_test.py": "2909cd68373b7a99fa61b2d56bd705e7e064d15fbe30829b639a5ed42e2cc18d",
-        "tests/firmware/CMakeLists.txt": "faf204b9653d5e918e9f821d25f6c0e348c719df3eb604b3f197c27b9b796030"
+        "components/espdesktop/__init__.py": "675b0938a48c45eb7570664891a43e54cdb850428e6235abe32aaceee1add692",
+        "common/device/speaker_output_p4.yaml": "4d3f3b4f0ecbe61d0918c964b2512a6029200866706c39729c22659ce8d3ab22",
+        "devices/esp32-p4-86/packages.yaml": "19a7cdd222c291f3c0ae3f51906b59a806c8f64a4357351c82ce78867e382316",
+        "tests/firmware/speaker_announcement_duck_test.py": "d13b61de1989484416294775c0de2ea8927e35b6bd0ebc981ba59b81ed9b0451",
+        "tests/firmware/CMakeLists.txt": "6a76833c3258c143c332710485a556e4d7f2a42131d6b35c9b271d29d12ff905"
       },
-      "summarySha256": "3f4d998fe51466089584fa8e26c510e932bdd86639f7f0ec802a741462f7e7e5"
+      "summarySha256": "4d0477ae261fc4b73e4e7cd01866539ff99c60efe5bdd9af29cc62f4dc497b32"
     },
     "pinBrowser": "Passed shared PIN save/change/clear, Screen Lock, legacy capability hiding and backup import tests.",
-    "docs": "Passed VitePress build, installer dependency check, canonical links/anchors.",
+    "docs": "Passed VitePress build:17 canonical pages,7 FAQ answers,29 redirects,internal links/anchors checked after the speaker correction.",
     "firmwareHistory": [
       {
         "revision": "2e2f8dbc3275117bf7ab0dcbae948327193012c9",
@@ -2756,6 +2795,12 @@
         "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38763853471",
         "status": "superseded",
         "reason": "Superseded by the alarm keypad correction. Both 7-inch variants passed at the earlier revision; remaining old-run work was cancelled. Final validation is recorded separately."
+      },
+      {
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "status": "superseded",
+        "reason": "All nine models/17 entrypoints passed, but a final ancestry and generated-package audit found two previously merged child ports had not reached main. Restore their actual code and revalidate final firmware."
       }
     ],
     "remoteCi": {
@@ -2787,7 +2832,9 @@
       "result": "The identical icon visibility timeout was reproduced on unchanged origin/main in a separate snapshot. The full broad suite is not reported as passed."
     },
     "remainingWork": [
-      "User physical device confirmation before merge. No device flashing, merging or issue closure performed."
+      "Validate actual pinned ESPHome generated configuration and run fresh final-revision firmware builds.",
+      "Commit/push and run fresh final-revision firmware builds, then inspect final PR checks and review feedback.",
+      "User physical device confirmation before merge."
     ],
     "reviewFixes": [
       {
@@ -2848,9 +2895,7 @@
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/082b6327765fdefe343d4bbd6c3ddd557efa24c2c92eb272305f4681ba982823.log.gz",
         "appliesToCurrentFirmware": false,
         "supersededReason": "Later review fix changes the shared alarm keypad call. Keep as historical evidence; do not count for final firmware."
-      }
-    ],
-    "firmwareBuilds": [
+      },
       {
         "device": "guition-esp32-p4-jc1060p470",
         "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
@@ -2878,7 +2923,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/bf805e9e8ac339b09492fd6c1fac8757f40250e5b138338a47af3f7e90f47877.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "guition-esp32-p4-jc1060p470-v2",
@@ -2907,7 +2953,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/fc1e9982a297c689ec27c991d1dcf9f0293d9ffcc557d6797568e5ab940fe148.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "guition-esp32-p4-jc4880p443",
@@ -2936,7 +2983,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/480648bf82a7c9fce044d89e60c1c20846787c16a963ad10ee65ce4820b3ddea.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "guition-esp32-p4-jc4880p443-v3",
@@ -2965,7 +3013,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/552ff976ae40862568780b0ddf6eb0ba159729b16c241299418c5a2cf9517d72.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "guition-esp32-p4-jc8012p4a1",
@@ -2994,7 +3043,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/826dabcf04a8cb3f2a750f69c18571054705b69dbc6beebf9d76d1578811bdb0.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "guition-esp32-p4-jc8012p4a1-v2",
@@ -3023,7 +3073,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/c868ada734f98cffd64922538b9247ed5cc1b88afdfd04109303d7f347997149.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "guition-esp32-p4-jc8012p4a1-v3",
@@ -3052,7 +3103,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/4e84b5160bcf27e912341dec7372618d5ceb221253b37c126988417211be8ba7.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "esp32-p4-86",
@@ -3081,7 +3133,8 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/6290c83a83454777fb12253f96f3797550672926e1f7b3e71ed6ec26b6a1200b.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       },
       {
         "device": "guition-esp32-s3-4848s040",
@@ -3103,16 +3156,11 @@
           }
         ],
         "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/eb5a7a06c403a304155254b8f3c26dd8d499b531a06268d5c7c511a355030635.log.gz",
-        "appliesToCurrentFirmware": true
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later completion audit restores missing speaker-scope and Sendspin-removal ports, changing firmware inputs."
       }
     ],
-    "fullFirmwareMatrix": {
-      "status": "passed",
-      "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
-      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
-      "devices": 9,
-      "entrypoints": 17
-    },
+    "firmwareBuilds": [],
     "nightlyReportingRegression": {
       "status": "passed",
       "checks": 11,
@@ -3122,8 +3170,42 @@
     "sourceListRecheck": {
       "status": "passed",
       "count": 74,
-      "detail": "Authoritative fixed-window GitHub query rechecked: exact PR IDs and merge SHAs match; query below its 500-result cap."
-    }
+      "detail": "Authoritative fixed-window GitHub query rechecked: exact PR IDs and merge SHAs match; query below its 500-result cap.",
+      "priorPortAncestry": "Of 32 recorded destination port PRs, 30 merge commits are ancestors of the destination baseline; #173/#174 targeted feature branches and are restored here."
+    },
+    "previousSoftwareValidation": {
+      "localCi": {
+        "status": "passed",
+        "tasks": 51,
+        "testedChanges": "Alarm keypad fixed ordering, regression harness and the complete sync tree",
+        "testedInputHashes": {
+          "components/espdesktop/button_grid_alarm.h": "619ecca947b99b7b265313d52fe1c026a84e7f724a5efb2f55e3fff37e650011",
+          "tests/firmware/alarm_pin_keypad_order_test.py": "2909cd68373b7a99fa61b2d56bd705e7e064d15fbe30829b639a5ed42e2cc18d",
+          "tests/firmware/CMakeLists.txt": "faf204b9653d5e918e9f821d25f6c0e348c719df3eb604b3f197c27b9b796030"
+        },
+        "summarySha256": "3f4d998fe51466089584fa8e26c510e932bdd86639f7f0ec802a741462f7e7e5"
+      },
+      "hostTests": {
+        "passed": 130,
+        "suite": "firmware CTest",
+        "testedInputHashes": {
+          "components/espdesktop/button_grid_alarm.h": "619ecca947b99b7b265313d52fe1c026a84e7f724a5efb2f55e3fff37e650011",
+          "tests/firmware/alarm_pin_keypad_order_test.py": "2909cd68373b7a99fa61b2d56bd705e7e064d15fbe30829b639a5ed42e2cc18d",
+          "tests/firmware/CMakeLists.txt": "faf204b9653d5e918e9f821d25f6c0e348c719df3eb604b3f197c27b9b796030"
+        }
+      },
+      "remoteCi": {
+        "status": "passed",
+        "revision": "ffadcd70ef849434cfb4e6399d786a178d9a2e8d",
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38771476844"
+      },
+      "macAppBuild": {
+        "status": "passed",
+        "revision": "ffadcd70ef849434cfb4e6399d786a178d9a2e8d",
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38771476897"
+      }
+    },
+    "speakerRegression": "Generated package policy fails on the earlier published revision because P4-86 does not load the retained speaker. Corrected worktree passes and limits the speaker to P4-86, with no enabled Sendspin component."
   },
   "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
 }

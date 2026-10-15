@@ -174,7 +174,11 @@
           "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
           "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
           "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\"",
-          "button_radius": "12px"
+          "button_radius": "12px",
+          "speaker_amplifier_pin": "\"GPIO53\""
+        },
+        "extraPackages": {
+          "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
         }
       }
     }

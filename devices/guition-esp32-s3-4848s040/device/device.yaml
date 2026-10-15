@@ -320,6 +320,12 @@ api:
   max_connections: 3
   max_send_queue: 12
 
+# The 4848S040 USB-C port is exposed as UART0 through a USB-UART bridge.
+# GPIO19/20 are used by the touchscreen/display path, so USB_SERIAL_JTAG
+# stops working once the application starts.
+logger:
+  hardware_uart: UART0
+
 wifi:
   use_psram: true
 
