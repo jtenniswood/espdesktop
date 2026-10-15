@@ -2728,7 +2728,7 @@ async function assertConnectorsManagement(page, testCase) {
     0,
     `${testCase.name}: connector cards do not expose card-source badges`,
   );
-  await page.getByRole("tab", { name: "Screen" }).click();
+  await page.getByRole("tab", { name: "Layout" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
 }
 
@@ -3597,7 +3597,7 @@ async function assertPlaylistValidationOpensSourcePanel(page, label) {
 }
 
 async function assertOnlyLocalActionsAvailable(page, posts, label) {
-  await page.getByRole("tab", { name: "Screen" }).click();
+  await page.getByRole("tab", { name: "Layout" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
   const emptyCell = page
     .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
@@ -6001,7 +6001,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     }
     assert.strictEqual(await cardSettings.locator(".sp-icon-picker-preview").count(), 0,
       `${testCase.name}: Mac app cards use app artwork instead of an icon picker`);
-    assert(await cardSettings.getByRole("button", { name: "Mac app icon", exact: true }).isVisible(),
+    assert(await cardSettings.getByRole("combobox", { name: "Mac app icon size", exact: true }).isVisible(),
       `${testCase.name}: Mac app icon size control is visible`);
 
     const panels = page.locator(".sp-settings-modal .sp-panel > .sp-disclosure");
