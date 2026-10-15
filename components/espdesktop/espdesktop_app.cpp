@@ -29,6 +29,7 @@
 #include "panel_config_http_context.h"
 #include "panel_identity_endpoint.h"
 #include "companion_app_icon_endpoint.h"
+#include "screensaver_pin_endpoint.h"
 #include "button_grid.h"
 #include "finder_folder_sync.h"
 #include "connector_state.h"
@@ -42,6 +43,7 @@ extern "C" void espdesktop_register_web_server_handlers(
   if (server == nullptr) return;
   espdesktop::reset::register_handlers(*server);
   espdesktop::register_panel_identity_endpoint(*server);
+  espdesktop::register_screensaver_pin_endpoint(*server);
   register_local_sensor_endpoint(*server);
   register_local_action_endpoint(*server);
   register_companion_actions_endpoint(*server);
@@ -290,6 +292,7 @@ void EspDesktopApp::apply_boot_configuration() {
 }
 
 void EspDesktopApp::setup() {
+  screensaver_pin().setup();
   home_assistant_endpoint_.setup();
   esphome::artwork_image::TransferObserver::instance().set(
       [this](const std::string &origin) -> uint32_t {

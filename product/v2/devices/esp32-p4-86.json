@@ -67,21 +67,22 @@
         "left": 1.04,
         "right": 1.04,
         "bottom": 0.83,
-        "gap": 1.39,
+        "gap": 2.083333,
         "fr": "1fr"
       },
       "btn": {
-        "radius": 1.67,
+        "radius": 4.861111,
         "padding": 2.92,
         "iconSize": 9.58,
         "labelSize": 3.96,
         "coverArtTitleSize": 14.583333,
         "coverArtArtistSize": 8.333333,
         "labelLines": 2,
-        "labelLinesDouble": 3
+        "labelLinesDouble": 3,
+        "smallTextSize": 3.75
       },
       "emptyCell": {
-        "radius": 1.67
+        "radius": 4.861111
       },
       "sensorBadge": {
         "top": 2.08,
@@ -92,7 +93,8 @@
         "bottom": 2.08,
         "right": 2.08,
         "fontSize": 4
-      }
+      },
+      "continuousCorners": true
     },
     "firmware": {
       "display": {
@@ -154,7 +156,7 @@
           "unit_font": "font_text_body",
           "sensor_value_font": "font_number_value",
           "padding": "21px",
-          "radius": "12px",
+          "radius": "35px",
           "main_page_card_gap": "\"15\"",
           "main_page_pad_top": "\"60\"",
           "main_page_compact_pad_top": "\"6\"",
@@ -171,7 +173,12 @@
           "voice_timer_alert_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac\"",
           "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
           "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
-          "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\""
+          "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\"",
+          "button_radius": "12px",
+          "speaker_amplifier_pin": "\"GPIO53\""
+        },
+        "extraPackages": {
+          "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
         }
       }
     }

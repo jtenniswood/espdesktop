@@ -338,6 +338,7 @@ def common_font_ids() -> set[str]:
     ids: set[str] = set()
     for path in sorted(COMMON_ASSETS.glob("*.yaml")):
         ids.update(font_ids_from(path))
+    ids.update(font_ids_from(ROOT / "common" / "device" / "screen_clock.yaml"))
     return ids
 
 
@@ -759,6 +760,8 @@ def validate_web(slug: str, device: dict[str, Any], errors: list[str]) -> None:
         errors.append(device_error(slug, "web.dragAnimation must be true or false"))
     if "infoOnly" in web and not isinstance(web["infoOnly"], bool):
         errors.append(device_error(slug, "web.infoOnly must be true or false when set"))
+    if "continuousCorners" in web and not isinstance(web["continuousCorners"], bool):
+        errors.append(device_error(slug, "web.continuousCorners must be true or false when set"))
     if "coverArtSquareOverlay" in web and not isinstance(web["coverArtSquareOverlay"], bool):
         errors.append(device_error(slug, "web.coverArtSquareOverlay must be true or false when set"))
     disabled_card_types = web.get("disabledCardTypes", [])
@@ -920,9 +923,20 @@ def web_config(profile: dict[str, Any]) -> dict[str, Any]:
         "cols": layout["cols"],
         "rows": layout["rows"],
         "screenSize": profile["public"]["screenSize"],
+        "displayWidth": int(profile["public"]["resolution"].split(" x ")[0]),
+        "displayHeight": int(profile["public"]["resolution"].split(" x ")[1]),
         "largeSensorUnitOffsetPercent": profile["settings"]["largeSensorUnitOffsetPercent"],
         "imageSlotCapacity": image_slot_capacity,
+        "cardRadiusPixels": int(profile["firmware"]["package"]["substitutions"]["radius"].removesuffix("px")),
     }
+    substitutions = profile["firmware"]["package"]["substitutions"]
+    curve_radii = {
+        preset: int(substitutions[key].removesuffix("px"))
+        for preset, key in (("Small", "card_curve_small_radius"), ("Medium", "card_curve_medium_radius"))
+        if key in substitutions
+    }
+    if curve_radii:
+        cfg["cardCurveRadii"] = curve_radii
     for key, value in profile["web"].items():
         cfg[key] = copy.deepcopy(value)
         if key == "dragAnimation" and features:
@@ -949,6 +963,7 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
         "slots": profile["slots"],
         "cols": layout["cols"],
         "grid": layout["firmwareGrid"],
+        "small_text_font": fonts.get("smallText"),
         "icon_font": fonts["icon"],
         "sensor_font": fonts["sensor"],
         "large_sensor_font": fonts["largeSensor"],
@@ -958,6 +973,7 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
         "media_cover_art_title_font": fonts.get("mediaCoverArtTitle"),
         "media_cover_art_artist_font": fonts.get("mediaCoverArtArtist"),
         "volume_number_font": fonts["volumeNumber"],
+        "volume_number_compact_font": fonts.get("volumeNumberCompact"),
         "volume_label_font": fonts["volumeLabel"],
         "cover_art": copy.deepcopy(display["coverArt"]),
         "climate_card_icon_font": fonts.get("climateCardIcon"),
@@ -965,6 +981,7 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
         "climate_option_title_font": fonts.get("climateOptionTitle"),
         "climate_option_value_font": fonts.get("climateOptionValue"),
         "wrap_tall_labels": display["wrapTallLabels"],
+        "continuous_card_corners": bool(profile["web"].get("continuousCorners")),
         "label_lines": profile["web"]["btn"]["labelLines"],
         "label_lines_tall": profile["web"]["btn"]["labelLinesDouble"],
         "info_only": bool(display.get("infoOnly")),

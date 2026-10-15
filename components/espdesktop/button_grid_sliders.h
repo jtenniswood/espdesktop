@@ -1,6 +1,7 @@
 #pragma once
 
 #include "button_grid_slider_geometry.h"
+#include "button_grid_slider_contrast.h"
 #include "clock_bar.h"
 #include "media_volume_capability.h"
 #include "number_slider_policy.h"
@@ -2898,6 +2899,9 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
     return;
   }
   // Intentionally leaked -- lives for the lifetime of the display
+  slider_bind_text_contrast(s.icon_lbl, fill);
+  slider_bind_text_contrast(s.text_lbl, fill);
+  slider_bind_text_contrast(s.sensor_container, fill);
   SliderCtx *ctx = new SliderCtx();
   ctx->entity_id = p.entity;
   ctx->fill = fill;
@@ -3308,6 +3312,9 @@ inline void setup_light_temp_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_
   lv_obj_set_user_data(s.sensor_container, (void *)slider);
 
   lv_obj_t *fill = lv_obj_get_child(s.btn, 0);
+  slider_bind_text_contrast(s.icon_lbl, fill);
+  slider_bind_text_contrast(s.text_lbl, fill);
+  slider_bind_text_contrast(s.sensor_container, fill);
   // Intentionally leaked -- lives for the lifetime of the display
   SliderCtx *ctx = new SliderCtx();
   ctx->entity_id = p.entity;
@@ -3616,6 +3623,12 @@ inline void media_volume_layout_modal(MediaVolumeCtx *ctx) {
   if (!ctx || !ui.overlay || !ui.panel) return;
   ControlModalLayout layout = control_modal_calc_layout(ctx->width_compensation_percent);
   control_modal_apply_panel_layout(ui.overlay, ui.panel, layout, media_volume_card_radius(ctx));
+  if (ui.pct_lbl) {
+    const lv_font_t *number_font = display_modal_volume_number_font(ctx->number_font);
+    if (number_font) {
+      lv_obj_set_style_text_font(ui.pct_lbl, number_font, LV_PART_MAIN);
+    }
+  }
   if (ui.title_lbl) lv_obj_update_layout(ui.title_lbl);
   if (ui.pct_row) lv_obj_update_layout(ui.pct_row);
   lv_coord_t title_h = ui.title_lbl ? lv_obj_get_height(ui.title_lbl) : 0;
@@ -3626,7 +3639,8 @@ inline void media_volume_layout_modal(MediaVolumeCtx *ctx) {
   control_modal_apply_back_button_layout(ui.back_btn, layout);
   control_modal_apply_arc_layout(ui.arc, layout, ctx->width_compensation_percent);
   control_modal_apply_step_buttons_layout(
-    ui.minus_btn, ui.plus_btn, media_volume_step_button_layout(layout));
+    ui.minus_btn, ui.plus_btn, media_volume_step_button_layout(layout),
+    display_modal_uses_compact_landscape_controls(layout.profile), layout.inset, 256);
   lv_obj_set_style_translate_y(ui.pct_unit_lbl,
     control_modal_scaled_px(MEDIA_VOLUME_UNIT_Y_REF_PX, layout.short_side), LV_PART_MAIN);
   lv_obj_align(ui.title_lbl, LV_ALIGN_CENTER, 0, title_center_y);

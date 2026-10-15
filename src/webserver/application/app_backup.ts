@@ -1,3 +1,5 @@
+import { clearScreensaverPinForRestore } from "./screensaver_pin";
+import { resetAwareFetch } from "../api/reset_session";
 import type { PanelIdentityBackup } from "../model/panel_identity";
 import type { PanelIdentityFeature } from "./panel_identity";
 import { state } from "../state/app_instance";
@@ -27,6 +29,8 @@ import {
     parseThemeSunOffset,
 } from "../model/settings";
 import { syncThemeSettingsUi } from "./theme_settings_ui";
+import { normalizeCardCurve } from "../model/settings";
+import { syncCardCurveUi } from "./card_curve_ui";
 import type { BackupImportController } from "../features/backup_import_controller";
 import type { BackupExportController } from "../features/backup_export_controller";
 import type { BackupFileController } from "../features/backup_file_controller";
@@ -316,6 +320,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_night: Math.round(state.brightnessNightVal),
                 brightness_mode: normalizeBrightnessMode(state.brightnessMode),
                 theme_mode: normalizeThemeMode(state.themeMode),
+                card_curve: state.cardCurveSupported ? normalizeCardCurve(state.cardCurve) : undefined,
                 theme_auto_method: normalizeThemeAutoMethod(state.themeAutoMethod),
                 theme_light_start: normalizeTimeOfDay(state.themeLightStart, "07:00"),
                 theme_dark_start: normalizeTimeOfDay(state.themeDarkStart, "20:00"),
@@ -699,6 +704,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     // an existing theme choice alone when those fields are absent.
                     if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
                         state.themeMode = normalizeThemeMode(screenSettings.theme_mode);
+                    if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve")) {
+                        state.cardCurve = normalizeCardCurve(screenSettings.card_curve);
+                        syncCardCurveUi(state, controllers.runtime);
+                        syncPreviewOrientation(true);
+                    }
                     if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_auto_method") ||
                         screenSettings.theme_mode === "Sun" || screenSettings.theme_mode === "Schedule")
                         state.themeAutoMethod = normalizeThemeAutoMethod(screenSettings.theme_auto_method || screenSettings.theme_mode);
@@ -741,6 +751,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         requestApi.postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
                     if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
                         requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
+                    if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve"))
+                        requestApi.postSelect(entityName("screen_card_curve"), state.cardCurve);
                     if (state.brightnessMode === "manual")
                         postDisplayBacklightBrightness(state.manualBrightnessVal);
                     postBrightnessDawnTime(state.brightnessDawnTime);
@@ -774,6 +786,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 renderButtonSettings();
                 switchTab("screen");
                 await requestApi.postQueue;
+                if (!requestApi.postQueueError) {
+                    await clearScreensaverPinForRestore(resetAwareFetch);
+                    await els.syncScreensaverPinUi?.();
+                }
                 if (typeof restoredName === "string" && !requestApi.postQueueError) {
                     try { await controllers.identity?.saveAndRestart(restoredName); }
                     catch (error) {

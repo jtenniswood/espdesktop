@@ -3,7 +3,10 @@
 from contextlib import redirect_stdout
 import io
 import json
+import os
 from pathlib import Path
+import re
+import subprocess
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -73,6 +76,37 @@ class FirmwareSizeTests(unittest.TestCase):
             with redirect_stdout(io.StringIO()):
                 self.assertEqual(report("missing", self.root, compile_status, self.summary), 1)
         self.assertIn("unavailable", self.summary.read_text())
+
+    def run_nightly_wrapper(self, compile_status):
+        repo = Path(__file__).resolve().parents[1]
+        workflow = (repo / ".github/workflows/nightly-firmware.yml").read_text()
+        match = re.search(r'"\$\{ESPHOME_IMAGE\}" -c \'\n(.*?)\n\s*\' sh ',
+                          workflow, re.DOTALL)
+        self.assertIsNotNone(match, "nightly container shell was not found")
+        # Model the official entrypoint's final exec without running Docker or
+        # a real compile. Execute the production shell and size reporter.
+        entrypoint = self.root / "entrypoint.sh"
+        entrypoint.write_text('#!/bin/sh\nexec sh -c \'exit "$TEST_COMPILE_STATUS"\'\n')
+        entrypoint.chmod(0o755)
+        script = match.group(1).replace("/entrypoint.sh", str(entrypoint)).replace(
+            "/config/scripts/report_firmware_size.py", str(repo / "scripts/report_firmware_size.py"))
+        self.app.write_bytes(b"firmware")
+        result = subprocess.run(["/bin/sh", "-c", script, "sh", "test.yaml",
+                                 "test.yaml", str(self.root)],
+                                env={**os.environ, "TEST_COMPILE_STATUS": str(compile_status)},
+                                text=True, capture_output=True)
+        self.assertTrue((self.root / "firmware-size-summary.md").is_file(), result.stderr)
+        self.assertIn("test.yaml", (self.root / "firmware-size-summary.md").read_text())
+        return result
+
+    def test_nightly_reports_after_successful_exec_entrypoint(self):
+        result = self.run_nightly_wrapper(0)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_nightly_reports_and_propagates_failed_exec_entrypoint(self):
+        result = self.run_nightly_wrapper(2)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn("build failed", result.stdout)
 
     def test_empty_binary_and_ambiguous_builds_fail(self):
         self.assertEqual(self.run_report(0)[0], 1)

@@ -16,7 +16,7 @@ export function createAppTitleFeature(dependencies: AppTitleDependencies): AppTi
     function applyPageTitle(title?: unknown) {
         const text = typeof title === "string" ? title.trim() : "";
         const panelName = dependencies.panelName?.();
-        dependencies.document.title = panelName ? "EspDesktop — " + panelName : text || "EspDesktop";
+        dependencies.document.title = panelName ? "EspDesktop - " + panelName : text || "EspDesktop";
     }
     function handleWebServerPingEvent(event?: { data?: string }) {
         let data: any = null;

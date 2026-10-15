@@ -15,7 +15,9 @@ harness = r'''
 #include <string>
 #include <vector>
 #include "cover_art.h"
-namespace espdesktop { enum class DisplayMode { COVER_ART }; }
+namespace espdesktop { enum class DisplayMode { COVER_ART };
+struct Pin { bool value = false; bool locked() const { return value; } };
+Pin &screensaver_pin() { static Pin pin; return pin; } }
 struct Display { bool visible = true; bool target_mode_is(espdesktop::DisplayMode) { return visible; } };
 struct App { Display value; Display &display() { return value; } } espdesktop_app;
 struct Toggle { bool state = true; } cover_art_playback_control_enabled;
@@ -58,7 +60,8 @@ int main() {
   assert(!cover_art_playback_control.retains_pause(cover_art_active_media_player_entity));
   cover_art_companion_source_active = false;
   cover_art_last_playback_state = "playing";
-  for (int guard = 0; guard < 4; ++guard) {
+  for (int guard = 0; guard < 5; ++guard) {
+    espdesktop::screensaver_pin().value = guard == 4;
     espdesktop_app.value.visible = guard != 0;
     widget.hidden = guard == 1;
     screensaver_wake_touch_guard_active = guard == 2;
