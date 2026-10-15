@@ -2710,9 +2710,9 @@
     }
   ],
   "validation": {
-    "status": "in progress",
+    "status": "Automated validation passed; physical device confirmation pending.",
     "physicalDeviceTesting": "Not performed. No flashing, merging or issue closure is authorized by this sync.",
-    "firmware": "Nine-device factory/recovery matrix running at firmware revision 992a4b284 in run 38769574209. Workflow comment and reporting regression tests do not change firmware inputs.",
+    "firmware": "All nine supported models passed: nine factory builds and eight recovery builds. Logs and application/OTA sizes verified at 992a4b284; subsequent workflow-comment, test and audit changes leave firmware inputs unchanged.",
     "bundleBytes": {
       "minified": 2760835,
       "gzip": 1091806
@@ -2755,18 +2755,18 @@
         "revision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
         "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38763853471",
         "status": "superseded",
-        "reason": "Alarm keypad review fix requires final-revision firmware validation. Both 7-inch variants passed factory/recovery at the old revision; remaining old-run work will be cancelled."
+        "reason": "Superseded by the alarm keypad correction. Both 7-inch variants passed at the earlier revision; remaining old-run work was cancelled. Final validation is recorded separately."
       }
     ],
     "remoteCi": {
       "status": "passed",
-      "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
-      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769781587"
+      "revision": "ffadcd70ef849434cfb4e6399d786a178d9a2e8d",
+      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38771476844"
     },
     "macAppBuild": {
       "status": "passed",
-      "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
-      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769541870"
+      "revision": "ffadcd70ef849434cfb4e6399d786a178d9a2e8d",
+      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38771476897"
     },
     "inlineNamesBrowser": "Passed all nine generated display layouts using the destination generation-safe configuration endpoint.",
     "resizeBrowser": "Passed Chromium and WebKit: native move/resize, stable grid, commit, Escape, pointer cancellation, configuration lock and drag exclusion.",
@@ -2787,9 +2787,7 @@
       "result": "The identical icon visibility timeout was reproduced on unchanged origin/main in a separate snapshot. The full broad suite is not reported as passed."
     },
     "remainingWork": [
-      "Complete and inspect the nine-device factory/recovery matrix (run 38769574209).",
-      "Check PR feedback and current-head CI, address introduced failures, and update the evidence ledger.",
-      "Physical device confirmation remains the user\u2019s step before merge."
+      "User physical device confirmation before merge. No device flashing, merging or issue closure performed."
     ],
     "reviewFixes": [
       {
@@ -2797,14 +2795,14 @@
         "priority": "P2",
         "change": "Explicitly request fixed digit order for alarm PIN entry; Screen Lock/screensaver retain their own randomization preference.",
         "regression": "Production alarm caller and the shared keypad signature/defaults are exercised unchanged. The regression failed before the fix and passes afterward; full 51-task CI and 130 host tests pass.",
-        "threadStatus": "Fixed, pushed and resolved."
+        "threadStatus": "Addressed, pushed and resolved."
       },
       {
         "comment": "https://github.com/jtenniswood/espdesktop/pull/200#discussion_r4285684502",
         "priority": "P1",
         "change": "Verified that the official entrypoint runs as a child and returns to the reporting shell; retained its required cache environment setup and documented the process boundary.",
         "regression": "The actual nightly container shell and real size reporter run against an exec-style stub compiler. Both success and failure write a size summary; compiler failure propagates. All 11 size checks and firmware release helper checks pass.",
-        "threadStatus": "Evidence tested; awaiting push and resolution."
+        "threadStatus": "Addressed, pushed and resolved."
       }
     ],
     "priorFirmwareBuilds": [
@@ -2852,7 +2850,280 @@
         "supersededReason": "Later review fix changes the shared alarm keypad call. Keep as historical evidence; do not count for final firmware."
       }
     ],
-    "firmwareBuilds": []
+    "firmwareBuilds": [
+      {
+        "device": "guition-esp32-p4-jc1060p470",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "builds/guition-esp32-p4-jc1060p470.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879726",
+        "logSha256": "bf805e9e8ac339b09492fd6c1fac8757f40250e5b138338a47af3f7e90f47877",
+        "archiveSha256": "657586a2a6d654e6e9ff3b4649f4c8d7ae9ac94ec35a2c8f681ecf66fc6aa29a",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+            "applicationBytes": 5619904,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 1654592
+          },
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc1060p470.recovery.yaml",
+            "applicationBytes": 6614432,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 660064
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/bf805e9e8ac339b09492fd6c1fac8757f40250e5b138338a47af3f7e90f47877.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "guition-esp32-p4-jc1060p470-v2",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
+          "builds/guition-esp32-p4-jc1060p470-v2.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879524",
+        "logSha256": "fc1e9982a297c689ec27c991d1dcf9f0293d9ffcc557d6797568e5ab940fe148",
+        "archiveSha256": "ca04f7be89e764e48abe2dfa9bb40375620f7a2aaa4ccade5cb349cbb230e430",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
+            "applicationBytes": 5636432,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 1638064
+          },
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc1060p470-v2.recovery.yaml",
+            "applicationBytes": 6630960,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 643536
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/fc1e9982a297c689ec27c991d1dcf9f0293d9ffcc557d6797568e5ab940fe148.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "guition-esp32-p4-jc4880p443",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+          "builds/guition-esp32-p4-jc4880p443.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879579",
+        "logSha256": "480648bf82a7c9fce044d89e60c1c20846787c16a963ad10ee65ce4820b3ddea",
+        "archiveSha256": "0bf5b6a53fbc36795d119bb34036e2b39aa9e4e43a4e8f69655871808953ed0d",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+            "applicationBytes": 5593696,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 1680800
+          },
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc4880p443.recovery.yaml",
+            "applicationBytes": 6670928,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 603568
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/480648bf82a7c9fce044d89e60c1c20846787c16a963ad10ee65ce4820b3ddea.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "guition-esp32-p4-jc4880p443-v3",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
+          "builds/guition-esp32-p4-jc4880p443-v3.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879644",
+        "logSha256": "552ff976ae40862568780b0ddf6eb0ba159729b16c241299418c5a2cf9517d72",
+        "archiveSha256": "b2f4f40f042cbebe09201e6d09209b9107b550f5d6baf7079e07a82032a70c3a",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.factory.yaml",
+            "applicationBytes": 5596240,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 1678256
+          },
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc4880p443-v3.recovery.yaml",
+            "applicationBytes": 6673472,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 601024
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/552ff976ae40862568780b0ddf6eb0ba159729b16c241299418c5a2cf9517d72.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "guition-esp32-p4-jc8012p4a1",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
+          "builds/guition-esp32-p4-jc8012p4a1.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879663",
+        "logSha256": "826dabcf04a8cb3f2a750f69c18571054705b69dbc6beebf9d76d1578811bdb0",
+        "archiveSha256": "0bb1f46b8c8c84573a9b85683d5509ed7f6a433e552aea309d360cf1e92f673e",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
+            "applicationBytes": 5976640,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 1297856
+          },
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc8012p4a1.recovery.yaml",
+            "applicationBytes": 6897152,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 377344
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/826dabcf04a8cb3f2a750f69c18571054705b69dbc6beebf9d76d1578811bdb0.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "guition-esp32-p4-jc8012p4a1-v2",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc8012p4a1-v2.factory.yaml",
+          "builds/guition-esp32-p4-jc8012p4a1-v2.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879547",
+        "logSha256": "c868ada734f98cffd64922538b9247ed5cc1b88afdfd04109303d7f347997149",
+        "archiveSha256": "dc460f480f63aca89a1673f860810f97c8c0fd865093ad729a78128baf19ca93",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v2.factory.yaml",
+            "applicationBytes": 5953072,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 1321424
+          },
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v2.recovery.yaml",
+            "applicationBytes": 6874128,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 400368
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/c868ada734f98cffd64922538b9247ed5cc1b88afdfd04109303d7f347997149.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "guition-esp32-p4-jc8012p4a1-v3",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+          "builds/guition-esp32-p4-jc8012p4a1-v3.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879528",
+        "logSha256": "4e84b5160bcf27e912341dec7372618d5ceb221253b37c126988417211be8ba7",
+        "archiveSha256": "4944873343b02995c20e264649c44af5ed67c755c208680a05cc3f478edca205",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.factory.yaml",
+            "applicationBytes": 5955712,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 1318784
+          },
+          {
+            "entrypoint": "builds/guition-esp32-p4-jc8012p4a1-v3.recovery.yaml",
+            "applicationBytes": 6876896,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 397600
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/4e84b5160bcf27e912341dec7372618d5ceb221253b37c126988417211be8ba7.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "esp32-p4-86",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/esp32-p4-86.factory.yaml",
+          "builds/esp32-p4-86.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879689",
+        "logSha256": "6290c83a83454777fb12253f96f3797550672926e1f7b3e71ed6ec26b6a1200b",
+        "archiveSha256": "3aefa8b8b33576b0b91c47dccd663fb87db3d0788d11681ebdab4a8707b5476e",
+        "sizes": [
+          {
+            "entrypoint": "builds/esp32-p4-86.factory.yaml",
+            "applicationBytes": 7008640,
+            "otaPartitionBytes": 15663104,
+            "headroomBytes": 8654464
+          },
+          {
+            "entrypoint": "builds/esp32-p4-86.recovery.yaml",
+            "applicationBytes": 7817456,
+            "otaPartitionBytes": 15663104,
+            "headroomBytes": 7845648
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/6290c83a83454777fb12253f96f3797550672926e1f7b3e71ed6ec26b6a1200b.log.gz",
+        "appliesToCurrentFirmware": true
+      },
+      {
+        "device": "guition-esp32-s3-4848s040",
+        "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-s3-4848s040.factory.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209/job/116541879632",
+        "logSha256": "eb5a7a06c403a304155254b8f3c26dd8d499b531a06268d5c7c511a355030635",
+        "archiveSha256": "e70e2d73f3d49a92797c8916d0aad5d1ec985afb5b8ac463ec6afb3050d150be",
+        "sizes": [
+          {
+            "entrypoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+            "applicationBytes": 5251104,
+            "otaPartitionBytes": 7274496,
+            "headroomBytes": 2023392
+          }
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/eb5a7a06c403a304155254b8f3c26dd8d499b531a06268d5c7c511a355030635.log.gz",
+        "appliesToCurrentFirmware": true
+      }
+    ],
+    "fullFirmwareMatrix": {
+      "status": "passed",
+      "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769574209",
+      "devices": 9,
+      "entrypoints": 17
+    },
+    "nightlyReportingRegression": {
+      "status": "passed",
+      "checks": 11,
+      "releaseHelpers": "passed",
+      "detail": "Actual nightly shell and real size reporter continue after an exec-style child compiler on both success and failure; failed compilation remains a failure."
+    },
+    "sourceListRecheck": {
+      "status": "passed",
+      "count": 74,
+      "detail": "Authoritative fixed-window GitHub query rechecked: exact PR IDs and merge SHAs match; query below its 500-result cap."
+    }
   },
   "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
 }
