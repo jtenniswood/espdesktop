@@ -1612,7 +1612,7 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     { id: "switch-clock_screensaver_show_date", state: "ON", value: true },
   ]));
   assert(await dateToggle.isChecked(), `${label}: date state aliases synchronize`);
-  await screensaverCard.getByRole("button", { name: "Sensor", exact: true }).click();
+  await screensaverCard.getByRole("button", { name: "Home Assistant", exact: true }).click();
   const sensorDateToggle = screensaverCard.locator("#sp-set-sensor-clock-date");
   assert(await sensorDateToggle.locator("..").locator("..").isVisible(), `${label}: Sensor clock also offers Show date`);
   assert(await sensorDateToggle.isChecked(), `${label}: Sensor and Timer share date state`);
