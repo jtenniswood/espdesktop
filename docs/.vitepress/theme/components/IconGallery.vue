@@ -243,6 +243,7 @@ const ICON_GROUPS = {
   'Sun': 'Weather',
   'Weather Cloudy': 'Weather',
   'Weather Cloudy Alert': 'Weather',
+  'Weather Cloudy Clock': 'Weather',
   'Weather Dust': 'Weather',
   'Weather Fog': 'Weather',
   'Weather Hail': 'Weather',
@@ -425,6 +426,8 @@ const ICON_GROUPS = {
   'Car Electric': 'Vehicles',
   'EV Charger': 'Vehicles',
   'Airplane': 'Vehicles',
+  'Bus': 'Vehicles',
+  'Train': 'Vehicles',
 
   'Medication': 'Health',
   'Medication Outline': 'Health',

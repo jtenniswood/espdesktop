@@ -6,14 +6,14 @@ description:
 
 # Show Home Assistant Camera Snapshots
 
-A Camera card shows a still image from a Home Assistant `camera` or `image` entity. It is useful for doorbells, driveway cameras, room snapshots, weather cameras, or any Home Assistant image entity you want visible on the panel.
+A Camera card shows an image from a Home Assistant `camera` or `image` entity, including animated GIFs. It is useful for doorbells, driveway cameras, room snapshots, weather radar, or any Home Assistant image entity you want visible on the panel.
 
 Camera cards are display cards. They do not stream live video, pan the camera, or send camera control actions. Tapping the card opens a larger view of the latest loaded image.
 
 ::: info Display limits
 ESP32-P4 screens support up to six Camera or Media Cover Art cards. The 4-inch ESP32-S3 supports two shared image cards, allowing one Camera Card alongside one Media Cover Art card.
 
-On ESP32-P4 panels and the 4-inch ESP32-S3, the same `camera.*` and `image.*` entities can also be selected as the **Camera** screensaver action in **Settings > Sleep & Schedule > Screensaver**. That full-screen view is separate from the Camera-card pool, supports **Fit** (the whole image remains visible, with black space where needed) and **Fill** (the image covers the screen and may be cropped), and does not consume a Camera-card slot.
+On ESP32-P4 panels and the 4-inch ESP32-S3, the same `camera.*` and `image.*` entities can also be selected as the **Camera** screensaver action in **Screen > Sleep & Schedule > Screensaver**. That full-screen view is separate from the Camera-card pool, supports **Fit** (the whole image remains visible, with black space where needed) and **Fill** (the image covers the screen and may be cropped), and does not consume a Camera-card slot.
 
 :::
 
@@ -33,7 +33,36 @@ This setting applies to both the grid card and the larger view opened by tapping
 
 The card accepts both `camera.*` and `image.*` entities, so `image.latest_package_snapshot` works as well as `camera.front_door`.
 
-If your Home Assistant instance uses a custom port, open **Settings > System > Home Assistant Settings** and set **Home Assistant Port** to match it. Camera and image cards use this port when downloading snapshots.
+JPEG, PNG, BMP and GIF images are supported. Animated GIFs, including radar
+images from Rain Incoming, play in the card and expanded view. Media Cover Art
+cards share this playback support. Playback pauses
+when the image is hidden, another modal covers it, or the panel enters its
+screensaver. The expanded view takes priority over card playback. A refresh
+pauses playback while loading; unchanged or failed refreshes resume the existing
+animation.
+
+Each screen keeps one animated GIF card: the first animated GIF to finish loading.
+Single-frame GIFs stay still and do not take an animation slot.
+Additional GIF cards show their first frame. Opening an animated GIF in the expanded
+view plays it there and pauses the card; closing the view resumes the card.
+The panel retains at most one card animation and one expanded animation.
+Loading a GIF on another page releases the previous page's playback data.
+Returning to a cached card or subpage reloads its animation data when a slot is
+available, even if Home Assistant has not changed the image. The cached picture
+stays visible while loading; additional GIF cards remain still.
+GIF files can be up to 8 MiB on ESP32-P4 panels,
+subject to available memory; the 4-inch S3 keeps its 2 MiB download limit. GIFs
+must have at most 409,600 source pixels (for example, 640 × 640), with neither
+side exceeding 1,024 pixels, and have no more than 512 frames per playthrough.
+Frame delays are honoured with a minimum of 100 ms;
+large images may play more slowly. Resizing yields between output batches,
+including when a small GIF is enlarged. Optional GIF text blocks are skipped;
+their text is not rendered. The Camera screensaver plays animated GIFs and
+shares the expanded animation slot; the Cover Art screensaver shows a still
+frame. Memory availability can also limit loading, especially on the
+4-inch S3.
+
+If your Home Assistant instance uses a custom port, open **System > Home Assistant Settings** and set **Home Assistant Port** to match it. Camera and image cards use this port when downloading snapshots.
 
 ## How It Works on the Panel
 
@@ -44,6 +73,7 @@ If your Home Assistant instance uses a custom port, open **Settings > System > H
 - Recently loaded images are kept for reuse when you move between pages, so returning to a camera page does not normally start from a blank tile.
 - The card refreshes when Home Assistant reports a new entity picture or an entity state update.
 - If the image cannot be loaded, the card shows **Loading**, **Unavailable**, **Configure**, or **Too many** instead of leaving a blank tile.
+- The card's custom colour is used behind these messages when no image is displayed, with a contrasting icon and text.
 - Camera cards can be used on the main page or inside subpages.
 
 ## Refreshing Cards from Home Assistant

@@ -88,7 +88,8 @@
       "weather",
       "image",
       "wifi_qr",
-      "timer"
+      "timer",
+      "screensaver"
     ],
     "capabilities": [
       "informationOnly",
@@ -599,10 +600,10 @@
         "capabilities": {
           "informationOnly": true,
           "subscriptions": true,
-          "actions": false,
+          "actions": true,
           "numericControl": false,
-          "modal": false,
-          "runtimeAllocation": false,
+          "modal": true,
+          "runtimeAllocation": true,
           "subpage": true
         }
       },
@@ -647,7 +648,19 @@
         "capabilities": {
           "informationOnly": true,
           "subscriptions": true,
-          "actions": false,
+          "actions": true,
+          "numericControl": false,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "screensaver": {
+        "driver": "screensaver",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": false,
+          "actions": true,
           "numericControl": false,
           "modal": false,
           "runtimeAllocation": false,
@@ -1621,7 +1634,10 @@
           }
         },
         "unknownOptions": "drop",
-        "canonicalOptionOrder": ["large_numbers", "center_clock"],
+        "canonicalOptionOrder": [
+          "large_numbers",
+          "center_clock"
+        ],
         "optionHook": "normalize_date_time_options"
       },
       "default": {
@@ -3256,7 +3272,15 @@
           "kind": "text",
           "omitDefault": true,
           "applicability": [
-            { "source": "field", "name": "sensor", "operator": "in", "value": ["control_modal", "cover_art"] }
+            {
+              "source": "field",
+              "name": "sensor",
+              "operator": "in",
+              "value": [
+                "control_modal",
+                "cover_art"
+              ]
+            }
           ]
         },
         {
@@ -3725,6 +3749,14 @@
       "label": "Screen Lock",
       "allowInSubpage": true,
       "domains": [],
+      "options": [
+        {
+          "name": "screensaver_on_lock",
+          "label": "Screensaver on lock",
+          "kind": "flag",
+          "omitDefault": true
+        }
+      ],
       "normalization": {
         "fields": {
           "entity": {
@@ -3755,11 +3787,13 @@
             "policy": "clear"
           },
           "options": {
-            "policy": "clear"
+            "policy": "keep"
           }
         },
         "unknownOptions": "drop",
-        "canonicalOptionOrder": []
+        "canonicalOptionOrder": [
+          "screensaver_on_lock"
+        ]
       },
       "default": {
         "entity": "",
@@ -4364,23 +4398,12 @@
           "values": [
             "",
             "today",
-            "tomorrow"
+            "tomorrow",
+            "daily"
           ],
           "defaultValue": "",
           "storageField": "precision",
           "omitDefault": true
-        },
-        {
-          "name": "large_numbers",
-          "label": "Large Temperature Numbers",
-          "kind": "flag",
-          "omitDefault": true,
-          "supportedWhen": {
-            "precision": [
-              "today",
-              "tomorrow"
-            ]
-          }
         }
       ],
       "normalization": {
@@ -4418,9 +4441,7 @@
           }
         },
         "unknownOptions": "drop",
-        "canonicalOptionOrder": [
-          "large_numbers"
-        ],
+        "canonicalOptionOrder": [],
         "migrationActions": [
           "legacy_weather_forecast"
         ],
@@ -4784,6 +4805,58 @@
         "precision": "tomorrow",
         "options": ""
       }
+    },
+    "screensaver": {
+      "label": "Screensaver",
+      "allowInSubpage": true,
+      "domains": [],
+      "normalization": {
+        "fields": {
+          "entity": {
+            "policy": "clear"
+          },
+          "label": {
+            "policy": "clear"
+          },
+          "icon": {
+            "policy": "default",
+            "value": "Monitor"
+          },
+          "icon_on": {
+            "policy": "default",
+            "value": "Auto"
+          },
+          "sensor": {
+            "policy": "clear"
+          },
+          "unit": {
+            "policy": "clear"
+          },
+          "type": {
+            "policy": "default",
+            "value": "screensaver"
+          },
+          "precision": {
+            "policy": "clear"
+          },
+          "options": {
+            "policy": "clear"
+          }
+        },
+        "unknownOptions": "drop",
+        "canonicalOptionOrder": []
+      },
+      "default": {
+        "entity": "",
+        "label": "",
+        "icon": "Monitor",
+        "icon_on": "Auto",
+        "sensor": "",
+        "unit": "",
+        "type": "screensaver",
+        "precision": "",
+        "options": ""
+      }
     }
   },
   "migrationActions": {
@@ -5014,12 +5087,6 @@
         "text"
       ]
     },
-    "weather": {
-      "precisions": [
-        "today",
-        "tomorrow"
-      ]
-    },
     "calendar": true,
     "clock": true,
     "climate": true,
@@ -5069,6 +5136,7 @@
     "screen_lock": "SL",
     "webhook": "WH",
     "internal": "I",
-    "subpage": "G"
+    "subpage": "G",
+    "screensaver": "SS"
   }
 }

@@ -1079,6 +1079,8 @@ inline void image_card_handle_modal_download_error(ImageCardCtx *ctx) {
   }
 }
 
+inline bool image_card_context_visible_on_active_screen(ImageCardCtx *ctx);
+
 inline void image_card_bind_callbacks(ImageCardCtx *ctx) {
   if (!ctx || !ctx->image) return;
   auto *bound_image = ctx->image;
@@ -1096,6 +1098,22 @@ inline void image_card_bind_callbacks(ImageCardCtx *ctx) {
     });
   }
   ctx->callbacks_bound_image = bound_image;
+  bound_image->set_animation_callbacks([ctx, bound_image]() {
+    return ctx->image == bound_image && ctx->active && !image_card_pipeline_suspended() &&
+           !image_card_modal_ui().active && ctx->widget &&
+           !lv_obj_has_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN) &&
+           image_card_context_visible_on_active_screen(ctx);
+  }, [ctx, bound_image]() {
+    if (ctx->image == bound_image && ctx->widget) lv_obj_invalidate(ctx->widget);
+  }, [ctx, bound_image]() {
+    // Covering a card with a modal does not move it to another page. Also
+    // admit newly loaded cards before their image widget is made visible.
+    if (ctx->image != bound_image || !ctx->active || !ctx->btn ||
+        lv_obj_has_flag(ctx->btn, LV_OBJ_FLAG_HIDDEN)) return false;
+    auto *screen = ctx->btn;
+    while (lv_obj_get_parent(screen)) screen = lv_obj_get_parent(screen);
+    return screen == lv_scr_act();
+  });
 }
 
 inline void image_card_bind_modal_callbacks(
@@ -1103,6 +1121,16 @@ inline void image_card_bind_modal_callbacks(
   static esphome::artwork_image::ArtworkImage *bound_image = nullptr;
   if (!modal_image || bound_image == modal_image) return;
   bound_image = modal_image;
+  modal_image->set_animation_callbacks([modal_image]() {
+    auto *ctx = image_card_modal_ui().active;
+    return ctx && ctx->modal_image == modal_image && !image_card_pipeline_suspended() &&
+           control_modal_active().kind == ControlModalKind::IMAGE_CARD &&
+           image_card_modal_ui().image_widget &&
+           !lv_obj_has_flag(image_card_modal_ui().image_widget, LV_OBJ_FLAG_HIDDEN);
+  }, []() {
+    auto *widget = image_card_modal_ui().image_widget;
+    if (widget) lv_obj_invalidate(widget);
+  });
   modal_image->add_on_finished_callback([modal_image](bool) {
     ImageCardCtx *ctx = image_card_modal_ui().active;
     if (ctx && ctx->modal_image == modal_image && !image_card_pipeline_suspended())
@@ -1519,7 +1547,7 @@ inline void image_card_apply_active_geometry(ImageCardCtx *ctx) {
   image_card_apply_context_widget_geometry(ctx);
 }
 
-inline void setup_image_card(BtnSlot &s) {
+inline void setup_image_card(BtnSlot &s, const CardPalette &palette) {
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
   clear_push_button_transition(s.btn);
@@ -1542,7 +1570,12 @@ inline void setup_image_card(BtnSlot &s) {
 
   lv_obj_t *loading = lv_obj_create(s.btn);
   lv_obj_set_size(loading, lv_pct(100), lv_pct(100));
-  lv_obj_set_style_bg_color(loading, lv_color_hex(theme_display_color(current_theme().surface_secondary)), LV_PART_MAIN);
+  const uint32_t loading_background = palette.custom_background
+    ? palette.off_val : theme_display_color(current_theme().surface_secondary);
+  const uint32_t loading_text = palette.custom_background
+    ? display_text_color_for_bg(loading_background) : current_theme().text_primary;
+  theme_set_content_background(loading, palette.custom_background);
+  lv_obj_set_style_bg_color(loading, lv_color_hex(loading_background), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(loading, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(loading, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(loading, 0, LV_PART_MAIN);
@@ -1555,14 +1588,16 @@ inline void setup_image_card(BtnSlot &s) {
   const lv_font_t *loading_icon_font = image_card_icon_font_for_slot(s);
   const lv_font_t *loading_label_font = image_card_label_font_for_slot(s);
   image_card_apply_loading_fonts(loading, loading_icon_font, loading_label_font);
-  lv_obj_set_style_text_color(loading_icon, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
+  if (palette.custom_background) theme_set_content_foreground(loading_icon);
+  lv_obj_set_style_text_color(loading_icon, lv_color_hex(loading_text), LV_PART_MAIN);
   lv_obj_set_style_text_opa(loading_icon, LV_OPA_COVER, LV_PART_MAIN);
   lv_label_set_display_text(loading_icon, IMAGE_CARD_LOADING_ICON);
   apply_icon_width_compensation(loading_icon);
 
   lv_obj_t *loading_label = lv_label_create(loading);
   image_card_apply_loading_fonts(loading, loading_icon_font, loading_label_font);
-  lv_obj_set_style_text_color(loading_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
+  if (palette.custom_background) theme_set_content_foreground(loading_label);
+  lv_obj_set_style_text_color(loading_label, lv_color_hex(loading_text), LV_PART_MAIN);
   lv_obj_set_style_text_opa(loading_label, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_text_align(loading_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   lv_label_set_display_text(loading_label, espdesktop_i18n("Loading"));
@@ -3163,6 +3198,14 @@ inline void image_card_refresh_due(std::function<bool()> page_visible = nullptr)
     const bool connected = ha_api_state_connected();
     const bool visible = image_card_context_on_active_screen(ctx);
     const bool visible_modal = image_card_modal_active_for(ctx) && visible;
+    // Subpages retain their picture when inactive. A still whose playback data
+    // was discarded must reacquire the source even when HA's revision is unchanged.
+    // The image owns slot eligibility; this shared path also covers Media Cover Art.
+    if (connected && image_card_context_visible_on_active_screen(ctx) && ctx->image_ready && !ctx->download_active &&
+        ctx->next_download_retry_ms == 0 && !ctx->camera_entity_unavailable &&
+        ctx->image && ctx->image->animation_needs_reload()) {
+      image_card_request_source_url(ctx);
+    }
     const bool activity = ctx->refresh_schedule.mode == espdesktop::camera::RefreshMode::ACTIVITY;
     const bool periodic = ctx->refresh_schedule.mode == espdesktop::camera::RefreshMode::PERIODIC;
     const bool schedule_visible = visible_modal || ((activity || periodic) && visible);

@@ -53,6 +53,7 @@ export {
   decodeConfigField,
   encodeConfigField,
   legacyButtonConfigSafe,
+  activeCardColor,
   lighterCardColor,
   normalizedCardColorOptions,
   setCardColor,

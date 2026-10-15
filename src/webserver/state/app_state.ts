@@ -28,7 +28,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
   const grid = Array.from({ length: deviceConfig.slots }, () => 0);
   const buttons = Array.from({ length: deviceConfig.slots }, emptyCardConfig);
   return {
-    grid, sizes: {}, buttons, onColor: WEB_UI_COLORS.primary,
+    grid, sizes: {}, buttons, onColor: WEB_UI_COLORS.primary, cardCurve: "Medium", cardCurveSupported: false,
     appIconCustomColourControlEnabled: true,
     appIconAutoColourGenerationEnabled: true,
     selectedSlots: [], lastClickedSlot: -1, clockBarSelectedItem: "", activeTab: "screen",
