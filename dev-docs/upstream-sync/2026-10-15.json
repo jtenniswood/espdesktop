@@ -2,12 +2,12 @@
   "windowStart": "2026-10-01T15:26:49Z",
   "windowEnd": "2026-10-15T15:26:49Z",
   "destinationBase": "68bd30be86a64da409b8dc3bf374f6e0dbd2da02",
-  "sourceRangeBase": "2f27f4a4^1",
+  "sourceRangeBase": "c6c07459c4af4cb9b9285e49363377883e9c9e51",
   "sourceRangeEnd": "98169408fa154c9fe240ed8a38ff1f6f3184b0a3",
   "counts": {
-    "Already present": 34,
+    "Already present": 35,
     "Not applicable": 4,
-    "Ported": 35,
+    "Ported": 34,
     "Covered by an open PR": 1
   },
   "pullRequests": [
@@ -1613,9 +1613,8 @@
       "changedFiles": [
         "scripts/check_web_browser_smoke.js"
       ],
-      "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
-      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
+      "disposition": "Already present",
+      "evidence": "Destination main already selects Card Settings by its exact heading in assertGrouped (scripts/check_web_browser_smoke.js:2663 at 68bd30be8). The upstream all-disclosure count assertions are absent; preserve the destination’s restricted card-picker audit."
     },
     {
       "author": {
@@ -2713,7 +2712,7 @@
   "validation": {
     "status": "in progress",
     "physicalDeviceTesting": "Not performed. No flashing, merging or issue closure is authorized by this sync.",
-    "firmware": "Full nine-device factory matrix running at 8cbc6d4d26e3dfd321735bb880628010aac1d843 (run 38763853471); firmware inputs unchanged by subsequent docs/test commits.",
+    "firmware": "7-inch P4 factory and recovery builds passed. The rest of the nine-device matrix remains running/queued at the same firmware revision.",
     "bundleBytes": {
       "minified": 2760835,
       "gzip": 1091806
@@ -2757,12 +2756,44 @@
     "resizeBrowser": "Passed Chromium and WebKit: native move/resize, stable grid, commit, Escape, pointer cancellation, configuration lock and drag exclusion.",
     "colourBrowser": "Passed active colour controls and slider contrast.",
     "cornersBrowser": "All nine continuous-corner/outline layout checks passed before the broader suite reached its unrelated clock-bar assertion.",
-    "nativeJourneys": "First 7-inch P4 native/Companion/backup/fallback journey passed; nine-layout run in progress.",
+    "nativeJourneys": "Native configuration, editing, backup/restore and reload passed on all nine display profiles. Non-S3 fallback journeys passed on the other eight; remaining S3-specific journeys are being checked separately.",
     "broaderBrowserLimitation": {
       "status": "pre-existing failure",
       "baseline": "68bd30be86a64da409b8dc3bf374f6e0dbd2da02",
       "assertion": "clock bar typography is measurable",
       "reason": "The old full-browser assertion expects .sp-temp, but current EspDesktop intentionally renders a home-only left clock and network indicator. Reproduced using unchanged origin/main in a separate snapshot. No assertion was weakened."
+    },
+    "additionalPreexistingBrowserLimitation": {
+      "baseline": "68bd30be86a64da409b8dc3bf374f6e0dbd2da02",
+      "test": "assertCompanionShortcutSettings",
+      "assertion": "S3 shortcut icon picker preview is visible",
+      "result": "The identical icon visibility timeout was reproduced on unchanged origin/main in a separate snapshot. The full broad suite is not reported as passed."
+    },
+    "firmwareBuilds": [
+      {
+        "device": "guition-esp32-p4-jc1060p470",
+        "revision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+          "builds/guition-esp32-p4-jc1060p470.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38763853471",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38763853471/job/116522261406",
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/4a8e5a43bc6c3dc6453aa8a9b564c4b52e014b46f47004946032ba0ac1f13064.log.gz",
+        "logSha256": "4a8e5a43bc6c3dc6453aa8a9b564c4b52e014b46f47004946032ba0ac1f13064",
+        "archiveSha256": "76bd1fa161809d3e3fc442ee30c56988b98edad79e09f0340eadd1a6e2f9a073",
+        "sizes": {
+          "factoryApplicationBytes": 5619904,
+          "recoveryApplicationBytes": 6614432,
+          "otaPartitionBytes": 7274496
+        }
+      }
+    ],
+    "firmwareInputVerification": {
+      "buildRevision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
+      "comparedRevision": "e97c1878b879e79d02d1b1970f9b739cdea45edc",
+      "result": "No differences in pinned ESPHome version, builds, common, components, devices, product, firmware generators, npm dependencies or embedded web assets."
     }
   },
   "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
