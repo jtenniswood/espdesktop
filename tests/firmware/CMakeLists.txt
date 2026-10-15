@@ -741,6 +741,8 @@ add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
 
 add_test(NAME alarm_palette_ownership_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/alarm_palette_ownership_test.py)
+add_test(NAME alarm_pin_keypad_order_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/alarm_pin_keypad_order_test.py ${CMAKE_CXX_COMPILER})
 add_executable(screensaver_pin_test screensaver_pin_test.cpp
   ../../components/espdesktop/screensaver_pin.cpp)
 target_compile_features(screensaver_pin_test PRIVATE cxx_std_17)

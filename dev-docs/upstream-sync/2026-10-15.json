@@ -1904,7 +1904,7 @@
         "tests/web/unit/screensaver_pin.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Port shared PIN and Screensaver card; retain list-form boot handlers and Companion screensaver observer, pairing cards and lock-aware sleep.",
+      "evidence": "Port shared PIN and Screensaver card; retain list-form boot handlers and Companion screensaver observer, pairing cards and lock-aware sleep. Preserve the alarm keypad’s fixed 1–9/0 order explicitly; shared PIN randomization is limited to Screen Lock/screensaver as intended.",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
@@ -2712,7 +2712,7 @@
   "validation": {
     "status": "in progress",
     "physicalDeviceTesting": "Not performed. No flashing, merging or issue closure is authorized by this sync.",
-    "firmware": "7-inch P4 factory and recovery builds passed. The rest of the nine-device matrix remains running/queued at the same firmware revision.",
+    "firmware": "Final-revision nine-device factory/recovery matrix must restart after the alarm-order review fix. No earlier firmware result is counted for the new revision.",
     "bundleBytes": {
       "minified": 2760835,
       "gzip": 1091806
@@ -2722,14 +2722,24 @@
       "gzip": 1150000
     },
     "hostTests": {
-      "passed": 129,
+      "passed": 130,
       "suite": "firmware CTest",
-      "revision": "2e2f8dbc3275117bf7ab0dcbae948327193012c9"
+      "testedInputHashes": {
+        "components/espdesktop/button_grid_alarm.h": "619ecca947b99b7b265313d52fe1c026a84e7f724a5efb2f55e3fff37e650011",
+        "tests/firmware/alarm_pin_keypad_order_test.py": "2909cd68373b7a99fa61b2d56bd705e7e064d15fbe30829b639a5ed42e2cc18d",
+        "tests/firmware/CMakeLists.txt": "faf204b9653d5e918e9f821d25f6c0e348c719df3eb604b3f197c27b9b796030"
+      }
     },
     "localCi": {
       "status": "passed",
       "tasks": 51,
-      "summary": "Complete ci graph with pinned ESPHome/Python virtual environment; documentation index corrected."
+      "testedChanges": "Alarm keypad fixed ordering, regression harness and the complete sync tree",
+      "testedInputHashes": {
+        "components/espdesktop/button_grid_alarm.h": "619ecca947b99b7b265313d52fe1c026a84e7f724a5efb2f55e3fff37e650011",
+        "tests/firmware/alarm_pin_keypad_order_test.py": "2909cd68373b7a99fa61b2d56bd705e7e064d15fbe30829b639a5ed42e2cc18d",
+        "tests/firmware/CMakeLists.txt": "faf204b9653d5e918e9f821d25f6c0e348c719df3eb604b3f197c27b9b796030"
+      },
+      "summarySha256": "3f4d998fe51466089584fa8e26c510e932bdd86639f7f0ec802a741462f7e7e5"
     },
     "pinBrowser": "Passed shared PIN save/change/clear, Screen Lock, legacy capability hiding and backup import tests.",
     "docs": "Passed VitePress build, installer dependency check, canonical links/anchors.",
@@ -2740,6 +2750,12 @@
         "device": "guition-esp32-p4-jc1060p470",
         "status": "failed",
         "reason": "network_status.h referred to configured_rows after destination grid adaptation. Fixed by assigning clamped metrics.rows directly; full matrix must rerun."
+      },
+      {
+        "revision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38763853471",
+        "status": "superseded",
+        "reason": "Alarm keypad review fix requires final-revision firmware validation. Both 7-inch variants passed factory/recovery at the old revision; remaining old-run work will be cancelled."
       }
     ],
     "remoteCi": {
@@ -2770,7 +2786,21 @@
       "assertion": "S3 shortcut icon picker preview is visible",
       "result": "The identical icon visibility timeout was reproduced on unchanged origin/main in a separate snapshot. The full broad suite is not reported as passed."
     },
-    "firmwareBuilds": [
+    "remainingWork": [
+      "Complete and inspect the nine-device factory/recovery matrix (run 38763853471).",
+      "Check PR feedback and current-head CI, address introduced failures, and update the evidence ledger.",
+      "Physical device confirmation remains the user’s step before merge."
+    ],
+    "reviewFixes": [
+      {
+        "comment": "https://github.com/jtenniswood/espdesktop/pull/200#discussion_r4285550976",
+        "priority": "P2",
+        "change": "Explicitly request fixed digit order for alarm PIN entry; Screen Lock/screensaver retain their own randomization preference.",
+        "regression": "Production alarm caller and the shared keypad signature/defaults are exercised unchanged. The regression failed before the fix and passes afterward; full 51-task CI and 130 host tests pass.",
+        "threadStatus": "Fix tested; awaiting push and resolution."
+      }
+    ],
+    "priorFirmwareBuilds": [
       {
         "device": "guition-esp32-p4-jc1060p470",
         "revision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
@@ -2788,19 +2818,34 @@
           "factoryApplicationBytes": 5619904,
           "recoveryApplicationBytes": 6614432,
           "otaPartitionBytes": 7274496
-        }
+        },
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later review fix changes the shared alarm keypad call. Keep as historical evidence; do not count for final firmware."
+      },
+      {
+        "device": "guition-esp32-p4-jc1060p470-v2",
+        "revision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
+        "status": "passed",
+        "entrypoints": [
+          "builds/guition-esp32-p4-jc1060p470-v2.factory.yaml",
+          "builds/guition-esp32-p4-jc1060p470-v2.recovery.yaml"
+        ],
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38763853471",
+        "job": "https://github.com/jtenniswood/espdesktop/actions/runs/38763853471/job/116522261266",
+        "logSha256": "082b6327765fdefe343d4bbd6c3ddd557efa24c2c92eb272305f4681ba982823",
+        "archiveSha256": "37e468a19ca0c1b39c19fd30f506fb028de1ea3c0652628e47c995529cfac34b",
+        "sizeEvidence": [
+          "2026-10-15T16:12:26.4041914Z INFO Successfully compiled program.",
+          "2026-10-15T16:12:28.9173418Z guition-esp32-p4-jc1060p470-v2.factory.yaml: application 5,636,432 bytes / 7,274,496 bytes (77.48%); headroom 1,638,064 bytes (1599.7 KiB); build passed",
+          "2026-10-15T16:19:24.8850606Z INFO Successfully compiled program.",
+          "2026-10-15T16:19:27.7914498Z guition-esp32-p4-jc1060p470-v2.recovery.yaml: application 6,630,960 bytes / 7,274,496 bytes (91.15%); headroom 643,536 bytes (628.5 KiB); build passed"
+        ],
+        "logArchive": "dev-docs/upstream-sync/2026-10-15-firmware-logs/082b6327765fdefe343d4bbd6c3ddd557efa24c2c92eb272305f4681ba982823.log.gz",
+        "appliesToCurrentFirmware": false,
+        "supersededReason": "Later review fix changes the shared alarm keypad call. Keep as historical evidence; do not count for final firmware."
       }
     ],
-    "firmwareInputVerification": {
-      "buildRevision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
-      "comparedRevision": "e97c1878b879e79d02d1b1970f9b739cdea45edc",
-      "result": "No differences in pinned ESPHome version, builds, common, components, devices, product, firmware generators, npm dependencies or embedded web assets."
-    },
-    "remainingWork": [
-      "Complete and inspect the nine-device factory/recovery matrix (run 38763853471).",
-      "Check PR feedback and current-head CI, address introduced failures, and update the evidence ledger.",
-      "Physical device confirmation remains the user’s step before merge."
-    ]
+    "firmwareBuilds": []
   },
   "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
 }
