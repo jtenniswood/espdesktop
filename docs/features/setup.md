@@ -29,7 +29,13 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 ## Screen and System Settings
 
-Use **Screen** for appearance, card curves, backlight, rotation and sleep settings, including [PIN protection](/features/screensaver#pin-protection-after-wake). Use **System** for preferences, app icon colours, naming, backups, firmware updates and reset controls. **Connectors** keeps Mac pairing and connection status together.
+Use **Screen** for appearance, card curves, backlight, rotation and sleep settings, including [PIN protection](#protect-the-touchscreen). Use **System** for preferences, app icon colours, naming, backups, firmware updates and reset controls. **Connectors** keeps Mac pairing and connection status together.
+
+## Protect the Touchscreen
+
+Open **Screen → Sleep & Schedule → Pin Protection**, turn on **Require PIN after wake**, enter a numeric PIN of 1–16 digits and choose **Save**. You can also randomize the keypad. **Clear** removes the saved PIN and unlocks the display.
+
+The Screen Lock card uses the same PIN. The Screensaver card starts your selected sleep action immediately. Unlock protection applies to local touch controls; web administration and Mac access keep their own authentication. The PIN is excluded from backups, and importing a backup clears the PIN on the destination display.
 
 ## Back Up Your Layout
 

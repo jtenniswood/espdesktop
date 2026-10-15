@@ -410,11 +410,13 @@ async function installRoutes(context, slug, options = {}) {
     if (
       nativeState &&
       requestUrl.hostname === "espdesktop.test" &&
-      requestUrl.pathname === "/api/v1/config"
+      (requestUrl.pathname === "/api/v1/config" || /^\/api\/v1\/config\/generation\/\d+$/.test(requestUrl.pathname))
     ) {
       if (route.request().method() === "PUT") {
         const expected = `"${nativeState.generation}"`;
-        const supplied = route.request().headers()["if-match"];
+        const generationMatch = requestUrl.pathname.match(/\/generation\/(\d+)$/);
+        const supplied = generationMatch ? `"${generationMatch[1]}"` : route.request().headers()["if-match"];
+        if (generationMatch) assert.strictEqual(route.request().headers()["x-panel-config-generation"], generationMatch[1]);
         if (supplied !== expected) {
           await route.fulfill({ status: 409, body: "generation conflict" });
           return;
@@ -2145,8 +2147,6 @@ async function assertVoiceClockBarPreview(page, label) {
 }
 
 async function assertClockBarTypographyAndIconLayout(page, label) {
-  // Capabilities and connector status arrive independently of the event stream.
-  await page.locator(".sp-temp").waitFor({ state: "visible" });
   const metrics = await page.evaluate(() => {
     const cardLabel = document.querySelector(".sp-main .sp-btn-label");
     const clock = document.querySelector(".sp-clock");
