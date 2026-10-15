@@ -68,6 +68,7 @@ class ArtworkImage {
  int decode_content_width_=1, decode_content_height_=1;
  int decode_offset_x_=0, decode_offset_y_=0;
  bool big_endian = false;
+ int bytes_per_pixel = 3;
  std::vector<uint8_t> bytes = std::vector<uint8_t>(3, 0x33);
  uint8_t *decode_buffer_ = bytes.data();
  bool is_auto_resize_() { return fixed_width_ == 0 || fixed_height_ == 0; }
@@ -76,24 +77,25 @@ class ArtworkImage {
    decode_buffer_width_ = width; decode_buffer_height_ = height;
    decode_content_width_ = content_width; decode_content_height_ = content_height;
    decode_offset_x_ = offset_x; decode_offset_y_ = offset_y;
-   bytes.assign(static_cast<size_t>(width) * height * 3, 0);
+   bytes.assign(static_cast<size_t>(width) * height * bytes_per_pixel, 0);
    decode_buffer_ = bytes.data();
    fill_fit_background_();
    return bytes.size();
  }
- int get_bpp() { return 24; }  // RGB565 with an alpha byte.
+ int get_bpp() { return bytes_per_pixel * 8; }
+ bool has_transparency() const { return bytes_per_pixel == 3; }
  bool is_big_endian() { return big_endian; }
- int get_position_(int x, int y) { return (y * decode_buffer_width_ + x) * 3; }
+ int get_position_(int x, int y) { return (y * decode_buffer_width_ + x) * bytes_per_pixel; }
  void draw_pixel_(int x, int y, Color c) {
    assert(x >= 0 && x < decode_buffer_width_ && y >= 0 && y < decode_buffer_height_);
    draw_pixel_to_buffer_(decode_buffer_, decode_buffer_width_, x, y, c);
  }
  void draw_pixel_to_buffer_(uint8_t *buffer, int width, int x, int y, Color c) {
    const uint16_t pixel = ((c.r & 0xf8) << 8) | ((c.g & 0xfc) << 3) | (c.b >> 3);
-   const int p = (y * width + x) * 3;
+   const int p = (y * width + x) * bytes_per_pixel;
    buffer[p] = big_endian ? pixel >> 8 : pixel;
    buffer[p+1] = big_endian ? pixel : pixel >> 8;
-   buffer[p+2] = c.w;
+   if (bytes_per_pixel == 3) buffer[p+2] = c.w;
  }
 };
 }}
@@ -214,6 +216,13 @@ int main() {
    assert(pixel == 0x8410);  // Average grey, not a selected black/white pixel.
    assert(image.bytes[2] == 255);  // JPEG output remains opaque.
    assert(allocations == 0);      // Complete-frame scratch is released immediately.
+   const uint16_t native_pixels[] = {0, 65535, 65535, 0};
+   assert(decoder.prepare_filtered_resize(2,2));
+   decoder.draw_fast_filtered_rgb565_row(0, native_pixels);
+   decoder.draw_fast_filtered_rgb565_row(1, native_pixels + 2);
+   assert(image.bytes[0] == (big_endian ? 0x84 : 0x10));
+   assert(image.bytes[1] == (big_endian ? 0x10 : 0x84));
+   assert(image.bytes[2] == 255);  // Native GIF canvas input also stays opaque.
    uint8_t colors[8];
    for (int i = 0; i < 4; i++) {
      const uint16_t color = i < 2 ? 0xf800 : 0x001f;  // Red and blue rows.
@@ -234,6 +243,43 @@ int main() {
    decoder.draw_filtered_rgb888_row(0,red);
    decoder.draw_filtered_rgb888_row(1,red);
    assert(image.bytes[0] == 0 && image.bytes[1] == 0xf8 && image.bytes[2] == 255);
+ }
+ for (bool big_endian : {false, true}) {
+   ArtworkImage image;
+   image.big_endian = big_endian; image.bytes_per_pixel = 2;
+   image.bytes.assign(2, 0x33); image.decode_buffer_ = image.bytes.data();
+   Decoder decoder(&image);
+   assert(decoder.set_size(2,2) && decoder.prepare_filtered_resize(2,2));
+   const uint16_t pixels[] = {0, 65535, 65535, 0};
+   decoder.draw_fast_filtered_rgb565_row(0, pixels);
+   decoder.draw_fast_filtered_rgb565_row(1, pixels + 2);
+   assert(image.bytes[0] == (big_endian ? 0x84 : 0x10));
+   assert(image.bytes[1] == (big_endian ? 0x10 : 0x84));
+ }
+ // The production writer must yield when a single source row covers a display.
+ // Test both byte orders and the general alpha path as well as opaque RGB565.
+ for (bool big_endian : {false, true}) for (int bytes_per_pixel : {2, 3}) {
+   ArtworkImage image;
+   image.big_endian = big_endian; image.bytes_per_pixel = bytes_per_pixel;
+   image.fixed_width_ = 1280; image.fixed_height_ = 800;
+   image.resize_mode_ = ImageResizeMode::COVER;
+   Decoder decoder(&image);
+   assert(decoder.set_size(1,1) && decoder.prepare_filtered_resize(1,1));
+   const uint16_t red[] = {0xf800};
+   auto result = decoder.draw_fast_filtered_rgb565_row(0, red, 2);
+   assert(result == ScanlineResampler::RowResult::MORE);
+   assert(image.bytes[image.get_position_(0,2)] == 0 && image.bytes[image.get_position_(0,2)+1] == 0);
+   int batches = 1;
+   while (result == ScanlineResampler::RowResult::MORE) {
+     result = decoder.draw_fast_filtered_rgb565_row(0, red, 2); ++batches;
+   }
+   assert(result == ScanlineResampler::RowResult::DONE && batches == 400 && !decoder.has_failed());
+   for (int y = 0; y < 800; ++y) for (int x = 0; x < 1280; ++x) {
+     const auto pos = image.get_position_(x,y);
+     assert(image.bytes[pos] == (big_endian ? 0xf8 : 0));
+     assert(image.bytes[pos+1] == (big_endian ? 0 : 0xf8));
+     if (bytes_per_pixel == 3) assert(image.bytes[pos+2] == 255);
+   }
  }
  assert(allocations == 0);  // Streaming scratch is released on destruction/cancellation.
  {

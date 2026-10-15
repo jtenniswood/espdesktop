@@ -30,6 +30,7 @@ enum class Family : uint8_t {
   PUSH,
   COMPANION,
   SCREEN_LOCK,
+  SCREENSAVER,
   SENSOR,
   SLIDER,
   SUBPAGE,

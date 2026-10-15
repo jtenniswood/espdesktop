@@ -21,6 +21,18 @@ target_compile_features(foundation_test PRIVATE cxx_std_17)
 target_compile_options(foundation_test PRIVATE -Wall -Wextra -Werror)
 add_test(NAME foundation_test COMMAND foundation_test)
 
+add_executable(continuous_corners_test continuous_corners_test.cpp)
+target_compile_features(continuous_corners_test PRIVATE cxx_std_17)
+target_compile_options(continuous_corners_test PRIVATE -Wall -Wextra -Werror)
+add_test(NAME continuous_corners_test COMMAND continuous_corners_test)
+add_test(NAME card_curve_default_boot_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/card_curve_default_boot_test.py)
+add_test(NAME card_curve_button_theme_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/card_curve_button_theme_test.py)
+add_test(NAME network_status_corners_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/network_status_corners_test.py)
+
 add_executable(theme_palette_test theme_palette_test.cpp)
 target_compile_features(theme_palette_test PRIVATE cxx_std_17)
 target_compile_options(theme_palette_test PRIVATE -Wall -Wextra -Werror)
@@ -142,6 +154,10 @@ add_test(NAME button_grid_foundations_test COMMAND button_grid_foundations_test)
 add_test(NAME card_colour_rendering_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/card_colour_rendering_test.py ${CMAKE_CXX_COMPILER})
 
+add_test(NAME compact_landscape_controls_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/compact_landscape_controls_test.py ${CMAKE_CXX_COMPILER})
+
+
 add_executable(grid_navigation_service_test
   grid_navigation_service_test.cpp
   ../../components/espdesktop/espdesktop_app_core.cpp
@@ -225,6 +241,9 @@ add_test(NAME media_power_override_test COMMAND
 add_test(NAME media_playback_pool_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_playback_pool_test.py)
+add_test(NAME weather_forecast_queue_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_forecast_queue_test.py)
 
 add_executable(media_control_tabs_test media_control_tabs_test.cpp)
 target_compile_features(media_control_tabs_test PRIVATE cxx_std_17)
@@ -447,6 +466,19 @@ target_compile_options(bmp_stream_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(bmp_stream_test PRIVATE ../../components/artwork_image)
 add_test(NAME bmp_stream_test COMMAND bmp_stream_test)
 
+add_executable(gif_player_test gif_player_test.cpp)
+target_compile_features(gif_player_test PRIVATE cxx_std_17)
+target_compile_options(gif_player_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(gif_player_test PRIVATE ../../components/artwork_image)
+target_compile_definitions(gif_player_test PRIVATE GIF_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures/gif")
+add_test(NAME gif_player_test COMMAND gif_player_test)
+add_test(NAME gif_runtime_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/gif_runtime_test.py)
+add_test(NAME p4_gif_transfer_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/p4_gif_transfer_test.py)
+
 add_executable(p4_scaling_test p4_scaling_test.cpp)
 target_compile_features(p4_scaling_test PRIVATE cxx_std_17)
 target_compile_options(p4_scaling_test PRIVATE -Wall -Wextra -Werror)
@@ -591,6 +623,13 @@ add_test(NAME timer_card_test COMMAND timer_card_test)
 add_test(NAME timer_subpage_cleanup_test
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/timer_subpage_cleanup_test.py)
 
+add_executable(panel_identity_runtime_beta_test panel_identity_runtime_test.cpp ../../components/espdesktop/panel_identity.cpp)
+target_compile_features(panel_identity_runtime_beta_test PRIVATE cxx_std_17)
+target_compile_options(panel_identity_runtime_beta_test PRIVATE -Wall -Wextra -Werror)
+target_compile_definitions(panel_identity_runtime_beta_test PRIVATE TEST_ESPHOME_MINOR=10)
+target_include_directories(panel_identity_runtime_beta_test PRIVATE panel_identity_stubs ../../components/espdesktop)
+add_test(NAME panel_identity_runtime_beta_test COMMAND panel_identity_runtime_beta_test)
+
 set(CLOCK_BAR_TITLE_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/clock_bar_title_test.cpp)
 add_custom_command(
   OUTPUT ${CLOCK_BAR_TITLE_TEST_SOURCE}
@@ -694,11 +733,41 @@ add_test(NAME cover_art_active_landing_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_active_landing_test.py ${CMAKE_CXX_COMPILER})
 
 
-add_test(NAME shared_speaker_state_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/shared_speaker_state_test.py)
 
 add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/speaker_announcement_duck_test.py)
 
 add_test(NAME alarm_palette_ownership_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/alarm_palette_ownership_test.py)
+add_test(NAME alarm_pin_keypad_order_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/alarm_pin_keypad_order_test.py ${CMAKE_CXX_COMPILER})
+add_executable(screensaver_pin_test screensaver_pin_test.cpp
+  ../../components/espdesktop/screensaver_pin.cpp)
+target_compile_features(screensaver_pin_test PRIVATE cxx_std_17)
+target_compile_options(screensaver_pin_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(screensaver_pin_test PRIVATE screensaver_pin_stubs ../../components/espdesktop)
+target_link_libraries(screensaver_pin_test PRIVATE Threads::Threads)
+add_test(NAME screensaver_pin_test COMMAND screensaver_pin_test)
+add_test(NAME screensaver_pin_ui_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screensaver_pin_ui_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME screensaver_pin_cover_art_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screensaver_pin_cover_art_test.py ${CMAKE_CXX_COMPILER})
+
+add_executable(weather_daily_forecast_test weather_daily_forecast_test.cpp)
+target_compile_features(weather_daily_forecast_test PRIVATE cxx_std_17)
+target_compile_options(weather_daily_forecast_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(weather_daily_forecast_test PRIVATE ../../components/espdesktop)
+add_test(NAME weather_daily_forecast_test COMMAND weather_daily_forecast_test)
+
+add_test(NAME weather_daily_template_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_daily_template_test.py)
+
+add_executable(weather_daily_ui_test weather_daily_ui_test.cpp)
+target_compile_features(weather_daily_ui_test PRIVATE cxx_std_17)
+target_compile_options(weather_daily_ui_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(weather_daily_ui_test PRIVATE ../../components/espdesktop)
+add_test(NAME weather_daily_ui_test COMMAND weather_daily_ui_test)
+
+add_test(NAME weather_daily_requests_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_daily_requests_test.py)

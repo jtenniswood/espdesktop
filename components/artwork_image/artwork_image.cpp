@@ -52,11 +52,19 @@ static constexpr int LOCAL_ARTWORK_HTTP_TIMEOUT_MS = 6500;
 #ifdef USE_ARTWORK_IMAGE_BMP_SUPPORT
 #include "bmp_image.h"
 #endif
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+#include "gif_image.h"
+#endif
 
 namespace esphome {
 namespace artwork_image {
 
 using image::ImageType;
+
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+static ArtworkImage *gif_slots[2] = {nullptr, nullptr};
+static ArtworkImage *gif_playing = nullptr;
+#endif
 
 static std::string sanitize_artwork_url_for_log(const std::string &url) {
   auto query = url.find('?');
@@ -181,6 +189,10 @@ struct P4PipelineTransfer {
   size_t size{0};
   size_t capacity{0};
   bool allocation_failed{false};
+  bool size_limit_exceeded{false};
+  bool gif_response{false};
+  uint8_t signature[6]{};
+  size_t signature_size{0};
   uint32_t request_started_ms{0};
   uint32_t response_ready_ms{0};
   uint32_t first_byte_ms{0};
@@ -372,30 +384,59 @@ class P4ImagePipeline {
     if (evt->event_id == HTTP_EVENT_ON_HEADER && transfer->response_ready_ms == 0) {
       transfer->response_ready_ms = now;
     }
+    if (evt->event_id == HTTP_EVENT_ON_HEADER && evt->header_key && evt->header_value &&
+        strcasecmp(evt->header_key, "content-type") == 0 &&
+        strncasecmp(evt->header_value, "image/gif", 9) == 0 &&
+        (evt->header_value[9] == '\0' || evt->header_value[9] == ';')) {
+      transfer->gif_response = true;
+    }
     if (evt->event_id != HTTP_EVENT_ON_DATA || evt->data_len <= 0) return ESP_OK;
     if (transfer->first_byte_ms == 0) transfer->first_byte_ms = now;
     size_t incoming = static_cast<size_t>(evt->data_len);
-    if (incoming > ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE - transfer->size) {
-      transfer->allocation_failed = true;
+    const size_t signature_bytes = std::min(incoming, sizeof(transfer->signature) - transfer->signature_size);
+    memcpy(transfer->signature + transfer->signature_size, evt->data, signature_bytes);
+    transfer->signature_size += signature_bytes;
+    transfer->gif_response = transfer->gif_response ||
+        image_pipeline_gif_signature(transfer->signature, transfer->signature_size);
+    const size_t maximum = image_pipeline_transfer_limit(true, transfer->gif_response);
+    if (incoming > maximum - transfer->size) {
+      transfer->size_limit_exceeded = true;
+      ESP_LOGE(TAG, "Image response exceeds download limit: bytes=%zu incoming=%zu limit=%zu",
+               transfer->size, incoming, maximum);
       return ESP_FAIL;
     }
     size_t required = transfer->size + incoming;
+    size_t reported_content_length = 0;
+    if (evt->client != nullptr) {
+      const int64_t length = esp_http_client_get_content_length(evt->client);
+      if (length > 0) reported_content_length = static_cast<uint64_t>(length) > maximum
+          ? maximum + 1 : static_cast<size_t>(length);
+    }
+    // Wait for the six signature bytes if the first network chunk was split.
+    // A correct GIF Content-Type can establish the limit even earlier.
+    if (!transfer->gif_response && transfer->signature_size < sizeof(transfer->signature))
+      reported_content_length = 0;
+    if (reported_content_length > maximum) {
+      transfer->size_limit_exceeded = true;
+      ESP_LOGE(TAG, "Image response exceeds download limit: content_length=%lld limit=%zu format=%s",
+               static_cast<long long>(esp_http_client_get_content_length(evt->client)), maximum,
+               transfer->gif_response ? "GIF" : "image");
+      return ESP_FAIL;
+    }
     if (required > transfer->capacity) {
-      size_t reported_content_length = 0;
-      if (transfer->capacity == 0 && evt->client != nullptr) {
-        int64_t content_length = esp_http_client_get_content_length(evt->client);
-        if (content_length > 0) {
-          reported_content_length = static_cast<uint64_t>(content_length) >
-                                            ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE
-                                        ? ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE + 1
-                                        : static_cast<size_t>(content_length);
-        }
-      }
       size_t next_capacity = p4_pipeline_transfer_capacity(
           transfer->capacity, required, reported_content_length, 16384,
-          ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE);
+          maximum);
       if (next_capacity == 0) {
         transfer->allocation_failed = true;
+        return ESP_FAIL;
+      }
+      if (transfer->gif_response && !background_transfer_psram_growth_preserves_reserve(
+            heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT),
+            transfer->capacity, next_capacity, IMAGE_PIPELINE_P4_GIF_PSRAM_HEADROOM_BYTES)) {
+        transfer->allocation_failed = true;
+        ESP_LOGE(TAG, "GIF download cannot preserve %zu bytes of free PSRAM",
+                 IMAGE_PIPELINE_P4_GIF_PSRAM_HEADROOM_BYTES);
         return ESP_FAIL;
       }
       uint8_t *resized = static_cast<uint8_t *>(heap_caps_realloc(
@@ -474,7 +515,8 @@ class P4ImagePipeline {
     }
 
     result->status = esp_http_client_get_status_code(this->client_);
-    result->error = transfer.allocation_failed ? ESP_ERR_NO_MEM : error;
+    result->error = transfer.size_limit_exceeded ? ESP_ERR_INVALID_SIZE
+        : transfer.allocation_failed ? ESP_ERR_NO_MEM : error;
     result->data = transfer.data;
     result->size = transfer.size;
     result->request_started_ms = transfer.request_started_ms;
@@ -573,6 +615,7 @@ ArtworkImage::ArtworkImage(const std::string &url, int width, int height, ImageF
 }
 
 ArtworkImage::~ArtworkImage() {
+  this->stop_animation_();
   this->end_connection_();
   this->cancel_service_request_();
 }
@@ -586,6 +629,7 @@ void ArtworkImage::draw(int x, int y, display::Display *display, Color color_on,
 }
 
 void ArtworkImage::release() {
+  this->stop_animation_();
   this->update_pending_ = false;
   this->pending_url_.clear();
   this->end_connection_();
@@ -631,6 +675,9 @@ size_t ArtworkImage::resize_(int width_in, int height_in) {
   }
   if (this->decode_buffer_) {
     if (new_size <= this->get_decode_buffer_size_()) {
+      const bool geometry_changed = this->decode_buffer_width_ != width || this->decode_buffer_height_ != height ||
+          this->decode_content_width_ != content_width || this->decode_content_height_ != content_height ||
+          this->decode_offset_x_ != offset_x || this->decode_offset_y_ != offset_y;
       this->decode_buffer_width_ = width;
       this->decode_buffer_height_ = height;
       this->decode_content_width_ = content_width;
@@ -639,7 +686,7 @@ size_t ArtworkImage::resize_(int width_in, int height_in) {
       this->decode_offset_y_ = offset_y;
       memset(this->decode_buffer_, 0, new_size);
       this->fill_fit_background_();
-      ESP_LOGI(TAG, "Artwork fit: source=%dx%d target=%dx%d content=%dx%d offset=%d,%d",
+      if (geometry_changed) ESP_LOGI(TAG, "Artwork fit: source=%dx%d target=%dx%d content=%dx%d offset=%d,%d",
                width_in, height_in, width, height, content_width, content_height, offset_x, offset_y);
       return new_size;
     }
@@ -657,7 +704,7 @@ size_t ArtworkImage::resize_(int width_in, int height_in) {
   if (this->decode_buffer_ == nullptr) {
     ESP_LOGE(TAG, "allocation of %zu bytes failed. Biggest block in heap: %zu Bytes", new_size,
              this->allocator_.get_max_free_block_size());
-    this->end_connection_();
+    // Report failure after the decoder returns, preserving its stack frame.
     return 0;
   }
   this->decode_buffer_width_ = width;
@@ -837,6 +884,8 @@ bool ArtworkImage::start_service_update_(uint32_t generation) {
 }
 
 void ArtworkImage::start_update_() {
+  this->pause_animation_for_refresh_();
+  this->max_download_buffer_size_ = ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE;
   this->transfer_stamp_ = TransferObserver::instance().begin(this->url_, this->service_generation_);
   this->transfer_failure_ = TransferFailure::CONTENT;
   this->last_http_status_ = 0;
@@ -859,7 +908,7 @@ void ArtworkImage::start_update_() {
   std::string accept_mime_type;
   switch (this->format_) {
     case ImageFormat::AUTO:
-      accept_mime_type = "image/jpeg, image/png, image/bmp";
+      accept_mime_type = "image/jpeg, image/png, image/bmp, image/gif";
       break;
 #ifdef USE_ARTWORK_IMAGE_JPEG_SUPPORT
     case ImageFormat::JPEG:
@@ -871,6 +920,11 @@ void ArtworkImage::start_update_() {
       accept_mime_type = "image/png";
       break;
 #endif  // USE_ARTWORK_IMAGE_PNG_SUPPORT
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+    case ImageFormat::GIF:
+      accept_mime_type = "image/gif";
+      break;
+#endif
 #ifdef USE_ARTWORK_IMAGE_BMP_SUPPORT
     case ImageFormat::BMP:
       accept_mime_type = "image/bmp";
@@ -1124,6 +1178,7 @@ size_t ArtworkImage::get_sane_content_length_() const {
 }
 
 void ArtworkImage::loop() {
+  this->loop_animation_();
   ImageService::instance().process_pending();
   this->cleanup_retired_buffers_(false);
   if (this->s3_transfer_pending_) {
@@ -1135,7 +1190,11 @@ void ArtworkImage::loop() {
     return;
   }
   if (!this->decoder_ && !this->downloader_) {
-    if (this->retired_buffers_.empty()) {
+    if (this->retired_buffers_.empty()
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+        && !this->animation_
+#endif
+    ) {
       this->disable_loop();
     }
     return;
@@ -1532,6 +1591,8 @@ bool ArtworkImage::consume_p4_pipeline_result_() {
     this->complete_service_request_();
     return true;
   }
+  this->max_download_buffer_size_ = image_pipeline_transfer_limit(
+      true, image_pipeline_gif_signature(result->data, result->size));
   if (result->size < 12 || result->size > this->max_download_buffer_size_) {
     ESP_LOGE(TAG, "ESP32-P4 image pipeline returned an invalid image size: %zu", result->size);
     delete result;
@@ -1696,6 +1757,11 @@ ImageFormat ArtworkImage::detect_format_() {
     }
   }
 
+  if (this->download_buffer_.unread() >= 6) {
+    const auto *data = this->download_buffer_.data();
+    if (memcmp(data, "GIF87a", 6) == 0 || memcmp(data, "GIF89a", 6) == 0) return ImageFormat::GIF;
+  }
+
   // Fallback: Content-Type header
   if (this->downloader_) {
     std::string ct = str_lower_case(this->downloader_->get_response_header(CONTENT_TYPE_HEADER_NAME));
@@ -1707,6 +1773,7 @@ ImageFormat ArtworkImage::detect_format_() {
       ESP_LOGD(TAG, "Detected PNG from Content-Type: %s", ct.c_str());
       return ImageFormat::PNG;
     }
+    if (ct.find("image/gif") != std::string::npos) return ImageFormat::GIF;
     if (ct.find("image/bmp") != std::string::npos || ct.find("image/x-ms-bmp") != std::string::npos) {
       ESP_LOGD(TAG, "Detected BMP from Content-Type: %s", ct.c_str());
       return ImageFormat::BMP;
@@ -1779,6 +1846,17 @@ bool ArtworkImage::detect_heic_() {
 }
 
 bool ArtworkImage::create_decoder_(ImageFormat format, size_t total_size) {
+  this->gif_decoding_ = false;
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+  if (format == ImageFormat::GIF) {
+#if defined(USE_ESP_IDF) && defined(CONFIG_IDF_TARGET_ESP32P4)
+    this->max_download_buffer_size_ = image_pipeline_transfer_limit(true, true);
+    if (total_size == 0 && this->downloader_) total_size = this->get_sane_content_length_();
+#endif
+    this->decoder_ = make_unique<GifDecoder>(this);
+    this->gif_decoding_ = true;
+  }
+#endif
   if (format == ImageFormat::HEIC) {
     ESP_LOGE(TAG, "HEIC/HEIF artwork detected, but no native HEIC decoder is bundled for this firmware; source=%s",
              classify_artwork_url_for_log(this->url_));
@@ -1960,6 +2038,15 @@ bool ArtworkImage::ensure_download_buffer_capacity_() {
   }
 
   ESP_LOGD(TAG, "Growing download buffer from %zu to %zu bytes", current_size, target_size);
+#if defined(USE_ESP_IDF) && defined(CONFIG_IDF_TARGET_ESP32P4)
+  if (this->gif_decoding_ && !background_transfer_psram_growth_preserves_reserve(
+        heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT),
+        current_size, target_size, IMAGE_PIPELINE_P4_GIF_PSRAM_HEADROOM_BYTES)) {
+    ESP_LOGE(TAG, "GIF download cannot preserve %zu bytes of free PSRAM",
+             IMAGE_PIPELINE_P4_GIF_PSRAM_HEADROOM_BYTES);
+    return false;
+  }
+#endif
   bool resized = this->download_buffer_.resize(target_size) == target_size;
   if (resized) this->peak_download_buffer_size_ = std::max(this->peak_download_buffer_size_, target_size);
   return resized;
@@ -2032,6 +2119,7 @@ bool ArtworkImage::finish_download_() {
            bytes_read, this->width_, this->height_, this->peak_download_buffer_size_,
            this->max_download_buffer_size_);
   ESP_LOGD(TAG, "Total time: %" PRIu32 "s", (uint32_t) (::time(nullptr) - this->start_time_));
+  this->replace_animation_();
   this->end_connection_();
   this->log_state_("download-resources-released");
   App.feed_wdt();
@@ -2144,11 +2232,152 @@ void ArtworkImage::end_connection_() {
     this->downloader_ = nullptr;
   }
   this->decoder_.reset();
+  this->gif_decoding_ = false;
   this->discard_decode_buffer_();
   this->download_buffer_.reset();
   // Staging memory belongs to the active service request only. Completed image
   // surfaces stay resident, but compressed transfer bytes are returned to PSRAM.
   this->download_buffer_.shrink_to(0);
+}
+
+void ArtworkImage::pause_animation_for_refresh_() {
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+  if (!this->animation_) return;
+  // The request shares the staging surface with playback. Preserve the source
+  // and compositor, but restart an interrupted resize if this request fails.
+  this->animation_->reset_render_target(this->animation_frame_ready_);
+  this->animation_frame_ready_ = false;
+  if (gif_playing == this) gif_playing = nullptr;
+  this->discard_decode_buffer_();
+#endif
+}
+
+void ArtworkImage::replace_animation_() {
+  // Called only after a complete replacement has been promoted successfully.
+  this->stop_animation_();
+  this->retain_animation_();
+}
+
+void ArtworkImage::retain_animation_() {
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+  if (!this->gif_decoding_ || !this->animation_visible_) return;
+  auto *gif_decoder = static_cast<GifDecoder *>(this->decoder_.get());
+  if (!gif_decoder || !gif_decoder->is_animated()) return;
+  // One card keeps playback data on the dashboard. Reserve the second slot
+  // for expanded images and the camera screensaver, preserving the card.
+  const int slot = this->animation_fullscreen_ || this->p4_pipeline_priority_ == P4_PIPELINE_MODAL ? 1 : 0;
+  if (slot == 1 && gif_slots[1] && this->animation_fullscreen_ &&
+      this->animation_screen_active_ && this->animation_screen_active_() &&
+      gif_slots[1]->animation_visible_ && !gif_slots[1]->animation_visible_()) {
+    // A closed expanded view may still be cached when the screensaver starts.
+    // Release its playback data before retaining the visible full-screen GIF.
+    gif_slots[1]->stop_animation_();
+  }
+  if (slot == 0 && gif_slots[0] && this->animation_screen_active_ &&
+      this->animation_screen_active_() && gif_slots[0]->animation_screen_active_ &&
+      !gif_slots[0]->animation_screen_active_()) {
+    // Cached cards from a previous page must not block the current page.
+    auto *previous = gif_slots[0];
+    previous->stop_animation_();
+    previous->animation_reload_pending_ = true;
+  }
+  if (gif_slots[slot]) {
+    this->animation_reload_pending_ = true;
+    ESP_LOGI(TAG, "GIF animation already retained for this view; keeping a still frame");
+    return;
+  }
+  if (gif_decoder->retain_source(this->download_buffer_)) {
+    this->decoder_.release();
+    this->animation_.reset(gif_decoder);
+    gif_slots[slot] = this;
+    this->animation_frame_started_ms_ = millis();
+    this->animation_frame_delay_ms_ = gif_decoder->delay_ms();
+    this->animation_frame_pending_ = false;
+    this->animation_frame_ready_ = false;
+  }
+#endif
+}
+
+bool ArtworkImage::animation_needs_reload() const {
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+  if (!this->animation_reload_pending_ || this->animation_ || this->service_active_ ||
+      this->animation_fullscreen_ || this->p4_pipeline_priority_ == P4_PIPELINE_MODAL ||
+      !this->animation_visible_ || !this->animation_visible_()) return false;
+  auto *owner = gif_slots[0];
+  return !owner || (owner->animation_screen_active_ && !owner->animation_screen_active_());
+#else
+  return false;
+#endif
+}
+
+void ArtworkImage::stop_animation_() {
+  this->animation_reload_pending_ = false;
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+  if (!this->animation_) return;
+  if (gif_playing == this) gif_playing = nullptr;
+  for (auto &slot : gif_slots) if (slot == this) slot = nullptr;
+  this->animation_.reset();
+  this->animation_frame_pending_ = false;
+  this->animation_frame_ready_ = false;
+  this->discard_decode_buffer_();
+#endif
+}
+
+void ArtworkImage::loop_animation_() {
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+  if (!this->animation_) return;
+  if (this->service_active_ || this->decoder_ || this->downloader_ ||
+      this->p4_pipeline_pending_ || this->s3_transfer_pending_) {
+    this->animation_->pause();
+    return;
+  }
+  if (!this->animation_visible_ || !this->animation_visible_()) {
+    this->animation_->pause();
+    if (gif_playing == this) gif_playing = nullptr;
+    this->animation_frame_started_ms_ = millis();
+    return;
+  }
+  if (gif_playing && gif_playing != this) {
+    if (gif_playing->animation_visible_ && gif_playing->animation_visible_()) {
+      this->animation_->pause();
+      return;
+    }
+    gif_playing = nullptr;
+  }
+  gif_playing = this;
+  if (!this->animation_frame_ready_) {
+    // Prepare the next frame during the displayed frame's delay. Keep its
+    // complete staging surface until that delay expires, rather than adding
+    // decoding time after every delay. The active surface remains untouched.
+    this->animation_frame_pending_ = true;
+    const auto result = this->animation_->advance();
+    if (result == gif::Player::Result::MORE) return;
+    if (result != gif::Player::Result::FRAME) {
+      if (result == gif::Player::Result::ERROR) ESP_LOGW(TAG, "Invalid GIF frame; keeping the last completed image");
+      this->stop_animation_();
+      return;
+    }
+    this->animation_frame_ready_ = true;
+  }
+  const uint32_t now = millis();
+  if (now - this->animation_frame_started_ms_ < this->animation_frame_delay_ms_) return;
+  // The LVGL descriptor keeps its stable allocation. Publish only a complete
+  // resized frame; playback never fires network/cache completion callbacks.
+  if (!this->decode_buffer_ || this->get_decode_buffer_size_() != this->get_buffer_size_()) {
+    this->stop_animation_();
+    return;
+  }
+  memcpy(this->buffer_, this->decode_buffer_, this->get_buffer_size_());
+  ESP_LOGD(TAG, "GIF frame published: interval=%lu ms delay=%lu ms",
+           static_cast<unsigned long>(now - this->animation_frame_started_ms_),
+           static_cast<unsigned long>(this->animation_frame_delay_ms_));
+  this->invalidate_lvgl_cache_();
+  this->animation_frame_pending_ = false;
+  this->animation_frame_ready_ = false;
+  this->animation_frame_delay_ms_ = this->animation_->delay_ms();
+  this->animation_frame_started_ms_ = now;
+  if (this->animation_redraw_) this->animation_redraw_();
+#endif
 }
 
 bool ArtworkImage::validate_url_(const std::string &url) {

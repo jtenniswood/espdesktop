@@ -42,7 +42,7 @@ constexpr uint32_t companion_preference_key(const char *name) {
 inline bool preserve_key(Mode mode, const std::string &ns, const std::string &key, uint32_t wifi_key) {
   if (ns == "espdesktop_rst") return true;
   if (mode == Mode::FACTORY) return false;
-  if (ns == "espdesktop_cfg" || ns == "espdesktop_id") return false;
+  if (ns == "espdesktop_cfg" || ns == "espdesktop_id" || ns == "espdesktop_pin") return false;
   if (ns != "esphome") return true;  // Platform network/calibration records.
   return key == std::to_string(wifi_key) || key == "88491486" ||
          key == std::to_string(FACTORY_WIFI_RESET_DONE_KEY) ||

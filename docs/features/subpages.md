@@ -11,7 +11,7 @@ A subpage is an extra screen opened from a **Subpage** card. Use it to group rel
 
 ## Create a Subpage
 
-1. Open the display's setup page in a browser and choose the **Screen** tab.
+1. Open the display's setup page in a browser and choose the **Layout** tab.
 2. Select an empty home-screen space and choose **Subpage** as the card type.
 3. Give the card a label and icon if you want them.
 4. Choose **Edit Subpage** in the card settings.
@@ -27,3 +27,5 @@ Home Assistant type presets are available after a Home Assistant connection is c
 Drag cards to change their order. To move or copy a card between the home screen and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty space on the destination page and choose **Paste**.
 
 Choose **Apply Configuration** to save your changes to the display.
+
+To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups.

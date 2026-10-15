@@ -43,6 +43,7 @@ Use this page when you know what you want the panel to do but are not sure which
 | Control media playback, volume, progress, or now-playing display | [Media](/card-types/media) | `media_player` |
 | Control a thermostat or HVAC entity | [Climate](/card-types/climate) | `climate` |
 | Control a built-in relay on the panel itself | [Internal Switches](/card-types/internal-relays) | Built-in relay |
+| Start the configured screensaver immediately | [Screensaver](/features/screensaver#start-the-screensaver-with-a-card) | No entity required |
 | Lock or unlock the touchscreen controls locally | [Screen Lock](/card-types/screen-lock) | No entity required |
 | Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
 
@@ -87,7 +88,7 @@ Some names in the setup page group several related modes:
 | **Cover** | All Controls, Position, Tilt, Toggle, Open, Close, Stop, Set Position |
 | **Subpage** | Generic, Switch, Lights, Climate, Presence, Media, Alarm, Cover, Garage Door, Gate, Lock, Vacuum, Lawn Mower, Weather, Sensor, Camera / Image, Companion Stat |
 
-Older configurations may also show **Weather Forecast**. It is kept for compatibility and is now set up as a **Weather** card with **Temperatures Tomorrow** selected.
+Older configurations may also show **Weather Forecast**. It is kept for compatibility and is now set up as a **Weather** card with **Tomorrow's Forecast** selected.
 
 ## Permissions
 
