@@ -7204,21 +7204,44 @@ async function assertColourSwatches(browser) {
     await page.evaluate(events => window.__seedEspState(events), seededEvents());
     await page.getByRole("tab", { name: "Screen" }).click();
     const primary = page.locator("#sp-set-on-color");
-    if (!await primary.isVisible()) await page.getByText("Appearance", { exact: true }).click();
-    assert.strictEqual(await primary.locator("button").count(), 21, "20 presets plus the existing custom colour");
-    assert.strictEqual(await primary.locator('[data-color="0073FF"]').getAttribute("aria-pressed"), "true");
-    await primary.locator('[data-color="00BCD4"]').click();
-    assert.strictEqual(await primary.locator('[data-color="00BCD4"]').getAttribute("aria-pressed"), "true");
+    if (!await primary.isVisible()) await page.getByRole("heading", { name: "Active Colour", exact: true }).click();
+    await primary.waitFor({ state: "visible" });
+    async function assertPalette(group, label) {
+      assert.strictEqual(await group.locator("button[data-color]").count(), 19, `${label}: 19 preset buttons`);
+      assert.strictEqual(await group.locator(".sp-card-color-preset").count(), 20, `${label}: presets plus one custom swatch`);
+      assert.strictEqual(await group.locator("label.sp-card-color-custom").count(), 1, `${label}: native picker is label-backed`);
+      assert(await group.locator("label.sp-card-color-custom").isVisible(), `${label}: custom swatch is visible`);
+      assert.strictEqual(await group.getByLabel("Choose custom colour", { exact: true }).getAttribute("type"), "color");
+    }
+    await assertPalette(primary, "Appearance");
+    const primaryCustom = primary.locator(".sp-card-color-custom");
+    const primaryPicker = primary.getByLabel("Choose custom colour", { exact: true });
+    assert.strictEqual(await primaryPicker.inputValue(), "#0073ff");
+    assert.strictEqual(await primaryCustom.getAttribute("data-selected"), "true", "existing non-preset theme colour selects the custom swatch");
+    await primaryPicker.fill("#123abc");
+    assert.strictEqual(await primaryCustom.getAttribute("data-selected"), "true");
+    assert.strictEqual(await primaryCustom.getAttribute("data-has-color"), "true");
+    assert.strictEqual(await primaryCustom.evaluate(el => getComputedStyle(el).backgroundColor), "rgb(18, 58, 188)");
+    await primary.locator('[data-color="54B7C8"]').click();
+    assert.strictEqual(await primary.locator('[data-color="54B7C8"]').getAttribute("aria-pressed"), "true");
+    assert.strictEqual(await primaryCustom.getAttribute("data-selected"), "false");
+    assert.strictEqual(await primaryPicker.inputValue(), "#123abc", "preset selection retains the native custom choice");
     await page.getByRole("tab", { name: "Layout" }).click();
     await page.locator('.sp-main [data-slot="1"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
-    const colours = page.locator('.sp-settings-modal .sp-card-color-presets');
-    assert.strictEqual(await colours.locator("button").count(), 20);
-    await colours.locator('[data-color="6633B9"]').click();
-    assert.strictEqual(await colours.locator('[data-color="6633B9"]').getAttribute("aria-pressed"), "true");
-    await page.getByRole("button", { name: "Reset colours to defaults", exact: true }).click();
+    const colours = page.locator('.sp-settings-modal').getByRole("group", { name: "Card colour presets", exact: true });
+    await assertPalette(colours, "Card background");
+    const defaultPreset = await colours.locator('[aria-pressed="true"]').getAttribute("data-color");
+    await colours.locator('[data-color="6036B2"]').click();
+    assert.strictEqual(await colours.locator('[data-color="6036B2"]').getAttribute("aria-pressed"), "true");
+    await colours.getByLabel("Choose custom colour", { exact: true }).fill("#abcdef");
+    assert.strictEqual(await colours.locator('.sp-card-color-custom').getAttribute("data-selected"), "true");
     assert.strictEqual(await colours.locator('[aria-pressed="true"]').count(), 0);
+    await page.getByRole("button", { name: "Reset colours to defaults", exact: true }).click();
+    assert.strictEqual(await colours.locator('[aria-pressed="true"]').getAttribute("data-color"), defaultPreset,
+      "reset selects the original default background swatch");
+    assert.strictEqual(await colours.locator('.sp-card-color-custom').getAttribute("data-selected"), "false");
     assert.deepStrictEqual(errors, []);
   } finally { await context.close(); }
 }

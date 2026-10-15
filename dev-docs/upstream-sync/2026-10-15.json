@@ -2857,6 +2857,13 @@
         "change": "Remove the obsolete right-click Size instruction from the setup guide; resizing uses the bottom-right drag handle.",
         "regression": "Documentation build and site link/anchor checks pass; the guide now matches the context-menu and resize implementation. No firmware inputs changed.",
         "threadStatus": "Fixed, pushed and resolved."
+      },
+      {
+        "comment": "https://github.com/jtenniswood/espdesktop/pull/200#discussion_r4287186006",
+        "priority": "P2",
+        "change": "Update the focused colour smoke test for19 presets,the label-backed custom picker,the Active Colour disclosure,and default-swatch reset. Scope the card background separately from the active-state picker.",
+        "regression": "Reproduced the stale count failure before the correction;focused journey passes in Chromium and WebKit afterward. JavaScript syntax and diff checks pass;production code/firmware unchanged.",
+        "threadStatus": "Addressed by tested browser-check correction;resolution tracked on PR."
       }
     ],
     "priorFirmwareBuilds": [
@@ -3288,7 +3295,18 @@
         "base": "main",
         "mergedAt": "2026-10-12T06:04:53Z"
       }
-    ]
+    ],
+    "focusedColourBrowser": {
+      "status": "passed",
+      "engines": [
+        "Chromium",
+        "WebKit"
+      ],
+      "mode": "ESPDESKTOP_COLOURS_ONLY=1",
+      "coverage": "Visible Active Colour disclosure;19 preset buttons+label-backed native picker;retained custom selection;real current presets;card custom colour;reset restores the default background swatch.",
+      "beforeFix": "Focused mode reproduced the stale assertion:19 buttons versus expected21.",
+      "testSha256": "32ac58827352e1655c24db10a9d1340ee3cf7b40219e6e7b5a0b39fd262e57e2"
+    }
   },
   "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
 }
