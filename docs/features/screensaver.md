@@ -8,7 +8,7 @@ description:
 
 The panel can use a screensaver when it's not being used. When active, it can dim the normal screen, show a dim clock, display a Home Assistant image, or turn the backlight off so the panel goes dark. Touch the screen to wake it up.
 
-There are four screensaver modes, configured in **Settings > Sleep & Schedule > Screensaver** on the [Setup](/features/setup) page:
+There are four screensaver modes, configured in **Screen > Sleep & Schedule > Screensaver** on the [Setup](/features/setup) page:
 
 ## Disabled
 

@@ -2863,7 +2863,14 @@
         "priority": "P2",
         "change": "Update the focused colour smoke test for19 presets,the label-backed custom picker,the Active Colour disclosure,and default-swatch reset. Scope the card background separately from the active-state picker.",
         "regression": "Reproduced the stale count failure before the correction;focused journey passes in Chromium and WebKit afterward. JavaScript syntax and diff checks pass;production code/firmware unchanged.",
-        "threadStatus": "Addressed by tested browser-check correction;resolution tracked on PR."
+        "threadStatus": "Fixed, pushed and resolved."
+      },
+      {
+        "comment": "https://github.com/jtenniswood/espdesktop/pull/200#discussion_r4287414170",
+        "priority": "P2",
+        "change": "Update screensaver instructions to Screen > Sleep & Schedule > Screensaver and V3 migration export to System > Backup. Verified current section/card labels and checked other Settings references for context.",
+        "regression": "Documentation build passes:17 canonical pages,7 FAQ answers,29 redirects,internal links/anchors checked. No stale Settings > Sleep & Schedule or Settings > Backup path remains in docs. Firmware inputs unchanged.",
+        "threadStatus": "Addressed by checked documentation correction;resolution tracked on PR."
       }
     ],
     "priorFirmwareBuilds": [
