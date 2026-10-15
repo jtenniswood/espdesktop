@@ -2756,12 +2756,13 @@
     "resizeBrowser": "Passed Chromium and WebKit: native move/resize, stable grid, commit, Escape, pointer cancellation, configuration lock and drag exclusion.",
     "colourBrowser": "Passed active colour controls and slider contrast.",
     "cornersBrowser": "All nine continuous-corner/outline layout checks passed before the broader suite reached its unrelated clock-bar assertion.",
-    "nativeJourneys": "Native configuration, editing, backup/restore and reload passed on all nine display profiles. Non-S3 fallback journeys passed on the other eight; remaining S3-specific journeys are being checked separately.",
+    "nativeJourneys": "Passed native configuration, editing, backup/restore and reload on all nine profiles. Legacy saves and offline fallback passed on all nine; truncated-restore detection passed on the intended 10-inch profile. S3 shortcut catalogue and storage journeys passed.",
     "broaderBrowserLimitation": {
       "status": "pre-existing failure",
       "baseline": "68bd30be86a64da409b8dc3bf374f6e0dbd2da02",
       "assertion": "clock bar typography is measurable",
-      "reason": "The old full-browser assertion expects .sp-temp, but current EspDesktop intentionally renders a home-only left clock and network indicator. Reproduced using unchanged origin/main in a separate snapshot. No assertion was weakened."
+      "reason": "The old full-browser assertion expects .sp-temp, but current EspDesktop intentionally renders a home-only left clock and network indicator. Reproduced using unchanged origin/main in a separate snapshot. No assertion was weakened.",
+      "alsoObserved": "The Companion-only picker reconnect-temperature assertion expects the same intentionally omitted temperature node. It is not counted as passed."
     },
     "additionalPreexistingBrowserLimitation": {
       "baseline": "68bd30be86a64da409b8dc3bf374f6e0dbd2da02",
@@ -2794,7 +2795,12 @@
       "buildRevision": "8cbc6d4d26e3dfd321735bb880628010aac1d843",
       "comparedRevision": "e97c1878b879e79d02d1b1970f9b739cdea45edc",
       "result": "No differences in pinned ESPHome version, builds, common, components, devices, product, firmware generators, npm dependencies or embedded web assets."
-    }
+    },
+    "remainingWork": [
+      "Complete and inspect the nine-device factory/recovery matrix (run 38763853471).",
+      "Check PR feedback and current-head CI, address introduced failures, and update the evidence ledger.",
+      "Physical device confirmation remains the user’s step before merge."
+    ]
   },
   "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
 }
