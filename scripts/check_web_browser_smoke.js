@@ -2459,9 +2459,9 @@ async function assertMobileDeviceViewport(browser, testCase) {
     );
     for (const width of [360, 320]) {
       await page.setViewportSize({ width, height: 740 });
-      for (const tab of ["Device", "Settings", "Screen"]) {
+      for (const [tab, pageId] of [["System", "device"], ["Screen", "settings"], ["Layout", "screen"], ["Connectors", "connectors"]]) {
         await page.getByRole("tab", { name: tab, exact: true }).click();
-        assert(await page.locator(`#sp-${tab.toLowerCase()}.active`).isVisible(),
+        assert(await page.locator(`#sp-${pageId}.active`).isVisible(),
           `${testCase.name}: ${tab} opens at ${width}px`);
         assert.strictEqual(await page.locator(".sp-page.active").count(), 1,
           `${testCase.name}: only the selected page is shown`);
