@@ -19,7 +19,7 @@ Apps and folders must first be approved in the Mac app. Keyboard shortcuts and w
 ## Arrange and Personalise Cards
 
 - Drag cards to move them. Dropping one onto an occupied tile shifts that card to the next available space.
-- Drag a card’s bottom-right resize handle, or right-click and choose **Size**, to make it wider or taller. Press Escape or cancel the drag to keep the original size.
+- Drag a card’s bottom-right resize handle to make it wider or taller. Press Escape or cancel the drag to keep the original size.
 - Click a displayed card name to rename it and press Enter to save. Escape or clicking away cancels. Generated status text stays automatic.
 - Change a card's icon, label, and colour in its settings.
 - Create [subpages](/features/subpages) to group related Mac controls or keep an app's shortcuts together.

@@ -2850,6 +2850,13 @@
         "change": "Verified that the official entrypoint runs as a child and returns to the reporting shell; retained its required cache environment setup and documented the process boundary.",
         "regression": "The actual nightly container shell and real size reporter run against an exec-style stub compiler. Both success and failure write a size summary; compiler failure propagates. All 11 size checks and firmware release helper checks pass.",
         "threadStatus": "Addressed, pushed and resolved."
+      },
+      {
+        "comment": "https://github.com/jtenniswood/espdesktop/pull/200#discussion_r4286889323",
+        "priority": "P2",
+        "change": "Remove the obsolete right-click Size instruction from the setup guide; resizing uses the bottom-right drag handle.",
+        "regression": "Documentation build and site link/anchor checks pass; the guide now matches the context-menu and resize implementation. No firmware inputs changed.",
+        "threadStatus": "Addressed in documentation; resolution tracked on the PR."
       }
     ],
     "priorFirmwareBuilds": [
