@@ -2678,7 +2678,7 @@
   "validation": {
     "status": "in progress",
     "physicalDeviceTesting": "Not performed. No flashing, merging or issue closure is authorized by this sync.",
-    "firmware": "Pending representative/full-matrix builds; local Docker daemon did not respond.",
+    "firmware": "Full matrix restarting after the settings grid compile fix; no successful hardware build claimed yet.",
     "bundleBytes": {
       "minified": 2760835,
       "gzip": 1091806
@@ -2686,6 +2686,27 @@
     "bundleBudget": {
       "minified": 2800000,
       "gzip": 1150000
-    }
+    },
+    "hostTests": {
+      "passed": 129,
+      "suite": "firmware CTest",
+      "revision": "2e2f8dbc3275117bf7ab0dcbae948327193012c9"
+    },
+    "localCi": {
+      "status": "passed",
+      "tasks": 51,
+      "summary": "Complete ci graph with pinned ESPHome/Python virtual environment; documentation index corrected."
+    },
+    "pinBrowser": "Passed shared PIN save/change/clear, Screen Lock, legacy capability hiding and backup import tests.",
+    "docs": "Passed VitePress build, installer dependency check, canonical links/anchors.",
+    "firmwareHistory": [
+      {
+        "revision": "2e2f8dbc3275117bf7ab0dcbae948327193012c9",
+        "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38762809257",
+        "device": "guition-esp32-p4-jc1060p470",
+        "status": "failed",
+        "reason": "network_status.h referred to configured_rows after destination grid adaptation. Fixed by assigning clamped metrics.rows directly; full matrix must rerun."
+      }
+    ]
   }
 }

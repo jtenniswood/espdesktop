@@ -2145,6 +2145,8 @@ async function assertVoiceClockBarPreview(page, label) {
 }
 
 async function assertClockBarTypographyAndIconLayout(page, label) {
+  // Capabilities and connector status arrive independently of the event stream.
+  await page.locator(".sp-temp").waitFor({ state: "visible" });
   const metrics = await page.evaluate(() => {
     const cardLabel = document.querySelector(".sp-main .sp-btn-label");
     const clock = document.querySelector(".sp-clock");

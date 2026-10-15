@@ -371,7 +371,7 @@ inline void network_status_open_modal(const std::string &device_name,
 
   const int cols = std::max(1, std::min(metrics.cols, MAX_GRID_SLOTS));
   ui.grid_columns = cols;
-  ui.configured_rows = configured_rows;
+  ui.configured_rows = std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS));
   const int card_count = NETWORK_STATUS_CARD_COUNT - (wifi_quality ? 0 : 1);
   const int rows = network_status_grid_rows(cols,
       std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS)), card_count);
