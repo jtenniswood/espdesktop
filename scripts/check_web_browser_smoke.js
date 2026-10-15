@@ -2150,14 +2150,12 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
   const metrics = await page.evaluate(() => {
     const cardLabel = document.querySelector(".sp-main .sp-btn-label");
     const clock = document.querySelector(".sp-clock");
-    const temperature = document.querySelector(".sp-temp");
     const networkIcon = document.querySelector(".sp-network-preview");
     const topbar = document.querySelector(".sp-topbar");
-    if (!cardLabel || !clock || !temperature || !networkIcon || !topbar)
+    if (!cardLabel || !clock || !networkIcon || !topbar)
       return null;
     const cardStyle = getComputedStyle(cardLabel);
     const clockStyle = getComputedStyle(clock);
-    const temperatureStyle = getComputedStyle(temperature);
     const networkStyle = getComputedStyle(networkIcon);
     const networkGlyphStyle = getComputedStyle(networkIcon, "::before");
     const iconRect = networkIcon.getBoundingClientRect();
@@ -2168,8 +2166,6 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
       cardFontWeight: cardStyle.fontWeight,
       clockFontSize: clockStyle.fontSize,
       clockFontWeight: clockStyle.fontWeight,
-      temperatureFontSize: temperatureStyle ? temperatureStyle.fontSize : null,
-      temperatureFontWeight: temperatureStyle ? temperatureStyle.fontWeight : null,
       iconFontSize: networkStyle.fontSize,
       glyphFontSize: networkGlyphStyle.fontSize,
       iconHeight: iconRect.height,
@@ -2185,19 +2181,9 @@ async function assertClockBarTypographyAndIconLayout(page, label) {
     `${label}: clock font size matches card labels`,
   );
   assert.strictEqual(
-    metrics.temperatureFontSize,
-    metrics.cardFontSize,
-    `${label}: temperature font size matches card labels`,
-  );
-  assert.strictEqual(
     metrics.clockFontWeight,
     metrics.cardFontWeight,
     `${label}: clock font weight matches card labels`,
-  );
-  assert.strictEqual(
-    metrics.temperatureFontWeight,
-    metrics.cardFontWeight,
-    `${label}: temperature font weight matches card labels`,
   );
   assert.strictEqual(
     metrics.iconFontSize,
@@ -4909,8 +4895,7 @@ async function assertClockBarEditorSmoke(page, posts, label) {
   }
 
   const fixedItems = [
-    { selector: '[data-clockbar-item="temperature"]', section: "left" },
-    { selector: '[data-clockbar-item="time"]', section: "middle" },
+    { selector: '[data-clockbar-item="time"]', section: "left" },
     { selector: '[data-clockbar-item="network"]', section: "right" },
   ];
   for (const item of fixedItems) {
@@ -4949,8 +4934,8 @@ async function assertClockBarEditorSmoke(page, posts, label) {
     await page
       .locator('[data-clockbar-item="time"]')
       .getAttribute("data-clockbar-section"),
-    "middle",
-    `${label}: clock bar time remains in the fixed middle section`,
+    "left",
+    `${label}: clock bar time remains in the fixed left section`,
   );
   assert.strictEqual(
     await page.locator(".sp-selection-bar.sp-visible").count(),
@@ -5106,184 +5091,16 @@ async function assertClockBarEditorSmoke(page, posts, label) {
     before,
   );
 
-  await page
-    .locator('[data-clockbar-item="temperature"]')
-    .click({ force: true });
-  assert(
-    (await page.locator(".sp-selection-bar").textContent()).includes(
-      "Temperature selected",
-    ),
-    `${label}: temperature selection is labelled`,
-  );
   assert.strictEqual(
-    await page.getByRole("button", { name: "Edit", exact: true }).isDisabled(),
-    false,
-    `${label}: temperature edit button is enabled`,
-  );
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page
-    .locator("#sp-clockbar-temperature-entity")
-    .fill("sensor.porch_temperature");
-  const degreeSymbolLabel = page.locator(
-    'label[for="sp-clockbar-temperature-degree-symbol"]',
-  );
-  assert.strictEqual(
-    await degreeSymbolLabel.count(),
-    1,
-    `${label}: degree-symbol label is clickable`,
-  );
-  await degreeSymbolLabel.click();
-  assert.strictEqual(
-    await page.locator("#sp-clockbar-temperature-degree-symbol").isChecked(),
-    false,
-    `${label}: clicking the degree-symbol label toggles the control`,
-  );
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await waitForAnyPost(
-    posts,
-    [
-      {
-        domain: "text",
-        name: "Clock Bar: Temperature Entities",
-        action: "set",
-        value: "sensor.porch_temperature",
-      },
-      {
-        domain: "text",
-        name: "clock_bar__temperature_entities",
-        action: "set",
-        value: "sensor.porch_temperature",
-      },
-    ],
-    `${label}: saving temperature posts entity`,
-    before,
-  );
-  await waitForPost(
-    posts,
-    {
-      domain: "switch",
-      name: "screen__temperature_degree_symbol",
-      action: "turn_off",
-    },
-    `${label}: saving temperature posts degree symbol`,
-    before,
-  );
-  assert(
-    !(
-      await page
-        .locator('[data-clockbar-item="temperature"] .sp-temp')
-        .textContent()
-    ).includes("\u00B0"),
-    `${label}: saving temperature removes the degree symbol from the preview`,
-  );
-  await page
-    .locator('[data-clockbar-item="temperature"]')
-    .click({ force: true });
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  const modalHideButton = page.locator(".sp-settings-modal .sp-hide-btn");
-  assert.strictEqual(
-    await modalHideButton.count(),
-    1,
-    `${label}: temperature modal shows one hide button`,
-  );
-  assert.strictEqual(
-    (await modalHideButton.innerText()).trim(),
-    "Hide",
-    `${label}: temperature modal hide button is labelled`,
-  );
-  const hideIconClass = await modalHideButton
-    .locator(".mdi")
-    .getAttribute("class");
-  assert(
-    hideIconClass.includes("mdi-eye-off-outline"),
-    `${label}: temperature modal hide button uses the eye-off icon`,
-  );
-  assert(
-    !hideIconClass.includes("trash"),
-    `${label}: temperature modal hide button does not use a trash icon`,
-  );
-  await modalHideButton.click();
-  await waitForPost(
-    posts,
-    { domain: "switch", name: "outdoor_temp_enable", action: "turn_off" },
-    `${label}: hiding temperature posts visibility switch`,
-    before,
-  );
-  assert(
-    (
-      await page
-        .locator('[data-clockbar-item="temperature"]')
-        .getAttribute("class")
-    ).includes("sp-clockbar-hidden"),
-    `${label}: hidden temperature is greyed in preview`,
-  );
-  await page
-    .locator('[data-clockbar-item="temperature"]')
-    .click({ force: true });
-  await page.getByRole("button", { name: "Show", exact: true }).click();
-  await waitForPost(
-    posts,
-    { domain: "switch", name: "outdoor_temp_enable", action: "turn_on" },
-    `${label}: showing temperature posts visibility switch`,
-    before,
-  );
-
-  await openClockBarContextMenu("temperature", "Edit Temperature");
-  assert(
-    await page
-      .locator(".sp-ctx-menu")
-      .getByText("Hide Temperature", { exact: true })
-      .isVisible(),
-    `${label}: right click menu for temperature includes visibility action`,
-  );
-  await page
-    .locator(".sp-ctx-menu")
-    .getByText("Hide Temperature", { exact: true })
-    .click();
-  await waitForPost(
-    posts,
-    { domain: "switch", name: "outdoor_temp_enable", action: "turn_off" },
-    `${label}: hiding temperature posts visibility switch`,
-    before,
-  );
-  assert(
-    (
-      await page
-        .locator('[data-clockbar-item="temperature"]')
-        .getAttribute("class")
-    ).includes("sp-clockbar-hidden"),
-    `${label}: hidden temperature is greyed in preview`,
-  );
-  await openClockBarContextMenu("temperature", "Show Temperature");
-  await page
-    .locator(".sp-ctx-menu")
-    .getByText("Show Temperature", { exact: true })
-    .click();
-  await waitForPost(
-    posts,
-    { domain: "switch", name: "outdoor_temp_enable", action: "turn_on" },
-    `${label}: showing temperature posts visibility switch`,
-    before,
-  );
-  assert.strictEqual(
-    await page.locator(".sp-settings-overlay.sp-visible").count(),
+    await page.locator('[data-clockbar-item="temperature"]').count(),
     0,
-    `${label}: clock bar temperature dialog closes after save`,
+    `${label}: the clock bar contains only clock and connectivity controls`,
   );
-
-  const screenBox = await page.locator(".sp-screen").boundingBox();
-  const timeBox = await page
-    .locator('[data-clockbar-item="time"][data-clockbar-section="middle"]')
-    .boundingBox();
-  assert(screenBox && timeBox, `${label}: middle clock bar time is measurable`);
-  const screenCenter = screenBox.x + screenBox.width / 2;
-  const timeCenter = timeBox.x + timeBox.width / 2;
-  assert(
-    Math.abs(timeCenter - screenCenter) <= 1,
-    `${label}: middle clock bar time remains centered on the screen`,
-  );
+  const leftSectionBox = await page.locator('.sp-clockbar-section[data-clockbar-section="left"]').boundingBox();
+  const timeBox = await page.locator('[data-clockbar-item="time"]').boundingBox();
+  assert(leftSectionBox && timeBox, `${label}: left clock bar time is measurable`);
+  assert(Math.abs(timeBox.x - leftSectionBox.x) <= 1,
+    `${label}: clock remains aligned to the left section`);
 
   const topbarBox = await page.locator(".sp-topbar").boundingBox();
   const networkBox = await page
@@ -6354,7 +6171,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     assert(!(await haMode.isVisible()), "Offline HA hides Screensaver mode");
     connectorStatus.home_assistant.connected = true;
     await coverArtCard.waitFor({ state: "visible" });
-    assert.strictEqual(await temperatureControl.count(), 1, "Reconnecting restores the temperature control");
+    assert.strictEqual(await temperatureControl.count(), 0, "Reconnecting keeps the clock bar limited to clock and connectivity");
     assert(await haSettingsCard.isVisible(), "Reconnecting restores Home Assistant settings");
     assert(await haMode.isVisible(), "Reconnecting restores Screensaver mode");
     assert(await scheduleHaMode.isVisible(), "Reconnecting restores Night Schedule mode");
@@ -6386,16 +6203,9 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     assert(await page.locator("#sp-set-schedule-presence").isVisible(), "Reconnecting restores schedule sensor controls");
     assert.deepStrictEqual(posts, [], "Disconnecting and reconnecting must not write settings");
     await page.getByRole("tab", { name: "Layout" }).click();
-    await temperatureControl.click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "visible" });
+    assert.strictEqual(await temperatureControl.count(), 0, "Connected HA does not add a temperature editor");
     connectorStatus.home_assistant.connected = false;
     connectorStatus.home_assistant.configured = false;
-    await temperatureControl.waitFor({ state: "detached" });
-    await page.locator("#sp-clockbar-temperature-entity").waitFor({ state: "hidden" });
-    assert(!(await page.locator(".sp-selection-bar").textContent()).includes("Temperature selected"),
-      "Disconnecting clears the unavailable temperature selection");
-    assert.deepStrictEqual(posts, [], "Hiding the temperature editor must not change saved settings");
     await page.getByRole("tab", { name: "Screen" }).click();
     await coverArtCard.waitFor({ state: "hidden" });
     assert(!(await haSettingsCard.isVisible()), "Unconfigured HA hides its settings");
