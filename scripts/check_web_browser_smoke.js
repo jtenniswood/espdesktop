@@ -2470,8 +2470,11 @@ async function assertMobileDeviceViewport(browser, testCase) {
           return rect.left >= 0 && rect.right <= innerWidth + 1 &&
             document.documentElement.scrollWidth <= innerWidth + 1;
         }), `${testCase.name}: navigation fits ${width}px`);
-        assert(await page.locator(".sp-brand").evaluate(brand =>
-          brand.querySelector(".sp-brand-title").getBoundingClientRect().right <= brand.getBoundingClientRect().right + 1),
+        assert(await page.locator(".sp-brand").evaluate(brand => {
+          const text = document.createRange();
+          text.selectNodeContents(brand);
+          return text.getBoundingClientRect().right <= brand.getBoundingClientRect().right + 1;
+        }),
           `${testCase.name}: EspDesktop title fits beside navigation at ${width}px`);
       }
     }
