@@ -5901,7 +5901,9 @@ async function assertNativeProfileJourney(browser, testCase) {
       (await card.textContent()).includes("Kitchen"),
       `${testCase.name}: card preview renders before editing`,
     );
-    await card.click();
+    if (!(await card.evaluate(node => node.classList.contains("sp-selected")))) {
+      await card.locator(".sp-btn-icon").click();
+    }
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
     if (!(await page.locator("#sp-inp-label").isVisible())) {

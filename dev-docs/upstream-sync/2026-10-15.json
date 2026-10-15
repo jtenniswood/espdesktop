@@ -1377,7 +1377,8 @@
         "tests/firmware/stubs/esphome/core/helpers.h"
       ],
       "disposition": "Ported",
-      "evidence": "Port GIF decode/playback, cancellation and reload tests while retaining destination-owned artwork transfer and memory limits."
+      "evidence": "Port GIF decode/playback, cancellation and reload tests while retaining destination-owned artwork transfer and memory limits.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1401,7 +1402,8 @@
         "tests/web/panel_identity.test.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1423,7 +1425,8 @@
         "src/webserver/components/color_swatches.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1444,7 +1447,8 @@
         "package.json"
       ],
       "disposition": "Ported",
-      "evidence": "Pin the installer to Material Web 2.4.1 and remove the destination 2.5 stylesheet adapters; rebuild docs against the resolved dependency."
+      "evidence": "Pin the installer to Material Web 2.4.1 and remove the destination 2.5 stylesheet adapters; rebuild docs against the resolved dependency.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1503,7 +1507,8 @@
         "src/webserver/application/settings_system_section.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1529,7 +1534,8 @@
         "product/v2/devices/guition-esp32-p4-jc4880p443.json"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1553,7 +1559,8 @@
         "tests/firmware/compact_landscape_controls_test.py"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1588,7 +1595,8 @@
         "tests/firmware/compact_landscape_controls_test.py"
       ],
       "disposition": "Ported",
-      "evidence": "Port landscape controls and clock-font dependency into both firmware workflows; preserve destination CI/release setup."
+      "evidence": "Port landscape controls and clock-font dependency into both firmware workflows; preserve destination CI/release setup.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1606,7 +1614,8 @@
         "scripts/check_web_browser_smoke.js"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1629,7 +1638,8 @@
         "tests/firmware/gif_runtime_test.py"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1656,7 +1666,8 @@
         "src/webserver/generated/icons.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1683,7 +1694,8 @@
         "src/webserver/state/preview_theme.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1706,7 +1718,8 @@
         "tests/firmware/panel_identity_stubs/esphome/core/version.h"
       ],
       "disposition": "Ported",
-      "evidence": "Port the reviewed ESPHome identity version guard and container-local nightly size reporting; retain destination identity storage and cleanup."
+      "evidence": "Port the reviewed ESPHome identity version guard and container-local nightly size reporting; retain destination identity storage and cleanup.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1730,7 +1743,8 @@
         "src/webserver/cards/image.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1752,7 +1766,8 @@
         "src/webserver/application/styles.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1778,7 +1793,8 @@
         "src/webserver/components/color_swatches.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1889,7 +1905,8 @@
         "tests/web/unit/screensaver_pin.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Port shared PIN and Screensaver card; retain list-form boot handlers and Companion screensaver observer, pairing cards and lock-aware sleep."
+      "evidence": "Port shared PIN and Screensaver card; retain list-form boot handlers and Companion screensaver observer, pairing cards and lock-aware sleep.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1912,7 +1929,8 @@
         "src/webserver/components/color_swatches.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1951,7 +1969,8 @@
         "tests/web/unit/card_colour_options.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Port Back-button colours while retaining Companion subpage options and clipboard state."
+      "evidence": "Port Back-button colours while retaining Companion subpage options and clipboard state.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -1990,7 +2009,8 @@
         "tests/web/unit/slider_fill_colours.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2039,7 +2059,8 @@
         "tests/firmware/weather_forecast_queue_test.py"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2082,7 +2103,8 @@
         "tests/web/unit/slider_fill_colours.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2167,7 +2189,8 @@
         "tests/web/settings_feature.test.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Port continuous card corners across profiles, keeping Mac icons and dynamic card content clipping."
+      "evidence": "Port continuous card corners across profiles, keeping Mac icons and dynamic card content clipping.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2211,7 +2234,8 @@
         "tests/web/unit/slider_fill_colours.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2235,7 +2259,8 @@
         "src/webserver/application/button_settings.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2283,7 +2308,8 @@
         "src/webserver/application/styles.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Add the System page while retaining Connectors, App Icon Colours and live HA visibility."
+      "evidence": "Add the System page while retaining Connectors, App Icon Colours and live HA visibility.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2306,7 +2332,8 @@
         "src/webserver/application/preview_clipboard.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2336,7 +2363,8 @@
         "src/webserver/application/styles.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2362,7 +2390,8 @@
         "tests/web/unit/application_contracts.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2489,7 +2518,8 @@
         "tests/web/unit/weather_daily_layout.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Port forecast layouts, queue and modal while preserving Companion remote modal dispatch and current device catalog."
+      "evidence": "Port forecast layouts, queue and modal while preserving Companion remote modal dispatch and current device catalog.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2540,7 +2570,8 @@
         "src/webserver/application/settings_page.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Use Layout, Screen, System and Connectors; keep Mac controls and focused destination docs."
+      "evidence": "Use Layout, Screen, System and Connectors; keep Mac controls and focused destination docs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2574,7 +2605,8 @@
         "tests/web/settings_feature.test.ts"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2598,7 +2630,8 @@
         "tests/firmware/weather_daily_ui_test.cpp"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2637,7 +2670,8 @@
         "tests/web/unit/slider_fill_colours.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Port inline renaming while retaining Companion app icon rendering and configuration ownership."
+      "evidence": "Port inline renaming while retaining Companion app icon rendering and configuration ownership.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
       "author": {
@@ -2672,13 +2706,14 @@
         "product/v2/devices/guition-esp32-p4-jc4880p443.json"
       ],
       "disposition": "Ported",
-      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs."
+      "evidence": "Apply the landed first-parent change through a three-way merge, retaining destination-specific behaviour and regenerating destination-owned outputs.",
+      "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     }
   ],
   "validation": {
     "status": "in progress",
     "physicalDeviceTesting": "Not performed. No flashing, merging or issue closure is authorized by this sync.",
-    "firmware": "Full matrix restarting after the settings grid compile fix; no successful hardware build claimed yet.",
+    "firmware": "Full nine-device factory matrix running at 8cbc6d4d26e3dfd321735bb880628010aac1d843 (run 38763853471); firmware inputs unchanged by subsequent docs/test commits.",
     "bundleBytes": {
       "minified": 2760835,
       "gzip": 1091806
@@ -2707,6 +2742,28 @@
         "status": "failed",
         "reason": "network_status.h referred to configured_rows after destination grid adaptation. Fixed by assigning clamped metrics.rows directly; full matrix must rerun."
       }
-    ]
-  }
+    ],
+    "remoteCi": {
+      "status": "passed",
+      "revision": "2a24da9a8e191a4069d1bdba6c83ad842f051d44",
+      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38764891134"
+    },
+    "macAppBuild": {
+      "status": "passed",
+      "revision": "2a24da9a8e191a4069d1bdba6c83ad842f051d44",
+      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38764891114"
+    },
+    "inlineNamesBrowser": "Passed all nine generated display layouts using the destination generation-safe configuration endpoint.",
+    "resizeBrowser": "Passed Chromium and WebKit: native move/resize, stable grid, commit, Escape, pointer cancellation, configuration lock and drag exclusion.",
+    "colourBrowser": "Passed active colour controls and slider contrast.",
+    "cornersBrowser": "All nine continuous-corner/outline layout checks passed before the broader suite reached its unrelated clock-bar assertion.",
+    "nativeJourneys": "First 7-inch P4 native/Companion/backup/fallback journey passed; nine-layout run in progress.",
+    "broaderBrowserLimitation": {
+      "status": "pre-existing failure",
+      "baseline": "68bd30be86a64da409b8dc3bf374f6e0dbd2da02",
+      "assertion": "clock bar typography is measurable",
+      "reason": "The old full-browser assertion expects .sp-temp, but current EspDesktop intentionally renders a home-only left clock and network indicator. Reproduced using unchanged origin/main in a separate snapshot. No assertion was weakened."
+    }
+  },
+  "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
 }
