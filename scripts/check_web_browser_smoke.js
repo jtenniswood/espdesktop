@@ -2264,7 +2264,7 @@ async function assertMobileTabLayout(page, label, restoreViewport) {
     mobile.documentScrollWidth <= mobile.documentClientWidth + 1,
     `${label}: mobile screen tab has horizontal overflow`,
   );
-  await page.locator('.sp-main [data-slot="1"]').click();
+  await page.locator('.sp-main [data-slot="1"] .sp-btn-icon').click();
   await page.waitForSelector(".sp-selection-bar.sp-visible");
   mobile = await page.evaluate(() => {
     var header = document.querySelector(".sp-header");
