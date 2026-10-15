@@ -20,7 +20,7 @@
       },
       "mergedAt": "2026-10-03T15:15:28Z",
       "number": 2128,
-      "title": "Set explicit 480×480 touch calibration for the S3 panel",
+      "title": "Set explicit 480\u00d7480 touch calibration for the S3 panel",
       "url": "https://github.com/jtenniswood/espcontrol/pull/2128",
       "mergeSha": "b1ff696c5ff262a54a14124db8be8db185b694cc",
       "changedFiles": [
@@ -1614,7 +1614,7 @@
         "scripts/check_web_browser_smoke.js"
       ],
       "disposition": "Already present",
-      "evidence": "Destination main already selects Card Settings by its exact heading in assertGrouped (scripts/check_web_browser_smoke.js:2663 at 68bd30be8). The upstream all-disclosure count assertions are absent; preserve the destination’s restricted card-picker audit."
+      "evidence": "Destination main already selects Card Settings by its exact heading in assertGrouped (scripts/check_web_browser_smoke.js:2663 at 68bd30be8). The upstream all-disclosure count assertions are absent; preserve the destination\u2019s restricted card-picker audit."
     },
     {
       "author": {
@@ -1904,7 +1904,7 @@
         "tests/web/unit/screensaver_pin.test.js"
       ],
       "disposition": "Ported",
-      "evidence": "Port shared PIN and Screensaver card; retain list-form boot handlers and Companion screensaver observer, pairing cards and lock-aware sleep. Preserve the alarm keypad’s fixed 1–9/0 order explicitly; shared PIN randomization is limited to Screen Lock/screensaver as intended.",
+      "evidence": "Port shared PIN and Screensaver card; retain list-form boot handlers and Companion screensaver observer, pairing cards and lock-aware sleep. Preserve the alarm keypad\u2019s fixed 1\u20139/0 order explicitly; shared PIN randomization is limited to Screen Lock/screensaver as intended.",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
     },
     {
@@ -2712,7 +2712,7 @@
   "validation": {
     "status": "in progress",
     "physicalDeviceTesting": "Not performed. No flashing, merging or issue closure is authorized by this sync.",
-    "firmware": "Final-revision nine-device factory/recovery matrix must restart after the alarm-order review fix. No earlier firmware result is counted for the new revision.",
+    "firmware": "Nine-device factory/recovery matrix running at firmware revision 992a4b284 in run 38769574209. Workflow comment and reporting regression tests do not change firmware inputs.",
     "bundleBytes": {
       "minified": 2760835,
       "gzip": 1091806
@@ -2760,13 +2760,13 @@
     ],
     "remoteCi": {
       "status": "passed",
-      "revision": "2a24da9a8e191a4069d1bdba6c83ad842f051d44",
-      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38764891134"
+      "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769781587"
     },
     "macAppBuild": {
       "status": "passed",
-      "revision": "2a24da9a8e191a4069d1bdba6c83ad842f051d44",
-      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38764891114"
+      "revision": "992a4b284a0e332b7321460cae6fb824f2a91025",
+      "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38769541870"
     },
     "inlineNamesBrowser": "Passed all nine generated display layouts using the destination generation-safe configuration endpoint.",
     "resizeBrowser": "Passed Chromium and WebKit: native move/resize, stable grid, commit, Escape, pointer cancellation, configuration lock and drag exclusion.",
@@ -2787,9 +2787,9 @@
       "result": "The identical icon visibility timeout was reproduced on unchanged origin/main in a separate snapshot. The full broad suite is not reported as passed."
     },
     "remainingWork": [
-      "Complete and inspect the nine-device factory/recovery matrix (run 38763853471).",
+      "Complete and inspect the nine-device factory/recovery matrix (run 38769574209).",
       "Check PR feedback and current-head CI, address introduced failures, and update the evidence ledger.",
-      "Physical device confirmation remains the user’s step before merge."
+      "Physical device confirmation remains the user\u2019s step before merge."
     ],
     "reviewFixes": [
       {
@@ -2797,7 +2797,14 @@
         "priority": "P2",
         "change": "Explicitly request fixed digit order for alarm PIN entry; Screen Lock/screensaver retain their own randomization preference.",
         "regression": "Production alarm caller and the shared keypad signature/defaults are exercised unchanged. The regression failed before the fix and passes afterward; full 51-task CI and 130 host tests pass.",
-        "threadStatus": "Fix tested; awaiting push and resolution."
+        "threadStatus": "Fixed, pushed and resolved."
+      },
+      {
+        "comment": "https://github.com/jtenniswood/espdesktop/pull/200#discussion_r4285684502",
+        "priority": "P1",
+        "change": "Verified that the official entrypoint runs as a child and returns to the reporting shell; retained its required cache environment setup and documented the process boundary.",
+        "regression": "The actual nightly container shell and real size reporter run against an exec-style stub compiler. Both success and failure write a size summary; compiler failure propagates. All 11 size checks and firmware release helper checks pass.",
+        "threadStatus": "Evidence tested; awaiting push and resolution."
       }
     ],
     "priorFirmwareBuilds": [

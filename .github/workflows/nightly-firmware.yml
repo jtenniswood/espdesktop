@@ -192,6 +192,8 @@ jobs:
               -v "${build_cache}:/config/${build_input_dir}/.esphome" \
               --entrypoint /bin/sh \
               "${ESPHOME_IMAGE}" -c '
+                # Execute the cache-setting entrypoint as a child process. Its
+                # final exec replaces that child; this shell still reports size.
                 /entrypoint.sh compile "$1"
                 compile_status=$?
                 python3 /config/scripts/report_firmware_size.py \
