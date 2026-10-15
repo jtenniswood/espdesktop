@@ -2147,6 +2147,13 @@ async function assertVoiceClockBarPreview(page, label) {
 }
 
 async function assertClockBarTypographyAndIconLayout(page, label) {
+  assert.deepStrictEqual(
+    await page.locator("[data-clockbar-item]").evaluateAll(items => items.map(item => [
+      item.getAttribute("data-clockbar-item"), item.getAttribute("data-clockbar-section"),
+    ])),
+    [["time", "left"], ["network", "right"]],
+    `${label}: home clock bar contains the left clock and right connectivity indicator`,
+  );
   const metrics = await page.evaluate(() => {
     const cardLabel = document.querySelector(".sp-main .sp-btn-label");
     const clock = document.querySelector(".sp-clock");
@@ -5992,7 +5999,10 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     if (await cardSettings.locator(".sp-disclosure-button").first().getAttribute("aria-expanded") !== "true") {
       await cardSettings.locator(".sp-disclosure-button").first().click();
     }
-    await page.locator(".sp-settings-modal .sp-icon-picker-preview.mdi-apple-keyboard-command").first().waitFor({ state: "visible" });
+    assert.strictEqual(await cardSettings.locator(".sp-icon-picker-preview").count(), 0,
+      `${testCase.name}: Mac app cards use app artwork instead of an icon picker`);
+    assert(await cardSettings.getByRole("button", { name: "Mac app icon", exact: true }).isVisible(),
+      `${testCase.name}: Mac app icon size control is visible`);
 
     const panels = page.locator(".sp-settings-modal .sp-panel > .sp-disclosure");
     const panelLabels = await panels.locator(".sp-disclosure-button > span:first-child").allTextContents();
