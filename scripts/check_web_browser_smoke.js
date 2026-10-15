@@ -1332,7 +1332,7 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   assert.strictEqual(settingsPlacement["Clock Bar"]?.section, "Appearance",
     `${label}: clock bar settings should be grouped with appearance controls`);
   assert.deepStrictEqual(await page.locator(".sp-nav [role='tab']").allTextContents(),
-    ["Layout", "Screen", "System"], `${label}: System follows Screen in primary navigation`);
+    ["Layout", "Screen", "System", "Connectors"], `${label}: primary navigation follows the current tab order`);
   await page.getByRole("tab", { name: "System", exact: true }).click();
   await page.waitForSelector("#sp-device.sp-page.active");
   assert(!(await page.locator("#sp-settings").isVisible()), `${label}: System hides Screen`);
