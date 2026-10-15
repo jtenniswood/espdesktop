@@ -5768,7 +5768,9 @@ async function assertNativeProfileJourney(browser, testCase) {
     await page.waitForFunction(
       (count) => window.__eventSources.length > count,
       sourceCount,
-      { timeout: 7000 },
+      // Production retries after five seconds; allow scheduling headroom in
+      // the full nine-profile suite and poll independently of animation frames.
+      { timeout: 15000, polling: 100 },
     );
     await seedNativeDocument(page, nativeState);
     assert(
@@ -7851,6 +7853,7 @@ async function assertS3ForecastEditorLayout(browser) {
     await assertFirmwareRetryFeedback(browser);
     await assertResetControls(browser);
     for (const testCase of ACTIVE_CASES) {
+      console.log(`Checking browser journeys: ${testCase.name}`);
       if (!acceptanceOnly) {
         await runCase(browser, testCase);
         await assertMediaModalSettingsJourney(browser, testCase);
