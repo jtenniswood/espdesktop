@@ -309,7 +309,7 @@
         "product/v2/devices/guition-esp32-s3-4848s040.json"
       ],
       "disposition": "Ported",
-      "evidence": "Earlier destination PR https://github.com/jtenniswood/espdesktop/pull/173 was merged into a parent feature branch after that parent reached main; its merge commit is absent from destination baseline. Restored the reviewed changes here, preserving later reset, captive portal, Companion and layout work. Regenerated packages now activate the retained Home Assistant speaker only on P4-86 (GPIO53); removed the unused S3 external speaker package and restored UART0 logging.",
+      "evidence": "Earlier destination PR https://github.com/jtenniswood/espdesktop/pull/173 was merged into a feature branch after that branch had already been merged into its next parent. Its commit was not propagated before root PR #168 reached main and is absent from the destination baseline. Restored the reviewed changes here, preserving later reset, captive portal, Companion and layout work. Regenerated packages now activate the retained Home Assistant speaker only on P4-86 (GPIO53); removed the unused S3 external speaker package and restored UART0 logging.",
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/173",
       "destinationMergedAt": "2026-10-11T08:36:47Z",
@@ -353,7 +353,7 @@
         "tests/firmware/reset_policy_test.cpp"
       ],
       "disposition": "Ported",
-      "evidence": "Earlier destination PR https://github.com/jtenniswood/espdesktop/pull/174 was merged into a parent feature branch after that parent reached main; its merge commit is absent from destination baseline. Restored the reviewed changes here, preserving later reset, captive portal, Companion and layout work. Removed the native Sendspin component, pipeline, shared-player coordinator and registration; retained P4-86 Home Assistant media/announcements, volume ceiling and amplifier guards.",
+      "evidence": "Earlier destination PR https://github.com/jtenniswood/espdesktop/pull/174 was merged into a feature branch after that branch had already been merged into its next parent. Its commit was not propagated before root PR #168 reached main and is absent from the destination baseline. Restored the reviewed changes here, preserving later reset, captive portal, Companion and layout work. Removed the native Sendspin component, pipeline, shared-player coordinator and registration; retained P4-86 Home Assistant media/announcements, volume ceiling and amplifier guards.",
       "previousAudit": "dev-docs/upstream-sync/2026-10-10.json",
       "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/174",
       "destinationMergedAt": "2026-10-11T08:36:53Z",
@@ -2832,7 +2832,7 @@
       "result": "The identical icon visibility timeout was reproduced on unchanged origin/main in a separate snapshot. The full broad suite is not reported as passed."
     },
     "remainingWork": [
-      "Validate actual pinned ESPHome generated configuration and run fresh final-revision firmware builds.",
+      "Complete fresh final-revision firmware binary builds; all nine actual ESPHome configurations already generate successfully.",
       "Commit/push and run fresh final-revision firmware builds, then inspect final PR checks and review feedback.",
       "User physical device confirmation before merge."
     ],
@@ -2856,7 +2856,7 @@
         "priority": "P2",
         "change": "Remove the obsolete right-click Size instruction from the setup guide; resizing uses the bottom-right drag handle.",
         "regression": "Documentation build and site link/anchor checks pass; the guide now matches the context-menu and resize implementation. No firmware inputs changed.",
-        "threadStatus": "Addressed in documentation; resolution tracked on the PR."
+        "threadStatus": "Fixed, pushed and resolved."
       }
     ],
     "priorFirmwareBuilds": [
@@ -3212,7 +3212,83 @@
         "run": "https://github.com/jtenniswood/espdesktop/actions/runs/38771476897"
       }
     },
-    "speakerRegression": "Generated package policy fails on the earlier published revision because P4-86 does not load the retained speaker. Corrected worktree passes and limits the speaker to P4-86, with no enabled Sendspin component."
+    "speakerRegression": "Generated package policy fails on the earlier published revision because P4-86 does not load the retained speaker. Corrected worktree passes and limits the speaker to P4-86, with no enabled Sendspin component.",
+    "configurationGeneration": {
+      "status": "passed",
+      "revision": "7e059985b83cf724c8dc32fafb69593cb76f5068",
+      "esphomeVersion": "2026.9.1",
+      "devices": 9,
+      "method": "Actual factory compile --only-generate from a normal committed Git snapshot; verify SpeakerSourceMediaPlayer only on P4-86 and no Sendspin in generated C++. Binary builds tracked separately.",
+      "results": [
+        {
+          "device": "guition-esp32-p4-jc1060p470",
+          "localSpeaker": false,
+          "generatedSourceSha256": "1adb13a0e5a78fbbf41067709e7dd312c67b1e5f9c5be25ea29f8f2c6193f306"
+        },
+        {
+          "device": "guition-esp32-p4-jc1060p470-v2",
+          "localSpeaker": false,
+          "generatedSourceSha256": "5b876bac7ac52d0317a32e6e8e5c10c8a8314f398438150aa35193d28b4bb834"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443",
+          "localSpeaker": false,
+          "generatedSourceSha256": "a937a071323947872b89b2979e064ba1c8de502865d01669dd592ae15c990fb6"
+        },
+        {
+          "device": "guition-esp32-p4-jc4880p443-v3",
+          "localSpeaker": false,
+          "generatedSourceSha256": "5675bf66dc05941cb9d6fe743aebad8e3b3b775310e2cc199046b3f62211a297"
+        },
+        {
+          "device": "guition-esp32-p4-jc8012p4a1",
+          "localSpeaker": false,
+          "generatedSourceSha256": "67a6802207fa910a69dfba8a34b97f785e7596723a691a318e7e28fd7da0259d"
+        },
+        {
+          "device": "guition-esp32-p4-jc8012p4a1-v2",
+          "localSpeaker": false,
+          "generatedSourceSha256": "c6a37734c8543f272a7f5fe12c857dfac1cac69fc1c375f02aaaba5a0714d8d7"
+        },
+        {
+          "device": "guition-esp32-p4-jc8012p4a1-v3",
+          "localSpeaker": false,
+          "generatedSourceSha256": "eefc2a4ce96cba4885060c4cdb02cda0fe0acfff26cdee556b7ff73a733d9137"
+        },
+        {
+          "device": "esp32-p4-86",
+          "localSpeaker": true,
+          "generatedSourceSha256": "7decef6f125a260706c874bd20069ddfac0d2e90d2f4ce3a5085c67ec3631c23"
+        },
+        {
+          "device": "guition-esp32-s3-4848s040",
+          "localSpeaker": false,
+          "generatedSourceSha256": "92fed9c475ae7f9f180ae60b978ac2f4672401621e017af46d208af8e53f22ba"
+        }
+      ]
+    },
+    "stackedPortHistory": [
+      {
+        "pr": 172,
+        "base": "remove-local-voice-alarm-audio",
+        "mergedAt": "2026-10-11T08:36:41Z"
+      },
+      {
+        "pr": 173,
+        "base": "add-panel-speaker-playback",
+        "mergedAt": "2026-10-11T08:36:47Z"
+      },
+      {
+        "pr": 174,
+        "base": "limit-local-speaker-to-p4-86",
+        "mergedAt": "2026-10-11T08:36:53Z"
+      },
+      {
+        "pr": 168,
+        "base": "main",
+        "mergedAt": "2026-10-12T06:04:53Z"
+      }
+    ]
   },
   "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/200"
 }
