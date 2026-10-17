@@ -137,7 +137,7 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   const lv_font_t *font = source.fallback_icon
       ? lv_obj_get_style_text_font(source.fallback_icon, LV_PART_MAIN) : nullptr;
   const int small_side = font ? font->line_height : 48;
-  const int gap = std::max(3, small_side / 8);
+  const int gap = std::max(3, small_side / 4);
   const int label_height = source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)
       ? lv_obj_get_height(source.card_label) : 0;
   constexpr int canvas = esphome::companion::APP_ICON_SIDE;

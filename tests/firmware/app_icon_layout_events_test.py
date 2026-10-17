@@ -75,14 +75,14 @@ int main() {
   icon.data = &data;
   companion_track_app_icon_layout(&button, &label, &icon);
   emit(button, LV_EVENT_LAYOUT_CHANGED);
-  assert(icon.height == 75);
+  assert(icon.height == 70);
   // A catalogue refresh wraps the app name. Only the label emits an event.
   label.height = 40;
   emit(label, LV_EVENT_SIZE_CHANGED);
-  assert(icon.height == 55);
+  assert(icon.height == 50);
   label.height = 20;
   emit(label, LV_EVENT_SIZE_CHANGED);
-  assert(icon.height == 75);
+  assert(icon.height == 70);
   label.hidden = true;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(icon.height == 100);
@@ -91,7 +91,7 @@ int main() {
   assert(icon.height == 140);
   label.hidden = false; label.height = 40;
   emit(label, LV_EVENT_SIZE_CHANGED);
-  assert(icon.height == 95);
+  assert(icon.height == 90);
   button.width = 80;
   emit(button, LV_EVENT_LAYOUT_CHANGED);
   assert(icon.width == 80);

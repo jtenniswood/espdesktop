@@ -167,7 +167,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const labelHeight = label ? label.getBoundingClientRect().height : 0;
         const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
         const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-        const side = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 8),
+        const side = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 4),
             artwork.artworkWidthFraction, artwork.artworkHeightFraction);
         icon.style.width = side + "px";
         icon.style.height = side + "px";
