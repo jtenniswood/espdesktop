@@ -162,6 +162,13 @@ inline void companion_app_icon_layout_changed(lv_event_t *event) {
   if (source) companion_layout_card_app_icon(*source, image);
 }
 
+inline void companion_track_app_icon_layout(lv_obj_t *button, lv_obj_t *label, lv_obj_t *image) {
+  lv_obj_add_event_cb(button, companion_app_icon_layout_changed, LV_EVENT_LAYOUT_CHANGED, image);
+  lv_obj_add_event_cb(button, companion_app_icon_layout_changed, LV_EVENT_SIZE_CHANGED, image);
+  // Text updates resize the label without bubbling a size event to its card.
+  if (label) lv_obj_add_event_cb(label, companion_app_icon_layout_changed, LV_EVENT_SIZE_CHANGED, image);
+}
+
 inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
   if (image && lv_obj_get_screen(image) != lv_scr_act()) {
     lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
@@ -247,8 +254,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
     lv_obj_set_style_pad_all(slot.app_icon_img, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(slot.app_icon_img, 0, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(slot.app_icon_img, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_add_event_cb(slot.btn, companion_app_icon_layout_changed, LV_EVENT_LAYOUT_CHANGED, slot.app_icon_img);
-    lv_obj_add_event_cb(slot.btn, companion_app_icon_layout_changed, LV_EVENT_SIZE_CHANGED, slot.app_icon_img);
+    companion_track_app_icon_layout(slot.btn, slot.text_lbl, slot.app_icon_img);
   }
   auto *source = static_cast<CompanionAppIconImageData *>(lv_obj_get_user_data(slot.app_icon_img));
   if (!source) {

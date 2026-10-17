@@ -2792,6 +2792,8 @@ async function assertAutomaticAppIcons(browser, testCase) {
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;card_off_color=123ABC";
     fixture.document.subpages[3] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto,,,,app_hide_label";
+    fixture.document.buttons[2] = "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts,app_hide_label";
+    fixture.document.subpages[2] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
@@ -2818,6 +2820,23 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await seedNativeDocument(page, fixture);
       const image = card(1).locator(".sp-companion-app-icon");
       await image.waitFor();
+      const badge = card(2).locator(".sp-subpage-badge");
+      await badge.waitFor();
+      await card(2).locator(".sp-companion-app-icon").waitFor();
+      const badgeBounds = await badge.boundingBox();
+      const resizeBounds = await card(2).locator(".sp-resize-handle").boundingBox();
+      const cardBounds = await card(2).boundingBox();
+      assert(badgeBounds.x > cardBounds.x + cardBounds.width / 2, "hidden-label chevron stays on the right");
+      assert(resizeBounds.x - badgeBounds.x - badgeBounds.width >= 8, "chevron remains clear of the resize control");
+      assert(await badge.evaluate(element => {
+        const bounds = element.getBoundingClientRect();
+        const hit = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+        return hit === element || element.contains(hit);
+      }), "app artwork cannot cover or intercept clicks on the subpage chevron");
+      await badge.click();
+      await page.locator(".sp-back-btn").waitFor();
+      await page.locator(".sp-back-btn .sp-back-hit").click();
+      await card(1).waitFor();
       await card(1).click({ button: "right" });
       assert.strictEqual(await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).count(), 0,
         "automatic icon sizing removes the right-click size control");

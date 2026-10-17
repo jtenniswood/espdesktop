@@ -129,7 +129,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-wifi-qr-card.sp-btn-max-tall .sp-wifi-qr-preview,.sp-wifi-qr-card.sp-btn-portrait-large .sp-wifi-qr-preview{width:97%;height:97%}" +
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:var(--card-text-color,var(--preview-text-primary));z-index:1}" +
-        ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:0}" +
+        ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:0;z-index:0;pointer-events:none}" +
         ".sp-btn.sp-companion-app-icon-fit-card:active::after{content:'';position:absolute;inset:0;border:3px solid var(--card-active-color);border-radius:inherit;z-index:2;pointer-events:none}" +
         ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;--card-text-color:var(--sp-companion-app-icon-active-text)!important;filter:none}" +
         ".sp-btn>.sp-btn-label,.sp-btn>.sp-btn-label-row{margin-top:auto}" +
