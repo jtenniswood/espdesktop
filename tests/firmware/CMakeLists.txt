@@ -101,11 +101,11 @@ target_compile_options(companion_now_playing_protocol_test PRIVATE -Wall -Wextra
 target_include_directories(companion_now_playing_protocol_test PRIVATE ../../components/companion)
 add_test(NAME companion_now_playing_protocol_test COMMAND companion_now_playing_protocol_test)
 
-add_executable(app_icon_accent_color_test app_icon_accent_color_test.cpp)
-target_compile_features(app_icon_accent_color_test PRIVATE cxx_std_17)
-target_compile_options(app_icon_accent_color_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(app_icon_accent_color_test PRIVATE ../../components/espdesktop)
-add_test(NAME app_icon_accent_color_test COMMAND app_icon_accent_color_test)
+add_executable(app_icon_custom_color_test app_icon_custom_color_test.cpp)
+target_compile_features(app_icon_custom_color_test PRIVATE cxx_std_17)
+target_compile_options(app_icon_custom_color_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(app_icon_custom_color_test PRIVATE ../../components/espdesktop)
+add_test(NAME app_icon_custom_color_test COMMAND app_icon_custom_color_test)
 
 add_executable(app_icon_layout_test app_icon_layout_test.cpp)
 target_compile_features(app_icon_layout_test PRIVATE cxx_std_17)

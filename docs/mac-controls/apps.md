@@ -15,6 +15,8 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
+App cards use the normal card theme by default. Use **Choose colour** in the card settings to set a background, or **Default colour** to return to the theme. Backgrounds are not generated from app icons.
+
 Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac.
 
 ## Open a Website

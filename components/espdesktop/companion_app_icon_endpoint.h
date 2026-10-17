@@ -56,13 +56,6 @@ class CompanionAppIconPreviewHandler final
         palette = espdesktop::cover_art::make_app_icon_custom_palette(
             rgb, COLOR_CORRECTION_RED_PERCENT, COLOR_CORRECTION_GREEN_PERCENT,
             COLOR_CORRECTION_BLUE_PERCENT);
-      } else {
-        const auto accent = espdesktop::cover_art::extract_accent_color_rgb565a8(
-            reinterpret_cast<const uint8_t *>(pixels.data()),
-            esphome::companion::APP_ICON_SIDE, esphome::companion::APP_ICON_SIDE);
-        palette = espdesktop::cover_art::make_app_icon_accent_palette(
-            accent, COLOR_CORRECTION_RED_PERCENT,
-            COLOR_CORRECTION_GREEN_PERCENT, COLOR_CORRECTION_BLUE_PERCENT);
       }
     }
     char default_color[8]{};
