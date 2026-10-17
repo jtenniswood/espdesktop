@@ -687,14 +687,25 @@ function composeApplicationContext(): ApplicationContext {
     emptyButtonConfig: () => interactions.emptyButtonConfig(),
   });
   contextMenu = createPreviewContextMenuFeature({
-    setPageGridSize: (page, value) => {
-      if (page) {
-        state.pageGridSizes[page] = value;
-        configurationCodec.buildSubpageGrid(configurationCodec.getSubpage(page));
+    setPageGridSize: async (page, value) => {
+      const previous = page ? state.pageGridSizes[page] || "3x3" : state.gridSize;
+      const update = (next: string) => {
+        if (page) {
+          state.pageGridSizes[page] = next;
+          configurationCodec.buildSubpageGrid(configurationCodec.getSubpage(page));
+        } else state.gridSize = next;
+        preview.render();
+      };
+      update(value);
+      let saved = false;
+      try {
+        const result = await requestApi.postSelect(entityState.entityName(page ? "page_" + page + "_grid_size" : "grid_size"), value);
+        saved = result != null && result !== false && result.ok !== false;
+      } catch {}
+      if (!saved && (page ? state.pageGridSizes[page] : state.gridSize) === value) {
+        update(previous);
+        shell.showBanner("Could not save the page grid. Reload and try again.", "error");
       }
-      else state.gridSize = value;
-      preview.render();
-      requestApi.postSelect(entityState.entityName(page ? "page_" + page + "_grid_size" : "grid_size"), value);
     },
     configPersistence: configurationPersistence,
     document: dom.document,

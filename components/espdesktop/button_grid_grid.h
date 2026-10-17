@@ -2209,11 +2209,14 @@ inline void grid_phase2(
   weather_forecast_cancel_pending_requests(false);
   reset_climate_control_refs();
   clear_internal_relay_watchers();
-  grid_release_main_runtime_allocations(slots, NS);
+  // A smaller visible page still owns the configured hidden slots. Release
+  // their old data drivers too, while retaining all saved card definitions.
+  const int runtime_slots = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
+  grid_release_main_runtime_allocations(slots, runtime_slots);
   // Phase 1 has just registered each Companion card against its persistent
   // LVGL labels. Keep those bindings so live metric snapshots can refresh the
   // value and unit during Phase 2 and afterwards.
-  grid_clear_navigation_targets(slots, NS);
+  grid_clear_navigation_targets(slots, runtime_slots);
   navigation_clear_home_targets();
   // Image-card contexts may still point at widgets inside subpage screens.
   espdesktop::cards::image_driver_reset_pool(cfg);

@@ -38,7 +38,11 @@
       "screen_rotation": "90",
       "home_assistant_artwork_protocol": "https",
       "home_assistant_artwork_port": 8123,
-      "firmware_update_frequency": "Weekly"
+      "firmware_update_frequency": "Weekly",
+      "page_grid_sizes": {
+        "3": "4x4",
+        "7": "invalid"
+      }
     },
     "panelNormalized": {
       "indoorTempEnable": false,
@@ -105,7 +109,25 @@
       "coverArtPlaybackControl": true,
       "coverArtHomeAssistantHost": "",
       "screensaverCameraDimming": 0,
-      "gridSize": "3x3"
+      "gridSize": "3x3",
+      "pageGridSizes": {
+        "1": "3x3",
+        "2": "3x3",
+        "3": "4x4",
+        "4": "3x3",
+        "5": "3x3",
+        "6": "3x3",
+        "7": "3x3",
+        "8": "3x3",
+        "9": "3x3",
+        "10": "3x3",
+        "11": "3x3",
+        "12": "3x3",
+        "13": "3x3",
+        "14": "3x3",
+        "15": "3x3",
+        "16": "3x3"
+      }
     },
     "screenInput": {
       "brightness_day": 80,

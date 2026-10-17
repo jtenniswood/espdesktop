@@ -7236,6 +7236,11 @@ async function assertGridSize(browser, testCase) {
     await choose("4x4", -2);
     assert((await columns()).includes("repeat(4,"));
     await assertIcons();
+    await page.locator('.sp-main .sp-back-hit').click();
+    assert((await columns()).includes("repeat(4,"));
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    assert((await columns()).includes("repeat(4,"), "reopened subpage retains its own setting");
+    await assertIcons();
     await choose("3x3", -2);
     await page.locator('.sp-main .sp-back-hit').click();
     assert((await columns()).includes("repeat(4,"), "subpage changes leave home unchanged");
