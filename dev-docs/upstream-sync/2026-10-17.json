@@ -2594,5 +2594,283 @@
         "tests/firmware/p4_pipeline_runtime_test.py"
       ]
     }
-  ]
+  ],
+  "validation": {
+    "revision": "d432aae96ecf95ae37ba8afe5db337040d391a03",
+    "ci": {
+      "status": "passed",
+      "taskCount": 51,
+      "tasks": [
+        {
+          "id": "wifi-setup",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-tests",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "web-unit",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "generated",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "companion-contract",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "device-manifest",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "device-manifest-output",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "product-schema",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "product-model-v2",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "product-snapshot",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "local-artifacts",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "local-esphome",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "dev-docs",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "ci-tooling",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "pr-process",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "pr-testing-guidance",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "config",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "backup-contract",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "model-contract",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "state-contract",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "device-api",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "preview-features",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "memory-monitor",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "camera-test-endpoint",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "cover-art-contract",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "web-smoke",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "web-asset-manifest",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "types",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "saved-config-parity",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "saved-config-shadow",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "saved-config-production",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "device-slots",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-parser",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-modals",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "backlight-schedule",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "photo-metadata",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-modal-layouts",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-display-tokens",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-ha-bindings",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-card-runtime",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "firmware-release",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "device-matrix",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "device-profiles",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "release-confidence",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "release-changelog",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "card-contract-outputs",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "card-runtime-coverage",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "icon-groups",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "status-icon-glyphs",
+          "status": "cached",
+          "exit_code": 0
+        },
+        {
+          "id": "timezones",
+          "status": "passed",
+          "exit_code": 0
+        },
+        {
+          "id": "public-firmware-script",
+          "status": "passed",
+          "exit_code": 0
+        }
+      ],
+      "firmwareHostTests": 134
+    },
+    "browser": {
+      "chromiumQuickColours": "Passed all 9 layouts, native/legacy saves, capacity and native conflict/partial save/subpage rollback/durable-202 regressions.",
+      "chromiumCameraDimming": "Passed all 9 layouts, including supported/unsupported firmware and backup/restore.",
+      "webkitQuickColours": "Passed S3 native/legacy journeys and all new failure/durable-save regressions."
+    },
+    "docs": "Passed production build, 17 canonical pages, internal links and anchors.",
+    "firmware": {
+      "status": "running/queued",
+      "esphome": "2026.9.1",
+      "fullMatrixRun": "https://github.com/jtenniswood/espdesktop/actions/runs/39028479924",
+      "prRepresentativeRun": "https://github.com/jtenniswood/espdesktop/actions/runs/39028483411",
+      "physicalTesting": "Not performed."
+    }
+  }
 }
