@@ -343,11 +343,23 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
       static_cast<lv_style_selector_t>(LV_PART_MAIN) |
           static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
   lv_obj_remove_local_style_prop(
+      slot.btn, LV_STYLE_TEXT_COLOR,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+  lv_obj_remove_local_style_prop(
       slot.btn, LV_STYLE_BG_COLOR,
       static_cast<lv_style_selector_t>(LV_PART_MAIN) |
           static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
   lv_obj_remove_local_style_prop(
+      slot.btn, LV_STYLE_TEXT_COLOR,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
+  lv_obj_remove_local_style_prop(
       slot.btn, LV_STYLE_BG_COLOR,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+  lv_obj_remove_local_style_prop(
+      slot.btn, LV_STYLE_TEXT_COLOR,
       static_cast<lv_style_selector_t>(LV_PART_MAIN) |
           static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
   source->palette_applied = false;
