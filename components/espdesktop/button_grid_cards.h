@@ -50,9 +50,7 @@ struct CompanionAppIconImageData {
   bool image_loaded = false;
   bool card_palette_ready = false;
   bool palette_applied = false;
-  bool fill_card = false;
-  bool cover_card = false;
-  bool medium_icon = false;
+  bool layout_updating = false;
 
   void release_pixels() {
     if (!pixels) return;
@@ -75,10 +73,10 @@ inline void companion_apply_app_icon_card_palette(
   // Default-colour cards are owned by the live theme. Reconnects and icon
   // refreshes must not restore fallback colours captured before a theme change.
   if (!button || !source.card_palette_ready) return;
-  if (source.cover_card) {
+  if (source.app_icon_mode) {
     const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
         static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    lv_obj_set_style_border_color(button, lv_color_hex(source.fallback_active_rgb), checked);
+    lv_obj_set_style_outline_color(button, lv_color_hex(source.fallback_active_rgb), checked);
   }
   if (!source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
@@ -129,6 +127,40 @@ inline void companion_update_app_icon_card_palette(
 }
 
 inline void companion_refresh_app_icon_connection_state(bool online);
+
+inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
+  if (!image || !source.app_icon_mode || !source.image_loaded || !source.pixels || source.layout_updating) return;
+  source.layout_updating = true;
+  lv_obj_t *button = lv_obj_get_parent(image);
+  const int width = lv_obj_get_content_width(button);
+  const int height = lv_obj_get_content_height(button);
+  const lv_font_t *font = source.fallback_icon
+      ? lv_obj_get_style_text_font(source.fallback_icon, LV_PART_MAIN) : nullptr;
+  const int small_side = font ? font->line_height : 48;
+  const int gap = std::max(3, small_side / 8);
+  const int label_height = source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)
+      ? lv_obj_get_height(source.card_label) : 0;
+  constexpr int canvas = esphome::companion::APP_ICON_SIDE;
+  const auto insets = espdesktop::app_icon::artwork_insets(source.pixels + canvas * canvas * 2, canvas);
+  const int side = espdesktop::app_icon::fit_side(width, height, label_height, gap, canvas, insets);
+  lv_obj_set_size(image, side, side);
+  lv_obj_align(image, LV_ALIGN_TOP_LEFT,
+      -(insets.left * side + canvas / 2) / canvas,
+      -(insets.top * side + canvas / 2) / canvas);
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
+#else
+  lv_img_set_zoom(image, static_cast<uint16_t>(std::min<uint32_t>(
+      (static_cast<uint32_t>(side) * 256u + canvas - 1u) / canvas, UINT16_MAX)));
+#endif
+  source.layout_updating = false;
+}
+
+inline void companion_app_icon_layout_changed(lv_event_t *event) {
+  auto *image = static_cast<lv_obj_t *>(lv_event_get_user_data(event));
+  auto *source = static_cast<CompanionAppIconImageData *>(lv_obj_get_user_data(image));
+  if (source) companion_layout_card_app_icon(*source, image);
+}
 
 inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
   if (image && lv_obj_get_screen(image) != lv_scr_act()) {
@@ -186,99 +218,10 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   source.descriptor.data = source.pixels;
   lv_img_set_src(image, &source.descriptor);
 #endif
-  if (source.fill_card) {
-    lv_obj_t *button = lv_obj_get_parent(image);
-    lv_obj_update_layout(button);
-    const auto insets = espdesktop::app_icon::artwork_insets(
-        source.pixels + pixel_count * 2, esphome::companion::APP_ICON_SIDE);
-    const int canvas_side = esphome::companion::APP_ICON_SIDE;
-    const int artwork_width = std::max(1, canvas_side - insets.left - insets.right);
-    const int artwork_height = std::max(1, canvas_side - insets.top - insets.bottom);
-    const int pad_top = source.cover_card ? 0 : lv_obj_get_style_pad_top(button, LV_PART_MAIN);
-    const int available_width = std::max<int>(1, lv_obj_get_width(button) -
-        (source.cover_card ? 0 : lv_obj_get_style_pad_left(button, LV_PART_MAIN) +
-        lv_obj_get_style_pad_right(button, LV_PART_MAIN)));
-    const int available_height = std::max<int>(1, lv_obj_get_height(button) - 2 * pad_top);
-    // Size the visible artwork, not the transparent macOS canvas. Keep it
-    // square, with Large fitting within margins and Fill card covering the card.
-    const int target_side = source.cover_card ? espdesktop::app_icon::cover_side(
-        available_width, available_height, canvas_side, insets)
-        : std::max(1, std::min(available_width * canvas_side / artwork_width,
-                             available_height * canvas_side / artwork_height));
-    const int artwork_left = (insets.left * target_side + canvas_side / 2) / canvas_side;
-    const int artwork_top = (insets.top * target_side + canvas_side / 2) / canvas_side;
-    const int visible_height = (artwork_height * target_side + canvas_side / 2) / canvas_side;
-    lv_obj_set_size(image, target_side, target_side);
-    const int visible_width = (artwork_width * target_side + canvas_side / 2) / canvas_side;
-    const int offset_x = source.cover_card ? (available_width - visible_width) / 2 -
-        lv_obj_get_style_pad_left(button, LV_PART_MAIN) - lv_obj_get_style_border_width(button, LV_PART_MAIN) : 0;
-    const int offset_y = source.cover_card ? -lv_obj_get_style_pad_top(button, LV_PART_MAIN) -
-        lv_obj_get_style_border_width(button, LV_PART_MAIN) : 0;
-    lv_obj_align(image, LV_ALIGN_TOP_LEFT, offset_x - artwork_left,
-                 offset_y + (available_height - visible_height) / 2 - artwork_top);
-#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
-#else
-    const uint16_t zoom = static_cast<uint16_t>(std::min<uint32_t>(
-        (static_cast<uint32_t>(target_side) * 256u + canvas_side - 1u) / canvas_side,
-        UINT16_MAX));
-    lv_img_set_zoom(image, zoom);
-#endif
-  } else {
-    const lv_font_t *icon_font = source.fallback_icon
-        ? lv_obj_get_style_text_font(source.fallback_icon, LV_PART_MAIN) : nullptr;
-    const lv_coord_t small_side = icon_font ? icon_font->line_height : 48;
-    lv_coord_t target_side = small_side;
-    if (source.medium_icon) {
-      lv_obj_t *button = lv_obj_get_parent(image);
-      lv_obj_update_layout(button);
-      const lv_coord_t button_width = lv_obj_get_width(button);
-      const lv_coord_t button_height = lv_obj_get_height(button);
-      const lv_coord_t pad_left = lv_obj_get_style_pad_left(button, LV_PART_MAIN);
-      const lv_coord_t pad_right = lv_obj_get_style_pad_right(button, LV_PART_MAIN);
-      const lv_coord_t pad_top = lv_obj_get_style_pad_top(button, LV_PART_MAIN);
-      const lv_coord_t pad_bottom = lv_obj_get_style_pad_bottom(button, LV_PART_MAIN);
-      const lv_coord_t gap = std::max<lv_coord_t>(3, small_side / 8);
-      lv_coord_t label_height = 0;
-      if (source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)) {
-        const lv_font_t *label_font = lv_obj_get_style_text_font(source.card_label, LV_PART_MAIN);
-        label_height = label_font && label_font->line_height > 0 ? label_font->line_height : 16;
-      }
-      const lv_coord_t max_width = std::max<lv_coord_t>(1, button_width - pad_left - pad_right);
-      const lv_coord_t max_height = std::max<lv_coord_t>(1,
-          button_height - pad_top - pad_bottom - label_height - (label_height > 0 ? gap : 0));
-      target_side = std::max<lv_coord_t>(1,
-          std::min<lv_coord_t>(small_side * 5 / 2, std::min(max_width, max_height)) * 85 / 100);
-      if (source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)) {
-        lv_label_set_long_mode(source.card_label, LV_LABEL_LONG_DOT);
-        lv_obj_set_width(source.card_label, lv_pct(100));
-      }
-    }
-    lv_obj_set_size(image, target_side, target_side);
-    // The card already supplies the same padding as the label. Compensate for
-    // padding inside the cached image so its visible artwork shares that inset.
-    const auto insets = espdesktop::app_icon::artwork_insets(
-        source.pixels + pixel_count * 2, esphome::companion::APP_ICON_SIDE);
-    const lv_coord_t artwork_left =
-        (insets.left * target_side + esphome::companion::APP_ICON_SIDE / 2) /
-        esphome::companion::APP_ICON_SIDE;
-    const lv_coord_t artwork_top =
-        (insets.top * target_side + esphome::companion::APP_ICON_SIDE / 2) /
-        esphome::companion::APP_ICON_SIDE;
-    lv_obj_align(image, LV_ALIGN_TOP_LEFT, -artwork_left, -artwork_top);
-#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
-#else
-    const uint16_t zoom = static_cast<uint16_t>(std::min<uint32_t>(
-        (static_cast<uint32_t>(target_side) * 256u + esphome::companion::APP_ICON_SIDE - 1u) /
-            esphome::companion::APP_ICON_SIDE,
-        UINT16_MAX));
-    lv_img_set_zoom(image, zoom);
-#endif
-  }
+  lv_obj_update_layout(lv_obj_get_parent(image));
+  companion_layout_card_app_icon(source, image);
   lv_obj_clear_flag(image, LV_OBJ_FLAG_HIDDEN);
   if (source.fallback_icon) lv_obj_add_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
-  if (source.fill_card && source.card_label) lv_obj_move_foreground(source.card_label);
   source.accent_palette = source.app_icon_mode && source.companion_online && source.custom_background
       ? espdesktop::cover_art::make_app_icon_custom_palette(
             source.custom_background_rgb, source.color_correction_red_percent,
@@ -288,8 +231,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   return true;
 }
 
-inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
-                                          bool fill_card = false, bool medium_icon = false, bool cover_card = false) {
+inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id) {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -305,6 +247,8 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
     lv_obj_set_style_pad_all(slot.app_icon_img, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(slot.app_icon_img, 0, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(slot.app_icon_img, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_add_event_cb(slot.btn, companion_app_icon_layout_changed, LV_EVENT_LAYOUT_CHANGED, slot.app_icon_img);
+    lv_obj_add_event_cb(slot.btn, companion_app_icon_layout_changed, LV_EVENT_SIZE_CHANGED, slot.app_icon_img);
   }
   auto *source = static_cast<CompanionAppIconImageData *>(lv_obj_get_user_data(slot.app_icon_img));
   if (!source) {
@@ -317,20 +261,12 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->card_label = slot.text_lbl;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
-  source->fill_card = fill_card || cover_card;
-  source->cover_card = cover_card;
-  source->medium_icon = medium_icon && !source->fill_card;
-  if (cover_card) {
-    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    set_grid_card_child_clipping(slot.btn, true);
-    lv_obj_set_style_border_post(slot.btn, true, LV_PART_MAIN);
-    lv_obj_set_style_border_width(slot.btn, 3, LV_PART_MAIN);
-    lv_obj_set_style_border_width(slot.btn, 3, checked);
-    lv_obj_set_style_border_opa(slot.btn, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_color(slot.btn, lv_color_hex(source->fallback_active_rgb), checked);
-    lv_obj_set_style_border_opa(slot.btn, LV_OPA_COVER, checked);
-  }
+  const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+      static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
+  lv_obj_set_style_outline_width(slot.btn, 3, checked);
+  lv_obj_set_style_outline_pad(slot.btn, -3, checked);
+  lv_obj_set_style_outline_color(slot.btn, lv_color_hex(source->fallback_active_rgb), checked);
+  lv_obj_set_style_outline_opa(slot.btn, LV_OPA_COVER, checked);
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
 }
 
@@ -352,18 +288,14 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   if (!slot.app_icon_img) return;
   auto *source = static_cast<CompanionAppIconImageData *>(
       lv_obj_get_user_data(slot.app_icon_img));
-  if (source && source->cover_card) {
+  if (source) {
     const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
         static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    set_grid_card_child_clipping(slot.btn, false);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_CLIP_CORNER, LV_PART_MAIN);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_POST, LV_PART_MAIN);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_WIDTH, LV_PART_MAIN);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_WIDTH, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_OPA, LV_PART_MAIN);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_COLOR, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_OPA, checked);
-    source->cover_card = false;
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, checked);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_PAD, checked);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_COLOR, checked);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_OPA, checked);
+    source->app_icon_mode = false;
   }
   if (!source || !source->palette_applied) return;
   lv_obj_remove_local_style_prop(
@@ -576,13 +508,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   }
-  const bool medium_app_icon = companion_app_launch_card(p) &&
-      companion_app_icon_enabled(p) &&
-      !cfg_option_token_present(p.options, "app_icon_fill") &&
-      !cfg_option_token_present(p.options, "app_icon_cover") &&
-      cfg_option_token_present(p.options, "app_icon_medium");
   if (companion_app_launch_card(p)) {
-    lv_label_set_long_mode(s.text_lbl, medium_app_icon ? LV_LABEL_LONG_DOT : LV_LABEL_LONG_WRAP);
+    lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   const char *icon = (p.icon.empty() || p.icon == "Auto")
@@ -590,10 +517,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_display_text(s.icon_lbl, icon);
   if (companion_app_icon_enabled(p)) {
 #ifdef USE_COMPANION
-    companion_set_card_icon_image(
-        s, p.entity, cfg_option_token_present(p.options, "app_icon_fill"),
-        cfg_option_token_present(p.options, "app_icon_medium"),
-        cfg_option_token_present(p.options, "app_icon_cover"));
+    companion_set_card_icon_image(s, p.entity);
     esphome::companion::request_app_icon(p.entity);
 #endif
   } else if (s.app_icon_img) {

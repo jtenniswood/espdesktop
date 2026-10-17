@@ -1052,13 +1052,10 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
   control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);
 #ifdef USE_COMPANION
-  if (companion_app_launch_card(p) && companion_app_icon_enabled(p) &&
-      !cfg_option_token_present(p.options, "app_icon_fill") &&
-      !cfg_option_token_present(p.options, "app_icon_cover") &&
-      cfg_option_token_present(p.options, "app_icon_medium") && s.text_lbl &&
-      !lv_obj_has_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN)) {
-    lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_DOT);
-    lv_obj_set_width(s.text_lbl, lv_pct(100));
+  if (companion_app_launch_card(p) && companion_app_icon_enabled(p) && s.app_icon_img) {
+    lv_obj_update_layout(s.btn);
+    auto *source = static_cast<CompanionAppIconImageData *>(lv_obj_get_user_data(s.app_icon_img));
+    if (source) companion_layout_card_app_icon(*source, s.app_icon_img);
   }
 #endif
   if (espdesktop::cards::weather_driver_matches(context) &&

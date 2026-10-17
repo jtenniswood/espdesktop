@@ -129,13 +129,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-wifi-qr-card.sp-btn-max-tall .sp-wifi-qr-preview,.sp-wifi-qr-card.sp-btn-portrait-large .sp-wifi-qr-preview{width:97%;height:97%}" +
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:var(--card-text-color,var(--preview-text-primary));z-index:1}" +
-        ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:22%}" +
-        ".sp-btn-icon.sp-companion-app-icon-medium{left:var(--btn-pad);top:var(--btn-pad);" +
-        "width:var(--sp-app-medium-icon-side,var(--btn-icon));height:var(--sp-app-medium-icon-side,var(--btn-icon));object-fit:contain}" +
-        ".sp-btn-icon.sp-companion-app-icon-fill{object-fit:contain;border-radius:0;z-index:0}" +
-        ".sp-btn.sp-companion-app-icon-cover-card:active::after{content:'';position:absolute;inset:0;border:3px solid var(--card-active-color);border-radius:inherit;z-index:2;pointer-events:none}" +
-        ".sp-btn.sp-companion-app-icon-medium-card>.sp-btn-label{max-height:calc(var(--btn-label)*1.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
-        ".sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label,.sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label-row{position:relative;z-index:1}" +
+        ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:0}" +
+        ".sp-btn.sp-companion-app-icon-fit-card:active::after{content:'';position:absolute;inset:0;border:3px solid var(--card-active-color);border-radius:inherit;z-index:2;pointer-events:none}" +
         ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;--card-text-color:var(--sp-companion-app-icon-active-text)!important;filter:none}" +
         ".sp-btn>.sp-btn-label,.sp-btn>.sp-btn-label-row{margin-top:auto}" +
         ".sp-media-group-active{box-shadow:inset 0 0 0 3px var(--accent)}" +
@@ -629,21 +624,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-color-swatch input{position:absolute;inset:-8px;width:calc(100% + 16px);" +
         "height:calc(100% + 16px);cursor:pointer;opacity:0}" +
         ".sp-color-row .sp-input{flex:1}" +
-        ".sp-companion-app-icon-size{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:10px 0}" +
-        ".sp-companion-app-icon-size>.sp-field-label{margin:0}" +
-        ".sp-companion-app-icon-size-control{position:relative;width:100%;max-width:none}" +
-        ".sp-companion-app-icon-size-button{display:flex;align-items:center;justify-content:space-between;gap:10px;" +
-        "width:100%;min-height:46px;padding-right:12px;box-sizing:border-box;text-align:left;cursor:pointer;background-image:none}" +
-        ".sp-companion-app-icon-size-button .mdi{display:inline-flex;align-items:center;justify-content:center;" +
-        "width:18px;height:18px;line-height:1;color:var(--text2);font-size:18px;flex:0 0 18px}" +
-        ".sp-companion-app-icon-size-list{display:none;position:absolute;z-index:60;top:calc(100% + 4px);" +
-        "left:0;right:0;padding:4px;background:var(--surface2);border:1px solid var(--border);" +
-        "border-radius:10px;box-shadow:var(--shadow-3)}" +
-        ".sp-companion-app-icon-size-control.sp-open .sp-companion-app-icon-size-list{display:block}" +
-        ".sp-companion-app-icon-size-option{display:block;width:100%;padding:9px 10px;border:0;border-radius:7px;" +
-        "background:transparent;color:var(--text);font:inherit;font-size:var(--text-md);text-align:left;cursor:pointer}" +
-        ".sp-companion-app-icon-size-option:hover,.sp-companion-app-icon-size-option:focus-visible," +
-        ".sp-companion-app-icon-size-option.sp-active{background:var(--accent-soft);outline:none}" +
+
         COLOR_SWATCH_STYLES +
         ".sp-card-color-editor{display:flex;flex-direction:column;gap:24px}" +
         ".sp-card-color-editor .sp-field{margin-bottom:0}" +

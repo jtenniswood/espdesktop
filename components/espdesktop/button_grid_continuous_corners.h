@@ -84,7 +84,6 @@ inline void release(Mask *mask) {
 struct Binding {
   Mask *mask = nullptr;
   bool updating = false;
-  bool clip_children = false;
 };
 
 inline void update(lv_obj_t *obj, Binding &binding) {
@@ -99,8 +98,6 @@ inline void update(lv_obj_t *obj, Binding &binding) {
   binding.mask = acquire(width, height, radius);
   // Allocation failure leaves a usable card with its native circular radius.
   lv_obj_set_style_bitmap_mask_src(obj, binding.mask ? &binding.mask->image : nullptr, LV_PART_MAIN);
-  if (binding.clip_children)
-    lv_obj_set_style_clip_corner(obj, binding.mask == nullptr, LV_PART_MAIN);
   release(previous);
   binding.updating = false;
 }
@@ -168,18 +165,4 @@ inline void apply_grid_card_corners(lv_obj_t *obj, int radius, bool continuous) 
   // LVGL's radius property has no layout-update flag, so setting it does not
   // emit STYLE_CHANGED. Refresh an existing mask explicitly after the change.
   if (continuous) apply_continuous_card_corners(obj);
-}
-
-// Filled artwork follows the active mask, falling back to native clipping if
-// its geometry or allocation cannot supply one. Keep this in sync on resize.
-inline void set_grid_card_child_clipping(lv_obj_t *obj, bool enabled) {
-  if (!obj) return;
-  bool masked = false;
-#if defined(LVGL_VERSION_MAJOR) && LVGL_VERSION_MAJOR >= 9
-  if (auto *binding = espdesktop::corners::binding_for(obj)) {
-    binding->clip_children = enabled;
-    masked = binding->mask != nullptr;
-  }
-#endif
-  if (enabled) lv_obj_set_style_clip_corner(obj, !masked, LV_PART_MAIN);
 }

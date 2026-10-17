@@ -2786,11 +2786,11 @@ async function assertNewMediaCardDefaults(page, posts, label) {
   );
 }
 
-async function assertContextAppIconSize(browser, testCase) {
+async function assertAutomaticAppIcons(browser, testCase) {
   if (!testCase.companionSupported) return;
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_hide_label,card_off_color=123ABC";
+    fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;card_off_color=123ABC";
     fixture.document.subpages[3] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto,,,,app_hide_label";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
@@ -2811,128 +2811,47 @@ async function assertContextAppIconSize(browser, testCase) {
     await installFakeEventSource(page);
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
-    const menu = page.locator(".sp-ctx-menu");
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
-    const stored = () => native ? fixture.document.buttons[1] : legacyTextState.button_1_config;
-    const waitForSaved = async predicate => {
-      const deadline = Date.now() + 10000;
-      while (!predicate() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
-      assert(predicate(), "icon size persisted");
-    };
-    async function openSize() {
-      await card(1).click({ button: "right" });
-      await menu.getByRole("button", { name: "Icon Size", exact: true }).click();
-      return menu.getByRole("group", { name: "Icon Size", exact: true });
-    }
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.__eventSources?.length > 0);
       await seedNativeDocument(page, fixture);
-      const originalBounds = await card(1).boundingBox();
-      for (const [label, token] of [["Medium", "app_icon_medium"], ["Large", "app_icon_fill"], ["Fill card", "app_icon_cover"], ["Small", ""]]) {
-        const group = await openSize();
-        await group.getByRole("button", { name: label, exact: true }).click();
-        await waitForSaved(() => stored() && (token ? stored().includes(token) :
-          !stored().includes("app_icon_medium") && !stored().includes("app_icon_fill") && !stored().includes("app_icon_cover")));
-        assert(stored().includes("app_hide_label") && stored().includes("card_off_color=123ABC"),
-          "size changes preserve label visibility and custom colours");
-        for (const other of ["app_icon_fill", "app_icon_medium", "app_icon_cover"].filter(value => value !== token))
-          assert(!stored().includes(other), "size options are mutually exclusive");
-        if (token === "app_icon_cover") {
-          const image = card(1).locator(".sp-companion-app-icon-fill");
-          await image.waitFor();
-          for (const [width, height] of [[120, 120], [220, 100], [100, 220]]) {
-            await card(1).evaluate((element, size) => {
-              element.style.width = size[0] + "px";
-              element.style.height = size[1] + "px";
-            }, [width, height]);
-            await page.waitForTimeout(50); // ResizeObserver applies the new card shape.
-            const bounds = await card(1).boundingBox();
-            const artwork = await image.boundingBox();
-            const left = artwork.x + artwork.width / 8;
-            const top = artwork.y + artwork.height / 8;
-            assert(left <= bounds.x + 1 && top <= bounds.y + 1 &&
-              left + artwork.width * 0.75 >= bounds.x + bounds.width - 1 &&
-              top + artwork.height * 0.75 >= bounds.y + bounds.height - 1,
-              "visible artwork covers square, wide and tall cards without inner margins");
-          }
-          await card(1).evaluate(element => { element.style.width = ""; element.style.height = ""; });
-          await card(1).hover();
-          await page.mouse.down();
-          assert.strictEqual(await card(1).evaluate(element => getComputedStyle(element, "::after").borderTopWidth), "3px",
-            "filled card keeps a visible active outline above the icon");
-          await page.mouse.up();
-        }
-        const reopened = await openSize();
-        assert.strictEqual(await reopened.getByRole("button", { name: label, exact: true }).getAttribute("aria-pressed"), "true");
-        assert.strictEqual(await reopened.locator('[aria-pressed="true"]').count(), 1);
-        await page.keyboard.press("Escape");
-      }
-      const resizedBounds = await card(1).boundingBox();
-      assert.deepStrictEqual([resizedBounds.width, resizedBounds.height], [originalBounds.width, originalBounds.height],
-        "icon size leaves the card dimensions unchanged");
-      await card(2).click({ button: "right" });
-      assert.strictEqual(await menu.getByRole("button", { name: "Icon Size", exact: true }).count(), 0,
-        "other card types do not offer Mac app icon sizing");
+      const image = card(1).locator(".sp-companion-app-icon");
+      await image.waitFor();
+      await card(1).click({ button: "right" });
+      assert.strictEqual(await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).count(), 0,
+        "automatic icon sizing removes the right-click size control");
       await page.keyboard.press("Escape");
-      await page.locator(".sp-brand").click();
-      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-      await page.locator(".sp-back-btn").waitFor();
-      const subGroup = await openSize();
-      await subGroup.getByRole("button", { name: "Medium", exact: true }).click();
-      await waitForSaved(() => native ? fixture.document.subpages[3].includes("app_icon_medium") :
-        Object.entries(legacyTextState).some(([key, value]) => key.startsWith("subpage_3_config") && value.includes("app_icon_medium")));
-      await page.locator(".sp-back-btn .sp-back-hit").click();
-      if (native) {
-        for (const isSubpage of [false, true]) {
-          // Reload between conflicts so each scenario starts with confirmed device settings.
-          await page.reload({ waitUntil: "domcontentloaded" });
-          await page.waitForFunction(() => window.__eventSources?.length > 0);
-          await seedNativeDocument(page, fixture);
-          if (isSubpage) {
-            await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-            await page.locator(".sp-back-btn").waitFor();
-          }
-          let release;
-          const pendingResponse = new Promise(resolve => { release = resolve; });
-          let finish;
-          const responseHandled = new Promise(resolve => { finish = resolve; });
-          let requests = 0;
-          const rejectSave = async route => {
-            if (route.request().method() !== "PUT") return route.fallback();
-            requests++;
-            await pendingResponse;
-            try { await route.fulfill({ status: 409, body: "generation conflict" }); } finally { finish(); }
-          };
-          await page.route("**/api/v1/config/**", rejectSave);
-          try {
-            const group = await openSize();
-            await group.getByRole("button", { name: isSubpage ? "Large" : "Medium", exact: true }).click();
-            await waitForSaved(() => requests === 1);
-            const reopened = await openSize();
-            assert.strictEqual(await reopened.locator("button:disabled").count(), 4,
-              "reopening the menu keeps all sizes disabled until the current save finishes");
-            // A dispatched event also checks the handler guard behind the disabled UI.
-            await reopened.getByRole("button", { name: isSubpage ? "Small" : "Large", exact: true }).dispatchEvent("click");
-            // Leave the first request pending long enough for a second handler to attempt a write.
-            await page.waitForTimeout(250);
-            assert.strictEqual(requests, 1, "a second size selection sends no overlapping write");
-            release();
-            await page.getByText("Could not save the icon size. Reload the configuration and try again.", { exact: true }).waitFor();
-            const restored = await openSize();
-            assert.strictEqual(await restored.getByRole("button", { name: isSubpage ? "Medium" : "Small", exact: true }).getAttribute("aria-pressed"), "true",
-              "overlapping failed writes restore the last confirmed size on main cards and subpages");
-            assert.strictEqual(await restored.locator("button:disabled").count(), 0,
-              "size choices are available again after the failed save finishes");
-            await page.keyboard.press("Escape");
-          } finally {
-            release();
-            if (requests) await responseHandled;
-            await page.unroute("**/api/v1/config/**", rejectSave);
-          }
+      const label = card(1).locator(".sp-btn-label");
+      await card(1).evaluate(element => { element.style.width = "180px"; element.style.height = "180px"; });
+      await label.evaluate(element => { element.style.cssText = "font-size:16px;line-height:20px;white-space:pre-line;max-height:40px"; });
+      const sides = [];
+      for (const text of [null, "Safari", "Safari\nBrowser"]) {
+        await label.evaluate((element, text) => {
+          element.style.display = text === null ? "none" : "block";
+          element.textContent = text || "Safari";
+        }, text);
+        await page.waitForTimeout(100);
+        const bounds = await card(1).boundingBox();
+        const artwork = await image.boundingBox();
+        const left = artwork.x + artwork.width / 8;
+        const top = artwork.y + artwork.height / 8;
+        const bottom = top + artwork.height * 0.75;
+        assert(left >= bounds.x && top >= bounds.y && left + artwork.width * 0.75 <= bounds.x + bounds.width + 1,
+          "visible app artwork remains inside the card");
+        if (text !== null) {
+          const labelBounds = await label.boundingBox();
+          assert(bottom < labelBounds.y - 2, "icon leaves a gap above the rendered label");
         }
+        sides.push(artwork.width);
       }
-      assert.deepStrictEqual(errors, [], "icon size menu has no browser errors");
+      assert(sides[0] > sides[1] && sides[1] > sides[2], "no label, one line and two lines receive progressively smaller icons");
+      await card(1).hover();
+      await page.mouse.down();
+      assert.strictEqual(await card(1).evaluate(element => getComputedStyle(element, "::after").borderTopWidth), "3px",
+        "automatic app cards keep their active outline");
+      await page.mouse.up();
+      assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
   }
 }
@@ -6491,8 +6410,8 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     }
     assert.strictEqual(await cardSettings.locator(".sp-icon-picker-preview").count(), 0,
       `${testCase.name}: Mac app cards use app artwork instead of an icon picker`);
-    assert(await cardSettings.getByRole("combobox", { name: "Mac app icon size", exact: true }).isVisible(),
-      `${testCase.name}: Mac app icon size control is visible`);
+    assert.strictEqual(await cardSettings.getByRole("combobox", { name: "Mac app icon size", exact: true }).count(), 0,
+      `${testCase.name}: automatic app icons have no manual size control`);
 
     const panels = page.locator(".sp-settings-modal .sp-panel > .sp-disclosure");
     const panelLabels = await panels.locator(".sp-disclosure-button > span:first-child").allTextContents();
@@ -7069,7 +6988,7 @@ async function runCase(browser, testCase) {
     await assertSpeakerGroupEditorAndPreview(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {
       await assertContextColourPicker(browser, testCase);
-      await assertContextAppIconSize(browser, testCase);
+      await assertAutomaticAppIcons(browser, testCase);
       await assertCardActiveColourControls(page, posts, testCase.name);
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
@@ -8359,8 +8278,8 @@ async function assertCameraScreensaverDimming(browser, testCase) {
       return;
     }
     if (process.env.ESPDESKTOP_CONTEXT_ICON_SIZE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertContextAppIconSize(browser, testCase);
-      console.log("Mac app icon size context menu passed for native and legacy saves, main cards and subpages.");
+      for (const testCase of ACTIVE_CASES) await assertAutomaticAppIcons(browser, testCase);
+      console.log("Automatic app icon sizing passed for native and legacy configurations.");
       return;
     }
     if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
