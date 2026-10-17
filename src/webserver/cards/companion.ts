@@ -1439,16 +1439,6 @@ export function registerCompanionCardTypes(
                     entity: false,
                     icon: false,
                 });
-                const labelToggle = helpers.toggleRow(
-                    "Show label", helpers.idPrefix + "companion-app-label",
-                    !configOptionEnabled(card.options, "app_hide_label"),
-                );
-                panel?.appendChild(labelToggle.row);
-                labelToggle.input.addEventListener("change", function () {
-                    card.options = setConfigOption(card.options, "app_hide_label", !labelToggle.input.checked);
-                    helpers.saveField("options", card.options);
-                    renderPreview();
-                });
                 const iconSizeRow = document.createElement("div");
                 iconSizeRow.className = "sp-companion-app-icon-size";
                 const iconSizeLabel = document.createElement("label");
@@ -1569,6 +1559,16 @@ export function registerCompanionCardTypes(
                 iconSizeRow.appendChild(iconSizeLabel);
                 iconSizeRow.appendChild(iconSizeControl);
                 panel?.appendChild(iconSizeRow);
+                const labelToggle = helpers.toggleRow(
+                    "Show label", helpers.idPrefix + "companion-app-label",
+                    !configOptionEnabled(card.options, "app_hide_label"),
+                );
+                panel?.appendChild(labelToggle.row);
+                labelToggle.input.addEventListener("change", function () {
+                    card.options = setConfigOption(card.options, "app_hide_label", !labelToggle.input.checked);
+                    helpers.saveField("options", card.options);
+                    renderPreview();
+                });
             } else {
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
             }
