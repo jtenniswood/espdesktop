@@ -725,6 +725,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-subpage-badge{font-size:var(--btn-label);line-height:1;color:var(--card-text-color,var(--preview-text-primary));flex-shrink:0;" +
         "cursor:pointer;padding:0 0 0 2px;border-radius:4px}" +
         ".sp-btn:has(>.sp-resize-handle) .sp-subpage-badge{margin-right:max(0px,calc(40px - var(--btn-pad)))}" +
+        ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-end}" +
+        ".sp-btn:has(>.sp-resize-handle) .sp-btn-label-row:has(>.sp-subpage-badge:only-child)>.sp-subpage-badge{margin-right:max(0px,calc(44px - var(--btn-pad)))}" +
         ".sp-hide-subpage-chevrons .sp-subpage-badge{display:none}" +
         "@media(max-width:768px){" +
         ":root{--gap:12px}" +
