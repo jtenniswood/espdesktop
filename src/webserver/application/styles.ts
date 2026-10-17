@@ -682,6 +682,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ctx-item{display:flex;align-items:center;gap:10px;padding:8px 14px;" +
         "cursor:pointer;font-size:.8rem;color:var(--text);transition:background .15s;white-space:nowrap}" +
         ".sp-ctx-option{width:100%;border:0;background:transparent;font-family:inherit;text-align:left}" +
+        ".sp-ctx-option:disabled{opacity:.5;cursor:wait}" +
         ".sp-ctx-option:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}" +
         ".sp-ctx-item:hover{background:var(--accent-soft)}" +
         ".sp-ctx-item .mdi{font-size:16px;width:18px;text-align:center;color:var(--text2)}" +

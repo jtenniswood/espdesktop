@@ -2847,14 +2847,53 @@ async function assertContextAppIconSize(browser, testCase) {
         Object.entries(legacyTextState).some(([key, value]) => key.startsWith("subpage_3_config") && value.includes("app_icon_medium")));
       await page.locator(".sp-back-btn .sp-back-hit").click();
       if (native) {
-        await page.route("**/api/v1/config/**", route => route.request().method() === "PUT"
-          ? route.fulfill({ status: 409, body: "generation conflict" }) : route.fallback());
-        const group = await openSize();
-        await group.getByRole("button", { name: "Large", exact: true }).click();
-        await page.getByText("Could not save the icon size. Reload the configuration and try again.", { exact: true }).waitFor();
-        const restored = await openSize();
-        assert.strictEqual(await restored.getByRole("button", { name: "Small", exact: true }).getAttribute("aria-pressed"), "true",
-          "failed writes restore the previous icon size");
+        for (const isSubpage of [false, true]) {
+          // Reload between conflicts so each scenario starts with confirmed device settings.
+          await page.reload({ waitUntil: "domcontentloaded" });
+          await page.waitForFunction(() => window.__eventSources?.length > 0);
+          await seedNativeDocument(page, fixture);
+          if (isSubpage) {
+            await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+            await page.locator(".sp-back-btn").waitFor();
+          }
+          let release;
+          const pendingResponse = new Promise(resolve => { release = resolve; });
+          let finish;
+          const responseHandled = new Promise(resolve => { finish = resolve; });
+          let requests = 0;
+          const rejectSave = async route => {
+            if (route.request().method() !== "PUT") return route.fallback();
+            requests++;
+            await pendingResponse;
+            try { await route.fulfill({ status: 409, body: "generation conflict" }); } finally { finish(); }
+          };
+          await page.route("**/api/v1/config/**", rejectSave);
+          try {
+            const group = await openSize();
+            await group.getByRole("button", { name: isSubpage ? "Large" : "Medium", exact: true }).click();
+            await waitForSaved(() => requests === 1);
+            const reopened = await openSize();
+            assert.strictEqual(await reopened.locator("button:disabled").count(), 3,
+              "reopening the menu keeps all sizes disabled until the current save finishes");
+            // A dispatched event also checks the handler guard behind the disabled UI.
+            await reopened.getByRole("button", { name: isSubpage ? "Small" : "Large", exact: true }).dispatchEvent("click");
+            // Leave the first request pending long enough for a second handler to attempt a write.
+            await page.waitForTimeout(250);
+            assert.strictEqual(requests, 1, "a second size selection sends no overlapping write");
+            release();
+            await page.getByText("Could not save the icon size. Reload the configuration and try again.", { exact: true }).waitFor();
+            const restored = await openSize();
+            assert.strictEqual(await restored.getByRole("button", { name: isSubpage ? "Medium" : "Small", exact: true }).getAttribute("aria-pressed"), "true",
+              "overlapping failed writes restore the last confirmed size on main cards and subpages");
+            assert.strictEqual(await restored.locator("button:disabled").count(), 0,
+              "size choices are available again after the failed save finishes");
+            await page.keyboard.press("Escape");
+          } finally {
+            release();
+            if (requests) await responseHandled;
+            await page.unroute("**/api/v1/config/**", rejectSave);
+          }
+        }
       }
       assert.deepStrictEqual(errors, [], "icon size menu has no browser errors");
     } finally { await context.close(); }

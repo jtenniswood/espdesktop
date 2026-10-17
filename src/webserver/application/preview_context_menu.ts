@@ -101,6 +101,8 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     // ── Preview Context Menu ──────────────────────────────────────────
     // ── Context menu (unified) ─────────────────────────────────────────────
     var ctxMenu: any = null;
+    // Keep the lock across menu instances; subpage cards share one saved record.
+    const pendingIconSizeSaves = new Set<string>();
     function positionMenu(this: any, menu?: any, e?: any) {
         var position: any = clampMenuPosition({ x: e.clientX, y: e.clientY }, menu.offsetWidth, menu.offsetHeight, window.innerWidth, window.innerHeight);
         menu.style.left = position.x + "px";
@@ -319,16 +321,19 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         const card = c.buttons[slot - 1];
         if (card?.type !== "companion" || companionSavedCardMode(card) !== "app") return;
         const homeSlot = state.editingSubpage;
+        const saveKey = c.isSub ? "subpage:" + homeSlot : "card:" + slot;
         const currentSize = configOptionEnabled(card.options, "app_icon_fill") ? "fill"
             : configOptionEnabled(card.options, "app_icon_medium") ? "medium" : "small";
         const submenu = document.createElement("div");
         submenu.className = "sp-ctx-submenu";
+        submenu.dataset.iconSizeSaveKey = saveKey;
         submenu.setAttribute("role", "group");
         submenu.setAttribute("aria-label", "Mac app icon size");
         for (const [value, label] of [["small", "Small"], ["medium", "Medium"], ["fill", "Large"]] as const) {
             const option = document.createElement("button");
             option.type = "button";
             option.className = "sp-ctx-item sp-ctx-option";
+            option.disabled = pendingIconSizeSaves.has(saveKey);
             option.setAttribute("aria-pressed", String(value === currentSize));
             const check = mdiIcon("check");
             check.setAttribute("aria-hidden", "true");
@@ -337,7 +342,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             option.appendChild(document.createTextNode(label));
             option.addEventListener("click", async () => {
                 hideContextMenu();
-                if (value === currentSize || isConfigLocked() || state.editingSubpage !== homeSlot ||
+                if (pendingIconSizeSaves.has(saveKey) || value === currentSize || isConfigLocked() || state.editingSubpage !== homeSlot ||
                     ctx().buttons[slot - 1] !== card || !ctx().grid.includes(slot)) return;
                 const previous = card.options;
                 const next = setConfigOption(setConfigOption(previous, "app_icon_fill", value === "fill"),
@@ -358,25 +363,31 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
                 }
                 const previousOrder = subpage?.order;
                 const previousPending = state.subpageSavePending[Number(homeSlot)];
-                card.options = next;
-                let saved = false;
+                pendingIconSizeSaves.add(saveKey);
                 try {
-                    const result = subpage ? await saveSubpageConfig(homeSlot)
-                        : await dependencies.configPersistence.saveButtonConfig(slot);
-                    saved = result != null && result !== false && result.ok !== false &&
-                        !["authentication-required", "conflict", "too-large", "failed", "unsupported"].includes(result);
-                } catch {}
-                if (!saved) {
-                    if (card.options === next) card.options = previous;
-                    if (subpage) {
-                        subpage.order = previousOrder!;
-                        if (previousPending === undefined) delete state.subpageSavePending[Number(homeSlot)];
-                        else state.subpageSavePending[Number(homeSlot)] = previousPending;
+                    card.options = next;
+                    let saved = false;
+                    try {
+                        const result = subpage ? await saveSubpageConfig(homeSlot)
+                            : await dependencies.configPersistence.saveButtonConfig(slot);
+                        saved = result != null && result !== false && result.ok !== false &&
+                            !["authentication-required", "conflict", "too-large", "failed", "unsupported"].includes(result);
+                    } catch {}
+                    if (!saved) {
+                        if (card.options === next) card.options = previous;
+                        if (subpage) {
+                            subpage.order = previousOrder!;
+                            if (previousPending === undefined) delete state.subpageSavePending[Number(homeSlot)];
+                            else state.subpageSavePending[Number(homeSlot)] = previousPending;
+                        }
+                        showBanner("Could not save the icon size. Reload the configuration and try again.", "error");
                     }
-                    showBanner("Could not save the icon size. Reload the configuration and try again.", "error");
+                    renderPreview();
+                    renderButtonSettings();
+                } finally {
+                    pendingIconSizeSaves.delete(saveKey);
+                    if (ctxMenu?.querySelector("[data-icon-size-save-key='" + saveKey + "']")) hideContextMenu();
                 }
-                renderPreview();
-                renderButtonSettings();
             });
             submenu.appendChild(option);
         }
