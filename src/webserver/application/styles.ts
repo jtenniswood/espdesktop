@@ -634,15 +634,15 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-companion-app-icon-size>.sp-field-label{margin:0}" +
         ".sp-companion-app-icon-size-control{position:relative;width:100%;max-width:none}" +
         ".sp-companion-app-icon-size-button{display:flex;align-items:center;justify-content:space-between;gap:10px;" +
-        "width:100%;min-height:46px;box-sizing:border-box;text-align:left;cursor:pointer;background-image:none}" +
+        "width:100%;min-height:46px;padding-right:12px;box-sizing:border-box;text-align:left;cursor:pointer;background-image:none}" +
         ".sp-companion-app-icon-size-button .mdi{display:inline-flex;align-items:center;justify-content:center;" +
-        "width:18px;height:18px;line-height:1;color:var(--text2);font-size:18px;flex:0 0 18px;transform:translateY(1px)}" +
+        "width:18px;height:18px;line-height:1;color:var(--text2);font-size:18px;flex:0 0 18px}" +
         ".sp-companion-app-icon-size-list{display:none;position:absolute;z-index:60;top:calc(100% + 4px);" +
         "left:0;right:0;padding:4px;background:var(--surface2);border:1px solid var(--border);" +
         "border-radius:10px;box-shadow:var(--shadow-3)}" +
         ".sp-companion-app-icon-size-control.sp-open .sp-companion-app-icon-size-list{display:block}" +
         ".sp-companion-app-icon-size-option{display:block;width:100%;padding:9px 10px;border:0;border-radius:7px;" +
-        "background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}" +
+        "background:transparent;color:var(--text);font:inherit;font-size:var(--text-md);text-align:left;cursor:pointer}" +
         ".sp-companion-app-icon-size-option:hover,.sp-companion-app-icon-size-option:focus-visible," +
         ".sp-companion-app-icon-size-option.sp-active{background:var(--accent-soft);outline:none}" +
         ".sp-companion-app-colour-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}" +
