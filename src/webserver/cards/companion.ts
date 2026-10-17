@@ -1581,10 +1581,10 @@ export function registerCompanionCardTypes(
                 colourSettings.className = "sp-companion-app-colour-settings";
                 const modeRow = document.createElement("div");
                 modeRow.className = "sp-companion-app-colour-mode";
-                const suggestedButton = document.createElement("button");
-                suggestedButton.type = "button";
-                suggestedButton.className = "sp-action-btn";
-                suggestedButton.textContent = "Suggested colour";
+                const defaultButton = document.createElement("button");
+                defaultButton.type = "button";
+                defaultButton.className = "sp-action-btn";
+                defaultButton.textContent = "Default colour";
                 const customButton = document.createElement("button");
                 customButton.type = "button";
                 customButton.className = "sp-action-btn";
@@ -1596,7 +1596,7 @@ export function registerCompanionCardTypes(
                 const updateColourControls = function () {
                     const custom = /^[0-9A-F]{6}$/.test(configOptionValue(card.options, "app_bg_color").toUpperCase());
                     swatchGrid.hidden = !custom;
-                    suggestedButton.setAttribute("aria-pressed", String(!custom));
+                    defaultButton.setAttribute("aria-pressed", String(!custom));
                     customButton.setAttribute("aria-pressed", String(custom));
                     const selected = configOptionValue(card.options, "app_bg_color").toUpperCase();
                     swatchGrid.querySelectorAll("button").forEach(function (item) {
@@ -1618,7 +1618,7 @@ export function registerCompanionCardTypes(
                     });
                     swatchGrid.appendChild(swatch);
                 });
-                suggestedButton.addEventListener("click", function () {
+                defaultButton.addEventListener("click", function () {
                     card.options = setConfigOptionValue(card.options, "app_bg_color", "");
                     helpers.saveField("options", card.options);
                     updateColourControls();
@@ -1631,7 +1631,7 @@ export function registerCompanionCardTypes(
                     updateColourControls();
                     renderPreview();
                 });
-                modeRow.append(suggestedButton, customButton);
+                modeRow.append(defaultButton, customButton);
                 colourSettings.append(modeRow, swatchGrid);
                 panel?.appendChild(colourSettings);
                 updateColourControls();

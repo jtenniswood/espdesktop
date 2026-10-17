@@ -213,8 +213,36 @@ for filename, namespace, names in groups:
     if namespace:
         source += "\n}\n"
 source += r'''
+struct CompanionAppIconImageData {
+  struct { uint32_t default_rgb = 0x1565C0, active_rgb = 0x7985CB; bool valid = true; } accent_palette;
+  bool app_icon_mode = true, companion_online = true, image_loaded = true;
+  bool card_palette_ready = true, custom_background = false, palette_applied = false;
+  uint32_t fallback_default_rgb = 0x313131, fallback_active_rgb = 0x5C73E7;
+};
+'''
+line, code = definition((headers / "button_grid_cards.h").read_text(), "companion_apply_app_icon_card_palette")
+source += f'\n#line {line} "button_grid_cards.h"\n{code}\n'
+source += r'''
 #line 1 "card_colour_rendering_cases"
 int main() {
+  // An icon reload/reconnect after a light-theme change must not restore
+  // the dark fallback captured when the card was first created.
+  lv_obj_t app_card;
+  app_card.background[LV_STATE_DEFAULT] = 0xEEEEEE;
+  app_card.background[LV_STATE_CHECKED] = 0xDDDDDD;
+  CompanionAppIconImageData app_icon;
+  for (bool online : {false, true}) {
+    app_icon.companion_online = online;
+    companion_apply_app_icon_card_palette(app_icon, &app_card);
+    assert(app_card.background[LV_STATE_DEFAULT] == 0xEEEEEE);
+    assert(app_card.background[LV_STATE_CHECKED] == 0xDDDDDD);
+    assert(!app_icon.palette_applied);
+  }
+  app_icon.custom_background = true;
+  companion_apply_app_icon_card_palette(app_icon, &app_card);
+  assert(app_card.background[LV_STATE_DEFAULT] == 0x1565C0);
+  assert(app_card.background[LV_STATE_CHECKED] == 0x7985CB);
+  assert(app_icon.palette_applied);
   // Exercise a glyph crossing each fill edge, including reversed cover fills.
   // Every visible pixel must use the foreground of the surface beneath it.
   for (bool pale_base : {false, true}) for (bool horizontal : {false, true})

@@ -37,7 +37,6 @@ struct CompanionAppIconImageData {
   lv_obj_t *card_label = nullptr;
   std::string application_id;
   espdesktop::cover_art::AccentPalette accent_palette{};
-  espdesktop::cover_art::AccentColor accent_color{};
   uint32_t custom_background_rgb = 0;
   std::string custom_background_option;
   uint32_t fallback_default_rgb = 0;
@@ -72,7 +71,9 @@ inline void companion_refresh_cached_app_icon(const std::string &application_id)
 
 inline void companion_apply_app_icon_card_palette(
     CompanionAppIconImageData &source, lv_obj_t *button) {
-  if (!button || !source.card_palette_ready) return;
+  // Default-colour cards are owned by the live theme. Reconnects and icon
+  // refreshes must not restore fallback colours captured before a theme change.
+  if (!button || !source.card_palette_ready || !source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
                           source.accent_palette.valid;
   const uint32_t default_rgb = use_accent
@@ -110,14 +111,10 @@ inline void companion_update_app_icon_card_palette(
       else { source.custom_background = false; source.custom_background_rgb = 0; break; }
     }
   }
-  if (app_icon_mode && source.image_loaded && companion_online) {
-    source.accent_palette = source.custom_background
-        ? espdesktop::cover_art::make_app_icon_custom_palette(
-              source.custom_background_rgb, correction_red_percent,
-              correction_green_percent, correction_blue_percent)
-        : espdesktop::cover_art::make_app_icon_accent_palette(
-              source.accent_color, correction_red_percent,
-              correction_green_percent, correction_blue_percent);
+  if (app_icon_mode && source.image_loaded && companion_online && source.custom_background) {
+    source.accent_palette = espdesktop::cover_art::make_app_icon_custom_palette(
+        source.custom_background_rgb, correction_red_percent,
+        correction_green_percent, correction_blue_percent);
   } else {
     source.accent_palette = {};
   }
@@ -146,9 +143,6 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     return false;
   }
   source.image_loaded = true;
-  source.accent_color = espdesktop::cover_art::extract_accent_color_rgb565a8(
-      source.pixels, esphome::companion::APP_ICON_SIDE,
-      esphome::companion::APP_ICON_SIDE);
   constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
                                  esphome::companion::APP_ICON_SIDE;
   for (size_t i = 0; i < pixel_count; ++i) {
@@ -272,14 +266,10 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   lv_obj_clear_flag(image, LV_OBJ_FLAG_HIDDEN);
   if (source.fallback_icon) lv_obj_add_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
   if (source.fill_card && source.card_label) lv_obj_move_foreground(source.card_label);
-  source.accent_palette = source.app_icon_mode && source.companion_online
-      ? (source.custom_background
-          ? espdesktop::cover_art::make_app_icon_custom_palette(
-                source.custom_background_rgb, source.color_correction_red_percent,
-                source.color_correction_green_percent, source.color_correction_blue_percent)
-          : espdesktop::cover_art::make_app_icon_accent_palette(
-                source.accent_color, source.color_correction_red_percent,
-                source.color_correction_green_percent, source.color_correction_blue_percent))
+  source.accent_palette = source.app_icon_mode && source.companion_online && source.custom_background
+      ? espdesktop::cover_art::make_app_icon_custom_palette(
+            source.custom_background_rgb, source.color_correction_red_percent,
+            source.color_correction_green_percent, source.color_correction_blue_percent)
       : espdesktop::cover_art::AccentPalette{};
   companion_apply_app_icon_card_palette(source, lv_obj_get_parent(image));
   return true;

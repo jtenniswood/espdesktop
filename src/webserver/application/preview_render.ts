@@ -122,9 +122,9 @@ export function companionAppIconPreviewData(applicationId: string, backgroundCol
         const legacyActiveColor = response.headers.get("X-EspDesktop-App-Icon-Active") || "";
         const defaultColor = palette[0] || legacyDefaultColor;
         const activeColor = palette[1] || legacyActiveColor;
-        const validDefaultColor = /^[0-9a-f]{6}$/i.test(defaultColor)
+        const validDefaultColor = backgroundColor && /^[0-9a-f]{6}$/i.test(defaultColor)
             ? defaultColor : "";
-        const validActiveColor = /^[0-9a-f]{6}$/i.test(activeColor)
+        const validActiveColor = backgroundColor && /^[0-9a-f]{6}$/i.test(activeColor)
             ? activeColor : validDefaultColor;
         return {
             dataUrl: canvas.toDataURL("image/png"),
