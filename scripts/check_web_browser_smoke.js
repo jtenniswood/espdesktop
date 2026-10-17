@@ -7191,63 +7191,77 @@ async function assertGridSize(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   const nativeState = nativeConfigState(testCase.slug);
   for (let slot = 1; slot <= 16; slot++) nativeState.document.buttons[slot] = `light.test_${slot};Card ${slot};Lightbulb`;
+  nativeState.document.buttons[3] = ";Rooms;Home;Auto;;;subpage";
   nativeState.document.settings.button_order = Array.from({ length: 16 }, (_, i) => i + 1).join(",");
-  nativeState.document.subpages = {};
   const posts = [];
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
-  page.on("request", request => {
-    if (request.method() === "POST") posts.push(request.url());
-  });
+  page.on("request", request => { if (request.method() === "POST") posts.push(request.url()); });
   await installFakeEventSource(page);
-  const sizeEvent = value => ({ id: "select-screen__grid_size", state: value, value, option: ["3x3", "4x4"] });
+  const sizeEvent = (value, subpage = 0) => ({ id: subpage ? `select-screen__page_${subpage}_grid_size` : "select-screen__grid_size", state: value, value, option: ["3x3", "4x4"] });
+  const columns = () => page.evaluate(() => document.documentElement.style.getPropertyValue("--grid-cols"));
+  async function choose(value, slot = 1) {
+    await page.locator(`.sp-main [data-slot="${slot}"]`).click({ button: "right" });
+    await page.locator(".sp-ctx-menu .sp-ctx-item").filter({ hasText: value === "4x4" ? "4 × 4" : "3 × 3" }).click();
+  }
+  async function assertIcons() {
+    const cards = await page.locator(".sp-main .sp-btn").evaluateAll(cards => cards.map(card => {
+      const icon = card.querySelector(".sp-btn-icon");
+      const a = card.getBoundingClientRect(), b = icon.getBoundingClientRect();
+      return { x: Math.abs(a.x + a.width / 2 - b.x - b.width / 2), y: Math.abs(a.y + a.height / 2 - b.y - b.height / 2),
+        text: [...card.querySelectorAll(".sp-btn-label,.sp-sensor-value,.sp-sensor-unit")].filter(el => el.getBoundingClientRect().height > 0).length };
+    }));
+    assert(cards.length > 0);
+    for (const card of cards) {
+      assert(card.x < 1 && card.y < 1, "every icon is centred horizontally and vertically");
+      assert.strictEqual(card.text, 0, "4x4 cards show no text or sensor values");
+    }
+  }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("#sp-app");
     await seedNativeDocument(page, nativeState);
-    await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    await page.getByRole("heading", { name: "Grid size", exact: true }).click();
-    const select = page.locator("#sp-set-grid-size");
-    assert(await select.isDisabled(), "older firmware cannot select an unsupported layout");
-    await page.evaluate(event => window.__seedEspState([event]), sizeEvent("3x3"));
-    assert.strictEqual(await select.inputValue(), "3x3");
-    assert(await select.isEnabled());
-    // Use computed tracks to cover the live preview's layout, including blank cells.
-    const columns = () => page.evaluate(() => document.documentElement.style.getPropertyValue("--grid-cols"));
-    assert((await columns()).includes("repeat(3,"));
-    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 9);
-    const saved = page.waitForRequest(request => request.method() === "POST" && request.url().includes("screen__grid_size"));
-    await select.selectOption("4x4");
-    assert((await columns()).includes("repeat(4,"));
-    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 16);
-    await saved;
-    await select.selectOption("3x3");
-    assert((await columns()).includes("repeat(3,"));
-    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 9);
-    await select.selectOption("4x4");
-    assert((await columns()).includes("repeat(4,"));
-    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 16);
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
-    if (process.env.ESPDESKTOP_GRID_SIZE_ONLY === "1") {
-      fs.mkdirSync(FAILURE_DIR, { recursive: true });
-      await page.locator(".sp-screen").screenshot({ path: path.join(FAILURE_DIR, `grid-4x4-${testCase.slug}.png`) });
-    }
+    await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
+    assert.strictEqual(await page.getByText("Page grid (whole page)", { exact: true }).count(), 0, "old firmware cannot select an unsupported grid");
+    await page.keyboard.press("Escape");
+    await page.evaluate(events => window.__seedEspState(events), [sizeEvent("3x3"), sizeEvent("3x3", 3)]);
+    assert((await columns()).includes("repeat(3,"));
+    await choose("4x4");
+    assert((await columns()).includes("repeat(4,"));
+    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 16);
+    await assertIcons();
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    assert((await columns()).includes("repeat(3,"), "subpage keeps its independent default");
+    await choose("4x4", -2);
+    assert((await columns()).includes("repeat(4,"));
+    await assertIcons();
+    await choose("3x3", -2);
+    await page.locator('.sp-main .sp-back-hit').click();
+    assert((await columns()).includes("repeat(4,"), "subpage changes leave home unchanged");
+    await choose("3x3");
+    await choose("4x4");
+    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 16, "hidden cards are retained");
+    await assertIcons();
+    fs.mkdirSync(FAILURE_DIR, { recursive: true });
+    await page.locator(".sp-screen").screenshot({ path: path.join(FAILURE_DIR, `grid-4x4-${testCase.slug}.png`) });
     await openBackupControls(page);
     const downloading = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export", exact: true }).click();
-    const download = await downloading;
-    const backup = JSON.parse(fs.readFileSync(await download.path(), "utf8"));
-    assert.strictEqual(backup.settings.grid_size, "4x4", "backups store grid choice");
-    assert(backup.button_order.includes("16"), "switching back and forth preserves the final card");
-    // Simulate a restored setting arriving before the card order on reconnect.
+    const backup = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+    assert.strictEqual(backup.settings.grid_size, "4x4");
+    assert.strictEqual(backup.settings.page_grid_sizes[3], "3x3");
+    assert(backup.button_order.includes("16"));
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForSelector("#sp-app");
     nativeState.document.settings.button_order = "1l,,,,,,,,,,,,13,14,15,16";
-    await page.evaluate(events => window.__seedEspState(events), [...nativeDocumentEvents(nativeState.document), sizeEvent("4x4")]);
+    await page.evaluate(events => window.__seedEspState(events), [...nativeDocumentEvents(nativeState.document), sizeEvent("4x4"), sizeEvent("3x3", 3)]);
     await page.waitForFunction(() => document.documentElement.style.getPropertyValue("--grid-cols").includes("repeat(4,"));
-    assert(await page.locator('.sp-main [data-slot="1"]').evaluate(el => el.classList.contains("sp-btn-landscape-large")),
-      "late grid-size state must not downgrade a saved four-column card");
-    assert(posts.some(url => url.includes("screen__grid_size")), "grid choice is posted to the device");
+    assert(await page.locator('.sp-main [data-slot="1"]').evaluate(el => el.classList.contains("sp-btn-landscape-large")), "late grid state preserves saved spans");
+    assert(posts.some(url => url.includes("screen__grid_size")));
+    assert(posts.some(url => url.includes("screen__page_3_grid_size")));
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.locator("#sp-set-grid-size").count(), 0, "global grid setting is removed");
   } finally { await context.close(); }
 }
 

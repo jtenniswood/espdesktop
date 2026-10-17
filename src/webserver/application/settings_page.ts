@@ -370,36 +370,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             batteryStatusCard = makeCollapsibleCard("Battery", batteryStatusBody, true, batteryStatusBadge);
             els.batteryStatusCard = batteryStatusCard;
         }
-        var gridSizeCard: any = null;
-        if (layout.config.features?.gridSizeOptions) {
-            var gridSizeBody = document.createElement("div");
-            var gridSizeField = document.createElement("div");
-            gridSizeField.className = "sp-field";
-            gridSizeField.appendChild(fieldLabel("Grid size", "sp-set-grid-size"));
-            var gridSizeSelect = document.createElement("select");
-            gridSizeSelect.id = "sp-set-grid-size";
-            gridSizeSelect.className = "sp-select";
-            layout.config.features.gridSizeOptions.forEach((value) => {
-                var option = document.createElement("option");
-                option.value = value;
-                option.textContent = value === "4x4" ? "4 × 4 (16 spaces)" : "3 × 3 (9 spaces)";
-                gridSizeSelect.appendChild(option);
-            });
-            gridSizeSelect.value = state.gridSize;
-            gridSizeSelect.disabled = !state.gridSizeSupported;
-            gridSizeSelect.addEventListener("change", function () {
-                state.gridSize = gridSizeSelect.value;
-                syncPreviewOrientation();
-                renderPreview();
-                postSelect(entityName("grid_size"), state.gridSize);
-            });
-            gridSizeField.appendChild(gridSizeSelect);
-            gridSizeBody.appendChild(gridSizeField);
-            var hint = document.createElement("p");
-            hint.textContent = "Cards outside the 3 × 3 grid are kept when you switch back. Requires firmware with grid size support.";
-            gridSizeBody.appendChild(hint);
-            gridSizeCard = makeCollapsibleCard("Grid size", gridSizeBody, true);
-        }
         var rotationCard: any = null;
         if (layout.config.features && layout.config.features.screenRotation) {
             var rotationBody: any = document.createElement("div");
@@ -721,7 +691,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         ]);
         appendSettingsSection(config, "Display", [
             backlightCard,
-            gridSizeCard,
             rotationCard,
         ]);
         appendSettingsSection(config, "Sleep & Schedule", [

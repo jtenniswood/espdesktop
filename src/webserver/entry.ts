@@ -653,6 +653,7 @@ function composeApplicationContext(): ApplicationContext {
     },
   );
   preview = createPreviewRenderFeature({
+    syncPageLayout: () => core.syncPreviewOrientation(true),
     updateClockBarItemUi: statusPreview.updateClockBarItemUi,
     document: dom.document,
     layout,
@@ -686,6 +687,15 @@ function composeApplicationContext(): ApplicationContext {
     emptyButtonConfig: () => interactions.emptyButtonConfig(),
   });
   contextMenu = createPreviewContextMenuFeature({
+    setPageGridSize: (page, value) => {
+      if (page) {
+        state.pageGridSizes[page] = value;
+        configurationCodec.buildSubpageGrid(configurationCodec.getSubpage(page));
+      }
+      else state.gridSize = value;
+      preview.render();
+      requestApi.postSelect(entityState.entityName(page ? "page_" + page + "_grid_size" : "grid_size"), value);
+    },
     configPersistence: configurationPersistence,
     document: dom.document,
     window: dom.window,

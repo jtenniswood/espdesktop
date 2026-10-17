@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 45,
-    "entityNames": 114,
+    "entityNames": 130,
     "icons": 397,
     "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
@@ -8208,6 +8208,134 @@
         ],
         "groups": [
           "settings"
+        ]
+      },
+      {
+        "key": "page_1_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 1 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_2_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 2 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_3_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 3 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_4_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 4 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_5_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 5 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_6_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 6 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_7_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 7 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_8_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 8 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_9_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 9 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_10_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 10 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_11_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 11 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_12_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 12 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_13_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 13 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_14_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 14 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_15_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 15 Grid Size",
+        "groups": [
+          "settings_optional"
+        ]
+      },
+      {
+        "key": "page_16_grid_size",
+        "domain": "select",
+        "name": "Screen: Page 16 Grid Size",
+        "groups": [
+          "settings_optional"
         ]
       },
       {

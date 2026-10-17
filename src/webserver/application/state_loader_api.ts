@@ -112,7 +112,7 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
     }
     function loadInitialState(this: any, handleState?: any, onLoaded?: any) {
         const layoutReady = layout.config.features?.gridSizeOptions
-            ? loadStateItems(entityStateItems(["grid_size"]), handleState, 1)
+            ? loadStateItems(entityStateItems(["grid_size", ...Array.from({ length: 16 }, (_, i) => "page_" + (i + 1) + "_grid_size")]), handleState, 4)
             : Promise.resolve(0);
         layoutReady.then(() => loadStateItems(cardStateEntities(), handleState, 4)).then(function (this: any, loadedCount?: any) {
             if (loadedCount === 0) {

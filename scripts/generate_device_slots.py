@@ -367,7 +367,14 @@ def cfg_lines(device: dict) -> list[str]:
     if device.get("grid_size_options"):
         lines.extend([
             f"            cfg.configured_slots = {device['slots']};",
-            '            if (id(grid_size_select).current_option() != "4x4") {',
+            '            cfg.page_columns = [](int page) -> int {',
+            '              switch (page) {',
+            *[f'                case {i}: return id(page_{i}_grid_size_select).current_option() == "4x4" ? 4 : 3;' for i in range(1, 17)],
+            '                default: return id(grid_size_select).current_option() == "4x4" ? 4 : 3;',
+            '              }',
+            '            };',
+            '            cfg.icons_only = cfg.page_columns(0) == 4;',
+            '            if (cfg.page_columns(0) != 4) {',
             "              cfg.num_slots = 9;",
             "              cfg.cols = 3;",
             "            }",

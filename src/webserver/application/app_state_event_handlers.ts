@@ -124,6 +124,14 @@ export function createAppStateEventHandlersFeature(
     // ── State Event Handlers ──────────────────────────────────────────
     const createSseHandlers: SseHandlerFactory = () => {
         return {
+            ...Object.fromEntries(Array.from({ length: 16 }, (_, index) => {
+                const page = index + 1;
+                return ["select-screen__page_" + page + "_grid_size", function (val?: any, d?: any) {
+                    state.pageGridSizes[page] = (d?.value || val) === "4x4" ? "4x4" : "3x3";
+                    state.pageGridSizeSupported[page] = true;
+                    if (state.editingSubpage === page) { syncPreviewOrientation(true); renderPreview(); }
+                }];
+            })),
             "text-button_order": function (this: any, val?: any) {
                 if (gridPreviewBlockedByRotationStartup() || state.screenRotationInitialFallbackActive) {
                     runtime.orderReceived = !!(val && val.trim());

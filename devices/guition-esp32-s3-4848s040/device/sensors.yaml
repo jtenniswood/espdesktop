@@ -58,7 +58,29 @@ script:
           cfg.num_slots = 16;
           cfg.cols = 4;
           cfg.configured_slots = 16;
-          if (id(grid_size_select).current_option() != "4x4") {
+          cfg.page_columns = [](int page) -> int {
+            switch (page) {
+              case 1: return id(page_1_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 2: return id(page_2_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 3: return id(page_3_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 4: return id(page_4_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 5: return id(page_5_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 6: return id(page_6_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 7: return id(page_7_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 8: return id(page_8_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 9: return id(page_9_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 10: return id(page_10_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 11: return id(page_11_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 12: return id(page_12_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 13: return id(page_13_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 14: return id(page_14_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 15: return id(page_15_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 16: return id(page_16_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              default: return id(grid_size_select).current_option() == "4x4" ? 4 : 3;
+            }
+          };
+          cfg.icons_only = cfg.page_columns(0) == 4;
+          if (cfg.page_columns(0) != 4) {
             cfg.num_slots = 9;
             cfg.cols = 3;
           }
@@ -223,7 +245,29 @@ script:
           cfg.num_slots = 16;
           cfg.cols = 4;
           cfg.configured_slots = 16;
-          if (id(grid_size_select).current_option() != "4x4") {
+          cfg.page_columns = [](int page) -> int {
+            switch (page) {
+              case 1: return id(page_1_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 2: return id(page_2_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 3: return id(page_3_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 4: return id(page_4_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 5: return id(page_5_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 6: return id(page_6_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 7: return id(page_7_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 8: return id(page_8_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 9: return id(page_9_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 10: return id(page_10_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 11: return id(page_11_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 12: return id(page_12_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 13: return id(page_13_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 14: return id(page_14_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 15: return id(page_15_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              case 16: return id(page_16_grid_size_select).current_option() == "4x4" ? 4 : 3;
+              default: return id(grid_size_select).current_option() == "4x4" ? 4 : 3;
+            }
+          };
+          cfg.icons_only = cfg.page_columns(0) == 4;
+          if (cfg.page_columns(0) != 4) {
             cfg.num_slots = 9;
             cfg.cols = 3;
           }
@@ -425,7 +469,29 @@ esphome:
             cfg.num_slots = 16;
             cfg.cols = 4;
             cfg.configured_slots = 16;
-            if (id(grid_size_select).current_option() != "4x4") {
+            cfg.page_columns = [](int page) -> int {
+              switch (page) {
+                case 1: return id(page_1_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 2: return id(page_2_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 3: return id(page_3_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 4: return id(page_4_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 5: return id(page_5_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 6: return id(page_6_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 7: return id(page_7_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 8: return id(page_8_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 9: return id(page_9_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 10: return id(page_10_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 11: return id(page_11_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 12: return id(page_12_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 13: return id(page_13_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 14: return id(page_14_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 15: return id(page_15_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 16: return id(page_16_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                default: return id(grid_size_select).current_option() == "4x4" ? 4 : 3;
+              }
+            };
+            cfg.icons_only = cfg.page_columns(0) == 4;
+            if (cfg.page_columns(0) != 4) {
               cfg.num_slots = 9;
               cfg.cols = 3;
             }
@@ -579,7 +645,29 @@ esphome:
             cfg.num_slots = 16;
             cfg.cols = 4;
             cfg.configured_slots = 16;
-            if (id(grid_size_select).current_option() != "4x4") {
+            cfg.page_columns = [](int page) -> int {
+              switch (page) {
+                case 1: return id(page_1_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 2: return id(page_2_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 3: return id(page_3_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 4: return id(page_4_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 5: return id(page_5_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 6: return id(page_6_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 7: return id(page_7_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 8: return id(page_8_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 9: return id(page_9_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 10: return id(page_10_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 11: return id(page_11_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 12: return id(page_12_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 13: return id(page_13_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 14: return id(page_14_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 15: return id(page_15_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                case 16: return id(page_16_grid_size_select).current_option() == "4x4" ? 4 : 3;
+                default: return id(grid_size_select).current_option() == "4x4" ? 4 : 3;
+              }
+            };
+            cfg.icons_only = cfg.page_columns(0) == 4;
+            if (cfg.page_columns(0) != 4) {
               cfg.num_slots = 9;
               cfg.cols = 3;
             }

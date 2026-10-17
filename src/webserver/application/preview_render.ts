@@ -33,6 +33,7 @@ import type { GridFeature } from "./grid";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
 
 export interface PreviewRenderDependencies {
+    readonly syncPageLayout?: () => void;
     readonly updateClockBarItemUi: () => void;
     readonly document: Document;
     readonly layout: ApplicationLayoutState;
@@ -250,6 +251,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
+        if (dependencies.layout.config.features?.gridSizeOptions) dependencies.syncPageLayout?.();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
         var main: any = els.previewMain;
@@ -269,6 +271,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         main.removeAttribute("aria-busy");
         var c: any = ctx();
+        const iconsOnly = !!dependencies.layout.config.features?.gridSizeOptions && dependencies.layout.gridCols === 4;
+        if (iconsOnly) main.className += " sp-icons-only";
         updatePreviewHint(c);
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
@@ -292,7 +296,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 backBtn.setAttribute("data-pos", pos);
                 backBtn.draggable = !isConfigLocked();
                 backBtn.setAttribute("data-slot", "-2");
-                makeTitleEditable(backBtn);
+                if (!iconsOnly) makeTitleEditable(backBtn);
+                backBtn.setAttribute("aria-label", backLabel);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
             }
@@ -374,12 +379,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     : '';
                 var labelHtml: any = previewHtmlValue(typePreview, "labelHtml", '<span class="sp-btn-label">' + escHtml(label) + '</span>');
                 var iconHtml: any = previewHtmlValue(typePreview, "iconHtml", '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>');
-                btn.innerHTML =
-                    sensorBadge +
-                        iconHtml +
-                        labelHtml;
+                btn.innerHTML = iconsOnly
+                    ? (typePreview?.appIconId ? iconHtml : '<span class="sp-btn-icon' + (["subpage", "companion_subpage"].includes(b.type) ? " sp-subpage-badge" : "") + ' mdi mdi-' + iconName + '"></span>')
+                    : sensorBadge + iconHtml + labelHtml;
+                btn.setAttribute("aria-label", label);
                 // Offer renaming only when the preview displays a name that can be saved.
-                if (cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
+                if (!iconsOnly && cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
                     previewHtmlValue(typePreview, "labelEditable", true)) {
                     makeTitleEditable(btn, b.type === "image");
                 }
@@ -391,8 +396,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const applicationId = typePreview.appIconId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
-                    const fillCard = typePreview.appIconFill === true;
-                    const mediumIcon = !fillCard && typePreview.appIconMedium === true;
+                    const fillCard = !iconsOnly && typePreview.appIconFill === true;
+                    const mediumIcon = !iconsOnly && !fillCard && typePreview.appIconMedium === true;
                     const mediumIconLabelHidden = mediumIcon && typePreview.appIconLabelHidden === true;
                     const loadAppIcon = function (attempt: number): void {
                         void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {

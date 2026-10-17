@@ -81,3 +81,7 @@ For a quick background change, right-click a card in the web preview, then hover
 Cards using their default background highlight the matching preset or custom picker for the current theme. Resetting a card’s colours restores this default selection.
 
 Disabled cards keep their background colour and show muted labels and icons. Their normal text and icon colours return when the card becomes available again.
+
+## Page grid on square displays
+
+On the ESP32-P4 86 Panel and Guition 4848S040, right-click a card or empty space in the layout preview and use **Page grid (whole page)**. Each page keeps its own **3 × 3** or **4 × 4 — icons only** layout. The 4 × 4 layout centres each icon and hides card labels, values and badges. The clock bar is unchanged. Cards outside a smaller grid are retained when switching back, and page layouts are included in backups. This requires firmware from the same branch as the web interface.

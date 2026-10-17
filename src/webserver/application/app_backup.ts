@@ -315,6 +315,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 screensaver_timeout: state.screensaverTimeout,
                 home_screen_timeout: state.homeScreenTimeout,
                 grid_size: state.gridSize,
+                page_grid_sizes: { ...state.pageGridSizes },
                 screen_rotation: state.screenRotation,
             },
             screen: {
@@ -464,6 +465,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 cancelMainGridSave();
                 var activeGridCols: any = controllers.layout.gridCols;
                 var activePreviewSlots = controllers.layout.previewSlots;
+                if (controllers.layout.config.features?.gridSizeOptions && backupPlan.settings)
+                    state.pageGridSizes = { ...importedSettings.pageGridSizes };
                 controllers.layout.gridCols = importedGridCols;
                 if (controllers.layout.config.features?.gridSizeOptions)
                     controllers.layout.previewSlots = importedGridCols * importedGridCols;
@@ -475,8 +478,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.subpageRaw = {};
                     for (var canonicalSubpageKey in nativeDocument.subpages) {
                         var canonicalSubpage: any = parseSubpageConfig(nativeDocument.subpages[Number(canonicalSubpageKey)] || "");
-                        buildSubpageGrid(canonicalSubpage);
                         state.subpages[canonicalSubpageKey] = canonicalSubpage;
+                        buildSubpageGrid(canonicalSubpage);
                     }
                     nativeDocument.settings.button_order = applyImportedButtonOrder(
                         nativeDocument.settings.button_order, {});
@@ -596,6 +599,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postHomeScreenTimeout(importedSettings.homeScreenTimeout);
                     if (controllers.layout.config.features?.gridSizeOptions && state.gridSizeSupported)
                         postSelect(entityName("grid_size"), importedSettings.gridSize);
+                    if (controllers.layout.config.features?.gridSizeOptions) {
+                        for (let page = 1; page <= 16; page++) {
+                            if (state.pageGridSizeSupported[page]) postSelect(entityName("page_" + page + "_grid_size"), importedSettings.pageGridSizes[page]);
+                        }
+                    }
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
@@ -666,6 +674,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.homeScreenTimeout = importedSettings.homeScreenTimeout;
                     if (controllers.layout.config.features?.gridSizeOptions && state.gridSizeSupported) {
                         state.gridSize = importedSettings.gridSize;
+                        state.pageGridSizes = { ...importedSettings.pageGridSizes };
                         const gridSizeSelect = document.getElementById("sp-set-grid-size") as HTMLSelectElement | null;
                         if (gridSizeSelect) gridSizeSelect.value = state.gridSize;
                     }

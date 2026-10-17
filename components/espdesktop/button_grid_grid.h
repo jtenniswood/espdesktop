@@ -18,6 +18,8 @@
 struct GridConfig {
   int num_slots;
   int configured_slots = 0;
+  bool icons_only = false;
+  std::function<int(int)> page_columns;
   int cols;
   bool width_compensation_vertical = false;
   bool continuous_card_corners = false;
@@ -637,6 +639,46 @@ inline void subscribe_media_cover_art(MediaNowPlayingCtx *ctx,
   image_card_schedule_media_artwork_refresh(art);
 }
 
+// Keep non-icon children transparent, including widgets added by live data drivers.
+inline void grid_icon_only_layout(lv_event_t *event) {
+  const auto code = lv_event_get_code(event);
+  if (code != LV_EVENT_LAYOUT_CHANGED && code != LV_EVENT_CHILD_CHANGED) return;
+  lv_obj_t *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
+  lv_obj_t *icon = static_cast<lv_obj_t *>(lv_event_get_user_data(event));
+  lv_obj_t *visible = icon;
+#ifdef USE_COMPANION
+  lv_obj_t *image = grid_find_companion_app_icon_image(button);
+  if (image && !lv_obj_has_flag(image, LV_OBJ_FLAG_HIDDEN)) visible = image;
+#endif
+  for (uint32_t i = 0; i < lv_obj_get_child_cnt(button); i++) {
+    lv_obj_t *child = lv_obj_get_child(button, i);
+    lv_obj_set_style_opa(child, child == visible ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_MAIN);
+  }
+  if (visible == icon) {
+    lv_obj_clear_flag(icon, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_width(icon, LV_SIZE_CONTENT);
+  }
+  lv_obj_align(visible, LV_ALIGN_CENTER, 0, 0);
+}
+
+inline void grid_apply_icon_only(BtnSlot &slot, const GridConfig &cfg) {
+  lv_obj_remove_event_cb(slot.btn, grid_icon_only_layout);
+  if (!slot.icon_lbl) return;
+  if (!cfg.icons_only) {
+    for (uint32_t i = 0; i < lv_obj_get_child_cnt(slot.btn); i++)
+      lv_obj_set_style_opa(lv_obj_get_child(slot.btn, i), LV_OPA_COVER, LV_PART_MAIN);
+    return;
+  }
+  lv_obj_add_event_cb(slot.btn, grid_icon_only_layout, LV_EVENT_ALL, slot.icon_lbl);
+  for (uint32_t i = 0; i < lv_obj_get_child_cnt(slot.btn); i++) {
+    lv_obj_t *child = lv_obj_get_child(slot.btn, i);
+    lv_obj_set_style_opa(child, child == slot.icon_lbl ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_MAIN);
+  }
+  lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_set_width(slot.icon_lbl, LV_SIZE_CONTENT);
+  lv_obj_align(slot.icon_lbl, LV_ALIGN_CENTER, 0, 0);
+}
+
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,
                               const GridConfig &cfg,
@@ -646,6 +688,9 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const CardPalette palette = card_palette_for_config(default_palette, p, display);
   const auto family = context.family;
+  lv_obj_remove_event_cb(s.btn, grid_icon_only_layout);
+  for (uint32_t i = 0; i < lv_obj_get_child_cnt(s.btn); i++)
+    lv_obj_set_style_opa(lv_obj_get_child(s.btn, i), LV_OPA_COVER, LV_PART_MAIN);
   grid_prepare_timer_visual_reset(s.btn);
   espdesktop::cards::status_entity_driver_cleanup(s, p, context);
   espdesktop::cards::date_time_driver_cleanup(s, p, context);
@@ -1033,6 +1078,25 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
                                 int col_span = 1) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto context = card_runtime_context(p);
+  grid_apply_icon_only(s, cfg);
+  if (cfg.icons_only) {
+#ifdef USE_COMPANION
+    if (s.app_icon_img) {
+      auto *source = static_cast<CompanionAppIconImageData *>(lv_obj_get_user_data(s.app_icon_img));
+      if (source) {
+        source->fill_card = false;
+        source->medium_icon = false;
+        companion_apply_cached_app_icon(*source, s.app_icon_img);
+      }
+    }
+#endif
+    if (!lv_label_get_text(s.icon_lbl)[0]) {
+      const std::string domain = p.entity.substr(0, p.entity.find('.'));
+      lv_label_set_text(s.icon_lbl, p.icon.empty() || p.icon == "Auto"
+        ? domain_default_icon(domain) : find_icon(p.icon.c_str()));
+    }
+    return;
+  }
   if (s.text_lbl) {
     // Card labels inherit their font from the button theme. Read the font from
     // the themed button itself so the subpage title follows the exact font
@@ -1320,18 +1384,27 @@ inline bool grid_refresh_subpage_layouts(
     esphome::text::Text **sp_ext7_configs) {
   if (slots == nullptr) return false;
   const int NS = bounded_grid_slots(cfg.num_slots);
-  const int COLS = cfg.cols > 0 ? cfg.cols : 1;
-  const int ROWS = (NS + COLS - 1) / COLS;
   const DisplayProfile display = display_profile_from_grid_config(cfg);
-  static lv_coord_t subpage_cols[MAX_GRID_SLOTS + 1];
-  static lv_coord_t subpage_rows[MAX_GRID_SLOTS + 1];
-  for (int i = 0; i < COLS; i++) subpage_cols[i] = LV_GRID_FR(1);
-  subpage_cols[COLS] = LV_GRID_TEMPLATE_LAST;
-  for (int i = 0; i < ROWS; i++) subpage_rows[i] = LV_GRID_FR(1);
-  subpage_rows[ROWS] = LV_GRID_TEMPLATE_LAST;
-
   bool refreshed = false;
   for (int si = 0; si < NS; si++) {
+    GridConfig page_cfg = cfg;
+    if (cfg.page_columns) {
+      page_cfg.cols = cfg.page_columns(si + 1);
+      page_cfg.num_slots = page_cfg.cols * page_cfg.cols;
+      page_cfg.icons_only = page_cfg.cols == 4;
+    }
+    const GridConfig &cfg = page_cfg;
+    const int NS = bounded_grid_slots(cfg.num_slots);
+    const int COLS = cfg.cols;
+    const int ROWS = (NS + COLS - 1) / COLS;
+    static lv_coord_t page_cols[MAX_GRID_SLOTS][MAX_GRID_SLOTS + 1];
+    static lv_coord_t page_rows[MAX_GRID_SLOTS][MAX_GRID_SLOTS + 1];
+    auto *subpage_cols = page_cols[si];
+    auto *subpage_rows = page_rows[si];
+    for (int i = 0; i < COLS; i++) subpage_cols[i] = LV_GRID_FR(1);
+    subpage_cols[COLS] = LV_GRID_TEMPLATE_LAST;
+    for (int i = 0; i < ROWS; i++) subpage_rows[i] = LV_GRID_FR(1);
+    subpage_rows[ROWS] = LV_GRID_TEMPLATE_LAST;
     const auto parent_config = parse_cfg(slots[si].config->state);
     const auto parent_context = card_runtime_context(parent_config);
     if (!espdesktop::cards::navigation_driver_owns_subpage(parent_context, parent_config)) {
@@ -1399,6 +1472,7 @@ inline bool grid_refresh_subpage_layouts(
     apply_card_label_line_clamp(entry->back_slot.text_lbl, cfg,
                                 sp_order.back_row_span);
     configure_button_label_wrap(entry->back_slot.text_lbl);
+    grid_apply_icon_only(entry->back_slot, cfg);
 
     // Preserve card instances (and their HA subscriptions), but hide cards
     // removed from the saved order so stale content is never left visible.
@@ -2254,12 +2328,8 @@ inline void grid_phase2(
   }
 
   // --- Subpage creation ---
-  static lv_coord_t sp_col_dsc[MAX_GRID_SLOTS + 1];
-  for (int i = 0; i < COLS; i++) sp_col_dsc[i] = LV_GRID_FR(1);
-  sp_col_dsc[COLS] = LV_GRID_TEMPLATE_LAST;
-  static lv_coord_t sp_row_dsc[MAX_GRID_SLOTS + 1];
-  for (int i = 0; i < ROWS; i++) sp_row_dsc[i] = LV_GRID_FR(1);
-  sp_row_dsc[ROWS] = LV_GRID_TEMPLATE_LAST;
+  static lv_coord_t page_cols[MAX_GRID_SLOTS][MAX_GRID_SLOTS + 1];
+  static lv_coord_t page_rows[MAX_GRID_SLOTS][MAX_GRID_SLOTS + 1];
 
   const lv_font_t *sp_icon_fnt = lv_obj_get_style_text_font(slots[0].icon_lbl, LV_PART_MAIN);
 
@@ -2299,6 +2369,23 @@ inline void grid_phase2(
       optional_text_state(sp_ext7_configs, si);
     if (sp_cfg.empty()) continue;
 
+    GridConfig page_cfg = cfg;
+    if (cfg.page_columns) {
+      page_cfg.cols = cfg.page_columns(si + 1);
+      page_cfg.num_slots = page_cfg.cols * page_cfg.cols;
+      page_cfg.icons_only = page_cfg.cols == 4;
+    }
+    const GridConfig &cfg = page_cfg;
+    const int NS = bounded_grid_slots(cfg.num_slots);
+    const int COLS = cfg.cols;
+    const int ROWS = (NS + COLS - 1) / COLS;
+    auto *sp_col_dsc = page_cols[si];
+    auto *sp_row_dsc = page_rows[si];
+    for (int i = 0; i < COLS; i++) sp_col_dsc[i] = LV_GRID_FR(1);
+    sp_col_dsc[COLS] = LV_GRID_TEMPLATE_LAST;
+    for (int i = 0; i < ROWS; i++) sp_row_dsc[i] = LV_GRID_FR(1);
+    sp_row_dsc[ROWS] = LV_GRID_TEMPLATE_LAST;
+
     auto sp_btns = parse_subpage_config(sp_cfg);
     std::string sp_order_str = get_subpage_order(sp_cfg);
     std::string sp_back_label = get_subpage_back_label(sp_order_str);
@@ -2308,8 +2395,9 @@ inline void grid_phase2(
     normalize_subpage_order_spans(sp_ord, NS, COLS);
 
     lv_obj_t *sub_scr = lv_obj_create(NULL);
-    int display_order = NS;
-    for (int pos = 0; pos < NS; pos++) {
+    const int home_slots = bounded_grid_slots(page_cfg.page_columns ? page_cfg.page_columns(0) * page_cfg.page_columns(0) : page_cfg.num_slots);
+    int display_order = home_slots;
+    for (int pos = 0; pos < home_slots; pos++) {
       if (parsed.positions[pos] == si + 1) {
         display_order = pos;
         break;
@@ -2347,6 +2435,7 @@ inline void grid_phase2(
     lv_label_set_display_text(back_slot.text_lbl, sp_back_label.c_str());
     apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
     configure_button_label_wrap(back_slot.text_lbl);
+    grid_apply_icon_only(back_slot, cfg);
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {

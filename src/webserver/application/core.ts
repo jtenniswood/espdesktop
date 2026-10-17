@@ -48,7 +48,7 @@ export function createCoreFeature(
     }
     function activeLayout(this: any) {
         if (applicationLayout.config.features?.gridSizeOptions) {
-            const side = state.gridSize === "4x4" ? 4 : 3;
+            const side = (state.editingSubpage == null ? state.gridSize : state.pageGridSizes[state.editingSubpage]) === "4x4" ? 4 : 3;
             return { ...applicationLayout.config, cols: side, rows: side, slots: side * side };
         }
         if (isPortraitRotation(state.screenRotation) && applicationLayout.config.portrait)
@@ -182,13 +182,13 @@ export function createCoreFeature(
         var largeSensorUnitOffsetPercent: any = typeof applicationLayout.config.largeSensorUnitOffsetPercent === "number"
             ? applicationLayout.config.largeSensorUnitOffsetPercent : -10;
         r.setProperty("--large-sensor-unit-offset-y", "calc(var(--btn-icon) * 2.5 * " + (largeSensorUnitOffsetPercent / 100) + ")");
-        if (!preservePendingGrid && state.grid && state.grid.length) {
+        if (!applicationLayout.config.features?.gridSizeOptions && !preservePendingGrid && state.grid && state.grid.length) {
             normalizeGridSpansForLayout(state.grid, state.sizes, applicationLayout.previewSlots, applicationLayout.gridCols, function (this: any, normalizedOrder?: any) {
                 if (runtime.orderReceived)
                     postButtonOrder(normalizedOrder);
             });
         }
-        if (!preservePendingGrid && runtime.orderReceived) {
+        if (!applicationLayout.config.features?.gridSizeOptions && !preservePendingGrid && runtime.orderReceived) {
             for (var homeSlot in state.subpages) {
                 var sp: any = state.subpages[homeSlot];
                 if (!sp || !sp.grid || !sp.grid.length)

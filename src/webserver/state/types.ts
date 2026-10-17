@@ -236,6 +236,8 @@ export interface AppState {
   ntpServer2: string;
   ntpServer3: string;
   gridSize: string;
+  pageGridSizes: Record<number, string>;
+  pageGridSizeSupported: Record<number, boolean>;
   gridSizeSupported: boolean;
   gridSizeInitialReady: boolean;
   screenRotation: string;

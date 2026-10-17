@@ -775,6 +775,70 @@ export const ENTITY_CATALOG = {
         "firmware_esp32_c6_install_update"
       ]
     },
+    "page_1_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 1 Grid Size"
+    },
+    "page_2_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 2 Grid Size"
+    },
+    "page_3_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 3 Grid Size"
+    },
+    "page_4_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 4 Grid Size"
+    },
+    "page_5_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 5 Grid Size"
+    },
+    "page_6_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 6 Grid Size"
+    },
+    "page_7_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 7 Grid Size"
+    },
+    "page_8_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 8 Grid Size"
+    },
+    "page_9_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 9 Grid Size"
+    },
+    "page_10_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 10 Grid Size"
+    },
+    "page_11_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 11 Grid Size"
+    },
+    "page_12_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 12 Grid Size"
+    },
+    "page_13_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 13 Grid Size"
+    },
+    "page_14_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 14 Grid Size"
+    },
+    "page_15_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 15 Grid Size"
+    },
+    "page_16_grid_size": {
+      "domain": "select",
+      "name": "Screen: Page 16 Grid Size"
+    },
     "grid_size": {
       "domain": "select",
       "name": "Screen: Grid Size"
@@ -906,6 +970,22 @@ export const ENTITY_CATALOG = {
       "battery_percent"
     ],
     "settings_optional": [
+      "page_1_grid_size",
+      "page_2_grid_size",
+      "page_3_grid_size",
+      "page_4_grid_size",
+      "page_5_grid_size",
+      "page_6_grid_size",
+      "page_7_grid_size",
+      "page_8_grid_size",
+      "page_9_grid_size",
+      "page_10_grid_size",
+      "page_11_grid_size",
+      "page_12_grid_size",
+      "page_13_grid_size",
+      "page_14_grid_size",
+      "page_15_grid_size",
+      "page_16_grid_size",
       "grid_size",
       "screen_rotation"
     ]

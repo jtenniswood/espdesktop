@@ -296,8 +296,13 @@ export function createPreviewInteractionsFeature(
             }
             if (e.target.closest(".sp-card-name-input")) return;
             var target: any = e.target.closest("[data-pos]");
-            if (!target)
+            if (!target) {
+                if (dependencies.layout.config.features?.gridSizeOptions) {
+                    e.preventDefault();
+                    dependencies.contextMenu.showPage(e);
+                }
                 return;
+            }
             e.preventDefault();
             var pos: any = parseInt(target.getAttribute("data-pos"), 10);
             var c: any = ctx();

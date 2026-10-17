@@ -47,6 +47,7 @@ export interface PreviewContextMenuDependencies {
     readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "openClockBarTemperatureSettings">;
     readonly preview: Pick<PreviewRenderFeature, "registryValue">;
     readonly clipboard: Pick<PreviewClipboardFeature, "copyButtons" | "copySlot" | "cutButtons" | "cutSlot" | "pasteButton" | "pasteSubpageButton" | "showCopyCode" | "showPasteCode">;
+    readonly setPageGridSize: (page: number, value: string) => void;
     readonly renderPreview: () => void;
     readonly renderButtonSettings: () => void;
     readonly openCardSettings: (slot: number) => void;
@@ -62,6 +63,7 @@ export interface PreviewContextMenuFeature {
     hide(): void;
     contains(target?: any): boolean;
     cardSizeOptions(slot?: any, context?: any): any[];
+    showPage(event?: any): void;
     showSelection(event?: any): void;
     showClockBar(event?: any, item?: any): void;
     showCard(event?: any, slot?: any): void;
@@ -311,6 +313,25 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("restore", "Reset Colour", () => saveColour(""), false, submenu);
         return submenu;
     }
+    function addPageGridMenuItems() {
+        if (!dependencies.layout.config.features?.gridSizeOptions) return;
+        const page = state.editingSubpage || 0;
+        const supported = page ? state.pageGridSizeSupported[page] : state.gridSizeSupported;
+        if (!supported) return;
+        const current = page ? state.pageGridSizes[page] : state.gridSize;
+        addCtxDivider();
+        const heading = document.createElement("div");
+        heading.className = "sp-ctx-item";
+        heading.textContent = "Page grid (whole page)";
+        ctxMenu.appendChild(heading);
+        for (const value of ["3x3", "4x4"]) {
+            addCtxItem(current === value ? "check" : "cog",
+                value === "4x4" ? "4 × 4 — icons only" : "3 × 3", () => {
+                    dependencies.setPageGridSize(page, value);
+                    hideContextMenu();
+                });
+        }
+    }
     function addBulkCardMenuItems(this: any, slots?: any) {
         addColourMenuItem(slots);
         addCtxItem("clipboard-outline", "Copy " + slots.length + " Cards", function (this: any) { copyButtons(slots); });
@@ -409,6 +430,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         else {
             addSingleCardMenuItems(c.selected[0]);
         }
+        addPageGridMenuItems();
         document.body.appendChild(ctxMenu);
         positionMenu(ctxMenu, e);
     }
@@ -429,6 +451,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         ctxMenu = document.createElement("div");
         ctxMenu.className = "sp-ctx-menu";
         addClockBarMenuItems(item);
+        addPageGridMenuItems();
         document.body.appendChild(ctxMenu);
         positionMenu(ctxMenu, e);
     }
@@ -457,6 +480,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         else {
             addSingleCardMenuItems(slot);
         }
+        addPageGridMenuItems();
         document.body.appendChild(ctxMenu);
         positionMenu(ctxMenu, e);
     }
@@ -467,6 +491,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         ctxMenu = document.createElement("div");
         ctxMenu.className = "sp-ctx-menu";
         addBackButtonMenuItems();
+        addPageGridMenuItems();
         document.body.appendChild(ctxMenu);
         positionMenu(ctxMenu, e);
     }
@@ -501,8 +526,18 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("code-json", "Paste Code", function (this: any) {
             showPasteCardCode(pos, c.isSub);
         });
+        addPageGridMenuItems();
         document.body.appendChild(ctxMenu);
         positionMenu(ctxMenu, e);
+    }
+    function showPageMenu(event: MouseEvent) {
+        if (isConfigLocked() || !dependencies.layout.config.features?.gridSizeOptions) return;
+        hideContextMenu();
+        ctxMenu = document.createElement("div");
+        ctxMenu.className = "sp-ctx-menu";
+        addPageGridMenuItems();
+        document.body.appendChild(ctxMenu);
+        positionMenu(ctxMenu, event);
     }
     function hideContextMenu(this: any) {
         if (ctxMenu && ctxMenu.parentNode) {
@@ -532,6 +567,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         hide: hideContextMenu,
         contains: (target) => !!(ctxMenu && ctxMenu.contains(target)),
         cardSizeOptions: cardSizeMenuOptions,
+        showPage: showPageMenu,
         showSelection: showSelectionMenu,
         showClockBar: showClockBarContextMenu,
         showCard: showContextMenu,

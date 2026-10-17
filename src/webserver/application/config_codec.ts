@@ -995,8 +995,10 @@ export function createConfigCodecFeature(
             var migrateConfig: any = subpageConfigNeedsMigration(combined);
             var sp: any = parseSubpageConfig(combined);
             sp.sizes = sp.sizes || {};
-            var layoutNormalized: any = buildSubpageGridAndNormalizeOrder(sp);
             state.subpages[slot] = sp;
+            var layoutNormalized: any = false;
+            if (layout.config.features?.gridSizeOptions) buildSubpageGrid(sp);
+            else layoutNormalized = buildSubpageGridAndNormalizeOrder(sp);
             if (migrateConfig || layoutNormalized)
                 scheduleSliderSubpageMigration(slot);
         }
@@ -1019,7 +1021,10 @@ export function createConfigCodecFeature(
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
-        var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.totalSlots, layout.gridCols, layout.previewSlots);
+        const page = Number(Object.keys(state.subpages).find(key => state.subpages[key] === sp));
+        const side = state.pageGridSizes[page] === "4x4" ? 4 : 3;
+        const perPage = !!layout.config.features?.gridSizeOptions;
+        var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.totalSlots, perPage ? side : layout.gridCols, perPage ? side * side : layout.previewSlots);
         sp.grid = result.grid;
         sp.sizes = result.sizes;
         return sp.grid;
