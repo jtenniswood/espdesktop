@@ -76,4 +76,8 @@ Custom card colours stay in place when changing a card’s controls, reopening i
 
 Colour changes apply to the panel automatically after a brief pause (about 200 ms), plus the time needed to redraw the cards, including cards on subpages. You do not need to restart the panel. The reset icon beside the **Appearance** arrow applies the default orange in the same way.
 
+For a quick background change, right-click a card in the web preview, then hover over **Change Colour** (marked with a chevron) to open its pop-out palette. You can also click it to open the submenu. Pick a preset or use the eyedropper for a custom colour; the choice saves immediately. You can also change several selected cards together or recolour a subpage’s **Back** card. Image and full QR cards keep their fixed backgrounds. **Reset Colour** restores the default background while keeping any separate active-state colour.
+
+Cards using their default background highlight the matching preset or custom picker for the current theme. Resetting a card’s colours restores this default selection.
+
 Disabled cards keep their background colour and show muted labels and icons. Their normal text and icon colours return when the card becomes available again.

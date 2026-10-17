@@ -51,6 +51,7 @@ usage documentation lives in the root `README.md` and under `docs/`.
 
 ## Upstream Ports
 
+- [EspControl five-day sync: 12–17 October 2026](upstream-sync/2026-10-17.md) — 55 merged PRs, eight new ports and destination validation.
 - [EspControl two-week sync: 1–15 October 2026](upstream-sync/2026-10-15.md) — 74 merged PRs and the current migration audit.
 
 - [EspControl monthly sync: 10 September–10 October 2026](upstream-sync/2026-10-10.md) — all 152 source PRs, 60 individual port PRs and validation evidence.

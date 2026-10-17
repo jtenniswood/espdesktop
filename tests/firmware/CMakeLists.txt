@@ -12,6 +12,19 @@ target_include_directories(media_display_text_test PRIVATE stubs ../../component
 add_test(NAME media_display_text_test COMMAND media_display_text_test)
 add_test(NAME media_display_integration_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/media_display_integration_test.py ${CMAKE_CXX_COMPILER})
+
+add_executable(dpi_timing_test dpi_timing_test.cpp)
+target_compile_features(dpi_timing_test PRIVATE cxx_std_17)
+target_compile_options(dpi_timing_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+target_include_directories(dpi_timing_test PRIVATE ../../components/mipi_dsi)
+add_test(NAME dpi_timing_test COMMAND dpi_timing_test)
+add_test(NAME p4_pipeline_runtime_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/p4_pipeline_runtime_test.py)
+add_test(NAME mipi_dsi_draw_failure_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/mipi_dsi_draw_failure_test.py)
+
 add_test(NAME gsl3680_startup_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/gsl3680_startup_test.py)
@@ -253,6 +266,9 @@ add_test(NAME media_control_tabs_test COMMAND media_control_tabs_test)
 add_test(NAME media_control_tabs_runtime_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_control_tabs_runtime_test.py)
+add_test(NAME media_speaker_volume_event_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_speaker_volume_event_test.py)
 
 add_executable(media_power_capability_test media_power_capability_test.cpp)
 target_compile_features(media_power_capability_test PRIVATE cxx_std_17)
@@ -771,3 +787,6 @@ add_test(NAME weather_daily_ui_test COMMAND weather_daily_ui_test)
 add_test(NAME weather_daily_requests_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_daily_requests_test.py)
+
+add_test(NAME camera_screensaver_dimming_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_screensaver_dimming_test.py)

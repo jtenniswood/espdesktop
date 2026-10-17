@@ -158,6 +158,8 @@ export interface AppState {
   screensaverMetadataEntity: string;
   metadataOverlayOn: boolean;
   screensaverCameraImageMode: string;
+  screensaverCameraDimming: number;
+  screensaverCameraDimmingSupported: boolean;
   mediaPlayerSleepPreventionOn: boolean;
   mediaPlayerSleepPreventionEntity: string;
   coverArtScreensaverOn: boolean;
