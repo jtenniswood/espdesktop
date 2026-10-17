@@ -165,9 +165,6 @@ inline void grid_update_companion_app_icon_palette(
     });
     connection_observer_registered = true;
   }
-  espdesktop::configuration::companion_app_icon_colour_settings_changed_handler() = []() {
-    companion_refresh_app_icon_connection_state(companion_connected());
-  };
   companion_update_app_icon_card_palette(
       *source, slot.btn, companion_app_icon_enabled(config),
       palette.off_val,

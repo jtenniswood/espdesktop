@@ -423,9 +423,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                             appIconResizeObserver?.observe(btn);
                         }
                         if (fallbackIcon) fallbackIcon.hidden = true;
-                        if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor &&
-                            (backgroundColor || state.appIconAutoColourGenerationEnabled)) {
+                        if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
                             btn.style.backgroundColor = "#" + previewIcon.defaultColor;
+                            btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
+                            btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
                             btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
                             btn.classList.add("sp-companion-app-icon-card");
                         }

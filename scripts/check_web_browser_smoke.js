@@ -7202,6 +7202,9 @@ async function assertColourSwatches(browser) {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
     await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
     await page.evaluate(events => window.__seedEspState(events), seededEvents());
+    await page.getByRole("tab", { name: "System" }).click();
+    assert.strictEqual(await page.getByRole("heading", { name: "App icon colours", exact: true }).count(), 0,
+      "System settings no longer contain global app icon colour switches");
     await page.getByRole("tab", { name: "Screen" }).click();
     const primary = page.locator("#sp-set-on-color");
     if (!await primary.isVisible()) await page.getByRole("heading", { name: "Active Colour", exact: true }).click();

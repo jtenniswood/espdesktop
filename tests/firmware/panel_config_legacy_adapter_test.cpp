@@ -272,10 +272,42 @@ bool twenty_slot_document_reaches_order_and_subpage_settings() {
          order.persistent_writes == 1 && on_color.persistent_writes == 1;
 }
 
+bool retired_colour_switches_do_not_affect_restored_cards() {
+  constexpr char PROFILE[] = "esp32-p4-86";
+  constexpr char CARD[] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_bg_color=F9A825";
+  std::array<uint8_t, 1024> document{};
+  PanelConfigWriter writer(document.data(), document.size());
+  size_t size = 0;
+  if (writer.begin() != PanelConfigStatus::OK ||
+      writer.append_device_profile(reinterpret_cast<const uint8_t *>(PROFILE), sizeof(PROFILE) - 1) != PanelConfigStatus::OK ||
+      writer.append_button(1, reinterpret_cast<const uint8_t *>(CARD), sizeof(CARD) - 1) != PanelConfigStatus::OK) return false;
+  for (const std::string key : {"companion_app_custom_colour_control", "companion_app_auto_colour_generation"}) {
+    if (writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+          reinterpret_cast<const uint8_t *>("false"), 5) != PanelConfigStatus::OK) return false;
+  }
+  if (writer.finish(&size) != PanelConfigStatus::OK) return false;
+  FakeText order, button;
+  PanelConfigTextBindings bindings;
+  bindings.set_device_profile(PROFILE);
+  bindings.set_button_order(&order);
+  bindings.set_button(1, &button, {});
+  if (!bindings.persist_document(document.data(), size) || button.value() != CARD) return false;
+  if (!bindings.write_document(document.data(), document.size(), &size)) return false;
+  PanelConfigReader reader(document.data(), size);
+  if (reader.begin() != PanelConfigStatus::OK) return false;
+  PanelConfigRecord record;
+  PanelConfigStatus status;
+  while ((status = reader.next(&record)) == PanelConfigStatus::OK) {
+    if (record.type == PanelConfigRecordType::SETTING) return false;
+  }
+  return status == PanelConfigStatus::END;
+}
+
 }  // namespace
 
 int main() {
-  return imports_legacy_button_subpage_and_order() &&
+  return retired_colour_switches_do_not_affect_restored_cards() &&
+                 imports_legacy_button_subpage_and_order() &&
                  native_document_mirrors_back_to_legacy_entities_for_downgrade() &&
                  native_document_updates_live_grid_without_writing_legacy_preferences() &&
                  twenty_slot_document_reaches_order_and_subpage_settings()

@@ -1595,12 +1595,7 @@ export function registerCompanionCardTypes(
                 swatchGrid.setAttribute("aria-label", "Card background colour");
                 const updateColourControls = function () {
                     const custom = /^[0-9A-F]{6}$/.test(configOptionValue(card.options, "app_bg_color").toUpperCase());
-                    const showCustomControl = state.appIconCustomColourControlEnabled;
-                    const useAutomaticColour = state.appIconAutoColourGenerationEnabled;
-                    customButton.hidden = !showCustomControl;
-                    suggestedButton.hidden = !useAutomaticColour;
-                    modeRow.hidden = !showCustomControl && !useAutomaticColour;
-                    swatchGrid.hidden = !custom || !showCustomControl;
+                    swatchGrid.hidden = !custom;
                     suggestedButton.setAttribute("aria-pressed", String(!custom));
                     customButton.setAttribute("aria-pressed", String(custom));
                     const selected = configOptionValue(card.options, "app_bg_color").toUpperCase();

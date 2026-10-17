@@ -8,7 +8,6 @@
 #include "../companion/app_icon_store.h"
 #include "app_icon_layout.h"
 #include "cover_art.h"
-#include "panel_config_text_bindings.h"
 #include "esphome/core/version.h"
 
 template<typename T>
@@ -80,18 +79,8 @@ inline void companion_apply_app_icon_card_palette(
       ? source.accent_palette.default_rgb : source.fallback_default_rgb;
   const uint32_t active_rgb = use_accent
       ? source.accent_palette.active_rgb : source.fallback_active_rgb;
-  lv_obj_set_style_bg_color(
-      button, lv_color_hex(default_rgb),
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-          static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
-  lv_obj_set_style_bg_color(
-      button, lv_color_hex(active_rgb),
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-          static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
-  lv_obj_set_style_bg_color(
-      button, lv_color_hex(active_rgb),
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-          static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+  apply_button_colors(button, true, active_rgb, true, default_rgb);
+  sync_card_checked_text_color(button);
   source.palette_applied = true;
 }
 
@@ -126,11 +115,9 @@ inline void companion_update_app_icon_card_palette(
         ? espdesktop::cover_art::make_app_icon_custom_palette(
               source.custom_background_rgb, correction_red_percent,
               correction_green_percent, correction_blue_percent)
-        : espdesktop::configuration::companion_app_icon_auto_colour_generation_enabled()
-            ? espdesktop::cover_art::make_app_icon_accent_palette(
+        : espdesktop::cover_art::make_app_icon_accent_palette(
               source.accent_color, correction_red_percent,
-              correction_green_percent, correction_blue_percent)
-            : espdesktop::cover_art::AccentPalette{};
+              correction_green_percent, correction_blue_percent);
   } else {
     source.accent_palette = {};
   }
@@ -290,11 +277,9 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
           ? espdesktop::cover_art::make_app_icon_custom_palette(
                 source.custom_background_rgb, source.color_correction_red_percent,
                 source.color_correction_green_percent, source.color_correction_blue_percent)
-          : espdesktop::configuration::companion_app_icon_auto_colour_generation_enabled()
-              ? espdesktop::cover_art::make_app_icon_accent_palette(
+          : espdesktop::cover_art::make_app_icon_accent_palette(
                 source.accent_color, source.color_correction_red_percent,
-                source.color_correction_green_percent, source.color_correction_blue_percent)
-              : espdesktop::cover_art::AccentPalette{})
+                source.color_correction_green_percent, source.color_correction_blue_percent))
       : espdesktop::cover_art::AccentPalette{};
   companion_apply_app_icon_card_palette(source, lv_obj_get_parent(image));
   return true;
