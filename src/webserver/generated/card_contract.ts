@@ -3143,6 +3143,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "docsHidden": true
       },
       {
+        "name": "app_icon_cover",
+        "label": "Fill card edge to edge with app icon",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "app_icon_fill",
         "label": "Fill card with app icon",
         "kind": "flag",
@@ -3219,6 +3227,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "webapp_icon_title",
         "app_bg_color",
         "app_hide_label",
+        "app_icon_cover",
         "app_icon_fill",
         "app_icon_medium"
       ],
@@ -5059,6 +5068,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "alarm_card_type": "alarm_card_type",
   "app_bg_color": "app_bg_color",
   "app_hide_label": "app_hide_label",
+  "app_icon_cover": "app_icon_cover",
   "app_icon_fill": "app_icon_fill",
   "app_icon_medium": "app_icon_medium",
   "app_shortcut_preset": "app_shortcut_preset",

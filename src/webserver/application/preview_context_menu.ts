@@ -322,14 +322,15 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         if (card?.type !== "companion" || companionSavedCardMode(card) !== "app") return;
         const homeSlot = state.editingSubpage;
         const saveKey = c.isSub ? "subpage:" + homeSlot : "card:" + slot;
-        const currentSize = configOptionEnabled(card.options, "app_icon_fill") ? "fill"
+        const currentSize = configOptionEnabled(card.options, "app_icon_cover") ? "cover"
+            : configOptionEnabled(card.options, "app_icon_fill") ? "fill"
             : configOptionEnabled(card.options, "app_icon_medium") ? "medium" : "small";
         const submenu = document.createElement("div");
         submenu.className = "sp-ctx-submenu";
         submenu.dataset.iconSizeSaveKey = saveKey;
         submenu.setAttribute("role", "group");
         submenu.setAttribute("aria-label", "Mac app icon size");
-        for (const [value, label] of [["small", "Small"], ["medium", "Medium"], ["fill", "Large"]] as const) {
+        for (const [value, label] of [["small", "Small"], ["medium", "Medium"], ["fill", "Large"], ["cover", "Fill card"]] as const) {
             const option = document.createElement("button");
             option.type = "button";
             option.className = "sp-ctx-item sp-ctx-option";
@@ -345,8 +346,8 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
                 if (pendingIconSizeSaves.has(saveKey) || value === currentSize || isConfigLocked() || state.editingSubpage !== homeSlot ||
                     ctx().buttons[slot - 1] !== card || !ctx().grid.includes(slot)) return;
                 const previous = card.options;
-                const next = setConfigOption(setConfigOption(previous, "app_icon_fill", value === "fill"),
-                    "app_icon_medium", value === "medium");
+                const next = setConfigOption(setConfigOption(setConfigOption(previous, "app_icon_fill", value === "fill"),
+                    "app_icon_medium", value === "medium"), "app_icon_cover", value === "cover");
                 const subpage = c.isSub ? getSubpage(homeSlot) : null;
                 if (subpage) {
                     const candidate = { ...subpage, buttons: subpage.buttons.map((button: any, index: number) =>

@@ -307,6 +307,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_ACTIVE_COLOR = "active_color";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ALARM_CARD_TYPE = "alarm_card_type";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_BG_COLOR = "app_bg_color";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_HIDE_LABEL = "app_hide_label";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_ICON_COVER = "app_icon_cover";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_ICON_FILL = "app_icon_fill";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_ICON_MEDIUM = "app_icon_medium";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUT_PRESET = "app_shortcut_preset";

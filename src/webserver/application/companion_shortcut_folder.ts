@@ -134,6 +134,7 @@ export function normalizeCompanionCardOptions(card: any): string {
         options = setConfigOptionValue(options, "app_bg_color", customColor.toUpperCase());
     if (!card.sensor) {
         options = setConfigOption(options, "app_hide_label", configOptionEnabled(card.options, "app_hide_label"));
+        options = setConfigOption(options, "app_icon_cover", configOptionEnabled(card.options, "app_icon_cover"));
         options = setConfigOption(options, "app_icon_fill", configOptionEnabled(card.options, "app_icon_fill"));
         options = setConfigOption(options, "app_icon_medium", configOptionEnabled(card.options, "app_icon_medium"));
     }

@@ -37,7 +37,7 @@ struct lv_event_t { lv_obj_t *target; int code; void *user_data = nullptr; void 
 struct lv_area_t { int x1 = 0, y1 = 0, x2 = 39, y2 = 39; };
 using lv_event_cb_t = void (*)(lv_event_t *);
 struct lv_obj_t {
-  uint32_t background[3] = {}, text[3] = {}, gradient[3] = {};
+  uint32_t background[3] = {}, text[3] = {}, gradient[3] = {}, border[3] = {};
   int gradient_direction[3] = {};
   int state = 0;
   int flags = 0;
@@ -62,7 +62,7 @@ constexpr int LV_GRAD_DIR_HOR = 1;
 void lv_obj_set_style_bg_grad_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->gradient[selector] = rgb; }
 void lv_obj_set_style_bg_grad_dir(lv_obj_t *obj, int direction, int selector) { obj->gradient_direction[selector] = direction; }
 void lv_obj_set_style_bg_opa(lv_obj_t *, int, int) {}
-void lv_obj_set_style_border_color(lv_obj_t *, uint32_t, int) {}
+void lv_obj_set_style_border_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->border[selector] = rgb; }
 void lv_obj_set_style_border_width(lv_obj_t *, int, int) {}
 void lv_obj_set_style_shadow_width(lv_obj_t *, int, int) {}
 uint32_t lv_obj_get_style_text_color(lv_obj_t *obj, int) {
@@ -216,7 +216,7 @@ source += r'''
 struct CompanionAppIconImageData {
   struct { uint32_t default_rgb = 0x1565C0, active_rgb = 0x7985CB; bool valid = true; } accent_palette;
   bool app_icon_mode = true, companion_online = true, image_loaded = true;
-  bool card_palette_ready = true, custom_background = false, palette_applied = false;
+  bool card_palette_ready = true, custom_background = false, palette_applied = false, cover_card = false;
   uint32_t fallback_default_rgb = 0x313131, fallback_active_rgb = 0x5C73E7;
 };
 '''
@@ -238,6 +238,17 @@ int main() {
     assert(app_card.background[LV_STATE_CHECKED] == 0xDDDDDD);
     assert(!app_icon.palette_applied);
   }
+  app_icon.cover_card = true;
+  companion_apply_app_icon_card_palette(app_icon, &app_card);
+  assert(app_card.border[LV_STATE_CHECKED] == app_icon.fallback_active_rgb);
+  app_icon.fallback_active_rgb = 0xFF8C00;
+  companion_apply_app_icon_card_palette(app_icon, &app_card);
+  assert(app_card.border[LV_STATE_CHECKED] == 0xFF8C00); // Theme changes update the active outline.
+  ParsedCfg filled_app;
+  filled_app.type = "companion";
+  filled_app.entity = "com.apple.Safari";
+  filled_app.options = "app_icon_cover,app_hide_label";
+  assert(cfg_option_token_present(companion_card_options_normalized(filled_app), "app_icon_cover"));
   app_icon.custom_background = true;
   companion_apply_app_icon_card_palette(app_icon, &app_card);
   assert(app_card.background[LV_STATE_DEFAULT] == 0x1565C0);

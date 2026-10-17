@@ -51,6 +51,7 @@ struct CompanionAppIconImageData {
   bool card_palette_ready = false;
   bool palette_applied = false;
   bool fill_card = false;
+  bool cover_card = false;
   bool medium_icon = false;
 
   void release_pixels() {
@@ -73,7 +74,13 @@ inline void companion_apply_app_icon_card_palette(
     CompanionAppIconImageData &source, lv_obj_t *button) {
   // Default-colour cards are owned by the live theme. Reconnects and icon
   // refreshes must not restore fallback colours captured before a theme change.
-  if (!button || !source.card_palette_ready || !source.custom_background) return;
+  if (!button || !source.card_palette_ready) return;
+  if (source.cover_card) {
+    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
+    lv_obj_set_style_border_color(button, lv_color_hex(source.fallback_active_rgb), checked);
+  }
+  if (!source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
                           source.accent_palette.valid;
   const uint32_t default_rgb = use_accent
@@ -187,22 +194,28 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     const int canvas_side = esphome::companion::APP_ICON_SIDE;
     const int artwork_width = std::max(1, canvas_side - insets.left - insets.right);
     const int artwork_height = std::max(1, canvas_side - insets.top - insets.bottom);
-    const int pad_top = lv_obj_get_style_pad_top(button, LV_PART_MAIN);
+    const int pad_top = source.cover_card ? 0 : lv_obj_get_style_pad_top(button, LV_PART_MAIN);
     const int available_width = std::max<int>(1, lv_obj_get_width(button) -
-        lv_obj_get_style_pad_left(button, LV_PART_MAIN) -
-        lv_obj_get_style_pad_right(button, LV_PART_MAIN));
+        (source.cover_card ? 0 : lv_obj_get_style_pad_left(button, LV_PART_MAIN) +
+        lv_obj_get_style_pad_right(button, LV_PART_MAIN)));
     const int available_height = std::max<int>(1, lv_obj_get_height(button) - 2 * pad_top);
     // Size the visible artwork, not the transparent macOS canvas. Keep it
-    // square, left aligned and vertically centered within equal card margins.
-    const int target_side = std::max(1, std::min(
-        available_width * canvas_side / artwork_width,
-        available_height * canvas_side / artwork_height));
+    // square, with Large fitting within margins and Fill card covering the card.
+    const int target_side = source.cover_card ? espdesktop::app_icon::cover_side(
+        available_width, available_height, canvas_side, insets)
+        : std::max(1, std::min(available_width * canvas_side / artwork_width,
+                             available_height * canvas_side / artwork_height));
     const int artwork_left = (insets.left * target_side + canvas_side / 2) / canvas_side;
     const int artwork_top = (insets.top * target_side + canvas_side / 2) / canvas_side;
     const int visible_height = (artwork_height * target_side + canvas_side / 2) / canvas_side;
     lv_obj_set_size(image, target_side, target_side);
-    lv_obj_align(image, LV_ALIGN_TOP_LEFT, -artwork_left,
-                 (available_height - visible_height) / 2 - artwork_top);
+    const int visible_width = (artwork_width * target_side + canvas_side / 2) / canvas_side;
+    const int offset_x = source.cover_card ? (available_width - visible_width) / 2 -
+        lv_obj_get_style_pad_left(button, LV_PART_MAIN) - lv_obj_get_style_border_width(button, LV_PART_MAIN) : 0;
+    const int offset_y = source.cover_card ? -lv_obj_get_style_pad_top(button, LV_PART_MAIN) -
+        lv_obj_get_style_border_width(button, LV_PART_MAIN) : 0;
+    lv_obj_align(image, LV_ALIGN_TOP_LEFT, offset_x - artwork_left,
+                 offset_y + (available_height - visible_height) / 2 - artwork_top);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
     lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
 #else
@@ -276,7 +289,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
 }
 
 inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
-                                          bool fill_card = false, bool medium_icon = false) {
+                                          bool fill_card = false, bool medium_icon = false, bool cover_card = false) {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -304,8 +317,20 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->card_label = slot.text_lbl;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
-  source->fill_card = fill_card;
-  source->medium_icon = medium_icon && !fill_card;
+  source->fill_card = fill_card || cover_card;
+  source->cover_card = cover_card;
+  source->medium_icon = medium_icon && !source->fill_card;
+  if (cover_card) {
+    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
+    lv_obj_set_style_clip_corner(slot.btn, true, LV_PART_MAIN);
+    lv_obj_set_style_border_post(slot.btn, true, LV_PART_MAIN);
+    lv_obj_set_style_border_width(slot.btn, 3, LV_PART_MAIN);
+    lv_obj_set_style_border_width(slot.btn, 3, checked);
+    lv_obj_set_style_border_opa(slot.btn, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_color(slot.btn, lv_color_hex(source->fallback_active_rgb), checked);
+    lv_obj_set_style_border_opa(slot.btn, LV_OPA_COVER, checked);
+  }
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
 }
 
@@ -327,6 +352,18 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   if (!slot.app_icon_img) return;
   auto *source = static_cast<CompanionAppIconImageData *>(
       lv_obj_get_user_data(slot.app_icon_img));
+  if (source && source->cover_card) {
+    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_CLIP_CORNER, LV_PART_MAIN);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_POST, LV_PART_MAIN);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_WIDTH, LV_PART_MAIN);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_WIDTH, checked);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_OPA, LV_PART_MAIN);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_COLOR, checked);
+    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_OPA, checked);
+    source->cover_card = false;
+  }
   if (!source || !source->palette_applied) return;
   lv_obj_remove_local_style_prop(
       slot.btn, LV_STYLE_BG_COLOR,
@@ -541,6 +578,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   const bool medium_app_icon = companion_app_launch_card(p) &&
       companion_app_icon_enabled(p) &&
       !cfg_option_token_present(p.options, "app_icon_fill") &&
+      !cfg_option_token_present(p.options, "app_icon_cover") &&
       cfg_option_token_present(p.options, "app_icon_medium");
   if (companion_app_launch_card(p)) {
     lv_label_set_long_mode(s.text_lbl, medium_app_icon ? LV_LABEL_LONG_DOT : LV_LABEL_LONG_WRAP);
@@ -553,7 +591,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
 #ifdef USE_COMPANION
     companion_set_card_icon_image(
         s, p.entity, cfg_option_token_present(p.options, "app_icon_fill"),
-        cfg_option_token_present(p.options, "app_icon_medium"));
+        cfg_option_token_present(p.options, "app_icon_medium"),
+        cfg_option_token_present(p.options, "app_icon_cover"));
     esphome::companion::request_app_icon(p.entity);
 #endif
   } else if (s.app_icon_img) {

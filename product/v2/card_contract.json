@@ -3652,6 +3652,14 @@
           "docsHidden": true
         },
         {
+          "name": "app_icon_cover",
+          "label": "Fill card edge to edge with app icon",
+          "kind": "flag",
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
+        },
+        {
           "name": "app_icon_fill",
           "label": "Fill card with app icon",
           "kind": "flag",
@@ -3728,6 +3736,7 @@
           "webapp_icon_title",
           "app_bg_color",
           "app_hide_label",
+          "app_icon_cover",
           "app_icon_fill",
           "app_icon_medium"
         ],

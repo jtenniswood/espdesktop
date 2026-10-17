@@ -1467,8 +1467,10 @@ export function registerCompanionCardTypes(
                     { value: "small", label: "Small" },
                     { value: "medium", label: "Medium" },
                     { value: "fill", label: "Large" },
+                    { value: "cover", label: "Fill card" },
                 ];
-                let selectedIconSize = configOptionEnabled(card.options, "app_icon_fill")
+                let selectedIconSize = configOptionEnabled(card.options, "app_icon_cover") ? "cover"
+                    : configOptionEnabled(card.options, "app_icon_fill")
                     ? "fill" : configOptionEnabled(card.options, "app_icon_medium") ? "medium" : "small";
                 const iconSizeOptionButtons = iconSizeOptions.map(function (option) {
                     const optionButton = document.createElement("button");
@@ -1514,6 +1516,7 @@ export function registerCompanionCardTypes(
                     optionButton.addEventListener("click", function () {
                         const value = optionButton.dataset.value || "small";
                         updateIconSizeSelection(value);
+                        card.options = setConfigOption(card.options, "app_icon_cover", value === "cover");
                         card.options = setConfigOption(card.options, "app_icon_fill", value === "fill");
                         card.options = setConfigOption(card.options, "app_icon_medium", value === "medium");
                         helpers.saveField("options", card.options);
@@ -1618,7 +1621,8 @@ export function registerCompanionCardTypes(
             });
             if (companionAppIconEnabled(card)) {
                 preview.appIconId = card.entity;
-                preview.appIconFill = configOptionEnabled(card.options, "app_icon_fill");
+                preview.appIconCover = configOptionEnabled(card.options, "app_icon_cover");
+                preview.appIconFill = preview.appIconCover || configOptionEnabled(card.options, "app_icon_fill");
                 preview.appIconMedium = !preview.appIconFill && configOptionEnabled(card.options, "app_icon_medium");
                 preview.appIconLabelHidden = companionAppLaunchCard(card) &&
                     configOptionEnabled(card.options, "app_hide_label");

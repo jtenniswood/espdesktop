@@ -2795,6 +2795,18 @@ async function assertContextAppIconSize(browser, testCase) {
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
+    const { COMPANION_APP_ICON_SIDE: iconSide } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
+    const iconBytes = Buffer.alloc(iconSide * iconSide * 3);
+    for (let y = iconSide / 8; y < iconSide * 7 / 8; y++)
+      for (let x = iconSide / 8; x < iconSide * 7 / 8; x++) {
+        const index = y * iconSide + x;
+        iconBytes.writeUInt16LE(0x07e0, index * 2);
+        iconBytes[iconSide * iconSide * 2 + index] = 255;
+      }
+    await context.route("**/companion/app-icon?*", route => route.fulfill({
+      status: 200, contentType: "application/octet-stream",
+      headers: { "X-EspDesktop-Companion-Online": "true" }, body: iconBytes,
+    }));
     const page = await context.newPage();
     await installFakeEventSource(page);
     const errors = [];
@@ -2817,15 +2829,40 @@ async function assertContextAppIconSize(browser, testCase) {
       await page.waitForFunction(() => window.__eventSources?.length > 0);
       await seedNativeDocument(page, fixture);
       const originalBounds = await card(1).boundingBox();
-      for (const [label, token] of [["Medium", "app_icon_medium"], ["Large", "app_icon_fill"], ["Small", ""]]) {
+      for (const [label, token] of [["Medium", "app_icon_medium"], ["Large", "app_icon_fill"], ["Fill card", "app_icon_cover"], ["Small", ""]]) {
         const group = await openSize();
         await group.getByRole("button", { name: label, exact: true }).click();
         await waitForSaved(() => stored() && (token ? stored().includes(token) :
-          !stored().includes("app_icon_medium") && !stored().includes("app_icon_fill")));
+          !stored().includes("app_icon_medium") && !stored().includes("app_icon_fill") && !stored().includes("app_icon_cover")));
         assert(stored().includes("app_hide_label") && stored().includes("card_off_color=123ABC"),
           "size changes preserve label visibility and custom colours");
-        if (token) assert(!stored().includes(token === "app_icon_fill" ? "app_icon_medium" : "app_icon_fill"),
-          "size options are mutually exclusive");
+        for (const other of ["app_icon_fill", "app_icon_medium", "app_icon_cover"].filter(value => value !== token))
+          assert(!stored().includes(other), "size options are mutually exclusive");
+        if (token === "app_icon_cover") {
+          const image = card(1).locator(".sp-companion-app-icon-fill");
+          await image.waitFor();
+          for (const [width, height] of [[120, 120], [220, 100], [100, 220]]) {
+            await card(1).evaluate((element, size) => {
+              element.style.width = size[0] + "px";
+              element.style.height = size[1] + "px";
+            }, [width, height]);
+            await page.waitForTimeout(50); // ResizeObserver applies the new card shape.
+            const bounds = await card(1).boundingBox();
+            const artwork = await image.boundingBox();
+            const left = artwork.x + artwork.width / 8;
+            const top = artwork.y + artwork.height / 8;
+            assert(left <= bounds.x + 1 && top <= bounds.y + 1 &&
+              left + artwork.width * 0.75 >= bounds.x + bounds.width - 1 &&
+              top + artwork.height * 0.75 >= bounds.y + bounds.height - 1,
+              "visible artwork covers square, wide and tall cards without inner margins");
+          }
+          await card(1).evaluate(element => { element.style.width = ""; element.style.height = ""; });
+          await card(1).hover();
+          await page.mouse.down();
+          assert.strictEqual(await card(1).evaluate(element => getComputedStyle(element, "::after").borderTopWidth), "3px",
+            "filled card keeps a visible active outline above the icon");
+          await page.mouse.up();
+        }
         const reopened = await openSize();
         assert.strictEqual(await reopened.getByRole("button", { name: label, exact: true }).getAttribute("aria-pressed"), "true");
         assert.strictEqual(await reopened.locator('[aria-pressed="true"]').count(), 1);
@@ -2873,7 +2910,7 @@ async function assertContextAppIconSize(browser, testCase) {
             await group.getByRole("button", { name: isSubpage ? "Large" : "Medium", exact: true }).click();
             await waitForSaved(() => requests === 1);
             const reopened = await openSize();
-            assert.strictEqual(await reopened.locator("button:disabled").count(), 3,
+            assert.strictEqual(await reopened.locator("button:disabled").count(), 4,
               "reopening the menu keeps all sizes disabled until the current save finishes");
             // A dispatched event also checks the handler guard behind the disabled UI.
             await reopened.getByRole("button", { name: isSubpage ? "Small" : "Large", exact: true }).dispatchEvent("click");

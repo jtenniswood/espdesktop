@@ -163,13 +163,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         if (icon.classList.contains("sp-companion-app-icon-fill")) {
             const artwork = appIconArtwork.get(icon);
             if (!artwork) return;
-            const padTop = parseFloat(cardStyle.paddingTop);
-            const width = Math.max(1, button.clientWidth - parseFloat(cardStyle.paddingLeft) - parseFloat(cardStyle.paddingRight));
+            const cover = button.classList.contains("sp-companion-app-icon-cover-card");
+            const padTop = cover ? 0 : parseFloat(cardStyle.paddingTop);
+            const width = Math.max(1, button.clientWidth - (cover ? 0 : parseFloat(cardStyle.paddingLeft) + parseFloat(cardStyle.paddingRight)));
             const height = Math.max(1, button.clientHeight - 2 * padTop);
-            const side = Math.max(1, Math.min(width / artwork.artworkWidthFraction, height / artwork.artworkHeightFraction));
+            const side = Math.max(1, (cover ? Math.max : Math.min)(width / artwork.artworkWidthFraction, height / artwork.artworkHeightFraction));
             icon.style.width = side + "px";
             icon.style.height = side + "px";
-            icon.style.left = (parseFloat(cardStyle.paddingLeft) - side * artwork.insetLeftPercent / 100) + "px";
+            icon.style.left = ((cover ? (width - side * artwork.artworkWidthFraction) / 2 : parseFloat(cardStyle.paddingLeft)) - side * artwork.insetLeftPercent / 100) + "px";
             icon.style.top = (padTop + (height - side * artwork.artworkHeightFraction) / 2 - side * artwork.insetTopPercent / 100) + "px";
             return;
         }
@@ -391,6 +392,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const applicationId = typePreview.appIconId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
+                    const coverCard = typePreview.appIconCover === true;
                     const fillCard = typePreview.appIconFill === true;
                     const mediumIcon = !fillCard && typePreview.appIconMedium === true;
                     const mediumIconLabelHidden = mediumIcon && typePreview.appIconLabelHidden === true;
@@ -409,6 +411,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                                 ? " sp-companion-app-icon-medium" +
                                     (mediumIconLabelHidden ? " sp-companion-app-icon-medium-no-label" : "")
                                 : "");
+                        if (coverCard) btn.classList.add("sp-companion-app-icon-cover-card");
                         if (fillCard) btn.classList.add("sp-companion-app-icon-fill-card");
                         else if (mediumIcon) btn.classList.add("sp-companion-app-icon-medium-card");
                         appIcon.alt = "";

@@ -69,3 +69,14 @@ test("saved Companion app cards retain label and icon size options", () => {
   assert.equal(options.configOptionEnabled(smallWithLabel, "app_hide_label"), false);
   assert.equal(options.configOptionEnabled(smallWithLabel, "app_icon_fill"), false);
 });
+
+test("Fill card appearance survives saving and reopening an app card", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const options = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
+  const card = { type: "companion", entity: "com.example.Editor", sensor: "",
+    options: "app_icon_cover,app_hide_label,app_shortcuts" };
+  const saved = api.normalizeCompanionCardOptions(card);
+  for (const token of ["app_icon_cover", "app_hide_label", "app_shortcuts"])
+    assert(options.configOptionEnabled(saved, token));
+  assert.equal(api.normalizeCompanionCardOptions({ ...card, options: saved }), saved);
+});

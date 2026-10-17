@@ -1054,6 +1054,7 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
 #ifdef USE_COMPANION
   if (companion_app_launch_card(p) && companion_app_icon_enabled(p) &&
       !cfg_option_token_present(p.options, "app_icon_fill") &&
+      !cfg_option_token_present(p.options, "app_icon_cover") &&
       cfg_option_token_present(p.options, "app_icon_medium") && s.text_lbl &&
       !lv_obj_has_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN)) {
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_DOT);

@@ -15,7 +15,9 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
-For Mac app cards, right-click the card in the preview and choose **Mac app icon size → Small, Medium or Large** to save a size directly. The current size is marked with a tick. You can also change **Mac app icon** in Card Settings, above **Show label**.
+For Mac app cards, right-click the card in the preview and choose **Mac app icon size → Small, Medium, Large or Fill card** to save a size directly. The current size is marked with a tick. You can also change **Mac app icon** in Card Settings, above **Show label**.
+
+**Fill card** crops the icon to fill the card shape, removing the inner margin for that card only. The active app keeps a coloured outline. **Show label** still controls the app name.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 

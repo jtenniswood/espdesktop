@@ -133,6 +133,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn-icon.sp-companion-app-icon-medium{left:var(--btn-pad);top:var(--btn-pad);" +
         "width:var(--sp-app-medium-icon-side,var(--btn-icon));height:var(--sp-app-medium-icon-side,var(--btn-icon));object-fit:contain}" +
         ".sp-btn-icon.sp-companion-app-icon-fill{object-fit:contain;border-radius:0;z-index:0}" +
+        ".sp-btn.sp-companion-app-icon-cover-card:active::after{content:'';position:absolute;inset:0;border:3px solid var(--card-active-color);border-radius:inherit;z-index:2;pointer-events:none}" +
         ".sp-btn.sp-companion-app-icon-medium-card>.sp-btn-label{max-height:calc(var(--btn-label)*1.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
         ".sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label,.sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label-row{position:relative;z-index:1}" +
         ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;--card-text-color:var(--sp-companion-app-icon-active-text)!important;filter:none}" +

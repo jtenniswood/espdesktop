@@ -12,6 +12,16 @@ struct Insets {
   uint16_t bottom = 0;
 };
 
+// Scale visible artwork to cover the card while keeping the source square.
+inline int cover_side(int width, int height, int canvas, const Insets &insets) {
+  const int artwork_width = canvas - insets.left - insets.right;
+  const int artwork_height = canvas - insets.top - insets.bottom;
+  if (canvas <= 0 || artwork_width <= 0 || artwork_height <= 0) return 1;
+  const int width_side = (width * canvas + artwork_width - 1) / artwork_width;
+  const int height_side = (height * canvas + artwork_height - 1) / artwork_height;
+  return width_side > height_side ? width_side : height_side;
+}
+
 // Align the artwork, ignoring transparent canvas and faint macOS shadows.
 // A relative threshold also handles artwork that is intentionally translucent.
 inline Insets artwork_insets(const uint8_t *alpha, uint16_t side) {
