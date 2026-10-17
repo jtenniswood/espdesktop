@@ -102,7 +102,8 @@ export function preserveCardColorOptions(options: unknown, normalized: unknown):
 }
 
 export function setCardColor(options: unknown, value: unknown): string {
-  const normalized = preserveCardColorOptions(options, options);
+  // Shared colour changes replace the legacy Mac app background too, including reset.
+  const normalized = setConfigOptionValue(preserveCardColorOptions(options, options), "app_bg_color", "");
   return setConfigOptionValue(normalized, "card_off_color", normalizedColor(String(value || "").replace(/^#/, "").trim()));
 }
 
