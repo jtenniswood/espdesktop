@@ -71,7 +71,9 @@ inline void companion_refresh_cached_app_icon(const std::string &application_id)
 
 inline void companion_apply_app_icon_card_palette(
     CompanionAppIconImageData &source, lv_obj_t *button) {
-  if (!button || !source.card_palette_ready) return;
+  // Default-colour cards are owned by the live theme. Reconnects and icon
+  // refreshes must not restore fallback colours captured before a theme change.
+  if (!button || !source.card_palette_ready || !source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
                           source.accent_palette.valid;
   const uint32_t default_rgb = use_accent
