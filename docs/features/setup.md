@@ -29,7 +29,7 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 ## Screen and System Settings
 
-Use **Screen** for appearance, card curves, backlight, rotation and sleep settings, including [PIN protection](#protect-the-touchscreen). Use **System** for preferences, app icon colours, naming, backups, firmware updates and reset controls. **Connectors** keeps Mac pairing and connection status together.
+Use **Screen** for appearance, card curves, backlight, rotation and sleep settings, including [PIN protection](#protect-the-touchscreen). Use **System** for preferences, naming, backups, firmware updates and reset controls. **Connectors** keeps Mac pairing and connection status together.
 
 ## Protect the Touchscreen
 

@@ -70,6 +70,8 @@ Slider cards use a contrasting fill that keeps labels readable as values change.
 
 Striped active cards use lighter or darker stripes to keep text readable across both tones.
 
+Mac app cards keep their individual **Suggested colour** and **Choose colour** controls. Chosen colours retain their brightness, with contrasting text and a distinct active shade.
+
 Custom card colours stay in place when changing a card’s controls, reopening its editor or switching themes. Media Cover Art uses the chosen card colour while artwork is loading or unavailable; visible artwork keeps white text. Media progress bars use a lighter or darker shade of the chosen card colour so progress remains visible.
 
 Colour changes apply to the panel automatically after a brief pause (about 200 ms), plus the time needed to redraw the cards, including cards on subpages. You do not need to restart the panel. The reset icon beside the **Appearance** arrow applies the default orange in the same way.

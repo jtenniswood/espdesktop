@@ -10,6 +10,7 @@
 #include <string>
 
 #include "artwork_controller.h"
+#include "display_color.h"
 #include "media_display_text.h"
 
 // Defined by the firmware Home Assistant transport. Keeping this declaration
@@ -369,15 +370,16 @@ inline AccentPalette make_app_icon_accent_palette(
 inline AccentPalette make_app_icon_custom_palette(
     uint32_t color_rgb, int red_percent = 100, int green_percent = 100,
     int blue_percent = 100) {
-  constexpr int DEFAULT_APP_ICON_COLOR_SCALE_PERCENT = 82;
   const int maximum = std::max((color_rgb >> 16) & 0xFF,
       std::max((color_rgb >> 8) & 0xFF, color_rgb & 0xFF));
   const int minimum = std::min((color_rgb >> 16) & 0xFF,
       std::min((color_rgb >> 8) & 0xFF, color_rgb & 0xFF));
-  const uint32_t active_rgb = accent_darkest_readable_rgb(
+  // User-selected colours are literal. Adapt the foreground instead of
+  // darkening the background to keep white text.
+  const uint32_t default_rgb = accent_display_corrected_rgb(
       color_rgb, red_percent, green_percent, blue_percent);
-  const uint32_t default_rgb = scale_accent_rgb(
-      active_rgb, DEFAULT_APP_ICON_COLOR_SCALE_PERCENT);
+  const uint32_t active_rgb = accent_display_corrected_rgb(
+      active_card_color(color_rgb), red_percent, green_percent, blue_percent);
   return {default_rgb, active_rgb,
           maximum <= APP_ICON_NEAR_BLACK_MAX ||
               maximum - minimum <= APP_ICON_NEUTRAL_SPREAD_MAX,

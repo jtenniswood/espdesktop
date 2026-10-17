@@ -135,7 +135,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn-icon.sp-companion-app-icon-fill{object-fit:contain;border-radius:0;z-index:0}" +
         ".sp-btn.sp-companion-app-icon-medium-card>.sp-btn-label{max-height:calc(var(--btn-label)*1.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
         ".sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label,.sp-btn.sp-companion-app-icon-fill-card>.sp-btn-label-row{position:relative;z-index:1}" +
-        ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;filter:none}" +
+        ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;--card-text-color:var(--sp-companion-app-icon-active-text)!important;filter:none}" +
         ".sp-btn>.sp-btn-label,.sp-btn>.sp-btn-label-row{margin-top:auto}" +
         ".sp-media-group-active{box-shadow:inset 0 0 0 3px var(--accent)}" +
         ".sp-btn-label{display:block;max-height:var(--btn-label-max-height);overflow:hidden;word-break:break-word;min-height:0}" +
