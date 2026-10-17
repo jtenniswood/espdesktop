@@ -1439,16 +1439,6 @@ export function registerCompanionCardTypes(
                     entity: false,
                     icon: false,
                 });
-                const labelToggle = helpers.toggleRow(
-                    "Show label", helpers.idPrefix + "companion-app-label",
-                    !configOptionEnabled(card.options, "app_hide_label"),
-                );
-                panel?.appendChild(labelToggle.row);
-                labelToggle.input.addEventListener("change", function () {
-                    card.options = setConfigOption(card.options, "app_hide_label", !labelToggle.input.checked);
-                    helpers.saveField("options", card.options);
-                    renderPreview();
-                });
                 const iconSizeRow = document.createElement("div");
                 iconSizeRow.className = "sp-companion-app-icon-size";
                 const iconSizeLabel = document.createElement("label");
@@ -1569,6 +1559,16 @@ export function registerCompanionCardTypes(
                 iconSizeRow.appendChild(iconSizeLabel);
                 iconSizeRow.appendChild(iconSizeControl);
                 panel?.appendChild(iconSizeRow);
+                const labelToggle = helpers.toggleRow(
+                    "Show label", helpers.idPrefix + "companion-app-label",
+                    !configOptionEnabled(card.options, "app_hide_label"),
+                );
+                panel?.appendChild(labelToggle.row);
+                labelToggle.input.addEventListener("change", function () {
+                    card.options = setConfigOption(card.options, "app_hide_label", !labelToggle.input.checked);
+                    helpers.saveField("options", card.options);
+                    renderPreview();
+                });
                 const palette = [
                     "B71C1C", "BF360C", "E65100", "F57F17", "827717", "33691E",
                     "C62828", "D84315", "EF6C00", "F9A825", "9E9D24", "558B2F",
