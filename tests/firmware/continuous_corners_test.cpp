@@ -23,6 +23,7 @@ struct lv_obj_t {
   int width = 100, height = 80, radius = 16;
   int pressed_radius = 16;
   const void *mask = nullptr;
+  bool clip_corner = false;
   std::vector<lv_event_dsc_t> events;
 };
 struct lv_event_t { lv_obj_t *target; lv_obj_t *current; lv_event_code_t code; void *data; };
@@ -57,6 +58,7 @@ void lv_obj_set_style_bitmap_mask_src(lv_obj_t *o, const void *mask, int) {
   o->mask = mask;
   send(*o, LV_EVENT_STYLE_CHANGED); // Exercise recursive style notifications.
 }
+void lv_obj_set_style_clip_corner(lv_obj_t *o, bool enabled, int) { o->clip_corner = enabled; }
 unsigned lv_draw_buf_width_to_stride(unsigned width, int) { return (width + 3) & ~3U; }
 int dropped = 0;
 void lv_image_cache_drop(const void *) { ++dropped; }
@@ -161,9 +163,22 @@ int main() {
   hidden.width = hidden.height = 0;
   apply_grid_card_corners(&hidden, 14, true);
   assert(card_uses_continuous_corners(&hidden) && !hidden.mask);
+  set_grid_card_child_clipping(&hidden, true);
+  assert(hidden.clip_corner); // No mask yet: retain native clipping.
   hidden.width = 145; hidden.height = 140;
   send(hidden, LV_EVENT_SIZE_CHANGED);
   assert(binding_for(&hidden)->mask->radius == 14);
+  assert(!hidden.clip_corner); // The acquired mask now owns child clipping.
+  hidden.width = 30; hidden.height = 30;
+  send(hidden, LV_EVENT_SIZE_CHANGED);
+  assert(!hidden.mask && hidden.clip_corner); // Unsupported geometry falls back.
+  hidden.width = 145; hidden.height = 140;
+  send(hidden, LV_EVENT_SIZE_CHANGED);
+  assert(hidden.mask && !hidden.clip_corner);
+  set_grid_card_child_clipping(&hidden, false);
+  hidden.width = 30; hidden.height = 30;
+  send(hidden, LV_EVENT_SIZE_CHANGED);
+  assert(!hidden.clip_corner); // Ordinary cards no longer inherit the override.
   send(hidden, LV_EVENT_DELETE);
   assert(mask_cache() == nullptr);
 }

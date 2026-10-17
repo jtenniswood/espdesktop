@@ -323,9 +323,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   if (cover_card) {
     const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
         static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    // The continuous bitmap mask already clips the card and its children.
-    // Native radius clipping would cut that shape a second time.
-    lv_obj_set_style_clip_corner(slot.btn, !card_uses_continuous_corners(slot.btn), LV_PART_MAIN);
+    set_grid_card_child_clipping(slot.btn, true);
     lv_obj_set_style_border_post(slot.btn, true, LV_PART_MAIN);
     lv_obj_set_style_border_width(slot.btn, 3, LV_PART_MAIN);
     lv_obj_set_style_border_width(slot.btn, 3, checked);
@@ -357,6 +355,7 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   if (source && source->cover_card) {
     const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
         static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
+    set_grid_card_child_clipping(slot.btn, false);
     lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_CLIP_CORNER, LV_PART_MAIN);
     lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_POST, LV_PART_MAIN);
     lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_BORDER_WIDTH, LV_PART_MAIN);
