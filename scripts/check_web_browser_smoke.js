@@ -2786,6 +2786,81 @@ async function assertNewMediaCardDefaults(page, posts, label) {
   );
 }
 
+async function assertContextAppIconSize(browser, testCase) {
+  if (!testCase.companionSupported) return;
+  for (const native of [false, true]) {
+    const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_hide_label,card_off_color=123ABC";
+    fixture.document.subpages[3] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto,,,,app_hide_label";
+    const legacyTextState = {};
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    const menu = page.locator(".sp-ctx-menu");
+    const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
+    const stored = () => native ? fixture.document.buttons[1] : legacyTextState.button_1_config;
+    const waitForSaved = async predicate => {
+      const deadline = Date.now() + 10000;
+      while (!predicate() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
+      assert(predicate(), "icon size persisted");
+    };
+    async function openSize() {
+      await card(1).click({ button: "right" });
+      await menu.getByRole("button", { name: "Mac app icon size", exact: true }).click();
+      return menu.getByRole("group", { name: "Mac app icon size", exact: true });
+    }
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await seedNativeDocument(page, fixture);
+      const originalBounds = await card(1).boundingBox();
+      for (const [label, token] of [["Medium", "app_icon_medium"], ["Large", "app_icon_fill"], ["Small", ""]]) {
+        const group = await openSize();
+        await group.getByRole("button", { name: label, exact: true }).click();
+        await waitForSaved(() => stored() && (token ? stored().includes(token) :
+          !stored().includes("app_icon_medium") && !stored().includes("app_icon_fill")));
+        assert(stored().includes("app_hide_label") && stored().includes("card_off_color=123ABC"),
+          "size changes preserve label visibility and custom colours");
+        if (token) assert(!stored().includes(token === "app_icon_fill" ? "app_icon_medium" : "app_icon_fill"),
+          "size options are mutually exclusive");
+        const reopened = await openSize();
+        assert.strictEqual(await reopened.getByRole("button", { name: label, exact: true }).getAttribute("aria-pressed"), "true");
+        assert.strictEqual(await reopened.locator('[aria-pressed="true"]').count(), 1);
+        await page.keyboard.press("Escape");
+      }
+      const resizedBounds = await card(1).boundingBox();
+      assert.deepStrictEqual([resizedBounds.width, resizedBounds.height], [originalBounds.width, originalBounds.height],
+        "icon size leaves the card dimensions unchanged");
+      await card(2).click({ button: "right" });
+      assert.strictEqual(await menu.getByRole("button", { name: "Mac app icon size", exact: true }).count(), 0,
+        "other card types do not offer Mac app icon sizing");
+      await page.keyboard.press("Escape");
+      await page.locator(".sp-brand").click();
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.locator(".sp-back-btn").waitFor();
+      const subGroup = await openSize();
+      await subGroup.getByRole("button", { name: "Medium", exact: true }).click();
+      await waitForSaved(() => native ? fixture.document.subpages[3].includes("app_icon_medium") :
+        Object.entries(legacyTextState).some(([key, value]) => key.startsWith("subpage_3_config") && value.includes("app_icon_medium")));
+      await page.locator(".sp-back-btn .sp-back-hit").click();
+      if (native) {
+        await page.route("**/api/v1/config/**", route => route.request().method() === "PUT"
+          ? route.fulfill({ status: 409, body: "generation conflict" }) : route.fallback());
+        const group = await openSize();
+        await group.getByRole("button", { name: "Large", exact: true }).click();
+        await page.getByText("Could not save the icon size. Reload the configuration and try again.", { exact: true }).waitFor();
+        const restored = await openSize();
+        assert.strictEqual(await restored.getByRole("button", { name: "Small", exact: true }).getAttribute("aria-pressed"), "true",
+          "failed writes restore the previous icon size");
+      }
+      assert.deepStrictEqual(errors, [], "icon size menu has no browser errors");
+    } finally { await context.close(); }
+  }
+}
+
 async function assertContextColourPicker(browser, testCase) {
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
@@ -6918,6 +6993,7 @@ async function runCase(browser, testCase) {
     await assertSpeakerGroupEditorAndPreview(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {
       await assertContextColourPicker(browser, testCase);
+      await assertContextAppIconSize(browser, testCase);
       await assertCardActiveColourControls(page, posts, testCase.name);
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
@@ -8204,6 +8280,11 @@ async function assertCameraScreensaverDimming(browser, testCase) {
         } finally { await context.close(); }
       }
       console.log(`Card title browser checks passed for ${ACTIVE_CASES.length} layouts.`);
+      return;
+    }
+    if (process.env.ESPDESKTOP_CONTEXT_ICON_SIZE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertContextAppIconSize(browser, testCase);
+      console.log("Mac app icon size context menu passed for native and legacy saves, main cards and subpages.");
       return;
     }
     if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
