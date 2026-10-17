@@ -628,8 +628,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-color-swatch input{position:absolute;inset:-8px;width:calc(100% + 16px);" +
         "height:calc(100% + 16px);cursor:pointer;opacity:0}" +
         ".sp-color-row .sp-input{flex:1}" +
-        ".sp-companion-app-colour-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}" +
-        ".sp-companion-app-colour-mode .sp-action-btn[aria-pressed='true']{border-color:var(--accent);color:var(--accent)}" +
         ".sp-companion-app-icon-size{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:10px 0}" +
         ".sp-companion-app-icon-size>.sp-field-label{margin:0}" +
         ".sp-companion-app-icon-size-control{position:relative;width:100%;max-width:none}" +
@@ -645,10 +643,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "background:transparent;color:var(--text);font:inherit;font-size:var(--text-md);text-align:left;cursor:pointer}" +
         ".sp-companion-app-icon-size-option:hover,.sp-companion-app-icon-size-option:focus-visible," +
         ".sp-companion-app-icon-size-option.sp-active{background:var(--accent-soft);outline:none}" +
-        ".sp-companion-app-colour-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}" +
-        ".sp-companion-app-colour-swatch{aspect-ratio:1;border:2px solid rgba(255,255,255,.22);border-radius:8px;cursor:pointer}" +
-        ".sp-companion-app-colour-swatch:hover{transform:scale(1.06);border-color:var(--text)}" +
-        ".sp-companion-app-colour-swatch[aria-pressed='true']{outline:2px solid var(--accent);outline-offset:2px}" +
         COLOR_SWATCH_STYLES +
         ".sp-card-color-editor{display:flex;flex-direction:column;gap:24px}" +
         ".sp-card-color-editor .sp-field{margin-bottom:0}" +

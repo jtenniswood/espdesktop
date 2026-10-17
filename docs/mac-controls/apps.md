@@ -17,7 +17,7 @@ The card uses the app's friendly name by default. Enter a custom title in its se
 
 For Mac app cards, right-click the card in the preview and choose **Mac app icon size → Small, Medium or Large** to save a size directly. The current size is marked with a tick. You can also change **Mac app icon** in Card Settings, above **Show label**.
 
-App cards use the normal card theme by default. Use **Choose colour** in the card settings to set a background, or **Default colour** to return to the theme. Backgrounds are not generated from app icons.
+App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
 Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac.
 

@@ -970,7 +970,7 @@ export function createButtonSettingsFeature(
                     saveField("options", b.options);
                     renderPreview();
                 }, () => {
-                    b.options = withoutCardColorOptions(b.options);
+                    b.options = setCardColor(withoutCardColorOptions(b.options), "");
                     customActiveColor = "";
                     syncActiveColorControls();
                     saveField("options", b.options);

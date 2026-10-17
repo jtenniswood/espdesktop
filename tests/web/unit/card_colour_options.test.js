@@ -7,6 +7,21 @@ const { loadBuiltWebSource } = require("../../../scripts/web_source");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
 const colours = loadTypescriptTest("src/webserver/model/config_primitives.ts");
 
+test("shared colour changes and resets clear legacy Mac app backgrounds", () => {
+  const options = "app_bg_color=12ABEF,app_icon_fill,card_off_color=6633B9,card_active_color=custom,card_on_color=FFFFFF";
+  const reset = colours.setCardColor(options, "");
+  assert.equal(colours.configOptionValue(reset, "app_bg_color"), "");
+  assert.equal(colours.configOptionValue(reset, "card_off_color"), "");
+  assert(reset.includes("app_icon_fill"));
+  assert(reset.includes("card_on_color=FFFFFF"));
+  const recoloured = colours.setCardColor(options, "#123abc");
+  assert.equal(colours.configOptionValue(recoloured, "app_bg_color"), "");
+  assert.equal(colours.configOptionValue(recoloured, "card_off_color"), "123ABC");
+  const resetAll = colours.setCardColor(colours.withoutCardColorOptions(options), "");
+  assert.equal(resetAll, "app_icon_fill");
+  assert.equal(colours.setCardColor("app_bg_color=12ABEF,app_icon_fill", ""), "app_icon_fill");
+});
+
 test("active colour choices preserve the background and resolve the selected active colour", () => {
   let options = "active_color,card_off_color=3F51B5";
   assert.equal(colours.cardActiveColorMode(options), "matching");
