@@ -4,6 +4,7 @@ import type { SlotSizeMap } from "../model/grid";
 
 export interface DeviceConfigFeatures {
   internalRelays?: readonly { readonly key: string; readonly label: string }[];
+  gridSizeOptions?: readonly string[];
   screenRotation?: boolean;
   screenRotationDefault?: string;
   screenRotationDisplayLabels?: Readonly<Record<string, string>>;
@@ -234,6 +235,9 @@ export interface AppState {
   ntpServer1: string;
   ntpServer2: string;
   ntpServer3: string;
+  gridSize: string;
+  gridSizeSupported: boolean;
+  gridSizeInitialReady: boolean;
   screenRotation: string;
   screenRotationOptions: string[];
   screenRotationDeviceOptions: readonly string[] | null;

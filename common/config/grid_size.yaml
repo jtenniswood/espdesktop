@@ -1,0 +1,20 @@
+# Square displays keep their existing layout until 4x4 is selected.
+select:
+  - platform: template
+    id: grid_size_select
+    name: "${entity_grid_size}"
+    internal: true
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: "3x3"
+    options:
+      - "3x3"
+      - "4x4"
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(screen_rotation_ready);'
+            then:
+              - script.execute: refresh_button_grid

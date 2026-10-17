@@ -95,8 +95,8 @@
     "purpose": "Caps runtime grid allocation to six slots.",
     "remove_when": "Grid slot capacity is generated from device profile data."
   },
-  "ESPDESKTOP_MAX_GRID_SLOTS=9": {
-    "purpose": "Caps runtime grid allocation to nine slots.",
+  "ESPDESKTOP_MAX_GRID_SLOTS=16": {
+    "purpose": "Caps runtime grid allocation to sixteen slots for selectable 3×3 and 4×4 square grids.",
     "remove_when": "Grid slot capacity is generated from device profile data."
   },
   "LV_USE_BIDI=1": {

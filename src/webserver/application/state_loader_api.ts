@@ -111,7 +111,10 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
         });
     }
     function loadInitialState(this: any, handleState?: any, onLoaded?: any) {
-        loadStateItems(cardStateEntities(), handleState, 4).then(function (this: any, loadedCount?: any) {
+        const layoutReady = layout.config.features?.gridSizeOptions
+            ? loadStateItems(entityStateItems(["grid_size"]), handleState, 1)
+            : Promise.resolve(0);
+        layoutReady.then(() => loadStateItems(cardStateEntities(), handleState, 4)).then(function (this: any, loadedCount?: any) {
             if (loadedCount === 0) {
                 setConfigLocked(true, "Reconnecting to device\u2026");
                 showBanner("Reconnecting to device\u2026", "offline");

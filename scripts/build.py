@@ -3907,6 +3907,16 @@ def gen_device_grid_snippet(capability):
             f"The home screen uses a **{rows}-row x {cols}-column** grid, giving you "
             f"**{slots} card slots**. Touch subpages are not available on this device.\n\n"
         )
+    if capability.get("gridSizeOptions"):
+        layout_text = (
+            "The home screen starts with a **3-row x 3-column** grid. In "
+            "**Screen > Display > Grid size**, choose a **4-row x 4-column** grid for "
+            f"**{slots} card slots**. The choice is saved across restarts. Cards outside "
+            "the smaller grid are kept when you switch back to 3 × 3. "
+            "The setting requires firmware with grid size support.\n\n"
+            f"[Subpage](/features/subpages) folders have the same grid size, with one "
+            f"space reserved for Back (up to {slots - 1} cards in 4 × 4).\n\n"
+        )
     return (
         generated_markdown_header("SCREEN GRID CAPABILITIES") +
         layout_text +

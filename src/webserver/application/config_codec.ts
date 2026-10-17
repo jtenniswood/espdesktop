@@ -204,7 +204,7 @@ export function createConfigCodecFeature(
             (b.type === "media" && mediaEditorMode(b.sensor) === "cover_art")));
     }
     function cardSupportsSquareMaxSizes(this: any, b?: any) {
-        return !cardIsWifiSharing(b) && layout.gridRows === 3 && layout.gridCols === 3;
+        return !cardIsWifiSharing(b) && ((layout.gridRows === 3 && layout.gridCols === 3) || !!layout.config.features?.gridSizeOptions);
     }
     function cardSupportsPortraitLargeSize(this: any, b?: any) {
         return cardSupportsMaxSize(b) && layout.gridRows >= 4 && layout.gridCols >= 3;

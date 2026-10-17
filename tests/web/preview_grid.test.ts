@@ -19,6 +19,20 @@ function deepEqual(actual: unknown, expected: unknown, message: string): void {
 }
 
 export function runPreviewGridTests(): void {
+  for (const subpage of [false, true]) {
+    const full = Array.from({ length: 16 }, (_, i) => subpage && i === 0 ? -2 : i + 1);
+    const sizes = {};
+    applySpans(full, sizes, 9, 3, subpage ? 16 : 9);
+    equal(full.length, 16, "smaller square grid keeps full storage capacity");
+    equal(full.filter(value => value > 0).length, subpage ? 15 : 16, "shrinking preserves every card");
+    const encoded = subpage ? serializeSubpageGrid(full, sizes) : serializeGridOrder(full, sizes);
+    const restored = subpage
+      ? buildSubpageGrid({ order: encoded as string[], buttons: Array<any>(16).fill({}) }, 16, 4)
+      : parseGridOrder(encoded as string, 16, 4);
+    deepEqual(restored.grid, Array.from({ length: 16 }, (_, i) => subpage && i === 0 ? -2 : i + 1),
+      "saved 3x3 layouts restore all sixteen spaces when expanded");
+  }
+
 
   for (const back of [false, true]) {
     const saved = [back ? -2 : 1, 2, 3, ...Array<number>(15).fill(0), 19, 20];

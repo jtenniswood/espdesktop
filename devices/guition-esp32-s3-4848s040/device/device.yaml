@@ -109,6 +109,20 @@ espdesktop:
         subpage_chunks: [subpage_8_config, subpage_8_config_ext, subpage_8_config_ext_2, subpage_8_config_ext_3]
       - config: button_9_config
         subpage_chunks: [subpage_9_config, subpage_9_config_ext, subpage_9_config_ext_2, subpage_9_config_ext_3]
+      - config: button_10_config
+        subpage_chunks: [subpage_10_config, subpage_10_config_ext, subpage_10_config_ext_2, subpage_10_config_ext_3]
+      - config: button_11_config
+        subpage_chunks: [subpage_11_config, subpage_11_config_ext, subpage_11_config_ext_2, subpage_11_config_ext_3]
+      - config: button_12_config
+        subpage_chunks: [subpage_12_config, subpage_12_config_ext, subpage_12_config_ext_2, subpage_12_config_ext_3]
+      - config: button_13_config
+        subpage_chunks: [subpage_13_config, subpage_13_config_ext, subpage_13_config_ext_2, subpage_13_config_ext_3]
+      - config: button_14_config
+        subpage_chunks: [subpage_14_config, subpage_14_config_ext, subpage_14_config_ext_2, subpage_14_config_ext_3]
+      - config: button_15_config
+        subpage_chunks: [subpage_15_config, subpage_15_config_ext, subpage_15_config_ext_2, subpage_15_config_ext_3]
+      - config: button_16_config
+        subpage_chunks: [subpage_16_config, subpage_16_config_ext, subpage_16_config_ext_2, subpage_16_config_ext_3]
 # ---------------------------------------------------------------------------
 # ESPHome core (device name from substitutions)
 # ---------------------------------------------------------------------------
@@ -123,7 +137,7 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   build_flags:
-    - "-DESPDESKTOP_MAX_GRID_SLOTS=9"
+    - "-DESPDESKTOP_MAX_GRID_SLOTS=16"
     - "-DESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS=2"
     - "-DESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1"
     - "-DESPDESKTOP_LOW_HEAP_COVER_ART=1"

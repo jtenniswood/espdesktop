@@ -314,6 +314,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 screensaver_dimmed_brightness_night: normalizeScreensaverDimmedBrightness(state.screensaverDimmedBrightnessNight),
                 screensaver_timeout: state.screensaverTimeout,
                 home_screen_timeout: state.homeScreenTimeout,
+                grid_size: state.gridSize,
                 screen_rotation: state.screenRotation,
             },
             screen: {
@@ -462,7 +463,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 // the complete layout has been accepted by the target firmware.
                 cancelMainGridSave();
                 var activeGridCols: any = controllers.layout.gridCols;
+                var activePreviewSlots = controllers.layout.previewSlots;
                 controllers.layout.gridCols = importedGridCols;
+                if (controllers.layout.config.features?.gridSizeOptions)
+                    controllers.layout.previewSlots = importedGridCols * importedGridCols;
                 try {
                     state.buttons = [];
                     for (var canonicalButtonIndex: any = 0; canonicalButtonIndex < controllers.layout.numSlots; canonicalButtonIndex++)
@@ -479,6 +483,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 }
                 finally {
                     controllers.layout.gridCols = activeGridCols;
+                    controllers.layout.previewSlots = activePreviewSlots;
                 }
                 state.onColor = nativeDocument.settings.button_on_color;
                 if (els.setOnColor && els.setOnColor._syncColor)
@@ -589,6 +594,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postScreensaverDimmedBrightnessNight(importedScreensaverDimmedBrightnessNight);
                     postScreensaverTimeout(importedSettings.screensaverTimeout);
                     postHomeScreenTimeout(importedSettings.homeScreenTimeout);
+                    if (controllers.layout.config.features?.gridSizeOptions && state.gridSizeSupported)
+                        postSelect(entityName("grid_size"), importedSettings.gridSize);
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
@@ -657,6 +664,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverDimmedBrightnessNight = importedScreensaverDimmedBrightnessNight;
                     state.screensaverTimeout = importedSettings.screensaverTimeout;
                     state.homeScreenTimeout = importedSettings.homeScreenTimeout;
+                    if (controllers.layout.config.features?.gridSizeOptions && state.gridSizeSupported) {
+                        state.gridSize = importedSettings.gridSize;
+                        const gridSizeSelect = document.getElementById("sp-set-grid-size") as HTMLSelectElement | null;
+                        if (gridSizeSelect) gridSizeSelect.value = state.gridSize;
+                    }
                     state.screenRotation = importedScreenRotation;
                     syncTemperatureUi();
                     syncClockBarUi();

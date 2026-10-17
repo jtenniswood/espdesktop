@@ -892,6 +892,8 @@ def load_device_profiles(path: Path = DEVICE_MANIFEST) -> dict[str, dict[str, An
 
 def web_features(profile: dict[str, Any]) -> dict[str, Any]:
     features: dict[str, Any] = {}
+    if profile["layout"].get("gridSizeOptions"):
+        features["gridSizeOptions"] = profile["layout"]["gridSizeOptions"]
     package = profile["firmware"]["package"]
     rotation = profile.get("rotation") or {}
     if rotation.get("enabled"):
@@ -963,6 +965,7 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
         "slots": profile["slots"],
         "cols": layout["cols"],
         "grid": layout["firmwareGrid"],
+        "grid_size_options": layout.get("gridSizeOptions"),
         "small_text_font": fonts.get("smallText"),
         "icon_font": fonts["icon"],
         "sensor_font": fonts["sensor"],
@@ -1022,6 +1025,8 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
         slot["refresh_rebuilds_subpages"] = True
     if rotation.get("rotateWidthCompensation"):
         slot["rotate_width_compensation"] = True
+    if layout.get("gridSizeOptions"):
+        slot["refresh_rebuilds_subpages"] = True
     return slot
 
 
@@ -1058,6 +1063,8 @@ def public_device_capability(profile: dict[str, Any]) -> dict[str, Any]:
         "ethernetManualInstall": bool(package.get("ethernetSelectable")),
         "subpages": "subpage" not in profile["web"].get("disabledCardTypes", []),
     }
+    if profile["layout"].get("gridSizeOptions"):
+        capability["gridSizeOptions"] = profile["layout"]["gridSizeOptions"]
     return capability
 
 

@@ -278,9 +278,9 @@ export function createApplicationLayoutState(
     config,
     numSlots: config.slots,
     totalSlots: config.slots,
-    previewSlots: config.slots,
-    gridCols: config.cols,
-    gridRows: config.rows,
+    previewSlots: config.features?.gridSizeOptions ? 9 : config.slots,
+    gridCols: config.features?.gridSizeOptions ? 3 : config.cols,
+    gridRows: config.features?.gridSizeOptions ? 3 : config.rows,
   };
 }
 

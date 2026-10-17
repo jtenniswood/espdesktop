@@ -7187,6 +7187,65 @@ async function assertResetControls(browser) {
   }
 }
 
+async function assertGridSize(browser, testCase) {
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  const nativeState = nativeConfigState(testCase.slug);
+  for (let slot = 1; slot <= 16; slot++) nativeState.document.buttons[slot] = `light.test_${slot};Card ${slot};Lightbulb`;
+  nativeState.document.settings.button_order = Array.from({ length: 16 }, (_, i) => i + 1).join(",");
+  nativeState.document.subpages = {};
+  const posts = [];
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  page.on("request", request => {
+    if (request.method() === "POST") posts.push(request.url());
+  });
+  await installFakeEventSource(page);
+  const sizeEvent = value => ({ id: "select-screen__grid_size", state: value, value, option: ["3x3", "4x4"] });
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    await page.getByRole("heading", { name: "Grid size", exact: true }).click();
+    const select = page.locator("#sp-set-grid-size");
+    assert(await select.isDisabled(), "older firmware cannot select an unsupported layout");
+    await page.evaluate(event => window.__seedEspState([event]), sizeEvent("3x3"));
+    assert.strictEqual(await select.inputValue(), "3x3");
+    assert(await select.isEnabled());
+    // Use computed tracks to cover the live preview's layout, including blank cells.
+    const columns = () => page.evaluate(() => document.documentElement.style.getPropertyValue("--grid-cols"));
+    assert((await columns()).includes("repeat(3,"));
+    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 9);
+    const saved = page.waitForRequest(request => request.method() === "POST" && request.url().includes("screen__grid_size"));
+    await select.selectOption("4x4");
+    assert((await columns()).includes("repeat(4,"));
+    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 16);
+    await saved;
+    await select.selectOption("3x3");
+    assert((await columns()).includes("repeat(3,"));
+    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 9);
+    await select.selectOption("4x4");
+    assert((await columns()).includes("repeat(4,"));
+    assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 16);
+    await openBackupControls(page);
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export", exact: true }).click();
+    const download = await downloading;
+    const backup = JSON.parse(fs.readFileSync(await download.path(), "utf8"));
+    assert.strictEqual(backup.settings.grid_size, "4x4", "backups store grid choice");
+    assert(backup.button_order.includes("16"), "switching back and forth preserves the final card");
+    // Simulate a restored setting arriving before the card order on reconnect.
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    nativeState.document.settings.button_order = "1l,,,,,,,,,,,,13,14,15,16";
+    await page.evaluate(events => window.__seedEspState(events), [...nativeDocumentEvents(nativeState.document), sizeEvent("4x4")]);
+    await page.waitForFunction(() => document.documentElement.style.getPropertyValue("--grid-cols").includes("repeat(4,"));
+    assert(await page.locator('.sp-main [data-slot="1"]').evaluate(el => el.classList.contains("sp-btn-landscape-large")),
+      "late grid-size state must not downgrade a saved four-column card");
+    assert(posts.some(url => url.includes("screen__grid_size")), "grid choice is posted to the device");
+  } finally { await context.close(); }
+}
+
 async function assertNamingOfflineBackups(browser) {
   const testCase = ACTIVE_CASES[0];
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -8178,6 +8237,12 @@ async function assertCameraScreensaverDimming(browser, testCase) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_GRID_SIZE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES.filter(item => ["esp32-p4-86", "guition-esp32-s3-4848s040"].includes(item.slug)))
+        await assertGridSize(browser, testCase);
+      console.log("Grid size browser checks passed for both square displays.");
+      return;
+    }
     if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
       await assertColourSwatches(browser);
       console.log("Card and Appearance colour swatch browser checks passed.");
@@ -8243,6 +8308,8 @@ async function assertCameraScreensaverDimming(browser, testCase) {
       console.log(`Card curve preset checks passed for ${ACTIVE_CASES.length} generated layouts.`);
       return;
     }
+    for (const testCase of ACTIVE_CASES.filter(item => ["esp32-p4-86", "guition-esp32-s3-4848s040"].includes(item.slug)))
+      await assertGridSize(browser, testCase);
     await assertCardCurveSettings(browser, ACTIVE_CASES[0]);
     for (const testCase of ACTIVE_CASES) {
       await assertContinuousPreview(browser, testCase);

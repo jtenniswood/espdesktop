@@ -125,4 +125,5 @@ substitutions:
   entity_esp32_c6_latest_firmware: "ESP32-C6: Latest Firmware"
   entity_esp32_c6_check_for_update: "Firmware ESP32-C6: Check for Update"
   entity_esp32_c6_install_update: "Firmware ESP32-C6: Install Update"
+  entity_grid_size: "Screen: Grid Size"
   entity_screen_rotation: "Screen: Rotation"

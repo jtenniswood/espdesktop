@@ -2,7 +2,7 @@
 # LVGL MAIN PAGE - Top-layer HUD and button grid
 # =============================================================================
 # Defines the primary UI: a top-layer overlay with temperature and clock
-# labels, and the main page containing a 3x3 grid of 9 button widgets.
+# labels, and the main page containing a selectable grid of up to 16 button widgets.
 # Uses LVGL grid layout for sparse cell placement on the 480x480 display.
 # pad_top clears the top-layer clock bar with a little breathing room.
 # sensors.yaml unhides and places active ones at boot via grid cell coords.
@@ -90,15 +90,15 @@ lvgl:
                 text_color: $theme_text_primary_color
 
   # ---------------------------------------------------------------------------
-  # Main page (fixed 3x3 grid of button widgets)
+  # Main page (selectable 3x3 or 4x4 grid of button widgets)
   # ---------------------------------------------------------------------------
   pages:
     - id: main_page
       scrollbar_mode: "off"
       layout:
         type: grid
-        grid_columns: [FR(1), FR(1), FR(1)]
-        grid_rows: [FR(1), FR(1), FR(1)]
+        grid_columns: [FR(1), FR(1), FR(1), FR(1)]
+        grid_rows: [FR(1), FR(1), FR(1), FR(1)]
         pad_row: ${main_page_card_gap}
         pad_column: ${main_page_card_gap}
       width: 100%
@@ -119,6 +119,13 @@ lvgl:
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "7" } }
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "8" } }
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "9" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "10" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "11" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "12" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "13" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "14" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "15" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "16" } }
 
 interval:
   - interval: 500ms

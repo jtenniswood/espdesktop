@@ -954,6 +954,10 @@ int main() {
   parse_order_for_layout("19w,20,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18", 20, 20, portrait_order);
   assert(portrait_order.positions[0] == 19 && portrait_order.positions[1] == 20);
   assert(portrait_order.col_span[18] == 2);
+  parse_order_for_layout("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16", 16, 9, portrait_order, 3);
+  for (int i = 0; i < 9; ++i) assert(portrait_order.positions[i] == i + 1);
+  parse_order_for_layout("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16", 16, 16, portrait_order, 4);
+  for (int i = 0; i < 16; ++i) assert(portrait_order.positions[i] == i + 1);
   parse_order_for_layout("1,,,2", 0, 6, portrait_order);
   assert(portrait_order.positions[0] == 1 && portrait_order.positions[3] == 2);
 

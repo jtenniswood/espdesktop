@@ -60,7 +60,7 @@
       "temperatureDegreeSymbol": true,
       "subpageChevron": true,
       "timezone": "Europe/London (GMT+0)",
-      "temperatureUnit": "°F",
+      "temperatureUnit": "\u00b0F",
       "language": "en",
       "clockFormat": "12h",
       "hasNtpServer1": false,
@@ -104,7 +104,8 @@
       "clockDate": false,
       "coverArtPlaybackControl": true,
       "coverArtHomeAssistantHost": "",
-      "screensaverCameraDimming": 0
+      "screensaverCameraDimming": 0,
+      "gridSize": "3x3"
     },
     "screenInput": {
       "brightness_day": 80,

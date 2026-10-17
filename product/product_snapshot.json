@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 45,
-    "entityNames": 113,
+    "entityNames": 114,
     "icons": 397,
     "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
@@ -1428,7 +1428,7 @@
     },
     "esp32-p4-86": {
       "slug": "esp32-p4-86",
-      "slots": 9,
+      "slots": 16,
       "capabilities": {
         "imageSlots": 6
       },
@@ -1440,9 +1440,13 @@
         "orientation": "Square"
       },
       "layout": {
-        "cols": 3,
-        "rows": 3,
-        "firmwareGrid": "3x3"
+        "cols": 4,
+        "rows": 4,
+        "firmwareGrid": "4x4",
+        "gridSizeOptions": [
+          "3x3",
+          "4x4"
+        ]
       },
       "rotation": {
         "enabled": true,
@@ -1638,7 +1642,7 @@
     },
     "guition-esp32-s3-4848s040": {
       "slug": "guition-esp32-s3-4848s040",
-      "slots": 9,
+      "slots": 16,
       "capabilities": {
         "imageSlots": 2,
         "companion": true
@@ -1651,9 +1655,13 @@
         "orientation": "Square"
       },
       "layout": {
-        "cols": 3,
-        "rows": 3,
-        "firmwareGrid": "3x3"
+        "cols": 4,
+        "rows": 4,
+        "firmwareGrid": "4x4",
+        "gridSizeOptions": [
+          "3x3",
+          "4x4"
+        ]
       },
       "rotation": {
         "enabled": true,
@@ -8200,6 +8208,14 @@
         ],
         "groups": [
           "settings"
+        ]
+      },
+      {
+        "key": "grid_size",
+        "domain": "select",
+        "name": "Screen: Grid Size",
+        "groups": [
+          "settings_optional"
         ]
       },
       {

@@ -160,6 +160,8 @@ def package_file_text(device: dict) -> str:
             include_line("device", "!include device/device.yaml"),
         ]
     )
+    if device.get("grid_size_options"):
+        lines.append(include_line("grid_size", "!include ../../common/config/grid_size.yaml"))
     if package.get("touchscreenPackage"):
         lines.append(
             include_line("touchscreen", f"!include device/touchscreen{network_suffix}.yaml")
@@ -362,6 +364,16 @@ def cfg_lines(device: dict) -> list[str]:
             lines.append("            cfg.width_compensation_vertical = portrait;")
     else:
         lines.append(f"            cfg.cols = {device['cols']};")
+    if device.get("grid_size_options"):
+        lines.extend([
+            f"            cfg.configured_slots = {device['slots']};",
+            '            if (id(grid_size_select).current_option() != "4x4") {',
+            "              cfg.num_slots = 9;",
+            "              cfg.cols = 3;",
+            "            }",
+        ])
+        for slot in range(device['slots']):
+            lines.append(f"            lv_obj_add_flag(slots[{slot}].btn, LV_OBJ_FLAG_HIDDEN);")
     lines.append("            cfg.subpage_chevrons_enabled = id(subpage_chevrons_enabled).state;")
     base_radius = int(device["package"]["substitutions"]["radius"].removesuffix("px"))
     substitutions = device["package"]["substitutions"]

@@ -1378,7 +1378,7 @@
       }
     },
     "esp32-p4-86": {
-      "slots": 9,
+      "slots": 16,
       "capabilities": {
         "imageSlots": 6
       },
@@ -1390,9 +1390,13 @@
         "orientation": "Square"
       },
       "layout": {
-        "cols": 3,
-        "rows": 3,
-        "firmwareGrid": "3x3"
+        "cols": 4,
+        "rows": 4,
+        "firmwareGrid": "4x4",
+        "gridSizeOptions": [
+          "3x3",
+          "4x4"
+        ]
       },
       "rotation": {
         "enabled": true,
@@ -1584,7 +1588,7 @@
       }
     },
     "guition-esp32-s3-4848s040": {
-      "slots": 9,
+      "slots": 16,
       "capabilities": {
         "imageSlots": 2,
         "companion": true
@@ -1597,9 +1601,13 @@
         "orientation": "Square"
       },
       "layout": {
-        "cols": 3,
-        "rows": 3,
-        "firmwareGrid": "3x3"
+        "cols": 4,
+        "rows": 4,
+        "firmwareGrid": "4x4",
+        "gridSizeOptions": [
+          "3x3",
+          "4x4"
+        ]
       },
       "rotation": {
         "enabled": true,

@@ -435,6 +435,7 @@ export interface BackupPanelSettingsState {
   screensaverDimmedBrightnessNight: number;
   screensaverTimeout: unknown;
   homeScreenTimeout: unknown;
+  gridSize: string;
   screenRotation: string;
 }
 
@@ -619,6 +620,7 @@ export function normalizeBackupPanelSettings(
     screensaverDimmedBrightnessNight,
     screensaverTimeout: settings.screensaver_timeout || 300,
     homeScreenTimeout: objectValue(settings, "home_screen_timeout") != null ? settings.home_screen_timeout : 60,
+    gridSize: settings.grid_size === "4x4" ? "4x4" : "3x3",
     screenRotation: normalizeScreenRotationValue(settings.screen_rotation, current.screenRotationOptions),
   };
 }

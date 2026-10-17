@@ -67,6 +67,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     language: "en", languageOptions: LANGUAGE_OPTIONS.slice(), clockFormat: "24h",
     clockFormatOptions: ["12h", "24h"], customNtpServers: false, ntpServer1: NTP_SERVER_DEFAULTS[0],
     ntpServer2: NTP_SERVER_DEFAULTS[1], ntpServer3: NTP_SERVER_DEFAULTS[2],
+    gridSize: "3x3", gridSizeSupported: false, gridSizeInitialReady: !deviceConfig.features?.gridSizeOptions,
     screenRotation: deviceConfig.features?.screenRotationDefault || "0",
     screenRotationOptions: deviceConfig.features?.screenRotationOptions?.slice() || ["0", "90", "180", "270"],
     screenRotationDeviceOptions: null, screenRotationInitialReady: !deviceConfig.features?.screenRotation,

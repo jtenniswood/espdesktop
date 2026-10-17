@@ -796,6 +796,9 @@ function composeApplicationContext(): ApplicationContext {
     });
   };
   const gridColsForImportedSettings = (importedSettings: any): number => {
+    if (layout.config.features?.gridSizeOptions) {
+      return (importedSettings ? importedSettings.gridSize : state.gridSize) === "4x4" ? 4 : 3;
+    }
     const rotation = importedSettings ? importedSettings.screenRotation : state.screenRotation;
     const profile = core.isPortraitRotation(rotation) && layout.config.portrait
       ? layout.config.portrait

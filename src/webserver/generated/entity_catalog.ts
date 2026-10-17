@@ -775,6 +775,10 @@ export const ENTITY_CATALOG = {
         "firmware_esp32_c6_install_update"
       ]
     },
+    "grid_size": {
+      "domain": "select",
+      "name": "Screen: Grid Size"
+    },
     "screen_rotation": {
       "domain": "select",
       "name": "Screen: Rotation"
@@ -902,6 +906,7 @@ export const ENTITY_CATALOG = {
       "battery_percent"
     ],
     "settings_optional": [
+      "grid_size",
       "screen_rotation"
     ]
   }

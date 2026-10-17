@@ -611,6 +611,16 @@ export function createAppStateEventHandlersFeature(
                 state.customNtpServers = state.customNtpServers || hasCustomNtpServers();
                 syncNtpServerUi(runtime, syncInput);
             },
+            "select-screen__grid_size": function (this: any, val?: any, d?: any) {
+                state.gridSize = (d.value || val) === "4x4" ? "4x4" : "3x3";
+                state.gridSizeSupported = true;
+                state.gridSizeInitialReady = true;
+                var select = document.getElementById("sp-set-grid-size") as HTMLSelectElement | null;
+                if (select) { select.value = state.gridSize; select.disabled = false; }
+                syncPreviewOrientation(state.screenRotationInitialFallbackActive || state.pendingButtonOrderRaw !== null);
+                resolveInitialScreenRotationCheck();
+                renderPreview();
+            },
             "select-screen__rotation": function (this: any, val?: any, d?: any) {
                 state.screenRotation = normalizeScreenRotation(d.value || val || state.screenRotation);
                 if (d.option && Array.isArray(d.option)) {

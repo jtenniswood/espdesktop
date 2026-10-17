@@ -47,6 +47,10 @@ export function createCoreFeature(
         return value === "90" || value === "270";
     }
     function activeLayout(this: any) {
+        if (applicationLayout.config.features?.gridSizeOptions) {
+            const side = state.gridSize === "4x4" ? 4 : 3;
+            return { ...applicationLayout.config, cols: side, rows: side, slots: side * side };
+        }
         if (isPortraitRotation(state.screenRotation) && applicationLayout.config.portrait)
             return applicationLayout.config.portrait;
         return applicationLayout.config;

@@ -97,6 +97,7 @@ export function createScreenRotationFeature(
     function startInitialCheck() {
         clearInitialTimer();
         state.pendingButtonOrderRaw = null;
+        state.gridSizeInitialReady = !layout.config.features?.gridSizeOptions;
         state.screenRotationInitialFallbackActive = false;
         state.screenRotationInitialReady = !startupRequired();
         if (!state.screenRotationInitialReady) {
@@ -114,6 +115,8 @@ export function createScreenRotationFeature(
         return normalizedOrder;
     }
     function resolveInitialCheck(preservePendingButtonOrder?: any) {
+        // Square displays need their saved grid size before interpreting spans.
+        if (!state.gridSizeInitialReady && !preservePendingButtonOrder) return;
         if (state.screenRotationInitialReady && state.pendingButtonOrderRaw === null &&
             !state.screenRotationInitialFallbackActive)
             return;
