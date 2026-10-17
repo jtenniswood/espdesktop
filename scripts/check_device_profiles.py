@@ -7,6 +7,8 @@ import json
 import re
 from pathlib import Path
 
+import yaml
+
 import device_matrix
 import generate_device_slots
 from device_profiles import (
@@ -282,38 +284,52 @@ def test_companion_startup_order() -> None:
         "Companion builds must identify themselves to connector migration"
     )
 
+class _EsphomeLoader(yaml.SafeLoader):
+    """Reads ESPHome YAML, keeping the value of tags such as !include or !lambda."""
+
+
+def _construct_tagged(loader: yaml.SafeLoader, _tag: str, node: yaml.Node):
+    if isinstance(node, yaml.ScalarNode):
+        return loader.construct_scalar(node)
+    if isinstance(node, yaml.SequenceNode):
+        return loader.construct_sequence(node, deep=True)
+    return loader.construct_mapping(node, deep=True)
+
+
+_EsphomeLoader.add_multi_constructor("!", _construct_tagged)
+
 
 def test_native_panel_config_bindings(slug: str, profile: dict, device: str) -> None:
-    espdesktop = re.search(r"(?ms)^espdesktop:\n(?P<body>(?:^  .*\n|^\s*$\n)*)", device)
-    assert espdesktop, f"{slug}: device.yaml is missing its espdesktop block"
-    body = espdesktop.group("body")
-    assert "  panel_config:\n" in body, (
+    espdesktop = (yaml.load(device, _EsphomeLoader) or {}).get("espdesktop")
+    assert isinstance(espdesktop, dict), f"{slug}: device.yaml is missing its espdesktop block"
+    panel_config = espdesktop.get("panel_config")
+    assert isinstance(panel_config, dict), (
         f"{slug}: device.yaml must enable native panel configuration so "
         "cards that contain device-owned settings remain available"
     )
 
     slots = int(profile["slots"])
+    buttons = panel_config.get("buttons")
+    assert isinstance(buttons, list) and len(buttons) == slots, (
+        f"{slug}: native panel config must provide exactly {slots} button bindings"
+    )
     bindings = [
-        int(slot)
-        for slot in re.findall(r"(?m)^      - config: button_(\d+)_config$", body)
+        button.get("config") if isinstance(button, dict) else None
+        for button in buttons
     ]
-    assert bindings == list(range(1, slots + 1)), (
+    assert bindings == [f"button_{slot}_config" for slot in range(1, slots + 1)], (
         f"{slug}: native panel config bindings must cover slots 1-{slots} exactly; "
         f"found {bindings}"
     )
 
-    chunk_rows = re.findall(r"(?m)^        subpage_chunks: \[([^\n]+)\]$", body)
-    assert len(chunk_rows) == slots, (
-        f"{slug}: native panel config must provide subpage chunks for all {slots} slots"
-    )
     chunk_count = 4 if "button_template_4chunk.yaml" in (
         ROOT / "devices" / slug / "packages.yaml"
     ).read_text(encoding="utf-8") else 8
-    for slot, row in enumerate(chunk_rows, start=1):
+    for slot, button in enumerate(buttons, start=1):
         expected = [f"subpage_{slot}_config", f"subpage_{slot}_config_ext"] + [
             f"subpage_{slot}_config_ext_{suffix}" for suffix in range(2, chunk_count)
         ]
-        actual = [value.strip() for value in row.split(",")]
+        actual = button.get("subpage_chunks")
         assert actual == expected, (
             f"{slug}: slot {slot} native subpage bindings differ: {actual} != {expected}"
         )
