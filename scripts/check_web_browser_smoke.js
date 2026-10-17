@@ -7227,6 +7227,11 @@ async function assertGridSize(browser, testCase) {
     await select.selectOption("4x4");
     assert((await columns()).includes("repeat(4,"));
     assert.strictEqual(await page.locator(".sp-main [data-slot]").count(), 16);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    if (process.env.ESPDESKTOP_GRID_SIZE_ONLY === "1") {
+      fs.mkdirSync(FAILURE_DIR, { recursive: true });
+      await page.locator(".sp-screen").screenshot({ path: path.join(FAILURE_DIR, `grid-4x4-${testCase.slug}.png`) });
+    }
     await openBackupControls(page);
     const downloading = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export", exact: true }).click();
