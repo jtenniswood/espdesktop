@@ -103,7 +103,8 @@
       "clockOverlay": false,
       "clockDate": false,
       "coverArtPlaybackControl": true,
-      "coverArtHomeAssistantHost": ""
+      "coverArtHomeAssistantHost": "",
+      "screensaverCameraDimming": 0
     },
     "screenInput": {
       "brightness_day": 80,
