@@ -3091,6 +3091,23 @@ async function assertContextColourPicker(browser, testCase) {
         assert.strictEqual(await page.locator(".sp-back-btn").evaluate(el => el.style.backgroundColor), backBefore,
           `${label}: a failed Back colour restores the subpage preview`);
         assert.strictEqual(fixture.document.subpages[3], savedSubpage);
+        // A 202 has durable native data but no compatible older-firmware copy.
+        // Keep the saved colour and the controller's downgrade warning.
+        await page.route("**/api/v1/config/**", async route => {
+          if (route.request().method() !== "PUT") return route.fallback();
+          fixture.document = decodePanelConfig(new Uint8Array(route.request().postDataBuffer()));
+          fixture.generation++;
+          await route.fulfill({ status: 202, body: "legacy mirror unavailable" });
+        });
+        await openPicker(page.locator(".sp-back-btn"));
+        await menu.locator('[data-color="6036B2"]').click();
+        await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
+        assert(fixture.document.subpages[3].includes(":6036B2"));
+        await openPicker(page.locator(".sp-back-btn"));
+        assert.strictEqual(await menu.locator('[data-color="6036B2"]').getAttribute("aria-pressed"), "true",
+          `${label}: durable native saves retain their colour when the legacy mirror cannot fit`);
+        await page.keyboard.press("Escape");
+
       }
       assert.deepStrictEqual(errors, [], `${label}: colour menu has no browser errors`);
     } catch (error) {
@@ -8237,7 +8254,7 @@ async function assertS3ForecastEditorLayout(browser) {
 async function assertCameraScreensaverDimming(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   const nativeState = nativeConfigState(testCase.slug);
-  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true, connectorsStatus: { onboarding_complete: true, home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true }, mac_companion: { available: false, configured: false, paired: false, connected: false } } });
   const page = await context.newPage();
   const posts = [], errors = [];
   page.on("pageerror", error => errors.push(error.message));

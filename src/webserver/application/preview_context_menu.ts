@@ -259,7 +259,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
                 return { slot, button, previous: button.options, next: setCardColor(button.options, hex) };
             });
             const succeeded = (result: any) => result != null && result !== false &&
-                !["authentication-required", "conflict", "mirror-failed", "too-large", "failed", "unsupported"].includes(result) && result.ok !== false;
+                !["authentication-required", "conflict", "too-large", "failed", "unsupported"].includes(result) && result.ok !== false;
             savingColour = true;
             hideContextMenu();
             try {
