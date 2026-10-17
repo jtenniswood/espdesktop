@@ -2821,8 +2821,8 @@ async function assertContextAppIconSize(browser, testCase) {
     };
     async function openSize() {
       await card(1).click({ button: "right" });
-      await menu.getByRole("button", { name: "Mac app icon size", exact: true }).click();
-      return menu.getByRole("group", { name: "Mac app icon size", exact: true });
+      await menu.getByRole("button", { name: "Icon Size", exact: true }).click();
+      return menu.getByRole("group", { name: "Icon Size", exact: true });
     }
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
@@ -2872,7 +2872,7 @@ async function assertContextAppIconSize(browser, testCase) {
       assert.deepStrictEqual([resizedBounds.width, resizedBounds.height], [originalBounds.width, originalBounds.height],
         "icon size leaves the card dimensions unchanged");
       await card(2).click({ button: "right" });
-      assert.strictEqual(await menu.getByRole("button", { name: "Mac app icon size", exact: true }).count(), 0,
+      assert.strictEqual(await menu.getByRole("button", { name: "Icon Size", exact: true }).count(), 0,
         "other card types do not offer Mac app icon sizing");
       await page.keyboard.press("Escape");
       await page.locator(".sp-brand").click();

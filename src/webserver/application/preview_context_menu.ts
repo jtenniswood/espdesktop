@@ -329,7 +329,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         submenu.className = "sp-ctx-submenu";
         submenu.dataset.iconSizeSaveKey = saveKey;
         submenu.setAttribute("role", "group");
-        submenu.setAttribute("aria-label", "Mac app icon size");
+        submenu.setAttribute("aria-label", "Icon Size");
         for (const [value, label] of [["small", "Small"], ["medium", "Medium"], ["fill", "Large"], ["cover", "Fill card"]] as const) {
             const option = document.createElement("button");
             option.type = "button";
@@ -392,7 +392,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             });
             submenu.appendChild(option);
         }
-        addCtxSubmenu("image", "Mac app icon size", submenu);
+        addCtxSubmenu("image", "Icon Size", submenu);
     }
     function addBulkCardMenuItems(this: any, slots?: any) {
         addColourMenuItem(slots);
