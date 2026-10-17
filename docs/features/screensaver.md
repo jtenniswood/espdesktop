@@ -125,3 +125,7 @@ This protects local touchscreen controls, including status buttons and alarm mod
 ## Start the screensaver with a card
 
 Add the **Screensaver** card to the home screen or a subpage. It needs no Home Assistant entity. Tapping it immediately starts the selected **Then** action: Display Off, Screen Dimmed, Clock, or Camera on supported panels. It works even when automatic screensavers are disabled, presence is detected, or media is playing. Tap the screen to wake it, then enter the PIN if protection is enabled.
+
+### Camera background dimming
+
+In **Screen → Screensaver**, **Background Dimming** darkens camera or image backgrounds from 0% (original brightness) to 100% (black), while keeping the clock and metadata readable. Timer and Sensor modes share the value. It survives restarts and is included in backups. Older backups keep the current value; older firmware hides the setting.

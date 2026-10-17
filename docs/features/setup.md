@@ -44,3 +44,9 @@ Use **System → System → Backup** to save a copy of the display configuration
 The **Connectors** tab provides setup and status for Mac Companion. The EspDesktop configurator does not offer Home Assistant setup or new Home Assistant-backed cards, even if Home Assistant is already connected. Home Assistant cards already saved on a display remain in its layout.
 
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+
+## Quick card colours
+
+Right-click a preview card and open **Change Colour** to choose a preset or custom background. Select several cards to recolour them together; subpage Back cards also support this. **Reset Colour** restores the default background while preserving a separate active colour. Changes save immediately.
+
+Current firmware supports up to 4 KB per saved card or subpage record (4,095 bytes of content). The editor keeps the smaller limits when connected to older firmware. Export a backup before downgrading firmware: larger layouts cannot fit its older text storage.

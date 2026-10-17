@@ -63,9 +63,12 @@ class PanelConfigTextBindings {
 
   bool apply_document(const uint8_t *document, size_t document_size,
                       bool persist);
-  static bool write_value(PanelConfigTextValue *target, const char *value,
-                          size_t value_size, bool persist);
+  bool write_value(PanelConfigTextValue *target, const char *value,
+                   size_t value_size, bool persist);
 
+  // Runtime-only overflow can leave the preference copy behind. The next
+  // compatible mirror must rewrite even values that already match live state.
+  bool legacy_mirror_current_{true};
   std::string device_profile_;
   bool app_icon_custom_colour_control_enabled_{true};
   bool app_icon_auto_colour_generation_enabled_{true};

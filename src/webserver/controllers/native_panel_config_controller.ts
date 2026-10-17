@@ -68,6 +68,10 @@ export class NativePanelConfigController {
     ));
   }
 
+  maxConfigValueBytes(): number | null {
+    return this.client_?.maxConfigValueBytes() ?? null;
+  }
+
   supported(): boolean {
     return this.client_?.supported() ?? false;
   }
@@ -83,6 +87,8 @@ export class NativePanelConfigController {
       this.dependencies.showBanner("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", "error");
     } else if (result === "authentication-required") {
       this.dependencies.showBanner("This firmware requires web authentication for Wifi Sharing passwords. Sign in, enable web_server_auth, or update the panel firmware.", "error");
+    } else if (result === "too-large") {
+      this.dependencies.showBanner("Configuration exceeds this panel's storage capacity. Update the panel firmware for more space, or reduce the saved settings.", "error");
     } else if (result === "failed") {
       this.dependencies.showBanner("Could not save the configuration. Check the connection and try again.", "error");
     }
