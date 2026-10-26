@@ -32,6 +32,7 @@ struct lv_obj_t {
   lv_obj_t *parent = nullptr;
   lv_font_t font;
   std::vector<Event> events;
+  std::vector<lv_obj_t *> children;
 };
 struct CompanionAppIconImageData {
   bool app_icon_mode = true, image_loaded = true, layout_updating = false;
@@ -46,6 +47,11 @@ bool lv_obj_has_flag(lv_obj_t *o, int) { return o->hidden; }
 int lv_obj_get_height(lv_obj_t *o) { return o->height; }
 void lv_obj_set_size(lv_obj_t *o, int w, int h) { o->width = w; o->height = h; }
 void lv_obj_align(lv_obj_t *, int, int, int) {}
+void lv_obj_move_foreground(lv_obj_t *o) {
+  auto &children = o->parent->children;
+  children.erase(std::remove(children.begin(), children.end(), o), children.end());
+  children.push_back(o);
+}
 void lv_image_set_inner_align(lv_obj_t *, int) {}
 void *lv_event_get_user_data(lv_event_t *e) { return e->data; }
 void *lv_obj_get_user_data(lv_obj_t *o) { return o->data; }
@@ -68,7 +74,8 @@ int main() {
   std::array<uint8_t, 8 * 8 * 3> pixels;
   pixels.fill(255);
   lv_obj_t button, label, icon, fallback;
-  icon.parent = &button;
+  icon.parent = label.parent = &button;
+  button.children = {&label, &icon};
   label.height = 20;
   CompanionAppIconImageData data;
   data.pixels = pixels.data(); data.fallback_icon = &fallback; data.card_label = &label;
@@ -76,10 +83,13 @@ int main() {
   companion_track_app_icon_layout(&button, &label, &icon);
   emit(button, LV_EVENT_LAYOUT_CHANGED);
   assert(icon.height == 70);
+  assert(button.children.back() == &label);
   // A catalogue refresh wraps the app name. Only the label emits an event.
+  lv_obj_move_foreground(&icon); // Simulate artwork being raised after initial load.
   label.height = 40;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(icon.height == 50);
+  assert(button.children.back() == &label);
   label.height = 20;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(icon.height == 70);

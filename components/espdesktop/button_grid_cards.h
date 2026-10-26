@@ -153,6 +153,8 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   lv_img_set_zoom(image, static_cast<uint16_t>(std::min<uint32_t>(
       (static_cast<uint32_t>(side) * 256u + canvas - 1u) / canvas, UINT16_MAX)));
 #endif
+  // Faint icon shadows can extend beyond the fitted artwork into the label.
+  if (source.card_label) lv_obj_move_foreground(source.card_label);
   source.layout_updating = false;
 }
 
