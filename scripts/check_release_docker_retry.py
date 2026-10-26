@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise release image-pull retries without touching a Docker daemon."""
+"""Exercise release and nightly image-pull retries without touching a Docker daemon."""
 from __future__ import annotations
 
 import os
@@ -12,9 +12,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main() -> None:
-    workflow = yaml.safe_load((ROOT / '.github/workflows/release.yml').read_text())
-    steps = workflow['jobs']['build-firmware']['steps']
+def check_workflow(workflow_name: str, job_name: str) -> None:
+    workflow = yaml.safe_load((ROOT / '.github/workflows' / workflow_name).read_text())
+    steps = workflow['jobs'][job_name]['steps']
     pull = next(step['run'] for step in steps if step.get('name') == 'Pull ESPHome image')
     for locking in (False, True):
         for failures in (0, 1, 2):
@@ -65,7 +65,12 @@ export -f command
                 assert any(call.startswith('builder prune ') for call in calls) == (failures > 0), calls
                 published = (temporary / 'env').read_text() if (temporary / 'env').exists() else ''
                 assert ('ESPHOME_IMAGE=' in published) == (failures < 2), published
-    print('Release Docker retry checks passed (six success/failure and lock scenarios).')
+
+
+def main() -> None:
+    check_workflow('release.yml', 'build-firmware')
+    check_workflow('nightly-firmware.yml', 'compile')
+    print('Release and nightly Docker retry checks passed (12 success/failure and lock scenarios).')
 
 
 if __name__ == '__main__':

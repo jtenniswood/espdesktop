@@ -300,7 +300,7 @@ TASKS = (
     task("release-confidence", ("python3", "scripts/check_release_confidence.py"),
          ("python3", "scripts/check_release_docker_retry.py"),
          dependencies=("generated", "device-manifest-output"), profiles=PRODUCT,
-         domains=("product", "workflow"), inputs=("builds/**", "devices/**", "scripts/check_release_confidence.py", "scripts/check_release_docker_retry.py", "scripts/reclaim_actions_disk.sh", ".github/workflows/release.yml"),
+         domains=("product", "workflow"), inputs=("builds/**", "devices/**", "scripts/check_release_confidence.py", "scripts/check_release_docker_retry.py", "scripts/reclaim_actions_disk.sh", ".github/workflows/release.yml", ".github/workflows/nightly-firmware.yml"),
          generated_inputs=("devices/manifest.json", "docs/public/**", "docs/generated/**"), cache="never"),
     task("release-contract", ("python3", "scripts/check_release_contract.py", "--self-test"),
          ("python3", "scripts/check_release_contract.py"), dependencies=("generated", "device-manifest-output"), profiles=RELEASE,
