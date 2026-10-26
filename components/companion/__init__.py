@@ -44,6 +44,10 @@ async def to_code(config):
     cg.add_define("USE_COMPANION")
     # Native ESP-IDF builds require the TLS server in the component dependency set.
     esp32.include_builtin_idf_component("esp_https_server")
+    # Companion accepts encrypted connections; ESPHome otherwise trims TLS
+    # to the client role and the server fails at the first handshake.
+    esp32.request_tls()
+    esp32.require_mbedtls_tls_server()
     esp32.add_idf_sdkconfig_option("CONFIG_HTTPD_WS_SUPPORT", True)
     esp32.add_idf_sdkconfig_option("CONFIG_ESP_HTTPS_SERVER_ENABLE", True)
     esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_X509_CRT_WRITE_C", True)
