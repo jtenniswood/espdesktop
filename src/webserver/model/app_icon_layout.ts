@@ -22,3 +22,11 @@ export function appIconArtworkInsets(alpha: Uint8Array, side: number): { left: n
     const { left, top } = appIconArtworkBounds(alpha, side);
     return { left, top };
 }
+
+// Match firmware: reserve the rendered label height before fitting the artwork.
+export function appIconFitSide(width: number, height: number, labelHeight: number, gap: number,
+    artworkWidthFraction: number, artworkHeightFraction: number): number {
+    const freeHeight = height - labelHeight - (labelHeight > 0 ? gap : 0);
+    const fitted = Math.floor(Math.min(width / artworkWidthFraction, freeHeight / artworkHeightFraction));
+    return Math.max(1, fitted);
+}

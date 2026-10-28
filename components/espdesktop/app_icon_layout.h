@@ -12,6 +12,19 @@ struct Insets {
   uint16_t bottom = 0;
 };
 
+// Fit visible artwork above the measured label, keeping the source square.
+inline int fit_side(int width, int height, int label_height, int gap,
+                    int canvas, const Insets &insets) {
+  const int artwork_width = canvas - insets.left - insets.right;
+  const int artwork_height = canvas - insets.top - insets.bottom;
+  if (canvas <= 0 || artwork_width <= 0 || artwork_height <= 0) return 1;
+  const int free_height = height - label_height - (label_height > 0 ? gap : 0);
+  int side = width * canvas / artwork_width;
+  const int height_side = free_height * canvas / artwork_height;
+  if (height_side < side) side = height_side;
+  return side > 0 ? side : 1;
+}
+
 // Align the artwork, ignoring transparent canvas and faint macOS shadows.
 // A relative threshold also handles artwork that is intentionally translucent.
 inline Insets artwork_insets(const uint8_t *alpha, uint16_t side) {

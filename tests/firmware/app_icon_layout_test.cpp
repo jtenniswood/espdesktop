@@ -3,6 +3,15 @@
 #include "app_icon_layout.h"
 
 int main() {
+  using espdesktop::app_icon::fit_side;
+  assert(fit_side(100, 100, 0, 5, 8, {}) == 100);
+  assert(fit_side(100, 100, 20, 5, 8, {}) == 75);
+  assert(fit_side(100, 100, 40, 5, 8, {}) == 55);
+  assert(fit_side(200, 100, 40, 5, 8, {}) == 55);
+  assert(fit_side(100, 200, 40, 5, 8, {}) == 100);
+  assert(fit_side(100, 100, 40, 5, 8, {2, 2, 2, 2}) == 110);
+  assert(fit_side(100, 40, 40, 5, 8, {}) == 1);
+
   std::array<uint8_t, 64> alpha{};
   const auto check = [&](uint16_t left, uint16_t top) {
     const auto insets = espdesktop::app_icon::artwork_insets(alpha.data(), 8);
