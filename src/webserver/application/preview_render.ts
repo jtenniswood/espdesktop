@@ -2,7 +2,7 @@ import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
-import { appIconArtworkBounds } from "../model/app_icon_layout";
+import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { escHtml } from "./ui_primitives";
@@ -156,38 +156,26 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
     // Use a single measured side for square images at every card aspect ratio.
     function resizeAppIcon(button: Element): void {
-        const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon-medium,.sp-companion-app-icon-fill");
+        const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon");
         const view = document.defaultView;
         if (!icon || !view) return;
-        const cardStyle = view.getComputedStyle(button);
-        if (icon.classList.contains("sp-companion-app-icon-fill")) {
-            const artwork = appIconArtwork.get(icon);
-            if (!artwork) return;
-            const padTop = parseFloat(cardStyle.paddingTop);
-            const width = Math.max(1, button.clientWidth - parseFloat(cardStyle.paddingLeft) - parseFloat(cardStyle.paddingRight));
-            const height = Math.max(1, button.clientHeight - 2 * padTop);
-            const side = Math.max(1, Math.min(width / artwork.artworkWidthFraction, height / artwork.artworkHeightFraction));
-            icon.style.width = side + "px";
-            icon.style.height = side + "px";
-            icon.style.left = (parseFloat(cardStyle.paddingLeft) + (width - side * artwork.artworkWidthFraction) / 2 - side * artwork.insetLeftPercent / 100) + "px";
-            icon.style.top = (padTop + (height - side * artwork.artworkHeightFraction) / 2 - side * artwork.insetTopPercent / 100) + "px";
-            return;
-        }
+        const artwork = appIconArtwork.get(icon);
+        if (!artwork) return;
+        const style = view.getComputedStyle(button);
         const smallSide = parseFloat(view.getComputedStyle(icon).fontSize);
         const label = button.querySelector<HTMLElement>(".sp-btn-label");
-        let labelHeight = 0;
-        if (label && !icon.classList.contains("sp-companion-app-icon-medium-no-label")) {
-            const labelStyle = view.getComputedStyle(label);
-            labelHeight = parseFloat(labelStyle.lineHeight) || parseFloat(labelStyle.fontSize) * 1.2;
-        }
-        const width = button.clientWidth - parseFloat(cardStyle.paddingLeft) - parseFloat(cardStyle.paddingRight);
-        const height = button.clientHeight - parseFloat(cardStyle.paddingTop) - parseFloat(cardStyle.paddingBottom) -
-            labelHeight - (labelHeight > 0 ? Math.max(3, smallSide / 8) : 0);
-        const side = Math.max(1, Math.min(smallSide * 2.5, width, height) * 0.85);
-        icon.style.setProperty("--sp-app-medium-icon-side", side + "px");
+        const labelHeight = label ? label.getBoundingClientRect().height : 0;
+        const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+        const side = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 4),
+            artwork.artworkWidthFraction, artwork.artworkHeightFraction);
+        icon.style.width = side + "px";
+        icon.style.height = side + "px";
+        icon.style.left = (parseFloat(style.paddingLeft) + (width - side * artwork.artworkWidthFraction) / 2 - side * artwork.insetLeftPercent / 100) + "px";
+        icon.style.top = (parseFloat(style.paddingTop) - side * artwork.insetTopPercent / 100) + "px";
     }
     const appIconResizeObserver = typeof ResizeObserver === "function"
-        ? new ResizeObserver(entries => entries.forEach(entry => resizeAppIcon(entry.target))) : null;
+        ? new ResizeObserver(entries => entries.forEach(entry => resizeAppIcon(entry.target.closest(".sp-btn") || entry.target))) : null;
     const weatherLayout = createWeatherDailyPreviewLayout(document, dependencies.layout.config,
         () => state.screenRotation === "90" || state.screenRotation === "270");
     // ── Preview rendering (unified) ────────────────────────────────────────
@@ -391,9 +379,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const applicationId = typePreview.appIconId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
-                    const fillCard = typePreview.appIconFill === true;
-                    const mediumIcon = !fillCard && typePreview.appIconMedium === true;
-                    const mediumIconLabelHidden = mediumIcon && typePreview.appIconLabelHidden === true;
                     const loadAppIcon = function (attempt: number): void {
                         void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
                             if (!btn.isConnected) return;
@@ -404,24 +389,17 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                                 return;
                             }
                         const appIcon = document.createElement("img");
-                        appIcon.className = "sp-btn-icon sp-companion-app-icon" +
-                            (fillCard ? " sp-companion-app-icon-fill" : mediumIcon
-                                ? " sp-companion-app-icon-medium" +
-                                    (mediumIconLabelHidden ? " sp-companion-app-icon-medium-no-label" : "")
-                                : "");
-                        if (fillCard) btn.classList.add("sp-companion-app-icon-fill-card");
-                        else if (mediumIcon) btn.classList.add("sp-companion-app-icon-medium-card");
+                        appIcon.className = "sp-btn-icon sp-companion-app-icon";
+                        btn.classList.add("sp-companion-app-icon-fit-card");
                         appIcon.alt = "";
                         appIcon.setAttribute("aria-hidden", "true");
                         appIcon.src = previewIcon.dataUrl;
                         appIconArtwork.set(appIcon, previewIcon);
-                        if (!fillCard) appIcon.style.transform =
-                            "translate(-" + previewIcon.insetLeftPercent + "%, -" + previewIcon.insetTopPercent + "%)";
                         btn.appendChild(appIcon);
-                        if (mediumIcon || fillCard) {
-                            resizeAppIcon(btn);
-                            appIconResizeObserver?.observe(btn);
-                        }
+                        resizeAppIcon(btn);
+                        appIconResizeObserver?.observe(btn);
+                        const label = btn.querySelector(".sp-btn-label");
+                        if (label) appIconResizeObserver?.observe(label);
                         if (fallbackIcon) fallbackIcon.hidden = true;
                         if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
                             btn.style.backgroundColor = "#" + previewIcon.defaultColor;

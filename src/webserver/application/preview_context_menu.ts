@@ -1,5 +1,5 @@
 import { createColorSwatches } from "../components/color_swatches";
-import { configOptionEnabled, configOptionValue, setConfigOption, setCardColor } from "../model/config_primitives";
+import { configOptionValue, setCardColor } from "../model/config_primitives";
 import { companionSavedCardMode } from "../model/companion_card_codec";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -102,7 +102,6 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     // ── Context menu (unified) ─────────────────────────────────────────────
     var ctxMenu: any = null;
     // Keep the lock across menu instances; subpage cards share one saved record.
-    const pendingIconSizeSaves = new Set<string>();
     function positionMenu(this: any, menu?: any, e?: any) {
         var position: any = clampMenuPosition({ x: e.clientX, y: e.clientY }, menu.offsetWidth, menu.offsetHeight, window.innerWidth, window.innerHeight);
         menu.style.left = position.x + "px";
@@ -316,83 +315,6 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("restore", "Reset Colour", () => saveColour(""), false, submenu);
         return submenu;
     }
-    function addAppIconSizeMenuItem(slot: number) {
-        const c = ctx();
-        const card = c.buttons[slot - 1];
-        if (card?.type !== "companion" || companionSavedCardMode(card) !== "app") return;
-        const homeSlot = state.editingSubpage;
-        const saveKey = c.isSub ? "subpage:" + homeSlot : "card:" + slot;
-        const currentSize = configOptionEnabled(card.options, "app_icon_fill") ? "fill"
-            : configOptionEnabled(card.options, "app_icon_medium") ? "medium" : "small";
-        const submenu = document.createElement("div");
-        submenu.className = "sp-ctx-submenu";
-        submenu.dataset.iconSizeSaveKey = saveKey;
-        submenu.setAttribute("role", "group");
-        submenu.setAttribute("aria-label", "Mac app icon size");
-        for (const [value, label] of [["small", "Small"], ["medium", "Medium"], ["fill", "Large"]] as const) {
-            const option = document.createElement("button");
-            option.type = "button";
-            option.className = "sp-ctx-item sp-ctx-option";
-            option.disabled = pendingIconSizeSaves.has(saveKey);
-            option.setAttribute("aria-pressed", String(value === currentSize));
-            const check = mdiIcon("check");
-            check.setAttribute("aria-hidden", "true");
-            if (value !== currentSize) check.style.visibility = "hidden";
-            option.appendChild(check);
-            option.appendChild(document.createTextNode(label));
-            option.addEventListener("click", async () => {
-                hideContextMenu();
-                if (pendingIconSizeSaves.has(saveKey) || value === currentSize || isConfigLocked() || state.editingSubpage !== homeSlot ||
-                    ctx().buttons[slot - 1] !== card || !ctx().grid.includes(slot)) return;
-                const previous = card.options;
-                const next = setConfigOption(setConfigOption(previous, "app_icon_fill", value === "fill"),
-                    "app_icon_medium", value === "medium");
-                const subpage = c.isSub ? getSubpage(homeSlot) : null;
-                if (subpage) {
-                    const candidate = { ...subpage, buttons: subpage.buttons.map((button: any, index: number) =>
-                        index === slot - 1 ? { ...button, options: next } : button) };
-                    candidate.order = serializeSubpageGrid(candidate);
-                    if (!dependencies.configPersistence.subpageConfigFits(serializeSubpageConfig(candidate))) {
-                        showBanner("Subpage is too large to save. Shorten labels or entity IDs.", "error");
-                        return;
-                    }
-                } else if (new TextEncoder().encode(serializeButtonConfig({ ...card, options: next })).length >
-                    dependencies.configPersistence.buttonConfigByteLimit()) {
-                    showBanner("Card settings are too large to save. Shorten confirmation text, labels, or entity IDs.", "error");
-                    return;
-                }
-                const previousOrder = subpage?.order;
-                const previousPending = state.subpageSavePending[Number(homeSlot)];
-                pendingIconSizeSaves.add(saveKey);
-                try {
-                    card.options = next;
-                    let saved = false;
-                    try {
-                        const result = subpage ? await saveSubpageConfig(homeSlot)
-                            : await dependencies.configPersistence.saveButtonConfig(slot);
-                        saved = result != null && result !== false && result.ok !== false &&
-                            !["authentication-required", "conflict", "too-large", "failed", "unsupported"].includes(result);
-                    } catch {}
-                    if (!saved) {
-                        if (card.options === next) card.options = previous;
-                        if (subpage) {
-                            subpage.order = previousOrder!;
-                            if (previousPending === undefined) delete state.subpageSavePending[Number(homeSlot)];
-                            else state.subpageSavePending[Number(homeSlot)] = previousPending;
-                        }
-                        showBanner("Could not save the icon size. Reload the configuration and try again.", "error");
-                    }
-                    renderPreview();
-                    renderButtonSettings();
-                } finally {
-                    pendingIconSizeSaves.delete(saveKey);
-                    if (ctxMenu?.querySelector("[data-icon-size-save-key='" + saveKey + "']")) hideContextMenu();
-                }
-            });
-            submenu.appendChild(option);
-        }
-        addCtxSubmenu("image", "Mac app icon size", submenu);
-    }
     function addBulkCardMenuItems(this: any, slots?: any) {
         addColourMenuItem(slots);
         addCtxItem("clipboard-outline", "Copy " + slots.length + " Cards", function (this: any) { copyButtons(slots); });
@@ -442,7 +364,6 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         var b: any = c.buttons[slot - 1];
         addCtxItem("pencil", "Edit Card", function (this: any) { openCardSettings(slot); });
         addColourMenuItem([slot]);
-        addAppIconSizeMenuItem(slot);
         var ctxTypeDef: any = dependencies.cards.definitions[(b && b.type) || ""];
         if (ctxTypeDef && ctxTypeDef.contextMenuItems &&
             (!c.isSub || buttonTypeRegistryValue(ctxTypeDef, "allowInSubpage", false))) {
