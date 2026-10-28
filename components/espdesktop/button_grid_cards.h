@@ -193,15 +193,17 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
         lv_obj_get_style_pad_right(button, LV_PART_MAIN));
     const int available_height = std::max<int>(1, lv_obj_get_height(button) - 2 * pad_top);
     // Size the visible artwork, not the transparent macOS canvas. Keep it
-    // square, left aligned and vertically centered within equal card margins.
+    // square and centered horizontally and vertically within the card margins.
     const int target_side = std::max(1, std::min(
         available_width * canvas_side / artwork_width,
         available_height * canvas_side / artwork_height));
     const int artwork_left = (insets.left * target_side + canvas_side / 2) / canvas_side;
     const int artwork_top = (insets.top * target_side + canvas_side / 2) / canvas_side;
+    const int visible_width = (artwork_width * target_side + canvas_side / 2) / canvas_side;
     const int visible_height = (artwork_height * target_side + canvas_side / 2) / canvas_side;
     lv_obj_set_size(image, target_side, target_side);
-    lv_obj_align(image, LV_ALIGN_TOP_LEFT, -artwork_left,
+    lv_obj_align(image, LV_ALIGN_TOP_LEFT,
+                 (available_width - visible_width) / 2 - artwork_left,
                  (available_height - visible_height) / 2 - artwork_top);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
     lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);

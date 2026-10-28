@@ -169,7 +169,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             const side = Math.max(1, Math.min(width / artwork.artworkWidthFraction, height / artwork.artworkHeightFraction));
             icon.style.width = side + "px";
             icon.style.height = side + "px";
-            icon.style.left = (parseFloat(cardStyle.paddingLeft) - side * artwork.insetLeftPercent / 100) + "px";
+            icon.style.left = (parseFloat(cardStyle.paddingLeft) + (width - side * artwork.artworkWidthFraction) / 2 - side * artwork.insetLeftPercent / 100) + "px";
             icon.style.top = (padTop + (height - side * artwork.artworkHeightFraction) / 2 - side * artwork.insetTopPercent / 100) + "px";
             return;
         }
