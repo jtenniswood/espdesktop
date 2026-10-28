@@ -112,6 +112,8 @@ target_compile_features(app_icon_layout_test PRIVATE cxx_std_17)
 target_compile_options(app_icon_layout_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(app_icon_layout_test PRIVATE ../../components/espdesktop)
 add_test(NAME app_icon_layout_test COMMAND app_icon_layout_test)
+add_test(NAME app_icon_layout_events_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/app_icon_layout_events_test.py ${CMAKE_CXX_COMPILER})
 
 add_executable(companion_session_state_test companion_session_state_test.cpp)
 target_compile_features(companion_session_state_test PRIVATE cxx_std_17)
