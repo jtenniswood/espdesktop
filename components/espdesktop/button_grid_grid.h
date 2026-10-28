@@ -1561,7 +1561,11 @@ inline void companion_refresh_app_icon_visibility() {
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
     lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
-    if (image && (lv_obj_get_screen(image) != lv_scr_act() || !source->image_loaded))
+    if (!image) continue;
+    const bool visible = lv_obj_get_screen(image) == lv_scr_act();
+    // Hidden cards already using their fallback have nothing left to release.
+    // Reapplying their palette invalidates off-screen widgets on every visit.
+    if ((visible && !source->image_loaded) || (!visible && source->image_loaded))
       companion_apply_cached_app_icon(*source, image);
   }
 }

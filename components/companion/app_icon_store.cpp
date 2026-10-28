@@ -179,6 +179,9 @@ bool AppIconStore::erase_slot_locked(uint16_t slot) {
   if (!partition_ || slot >= slot_count_) return false;
   const auto *partition = static_cast<const esp_partition_t *>(partition_);
   const size_t offset = partition_offset_ + static_cast<size_t>(slot) * APP_ICON_RECORD_BYTES;
+  for (auto &entry : entries_) {
+    if (entry.valid && entry.slot == slot) entry.pixels_verified = false;
+  }
   if (esp_partition_erase_range(partition, offset, APP_ICON_RECORD_BYTES) != ESP_OK) return false;
   for (auto &entry : entries_) if (entry.valid && entry.slot == slot) entry = {};
   return true;
@@ -256,14 +259,18 @@ bool AppIconStore::copy_pixels(const std::string &application_id,
   const auto *partition = static_cast<const esp_partition_t *>(partition_);
   const size_t offset = partition_offset_ + static_cast<size_t>(slot) * APP_ICON_RECORD_BYTES + kRecordHeaderBytes;
   if (esp_partition_read(partition, offset, output, APP_ICON_PIXEL_BYTES) != ESP_OK) return false;
-  std::array<uint8_t, 32> actual{};
-  mbedtls_sha256(output, APP_ICON_PIXEL_BYTES, actual.data(), 0);
   const auto entry = std::find_if(entries_.begin(), entries_.end(), [slot](const Entry &candidate) {
     return candidate.valid && candidate.slot == slot;
   });
-  if (entry == entries_.end() || entry->hash != actual) {
-    erase_slot_locked(static_cast<uint16_t>(slot));
-    return false;
+  if (entry == entries_.end()) return false;
+  if (!entry->pixels_verified) {
+    std::array<uint8_t, 32> actual{};
+    if (mbedtls_sha256(output, APP_ICON_PIXEL_BYTES, actual.data(), 0) != 0 ||
+        entry->hash != actual) {
+      erase_slot_locked(static_cast<uint16_t>(slot));
+      return false;
+    }
+    entry->pixels_verified = true;
   }
   return true;
 #else
@@ -281,6 +288,9 @@ bool AppIconStore::write_slot_locked(uint16_t slot, const std::string &applicati
   if (!partition_ || slot >= slot_count_ || !pixels) return false;
   const auto *partition = static_cast<const esp_partition_t *>(partition_);
   const size_t offset = partition_offset_ + static_cast<size_t>(slot) * APP_ICON_RECORD_BYTES;
+  for (auto &entry : entries_) {
+    if (entry.valid && entry.slot == slot) entry.pixels_verified = false;
+  }
   if (esp_partition_erase_range(partition, offset, APP_ICON_RECORD_BYTES) != ESP_OK) return false;
   if (esp_partition_write(partition, offset + kRecordHeaderBytes, pixels,
                           APP_ICON_PIXEL_BYTES) != ESP_OK) return false;
@@ -302,6 +312,7 @@ bool AppIconStore::write_slot_locked(uint16_t slot, const std::string &applicati
   entry.hash = hash;
   entry.slot = slot;
   entry.valid = true;
+  entry.pixels_verified = false;
   return true;
 #else
   (void)slot;

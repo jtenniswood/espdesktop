@@ -167,9 +167,11 @@ inline std::function<void()> &navigation_subpage_clock_bar_refresh() {
 }
 
 inline void navigation_subpage_screen_changed(lv_event_t *) {
-  navigation_refresh_subpage_label();
+  // The device refresh includes the title and icon visibility pass. Do not
+  // repeat it here while the new page is waiting to draw.
   auto &refresh = navigation_subpage_clock_bar_refresh();
   if (refresh) refresh();
+  else navigation_refresh_subpage_label();
 }
 
 inline void navigation_register_subpage(int slot, int display_order,
