@@ -1333,13 +1333,13 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   assert.strictEqual(settingsPlacement["Clock Bar"]?.section, "Appearance",
     `${label}: clock bar settings should be grouped with appearance controls`);
   assert.deepStrictEqual(await page.locator(".sp-nav [role='tab']").allTextContents(),
-    ["Layout", "Screen", "System", "Connectors"], `${label}: primary navigation follows the current tab order`);
+    ["Layout", "Screen", "System"], `${label}: primary navigation follows the current tab order`);
   await page.getByRole("tab", { name: "System", exact: true }).click();
   await page.waitForSelector("#sp-device.sp-page.active");
   assert(!(await page.locator("#sp-settings").isVisible()), `${label}: System hides Screen`);
   assert.strictEqual(await page.getByRole("tab", { name: "System", exact: true }).getAttribute("aria-selected"), "true");
   assert.deepStrictEqual(await page.locator("#sp-device .sp-settings-status-title").allTextContents(),
-    ["Preferences", "System"], `${label}: system groups should be ordered by purpose`);
+    ["Connectors", "Preferences", "System"], `${label}: system groups should be ordered by purpose`);
   const devicePlacement = await page.locator("#sp-device .sp-config").evaluate(config => {
     let section = "";
     const placement = {};
@@ -2464,7 +2464,6 @@ async function assertMobileDeviceViewport(browser, testCase) {
         { label: "System", id: "device" },
         { label: "Screen", id: "settings" },
         { label: "Layout", id: "screen" },
-        { label: "Connectors", id: "connectors" },
       ]) {
         await page.getByRole("tab", { name: label, exact: true }).click();
         assert(await page.locator(`#sp-${id}.active`).isVisible(),
@@ -2710,8 +2709,8 @@ async function assertEmptyCellSettings(page, posts, label, testCase) {
 }
 
 async function assertConnectorsManagement(page, testCase) {
-  await page.getByRole("tab", { name: "Connectors" }).click();
-  await page.waitForSelector("#sp-connectors.sp-page.active");
+  await page.getByRole("tab", { name: "System", exact: true }).click();
+  await page.waitForSelector("#sp-device.sp-page.active #sp-connectors");
   const homeAssistantHeading = page
     .locator("#sp-connectors")
     .getByRole("heading", { name: "Home Assistant", exact: true });
@@ -6574,7 +6573,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await page.evaluate((events) => window.__seedEspState(events), seededEvents());
-    await page.getByRole("tab", { name: "Connectors" }).click();
+    await page.getByRole("tab", { name: "System", exact: true }).click();
     assert.strictEqual(
       await page.locator("#sp-connectors").getByText("Connect your display", { exact: true }).isVisible(),
       false,
@@ -7411,8 +7410,19 @@ async function assertHomeAssistantConnectorLayout(browser) {
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
       await page.waitForSelector("#sp-app");
-      await page.getByRole("tab", { name: "Connectors" }).click();
+      await page.getByRole("tab", { name: "System", exact: true }).click();
       const connectors = page.locator("#sp-connectors");
+      assert.deepStrictEqual(await page.locator(".sp-nav [role='tab']").allTextContents(),
+        ["Layout", "Screen", "System"], `${testCase.name}: separate Connectors tab is removed`);
+      assert(await page.locator("#sp-device > .sp-config > :first-child").evaluate(
+        element => element.id === "sp-connectors"), `${testCase.name}: connectors come first in System`);
+      assert.strictEqual(await page.locator(".sp-page.active").count(), 1);
+      for (const width of [360, 320]) {
+        await page.setViewportSize({ width, height: 740 });
+        assert(await connectors.isVisible(), `${testCase.name}: connectors visible at ${width}px`);
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+          `${testCase.name}: System fits at ${width}px`);
+      }
       assert.strictEqual(
         await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).count(),
         0,
@@ -7433,6 +7443,14 @@ async function assertHomeAssistantConnectorLayout(browser) {
           await connectors.getByText("No external connectors are available on this display.").isVisible(),
           `${testCase.name}: unsupported profiles show a useful local connector state`,
         );
+      }
+      for (const query of ["tab=connectors", "tab=connectors&connector=mac_companion", "tab=device&connector=mac_companion"]) {
+        await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&${query}`, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector("#sp-device.active #sp-connectors");
+        if (testCase.companionSupported) {
+          assert(await page.locator("#sp-connectors").getByText("Connect your Mac").isVisible(),
+            `${testCase.name}: pairing link opens Mac Companion in System`);
+        }
       }
     } finally {
       await context.close();
@@ -8268,6 +8286,11 @@ async function assertCameraScreensaverDimming(browser, testCase) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
+      await assertHomeAssistantConnectorLayout(browser);
+      console.log("System connector layout and pairing link browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
       await assertColourSwatches(browser);
       console.log("Card and Appearance colour swatch browser checks passed.");
@@ -8352,11 +8375,6 @@ async function assertCameraScreensaverDimming(browser, testCase) {
     if (process.env.ESPDESKTOP_RESET_ONLY === "1") {
       await assertResetControls(browser);
       console.log("Factory reset confirmation browser checks passed.");
-      return;
-    }
-    if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
-      await assertHomeAssistantConnectorLayout(browser);
-      console.log("Home Assistant connector layout browser checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_CONNECTOR_STATUS_ONLY === "1") {

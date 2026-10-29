@@ -35,9 +35,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-tab-docs .mdi{font-size:16px;line-height:1;opacity:.7}" +
         ".sp-page{display:none}.sp-page.active{display:block}" +
         ".sp-onboarding .sp-nav{display:none}" +
-        ".sp-connectors-config{padding-top:32px}" +
+        ".sp-connectors-config{display:flex;flex-direction:column;gap:16px}" +
         ".sp-connectors-unavailable{margin:0 2px;color:var(--text-secondary);line-height:1.5}" +
-        ".sp-connectors-heading{margin:0 2px 16px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}" +
+        ".sp-connectors-heading{margin:0 2px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}" +
         ".sp-connector-status{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--text2);font-size:.86rem}" +
         ".sp-connector-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}" +
         ".sp-connector-status-connected{color:var(--success)}" +

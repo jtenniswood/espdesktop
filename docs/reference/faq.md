@@ -36,7 +36,7 @@ The app or folder must be approved in EspDesktop. Open **Applications** or **Fol
 
 ### How do I replace a display or reset pairing?
 
-Choose **Forget Display** in the Mac app, then reset pairing from **Connectors → Mac Companion** on the display. Pair the replacement using its new temporary code.
+Choose **Forget Display** in the Mac app, then reset pairing from **System → Mac Companion** on the display. Pair the replacement using its new temporary code.
 
 ## More Help
 

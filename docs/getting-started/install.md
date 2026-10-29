@@ -34,7 +34,7 @@ If the USB installer offers **Connect to WiFi**, you can enter your network deta
 3. Choose your 2.4 GHz network from **Available Networks**, or enter its name manually. Enter the password and select **Save**.
 4. When **WiFi details saved** appears, reconnect your phone or computer to home WiFi, then note the display's address.
 
-Open that address in a browser to reach the display's setup page. Choose **Connectors → Mac Companion** when pairing, then follow [Install and Pair the Mac App](/getting-started/mac-app).
+Open that address in a browser to reach the display's setup page. Choose **System → Mac Companion** when pairing, then follow [Install and Pair the Mac App](/getting-started/mac-app).
 
 ## Next
 

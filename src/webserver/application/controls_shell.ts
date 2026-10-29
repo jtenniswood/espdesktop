@@ -18,7 +18,6 @@ export interface ControlsShellDependencies {
     readonly schedule: typeof setTimeout;
     readonly cancelSchedule: (handle: any) => void;
     readonly buildSettingsPage: (parent: HTMLElement) => void;
-    readonly buildConnectorsPage: (parent: HTMLElement) => void;
     readonly closeSettings: () => void;
     readonly postButtonPress: (name: string) => Promise<Response>;
     readonly waitForReboot: () => void;
@@ -53,9 +52,9 @@ export function createControlsShellFeature(
     const els = runtime.els;
     const document = dependencies.document;
     const state = dependencies.state;
-    const requestedInitialTab = new URLSearchParams(
-        document.defaultView?.location.search ?? "",
-    ).get("tab") === "connectors" ? "connectors" : null;
+    const initialParams = new URLSearchParams(document.defaultView?.location.search ?? "");
+    const requestedInitialTab = ["device", "connectors"].includes(initialParams.get("tab") ?? "") ||
+        initialParams.get("connector") === "mac_companion" ? "device" : null;
     // ── Build UI ───────────────────────────────────────────────────────────
     function createMdiIcon(this: any, name?: any, className?: any) {
         var icon: any = document.createElement("span");
@@ -112,8 +111,6 @@ export function createControlsShellFeature(
         els.banner = banner;
         buildHeader(root);
         buildScreenPage(root);
-        dependencies.buildConnectorsPage(root);
-        els.connectorsPage = root.querySelector("#sp-connectors");
         dependencies.buildSettingsPage(root);
         var app: any = document.querySelector("esp-app");
         if (app) {
@@ -124,7 +121,7 @@ export function createControlsShellFeature(
         }
         els.root = root;
         root.classList.add("sp-onboarding");
-        switchTab(requestedInitialTab ?? "connectors");
+        switchTab(requestedInitialTab ?? "device");
     }
     function buildHeader(this: any, parent?: any) {
         var header: any = document.createElement("div");
@@ -140,7 +137,6 @@ export function createControlsShellFeature(
             { id: "screen", label: "Layout" },
             { id: "settings", label: "Screen" },
             { id: "device", label: "System" },
-            { id: "connectors", label: "Connectors" },
         ];
         tabs.forEach(function (this: any, t?: any) {
             var tab: any = document.createElement("div");
@@ -259,13 +255,11 @@ export function createControlsShellFeature(
         state.activeTab = tab;
         if (els.root)
             els.root.setAttribute("data-active-tab", tab);
-        ["screen", "settings", "device", "connectors"].forEach(function (this: any, t?: any) {
+        ["screen", "settings", "device"].forEach(function (this: any, t?: any) {
             els["tab_" + t].className = "sp-tab" + (tab === t ? " active" : "");
             els["tab_" + t].setAttribute("aria-selected", tab === t ? "true" : "false");
         });
         els.screenPage.className = "sp-page" + (tab === "screen" ? " active" : "");
-        if (els.connectorsPage)
-            els.connectorsPage.className = "sp-page" + (tab === "connectors" ? " active" : "");
         els.settingsPage.className = "sp-page" + (tab === "settings" ? " active" : "");
         els.devicePage.className = "sp-page" + (tab === "device" ? " active" : "");
         syncTabChrome();
@@ -281,8 +275,8 @@ export function createControlsShellFeature(
             if (announce)
                 showBanner("Connector setup complete. You can add cards to your screen.", "success");
         }
-        else if (!complete && state.activeTab !== "connectors") {
-            switchTab("connectors");
+        else if (!complete && state.activeTab !== "device") {
+            switchTab("device");
         }
     }
     function syncTabChrome(this: any) {
