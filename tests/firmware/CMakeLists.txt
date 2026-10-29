@@ -813,3 +813,6 @@ target_compile_features(card_icon_size_test PRIVATE cxx_std_17)
 target_compile_options(card_icon_size_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(card_icon_size_test PRIVATE stubs ../../components/espdesktop)
 add_test(NAME card_icon_size_test COMMAND card_icon_size_test)
+
+add_test(NAME app_icon_preview_endpoint_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/app_icon_preview_endpoint_test.py)
