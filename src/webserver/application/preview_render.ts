@@ -4,7 +4,7 @@ import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
-import { configOptionValue, cardActiveColor } from "../model/config_primitives";
+import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { escHtml } from "./ui_primitives";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
@@ -154,6 +154,26 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
+    function resizeStandardIcon(button: HTMLElement): void {
+        const icon = button.querySelector<HTMLElement>(".sp-btn-icon:not(img)");
+        const view = document.defaultView;
+        if (!icon || !view) return;
+        const style = view.getComputedStyle(button);
+        const label = button.querySelector<HTMLElement>(".sp-btn-label, .sp-btn-label-row");
+        const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+            - (label?.getBoundingClientRect().height || 0) - 4;
+        const requested = button.dataset.iconSize === "large" ? 2 : 1.5;
+        const scale = Math.max(0.01, Math.min(requested,
+            width / Math.max(1, icon.offsetWidth), height / Math.max(1, icon.offsetHeight)));
+        icon.style.transformOrigin = "top left";
+        icon.style.transform = "scale(" + scale + ")";
+    }
+    const standardIconResizeObserver = typeof ResizeObserver === "function"
+        ? new ResizeObserver(entries => entries.forEach(entry => {
+            const button = entry.target.closest<HTMLElement>(".sp-btn");
+            if (button) resizeStandardIcon(button);
+        })) : null;
     // Use a single measured side for square images at every card aspect ratio.
     function resizeAppIcon(button: Element): void {
         const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon");
@@ -238,6 +258,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
+        standardIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
         var main: any = els.previewMain;
@@ -373,6 +394,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 }
                 appendResizeHandle(btn);
                 main.appendChild(btn);
+                const standardIconSize = cardIconSize(b.options);
+                if (standardIconSize !== "small" && !typePreview?.appIconId) {
+                    btn.dataset.iconSize = standardIconSize;
+                    resizeStandardIcon(btn);
+                    standardIconResizeObserver?.observe(btn);
+                    const title = btn.querySelector(".sp-btn-label, .sp-btn-label-row");
+                    if (title) standardIconResizeObserver?.observe(title);
+                }
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;

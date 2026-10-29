@@ -8290,6 +8290,61 @@ async function assertCameraScreensaverDimming(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertStandardIconSizes(browser, testCase) {
+  for (const native of [true, false]) {
+    console.log(`Checking standard icon sizes: ${testCase.name}/${native ? "native" : "legacy"}`);
+    const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[2] = "stats;Stats;Gauge;;;;companion;;";
+    fixture.document.buttons[3] = ";Monitor;Monitor;;;;subpage;;";
+    const legacyTextState = {};
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
+    const page = await context.newPage();
+    await page.addInitScript(() => { window.__ESPDESKTOP_TEST_HOOKS__ = {}; });
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await seedNativeDocument(page, fixture);
+      await page.getByRole("tab", { name: "Layout" }).click();
+      for (const slot of [1, 2, 3]) {
+      const card = page.locator(`.sp-main [data-slot="${slot}"]`);
+      const widths = {};
+      for (const size of ["Medium", "Large", "Small"]) {
+        await card.click();
+        await page.getByRole("button", { name: "Edit", exact: true }).click();
+        await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
+          .first().locator(".sp-disclosure-button").click();
+        const sizes = page.getByRole("group", { name: "Icon size", exact: true });
+        await sizes.getByRole("button", { name: size, exact: true }).click();
+        await page.getByRole("button", { name: "Save", exact: true }).click();
+        const saved = () => native ? fixture.document.buttons[slot] : legacyTextState[`button_${slot}_config`] || "";
+        const persisted = () => size === "Small" ? !saved().includes("icon_size=") : saved().includes("icon_size=" + size.toLowerCase());
+        const deadline = Date.now() + 10000;
+        while (!persisted() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
+        assert(persisted(), "icon size was saved to the display configuration");
+        const geometry = await card.evaluate(el => {
+          const icon = el.querySelector(".sp-btn-icon").getBoundingClientRect();
+          const title = el.querySelector(".sp-btn-label").getBoundingClientRect();
+          return { iconBottom: icon.bottom, titleTop: title.top, width: icon.width };
+        });
+        widths[size] = geometry.width;
+        assert(geometry.iconBottom <= geometry.titleTop + 1, `${testCase.name}/${size}: icon stays above title`);
+        await card.click();
+        await page.getByRole("button", { name: "Edit", exact: true }).click();
+        await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
+          .first().locator(".sp-disclosure-button").click();
+        assert(await page.getByRole("group", { name: "Icon size", exact: true })
+          .getByRole("button", { name: size, exact: true }).evaluate(el => el.classList.contains("active")), "saved icon size reopens selected");
+        await page.keyboard.press("Escape");
+      }
+      assert(widths.Medium > widths.Small && widths.Large >= widths.Medium, "size selections enlarge the visible icon");
+      }
+    } finally { await context.close(); }
+  }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
@@ -8297,6 +8352,11 @@ async function assertCameraScreensaverDimming(browser, testCase) {
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_STANDARD_ICON_SIZES_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertStandardIconSizes(browser, testCase);
+      console.log("Standard icon sizes passed for native and legacy configurations.");
       return;
     }
     if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
@@ -8424,6 +8484,7 @@ async function assertCameraScreensaverDimming(browser, testCase) {
         await assertMediaModalSettingsJourney(browser, testCase);
       }
       await assertNativeProfileJourney(browser, testCase);
+      await assertStandardIconSizes(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);

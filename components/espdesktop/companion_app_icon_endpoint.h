@@ -2,13 +2,14 @@
 
 #include <cstdio>
 #include <string>
-#include <utility>
+#include <memory>
 
 #if defined(USE_WEBSERVER) && defined(USE_COMPANION)
 #include "../companion/app_icon_store.h"
 #include "companion_controls.h"
 #include "cover_art.h"
 #include "display_color.h"
+#include "esphome/core/helpers.h"
 #include "esphome/components/web_server_idf/web_server_idf.h"
 
 class CompanionAppIconPreviewHandler final
@@ -33,10 +34,24 @@ class CompanionAppIconPreviewHandler final
       return;
     }
 
-    std::string pixels(esphome::companion::APP_ICON_PIXEL_BYTES, '\0');
-    if (!store.copy_pixels(application_id,
-                           reinterpret_cast<uint8_t *>(pixels.data()),
-                           pixels.size())) {
+    // Keep image bytes out of the S3's small internal heap. The HTTP send below
+    // is synchronous, so this one checked buffer can live until it completes.
+    constexpr size_t pixel_bytes = esphome::companion::APP_ICON_PIXEL_BYTES;
+    esphome::RAMAllocator<uint8_t> allocator(esphome::RAMAllocator<uint8_t>::ALLOC_EXTERNAL);
+    const auto release_pixels = [&allocator](uint8_t *buffer) {
+      allocator.deallocate(buffer, pixel_bytes);
+    };
+    std::unique_ptr<uint8_t, decltype(release_pixels)> pixels(
+        allocator.allocate(pixel_bytes), release_pixels);
+    if (!pixels) {
+      httpd_req_t *raw = *request;
+      httpd_resp_set_status(raw, "503 Service Unavailable");
+      httpd_resp_set_type(raw, "text/plain");
+      httpd_resp_set_hdr(raw, "Cache-Control", "no-store");
+      httpd_resp_send(raw, "App icon memory is unavailable", HTTPD_RESP_USE_STRLEN);
+      return;
+    }
+    if (!store.copy_pixels(application_id, pixels.get(), pixel_bytes)) {
       send_not_found(request);
       return;
     }
@@ -63,21 +78,24 @@ class CompanionAppIconPreviewHandler final
     char palette_colors[16]{};
     if (palette.valid) {
       std::snprintf(default_color, sizeof(default_color), "%06lx",
-                    static_cast<unsigned long>(palette.default_rgb));
+                    static_cast<unsigned long>(palette.default_rgb & 0xFFFFFFU));
       std::snprintf(active_color, sizeof(active_color), "%06lx",
-                    static_cast<unsigned long>(palette.active_rgb));
+                    static_cast<unsigned long>(palette.active_rgb & 0xFFFFFFU));
       std::snprintf(palette_colors, sizeof(palette_colors), "%s,%s",
                     default_color, active_color);
     }
 
-    auto *response = request->beginResponse(
-        200, "application/x-espdesktop-app-icon", std::move(pixels));
-    response->addHeader("Cache-Control", "no-store");
-    response->addHeader("X-EspDesktop-Companion-Online", online ? "true" : "false");
+    // beginResponse(string) copies the entire payload even for an rvalue.
+    // Send directly while the buffer is owned here, without a second image.
+    httpd_req_t *raw = *request;
+    httpd_resp_set_status(raw, "200 OK");
+    httpd_resp_set_type(raw, "application/x-espdesktop-app-icon");
+    httpd_resp_set_hdr(raw, "Cache-Control", "no-store");
+    httpd_resp_set_hdr(raw, "X-EspDesktop-Companion-Online", online ? "true" : "false");
     if (palette.valid) {
-      response->addHeader("X-EspDesktop-App-Icon-Palette", palette_colors);
+      httpd_resp_set_hdr(raw, "X-EspDesktop-App-Icon-Palette", palette_colors);
     }
-    request->send(response);
+    httpd_resp_send(raw, reinterpret_cast<const char *>(pixels.get()), pixel_bytes);
   }
 
  private:
