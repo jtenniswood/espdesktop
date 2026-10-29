@@ -16,6 +16,7 @@ PRELUDE = r'''
 #include <memory>
 #include <string>
 #include <vector>
+#include "companion_capabilities_generated.h"
 constexpr int HTTP_GET = 1, HTTPD_RESP_USE_STRLEN = -1;
 constexpr int COLOR_CORRECTION_RED_PERCENT = 100;
 constexpr int COLOR_CORRECTION_GREEN_PERCENT = 100;
@@ -66,7 +67,7 @@ template<class T> struct RAMAllocator {
   }
 };
 namespace companion {
-constexpr size_t APP_ICON_PIXEL_BYTES = 49152;
+constexpr size_t APP_ICON_PIXEL_BYTES = COMPANION_APP_ICON_PIXEL_BYTES;
 struct Store {
   bool begin() { return store_available; }
   bool is_referenced(const std::string &id) { return referenced && id == "example.app"; }
@@ -169,6 +170,6 @@ handler = source[source.index("class CompanionAppIconPreviewHandler"):source.ind
 with tempfile.TemporaryDirectory() as tmp:
     path = Path(tmp)
     (path / "test.cpp").write_text(PRELUDE + handler + TEST)
-    subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra", "-Werror", str(path / "test.cpp"), "-o", str(path / "test")], check=True)
+    subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra", "-Werror", "-I", str(ROOT / "components/espdesktop"), str(path / "test.cpp"), "-o", str(path / "test")], check=True)
     subprocess.run([str(path / "test")], check=True)
 print("App icon preview endpoint memory and response tests passed.")
