@@ -799,3 +799,11 @@ add_test(NAME app_icon_store_test COMMAND
 add_test(NAME navigation_refresh_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/navigation_refresh_test.py)
+
+add_executable(rgb_frame_buffer_test rgb_frame_buffer_test.cpp)
+target_compile_features(rgb_frame_buffer_test PRIVATE cxx_std_17)
+target_compile_options(rgb_frame_buffer_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+add_test(NAME rgb_frame_buffer_test COMMAND rgb_frame_buffer_test)
+add_test(NAME rgb_frame_present_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/rgb_frame_present_test.py)

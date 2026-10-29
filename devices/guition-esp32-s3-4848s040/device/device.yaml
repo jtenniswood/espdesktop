@@ -505,6 +505,8 @@ touchscreen:
 display:
   - platform: mipi_rgb
     model: GUITION-4848S040
+    # Draw each LVGL refresh off-screen, then present the finished frame.
+    double_buffered: true
     id: my_display
     # Start WiFi before the RGB panel allocates its frame buffers; otherwise the
     # WiFi driver can fail to claim enough internal RX buffers on fresh boots.
@@ -532,6 +534,10 @@ lvgl:
   # Keep the buffer small so WiFi and runtime display resources retain PSRAM
   # headroom on the memory-constrained S3.
   buffer_size: 12%
+  on_draw_start:
+    - lambda: id(my_display).begin_frame();
+  on_draw_end:
+    - lambda: id(my_display).end_frame();
   displays: my_display
   rotation: 180
   touchscreens:

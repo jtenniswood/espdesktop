@@ -135,7 +135,7 @@ void MipiRgb::common_setup_() {
   // Album-art redraws are full-screen and PSRAM-heavy. A larger internal bounce
   // buffer gives the RGB DMA more headroom while JPEG decode/LVGL compete for PSRAM.
   config.bounce_buffer_size_px = this->width_ * RGB_BOUNCE_BUFFER_ROWS;
-  config.num_fbs = 1;
+  config.num_fbs = this->double_buffered_ ? 2 : 1;
   config.timings.h_res = this->width_;
   config.timings.v_res = this->height_;
   config.timings.hsync_pulse_width = this->hsync_pulse_width_;
@@ -170,6 +170,29 @@ void MipiRgb::common_setup_() {
   }
   config.pclk_gpio_num = static_cast<gpio_num_t>(this->pclk_pin_->get_pin());
   esp_err_t err = esp_lcd_new_rgb_panel(&config, &this->handle_);
+  if (err != ESP_OK && this->double_buffered_) {
+    // Preserve a working display if PSRAM cannot accommodate a second frame.
+    ESP_LOGW(TAG, "Double buffering unavailable; using partial refreshes");
+    this->double_buffered_ = false;
+    this->handle_ = nullptr;
+    config.num_fbs = 1;
+    err = esp_lcd_new_rgb_panel(&config, &this->handle_);
+  }
+  if (err == ESP_OK && this->double_buffered_) {
+    void *front = nullptr, *back = nullptr;
+    err = esp_lcd_rgb_panel_get_frame_buffer(this->handle_, 2, &front, &back);
+    if (err == ESP_OK) {
+      // Both buffers begin with the same image before DMA starts scanning.
+      std::memset(front, 0, this->width_ * this->height_ * sizeof(uint16_t));
+      std::memset(back, 0, this->width_ * this->height_ * sizeof(uint16_t));
+      this->frames_.reset(static_cast<uint16_t *>(front), static_cast<uint16_t *>(back),
+                          this->width_, this->height_);
+      this->frame_done_ = xSemaphoreCreateBinaryStatic(&this->frame_done_storage_);
+      esp_lcd_rgb_panel_event_callbacks_t callbacks{};
+      callbacks.on_frame_buf_complete = frame_complete_;
+      err = esp_lcd_rgb_panel_register_event_callbacks(this->handle_, &callbacks, this);
+    }
+  }
   if (err == ESP_OK)
     err = esp_lcd_panel_reset(this->handle_);
   if (err == ESP_OK)
@@ -180,6 +203,39 @@ void MipiRgb::common_setup_() {
   }
   ESP_LOGCONFIG(TAG, "MipiRgb setup complete: pclk=%" PRIu32 "Hz bounce_rows=%u", this->pclk_frequency_,
                 RGB_BOUNCE_BUFFER_ROWS);
+}
+
+bool IRAM_ATTR MipiRgb::frame_complete_(esp_lcd_panel_handle_t,
+                                       const esp_lcd_rgb_panel_event_data_t *, void *context) {
+  auto *display = static_cast<MipiRgb *>(context);
+  BaseType_t woken = pdFALSE;
+  xSemaphoreGiveFromISR(display->frame_done_, &woken);
+  return woken == pdTRUE;
+}
+
+void MipiRgb::begin_frame() {
+  if (this->double_buffered_ && !this->is_failed()) this->frame_active_ = true;
+}
+
+void MipiRgb::end_frame() {
+  if (!this->frame_active_ || this->is_failed()) return;
+  this->frame_active_ = false;
+  if (!this->frames_.dirty()) return;
+  esp_err_t err = esp_lcd_panel_draw_bitmap(this->handle_, 0, 0, this->width_, this->height_,
+                                           this->frames_.pending());
+  if (err != ESP_OK) {
+    this->mark_failed(LOG_STR("Could not present RGB frame"));
+    return;
+  }
+  // Discard any notification from before submission. A subsequent completed
+  // bounce-buffer frame has switched to the submitted image, so the old front
+  // can safely become the next drawing buffer. Never overwrite it on timeout.
+  xSemaphoreTake(this->frame_done_, 0);
+  if (xSemaphoreTake(this->frame_done_, pdMS_TO_TICKS(100)) != pdTRUE) {
+    this->mark_failed(LOG_STR("RGB frame completion timed out"));
+    return;
+  }
+  this->frames_.complete();
 }
 
 void MipiRgb::loop() {
@@ -233,6 +289,15 @@ void MipiRgb::draw_pixels_at(int x_start, int y_start, int w, int h, const uint8
 
 void MipiRgb::write_to_display_(int x_start, int y_start, int w, int h, const uint8_t *ptr, int x_offset, int y_offset,
                                 int x_pad) {
+  if (this->double_buffered_) {
+    const bool standalone = !this->frame_active_;
+    if (standalone) this->begin_frame();
+    if (!this->frames_.write(x_start, y_start, w, h, ptr, x_offset, y_offset, x_pad)) {
+      ESP_LOGW(TAG, "Invalid buffered RGB draw area");
+    }
+    if (standalone) this->end_frame();
+    return;
+  }
   esp_err_t err = ESP_OK;
   auto stride = (x_offset + w + x_pad) * 2;
   ptr += y_offset * stride + x_offset * 2;  // skip to the first pixel

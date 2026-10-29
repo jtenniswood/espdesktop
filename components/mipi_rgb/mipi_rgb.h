@@ -4,6 +4,11 @@
 #include "esphome/core/gpio.h"
 #include "esphome/components/display/display.h"
 #include "esp_lcd_panel_ops.h"
+#include "esp_lcd_panel_rgb.h"
+#include "esp_attr.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "frame_buffer_pair.h"
 #ifdef USE_SPI
 #include "esphome/components/spi/spi.h"
 #endif
@@ -24,6 +29,9 @@ const uint8_t CMD2_BK0[5] = {0x77, 0x01, 0x00, 0x00, 0x10};
 class MipiRgb : public display::Display {
  public:
   MipiRgb(int width, int height) : width_(width), height_(height) {}
+  void set_double_buffered(bool enabled) { this->double_buffered_ = enabled; }
+  void begin_frame();
+  void end_frame();
   void setup() override;
   void loop() override;
   void update() override;
@@ -66,6 +74,14 @@ class MipiRgb : public display::Display {
 
   // this will be horribly slow.
  protected:
+  static bool IRAM_ATTR frame_complete_(esp_lcd_panel_handle_t panel,
+                                       const esp_lcd_rgb_panel_event_data_t *event,
+                                       void *context);
+  bool double_buffered_ = false;
+  bool frame_active_ = false;
+  FrameBufferPair frames_;
+  StaticSemaphore_t frame_done_storage_{};
+  SemaphoreHandle_t frame_done_ = nullptr;
   void setup_enables_();
   void common_setup_();
   InternalGPIOPin *de_pin_{nullptr};

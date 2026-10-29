@@ -228,3 +228,20 @@ The resolver chooses the first modal-capable home match, then subpages in displa
 On a test device, request a modal from home and a subpage, check its ordinary card action did not fire, close it immediately after opening, and repeat while asleep. Verify latest-request behavior, locked/alarm/startup rejection, duplicate precedence and configuration rebuild while a modal is open. Companion cards and pairing remain governed by their existing controls and capabilities.
 
 The ACTIVE finalizer does not arm idle timers while onboarding owns the display; first-time setup stays visible until configuration is complete.
+
+### S3 page presentation
+
+The 4848S040 keeps its 12% LVGL draw buffer for rotation and uses two RGB
+frame buffers. `on_draw_start` opens a refresh; all rotated strips are copied
+into the inactive RGB frame. `on_draw_end` submits that complete frame and waits
+for the ESP-IDF bounce-frame completion callback before reusing the old front
+buffer. Only the changed rectangle is then mirrored into the next drawing
+buffer, so partial updates preserve unchanged pixels. Page changes therefore
+keep the previous page visible until the replacement is ready.
+
+The second RGB frame uses 460,800 bytes of PSRAM, rather than enlarging both
+LVGL's draw and software-rotation buffers. Other profiles retain their existing
+presentation path. If the second RGB frame cannot be allocated at startup, the
+S3 logs a warning and uses the original single-frame path. A presentation failure
+or timeout stops further rendering rather than writing into a frame that might
+still be scanned.
