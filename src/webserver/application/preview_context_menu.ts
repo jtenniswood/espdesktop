@@ -328,10 +328,15 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         submenu.className = "sp-ctx-submenu";
         for (const size of ["", "small", "medium", "large"] as const) {
             const button = document.createElement("button");
-            button.className = "sp-ctx-item";
+            button.className = "sp-ctx-item sp-ctx-option";
             button.type = "button";
-            button.textContent = size ? size.charAt(0).toUpperCase() + size.slice(1) : "Use Default";
-            button.setAttribute("aria-pressed", String(iconSlots.every(slot => cardIconSizeOverride(c.buttons[slot - 1].options) === size)));
+            const selected = iconSlots.every(slot => cardIconSizeOverride(c.buttons[slot - 1].options) === size);
+            const check = document.createElement("span");
+            check.className = "sp-ctx-check";
+            check.setAttribute("aria-hidden", "true");
+            check.textContent = selected ? "✓" : "";
+            button.append(check, document.createTextNode(size ? size.charAt(0).toUpperCase() + size.slice(1) : "Use Default"));
+            button.setAttribute("aria-pressed", String(selected));
             button.addEventListener("click", async () => {
                 if (savingIconSize || isConfigLocked() || ctx().buttons !== c.buttons || state.editingSubpage !== homeSlot) return;
                 const changes = iconSlots.map(slot => {

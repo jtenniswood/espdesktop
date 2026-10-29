@@ -2814,8 +2814,33 @@ async function assertAutomaticAppIcons(browser, testCase) {
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
     async function chooseSize(slot, size) {
       await card(slot).click({ button: "right" });
-      await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).click();
-      await page.locator(".sp-ctx-submenu").getByRole("button", { name: size, exact: true }).click();
+      const trigger = page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true });
+      await trigger.click();
+      const submenu = page.locator(".sp-ctx-submenu").filter({ has: page.getByRole("button", { name: "Use Default", exact: true }) });
+      assert.deepStrictEqual(await submenu.getByRole("button").allTextContents().then(labels => labels.map(label => label.replace("✓", "").trim())),
+        ["Use Default", "Small", "Medium", "Large"], "all size choices use consistent menu rows");
+      const rows = await submenu.getByRole("button").evaluateAll(buttons => buttons.map(button => {
+        const style = getComputedStyle(button);
+        return { width: button.getBoundingClientRect().width, background: style.backgroundColor,
+          color: style.color, border: style.borderTopWidth, radius: style.borderRadius,
+          fontSize: style.fontSize, fontFamily: style.fontFamily, fontWeight: style.fontWeight };
+      }));
+      const parentStyle = await trigger.evaluate(el => {
+        const style = getComputedStyle(el);
+        return { color: style.color, fontSize: style.fontSize, fontFamily: style.fontFamily, fontWeight: style.fontWeight };
+      });
+      for (const row of rows) {
+        assert(Math.abs(row.width - rows[0].width) < 1, "submenu rows have equal full widths");
+        assert.strictEqual(row.background, "rgba(0, 0, 0, 0)", "submenu rows have no native button background");
+        assert.strictEqual(row.border, "0px", "submenu rows have no native button border");
+        assert.strictEqual(row.radius, "0px", "submenu rows are flat rather than rounded pills");
+        for (const property of ["color", "fontSize", "fontFamily", "fontWeight"])
+          assert.strictEqual(row[property], parentStyle[property], "submenu typography matches the main menu");
+      }
+      const selected = submenu.locator('[aria-pressed="true"]');
+      assert.strictEqual(await selected.count(), 1, "one current size is selected");
+      assert.strictEqual(await selected.locator(".sp-ctx-check").textContent(), "✓", "the current choice has a checkmark");
+      await submenu.getByRole("button", { name: size, exact: true }).click();
       await page.waitForFunction(({ slot, size }) =>
         document.querySelector(`.sp-main [data-slot="${slot}"]`)?.dataset.iconSize === size.toLowerCase(), { slot, size });
       await card(slot).locator(".sp-companion-app-icon").waitFor();

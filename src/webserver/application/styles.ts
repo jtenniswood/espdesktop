@@ -662,7 +662,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ctx-colours>.sp-card-color-presets{margin:4px 14px 10px}" +
         ".sp-ctx-item{display:flex;align-items:center;gap:10px;padding:8px 14px;" +
         "cursor:pointer;font-size:.8rem;color:var(--text);transition:background .15s;white-space:nowrap}" +
-        ".sp-ctx-option{width:100%;border:0;background:transparent;font-family:inherit;text-align:left}" +
+        ".sp-ctx-option{appearance:none;box-sizing:border-box;width:100%;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;font-family:inherit;font-weight:inherit;line-height:inherit;text-align:left}" +
         ".sp-ctx-option:disabled{opacity:.5;cursor:wait}" +
         ".sp-ctx-option:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}" +
         ".sp-ctx-item:hover{background:var(--accent-soft)}" +
@@ -676,9 +676,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ctx-sub-trigger:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}" +
         ".sp-ctx-sub-trigger::after{content:'\\F0142';font-family:'Material Design Icons';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.5;pointer-events:none}" +
         ".sp-ctx-submenu{display:none;position:fixed;background:var(--surface);" +
-        "border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;min-width:120px;" +
+        "border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;min-width:160px;" +
         "box-shadow:var(--shadow-3);z-index:201}" +
-        ".sp-ctx-check{font-size:14px;width:18px;text-align:center;color:var(--accent)}" +
+        ".sp-ctx-check{display:inline-flex;justify-content:center;flex-shrink:0;font-size:14px;width:18px;text-align:center;color:var(--accent)}" +
         ".sp-banner{padding:12px var(--gap);font-size:.8rem;font-weight:500;text-align:center;display:none}" +
         ".sp-banner.sp-error{display:block;background:rgba(244,63,94,.16);color:#f66f81;border-bottom:1px solid rgba(244,63,94,.25)}" +
         ".sp-banner.sp-offline{display:block;background:var(--accent);color:#fff;border-bottom:none}" +
