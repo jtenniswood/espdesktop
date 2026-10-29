@@ -78,9 +78,9 @@ class CompanionAppIconPreviewHandler final
     char palette_colors[16]{};
     if (palette.valid) {
       std::snprintf(default_color, sizeof(default_color), "%06lx",
-                    static_cast<unsigned long>(palette.default_rgb));
+                    static_cast<unsigned long>(palette.default_rgb & 0xFFFFFFU));
       std::snprintf(active_color, sizeof(active_color), "%06lx",
-                    static_cast<unsigned long>(palette.active_rgb));
+                    static_cast<unsigned long>(palette.active_rgb & 0xFFFFFFU));
       std::snprintf(palette_colors, sizeof(palette_colors), "%s,%s",
                     default_color, active_color);
     }
