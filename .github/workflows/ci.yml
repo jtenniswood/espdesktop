@@ -80,7 +80,7 @@ jobs:
       - uses: actions/setup-node@v7
         if: steps.icon_changes.outputs.changed == 'true'
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install dependencies
         if: steps.icon_changes.outputs.changed == 'true'
@@ -139,7 +139,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install pinned timezone data
         shell: bash
@@ -215,7 +215,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install dependencies
         run: |
