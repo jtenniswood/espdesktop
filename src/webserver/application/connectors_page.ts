@@ -182,7 +182,7 @@ export function createConnectorsPageFeature(
         setHidden(homeAssistantInstructions, ha.connected && ha.actions_confirmed);
         setHidden(homeAssistantBadge, !ha.connected);
         if (heading) {
-            heading.textContent = value.onboarding_complete ? "Connectors" : "Connect EspDesktop";
+            heading.textContent = "Connectors";
         }
         shell.setOnboardingComplete(value.onboarding_complete, announceCompletion);
         statusListeners.forEach((listener) => listener());
@@ -330,13 +330,13 @@ export function createConnectorsPageFeature(
     function buildPage(parent: HTMLElement): void {
         const page = document.createElement("div");
         page.id = "sp-connectors";
-        page.className = "sp-page";
+        page.className = "sp-connectors-section";
         const config = document.createElement("div");
-        config.className = "sp-config sp-connectors-config fade-in";
+        config.className = "sp-connectors-config";
         configContainer = config;
         heading = document.createElement("h1");
         heading.className = "sp-connectors-heading sp-settings-status-title";
-        heading.textContent = "Connect EspDesktop";
+        heading.textContent = "Connectors";
         config.appendChild(heading);
         if (homeAssistantSupported()) {
             homeAssistantCard = buildHomeAssistantCard();

@@ -24,7 +24,7 @@ Install the Mac app and display firmware from the same release so their Companio
 Make sure the Mac and display are on the same trusted local network.
 
 1. On first launch, choose your display from the discovered list. If setup is already complete, open **Display** to pair. Allow local-network access if macOS asks.
-2. Choose **Continue** to open **Connectors → Mac Companion** in your browser. The page opens a temporary pairing window and shows a code.
+2. Choose **Continue** to open **System → Mac Companion** in your browser. The page opens a temporary pairing window and shows a code.
 3. Enter that code in the Mac app and choose **Connect**.
 4. Wait for the Mac app to report that the display is connected.
 
@@ -88,7 +88,7 @@ To start onboarding again, choose **Restart Setup** below Privacy Policy and con
 
 ## Re-pair or Replace a Display
 
-Choose **Forget Display** in the Mac app before pairing a replacement display. On the old display, reset pairing from **Connectors → Mac Companion**. Pair again using the new temporary code.
+Choose **Forget Display** in the Mac app before pairing a replacement display. On the old display, reset pairing from **System → Mac Companion**. Pair again using the new temporary code.
 
 For security, an unexpected display certificate change is not accepted silently; forgetting and pairing again is required.
 
