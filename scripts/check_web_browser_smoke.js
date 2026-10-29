@@ -8294,6 +8294,8 @@ async function assertStandardIconSizes(browser, testCase) {
   for (const native of [true, false]) {
     console.log(`Checking standard icon sizes: ${testCase.name}/${native ? "native" : "legacy"}`);
     const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[2] = "stats;Stats;Gauge;;;;companion;;";
+    fixture.document.buttons[3] = ";Monitor;Monitor;;;;subpage;;";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
@@ -8306,7 +8308,8 @@ async function assertStandardIconSizes(browser, testCase) {
       await page.waitForFunction(() => window.__eventSources?.length > 0);
       await seedNativeDocument(page, fixture);
       await page.getByRole("tab", { name: "Layout" }).click();
-      const card = page.locator('.sp-main [data-slot="1"]');
+      for (const slot of [1, 2, 3]) {
+      const card = page.locator(`.sp-main [data-slot="${slot}"]`);
       const widths = {};
       for (const size of ["Medium", "Large", "Small"]) {
         await card.click();
@@ -8316,7 +8319,7 @@ async function assertStandardIconSizes(browser, testCase) {
         const sizes = page.getByRole("group", { name: "Icon size", exact: true });
         await sizes.getByRole("button", { name: size, exact: true }).click();
         await page.getByRole("button", { name: "Save", exact: true }).click();
-        const saved = () => native ? fixture.document.buttons[1] : legacyTextState.button_1_config || "";
+        const saved = () => native ? fixture.document.buttons[slot] : legacyTextState[`button_${slot}_config`] || "";
         const persisted = () => size === "Small" ? !saved().includes("icon_size=") : saved().includes("icon_size=" + size.toLowerCase());
         const deadline = Date.now() + 10000;
         while (!persisted() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
@@ -8337,6 +8340,7 @@ async function assertStandardIconSizes(browser, testCase) {
         await page.keyboard.press("Escape");
       }
       assert(widths.Medium > widths.Small && widths.Large >= widths.Medium, "size selections enlarge the visible icon");
+      }
     } finally { await context.close(); }
   }
 }

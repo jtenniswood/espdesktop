@@ -1,6 +1,6 @@
 #pragma once
 
-#include "card_icon_size.h"
+#include "card_icon_layout.h"
 
 #include "card_curve.h"
 
@@ -1051,25 +1051,9 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   display_apply_main_width(s.icon_lbl, display);
-  const std::string icon_size = cfg_option_value(p.options, "icon_size");
-  if (s.icon_lbl && (icon_size == "medium" || icon_size == "large")) {
-    lv_obj_update_layout(s.btn);
-    const int label_height = s.text_lbl && !lv_obj_has_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN)
-        ? lv_obj_get_height(s.text_lbl) : 0;
-    const int percent = display_main_width_percent(display);
-    const int icon_width = lv_obj_get_width(s.icon_lbl) *
-        (width_compensation_vertical_axis() ? 100 : percent) / 100;
-    const int icon_height = lv_obj_get_height(s.icon_lbl) *
-        (width_compensation_vertical_axis() ? percent : 100) / 100;
-    const int zoom = espdesktop::card_icon_zoom(icon_size, icon_width, icon_height,
-        lv_obj_get_content_width(s.btn), lv_obj_get_content_height(s.btn) - label_height - 4);
-    lv_obj_set_style_transform_pivot_x(s.icon_lbl, 0, LV_PART_MAIN);
-    lv_obj_set_style_transform_pivot_y(s.icon_lbl, 0, LV_PART_MAIN);
-    lv_obj_set_style_transform_scale_x(s.icon_lbl,
-        width_compensation_vertical_axis() ? zoom : zoom * percent / 100, LV_PART_MAIN);
-    lv_obj_set_style_transform_scale_y(s.icon_lbl,
-        width_compensation_vertical_axis() ? zoom * percent / 100 : zoom, LV_PART_MAIN);
-  }
+  espdesktop::card_icons::attach(s.btn, s.icon_lbl, s.text_lbl,
+      cfg_option_value(p.options, "icon_size"), display_main_width_percent(display),
+      width_compensation_vertical_axis());
   control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);
 #ifdef USE_COMPANION

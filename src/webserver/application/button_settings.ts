@@ -1,3 +1,4 @@
+import { companionSavedCardMode } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { cardIconSize, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
@@ -1011,7 +1012,8 @@ export function createButtonSettingsFeature(
             syncActiveColorControls();
             colourControls.editor.appendChild(activeColorField);
         }
-        if (panel.querySelector('[id="' + idPrefix + 'icon"]')) {
+        if (panel.querySelector('[id="' + idPrefix + 'icon"]') || b.type === "subpage" ||
+            (b.type === "companion" && companionSavedCardMode(b) === "stats")) {
             const iconSizes = segmentControl([
                 ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
             ], cardIconSize(b.options), function (size: string) {
