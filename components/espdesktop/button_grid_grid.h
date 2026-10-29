@@ -1561,9 +1561,9 @@ inline void companion_refresh_app_icon_visibility() {
     lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
     if (!image) continue;
     const bool visible = lv_obj_get_screen(image) == lv_scr_act();
-    // Hidden cards already using their fallback have nothing left to release.
-    // Reapplying their palette invalidates off-screen widgets on every visit.
-    if ((visible && !source->image_loaded) || (!visible && source->image_loaded))
+    // A failed flash read can leave allocated pixels without a loaded image.
+    // Skip hidden cards only once their pixel storage has actually been freed.
+    if ((visible && !source->image_loaded) || (!visible && source->pixels))
       companion_apply_cached_app_icon(*source, image);
   }
 }

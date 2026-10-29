@@ -13,11 +13,12 @@ def function(path, signature):
 
 code = r'''
 #include <cassert>
+#include <cstdint>
 #include <functional>
 #include <vector>
 struct lv_obj_t { lv_obj_t *screen; };
 struct lv_event_t {};
-struct CompanionAppIconImageData { bool app_icon_mode = true, image_loaded = false; };
+struct CompanionAppIconImageData { bool app_icon_mode = true, image_loaded = false; uint8_t *pixels = nullptr; };
 struct GridRuntimeAllocation { lv_obj_t *owner; void *ptr; void (*deleter)(void *); };
 template<class T> void grid_delete_runtime_ptr(void *) {}
 std::vector<GridRuntimeAllocation> allocations;
@@ -31,6 +32,7 @@ unsigned applies = 0, title_refreshes = 0;
 void companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
   ++applies;
   source.image_loaded = image->screen == active;
+  source.pixels = source.image_loaded ? reinterpret_cast<uint8_t *>(1) : nullptr;
 }
 void navigation_refresh_subpage_label() {
   ++title_refreshes;
@@ -62,6 +64,15 @@ int main() {
   navigation_subpage_clock_bar_refresh() = nullptr;
   navigation_subpage_screen_changed(nullptr);
   assert(title_refreshes == 5 && applies == 5); // Startup fallback still refreshes.
+  // A failed icon load retains storage even though image_loaded is false.
+  // Hiding its page must free that storage once, without touching it again.
+  main_icon.image_loaded = false;
+  assert(main_icon.pixels);
+  active = &subpage;
+  navigation_subpage_screen_changed(nullptr);
+  assert(main_icon.pixels == nullptr && child_icon.image_loaded && applies == 7);
+  navigation_subpage_screen_changed(nullptr);
+  assert(applies == 7);
 }
 '''
 with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:
