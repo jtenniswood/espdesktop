@@ -2379,7 +2379,6 @@ inline void grid_phase2(
     }, LV_EVENT_CLICKED, is_special_page
       ? static_cast<void *>(&navigation_special_page_back_button_marker())
       : static_cast<void *>(main_page_obj));
-    screen_lock_register_controlled_button(back_btn);
     navigation_register_subpage_back_button(navigation_slot, back_slot, back_neutral_background);
 
     auto add_parent_indicator = [&](const std::string &entity_id,
