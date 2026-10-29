@@ -152,6 +152,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Vrací se";
   if (std::strcmp(text, "Run this script?") == 0) return "Spustit tento skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka ztlumena";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamčena";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(text, "Skip Next") == 0) return "Přeskočit další";
@@ -170,6 +171,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Západ slunce dolů";
   if (std::strcmp(text, "Sunset Up") == 0) return "Západ slunce nahoru";
   if (std::strcmp(text, "Swing") == 0) return "Kývání";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontální kývání";
   if (std::strcmp(text, "Target") == 0) return "Cíl";
   if (std::strcmp(text, "Today") == 0) return "Dnes";
   if (std::strcmp(text, "Too many") == 0) return "Příliš mnoho";
@@ -186,7 +188,6 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nepodporováno";
   if (std::strcmp(text, "Vacuum") == 0) return "Vysavač";
   if (std::strcmp(text, "Version unknown") == 0) return "Verze neznámá";
-  if (std::strcmp(text, "Voice") == 0) return "Hlas";
   if (std::strcmp(text, "Volume") == 0) return "Hlasitost";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čekání na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Připojování k \nHome Assistant";
@@ -303,6 +304,19 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Potvrdit";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pro hosty";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stav Wi-Fi se nezměnil";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Připojte se k WiFi hotspotu";
+  if (std::strcmp(text, "to configure your network.") == 0) return "a nastavte svou síť.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Poté v prohlížeči otevřete {address}";
+  if (std::strcmp(text, "Screensaver") == 0) return "Spořič obrazovky";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Nesprávný PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Déšť";
+  if (std::strcmp(text, "Sun") == 0) return "ne";
+  if (std::strcmp(text, "Mon") == 0) return "po";
+  if (std::strcmp(text, "Tues") == 0) return "út";
+  if (std::strcmp(text, "Weds") == 0) return "st";
+  if (std::strcmp(text, "Thurs") == 0) return "čt";
+  if (std::strcmp(text, "Fri") == 0) return "pá";
+  if (std::strcmp(text, "Sat") == 0) return "so";
   return text;
 }
 
@@ -440,6 +454,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Vender tilbage";
   if (std::strcmp(text, "Run this script?") == 0) return "Kør dette script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skærm neddæmpet";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Skærmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skærm låst";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(text, "Skip Next") == 0) return "Spring til næste";
@@ -456,6 +471,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgang ned";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgang op";
   if (std::strcmp(text, "Swing") == 0) return "Sving";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontal sving";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "I dag";
   if (std::strcmp(text, "Too many") == 0) return "For mange";
@@ -471,7 +487,6 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Ikke understøttet";
   if (std::strcmp(text, "Vacuum") == 0) return "Støvsuger";
   if (std::strcmp(text, "Version unknown") == 0) return "Version ukendt";
-  if (std::strcmp(text, "Voice") == 0) return "Stemme";
   if (std::strcmp(text, "Volume") == 0) return "Lydstyrke";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Opretter forbindelse til \nHome Assistant";
@@ -585,6 +600,19 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Bekræft";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gæste-Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi blev ikke ændret";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Opret forbindelse til WiFi-hotspottet";
+  if (std::strcmp(text, "to configure your network.") == 0) return "for at konfigurere dit netværk.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Åbn derefter {address} i din browser";
+  if (std::strcmp(text, "Screensaver") == 0) return "Pauseskærm";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Forkert PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Regn";
+  if (std::strcmp(text, "Sun") == 0) return "søn.";
+  if (std::strcmp(text, "Mon") == 0) return "man.";
+  if (std::strcmp(text, "Tues") == 0) return "tir.";
+  if (std::strcmp(text, "Weds") == 0) return "ons.";
+  if (std::strcmp(text, "Thurs") == 0) return "tor.";
+  if (std::strcmp(text, "Fri") == 0) return "fre.";
+  if (std::strcmp(text, "Sat") == 0) return "lør.";
   return text;
 }
 
@@ -663,6 +691,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Gewitter und Regen";
   if (std::strcmp(text, "Light") == 0) return "Licht";
   if (std::strcmp(text, "Loading") == 0) return "Laden";
+  if (std::strcmp(text, "Loading forecast") == 0) return "Wettervorhersage wird geladen";
   if (std::strcmp(text, "Locate") == 0) return "Orten";
   if (std::strcmp(text, "Lock") == 0) return "Sperren";
   if (std::strcmp(text, "Lawn Mower") == 0) return "Rasenmäher";
@@ -720,6 +749,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Kehrt zurück";
   if (std::strcmp(text, "Run this script?") == 0) return "Dieses Skript ausführen?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Bildschirm gedimmt";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(text, "Screen Locked") == 0) return "Bildschirm gesperrt";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(text, "Skip Next") == 0) return "Weiter springen";
@@ -736,6 +766,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Sonnenuntergang ab";
   if (std::strcmp(text, "Sunset Up") == 0) return "Sonnenuntergang auf";
   if (std::strcmp(text, "Swing") == 0) return "Schwenken";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontales Schwenken";
   if (std::strcmp(text, "Target") == 0) return "Ziel";
   if (std::strcmp(text, "Today") == 0) return "Heute";
   if (std::strcmp(text, "Too many") == 0) return "Zu viele";
@@ -751,7 +782,6 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nicht unterstützt";
   if (std::strcmp(text, "Vacuum") == 0) return "Staubsauger";
   if (std::strcmp(text, "Version unknown") == 0) return "Version unbekannt";
-  if (std::strcmp(text, "Voice") == 0) return "Sprache";
   if (std::strcmp(text, "Volume") == 0) return "Lautstärke";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Warten auf Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Verbindung mit \nHome Assistant wird hergestellt";
@@ -865,6 +895,24 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Bestätigen";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gast-WLAN";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "WLAN wurde nicht geändert";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Verbinde dich mit dem WLAN-Hotspot";
+  if (std::strcmp(text, "to configure your network.") == 0) return "um dein Netzwerk einzurichten.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Öffne dann {address} in deinem Browser";
+  if (std::strcmp(text, "Screensaver") == 0) return "Bildschirmschoner";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Falsche PIN";
+  if (std::strcmp(text, "Forecast unavailable") == 0) return "Vorhersage nicht verfügbar";
+  if (std::strcmp(text, "Rain") == 0) return "Regen";
+  if (std::strcmp(text, "Rain chance") == 0) return "Regenwahrscheinlichkeit";
+  if (std::strcmp(text, "Rainfall") == 0) return "Niederschlag";
+  if (std::strcmp(text, "Humidity") == 0) return "Luftfeuchtigkeit";
+  if (std::strcmp(text, "Last forecast") == 0) return "Letzte Vorhersage";
+  if (std::strcmp(text, "Sun") == 0) return "So.";
+  if (std::strcmp(text, "Mon") == 0) return "Mo.";
+  if (std::strcmp(text, "Tues") == 0) return "Di.";
+  if (std::strcmp(text, "Weds") == 0) return "Mi.";
+  if (std::strcmp(text, "Thurs") == 0) return "Do.";
+  if (std::strcmp(text, "Fri") == 0) return "Fr.";
+  if (std::strcmp(text, "Sat") == 0) return "Sa.";
   return text;
 }
 
@@ -942,6 +990,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Rayos y lluvia";
   if (std::strcmp(text, "Light") == 0) return "Luz";
   if (std::strcmp(text, "Loading") == 0) return "Cargando";
+  if (std::strcmp(text, "Loading forecast") == 0) return "Cargando el pronóstico";
   if (std::strcmp(text, "Locate") == 0) return "Localizar";
   if (std::strcmp(text, "Lock") == 0) return "Bloquear";
   if (std::strcmp(text, "Lawn Mower") == 0) return "Cortacésped";
@@ -1005,6 +1054,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Volviendo";
   if (std::strcmp(text, "Run this script?") == 0) return "¿Ejecutar este script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Pantalla atenuada";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(text, "Screen Locked") == 0) return "Pantalla bloqueada";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar siguiente";
@@ -1023,6 +1073,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Puesta de sol abajo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Puesta de sol arriba";
   if (std::strcmp(text, "Swing") == 0) return "Oscilación";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilación horizontal";
   if (std::strcmp(text, "Target") == 0) return "Objetivo";
   if (std::strcmp(text, "Today") == 0) return "Hoy";
   if (std::strcmp(text, "Too many") == 0) return "Demasiados";
@@ -1038,7 +1089,6 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "No compatible";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspiradora";
   if (std::strcmp(text, "Version unknown") == 0) return "Versión desconocida";
-  if (std::strcmp(text, "Voice") == 0) return "Voz";
   if (std::strcmp(text, "Volume") == 0) return "Volumen";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Esperando a Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Conectando a \nHome Assistant";
@@ -1155,6 +1205,25 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de invitados";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "El Wi-Fi no ha cambiado";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Conéctate al punto de acceso WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "para configurar tu red.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Después abre {address} en tu navegador";
+  if (std::strcmp(text, "Screensaver") == 0) return "Salvapantallas";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "PIN incorrecto";
+  if (std::strcmp(text, "Forecast unavailable") == 0) return "Pronóstico no disponible";
+  if (std::strcmp(text, "Rain") == 0) return "Lluvia";
+  if (std::strcmp(text, "Rain chance") == 0) return "Probabilidad de lluvia";
+  if (std::strcmp(text, "Rainfall") == 0) return "Precipitación";
+  if (std::strcmp(text, "Wind") == 0) return "Viento";
+  if (std::strcmp(text, "Humidity") == 0) return "Humedad";
+  if (std::strcmp(text, "Last forecast") == 0) return "Último pronóstico";
+  if (std::strcmp(text, "Sun") == 0) return "dom.";
+  if (std::strcmp(text, "Mon") == 0) return "lun.";
+  if (std::strcmp(text, "Tues") == 0) return "mar.";
+  if (std::strcmp(text, "Weds") == 0) return "mié.";
+  if (std::strcmp(text, "Thurs") == 0) return "jue.";
+  if (std::strcmp(text, "Fri") == 0) return "vie.";
+  if (std::strcmp(text, "Sat") == 0) return "sáb.";
   return text;
 }
 
@@ -1303,6 +1372,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Palaa";
   if (std::strcmp(text, "Run this script?") == 0) return "Suoritetaanko tämä skripti?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Näyttö himmennetty";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Näytön lukitus";
   if (std::strcmp(text, "Screen Locked") == 0) return "Näyttö lukittu";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(text, "Skip Next") == 0) return "Seuraava kappale";
@@ -1321,6 +1391,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Auringonlasku alas";
   if (std::strcmp(text, "Sunset Up") == 0) return "Auringonlasku ylös";
   if (std::strcmp(text, "Swing") == 0) return "Kääntö";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vaakasuuntainen kääntö";
   if (std::strcmp(text, "Target") == 0) return "Tavoite";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Väliaikainen pito";
   if (std::strcmp(text, "Today") == 0) return "Tänään";
@@ -1338,7 +1409,6 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Lomapito";
   if (std::strcmp(text, "Vacuum") == 0) return "Imuri";
   if (std::strcmp(text, "Version unknown") == 0) return "Versio tuntematon";
-  if (std::strcmp(text, "Voice") == 0) return "Puhe";
   if (std::strcmp(text, "Volume") == 0) return "Äänenvoimakkuus";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Odotetaan Home Assistantia";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Yhdistetään \nHome Assistantiin";
@@ -1455,6 +1525,19 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Vahvista";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Vieras-Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ei muuttunut";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Yhdistä WiFi-tukiasemaan";
+  if (std::strcmp(text, "to configure your network.") == 0) return "määrittääksesi verkkosi.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Avaa sitten selaimessa {address}";
+  if (std::strcmp(text, "Screensaver") == 0) return "Näytönsäästäjä";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Väärä PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Sade";
+  if (std::strcmp(text, "Sun") == 0) return "su";
+  if (std::strcmp(text, "Mon") == 0) return "ma";
+  if (std::strcmp(text, "Tues") == 0) return "ti";
+  if (std::strcmp(text, "Weds") == 0) return "ke";
+  if (std::strcmp(text, "Thurs") == 0) return "to";
+  if (std::strcmp(text, "Fri") == 0) return "pe";
+  if (std::strcmp(text, "Sat") == 0) return "la";
   return text;
 }
 
@@ -1530,6 +1613,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Orage et pluie";
   if (std::strcmp(text, "Light") == 0) return "Lumière";
   if (std::strcmp(text, "Loading") == 0) return "Chargement";
+  if (std::strcmp(text, "Loading forecast") == 0) return "Chargement des prévisions";
   if (std::strcmp(text, "Locate") == 0) return "Localiser";
   if (std::strcmp(text, "Lock") == 0) return "Verrouiller";
   if (std::strcmp(text, "Lawn Mower") == 0) return "Tondeuse";
@@ -1588,6 +1672,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Retour";
   if (std::strcmp(text, "Run this script?") == 0) return "Exécuter ce script ?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Écran tamisé";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Écran verrouillé";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(text, "Skip Next") == 0) return "Passer au suivant";
@@ -1606,6 +1691,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Coucher bas";
   if (std::strcmp(text, "Sunset Up") == 0) return "Coucher haut";
   if (std::strcmp(text, "Swing") == 0) return "Oscillation";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscillation horizontale";
   if (std::strcmp(text, "Target") == 0) return "Cible";
   if (std::strcmp(text, "Today") == 0) return "Aujourd'hui";
   if (std::strcmp(text, "Too many") == 0) return "Trop nombreux";
@@ -1622,7 +1708,6 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Non pris en charge";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirateur";
   if (std::strcmp(text, "Version unknown") == 0) return "Version inconnue";
-  if (std::strcmp(text, "Voice") == 0) return "Voix";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "En attente de Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Connexion à \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Météo";
@@ -1739,6 +1824,25 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Confirmer";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi invité";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Le Wi-Fi n’a pas changé";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Connectez-vous au point d’accès WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "pour configurer votre réseau.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Ouvrez ensuite {address} dans votre navigateur";
+  if (std::strcmp(text, "Screensaver") == 0) return "Économiseur d’écran";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "PIN incorrect";
+  if (std::strcmp(text, "Forecast unavailable") == 0) return "Prévisions indisponibles";
+  if (std::strcmp(text, "Rain") == 0) return "Pluie";
+  if (std::strcmp(text, "Rain chance") == 0) return "Risque de pluie";
+  if (std::strcmp(text, "Rainfall") == 0) return "Précipitations";
+  if (std::strcmp(text, "Wind") == 0) return "Vent";
+  if (std::strcmp(text, "Humidity") == 0) return "Humidité";
+  if (std::strcmp(text, "Last forecast") == 0) return "Dernières prévisions";
+  if (std::strcmp(text, "Sun") == 0) return "dim.";
+  if (std::strcmp(text, "Mon") == 0) return "lun.";
+  if (std::strcmp(text, "Tues") == 0) return "mar.";
+  if (std::strcmp(text, "Weds") == 0) return "mer.";
+  if (std::strcmp(text, "Thurs") == 0) return "jeu.";
+  if (std::strcmp(text, "Fri") == 0) return "ven.";
+  if (std::strcmp(text, "Sat") == 0) return "sam.";
   return text;
 }
 
@@ -1757,7 +1861,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Arm Night") == 0) return "דריכה ללילה";
   if (std::strcmp(text, "Arm Vacation") == 0) return "דריכה לחופשה";
   if (std::strcmp(text, "Armed Away") == 0) return "דרוך מחוץ לבית";
-  if (std::strcmp(text, "Armed Custom") == 0) return "דרוך מותאם";
+  if (std::strcmp(text, "Armed Custom") == 0) return "דרוך מותאם אישית";
   if (std::strcmp(text, "Armed Home") == 0) return "דרוך בבית";
   if (std::strcmp(text, "Armed Night") == 0) return "דרוך ללילה";
   if (std::strcmp(text, "Armed Vacation") == 0) return "דרוך לחופשה";
@@ -1772,7 +1876,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Clock") == 0) return "שעון";
   if (std::strcmp(text, "Close") == 0) return "סגירה";
   if (std::strcmp(text, "Closed") == 0) return "סגור";
-  if (std::strcmp(text, "Closing") == 0) return "נסגר";
+  if (std::strcmp(text, "Closing") == 0) return "בסגירה";
   if (std::strcmp(text, "Cloudy") == 0) return "מעונן";
   if (std::strcmp(text, "Cloudy Alert") == 0) return "התראת עננות";
   if (std::strcmp(text, "Configure") == 0) return "להגדרה";
@@ -1814,7 +1918,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Heavy Snow") == 0) return "שלג כבד";
   if (std::strcmp(text, "High") == 0) return "גבוה";
   if (std::strcmp(text, "High target") == 0) return "יעד עליון";
-  if (std::strcmp(text, "Holduntil") == 0) return "החזקה עד";
+  if (std::strcmp(text, "Holduntil") == 0) return "קיבוע עד";
   if (std::strcmp(text, "Home") == 0) return "בבית";
   if (std::strcmp(text, "Hourly") == 0) return "כל שעה";
   if (std::strcmp(text, "Hurricane") == 0) return "הוריקן";
@@ -1853,30 +1957,30 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Next") == 0) return "הבא";
   if (std::strcmp(text, "Night") == 0) return "לילה";
   if (std::strcmp(text, "No") == 0) return "לא";
-  if (std::strcmp(text, "Nohold") == 0) return "ללא החזקה";
+  if (std::strcmp(text, "Nohold") == 0) return "ללא קיבוע";
   if (std::strcmp(text, "None") == 0) return "ללא";
   if (std::strcmp(text, "No options") == 0) return "אין אפשרויות";
   if (std::strcmp(text, "No presets") == 0) return "אין מצבים מוגדרים";
   if (std::strcmp(text, "No sources") == 0) return "אין מקורות";
   if (std::strcmp(text, "Source") == 0) return "מקור";
-  if (std::strcmp(text, "Not available") == 0) return "אינו זמין";
+  if (std::strcmp(text, "Not available") == 0) return "לא זמין";
   if (std::strcmp(text, "Off") == 0) return "כבוי";
-  if (std::strcmp(text, "On") == 0) return "פועל";
+  if (std::strcmp(text, "On") == 0) return "מופעל";
   if (std::strcmp(text, "Open") == 0) return "פתיחה";
-  if (std::strcmp(text, "Opening") == 0) return "נפתח";
+  if (std::strcmp(text, "Opening") == 0) return "בפתיחה";
   if (std::strcmp(text, "Option") == 0) return "אפשרות";
   if (std::strcmp(text, "Oscillating") == 0) return "מסתובב";
   if (std::strcmp(text, "Oscillation") == 0) return "סיבוב";
   if (std::strcmp(text, "Partly Cloudy") == 0) return "מעונן חלקית";
   if (std::strcmp(text, "Partly Cloudy Night") == 0) return "לילה מעונן חלקית";
-  if (std::strcmp(text, "Partly Lightning") == 0) return "ברקים חלקית";
-  if (std::strcmp(text, "Partly Rainy") == 0) return "גשום חלקית";
-  if (std::strcmp(text, "Partly Snow And Rain") == 0) return "שלג וגשם חלקית";
-  if (std::strcmp(text, "Partly Snowy") == 0) return "מושלג חלקית";
+  if (std::strcmp(text, "Partly Lightning") == 0) return "ברקים מקומיים";
+  if (std::strcmp(text, "Partly Rainy") == 0) return "גשם מקומי";
+  if (std::strcmp(text, "Partly Snow And Rain") == 0) return "שלג וגשם מקומיים";
+  if (std::strcmp(text, "Partly Snowy") == 0) return "שלג מקומי";
   if (std::strcmp(text, "Pause") == 0) return "השהיה";
   if (std::strcmp(text, "Paused") == 0) return "מושהה";
   if (std::strcmp(text, "Pending") == 0) return "בהמתנה";
-  if (std::strcmp(text, "Permanenthold") == 0) return "החזקה קבועה";
+  if (std::strcmp(text, "Permanenthold") == 0) return "קיבוע תמידי";
   if (std::strcmp(text, "PIN was not accepted") == 0) return "הקוד לא התקבל";
   if (std::strcmp(text, "Play/Pause") == 0) return "ניגון/השהיה";
   if (std::strcmp(text, "Playing") == 0) return "מנגן";
@@ -1892,15 +1996,17 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "חוזר לעגינה";
   if (std::strcmp(text, "Run this script?") == 0) return "להריץ את הסקריפט?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "המסך מעומעם";
+  if (std::strcmp(text, "Screen Lock") == 0) return "נעילת מסך";
   if (std::strcmp(text, "Screen Locked") == 0) return "המסך נעול";
-  if (std::strcmp(text, "Screen Unlocked") == 0) return "המסך משוחרר";
-  if (std::strcmp(text, "Skip Next") == 0) return "לרצועה הבאה";
-  if (std::strcmp(text, "Skip Previous") == 0) return "לרצועה הקודמת";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "נעילת המסך בוטלה";
+  if (std::strcmp(text, "Skip Next") == 0) return "הרצועה הבאה";
+  if (std::strcmp(text, "Skip Previous") == 0) return "הרצועה הקודמת";
   if (std::strcmp(text, "Snowy") == 0) return "מושלג";
   if (std::strcmp(text, "Snowy And Rain") == 0) return "שלג וגשם";
   if (std::strcmp(text, "Spot Clean") == 0) return "ניקוי נקודתי";
   if (std::strcmp(text, "Start") == 0) return "הפעלה";
-  if (std::strcmp(text, "Still") == 0) return "נייח";
+  if (std::strcmp(text, "Start / Dock") == 0) return "הפעלה / עגינה";
+  if (std::strcmp(text, "Still") == 0) return "קבוע";
   if (std::strcmp(text, "Subpage") == 0) return "תת-עמוד";
   if (std::strcmp(text, "Stop") == 0) return "עצירה";
   if (std::strcmp(text, "Stopped") == 0) return "הופסק";
@@ -1910,8 +2016,9 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "שקיעה";
   if (std::strcmp(text, "Sunset Up") == 0) return "זריחה";
   if (std::strcmp(text, "Swing") == 0) return "נדנוד";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "נדנוד אופקי";
   if (std::strcmp(text, "Target") == 0) return "יעד";
-  if (std::strcmp(text, "Temporaryhold") == 0) return "החזקה זמנית";
+  if (std::strcmp(text, "Temporaryhold") == 0) return "קיבוע זמני";
   if (std::strcmp(text, "Today") == 0) return "היום";
   if (std::strcmp(text, "Too many") == 0) return "יותר מדי";
   if (std::strcmp(text, "Toggle this device?") == 0) return "להחליף את מצב המכשיר?";
@@ -1923,13 +2030,12 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Turn on this device?") == 0) return "להפעיל את המכשיר?";
   if (std::strcmp(text, "Unavailable") == 0) return "לא זמין";
   if (std::strcmp(text, "Unknown") == 0) return "לא ידוע";
-  if (std::strcmp(text, "Unlock") == 0) return "שחרור נעילה";
+  if (std::strcmp(text, "Unlock") == 0) return "ביטול נעילה";
   if (std::strcmp(text, "Unsupported") == 0) return "לא נתמך";
   if (std::strcmp(text, "Vacation") == 0) return "חופשה";
-  if (std::strcmp(text, "Vacationhold") == 0) return "החזקת חופשה";
+  if (std::strcmp(text, "Vacationhold") == 0) return "קיבוע לחופשה";
   if (std::strcmp(text, "Vacuum") == 0) return "שואב אבק";
   if (std::strcmp(text, "Version unknown") == 0) return "גרסה לא ידועה";
-  if (std::strcmp(text, "Voice") == 0) return "קול";
   if (std::strcmp(text, "Volume") == 0) return "עוצמה";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "ממתין ל-Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "מתחבר אל\nHome Assistant";
@@ -1948,7 +2054,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Booting") == 0) return "אתחול";
   if (std::strcmp(text, "Connect an Ethernet cable\nand wait for a network address") == 0) return "חברו כבל רשת\nוהמתינו לכתובת רשת";
   if (std::strcmp(text, "Connect to the setup hotspot\nthen open 192.168.4.1") == 0) return "התחברו לרשת ההגדרה\nופתחו את 192.168.4.1";
-  if (std::strcmp(text, "Connect to") == 0) return "התחבר אל";
+  if (std::strcmp(text, "Connect to") == 0) return "התחברו אל";
   if (std::strcmp(text, "Connect to WiFi") == 0) return "התחברות ל-WiFi";
   if (std::strcmp(text, "Scan to connect") == 0) return "סרקו כדי להתחבר";
   if (std::strcmp(text, "Network") == 0) return "רשת";
@@ -1961,8 +2067,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Ethernet Setup") == 0) return "הגדרת רשת קווית";
   if (std::strcmp(text, "Installing update") == 0) return "מתקין עדכון";
   if (std::strcmp(text, "Checking for updates") == 0) return "בודק עדכונים";
-  if (std::strcmp(text, "Latest installed") == 0) return "מותקנת הגרסה החדשה";
-  if (std::strcmp(text, "Update available") == 0) return "קיים עדכון";
+  if (std::strcmp(text, "Latest installed") == 0) return "מותקנת הגרסה העדכנית";
+  if (std::strcmp(text, "Update available") == 0) return "יש עדכון";
   if (std::strcmp(text, "Up-to-date") == 0) return "מעודכן";
   if (std::strcmp(text, "Install") == 0) return "התקנה";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
@@ -1973,14 +2079,14 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "See the install guide for help") == 0) return "לעזרה עיינו במדריך ההתקנה";
   if (std::strcmp(text, "Settings > Devices & Services") == 0) return "הגדרות > מכשירים ושירותים";
   if (std::strcmp(text, "Setup") == 0) return "הגדרה";
-  if (std::strcmp(text, "Starting up") == 0) return "מתחיל";
+  if (std::strcmp(text, "Starting up") == 0) return "בהפעלה";
   if (std::strcmp(text, "The screen may turn off\nDo not power off") == 0) return "המסך עשוי לכבות\nאין לנתק מהחשמל";
   if (std::strcmp(text, "Try installing the update again") == 0) return "נסו להתקין את העדכון שוב";
   if (std::strcmp(text, "Trying to reconnect\nto your saved network") == 0) return "מנסה להתחבר מחדש\nלרשת השמורה";
   if (std::strcmp(text, "Update complete") == 0) return "העדכון הושלם";
   if (std::strcmp(text, "Update failed") == 0) return "העדכון נכשל";
   if (std::strcmp(text, "WiFi Disconnected") == 0) return "WiFi מנותק";
-  if (std::strcmp(text, "to configure your network settings") == 0) return "כדי להגדיר את הגדרות הרשת";
+  if (std::strcmp(text, "to configure your network settings") == 0) return "כדי להגדיר את הרשת";
   if (std::strcmp(text, "Configure your WiFi") == 0) return "הגדרת WiFi";
   if (std::strcmp(text, "Speaker Group") == 0) return "קבוצת רמקולים";
   if (std::strcmp(text, "Speakers") == 0) return "רמקולים";
@@ -2042,9 +2148,22 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "free") == 0) return "פנוי";
   if (std::strcmp(text, "left") == 0) return "נותר";
   if (std::strcmp(text, "Timer") == 0) return "טיימר";
-  if (std::strcmp(text, "Confirm") == 0) return "לאשר";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "רשת Wi-Fi לאורחים";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "מצב ה-Wi-Fi לא השתנה";
+  if (std::strcmp(text, "Confirm") == 0) return "לאישור";
+  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "רשת אורחים";
+  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "מצב ה-WiFi לא השתנה";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "התחברו לנקודת הגישה של WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "כדי להגדיר את הרשת שלכם.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "לאחר מכן פתחו את {address} בדפדפן";
+  if (std::strcmp(text, "Screensaver") == 0) return "שומר מסך";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "קוד PIN שגוי";
+  if (std::strcmp(text, "Rain") == 0) return "גשם";
+  if (std::strcmp(text, "Sun") == 0) return "א׳";
+  if (std::strcmp(text, "Mon") == 0) return "ב׳";
+  if (std::strcmp(text, "Tues") == 0) return "ג׳";
+  if (std::strcmp(text, "Weds") == 0) return "ד׳";
+  if (std::strcmp(text, "Thurs") == 0) return "ה׳";
+  if (std::strcmp(text, "Fri") == 0) return "ו׳";
+  if (std::strcmp(text, "Sat") == 0) return "ש׳";
   return text;
 }
 
@@ -2192,6 +2311,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Visszatérés";
   if (std::strcmp(text, "Run this script?") == 0) return "Futtatja ezt a szkriptet?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Képernyő halványítva";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Képernyőzár";
   if (std::strcmp(text, "Screen Locked") == 0) return "Képernyő lezárva";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(text, "Skip Next") == 0) return "Ugrás a következőre";
@@ -2210,6 +2330,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Naplemente le";
   if (std::strcmp(text, "Sunset Up") == 0) return "Naplemente fel";
   if (std::strcmp(text, "Swing") == 0) return "Legyezés";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vízszintes legyezés";
   if (std::strcmp(text, "Target") == 0) return "Célérték";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Ideiglenes tartás";
   if (std::strcmp(text, "Today") == 0) return "Ma";
@@ -2228,7 +2349,6 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Vakációs tartás";
   if (std::strcmp(text, "Vacuum") == 0) return "Porszívó";
   if (std::strcmp(text, "Version unknown") == 0) return "Ismeretlen verzió";
-  if (std::strcmp(text, "Voice") == 0) return "Hang";
   if (std::strcmp(text, "Volume") == 0) return "Hangerő";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Várakozás a Home Assistantra";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Csatlakozás a \nHome Assistanthez";
@@ -2344,6 +2464,19 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Megerősítés";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Vendég Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "A Wi-Fi állapota nem változott";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Csatlakozzon a WiFi-hotspothoz";
+  if (std::strcmp(text, "to configure your network.") == 0) return "a hálózat beállításához.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Ezután nyissa meg a {address} címet a böngészőben";
+  if (std::strcmp(text, "Screensaver") == 0) return "Képernyőkímélő";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Helytelen PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Eső";
+  if (std::strcmp(text, "Sun") == 0) return "vas.";
+  if (std::strcmp(text, "Mon") == 0) return "hétf.";
+  if (std::strcmp(text, "Tues") == 0) return "kedd";
+  if (std::strcmp(text, "Weds") == 0) return "szer.";
+  if (std::strcmp(text, "Thurs") == 0) return "csüt.";
+  if (std::strcmp(text, "Fri") == 0) return "pén.";
+  if (std::strcmp(text, "Sat") == 0) return "szomb.";
   return text;
 }
 
@@ -2422,6 +2555,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Fulmini e pioggia";
   if (std::strcmp(text, "Light") == 0) return "Luce";
   if (std::strcmp(text, "Loading") == 0) return "Caricamento";
+  if (std::strcmp(text, "Loading forecast") == 0) return "Caricamento previsioni";
   if (std::strcmp(text, "Locate") == 0) return "Localizza";
   if (std::strcmp(text, "Lock") == 0) return "Blocca";
   if (std::strcmp(text, "Lawn Mower") == 0) return "Tagliaerba";
@@ -2486,6 +2620,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Ritorno";
   if (std::strcmp(text, "Run this script?") == 0) return "Eseguire questo script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Schermo attenuato";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Blocco schermo";
   if (std::strcmp(text, "Screen Locked") == 0) return "Schermo bloccato";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(text, "Skip Next") == 0) return "Salta avanti";
@@ -2504,6 +2639,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Tramonto giù";
   if (std::strcmp(text, "Sunset Up") == 0) return "Tramonto su";
   if (std::strcmp(text, "Swing") == 0) return "Oscillazione";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscillazione orizzontale";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Temporaneo";
   if (std::strcmp(text, "Today") == 0) return "Oggi";
   if (std::strcmp(text, "Too many") == 0) return "Troppi";
@@ -2520,7 +2656,6 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Vacanza";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirapolvere";
   if (std::strcmp(text, "Version unknown") == 0) return "Versione sconosciuta";
-  if (std::strcmp(text, "Voice") == 0) return "Voce";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "In attesa di Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Connessione a \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Meteo";
@@ -2633,6 +2768,25 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Confermare";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi ospiti";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Il Wi-Fi non è cambiato";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Connettiti all’hotspot WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "per configurare la tua rete.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Poi apri {address} nel browser";
+  if (std::strcmp(text, "Screensaver") == 0) return "Salvaschermo";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "PIN errato";
+  if (std::strcmp(text, "Forecast unavailable") == 0) return "Previsioni non disponibili";
+  if (std::strcmp(text, "Rain") == 0) return "Pioggia";
+  if (std::strcmp(text, "Rain chance") == 0) return "Probabilità di pioggia";
+  if (std::strcmp(text, "Rainfall") == 0) return "Precipitazioni";
+  if (std::strcmp(text, "Wind") == 0) return "Vento";
+  if (std::strcmp(text, "Humidity") == 0) return "Umidità";
+  if (std::strcmp(text, "Last forecast") == 0) return "Ultime previsioni";
+  if (std::strcmp(text, "Sun") == 0) return "dom.";
+  if (std::strcmp(text, "Mon") == 0) return "lun.";
+  if (std::strcmp(text, "Tues") == 0) return "mar.";
+  if (std::strcmp(text, "Weds") == 0) return "mer.";
+  if (std::strcmp(text, "Thurs") == 0) return "gio.";
+  if (std::strcmp(text, "Fri") == 0) return "ven.";
+  if (std::strcmp(text, "Sat") == 0) return "sab.";
   return text;
 }
 
@@ -2772,6 +2926,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Returnerer";
   if (std::strcmp(text, "Run this script?") == 0) return "Kjør dette skriptet?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skjerm neddimmet";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Skjermlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skjerm låst";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(text, "Skip Next") == 0) return "Hopp til neste";
@@ -2789,6 +2944,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgang ned";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgang opp";
   if (std::strcmp(text, "Swing") == 0) return "Sving";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontal sving";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "I dag";
   if (std::strcmp(text, "Too many") == 0) return "For mange";
@@ -2804,7 +2960,6 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Støttes ikke";
   if (std::strcmp(text, "Vacuum") == 0) return "Støvsuger";
   if (std::strcmp(text, "Version unknown") == 0) return "Ukjent versjon";
-  if (std::strcmp(text, "Voice") == 0) return "Stemme";
   if (std::strcmp(text, "Volume") == 0) return "Volum";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Kobler til \nHome Assistant";
@@ -2921,6 +3076,19 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Bekreft";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gjeste-Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ble ikke endret";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Koble til WiFi-hotspotet";
+  if (std::strcmp(text, "to configure your network.") == 0) return "for å konfigurere nettverket ditt.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Åpne deretter {address} i nettleseren";
+  if (std::strcmp(text, "Screensaver") == 0) return "Skjermsparer";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Feil PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Regn";
+  if (std::strcmp(text, "Sun") == 0) return "søn.";
+  if (std::strcmp(text, "Mon") == 0) return "man.";
+  if (std::strcmp(text, "Tues") == 0) return "tir.";
+  if (std::strcmp(text, "Weds") == 0) return "ons.";
+  if (std::strcmp(text, "Thurs") == 0) return "tor.";
+  if (std::strcmp(text, "Fri") == 0) return "fre.";
+  if (std::strcmp(text, "Sat") == 0) return "lør.";
   return text;
 }
 
@@ -3000,6 +3168,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Bliksem en regen";
   if (std::strcmp(text, "Light") == 0) return "Licht";
   if (std::strcmp(text, "Loading") == 0) return "Laden";
+  if (std::strcmp(text, "Loading forecast") == 0) return "Weersverwachting laden";
   if (std::strcmp(text, "Locate") == 0) return "Lokaliseren";
   if (std::strcmp(text, "Lock") == 0) return "Vergrendelen";
   if (std::strcmp(text, "Lawn Mower") == 0) return "Grasmaaier";
@@ -3063,6 +3232,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Keert terug";
   if (std::strcmp(text, "Run this script?") == 0) return "Dit script uitvoeren?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Scherm gedimd";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(text, "Screen Locked") == 0) return "Scherm vergrendeld";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(text, "Skip Next") == 0) return "Volgende overslaan";
@@ -3080,6 +3250,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Zon onder";
   if (std::strcmp(text, "Sunset Up") == 0) return "Zon op";
   if (std::strcmp(text, "Swing") == 0) return "Zwenken";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontaal zwenken";
   if (std::strcmp(text, "Target") == 0) return "Doel";
   if (std::strcmp(text, "Today") == 0) return "Vandaag";
   if (std::strcmp(text, "Too many") == 0) return "Te veel";
@@ -3095,7 +3266,6 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Niet ondersteund";
   if (std::strcmp(text, "Vacuum") == 0) return "Stofzuiger";
   if (std::strcmp(text, "Version unknown") == 0) return "Versie onbekend";
-  if (std::strcmp(text, "Voice") == 0) return "Spraak";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Wachten op Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Verbinden met \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Weer";
@@ -3203,6 +3373,24 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Bevestigen";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gastwifi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wifi is niet gewijzigd";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Maak verbinding met de WiFi-hotspot";
+  if (std::strcmp(text, "to configure your network.") == 0) return "om je netwerk in te stellen.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Open daarna {address} in je browser";
+  if (std::strcmp(text, "Screensaver") == 0) return "Schermbeveiliging";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Onjuiste pincode";
+  if (std::strcmp(text, "Forecast unavailable") == 0) return "Verwachting niet beschikbaar";
+  if (std::strcmp(text, "Rain") == 0) return "Regen";
+  if (std::strcmp(text, "Rain chance") == 0) return "Kans op regen";
+  if (std::strcmp(text, "Rainfall") == 0) return "Neerslag";
+  if (std::strcmp(text, "Humidity") == 0) return "Luchtvochtigheid";
+  if (std::strcmp(text, "Last forecast") == 0) return "Laatste verwachting";
+  if (std::strcmp(text, "Sun") == 0) return "zo.";
+  if (std::strcmp(text, "Mon") == 0) return "ma.";
+  if (std::strcmp(text, "Tues") == 0) return "di.";
+  if (std::strcmp(text, "Weds") == 0) return "wo.";
+  if (std::strcmp(text, "Thurs") == 0) return "do.";
+  if (std::strcmp(text, "Fri") == 0) return "vr.";
+  if (std::strcmp(text, "Sat") == 0) return "za.";
   return text;
 }
 
@@ -3342,6 +3530,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Powraca";
   if (std::strcmp(text, "Run this script?") == 0) return "Uruchomić ten skrypt?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran przyciemniony";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Blokada ekranu";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran zablokowany";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(text, "Skip Next") == 0) return "Pomiń następny";
@@ -3359,6 +3548,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Zachód słońca dół";
   if (std::strcmp(text, "Sunset Up") == 0) return "Zachód słońca góra";
   if (std::strcmp(text, "Swing") == 0) return "Ruch wahadłowy";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Ruch poziomy";
   if (std::strcmp(text, "Target") == 0) return "Cel";
   if (std::strcmp(text, "Today") == 0) return "Dziś";
   if (std::strcmp(text, "Too many") == 0) return "Za dużo";
@@ -3374,7 +3564,6 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nieobsługiwane";
   if (std::strcmp(text, "Vacuum") == 0) return "Odkurzacz";
   if (std::strcmp(text, "Version unknown") == 0) return "Wersja nieznana";
-  if (std::strcmp(text, "Voice") == 0) return "Głos";
   if (std::strcmp(text, "Volume") == 0) return "Głośność";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Oczekiwanie na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Łączenie z \nHome Assistant";
@@ -3491,6 +3680,19 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Potwierdzić";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi dla gości";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stan Wi-Fi nie zmienił się";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Połącz się z hotspotem WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "aby skonfigurować swoją sieć.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Następnie otwórz {address} w przeglądarce";
+  if (std::strcmp(text, "Screensaver") == 0) return "Wygaszacz ekranu";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Nieprawidłowy PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Deszcz";
+  if (std::strcmp(text, "Sun") == 0) return "niedz.";
+  if (std::strcmp(text, "Mon") == 0) return "pon.";
+  if (std::strcmp(text, "Tues") == 0) return "wt.";
+  if (std::strcmp(text, "Weds") == 0) return "śr.";
+  if (std::strcmp(text, "Thurs") == 0) return "czw.";
+  if (std::strcmp(text, "Fri") == 0) return "pt.";
+  if (std::strcmp(text, "Sat") == 0) return "sob.";
   return text;
 }
 
@@ -3568,6 +3770,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Raios e chuva";
   if (std::strcmp(text, "Light") == 0) return "Luz";
   if (std::strcmp(text, "Loading") == 0) return "Carregando";
+  if (std::strcmp(text, "Loading forecast") == 0) return "Carregando previsão";
   if (std::strcmp(text, "Locate") == 0) return "Localizar";
   if (std::strcmp(text, "Lock") == 0) return "Bloquear";
   if (std::strcmp(text, "Lawn Mower") == 0) return "Cortador de grama";
@@ -3632,6 +3835,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Retornando";
   if (std::strcmp(text, "Run this script?") == 0) return "Executar este script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Tela escurecida";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(text, "Screen Locked") == 0) return "Tela bloqueada";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Pular próximo";
@@ -3650,6 +3854,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Pôr do sol alto";
   if (std::strcmp(text, "Swing") == 0) return "Oscilação";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(text, "Target") == 0) return "Alvo";
   if (std::strcmp(text, "Today") == 0) return "Hoje";
   if (std::strcmp(text, "Too many") == 0) return "Muitos";
@@ -3665,7 +3870,6 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Não suportado";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirador";
   if (std::strcmp(text, "Version unknown") == 0) return "Versão desconhecida";
-  if (std::strcmp(text, "Voice") == 0) return "Voz";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Aguardando o Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Conectando ao \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Tempo";
@@ -3779,6 +3983,19 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de convidados";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "O Wi-Fi não mudou";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Conecte-se ao ponto de acesso WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "para configurar sua rede.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Depois abra {address} no navegador";
+  if (std::strcmp(text, "Screensaver") == 0) return "Protetor de tela";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "PIN incorreto";
+  if (std::strcmp(text, "Rain") == 0) return "Chuva";
+  if (std::strcmp(text, "Sun") == 0) return "dom.";
+  if (std::strcmp(text, "Mon") == 0) return "seg.";
+  if (std::strcmp(text, "Tues") == 0) return "ter.";
+  if (std::strcmp(text, "Weds") == 0) return "qua.";
+  if (std::strcmp(text, "Thurs") == 0) return "qui.";
+  if (std::strcmp(text, "Fri") == 0) return "sex.";
+  if (std::strcmp(text, "Sat") == 0) return "sáb.";
   return text;
 }
 
@@ -3857,6 +4074,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Relâmpagos e chuva";
   if (std::strcmp(text, "Light") == 0) return "Luz";
   if (std::strcmp(text, "Loading") == 0) return "A carregar";
+  if (std::strcmp(text, "Loading forecast") == 0) return "A carregar previsão";
   if (std::strcmp(text, "Locate") == 0) return "Localizar";
   if (std::strcmp(text, "Lock") == 0) return "Bloquear";
   if (std::strcmp(text, "Lawn Mower") == 0) return "Corta-relva";
@@ -3921,6 +4139,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "A regressar";
   if (std::strcmp(text, "Run this script?") == 0) return "Executar este script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecrã escurecido";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecrã bloqueado";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar seguinte";
@@ -3939,6 +4158,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(text, "Sunset Up") == 0) return "Pôr do sol alto";
   if (std::strcmp(text, "Swing") == 0) return "Oscilação";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(text, "Target") == 0) return "Alvo";
   if (std::strcmp(text, "Today") == 0) return "Hoje";
   if (std::strcmp(text, "Too many") == 0) return "Demasiados";
@@ -3954,7 +4174,6 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Não suportado";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirador";
   if (std::strcmp(text, "Version unknown") == 0) return "Versão desconhecida";
-  if (std::strcmp(text, "Voice") == 0) return "Voz";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "À espera do Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "A ligar ao \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Meteorologia";
@@ -4068,6 +4287,25 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de convidados";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "O Wi-Fi não mudou";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Ligue-se ao ponto de acesso WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "para configurar a sua rede.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Depois abra {address} no navegador";
+  if (std::strcmp(text, "Screensaver") == 0) return "Proteção de ecrã";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "PIN incorreto";
+  if (std::strcmp(text, "Forecast unavailable") == 0) return "Previsão indisponível";
+  if (std::strcmp(text, "Rain") == 0) return "Chuva";
+  if (std::strcmp(text, "Rain chance") == 0) return "Probabilidade de chuva";
+  if (std::strcmp(text, "Rainfall") == 0) return "Precipitação";
+  if (std::strcmp(text, "Wind") == 0) return "Vento";
+  if (std::strcmp(text, "Humidity") == 0) return "Humidade";
+  if (std::strcmp(text, "Last forecast") == 0) return "Última previsão";
+  if (std::strcmp(text, "Sun") == 0) return "dom.";
+  if (std::strcmp(text, "Mon") == 0) return "seg.";
+  if (std::strcmp(text, "Tues") == 0) return "ter.";
+  if (std::strcmp(text, "Weds") == 0) return "qua.";
+  if (std::strcmp(text, "Thurs") == 0) return "qui.";
+  if (std::strcmp(text, "Fri") == 0) return "sex.";
+  if (std::strcmp(text, "Sat") == 0) return "sáb.";
   return text;
 }
 
@@ -4215,6 +4453,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Revine";
   if (std::strcmp(text, "Run this script?") == 0) return "Rulați acest script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecran estompat";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Blocare ecran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecran blocat";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(text, "Skip Next") == 0) return "Următorul";
@@ -4233,6 +4472,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Apus jos";
   if (std::strcmp(text, "Sunset Up") == 0) return "Apus sus";
   if (std::strcmp(text, "Swing") == 0) return "Balans";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Balans orizontal";
   if (std::strcmp(text, "Target") == 0) return "Țintă";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Menținere temporară";
   if (std::strcmp(text, "Today") == 0) return "Astăzi";
@@ -4251,7 +4491,6 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Menținere vacanță";
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirator";
   if (std::strcmp(text, "Version unknown") == 0) return "Versiune necunoscută";
-  if (std::strcmp(text, "Voice") == 0) return "Voce";
   if (std::strcmp(text, "Volume") == 0) return "Volum";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Se așteaptă Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Se conectează la \nHome Assistant";
@@ -4367,6 +4606,19 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Confirmați";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pentru oaspeți";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Starea Wi-Fi nu s-a schimbat";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Conectați-vă la hotspotul WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "pentru a configura rețeaua.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Apoi deschideți {address} în browser";
+  if (std::strcmp(text, "Screensaver") == 0) return "Economizor de ecran";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "PIN incorect";
+  if (std::strcmp(text, "Rain") == 0) return "Ploaie";
+  if (std::strcmp(text, "Sun") == 0) return "dum.";
+  if (std::strcmp(text, "Mon") == 0) return "lun.";
+  if (std::strcmp(text, "Tues") == 0) return "mar.";
+  if (std::strcmp(text, "Weds") == 0) return "mie.";
+  if (std::strcmp(text, "Thurs") == 0) return "joi";
+  if (std::strcmp(text, "Fri") == 0) return "vin.";
+  if (std::strcmp(text, "Sat") == 0) return "sâm.";
   return text;
 }
 
@@ -4519,6 +4771,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Возвращается";
   if (std::strcmp(text, "Run this script?") == 0) return "Запустить этот сценарий?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Экран приглушён";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Блокировка экрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Экран заблокирован";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(text, "Skip Next") == 0) return "Следующий трек";
@@ -4537,6 +4790,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Закат: стемнело";
   if (std::strcmp(text, "Sunset Up") == 0) return "Закат: посветлело";
   if (std::strcmp(text, "Swing") == 0) return "Колебание";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Горизонтальное колебание";
   if (std::strcmp(text, "Target") == 0) return "Цель";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Временное удержание";
   if (std::strcmp(text, "Today") == 0) return "Сегодня";
@@ -4556,7 +4810,6 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Удержание на отпуск";
   if (std::strcmp(text, "Vacuum") == 0) return "Пылесос";
   if (std::strcmp(text, "Version unknown") == 0) return "Версия неизвестна";
-  if (std::strcmp(text, "Voice") == 0) return "Голос";
   if (std::strcmp(text, "Volume") == 0) return "Громкость";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Ожидание Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Подключение к \nHome Assistant";
@@ -4673,6 +4926,19 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Подтвердить";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Гостевой Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Состояние Wi-Fi не изменилось";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Подключитесь к точке доступа WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "чтобы настроить сеть.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Затем откройте {address} в браузере";
+  if (std::strcmp(text, "Screensaver") == 0) return "Заставка";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Неверный PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Дождь";
+  if (std::strcmp(text, "Sun") == 0) return "вс";
+  if (std::strcmp(text, "Mon") == 0) return "пн";
+  if (std::strcmp(text, "Tues") == 0) return "вт";
+  if (std::strcmp(text, "Weds") == 0) return "ср";
+  if (std::strcmp(text, "Thurs") == 0) return "чт";
+  if (std::strcmp(text, "Fri") == 0) return "пт";
+  if (std::strcmp(text, "Sat") == 0) return "сб";
   return text;
 }
 
@@ -4814,6 +5080,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Vracia sa";
   if (std::strcmp(text, "Run this script?") == 0) return "Spustiť tento skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka stlmená";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamknutá";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskočiť ďalšie";
@@ -4832,6 +5099,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Západ slnka dole";
   if (std::strcmp(text, "Sunset Up") == 0) return "Západ slnka hore";
   if (std::strcmp(text, "Swing") == 0) return "Kývanie";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horizontálne kývanie";
   if (std::strcmp(text, "Target") == 0) return "Cieľ";
   if (std::strcmp(text, "Today") == 0) return "Dnes";
   if (std::strcmp(text, "Too many") == 0) return "Príliš veľa";
@@ -4848,7 +5116,6 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Nepodporované";
   if (std::strcmp(text, "Vacuum") == 0) return "Vysávač";
   if (std::strcmp(text, "Version unknown") == 0) return "Verzia neznáma";
-  if (std::strcmp(text, "Voice") == 0) return "Hlas";
   if (std::strcmp(text, "Volume") == 0) return "Hlasitosť";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čakanie na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Pripája sa k \nHome Assistant";
@@ -4965,6 +5232,19 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Potvrdiť";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pre hostí";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stav Wi-Fi sa nezmenil";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Pripojte sa k WiFi hotspotu";
+  if (std::strcmp(text, "to configure your network.") == 0) return "a nastavte svoju sieť.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Potom v prehliadači otvorte {address}";
+  if (std::strcmp(text, "Screensaver") == 0) return "Šetrič obrazovky";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Nesprávny PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Dážď";
+  if (std::strcmp(text, "Sun") == 0) return "ne";
+  if (std::strcmp(text, "Mon") == 0) return "po";
+  if (std::strcmp(text, "Tues") == 0) return "ut";
+  if (std::strcmp(text, "Weds") == 0) return "st";
+  if (std::strcmp(text, "Thurs") == 0) return "št";
+  if (std::strcmp(text, "Fri") == 0) return "pi";
+  if (std::strcmp(text, "Sat") == 0) return "so";
   return text;
 }
 
@@ -5109,6 +5389,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Vračanje";
   if (std::strcmp(text, "Run this script?") == 0) return "Zagnati ta skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Zaslon zatemnjen";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(text, "Screen Locked") == 0) return "Zaslon zaklenjen";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskoči naprej";
@@ -5127,6 +5408,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Sončni zahod dol";
   if (std::strcmp(text, "Sunset Up") == 0) return "Sončni zahod gor";
   if (std::strcmp(text, "Swing") == 0) return "Nihanje";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Vodoravno nihanje";
   if (std::strcmp(text, "Target") == 0) return "Cilj";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Začasno zadržanje";
   if (std::strcmp(text, "Today") == 0) return "Danes";
@@ -5144,7 +5426,6 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Počitniško zadržanje";
   if (std::strcmp(text, "Vacuum") == 0) return "Sesalnik";
   if (std::strcmp(text, "Version unknown") == 0) return "Različica neznana";
-  if (std::strcmp(text, "Voice") == 0) return "Glas";
   if (std::strcmp(text, "Volume") == 0) return "Glasnost";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čakanje na Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Povezovanje s \nHome Assistant";
@@ -5261,6 +5542,19 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Potrdi";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi za goste";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stanje Wi-Fi se ni spremenilo";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Povežite se z dostopno točko WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "da nastavite omrežje.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Nato v brskalniku odprite {address}";
+  if (std::strcmp(text, "Screensaver") == 0) return "Ohranjevalnik zaslona";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Napačen PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Dež";
+  if (std::strcmp(text, "Sun") == 0) return "ned.";
+  if (std::strcmp(text, "Mon") == 0) return "pon.";
+  if (std::strcmp(text, "Tues") == 0) return "tor.";
+  if (std::strcmp(text, "Weds") == 0) return "sre.";
+  if (std::strcmp(text, "Thurs") == 0) return "čet.";
+  if (std::strcmp(text, "Fri") == 0) return "pet.";
+  if (std::strcmp(text, "Sat") == 0) return "sob.";
   return text;
 }
 
@@ -5400,6 +5694,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Återvänder";
   if (std::strcmp(text, "Run this script?") == 0) return "Kör detta skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skärm nedtonad";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Skärmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skärm låst";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(text, "Skip Next") == 0) return "Hoppa till nästa";
@@ -5417,6 +5712,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Solnedgång ner";
   if (std::strcmp(text, "Sunset Up") == 0) return "Solnedgång upp";
   if (std::strcmp(text, "Swing") == 0) return "Svängning";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Horisontell svängning";
   if (std::strcmp(text, "Target") == 0) return "Mål";
   if (std::strcmp(text, "Today") == 0) return "Idag";
   if (std::strcmp(text, "Too many") == 0) return "För många";
@@ -5432,7 +5728,6 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Unsupported") == 0) return "Stöds inte";
   if (std::strcmp(text, "Vacuum") == 0) return "Dammsugare";
   if (std::strcmp(text, "Version unknown") == 0) return "Version okänd";
-  if (std::strcmp(text, "Voice") == 0) return "Röst";
   if (std::strcmp(text, "Volume") == 0) return "Volym";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Väntar på Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Ansluter till \nHome Assistant";
@@ -5547,6 +5842,19 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Bekräfta";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gäst-Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ändrades inte";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Anslut till WiFi-hotspotten";
+  if (std::strcmp(text, "to configure your network.") == 0) return "för att konfigurera ditt nätverk.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Öppna sedan {address} i din webbläsare";
+  if (std::strcmp(text, "Screensaver") == 0) return "Skärmsläckare";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Felaktig PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Regn";
+  if (std::strcmp(text, "Sun") == 0) return "sön";
+  if (std::strcmp(text, "Mon") == 0) return "mån";
+  if (std::strcmp(text, "Tues") == 0) return "tis";
+  if (std::strcmp(text, "Weds") == 0) return "ons";
+  if (std::strcmp(text, "Thurs") == 0) return "tor";
+  if (std::strcmp(text, "Fri") == 0) return "fre";
+  if (std::strcmp(text, "Sat") == 0) return "lör";
   return text;
 }
 
@@ -5694,6 +6002,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Geri dönüyor";
   if (std::strcmp(text, "Run this script?") == 0) return "Bu betik çalıştırılsın mı?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran kısılmış";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran kilitli";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(text, "Skip Next") == 0) return "Sonrakine geç";
@@ -5712,6 +6021,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Gün batımı aşağı";
   if (std::strcmp(text, "Sunset Up") == 0) return "Gün batımı yukarı";
   if (std::strcmp(text, "Swing") == 0) return "Salınım";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Yatay salınım";
   if (std::strcmp(text, "Target") == 0) return "Hedef";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Geçici tutma";
   if (std::strcmp(text, "Today") == 0) return "Bugün";
@@ -5730,7 +6040,6 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Tatil tutması";
   if (std::strcmp(text, "Vacuum") == 0) return "Süpürge";
   if (std::strcmp(text, "Version unknown") == 0) return "Sürüm bilinmiyor";
-  if (std::strcmp(text, "Voice") == 0) return "Ses";
   if (std::strcmp(text, "Volume") == 0) return "Ses";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Home Assistant bekleniyor";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "\nHome Assistant'a bağlanılıyor";
@@ -5847,6 +6156,19 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Onayla";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Misafir Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi durumu değişmedi";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "WiFi erişim noktasına bağlanın";
+  if (std::strcmp(text, "to configure your network.") == 0) return "ve ağınızı yapılandırın.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Ardından tarayıcınızda {address} adresini açın";
+  if (std::strcmp(text, "Screensaver") == 0) return "Ekran koruyucu";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Yanlış PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Yağmur";
+  if (std::strcmp(text, "Sun") == 0) return "Paz";
+  if (std::strcmp(text, "Mon") == 0) return "Pzt";
+  if (std::strcmp(text, "Tues") == 0) return "Sal";
+  if (std::strcmp(text, "Weds") == 0) return "Çar";
+  if (std::strcmp(text, "Thurs") == 0) return "Per";
+  if (std::strcmp(text, "Fri") == 0) return "Cum";
+  if (std::strcmp(text, "Sat") == 0) return "Cmt";
   return text;
 }
 
@@ -5996,6 +6318,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Returning") == 0) return "Повертається";
   if (std::strcmp(text, "Run this script?") == 0) return "Запустити цей скрипт?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Екран приглушено";
+  if (std::strcmp(text, "Screen Lock") == 0) return "Блокування екрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Екран заблоковано";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(text, "Skip Next") == 0) return "Наступний";
@@ -6014,6 +6337,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Sunset Down") == 0) return "Захід сонця вниз";
   if (std::strcmp(text, "Sunset Up") == 0) return "Захід сонця вгору";
   if (std::strcmp(text, "Swing") == 0) return "Коливання";
+  if (std::strcmp(text, "Horizontal Swing") == 0) return "Горизонтальне коливання";
   if (std::strcmp(text, "Target") == 0) return "Ціль";
   if (std::strcmp(text, "Temporaryhold") == 0) return "Тимчасове утримання";
   if (std::strcmp(text, "Today") == 0) return "Сьогодні";
@@ -6032,7 +6356,6 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Vacationhold") == 0) return "Утримання на відпустку";
   if (std::strcmp(text, "Vacuum") == 0) return "Пилосос";
   if (std::strcmp(text, "Version unknown") == 0) return "Версія невідома";
-  if (std::strcmp(text, "Voice") == 0) return "Голос";
   if (std::strcmp(text, "Volume") == 0) return "Гучність";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Очікування Home Assistant";
   if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Підключення до \nHome Assistant";
@@ -6148,6 +6471,19 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Confirm") == 0) return "Підтвердити";
   if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Гостьовий Wi-Fi";
   if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Стан Wi-Fi не змінився";
+  if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Підключіться до точки доступу WiFi";
+  if (std::strcmp(text, "to configure your network.") == 0) return "щоб налаштувати мережу.";
+  if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Потім відкрийте {address} у браузері";
+  if (std::strcmp(text, "Screensaver") == 0) return "Заставка";
+  if (std::strcmp(text, "Incorrect PIN") == 0) return "Неправильний PIN";
+  if (std::strcmp(text, "Rain") == 0) return "Дощ";
+  if (std::strcmp(text, "Sun") == 0) return "нд";
+  if (std::strcmp(text, "Mon") == 0) return "пн";
+  if (std::strcmp(text, "Tues") == 0) return "вт";
+  if (std::strcmp(text, "Weds") == 0) return "ср";
+  if (std::strcmp(text, "Thurs") == 0) return "чт";
+  if (std::strcmp(text, "Fri") == 0) return "пт";
+  if (std::strcmp(text, "Sat") == 0) return "сб";
   return text;
 }
 
@@ -6232,6 +6568,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Lightning And Rain";
   if (std::strcmp(key, "light") == 0) return "Light";
   if (std::strcmp(key, "loading") == 0) return "Loading";
+  if (std::strcmp(key, "loading_forecast") == 0) return "Loading forecast";
   if (std::strcmp(key, "locate") == 0) return "Locate";
   if (std::strcmp(key, "lock") == 0) return "Lock";
   if (std::strcmp(key, "lawn_mower") == 0) return "Lawn Mower";
@@ -6302,6 +6639,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Returning";
   if (std::strcmp(key, "run_this_script") == 0) return "Run this script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Screen Dimmed";
+  if (std::strcmp(key, "screen_lock") == 0) return "Screen Lock";
   if (std::strcmp(key, "screen_locked") == 0) return "Screen Locked";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Screen Unlocked";
   if (std::strcmp(key, "skip_next") == 0) return "Skip Next";
@@ -6321,6 +6659,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sunset Down";
   if (std::strcmp(key, "sunset_up") == 0) return "Sunset Up";
   if (std::strcmp(key, "swing") == 0) return "Swing";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontal Swing";
   if (std::strcmp(key, "target") == 0) return "Target";
   if (std::strcmp(key, "temporaryhold") == 0) return "Temporaryhold";
   if (std::strcmp(key, "today") == 0) return "Today";
@@ -6340,7 +6679,6 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Vacationhold";
   if (std::strcmp(key, "vacuum") == 0) return "Vacuum";
   if (std::strcmp(key, "version_unknown") == 0) return "Version unknown";
-  if (std::strcmp(key, "voice") == 0) return "Voice";
   if (std::strcmp(key, "volume") == 0) return "Volume";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Waiting for Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connecting to \nHome Assistant";
@@ -6462,6 +6800,25 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirm";
   if (std::strcmp(key, "guest_wifi") == 0) return "Guest Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi did not change";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Connect to the WiFi hotspot";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "to configure your network.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Then visit {address} in your browser";
+  if (std::strcmp(key, "screensaver") == 0) return "Screensaver";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Incorrect PIN";
+  if (std::strcmp(key, "forecast_unavailable") == 0) return "Forecast unavailable";
+  if (std::strcmp(key, "rain") == 0) return "Rain";
+  if (std::strcmp(key, "rain_chance") == 0) return "Rain chance";
+  if (std::strcmp(key, "rainfall") == 0) return "Rainfall";
+  if (std::strcmp(key, "wind") == 0) return "Wind";
+  if (std::strcmp(key, "humidity") == 0) return "Humidity";
+  if (std::strcmp(key, "last_forecast") == 0) return "Last forecast";
+  if (std::strcmp(key, "weekday_sun") == 0) return "Sun";
+  if (std::strcmp(key, "weekday_mon") == 0) return "Mon";
+  if (std::strcmp(key, "weekday_tues") == 0) return "Tues";
+  if (std::strcmp(key, "weekday_weds") == 0) return "Weds";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "Thurs";
+  if (std::strcmp(key, "weekday_fri") == 0) return "Fri";
+  if (std::strcmp(key, "weekday_sat") == 0) return "Sat";
   return key;
 }
 
@@ -6603,6 +6960,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Vrací se";
   if (std::strcmp(key, "run_this_script") == 0) return "Spustit tento skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka ztlumena";
+  if (std::strcmp(key, "screen_lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamčena";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(key, "skip_next") == 0) return "Přeskočit další";
@@ -6621,6 +6979,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Západ slunce dolů";
   if (std::strcmp(key, "sunset_up") == 0) return "Západ slunce nahoru";
   if (std::strcmp(key, "swing") == 0) return "Kývání";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontální kývání";
   if (std::strcmp(key, "target") == 0) return "Cíl";
   if (std::strcmp(key, "today") == 0) return "Dnes";
   if (std::strcmp(key, "too_many") == 0) return "Příliš mnoho";
@@ -6637,7 +6996,6 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nepodporováno";
   if (std::strcmp(key, "vacuum") == 0) return "Vysavač";
   if (std::strcmp(key, "version_unknown") == 0) return "Verze neznámá";
-  if (std::strcmp(key, "voice") == 0) return "Hlas";
   if (std::strcmp(key, "volume") == 0) return "Hlasitost";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čekání na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Připojování k \nHome Assistant";
@@ -6756,6 +7114,19 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdit";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pro hosty";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stav Wi-Fi se nezměnil";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Připojte se k WiFi hotspotu";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "a nastavte svou síť.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Poté v prohlížeči otevřete {address}";
+  if (std::strcmp(key, "screensaver") == 0) return "Spořič obrazovky";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Nesprávný PIN";
+  if (std::strcmp(key, "rain") == 0) return "Déšť";
+  if (std::strcmp(key, "weekday_sun") == 0) return "ne";
+  if (std::strcmp(key, "weekday_mon") == 0) return "po";
+  if (std::strcmp(key, "weekday_tues") == 0) return "út";
+  if (std::strcmp(key, "weekday_weds") == 0) return "st";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "čt";
+  if (std::strcmp(key, "weekday_fri") == 0) return "pá";
+  if (std::strcmp(key, "weekday_sat") == 0) return "so";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -6894,6 +7265,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Vender tilbage";
   if (std::strcmp(key, "run_this_script") == 0) return "Kør dette script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skærm neddæmpet";
+  if (std::strcmp(key, "screen_lock") == 0) return "Skærmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skærm låst";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(key, "skip_next") == 0) return "Spring til næste";
@@ -6910,6 +7282,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgang ned";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgang op";
   if (std::strcmp(key, "swing") == 0) return "Sving";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontal sving";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "I dag";
   if (std::strcmp(key, "too_many") == 0) return "For mange";
@@ -6925,7 +7298,6 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Ikke understøttet";
   if (std::strcmp(key, "vacuum") == 0) return "Støvsuger";
   if (std::strcmp(key, "version_unknown") == 0) return "Version ukendt";
-  if (std::strcmp(key, "voice") == 0) return "Stemme";
   if (std::strcmp(key, "volume") == 0) return "Lydstyrke";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Opretter forbindelse til \nHome Assistant";
@@ -7041,6 +7413,19 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekræft";
   if (std::strcmp(key, "guest_wifi") == 0) return "Gæste-Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi blev ikke ændret";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Opret forbindelse til WiFi-hotspottet";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "for at konfigurere dit netværk.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Åbn derefter {address} i din browser";
+  if (std::strcmp(key, "screensaver") == 0) return "Pauseskærm";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Forkert PIN";
+  if (std::strcmp(key, "rain") == 0) return "Regn";
+  if (std::strcmp(key, "weekday_sun") == 0) return "søn.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "man.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "tir.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "ons.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "tor.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "fre.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "lør.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7119,6 +7504,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Gewitter und Regen";
   if (std::strcmp(key, "light") == 0) return "Licht";
   if (std::strcmp(key, "loading") == 0) return "Laden";
+  if (std::strcmp(key, "loading_forecast") == 0) return "Wettervorhersage wird geladen";
   if (std::strcmp(key, "locate") == 0) return "Orten";
   if (std::strcmp(key, "lock") == 0) return "Sperren";
   if (std::strcmp(key, "lawn_mower") == 0) return "Rasenmäher";
@@ -7177,6 +7563,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Kehrt zurück";
   if (std::strcmp(key, "run_this_script") == 0) return "Dieses Skript ausführen?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Bildschirm gedimmt";
+  if (std::strcmp(key, "screen_lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(key, "screen_locked") == 0) return "Bildschirm gesperrt";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(key, "skip_next") == 0) return "Weiter springen";
@@ -7193,6 +7580,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sonnenuntergang ab";
   if (std::strcmp(key, "sunset_up") == 0) return "Sonnenuntergang auf";
   if (std::strcmp(key, "swing") == 0) return "Schwenken";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontales Schwenken";
   if (std::strcmp(key, "target") == 0) return "Ziel";
   if (std::strcmp(key, "today") == 0) return "Heute";
   if (std::strcmp(key, "too_many") == 0) return "Zu viele";
@@ -7208,7 +7596,6 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nicht unterstützt";
   if (std::strcmp(key, "vacuum") == 0) return "Staubsauger";
   if (std::strcmp(key, "version_unknown") == 0) return "Version unbekannt";
-  if (std::strcmp(key, "voice") == 0) return "Sprache";
   if (std::strcmp(key, "volume") == 0) return "Lautstärke";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Warten auf Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbindung mit \nHome Assistant wird hergestellt";
@@ -7324,6 +7711,24 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Bestätigen";
   if (std::strcmp(key, "guest_wifi") == 0) return "Gast-WLAN";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "WLAN wurde nicht geändert";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Verbinde dich mit dem WLAN-Hotspot";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "um dein Netzwerk einzurichten.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Öffne dann {address} in deinem Browser";
+  if (std::strcmp(key, "screensaver") == 0) return "Bildschirmschoner";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Falsche PIN";
+  if (std::strcmp(key, "forecast_unavailable") == 0) return "Vorhersage nicht verfügbar";
+  if (std::strcmp(key, "rain") == 0) return "Regen";
+  if (std::strcmp(key, "rain_chance") == 0) return "Regenwahrscheinlichkeit";
+  if (std::strcmp(key, "rainfall") == 0) return "Niederschlag";
+  if (std::strcmp(key, "humidity") == 0) return "Luftfeuchtigkeit";
+  if (std::strcmp(key, "last_forecast") == 0) return "Letzte Vorhersage";
+  if (std::strcmp(key, "weekday_sun") == 0) return "So.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "Mo.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "Di.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "Mi.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "Do.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "Fr.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "Sa.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7401,6 +7806,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Rayos y lluvia";
   if (std::strcmp(key, "light") == 0) return "Luz";
   if (std::strcmp(key, "loading") == 0) return "Cargando";
+  if (std::strcmp(key, "loading_forecast") == 0) return "Cargando el pronóstico";
   if (std::strcmp(key, "locate") == 0) return "Localizar";
   if (std::strcmp(key, "lock") == 0) return "Bloquear";
   if (std::strcmp(key, "lawn_mower") == 0) return "Cortacésped";
@@ -7465,6 +7871,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Volviendo";
   if (std::strcmp(key, "run_this_script") == 0) return "¿Ejecutar este script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Pantalla atenuada";
+  if (std::strcmp(key, "screen_lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(key, "screen_locked") == 0) return "Pantalla bloqueada";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar siguiente";
@@ -7483,6 +7890,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Puesta de sol abajo";
   if (std::strcmp(key, "sunset_up") == 0) return "Puesta de sol arriba";
   if (std::strcmp(key, "swing") == 0) return "Oscilación";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilación horizontal";
   if (std::strcmp(key, "target") == 0) return "Objetivo";
   if (std::strcmp(key, "today") == 0) return "Hoy";
   if (std::strcmp(key, "too_many") == 0) return "Demasiados";
@@ -7498,7 +7906,6 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "No compatible";
   if (std::strcmp(key, "vacuum") == 0) return "Aspiradora";
   if (std::strcmp(key, "version_unknown") == 0) return "Versión desconocida";
-  if (std::strcmp(key, "voice") == 0) return "Voz";
   if (std::strcmp(key, "volume") == 0) return "Volumen";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Esperando a Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando a \nHome Assistant";
@@ -7617,6 +8024,25 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de invitados";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "El Wi-Fi no ha cambiado";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Conéctate al punto de acceso WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "para configurar tu red.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Después abre {address} en tu navegador";
+  if (std::strcmp(key, "screensaver") == 0) return "Salvapantallas";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "PIN incorrecto";
+  if (std::strcmp(key, "forecast_unavailable") == 0) return "Pronóstico no disponible";
+  if (std::strcmp(key, "rain") == 0) return "Lluvia";
+  if (std::strcmp(key, "rain_chance") == 0) return "Probabilidad de lluvia";
+  if (std::strcmp(key, "rainfall") == 0) return "Precipitación";
+  if (std::strcmp(key, "wind") == 0) return "Viento";
+  if (std::strcmp(key, "humidity") == 0) return "Humedad";
+  if (std::strcmp(key, "last_forecast") == 0) return "Último pronóstico";
+  if (std::strcmp(key, "weekday_sun") == 0) return "dom.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "lun.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "mar.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "mié.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "jue.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "vie.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7766,6 +8192,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Palaa";
   if (std::strcmp(key, "run_this_script") == 0) return "Suoritetaanko tämä skripti?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Näyttö himmennetty";
+  if (std::strcmp(key, "screen_lock") == 0) return "Näytön lukitus";
   if (std::strcmp(key, "screen_locked") == 0) return "Näyttö lukittu";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(key, "skip_next") == 0) return "Seuraava kappale";
@@ -7784,6 +8211,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Auringonlasku alas";
   if (std::strcmp(key, "sunset_up") == 0) return "Auringonlasku ylös";
   if (std::strcmp(key, "swing") == 0) return "Kääntö";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vaakasuuntainen kääntö";
   if (std::strcmp(key, "target") == 0) return "Tavoite";
   if (std::strcmp(key, "temporaryhold") == 0) return "Väliaikainen pito";
   if (std::strcmp(key, "today") == 0) return "Tänään";
@@ -7801,7 +8229,6 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Lomapito";
   if (std::strcmp(key, "vacuum") == 0) return "Imuri";
   if (std::strcmp(key, "version_unknown") == 0) return "Versio tuntematon";
-  if (std::strcmp(key, "voice") == 0) return "Puhe";
   if (std::strcmp(key, "volume") == 0) return "Äänenvoimakkuus";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Odotetaan Home Assistantia";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Yhdistetään \nHome Assistantiin";
@@ -7920,6 +8347,19 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Vahvista";
   if (std::strcmp(key, "guest_wifi") == 0) return "Vieras-Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ei muuttunut";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Yhdistä WiFi-tukiasemaan";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "määrittääksesi verkkosi.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Avaa sitten selaimessa {address}";
+  if (std::strcmp(key, "screensaver") == 0) return "Näytönsäästäjä";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Väärä PIN";
+  if (std::strcmp(key, "rain") == 0) return "Sade";
+  if (std::strcmp(key, "weekday_sun") == 0) return "su";
+  if (std::strcmp(key, "weekday_mon") == 0) return "ma";
+  if (std::strcmp(key, "weekday_tues") == 0) return "ti";
+  if (std::strcmp(key, "weekday_weds") == 0) return "ke";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "to";
+  if (std::strcmp(key, "weekday_fri") == 0) return "pe";
+  if (std::strcmp(key, "weekday_sat") == 0) return "la";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7995,6 +8435,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Orage et pluie";
   if (std::strcmp(key, "light") == 0) return "Lumière";
   if (std::strcmp(key, "loading") == 0) return "Chargement";
+  if (std::strcmp(key, "loading_forecast") == 0) return "Chargement des prévisions";
   if (std::strcmp(key, "locate") == 0) return "Localiser";
   if (std::strcmp(key, "lock") == 0) return "Verrouiller";
   if (std::strcmp(key, "lawn_mower") == 0) return "Tondeuse";
@@ -8054,6 +8495,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Retour";
   if (std::strcmp(key, "run_this_script") == 0) return "Exécuter ce script ?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Écran tamisé";
+  if (std::strcmp(key, "screen_lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(key, "screen_locked") == 0) return "Écran verrouillé";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(key, "skip_next") == 0) return "Passer au suivant";
@@ -8072,6 +8514,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Coucher bas";
   if (std::strcmp(key, "sunset_up") == 0) return "Coucher haut";
   if (std::strcmp(key, "swing") == 0) return "Oscillation";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscillation horizontale";
   if (std::strcmp(key, "target") == 0) return "Cible";
   if (std::strcmp(key, "today") == 0) return "Aujourd'hui";
   if (std::strcmp(key, "too_many") == 0) return "Trop nombreux";
@@ -8088,7 +8531,6 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Non pris en charge";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirateur";
   if (std::strcmp(key, "version_unknown") == 0) return "Version inconnue";
-  if (std::strcmp(key, "voice") == 0) return "Voix";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "En attente de Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connexion à \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Météo";
@@ -8207,6 +8649,25 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmer";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi invité";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Le Wi-Fi n’a pas changé";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Connectez-vous au point d’accès WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "pour configurer votre réseau.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Ouvrez ensuite {address} dans votre navigateur";
+  if (std::strcmp(key, "screensaver") == 0) return "Économiseur d’écran";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "PIN incorrect";
+  if (std::strcmp(key, "forecast_unavailable") == 0) return "Prévisions indisponibles";
+  if (std::strcmp(key, "rain") == 0) return "Pluie";
+  if (std::strcmp(key, "rain_chance") == 0) return "Risque de pluie";
+  if (std::strcmp(key, "rainfall") == 0) return "Précipitations";
+  if (std::strcmp(key, "wind") == 0) return "Vent";
+  if (std::strcmp(key, "humidity") == 0) return "Humidité";
+  if (std::strcmp(key, "last_forecast") == 0) return "Dernières prévisions";
+  if (std::strcmp(key, "weekday_sun") == 0) return "dim.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "lun.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "mar.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "mer.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "jeu.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "ven.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sam.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8225,7 +8686,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "arm_night") == 0) return "דריכה ללילה";
   if (std::strcmp(key, "arm_vacation") == 0) return "דריכה לחופשה";
   if (std::strcmp(key, "armed_away") == 0) return "דרוך מחוץ לבית";
-  if (std::strcmp(key, "armed_custom") == 0) return "דרוך מותאם";
+  if (std::strcmp(key, "armed_custom") == 0) return "דרוך מותאם אישית";
   if (std::strcmp(key, "armed_home") == 0) return "דרוך בבית";
   if (std::strcmp(key, "armed_night") == 0) return "דרוך ללילה";
   if (std::strcmp(key, "armed_vacation") == 0) return "דרוך לחופשה";
@@ -8240,7 +8701,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "clock") == 0) return "שעון";
   if (std::strcmp(key, "close") == 0) return "סגירה";
   if (std::strcmp(key, "closed") == 0) return "סגור";
-  if (std::strcmp(key, "closing") == 0) return "נסגר";
+  if (std::strcmp(key, "closing") == 0) return "בסגירה";
   if (std::strcmp(key, "cloudy") == 0) return "מעונן";
   if (std::strcmp(key, "cloudy_alert") == 0) return "התראת עננות";
   if (std::strcmp(key, "configure") == 0) return "להגדרה";
@@ -8282,7 +8743,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "heavy_snow") == 0) return "שלג כבד";
   if (std::strcmp(key, "high") == 0) return "גבוה";
   if (std::strcmp(key, "high_target") == 0) return "יעד עליון";
-  if (std::strcmp(key, "holduntil") == 0) return "החזקה עד";
+  if (std::strcmp(key, "holduntil") == 0) return "קיבוע עד";
   if (std::strcmp(key, "home") == 0) return "בבית";
   if (std::strcmp(key, "hourly") == 0) return "כל שעה";
   if (std::strcmp(key, "hurricane") == 0) return "הוריקן";
@@ -8321,31 +8782,31 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "next") == 0) return "הבא";
   if (std::strcmp(key, "night") == 0) return "לילה";
   if (std::strcmp(key, "no") == 0) return "לא";
-  if (std::strcmp(key, "nohold") == 0) return "ללא החזקה";
+  if (std::strcmp(key, "nohold") == 0) return "ללא קיבוע";
   if (std::strcmp(key, "none") == 0) return "ללא";
   if (std::strcmp(key, "no_options") == 0) return "אין אפשרויות";
   if (std::strcmp(key, "no_presets") == 0) return "אין מצבים מוגדרים";
   if (std::strcmp(key, "no_sources") == 0) return "אין מקורות";
   if (std::strcmp(key, "source") == 0) return "מקור";
-  if (std::strcmp(key, "not_available") == 0) return "אינו זמין";
+  if (std::strcmp(key, "not_available") == 0) return "לא זמין";
   if (std::strcmp(key, "off") == 0) return "כבוי";
-  if (std::strcmp(key, "on") == 0) return "פועל";
+  if (std::strcmp(key, "on") == 0) return "מופעל";
   if (std::strcmp(key, "open") == 0) return "פתיחה";
-  if (std::strcmp(key, "opening") == 0) return "נפתח";
+  if (std::strcmp(key, "opening") == 0) return "בפתיחה";
   if (std::strcmp(key, "state_open") == 0) return "פתוח";
   if (std::strcmp(key, "option") == 0) return "אפשרות";
   if (std::strcmp(key, "oscillating") == 0) return "מסתובב";
   if (std::strcmp(key, "oscillation") == 0) return "סיבוב";
   if (std::strcmp(key, "partly_cloudy") == 0) return "מעונן חלקית";
   if (std::strcmp(key, "partly_cloudy_night") == 0) return "לילה מעונן חלקית";
-  if (std::strcmp(key, "partly_lightning") == 0) return "ברקים חלקית";
-  if (std::strcmp(key, "partly_rainy") == 0) return "גשום חלקית";
-  if (std::strcmp(key, "partly_snow_and_rain") == 0) return "שלג וגשם חלקית";
-  if (std::strcmp(key, "partly_snowy") == 0) return "מושלג חלקית";
+  if (std::strcmp(key, "partly_lightning") == 0) return "ברקים מקומיים";
+  if (std::strcmp(key, "partly_rainy") == 0) return "גשם מקומי";
+  if (std::strcmp(key, "partly_snow_and_rain") == 0) return "שלג וגשם מקומיים";
+  if (std::strcmp(key, "partly_snowy") == 0) return "שלג מקומי";
   if (std::strcmp(key, "pause") == 0) return "השהיה";
   if (std::strcmp(key, "paused") == 0) return "מושהה";
   if (std::strcmp(key, "pending") == 0) return "בהמתנה";
-  if (std::strcmp(key, "permanenthold") == 0) return "החזקה קבועה";
+  if (std::strcmp(key, "permanenthold") == 0) return "קיבוע תמידי";
   if (std::strcmp(key, "pin_was_not_accepted") == 0) return "הקוד לא התקבל";
   if (std::strcmp(key, "play_pause") == 0) return "ניגון/השהיה";
   if (std::strcmp(key, "playing") == 0) return "מנגן";
@@ -8361,15 +8822,17 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "חוזר לעגינה";
   if (std::strcmp(key, "run_this_script") == 0) return "להריץ את הסקריפט?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "המסך מעומעם";
+  if (std::strcmp(key, "screen_lock") == 0) return "נעילת מסך";
   if (std::strcmp(key, "screen_locked") == 0) return "המסך נעול";
-  if (std::strcmp(key, "screen_unlocked") == 0) return "המסך משוחרר";
-  if (std::strcmp(key, "skip_next") == 0) return "לרצועה הבאה";
-  if (std::strcmp(key, "skip_previous") == 0) return "לרצועה הקודמת";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "נעילת המסך בוטלה";
+  if (std::strcmp(key, "skip_next") == 0) return "הרצועה הבאה";
+  if (std::strcmp(key, "skip_previous") == 0) return "הרצועה הקודמת";
   if (std::strcmp(key, "snowy") == 0) return "מושלג";
   if (std::strcmp(key, "snowy_and_rain") == 0) return "שלג וגשם";
   if (std::strcmp(key, "spot_clean") == 0) return "ניקוי נקודתי";
   if (std::strcmp(key, "start") == 0) return "הפעלה";
-  if (std::strcmp(key, "still") == 0) return "נייח";
+  if (std::strcmp(key, "start_dock") == 0) return "הפעלה / עגינה";
+  if (std::strcmp(key, "still") == 0) return "קבוע";
   if (std::strcmp(key, "subpage") == 0) return "תת-עמוד";
   if (std::strcmp(key, "stop") == 0) return "עצירה";
   if (std::strcmp(key, "stopped") == 0) return "הופסק";
@@ -8379,8 +8842,9 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "שקיעה";
   if (std::strcmp(key, "sunset_up") == 0) return "זריחה";
   if (std::strcmp(key, "swing") == 0) return "נדנוד";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "נדנוד אופקי";
   if (std::strcmp(key, "target") == 0) return "יעד";
-  if (std::strcmp(key, "temporaryhold") == 0) return "החזקה זמנית";
+  if (std::strcmp(key, "temporaryhold") == 0) return "קיבוע זמני";
   if (std::strcmp(key, "today") == 0) return "היום";
   if (std::strcmp(key, "too_many") == 0) return "יותר מדי";
   if (std::strcmp(key, "toggle_this_device") == 0) return "להחליף את מצב המכשיר?";
@@ -8392,13 +8856,12 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "turn_on_this_device") == 0) return "להפעיל את המכשיר?";
   if (std::strcmp(key, "unavailable") == 0) return "לא זמין";
   if (std::strcmp(key, "unknown") == 0) return "לא ידוע";
-  if (std::strcmp(key, "unlock") == 0) return "שחרור נעילה";
+  if (std::strcmp(key, "unlock") == 0) return "ביטול נעילה";
   if (std::strcmp(key, "unsupported") == 0) return "לא נתמך";
   if (std::strcmp(key, "vacation") == 0) return "חופשה";
-  if (std::strcmp(key, "vacationhold") == 0) return "החזקת חופשה";
+  if (std::strcmp(key, "vacationhold") == 0) return "קיבוע לחופשה";
   if (std::strcmp(key, "vacuum") == 0) return "שואב אבק";
   if (std::strcmp(key, "version_unknown") == 0) return "גרסה לא ידועה";
-  if (std::strcmp(key, "voice") == 0) return "קול";
   if (std::strcmp(key, "volume") == 0) return "עוצמה";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "ממתין ל-Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "מתחבר אל\nHome Assistant";
@@ -8429,8 +8892,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "ethernet_setup") == 0) return "הגדרת רשת קווית";
   if (std::strcmp(key, "installing_update") == 0) return "מתקין עדכון";
   if (std::strcmp(key, "checking_for_updates") == 0) return "בודק עדכונים";
-  if (std::strcmp(key, "latest_installed") == 0) return "מותקנת הגרסה החדשה";
-  if (std::strcmp(key, "update_available") == 0) return "קיים עדכון";
+  if (std::strcmp(key, "latest_installed") == 0) return "מותקנת הגרסה העדכנית";
+  if (std::strcmp(key, "update_available") == 0) return "יש עדכון";
   if (std::strcmp(key, "up_to_date") == 0) return "מעודכן";
   if (std::strcmp(key, "update_firmware") == 0) return "התקנה";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
@@ -8441,15 +8904,15 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "לעזרה עיינו במדריך ההתקנה";
   if (std::strcmp(key, "settings_devices_services") == 0) return "הגדרות > מכשירים ושירותים";
   if (std::strcmp(key, "setup") == 0) return "הגדרה";
-  if (std::strcmp(key, "starting_up") == 0) return "מתחיל";
+  if (std::strcmp(key, "starting_up") == 0) return "בהפעלה";
   if (std::strcmp(key, "the_screen_may_turn_off_do_not_power_off") == 0) return "המסך עשוי לכבות\nאין לנתק מהחשמל";
   if (std::strcmp(key, "try_installing_the_update_again") == 0) return "נסו להתקין את העדכון שוב";
   if (std::strcmp(key, "trying_to_reconnect_to_your_saved_network") == 0) return "מנסה להתחבר מחדש\nלרשת השמורה";
   if (std::strcmp(key, "update_complete") == 0) return "העדכון הושלם";
   if (std::strcmp(key, "update_failed") == 0) return "העדכון נכשל";
   if (std::strcmp(key, "wifi_disconnected") == 0) return "WiFi מנותק";
-  if (std::strcmp(key, "connect_to") == 0) return "התחבר אל";
-  if (std::strcmp(key, "to_configure_your_network_settings") == 0) return "כדי להגדיר את הגדרות הרשת";
+  if (std::strcmp(key, "connect_to") == 0) return "התחברו אל";
+  if (std::strcmp(key, "to_configure_your_network_settings") == 0) return "כדי להגדיר את הרשת";
   if (std::strcmp(key, "wifi_setup") == 0) return "הגדרת WiFi";
   if (std::strcmp(key, "speaker_group") == 0) return "קבוצת רמקולים";
   if (std::strcmp(key, "speakers") == 0) return "רמקולים";
@@ -8513,9 +8976,22 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "פנוי";
   if (std::strcmp(key, "stat_remaining") == 0) return "נותר";
   if (std::strcmp(key, "timer") == 0) return "טיימר";
-  if (std::strcmp(key, "timer_confirm") == 0) return "לאשר";
-  if (std::strcmp(key, "guest_wifi") == 0) return "רשת Wi-Fi לאורחים";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "מצב ה-Wi-Fi לא השתנה";
+  if (std::strcmp(key, "timer_confirm") == 0) return "לאישור";
+  if (std::strcmp(key, "guest_wifi") == 0) return "רשת אורחים";
+  if (std::strcmp(key, "wifi_did_not_change") == 0) return "מצב ה-WiFi לא השתנה";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "התחברו לנקודת הגישה של WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "כדי להגדיר את הרשת שלכם.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "לאחר מכן פתחו את {address} בדפדפן";
+  if (std::strcmp(key, "screensaver") == 0) return "שומר מסך";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "קוד PIN שגוי";
+  if (std::strcmp(key, "rain") == 0) return "גשם";
+  if (std::strcmp(key, "weekday_sun") == 0) return "א׳";
+  if (std::strcmp(key, "weekday_mon") == 0) return "ב׳";
+  if (std::strcmp(key, "weekday_tues") == 0) return "ג׳";
+  if (std::strcmp(key, "weekday_weds") == 0) return "ד׳";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "ה׳";
+  if (std::strcmp(key, "weekday_fri") == 0) return "ו׳";
+  if (std::strcmp(key, "weekday_sat") == 0) return "ש׳";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8664,6 +9140,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Visszatérés";
   if (std::strcmp(key, "run_this_script") == 0) return "Futtatja ezt a szkriptet?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Képernyő halványítva";
+  if (std::strcmp(key, "screen_lock") == 0) return "Képernyőzár";
   if (std::strcmp(key, "screen_locked") == 0) return "Képernyő lezárva";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(key, "skip_next") == 0) return "Ugrás a következőre";
@@ -8682,6 +9159,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Naplemente le";
   if (std::strcmp(key, "sunset_up") == 0) return "Naplemente fel";
   if (std::strcmp(key, "swing") == 0) return "Legyezés";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vízszintes legyezés";
   if (std::strcmp(key, "target") == 0) return "Célérték";
   if (std::strcmp(key, "temporaryhold") == 0) return "Ideiglenes tartás";
   if (std::strcmp(key, "today") == 0) return "Ma";
@@ -8700,7 +9178,6 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Vakációs tartás";
   if (std::strcmp(key, "vacuum") == 0) return "Porszívó";
   if (std::strcmp(key, "version_unknown") == 0) return "Ismeretlen verzió";
-  if (std::strcmp(key, "voice") == 0) return "Hang";
   if (std::strcmp(key, "volume") == 0) return "Hangerő";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Várakozás a Home Assistantra";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Csatlakozás a \nHome Assistanthez";
@@ -8818,6 +9295,19 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Megerősítés";
   if (std::strcmp(key, "guest_wifi") == 0) return "Vendég Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "A Wi-Fi állapota nem változott";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Csatlakozzon a WiFi-hotspothoz";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "a hálózat beállításához.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Ezután nyissa meg a {address} címet a böngészőben";
+  if (std::strcmp(key, "screensaver") == 0) return "Képernyőkímélő";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Helytelen PIN";
+  if (std::strcmp(key, "rain") == 0) return "Eső";
+  if (std::strcmp(key, "weekday_sun") == 0) return "vas.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "hétf.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "kedd";
+  if (std::strcmp(key, "weekday_weds") == 0) return "szer.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "csüt.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "pén.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "szomb.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8896,6 +9386,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Fulmini e pioggia";
   if (std::strcmp(key, "light") == 0) return "Luce";
   if (std::strcmp(key, "loading") == 0) return "Caricamento";
+  if (std::strcmp(key, "loading_forecast") == 0) return "Caricamento previsioni";
   if (std::strcmp(key, "locate") == 0) return "Localizza";
   if (std::strcmp(key, "lock") == 0) return "Blocca";
   if (std::strcmp(key, "lawn_mower") == 0) return "Tagliaerba";
@@ -8961,6 +9452,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Ritorno";
   if (std::strcmp(key, "run_this_script") == 0) return "Eseguire questo script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Schermo attenuato";
+  if (std::strcmp(key, "screen_lock") == 0) return "Blocco schermo";
   if (std::strcmp(key, "screen_locked") == 0) return "Schermo bloccato";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(key, "skip_next") == 0) return "Salta avanti";
@@ -8979,6 +9471,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Tramonto giù";
   if (std::strcmp(key, "sunset_up") == 0) return "Tramonto su";
   if (std::strcmp(key, "swing") == 0) return "Oscillazione";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscillazione orizzontale";
   if (std::strcmp(key, "temporaryhold") == 0) return "Temporaneo";
   if (std::strcmp(key, "today") == 0) return "Oggi";
   if (std::strcmp(key, "too_many") == 0) return "Troppi";
@@ -8995,7 +9488,6 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Vacanza";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirapolvere";
   if (std::strcmp(key, "version_unknown") == 0) return "Versione sconosciuta";
-  if (std::strcmp(key, "voice") == 0) return "Voce";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "In attesa di Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connessione a \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Meteo";
@@ -9110,6 +9602,25 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Confermare";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi ospiti";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Il Wi-Fi non è cambiato";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Connettiti all’hotspot WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "per configurare la tua rete.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Poi apri {address} nel browser";
+  if (std::strcmp(key, "screensaver") == 0) return "Salvaschermo";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "PIN errato";
+  if (std::strcmp(key, "forecast_unavailable") == 0) return "Previsioni non disponibili";
+  if (std::strcmp(key, "rain") == 0) return "Pioggia";
+  if (std::strcmp(key, "rain_chance") == 0) return "Probabilità di pioggia";
+  if (std::strcmp(key, "rainfall") == 0) return "Precipitazioni";
+  if (std::strcmp(key, "wind") == 0) return "Vento";
+  if (std::strcmp(key, "humidity") == 0) return "Umidità";
+  if (std::strcmp(key, "last_forecast") == 0) return "Ultime previsioni";
+  if (std::strcmp(key, "weekday_sun") == 0) return "dom.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "lun.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "mar.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "mer.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "gio.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "ven.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sab.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9250,6 +9761,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Returnerer";
   if (std::strcmp(key, "run_this_script") == 0) return "Kjør dette skriptet?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skjerm neddimmet";
+  if (std::strcmp(key, "screen_lock") == 0) return "Skjermlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skjerm låst";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(key, "skip_next") == 0) return "Hopp til neste";
@@ -9267,6 +9779,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgang ned";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgang opp";
   if (std::strcmp(key, "swing") == 0) return "Sving";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontal sving";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "I dag";
   if (std::strcmp(key, "too_many") == 0) return "For mange";
@@ -9282,7 +9795,6 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Støttes ikke";
   if (std::strcmp(key, "vacuum") == 0) return "Støvsuger";
   if (std::strcmp(key, "version_unknown") == 0) return "Ukjent versjon";
-  if (std::strcmp(key, "voice") == 0) return "Stemme";
   if (std::strcmp(key, "volume") == 0) return "Volum";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Venter på Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Kobler til \nHome Assistant";
@@ -9401,6 +9913,19 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekreft";
   if (std::strcmp(key, "guest_wifi") == 0) return "Gjeste-Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ble ikke endret";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Koble til WiFi-hotspotet";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "for å konfigurere nettverket ditt.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Åpne deretter {address} i nettleseren";
+  if (std::strcmp(key, "screensaver") == 0) return "Skjermsparer";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Feil PIN";
+  if (std::strcmp(key, "rain") == 0) return "Regn";
+  if (std::strcmp(key, "weekday_sun") == 0) return "søn.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "man.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "tir.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "ons.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "tor.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "fre.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "lør.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9480,6 +10005,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Bliksem en regen";
   if (std::strcmp(key, "light") == 0) return "Licht";
   if (std::strcmp(key, "loading") == 0) return "Laden";
+  if (std::strcmp(key, "loading_forecast") == 0) return "Weersverwachting laden";
   if (std::strcmp(key, "locate") == 0) return "Lokaliseren";
   if (std::strcmp(key, "lock") == 0) return "Vergrendelen";
   if (std::strcmp(key, "lawn_mower") == 0) return "Grasmaaier";
@@ -9543,6 +10069,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Keert terug";
   if (std::strcmp(key, "run_this_script") == 0) return "Dit script uitvoeren?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Scherm gedimd";
+  if (std::strcmp(key, "screen_lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(key, "screen_locked") == 0) return "Scherm vergrendeld";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(key, "skip_next") == 0) return "Volgende overslaan";
@@ -9560,6 +10087,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Zon onder";
   if (std::strcmp(key, "sunset_up") == 0) return "Zon op";
   if (std::strcmp(key, "swing") == 0) return "Zwenken";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontaal zwenken";
   if (std::strcmp(key, "target") == 0) return "Doel";
   if (std::strcmp(key, "today") == 0) return "Vandaag";
   if (std::strcmp(key, "too_many") == 0) return "Te veel";
@@ -9575,7 +10103,6 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Niet ondersteund";
   if (std::strcmp(key, "vacuum") == 0) return "Stofzuiger";
   if (std::strcmp(key, "version_unknown") == 0) return "Versie onbekend";
-  if (std::strcmp(key, "voice") == 0) return "Spraak";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Wachten op Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbinden met \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Weer";
@@ -9685,6 +10212,24 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Bevestigen";
   if (std::strcmp(key, "guest_wifi") == 0) return "Gastwifi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wifi is niet gewijzigd";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Maak verbinding met de WiFi-hotspot";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "om je netwerk in te stellen.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Open daarna {address} in je browser";
+  if (std::strcmp(key, "screensaver") == 0) return "Schermbeveiliging";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Onjuiste pincode";
+  if (std::strcmp(key, "forecast_unavailable") == 0) return "Verwachting niet beschikbaar";
+  if (std::strcmp(key, "rain") == 0) return "Regen";
+  if (std::strcmp(key, "rain_chance") == 0) return "Kans op regen";
+  if (std::strcmp(key, "rainfall") == 0) return "Neerslag";
+  if (std::strcmp(key, "humidity") == 0) return "Luchtvochtigheid";
+  if (std::strcmp(key, "last_forecast") == 0) return "Laatste verwachting";
+  if (std::strcmp(key, "weekday_sun") == 0) return "zo.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "ma.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "di.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "wo.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "do.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "vr.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "za.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9825,6 +10370,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Powraca";
   if (std::strcmp(key, "run_this_script") == 0) return "Uruchomić ten skrypt?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran przyciemniony";
+  if (std::strcmp(key, "screen_lock") == 0) return "Blokada ekranu";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran zablokowany";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(key, "skip_next") == 0) return "Pomiń następny";
@@ -9842,6 +10388,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Zachód słońca dół";
   if (std::strcmp(key, "sunset_up") == 0) return "Zachód słońca góra";
   if (std::strcmp(key, "swing") == 0) return "Ruch wahadłowy";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Ruch poziomy";
   if (std::strcmp(key, "target") == 0) return "Cel";
   if (std::strcmp(key, "today") == 0) return "Dziś";
   if (std::strcmp(key, "too_many") == 0) return "Za dużo";
@@ -9857,7 +10404,6 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nieobsługiwane";
   if (std::strcmp(key, "vacuum") == 0) return "Odkurzacz";
   if (std::strcmp(key, "version_unknown") == 0) return "Wersja nieznana";
-  if (std::strcmp(key, "voice") == 0) return "Głos";
   if (std::strcmp(key, "volume") == 0) return "Głośność";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Oczekiwanie na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Łączenie z \nHome Assistant";
@@ -9976,6 +10522,19 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Potwierdzić";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi dla gości";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stan Wi-Fi nie zmienił się";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Połącz się z hotspotem WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "aby skonfigurować swoją sieć.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Następnie otwórz {address} w przeglądarce";
+  if (std::strcmp(key, "screensaver") == 0) return "Wygaszacz ekranu";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Nieprawidłowy PIN";
+  if (std::strcmp(key, "rain") == 0) return "Deszcz";
+  if (std::strcmp(key, "weekday_sun") == 0) return "niedz.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "pon.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "wt.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "śr.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "czw.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "pt.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sob.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10053,6 +10612,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Raios e chuva";
   if (std::strcmp(key, "light") == 0) return "Luz";
   if (std::strcmp(key, "loading") == 0) return "Carregando";
+  if (std::strcmp(key, "loading_forecast") == 0) return "Carregando previsão";
   if (std::strcmp(key, "locate") == 0) return "Localizar";
   if (std::strcmp(key, "lock") == 0) return "Bloquear";
   if (std::strcmp(key, "lawn_mower") == 0) return "Cortador de grama";
@@ -10118,6 +10678,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Retornando";
   if (std::strcmp(key, "run_this_script") == 0) return "Executar este script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Tela escurecida";
+  if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(key, "screen_locked") == 0) return "Tela bloqueada";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Pular próximo";
@@ -10136,6 +10697,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(key, "sunset_up") == 0) return "Pôr do sol alto";
   if (std::strcmp(key, "swing") == 0) return "Oscilação";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(key, "target") == 0) return "Alvo";
   if (std::strcmp(key, "today") == 0) return "Hoje";
   if (std::strcmp(key, "too_many") == 0) return "Muitos";
@@ -10151,7 +10713,6 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Não suportado";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirador";
   if (std::strcmp(key, "version_unknown") == 0) return "Versão desconhecida";
-  if (std::strcmp(key, "voice") == 0) return "Voz";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Aguardando o Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando ao \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Tempo";
@@ -10267,6 +10828,19 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de convidados";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "O Wi-Fi não mudou";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Conecte-se ao ponto de acesso WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "para configurar sua rede.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Depois abra {address} no navegador";
+  if (std::strcmp(key, "screensaver") == 0) return "Protetor de tela";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "PIN incorreto";
+  if (std::strcmp(key, "rain") == 0) return "Chuva";
+  if (std::strcmp(key, "weekday_sun") == 0) return "dom.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "seg.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "ter.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "qua.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "qui.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "sex.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10345,6 +10919,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Relâmpagos e chuva";
   if (std::strcmp(key, "light") == 0) return "Luz";
   if (std::strcmp(key, "loading") == 0) return "A carregar";
+  if (std::strcmp(key, "loading_forecast") == 0) return "A carregar previsão";
   if (std::strcmp(key, "locate") == 0) return "Localizar";
   if (std::strcmp(key, "lock") == 0) return "Bloquear";
   if (std::strcmp(key, "lawn_mower") == 0) return "Corta-relva";
@@ -10410,6 +10985,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "A regressar";
   if (std::strcmp(key, "run_this_script") == 0) return "Executar este script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecrã escurecido";
+  if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecrã bloqueado";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar seguinte";
@@ -10428,6 +11004,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Pôr do sol baixo";
   if (std::strcmp(key, "sunset_up") == 0) return "Pôr do sol alto";
   if (std::strcmp(key, "swing") == 0) return "Oscilação";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Oscilação horizontal";
   if (std::strcmp(key, "target") == 0) return "Alvo";
   if (std::strcmp(key, "today") == 0) return "Hoje";
   if (std::strcmp(key, "too_many") == 0) return "Demasiados";
@@ -10443,7 +11020,6 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Não suportado";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirador";
   if (std::strcmp(key, "version_unknown") == 0) return "Versão desconhecida";
-  if (std::strcmp(key, "voice") == 0) return "Voz";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "À espera do Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "A ligar ao \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Meteorologia";
@@ -10559,6 +11135,25 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de convidados";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "O Wi-Fi não mudou";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Ligue-se ao ponto de acesso WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "para configurar a sua rede.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Depois abra {address} no navegador";
+  if (std::strcmp(key, "screensaver") == 0) return "Proteção de ecrã";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "PIN incorreto";
+  if (std::strcmp(key, "forecast_unavailable") == 0) return "Previsão indisponível";
+  if (std::strcmp(key, "rain") == 0) return "Chuva";
+  if (std::strcmp(key, "rain_chance") == 0) return "Probabilidade de chuva";
+  if (std::strcmp(key, "rainfall") == 0) return "Precipitação";
+  if (std::strcmp(key, "wind") == 0) return "Vento";
+  if (std::strcmp(key, "humidity") == 0) return "Humidade";
+  if (std::strcmp(key, "last_forecast") == 0) return "Última previsão";
+  if (std::strcmp(key, "weekday_sun") == 0) return "dom.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "seg.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "ter.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "qua.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "qui.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "sex.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10707,6 +11302,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Revine";
   if (std::strcmp(key, "run_this_script") == 0) return "Rulați acest script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecran estompat";
+  if (std::strcmp(key, "screen_lock") == 0) return "Blocare ecran";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecran blocat";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(key, "skip_next") == 0) return "Următorul";
@@ -10725,6 +11321,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Apus jos";
   if (std::strcmp(key, "sunset_up") == 0) return "Apus sus";
   if (std::strcmp(key, "swing") == 0) return "Balans";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Balans orizontal";
   if (std::strcmp(key, "target") == 0) return "Țintă";
   if (std::strcmp(key, "temporaryhold") == 0) return "Menținere temporară";
   if (std::strcmp(key, "today") == 0) return "Astăzi";
@@ -10743,7 +11340,6 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Menținere vacanță";
   if (std::strcmp(key, "vacuum") == 0) return "Aspirator";
   if (std::strcmp(key, "version_unknown") == 0) return "Versiune necunoscută";
-  if (std::strcmp(key, "voice") == 0) return "Voce";
   if (std::strcmp(key, "volume") == 0) return "Volum";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Se așteaptă Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Se conectează la \nHome Assistant";
@@ -10861,6 +11457,19 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmați";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pentru oaspeți";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Starea Wi-Fi nu s-a schimbat";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Conectați-vă la hotspotul WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "pentru a configura rețeaua.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Apoi deschideți {address} în browser";
+  if (std::strcmp(key, "screensaver") == 0) return "Economizor de ecran";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "PIN incorect";
+  if (std::strcmp(key, "rain") == 0) return "Ploaie";
+  if (std::strcmp(key, "weekday_sun") == 0) return "dum.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "lun.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "mar.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "mie.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "joi";
+  if (std::strcmp(key, "weekday_fri") == 0) return "vin.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sâm.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11014,6 +11623,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Возвращается";
   if (std::strcmp(key, "run_this_script") == 0) return "Запустить этот сценарий?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Экран приглушён";
+  if (std::strcmp(key, "screen_lock") == 0) return "Блокировка экрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Экран заблокирован";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(key, "skip_next") == 0) return "Следующий трек";
@@ -11032,6 +11642,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Закат: стемнело";
   if (std::strcmp(key, "sunset_up") == 0) return "Закат: посветлело";
   if (std::strcmp(key, "swing") == 0) return "Колебание";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Горизонтальное колебание";
   if (std::strcmp(key, "target") == 0) return "Цель";
   if (std::strcmp(key, "temporaryhold") == 0) return "Временное удержание";
   if (std::strcmp(key, "today") == 0) return "Сегодня";
@@ -11051,7 +11662,6 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Удержание на отпуск";
   if (std::strcmp(key, "vacuum") == 0) return "Пылесос";
   if (std::strcmp(key, "version_unknown") == 0) return "Версия неизвестна";
-  if (std::strcmp(key, "voice") == 0) return "Голос";
   if (std::strcmp(key, "volume") == 0) return "Громкость";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Ожидание Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Подключение к \nHome Assistant";
@@ -11170,6 +11780,19 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Подтвердить";
   if (std::strcmp(key, "guest_wifi") == 0) return "Гостевой Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Состояние Wi-Fi не изменилось";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Подключитесь к точке доступа WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "чтобы настроить сеть.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Затем откройте {address} в браузере";
+  if (std::strcmp(key, "screensaver") == 0) return "Заставка";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Неверный PIN";
+  if (std::strcmp(key, "rain") == 0) return "Дождь";
+  if (std::strcmp(key, "weekday_sun") == 0) return "вс";
+  if (std::strcmp(key, "weekday_mon") == 0) return "пн";
+  if (std::strcmp(key, "weekday_tues") == 0) return "вт";
+  if (std::strcmp(key, "weekday_weds") == 0) return "ср";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "чт";
+  if (std::strcmp(key, "weekday_fri") == 0) return "пт";
+  if (std::strcmp(key, "weekday_sat") == 0) return "сб";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11312,6 +11935,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Vracia sa";
   if (std::strcmp(key, "run_this_script") == 0) return "Spustiť tento skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka stlmená";
+  if (std::strcmp(key, "screen_lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamknutá";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(key, "skip_next") == 0) return "Preskočiť ďalšie";
@@ -11330,6 +11954,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Západ slnka dole";
   if (std::strcmp(key, "sunset_up") == 0) return "Západ slnka hore";
   if (std::strcmp(key, "swing") == 0) return "Kývanie";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horizontálne kývanie";
   if (std::strcmp(key, "target") == 0) return "Cieľ";
   if (std::strcmp(key, "today") == 0) return "Dnes";
   if (std::strcmp(key, "too_many") == 0) return "Príliš veľa";
@@ -11346,7 +11971,6 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Nepodporované";
   if (std::strcmp(key, "vacuum") == 0) return "Vysávač";
   if (std::strcmp(key, "version_unknown") == 0) return "Verzia neznáma";
-  if (std::strcmp(key, "voice") == 0) return "Hlas";
   if (std::strcmp(key, "volume") == 0) return "Hlasitosť";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čakanie na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Pripája sa k \nHome Assistant";
@@ -11465,6 +12089,19 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdiť";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pre hostí";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stav Wi-Fi sa nezmenil";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Pripojte sa k WiFi hotspotu";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "a nastavte svoju sieť.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Potom v prehliadači otvorte {address}";
+  if (std::strcmp(key, "screensaver") == 0) return "Šetrič obrazovky";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Nesprávny PIN";
+  if (std::strcmp(key, "rain") == 0) return "Dážď";
+  if (std::strcmp(key, "weekday_sun") == 0) return "ne";
+  if (std::strcmp(key, "weekday_mon") == 0) return "po";
+  if (std::strcmp(key, "weekday_tues") == 0) return "ut";
+  if (std::strcmp(key, "weekday_weds") == 0) return "st";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "št";
+  if (std::strcmp(key, "weekday_fri") == 0) return "pi";
+  if (std::strcmp(key, "weekday_sat") == 0) return "so";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11610,6 +12247,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Vračanje";
   if (std::strcmp(key, "run_this_script") == 0) return "Zagnati ta skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Zaslon zatemnjen";
+  if (std::strcmp(key, "screen_lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(key, "screen_locked") == 0) return "Zaslon zaklenjen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(key, "skip_next") == 0) return "Preskoči naprej";
@@ -11628,6 +12266,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Sončni zahod dol";
   if (std::strcmp(key, "sunset_up") == 0) return "Sončni zahod gor";
   if (std::strcmp(key, "swing") == 0) return "Nihanje";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Vodoravno nihanje";
   if (std::strcmp(key, "target") == 0) return "Cilj";
   if (std::strcmp(key, "temporaryhold") == 0) return "Začasno zadržanje";
   if (std::strcmp(key, "today") == 0) return "Danes";
@@ -11645,7 +12284,6 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Počitniško zadržanje";
   if (std::strcmp(key, "vacuum") == 0) return "Sesalnik";
   if (std::strcmp(key, "version_unknown") == 0) return "Različica neznana";
-  if (std::strcmp(key, "voice") == 0) return "Glas";
   if (std::strcmp(key, "volume") == 0) return "Glasnost";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čakanje na Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Povezovanje s \nHome Assistant";
@@ -11764,6 +12402,19 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Potrdi";
   if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi za goste";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stanje Wi-Fi se ni spremenilo";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Povežite se z dostopno točko WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "da nastavite omrežje.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Nato v brskalniku odprite {address}";
+  if (std::strcmp(key, "screensaver") == 0) return "Ohranjevalnik zaslona";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Napačen PIN";
+  if (std::strcmp(key, "rain") == 0) return "Dež";
+  if (std::strcmp(key, "weekday_sun") == 0) return "ned.";
+  if (std::strcmp(key, "weekday_mon") == 0) return "pon.";
+  if (std::strcmp(key, "weekday_tues") == 0) return "tor.";
+  if (std::strcmp(key, "weekday_weds") == 0) return "sre.";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "čet.";
+  if (std::strcmp(key, "weekday_fri") == 0) return "pet.";
+  if (std::strcmp(key, "weekday_sat") == 0) return "sob.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11904,6 +12555,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Återvänder";
   if (std::strcmp(key, "run_this_script") == 0) return "Kör detta skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skärm nedtonad";
+  if (std::strcmp(key, "screen_lock") == 0) return "Skärmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skärm låst";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(key, "skip_next") == 0) return "Hoppa till nästa";
@@ -11921,6 +12573,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Solnedgång ner";
   if (std::strcmp(key, "sunset_up") == 0) return "Solnedgång upp";
   if (std::strcmp(key, "swing") == 0) return "Svängning";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Horisontell svängning";
   if (std::strcmp(key, "target") == 0) return "Mål";
   if (std::strcmp(key, "today") == 0) return "Idag";
   if (std::strcmp(key, "too_many") == 0) return "För många";
@@ -11936,7 +12589,6 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "unsupported") == 0) return "Stöds inte";
   if (std::strcmp(key, "vacuum") == 0) return "Dammsugare";
   if (std::strcmp(key, "version_unknown") == 0) return "Version okänd";
-  if (std::strcmp(key, "voice") == 0) return "Röst";
   if (std::strcmp(key, "volume") == 0) return "Volym";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Väntar på Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Ansluter till \nHome Assistant";
@@ -12053,6 +12705,19 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekräfta";
   if (std::strcmp(key, "guest_wifi") == 0) return "Gäst-Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ändrades inte";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Anslut till WiFi-hotspotten";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "för att konfigurera ditt nätverk.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Öppna sedan {address} i din webbläsare";
+  if (std::strcmp(key, "screensaver") == 0) return "Skärmsläckare";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Felaktig PIN";
+  if (std::strcmp(key, "rain") == 0) return "Regn";
+  if (std::strcmp(key, "weekday_sun") == 0) return "sön";
+  if (std::strcmp(key, "weekday_mon") == 0) return "mån";
+  if (std::strcmp(key, "weekday_tues") == 0) return "tis";
+  if (std::strcmp(key, "weekday_weds") == 0) return "ons";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "tor";
+  if (std::strcmp(key, "weekday_fri") == 0) return "fre";
+  if (std::strcmp(key, "weekday_sat") == 0) return "lör";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12201,6 +12866,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Geri dönüyor";
   if (std::strcmp(key, "run_this_script") == 0) return "Bu betik çalıştırılsın mı?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran kısılmış";
+  if (std::strcmp(key, "screen_lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran kilitli";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(key, "skip_next") == 0) return "Sonrakine geç";
@@ -12219,6 +12885,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Gün batımı aşağı";
   if (std::strcmp(key, "sunset_up") == 0) return "Gün batımı yukarı";
   if (std::strcmp(key, "swing") == 0) return "Salınım";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Yatay salınım";
   if (std::strcmp(key, "target") == 0) return "Hedef";
   if (std::strcmp(key, "temporaryhold") == 0) return "Geçici tutma";
   if (std::strcmp(key, "today") == 0) return "Bugün";
@@ -12237,7 +12904,6 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Tatil tutması";
   if (std::strcmp(key, "vacuum") == 0) return "Süpürge";
   if (std::strcmp(key, "version_unknown") == 0) return "Sürüm bilinmiyor";
-  if (std::strcmp(key, "voice") == 0) return "Ses";
   if (std::strcmp(key, "volume") == 0) return "Ses";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Home Assistant bekleniyor";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "\nHome Assistant'a bağlanılıyor";
@@ -12356,6 +13022,19 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Onayla";
   if (std::strcmp(key, "guest_wifi") == 0) return "Misafir Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi durumu değişmedi";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "WiFi erişim noktasına bağlanın";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "ve ağınızı yapılandırın.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Ardından tarayıcınızda {address} adresini açın";
+  if (std::strcmp(key, "screensaver") == 0) return "Ekran koruyucu";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Yanlış PIN";
+  if (std::strcmp(key, "rain") == 0) return "Yağmur";
+  if (std::strcmp(key, "weekday_sun") == 0) return "Paz";
+  if (std::strcmp(key, "weekday_mon") == 0) return "Pzt";
+  if (std::strcmp(key, "weekday_tues") == 0) return "Sal";
+  if (std::strcmp(key, "weekday_weds") == 0) return "Çar";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "Per";
+  if (std::strcmp(key, "weekday_fri") == 0) return "Cum";
+  if (std::strcmp(key, "weekday_sat") == 0) return "Cmt";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12506,6 +13185,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "returning") == 0) return "Повертається";
   if (std::strcmp(key, "run_this_script") == 0) return "Запустити цей скрипт?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Екран приглушено";
+  if (std::strcmp(key, "screen_lock") == 0) return "Блокування екрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Екран заблоковано";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(key, "skip_next") == 0) return "Наступний";
@@ -12524,6 +13204,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "sunset_down") == 0) return "Захід сонця вниз";
   if (std::strcmp(key, "sunset_up") == 0) return "Захід сонця вгору";
   if (std::strcmp(key, "swing") == 0) return "Коливання";
+  if (std::strcmp(key, "horizontal_swing") == 0) return "Горизонтальне коливання";
   if (std::strcmp(key, "target") == 0) return "Ціль";
   if (std::strcmp(key, "temporaryhold") == 0) return "Тимчасове утримання";
   if (std::strcmp(key, "today") == 0) return "Сьогодні";
@@ -12542,7 +13223,6 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "vacationhold") == 0) return "Утримання на відпустку";
   if (std::strcmp(key, "vacuum") == 0) return "Пилосос";
   if (std::strcmp(key, "version_unknown") == 0) return "Версія невідома";
-  if (std::strcmp(key, "voice") == 0) return "Голос";
   if (std::strcmp(key, "volume") == 0) return "Гучність";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Очікування Home Assistant";
   if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Підключення до \nHome Assistant";
@@ -12660,6 +13340,19 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "timer_confirm") == 0) return "Підтвердити";
   if (std::strcmp(key, "guest_wifi") == 0) return "Гостьовий Wi-Fi";
   if (std::strcmp(key, "wifi_did_not_change") == 0) return "Стан Wi-Fi не змінився";
+  if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Підключіться до точки доступу WiFi";
+  if (std::strcmp(key, "to_configure_your_network") == 0) return "щоб налаштувати мережу.";
+  if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Потім відкрийте {address} у браузері";
+  if (std::strcmp(key, "screensaver") == 0) return "Заставка";
+  if (std::strcmp(key, "incorrect_pin") == 0) return "Неправильний PIN";
+  if (std::strcmp(key, "rain") == 0) return "Дощ";
+  if (std::strcmp(key, "weekday_sun") == 0) return "нд";
+  if (std::strcmp(key, "weekday_mon") == 0) return "пн";
+  if (std::strcmp(key, "weekday_tues") == 0) return "вт";
+  if (std::strcmp(key, "weekday_weds") == 0) return "ср";
+  if (std::strcmp(key, "weekday_thurs") == 0) return "чт";
+  if (std::strcmp(key, "weekday_fri") == 0) return "пт";
+  if (std::strcmp(key, "weekday_sat") == 0) return "сб";
   return espdesktop_i18n_key_en(key);
 }
 

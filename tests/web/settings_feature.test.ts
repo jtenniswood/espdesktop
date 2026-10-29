@@ -6,12 +6,101 @@ import { createMediaPlaybackController } from "../../src/webserver/features/medi
 import { createVoiceServicesController } from "../../src/webserver/features/voice_services_controller";
 import { createClockBarController } from "../../src/webserver/features/clock_bar_controller";
 import { createScreenScheduleController } from "../../src/webserver/features/screen_schedule_controller";
+import { cardCurveRadius, normalizeCardCurve, normalizeThemeAutoMethod, normalizeThemeMode, normalizeTimeOfDay, parseThemeSunOffset } from "../../src/webserver/model/settings";
+import { PREVIEW_THEME_COLORS, previewEffectiveTheme, previewThemeCss } from "../../src/webserver/state/preview_theme";
+import { createBackupEnvelope, normalizeBackupEnvelope } from "../../src/webserver/model/backup";
 
 function equal<T>(actual: T, expected: T, message: string): void {
   if (actual !== expected) throw new Error(`${message}: expected ${String(expected)}, received ${String(actual)}`);
 }
 
+function luminance(hex: string): number {
+  const channels = [0, 2, 4].map((start) => {
+    const value = parseInt(hex.slice(start, start + 2), 16) / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
+}
+
+function contrast(first: string, second: string): number {
+  const values = [luminance(first), luminance(second)].sort((a, b) => b - a);
+  return (values[0]! + 0.05) / (values[1]! + 0.05);
+}
+
+function placeholderOutline(textMuted: string, background: string): string {
+  // Matches the 70% muted-text mix in the preview's empty-cell CSS.
+  return [0, 2, 4].map((start) => {
+    const muted = parseInt(textMuted.slice(start, start + 2), 16);
+    const base = parseInt(background.slice(start, start + 2), 16);
+    return Math.round(muted * 0.7 + base * 0.3).toString(16).padStart(2, "0");
+  }).join("");
+}
+
 export function runSettingsFeatureTests(): void {
+  equal(normalizeCardCurve(undefined), "Medium", "new curve settings default to Medium");
+  equal(normalizeCardCurve("medium"), "Medium", "curve values normalize for backup restore");
+  for (const [large, small, medium] of [[20, 12, 16], [22, 13, 18], [35, 21, 28], [26, 16, 21]]) {
+    equal(cardCurveRadius(large!, "Small"), small, "Small radius matches firmware rounding");
+    equal(cardCurveRadius(large!, "Medium"), medium, "Medium radius matches firmware rounding");
+    equal(cardCurveRadius(large!, "Large"), large, "Large uses the configured panel radius");
+  }
+  const s3Radii = { Small: 16, Medium: 21 };
+  equal(cardCurveRadius(26, "Small", s3Radii), 16, "S3 Small radius");
+  equal(cardCurveRadius(26, "Medium", s3Radii), 21, "S3 Medium radius");
+  equal(cardCurveRadius(26, "Large", s3Radii), 26, "S3 Large radius");
+  const curveBackup = createBackupEnvelope({ device: "panel", slots: 0, screen: { card_curve: "Medium" } }, { buttons: [], subpages: {} });
+  equal(normalizeBackupEnvelope(curveBackup as unknown as Record<string, unknown>, { buttons: [], subpages: {} }).screen?.card_curve,
+    "Medium", "backup preserves the chosen card curve");
+  for (const mode of ["Dark", "Light", "Auto"])
+    equal(normalizeThemeMode(mode.toLowerCase()), mode, "theme mode backup round trip");
+  equal(normalizeThemeMode("Sun"), "Auto", "old Sun backups migrate to Auto");
+  equal(normalizeThemeMode("Schedule"), "Auto", "old Schedule backups migrate to Auto");
+  equal(normalizeThemeAutoMethod("Sun"), "Sunrise / Sunset", "old Sun backups retain their method");
+  equal(normalizeThemeAutoMethod("Schedule"), "Time", "old Schedule backups retain their method");
+  equal(parseThemeSunOffset("-180"), -180, "negative offset boundary");
+  equal(parseThemeSunOffset("+180"), 180, "positive offset boundary");
+  equal(parseThemeSunOffset("181"), null, "out-of-range offset rejected");
+  equal(parseThemeSunOffset("1.5"), null, "fractional offset rejected");
+  equal(previewEffectiveTheme({ themeMode: "Auto", themeActive: "Light" }), "Light", "Auto preview follows active firmware theme");
+  equal(previewEffectiveTheme({ themeMode: "Dark", themeActive: "Light" }), "Dark", "manual preview follows chosen mode");
+  equal(PREVIEW_THEME_COLORS.Light.surfaceCard, "FFFFFF", "preview Light surface matches device palette");
+  equal(PREVIEW_THEME_COLORS.Dark.background, "000000", "Dark retains the main background");
+  equal(PREVIEW_THEME_COLORS.Dark.surfaceCard, "313131", "Dark retains the main card fill");
+  equal(PREVIEW_THEME_COLORS.Dark.surfaceSensor, "212121", "Dark retains the main sensor fill");
+  equal(PREVIEW_THEME_COLORS.Light.surfaceSensor, "F5F5F5", "Light has a separate sensor fill");
+  equal(previewThemeCss("Light").includes("--preview-text-primary:#333333"), true, "preview Light foreground is semantic");
+  for (const [mode, palette] of Object.entries(PREVIEW_THEME_COLORS)) {
+    equal(contrast(palette.textPrimary, palette.surfacePrimary) >= 4.5, true, `${mode} primary text contrast`);
+    equal(contrast(palette.textMuted, palette.surfaceCard) >= 4.5, true, `${mode} muted text contrast`);
+    // Empty-slot borders are decorative; the icon uses the primary text color.
+    equal(placeholderOutline(palette.textMuted, palette.background) !== palette.background,
+          true, `${mode} dashed placeholder separates from its background`);
+  }
+  equal(normalizeThemeMode(undefined), "Dark", "old settings default to Dark");
+  equal(normalizeTimeOfDay("20:00", "07:00"), "20:00", "overnight Light time round trips");
+  equal(normalizeTimeOfDay("07:00", "20:00"), "07:00", "overnight Dark time round trips");
+  equal(normalizeTimeOfDay("24:00", "07:00"), "07:00", "invalid backup time uses safe default");
+  const themeScreen = { theme_mode: "Auto", theme_auto_method: "Sunrise / Sunset", theme_light_start: "20:00", theme_dark_start: "07:00", theme_sunrise_offset: -20, theme_sunset_offset: 45 };
+  const backupOutputs = { buttons: [], subpages: {} };
+  const savedTheme = createBackupEnvelope({ device: "panel", slots: 0, screen: themeScreen }, backupOutputs);
+  const restoredTheme = normalizeBackupEnvelope(savedTheme as unknown as Record<string, unknown>, backupOutputs);
+  equal(restoredTheme.screen?.theme_mode, "Auto", "backup retains configured Auto mode rather than effective palette");
+  equal(restoredTheme.screen?.theme_auto_method, "Sunrise / Sunset", "backup retains automatic method");
+  equal(restoredTheme.screen?.theme_sunrise_offset, -20, "backup retains sunrise offset");
+  equal(restoredTheme.screen?.theme_sunset_offset, 45, "backup retains sunset offset");
+  equal(restoredTheme.screen?.theme_light_start, "20:00", "backup retains Light boundary");
+  equal(restoredTheme.screen?.theme_dark_start, "07:00", "backup retains Dark boundary");
+  equal(normalizeBackupEnvelope({ version: 2, format: "espdesktop.backup", buttons: [], screen: {} }, backupOutputs).screen?.theme_mode,
+        undefined, "old backups remain valid without a theme field");
+  const legacyScreen = normalizeBackupEnvelope({ version: 2, format: "espdesktop.backup", device: "esp32-p4-86", buttons: [],
+    screen: { schedule_clock_text_color: "FFFFFF" } }, backupOutputs).screen;
+  for (const key of Object.keys(themeScreen))
+    equal(legacyScreen?.[key], undefined, `legacy restore must not invent ${key}`);
+  const explicitLight = { ...themeScreen, theme_mode: "Light" };
+  const lightBackup = createBackupEnvelope({ device: "esp32-p4-86", slots: 0, screen: explicitLight }, backupOutputs);
+  const lightRestore = normalizeBackupEnvelope(lightBackup as unknown as Record<string, unknown>, backupOutputs).screen;
+  for (const [key, value] of Object.entries(explicitLight))
+    equal(lightRestore?.[key], value, `modern Light restore retains ${key}`);
   const clock = screensaverControlState("Clock", 35.4, 12.6, 8.2);
   equal(clock.mode, "clock", "clock action is normalized");
   equal(clock.clockVisible, true, "clock controls are shown for clock mode");

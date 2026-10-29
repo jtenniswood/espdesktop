@@ -272,13 +272,170 @@ bool twenty_slot_document_reaches_order_and_subpage_settings() {
          order.persistent_writes == 1 && on_color.persistent_writes == 1;
 }
 
+bool retired_colour_switches_do_not_affect_restored_cards() {
+  constexpr char PROFILE[] = "esp32-p4-86";
+  constexpr char CARD[] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_bg_color=F9A825";
+  std::array<uint8_t, 1024> document{};
+  PanelConfigWriter writer(document.data(), document.size());
+  size_t size = 0;
+  if (writer.begin() != PanelConfigStatus::OK ||
+      writer.append_device_profile(reinterpret_cast<const uint8_t *>(PROFILE), sizeof(PROFILE) - 1) != PanelConfigStatus::OK ||
+      writer.append_button(1, reinterpret_cast<const uint8_t *>(CARD), sizeof(CARD) - 1) != PanelConfigStatus::OK) return false;
+  for (const std::string key : {"companion_app_custom_colour_control", "companion_app_auto_colour_generation"}) {
+    if (writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+          reinterpret_cast<const uint8_t *>("false"), 5) != PanelConfigStatus::OK) return false;
+  }
+  if (writer.finish(&size) != PanelConfigStatus::OK) return false;
+  FakeText order, button;
+  PanelConfigTextBindings bindings;
+  bindings.set_device_profile(PROFILE);
+  bindings.set_button_order(&order);
+  bindings.set_button(1, &button, {});
+  if (!bindings.persist_document(document.data(), size) || button.value() != CARD) return false;
+  if (!bindings.write_document(document.data(), document.size(), &size)) return false;
+  PanelConfigReader reader(document.data(), size);
+  if (reader.begin() != PanelConfigStatus::OK) return false;
+  PanelConfigRecord record;
+  PanelConfigStatus status;
+  while ((status = reader.next(&record)) == PanelConfigStatus::OK) {
+    if (record.type == PanelConfigRecordType::SETTING) return false;
+  }
+  return status == PanelConfigStatus::END;
+}
+
+bool expanded_native_configuration_preserves_every_byte() {
+  for (size_t chunk_count : {size_t{4}, size_t{8}}) {
+    FakeText order("old-order");
+    FakeText button("old-button");
+    std::array<FakeText, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> fields{};
+    std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> chunks{};
+    for (size_t index = 0; index < chunk_count; ++index) chunks[index] = &fields[index];
+    PanelConfigTextBindings bindings;
+    bindings.set_device_profile("profile");
+    bindings.set_button_order(&order);
+    bindings.set_button(1, &button, chunks);
+    const std::string large_button(400, 'b');
+    // 4095 bytes, with multi-byte characters crossing old chunk boundaries.
+    const std::string large_subpage = std::string(250, 's') + "é😀" + std::string(3839, 'c');
+    std::array<uint8_t, 10000> document{};
+    PanelConfigWriter writer(document.data(), document.size());
+    size_t size = 0;
+    if (writer.begin() != PanelConfigStatus::OK ||
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>("profile"), 7) != PanelConfigStatus::OK ||
+        writer.append_button(1, reinterpret_cast<const uint8_t *>(large_button.data()), large_button.size()) != PanelConfigStatus::OK ||
+        writer.append_subpage(1, reinterpret_cast<const uint8_t *>(large_subpage.data()), large_subpage.size()) != PanelConfigStatus::OK ||
+        writer.finish(&size) != PanelConfigStatus::OK) return false;
+    // Rejected downgrade copies must not partially overwrite existing values.
+    if (bindings.persist_document(document.data(), size) || order.value() != "old-order" ||
+        button.value() != "old-button" || button.persistent_writes != 0) return false;
+    if (!bindings.publish_document(document.data(), size) || button.value() != large_button) return false;
+    std::string combined;
+    for (const auto &field : fields) {
+      if (!espdesktop::configuration::panel_config_valid_utf8(
+          reinterpret_cast<const uint8_t *>(field.value().data()), field.value().size())) return false;
+      combined += field.value();
+      if (field.persistent_writes != 0) return false;
+    }
+    if (combined != large_subpage) return false;
+    // Live text export must still reconstruct the entire native record.
+    std::array<uint8_t, 10000> exported{};
+    size_t exported_size = 0;
+    if (!bindings.write_document(exported.data(), exported.size(), &exported_size) ||
+        exported_size != size || std::memcmp(document.data(), exported.data(), size) != 0) return false;
+    if (writer.begin() != PanelConfigStatus::OK ||
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>("profile"), 7) != PanelConfigStatus::OK ||
+        writer.append_subpage(1, reinterpret_cast<const uint8_t *>("short"), 5) != PanelConfigStatus::OK ||
+        writer.finish(&size) != PanelConfigStatus::OK ||
+        !bindings.publish_document(document.data(), size)) return false;
+    if (fields[0].value() != "short" || !button.value().empty()) return false;
+    for (size_t index = 1; index < fields.size(); ++index)
+      if (!fields[index].value().empty()) return false;
+    // Once a layout fits again, unchanged live values must still reach the
+    // preference copy that was skipped during the larger save.
+    if (!bindings.persist_document(document.data(), size) || fields[0].persistent_writes != 1 ||
+        button.persistent_writes != 1 || order.persistent_writes != 1) return false;
+    if (!bindings.persist_document(document.data(), size) || fields[0].persistent_writes != 1) return false;
+  }
+  return true;
+}
+
+bool legacy_unicode_capacity_is_checked_before_writing() {
+  FakeText order("old-order");
+  FakeText button("old-button");
+  FakeText first("old-first");
+  FakeText second("old-second");
+  PanelConfigTextBindings bindings;
+  bindings.set_device_profile("profile");
+  bindings.set_button_order(&order);
+  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> chunks{};
+  chunks[0] = &first;
+  chunks[1] = &second;
+  bindings.set_button(1, &button, chunks);
+  for (bool fits : {false, true}) {
+    std::string value;
+    for (size_t index = 0; index < (fits ? 254 : 127); ++index) value += fits ? "é" : "😀";
+    std::array<uint8_t, 1024> document{};
+    PanelConfigWriter writer(document.data(), document.size());
+    size_t size = 0;
+    if (writer.begin() != PanelConfigStatus::OK ||
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>("profile"), 7) != PanelConfigStatus::OK ||
+        writer.append_button(1, reinterpret_cast<const uint8_t *>("new"), 3) != PanelConfigStatus::OK ||
+        writer.append_subpage(1, reinterpret_cast<const uint8_t *>(value.data()), value.size()) != PanelConfigStatus::OK ||
+        writer.finish(&size) != PanelConfigStatus::OK) return false;
+    if (bindings.persist_document(document.data(), size) != fits) return false;
+    if (fits) {
+      if (first.value() + second.value() != value || first.value().size() != 254 || second.value().size() != 254) return false;
+    } else if (button.persistent_writes != 0 || first.persistent_writes != 0 || second.persistent_writes != 0 ||
+               first.value() != "old-first" || second.value() != "old-second") return false;
+  }
+  return true;
+}
+
+bool special_page_keeps_unicode_and_large_native_values() {
+  FakeText order("1"), button("old");
+  std::array<FakeText, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> fields{};
+  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> chunks{};
+  for (size_t i = 0; i < fields.size(); ++i) chunks[i] = &fields[i];
+  PanelConfigTextBindings bindings;
+  bindings.set_device_profile("profile");
+  bindings.set_button_order(&order);
+  bindings.set_special_page_chunks(chunks);
+  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> empty{};
+  bindings.set_button(1, &button, empty);
+  for (const bool large : {false, true}) {
+    std::string page(large ? 3000 : 254, 'x');
+    page += "😀";
+    std::array<uint8_t, 8192> bytes{};
+    PanelConfigWriter writer(bytes.data(), bytes.size());
+    size_t size = 0;
+    if (writer.begin() != PanelConfigStatus::OK ||
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>("profile"), 7) != PanelConfigStatus::OK ||
+        writer.append_setting(reinterpret_cast<const uint8_t *>("special_page"), 12,
+            reinterpret_cast<const uint8_t *>(page.data()), page.size()) != PanelConfigStatus::OK ||
+        writer.finish(&size) != PanelConfigStatus::OK) return false;
+    if (!bindings.publish_document(bytes.data(), size)) return false;
+    std::string restored;
+    for (const auto &field : fields) restored += field.value();
+    if (restored != page) return false;
+    if (!large && fields[0].value().size() != 254) return false;
+    const auto writes = order.persistent_writes;
+    if (bindings.persist_document(bytes.data(), size) == large) return false;
+    if (large && order.persistent_writes != writes) return false;
+  }
+  return true;
+}
+
 }  // namespace
 
 int main() {
-  return imports_legacy_button_subpage_and_order() &&
+  return retired_colour_switches_do_not_affect_restored_cards() &&
+                 imports_legacy_button_subpage_and_order() &&
                  native_document_mirrors_back_to_legacy_entities_for_downgrade() &&
                  native_document_updates_live_grid_without_writing_legacy_preferences() &&
-                 twenty_slot_document_reaches_order_and_subpage_settings()
+                 twenty_slot_document_reaches_order_and_subpage_settings() &&
+                 expanded_native_configuration_preserves_every_byte() &&
+                 legacy_unicode_capacity_is_checked_before_writing() &&
+                 special_page_keeps_unicode_and_large_native_values()
              ? 0
              : 1;
 }

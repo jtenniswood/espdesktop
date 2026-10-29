@@ -44,14 +44,8 @@ def package_substitution_lines(device: dict) -> list[str]:
     lines.append(
         f'  screensaver_camera_supported: "{str(camera_screensaver_supported).lower()}"'
     )
-    added_voice_substitutions = False
     for key, value in package["substitutions"].items():
         lines.append(f"  {key}: {value}")
-        if key == "clock_bar_visual_gap":
-            lines.extend(voice_substitution_lines(device))
-            added_voice_substitutions = True
-    if not added_voice_substitutions:
-        lines.extend(voice_substitution_lines(device))
     if package.get("ethernetSelectable"):
         frequency = package["backlightPwmFrequency"]
         lines.extend(
@@ -71,8 +65,8 @@ def package_substitution_lines(device: dict) -> list[str]:
 
 def clock_bar_icon_offset_lines(name: str, button: str, label: str) -> list[str]:
     """C++ lines declaring `name` as the x-offset of an optional clock-bar icon.
-    Icons pack leftwards from the network status icon by glyph edges, so battery,
-    voice, and night mode never overlap and never leave an empty slot behind."""
+    Icons pack leftwards from the network status icon by glyph edges, so battery
+    and night mode never overlap or leave an empty slot behind."""
     box = f"{name}_box"
     return [
         f"      const int {box} = lv_obj_get_width(id({button}));",
@@ -85,10 +79,12 @@ def clock_bar_icon_offset_lines(name: str, button: str, label: str) -> list[str]
 def battery_substitution_lines(device: dict) -> list[str]:
     if device["slug"] != "guition-esp32-p4-jc8012p4a1":
         return [
+            '  theme_battery_hud_label: "nullptr"',
             '  battery_status_apply_code: ""',
             '  battery_status_hide_code: ""',
         ]
     return [
+        '  theme_battery_hud_label: "id(battery_status_icon_label)"',
         "  battery_status_apply_code: |-",
         "    if (id(battery_status_enabled).state) {",
         *clock_bar_icon_offset_lines("battery_status_icon_x", "battery_status_button",
@@ -101,63 +97,6 @@ def battery_substitution_lines(device: dict) -> list[str]:
         "    }",
         "  battery_status_hide_code: |-",
         "    lv_obj_add_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
-    ]
-
-
-def voice_substitution_lines(device: dict) -> list[str]:
-    if not package_data(device).get("localVoiceServices"):
-        return [
-            '  voice_clock_bar_hide_code: ""',
-            '  voice_clock_bar_apply_code: ""',
-            "  navigate_voice_target_code: |-",
-            '    ESP_LOGW("navigation", "Voice volume target is not available on this device");',
-            '  voice_interaction_active_condition: "false"',
-        ]
-    icon_offset_lines = clock_bar_icon_offset_lines(
-        "voice_clock_bar_icon_x", "voice_clock_bar_mute_button",
-        "voice_clock_bar_mute_icon_label",
-    )
-    if device["slug"] == "esp32-p4-86":
-        icon_offset_lines = [
-            "      // These controls open different modals: space their full touch targets,",
-            "      // not just the narrower glyphs, with an 18px gap inside the clock bar.",
-            "      clock_bar_right_icons = clock_bar_right_icons_begin(clock_bar_right_x, 18);",
-            "      if (show_time) {",
-            "        const int time_box = ${clock_bar_item_gap};",
-            "        clock_bar_right_icons_seed(clock_bar_right_icons, time_box, time_box);",
-            "      }",
-            "      const int voice_clock_bar_icon_x_box = lv_obj_get_width(id(voice_clock_bar_mute_button));",
-            "      const int voice_clock_bar_icon_x = clock_bar_right_icons_next_x(",
-            "          clock_bar_right_icons, voice_clock_bar_icon_x_box,",
-            "          voice_clock_bar_icon_x_box);",
-        ]
-    return [
-        "  voice_clock_bar_hide_code: |-",
-        "    lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
-        "  voice_clock_bar_apply_code: |-",
-        "    if (id(voice_services_enabled).state) {",
-        *icon_offset_lines,
-        "      lv_obj_align(id(voice_clock_bar_mute_button), LV_ALIGN_TOP_RIGHT,",
-        "                   voice_clock_bar_icon_x, clock_bar_icon_y);",
-        "      lv_obj_clear_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
-        "      const bool microphone_muted = id(master_mute_switch).state;",
-        "      const bool output_muted = id(voice_media_player).is_muted();",
-        "      lv_label_set_text(id(voice_clock_bar_mute_icon_label),",
-        '                        microphone_muted ? "\\U000F036D" :',
-        '                        output_muted ? "\\U000F04C4" : "\\U000F036C");',
-        "      lv_obj_set_style_text_color(id(voice_clock_bar_mute_icon_label),",
-        "                                  lv_color_hex(0xFFFFFF),",
-        "                                  LV_PART_MAIN);",
-        "    } else {",
-        "      lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
-        "    }",
-        "  navigate_voice_target_code: |-",
-        "    if (id(voice_services_enabled).state) {",
-        "      id(open_device_volume_control).execute();",
-        "    } else {",
-        '      ESP_LOGW("navigation", "Voice volume target is not available while Voice Services are disabled");',
-        "    }",
-        '  voice_interaction_active_condition: "id(voice_interaction_active)"',
     ]
 
 
@@ -246,6 +185,7 @@ def package_file_text(device: dict) -> str:
                 package.get("deviceFontPackageKey", "fonts_device"),
                 "!include device/fonts.yaml",
             ),
+            include_line("theme_colors", "!include ../../common/theme/colors.yaml"),
             include_line("button_theme", "!include ../../common/theme/button.yaml"),
             "  # ---------------------------------------------------------------------------",
             "  # Configuration (text/select/number components for web UI)",
@@ -264,6 +204,10 @@ def package_file_text(device: dict) -> str:
             ),
         ]
     )
+    if package.get("apiOpenModalAction", True) or package.get("apiNavigateAction", True):
+        lines.append(include_line("api_remote_actions", "!include ../../common/device/api_remote_actions.yaml"))
+    if package.get("apiOpenModalAction", True):
+        lines.append(include_line("api_open_modal", "!include ../../common/device/api_open_modal.yaml"))
     if package.get("apiNavigateAction", True):
         lines.append(include_line("api_navigate", "!include ../../common/device/api_navigate.yaml"))
     lines.extend(
@@ -335,12 +279,6 @@ def package_file_text(device: dict) -> str:
                 "    components: [mipi_dsi]",
                 "    refresh: 1s",
                 "",
-                "switch:",
-                "  - id: !extend auto_update_switch",
-                "    restore_mode: ALWAYS_OFF",
-                "  - id: !extend c6_auto_update_switch",
-                "    restore_mode: ALWAYS_OFF",
-                "",
                 "web_server:",
                 "  ota: false",
                 "",
@@ -407,11 +345,20 @@ def cfg_lines(device: dict) -> list[str]:
     image_card_count = int(device["image_slot_capacity"])
     lines = [
         "            GridConfig cfg = {};",
-        f"            cfg.num_slots = {device['slots']};",
     ]
+    if "portrait_slots" not in device:
+        lines.append(f"            cfg.num_slots = {device['slots']};")
     if "portrait_cols" in device:
         lines.append('            bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";')
         lines.append(f"            cfg.cols = portrait ? {device['portrait_cols']} : {device['cols']};")
+        if "portrait_slots" in device:
+            lines.append(f"            cfg.configured_slots = {device['slots']};")
+            lines.append(f"            cfg.num_slots = portrait ? {device['portrait_slots']} : {device['slots']};")
+            if device["portrait_slots"] < device["slots"]:
+                lines.append("            if (portrait) {")
+                for slot in range(device["portrait_slots"], device["slots"]):
+                    lines.append(f"              lv_obj_add_flag(slots[{slot}].btn, LV_OBJ_FLAG_HIDDEN);")
+                lines.append("            }")
         if device.get("rotate_width_compensation", False):
             lines.append("            cfg.width_compensation_vertical = portrait;")
     else:
@@ -424,6 +371,16 @@ def cfg_lines(device: dict) -> list[str]:
         "id(special_page_config_ext_5).state + id(special_page_config_ext_6).state + "
         "id(special_page_config_ext_7).state;"
     )
+    base_radius = int(device["package"]["substitutions"]["radius"].removesuffix("px"))
+    substitutions = device["package"]["substitutions"]
+    radius_overrides = ""
+    if "card_curve_small_radius" in substitutions or "card_curve_medium_radius" in substitutions:
+        small_radius = int(substitutions.get("card_curve_small_radius", "-1px").removesuffix("px"))
+        medium_radius = int(substitutions.get("card_curve_medium_radius", "-1px").removesuffix("px"))
+        radius_overrides = f", {small_radius}, {medium_radius}"
+    lines.append(f"            cfg.card_corner_radius = card_curve_radius({base_radius}, id(card_curve_select).current_option(){radius_overrides});")
+    if device.get("continuous_card_corners"):
+        lines.append("            cfg.continuous_card_corners = true;")
     if device.get("info_only"):
         lines.append("            cfg.info_only = true;")
     if device.get("subpage_chevron_x", 0) != 0:
@@ -506,7 +463,13 @@ def cfg_lines(device: dict) -> list[str]:
             f"            cfg.media_cover_art_artist_font = id({device['media_cover_art_artist_font']})->get_lv_font();"
         )
     lines.append(f"            cfg.volume_number_font = id({device['volume_number_font']})->get_lv_font();")
+    if device.get("volume_number_compact_font"):
+        lines.append(
+            f"            cfg.volume_number_compact_font = id({device['volume_number_compact_font']})->get_lv_font();"
+        )
     lines.append(f"            cfg.volume_label_font = id({device['volume_label_font']})->get_lv_font();")
+    if device.get("small_text_font"):
+        lines.append(f"            cfg.small_text_font = id({device['small_text_font']})->get_lv_font();")
     if device.get("climate_card_icon_font"):
         lines.append(
             f"            cfg.climate_card_icon_font = id({device['climate_card_icon_font']})->get_lv_font();"
@@ -531,32 +494,6 @@ def cfg_lines(device: dict) -> list[str]:
     lines.append("            cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {")
     lines.append("              id(display_takeover_end).execute(static_cast<int>(kind));")
     lines.append("            };")
-    if package_data(device).get("alarmDelayAudio"):
-        lines.extend(
-            [
-                "            cfg.alarm_delay_audio.enabled = []() {",
-                "              return id(alarm_delay_audio_enabled).state;",
-                "            };",
-                "            cfg.alarm_delay_audio.tts_enabled = []() {",
-                "              return id(alarm_delay_tts_enabled).state && id(voice_services_enabled).state;",
-                "            };",
-                "            cfg.alarm_delay_audio.final_countdown_seconds = []() {",
-                "              return static_cast<int>(id(alarm_delay_final_countdown_seconds).state);",
-                "            };",
-                "            cfg.alarm_delay_audio.ready = []() {",
-                "              return !id(alarm_delay_tts_pending);",
-                "            };",
-                "            cfg.alarm_delay_audio.play_beep = [](AlarmDelayAudioMode mode) {",
-                "              id(play_alarm_delay_beep).execute(mode == AlarmDelayAudioMode::ENTRY);",
-                "            };",
-                "            cfg.alarm_delay_audio.announce = [](AlarmDelayAudioMode mode) {",
-                "              id(announce_alarm_delay).execute(mode == AlarmDelayAudioMode::ENTRY);",
-                "            };",
-                "            cfg.alarm_delay_audio.stop = []() {",
-                "              id(stop_alarm_delay_audio).execute();",
-                "            };",
-            ]
-        )
     if image_card_count > 0:
         lines.append("            static esphome::artwork_image::ArtworkImage *image_card_downloaders[] = {")
         for num in range(1, image_card_count + 1):
@@ -813,6 +750,8 @@ def script_block(device: dict) -> str:
         "    mode: restart",
         "    then:",
         "      - delay: 3s",
+        "      - wait_until:",
+        "          lambda: 'return !alarm_display_takeover_active();'",
         "      - lambda: |-",
         refresh_block(device, "SUBPAGE REFRESH"),
         *refresh_subpage_arrays(device),
@@ -831,6 +770,8 @@ def script_block(device: dict) -> str:
                 "  - id: apply_button_grid",
                 "    mode: single",
                 "    then:",
+                "      - wait_until:",
+                "          lambda: 'return !alarm_display_takeover_active();'",
                 "      - lambda: |-",
                 refresh_block(device),
                 *refresh_subpage_arrays(device),

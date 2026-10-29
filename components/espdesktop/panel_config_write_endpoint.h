@@ -27,7 +27,10 @@ class PanelConfigWriteHandler final
     char url_buffer[
         esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const esphome::StringRef url = request->url_to(url_buffer);
-    return std::strcmp(url.c_str(), "/api/v1/config") == 0;
+    constexpr char generation_path[] = "/api/v1/config/generation/";
+    return std::strcmp(url.c_str(), "/api/v1/config") == 0 ||
+           std::strncmp(url.c_str(), generation_path,
+                        sizeof(generation_path) - 1) == 0;
   }
   size_t maximumBodySize() const override {
     return panel_config_http_context_ready()
@@ -105,16 +108,42 @@ class PanelConfigWriteHandler final
       reset_upload();
       return;
     }
-    const auto if_match = request->get_header("If-Match");
     uint32_t expected_generation = 0;
-    if (!if_match.has_value() ||
-        !parse_panel_config_etag(if_match->c_str(), &expected_generation)) {
+    bool has_expected_generation = false;
+    char url_buffer[
+        esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    const esphome::StringRef url = request->url_to(url_buffer);
+    constexpr char generation_path[] = "/api/v1/config/generation/";
+    if (std::strncmp(url.c_str(), generation_path,
+                     sizeof(generation_path) - 1) == 0) {
+      has_expected_generation = parse_panel_config_generation(
+          url.c_str() + sizeof(generation_path) - 1, &expected_generation);
+    }
+    const auto generation_header =
+        request->get_header("X-Panel-Config-Generation");
+    if (!has_expected_generation && generation_header.has_value()) {
+      has_expected_generation = parse_panel_config_generation(
+          generation_header->c_str(), &expected_generation);
+    }
+    if (!has_expected_generation) {
+      const auto if_match = request->get_header("If-Match");
+      if (if_match.has_value()) {
+        has_expected_generation = parse_panel_config_etag(
+            if_match->c_str(), &expected_generation);
+      }
+    }
+    if (!has_expected_generation && request->hasArg("generation")) {
+      has_expected_generation = parse_panel_config_generation(
+          request->arg("generation").c_str(), &expected_generation);
+    }
+    if (!has_expected_generation) {
       send_status(raw_request, "428 Precondition Required",
-                  "A quoted If-Match generation is required");
+                  "A valid configuration generation is required");
       reset_upload();
       return;
     }
 
+    const size_t saved_document_size = received_size_;
     const ServiceSaveResult saved = context.service->save_if_generation(
         expected_generation, PANEL_CONFIG_DOCUMENT_VERSION, context.document,
         received_size_);
@@ -146,6 +175,8 @@ class PanelConfigWriteHandler final
                           message);
       return;
     }
+    if (context.configuration_saved)
+      context.configuration_saved(context.document, saved_document_size);
     set_generation_headers(raw_request, saved.generation, generation_text,
                            etag);
     if (response ==

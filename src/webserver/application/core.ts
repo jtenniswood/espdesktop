@@ -2,6 +2,9 @@ import * as EspDesktopModel from "../model";
 import type { ApplicationLayoutState } from "./application_context";
 import type { AppState } from "../state/types";
 import type { UiRuntimeState } from "./state";
+import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
+import { syncPreviewCorners } from "./preview_corners";
+import { cardCurveRadius } from "../model/settings";
 
 export interface CoreFeatureDependencies {
     readonly state: AppState;
@@ -22,7 +25,7 @@ export interface CoreFeature {
     syncPreviewGridTop(layout?: any, scale?: any): void;
     clockBarVisibleInPreview(): boolean;
     syncPreviewStyleVars(layout?: any, scale?: any): void;
-    normalizeGridSpansForLayout(grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any): any;
+    normalizeGridSpansForLayout(grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxSlotId?: any): any;
     syncPreviewOrientation(preservePendingGrid?: any): void;
     subpageStateDisplayMode(button?: any): string;
     mockNowIso: any;
@@ -79,11 +82,20 @@ export function createCoreFeature(
             return scaledCqw(num, scale);
         });
     }
+    function horizontalPadding(this: any, value?: any) {
+        var parts = String(value || "0").trim().split(/\s+/);
+        if (parts.length === 4)
+            return parts[3];
+        return parts.length > 1 ? parts[1] : parts[0];
+    }
     function syncPreviewGridTop(this: any, layout?: any, scale?: any) {
         var grid: any = layoutSection(layout || activeLayout(), "grid");
         scale = scale || previewLayoutScale(layout || activeLayout());
         var compactTop: any = grid.compactTop != null ? grid.compactTop : grid.bottom;
         var gridTop: any = clockBarVisibleInPreview() ? grid.top : compactTop;
+        const parent = state.editingSubpage != null ? state.buttons[state.editingSubpage - 1] : null;
+        if (clockBarVisibleInPreview() && companionAppShortcutFolderEnabled(parent) && isFinite(Number(grid.top)))
+            gridTop = Number(grid.top);
         document.documentElement.style.setProperty("--grid-top", scaledCqw(gridTop, scale));
     }
     function syncPreviewStyleVars(this: any, layout?: any, scale?: any) {
@@ -91,11 +103,14 @@ export function createCoreFeature(
         var topbar: any = layoutSection(layout, "topbar");
         var grid: any = layoutSection(layout, "grid");
         var btn: any = layoutSection(layout, "btn");
+        const baseRadius = applicationLayout.config.cardRadiusPixels || 1;
+        const curveScale = cardCurveRadius(baseRadius, state.cardCurveSupported ? state.cardCurve : "Large", applicationLayout.config.cardCurveRadii) / baseRadius;
         var sensorBadge: any = layoutSection(layout, "sensorBadge");
         var emptyCell: any = layoutSection(layout, "emptyCell");
         var subpageBadge: any = layoutSection(layout, "subpageBadge");
         r.setProperty("--topbar-h", scaledCqw(topbar.height, scale));
         r.setProperty("--topbar-pad", scaledCqwText(topbar.padding, scale));
+        r.setProperty("--topbar-pad-x", scaledCqwText(horizontalPadding(topbar.padding), scale));
         r.setProperty("--topbar-fs", scaledCqw(topbar.fontSize, scale));
         if (topbar.clockFontSize)
             r.setProperty("--clock-fs", scaledCqw(topbar.clockFontSize, scale));
@@ -106,7 +121,12 @@ export function createCoreFeature(
         r.setProperty("--grid-right", scaledCqw(grid.right, scale));
         r.setProperty("--grid-bottom", scaledCqw(grid.bottom, scale));
         r.setProperty("--grid-gap", scaledCqw(grid.gap, scale));
-        r.setProperty("--btn-r", scaledCqw(btn.radius, scale));
+        r.setProperty("--btn-r", scaledCqw(btn.radius * curveScale, scale));
+        var previewScreen = document.querySelector(".sp-screen");
+        if (previewScreen) {
+            previewScreen.classList.toggle("sp-continuous-corners", !!applicationLayout.config.continuousCorners);
+            syncPreviewCorners(previewScreen as HTMLElement, btn.radius * curveScale * scale, emptyCell.radius * curveScale * scale, !!applicationLayout.config.continuousCorners);
+        }
         r.setProperty("--btn-pad", scaledCqw(btn.padding, scale));
         if (btn.borderWidth != null)
             r.setProperty("--btn-border", scaledCqw(btn.borderWidth, scale));
@@ -114,6 +134,7 @@ export function createCoreFeature(
             r.removeProperty("--btn-border");
         r.setProperty("--btn-icon", scaledCqw(btn.iconSize, scale));
         r.setProperty("--btn-label", scaledCqw(btn.labelSize, scale));
+        r.setProperty("--btn-small-text", scaledCqw(btn.smallTextSize || btn.labelSize, scale));
         r.setProperty("--media-title", scaledCqw(btn.mediaTitleSize || btn.labelSize * 1.75, scale));
         r.setProperty("--media-cover-title", scaledCqw(btn.coverArtTitleSize, scale));
         r.setProperty("--media-cover-artist", scaledCqw(btn.coverArtArtistSize, scale));
@@ -127,15 +148,15 @@ export function createCoreFeature(
         r.setProperty("--sensor-top", scaledCqw(sensorBadge.top, scale));
         r.setProperty("--sensor-right", scaledCqw(sensorBadge.right, scale));
         r.setProperty("--sensor-fs", scaledCqw(sensorBadge.fontSize, scale));
-        r.setProperty("--empty-r", scaledCqw(emptyCell.radius, scale));
+        r.setProperty("--empty-r", scaledCqw(emptyCell.radius * curveScale, scale));
         r.setProperty("--subpage-bottom", scaledCqw(subpageBadge.bottom, scale));
         r.setProperty("--subpage-right", scaledCqw(subpageBadge.right, scale));
         r.setProperty("--subpage-fs", scaledCqw(subpageBadge.fontSize, scale));
     }
-    function normalizeGridSpansForLayout(this: any, grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any) {
+    function normalizeGridSpansForLayout(this: any, grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxSlotId?: any) {
         var previousOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
         EspDesktopModel.clearSpans(grid, maxSlots);
-        EspDesktopModel.applySpans(grid, sizes || {}, maxSlots, gridCols);
+        EspDesktopModel.applySpans(grid, sizes || {}, maxSlots, gridCols, maxSlotId);
         var normalizedOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
         if (normalizedOrder !== previousOrder && typeof onChanged === "function")
             onChanged(normalizedOrder);
@@ -145,8 +166,9 @@ export function createCoreFeature(
         var layout: any = activeLayout();
         var screen: any = layout.screen || applicationLayout.config.screen;
         var scale: any = previewLayoutScale(layout);
+        applicationLayout.previewSlots = layout.slots || applicationLayout.totalSlots;
         applicationLayout.gridCols = layout.cols || applicationLayout.config.cols;
-        applicationLayout.gridRows = layout.rows || Math.ceil(applicationLayout.numSlots / applicationLayout.gridCols);
+        applicationLayout.gridRows = layout.rows || Math.ceil(applicationLayout.previewSlots / applicationLayout.gridCols);
         var r: any = document.documentElement.style;
         r.setProperty("--screen-w", screen.width || applicationLayout.config.screen.width);
         r.setProperty("--screen-aspect", screen.aspect || applicationLayout.config.screen.aspect);
@@ -157,7 +179,7 @@ export function createCoreFeature(
             ? applicationLayout.config.largeSensorUnitOffsetPercent : -10;
         r.setProperty("--large-sensor-unit-offset-y", "calc(var(--btn-icon) * 2.5 * " + (largeSensorUnitOffsetPercent / 100) + ")");
         if (!preservePendingGrid && state.grid && state.grid.length) {
-            normalizeGridSpansForLayout(state.grid, state.sizes, applicationLayout.numSlots, applicationLayout.gridCols, function (this: any, normalizedOrder?: any) {
+            normalizeGridSpansForLayout(state.grid, state.sizes, applicationLayout.previewSlots, applicationLayout.gridCols, function (this: any, normalizedOrder?: any) {
                 if (runtime.orderReceived)
                     postButtonOrder(normalizedOrder);
             });
@@ -168,7 +190,7 @@ export function createCoreFeature(
                 if (!sp || !sp.grid || !sp.grid.length)
                     continue;
                 var previousSubpageOrder: any = JSON.stringify(serializeSubpageGrid(sp));
-                normalizeGridSpansForLayout(sp.grid, sp.sizes, applicationLayout.numSlots, applicationLayout.gridCols);
+                normalizeGridSpansForLayout(sp.grid, sp.sizes, applicationLayout.previewSlots, applicationLayout.gridCols, undefined, sp.buttons.length);
                 sp.order = serializeSubpageGrid(sp);
                 if (JSON.stringify(sp.order) !== previousSubpageOrder) {
                     saveSubpage(homeSlot);

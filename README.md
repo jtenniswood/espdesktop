@@ -23,7 +23,7 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
 2. **Connect the display to 2.4 GHz WiFi.**
 3. **Install the EspDesktop Mac app** using the current steps on the [documentation site](https://jtenniswood.github.io/espdesktop/getting-started/mac-app).
-4. **Pair the Mac and display.** Open the display's web settings, choose **Connectors → Mac Companion**, and enter the temporary code in the Mac app.
+4. **Pair the Mac and display.** Open the display's web settings, choose **System → Mac Companion**, and enter the temporary code in the Mac app.
 5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed only for keyboard shortcuts and window controls.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 

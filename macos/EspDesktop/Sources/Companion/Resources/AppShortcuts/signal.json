@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "appId": "org.whispersystems.signal-desktop",
+  "label": "Signal",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Navigate by section",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Start new chat",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Search",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Search in chat",
+      "shortcut": "command+shift+f",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Focus composer",
+      "shortcut": "command+shift+t",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Expand composer",
+      "shortcut": "command+shift+k",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Send (in expanded composer)",
+      "shortcut": "command+enter",
+      "icon": "Application"
+    }
+  ]
+}

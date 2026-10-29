@@ -53,9 +53,14 @@ export {
   decodeConfigField,
   encodeConfigField,
   legacyButtonConfigSafe,
+  activeCardColor,
+  lighterCardColor,
+  normalizedCardColorOptions,
+  setCardColor,
   setConfigOption,
   setConfigOptionValue,
   trimConfigFields,
+  withoutCardColorOptions,
 } from "./config_primitives";
 
 export {
@@ -124,6 +129,7 @@ export {
   normalizeHour,
   normalizeHomeAssistantArtworkPort,
   normalizeHomeAssistantArtworkProtocol,
+  normalizeHomeAssistantArtworkHost,
   normalizeHomeAssistantArtworkEndpointMode,
   normalizeBrightnessMode,
   normalizeLanguage,
@@ -137,6 +143,7 @@ export {
   normalizeScheduleWakeTimeout,
   normalizeScreensaverAction,
   normalizeScreensaverCameraImageMode,
+  normalizeScreensaverCameraDimming,
   normalizeScreensaverDimmedBrightness,
   normalizeTemperatureUnit,
   normalizeTimeOfDay,

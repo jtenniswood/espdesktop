@@ -14,8 +14,11 @@
 inline void refresh_visible_image_cards();
 inline void image_card_set_clock_bar_companion_icon(
     const std::string &entity_id, const std::string &icon_name,
-    const std::string &source_url);
+    const std::string &source_url, bool use_cached_app_icon = false);
 inline void navigation_refresh_subpage_label();
+#ifdef USE_COMPANION
+inline void companion_refresh_app_icon_visibility();
+#endif
 
 // ── Home Assistant-driven home-screen navigation ─────────────────────
 
@@ -33,12 +36,18 @@ struct NavigationSubpageEntry {
   std::string kind;
   lv_obj_t *screen = nullptr;
   lv_obj_t *back_button = nullptr;
+  bool back_neutral_background = true;
   BtnSlot back_slot{};
   struct Card {
     int index = 0;
     lv_obj_t *button = nullptr;
     BtnSlot slot{};
     SubpageBtn definition{};
+bool neutral_background = true;
+    bool sensor_surface = false;
+    bool secondary_surface = false;
+    bool image_card = false;
+    int display_order = 0;
   };
   std::vector<Card> cards;
 };
@@ -274,9 +283,11 @@ inline std::function<void()> &navigation_subpage_clock_bar_refresh() {
 }
 
 inline void navigation_subpage_screen_changed(lv_event_t *) {
-  navigation_refresh_subpage_label();
+  // The device refresh includes the title and icon visibility pass. Do not
+  // repeat it here while the new page is waiting to draw.
   auto &refresh = navigation_subpage_clock_bar_refresh();
   if (refresh) refresh();
+  else navigation_refresh_subpage_label();
 }
 
 inline void navigation_register_subpage(int slot, int display_order,
@@ -318,24 +329,6 @@ inline int navigation_slot_from_target(const std::string &target) {
     if (slot > MAX_GRID_SLOTS) return -1;
   }
   return slot;
-}
-
-inline bool navigation_is_voice_target(const std::string &target) {
-  std::string normalized = navigation_lower(navigation_trim(target));
-  return normalized == "voice" || normalized == "mic" ||
-         normalized == "microphone" || normalized == "speaker" ||
-         normalized == "volume" || normalized == "device_volume";
-}
-
-inline bool navigation_has_home_label_target(const std::string &target) {
-  std::string wanted = navigation_lower(navigation_trim(target));
-  if (wanted.empty()) return false;
-
-  for (auto &entry : navigation_home_targets()) {
-    if (entry.button == nullptr || entry.label.empty()) continue;
-    if (navigation_lower(entry.label) == wanted) return true;
-  }
-  return false;
 }
 
 inline NavigationHomeTargetEntry *navigation_find_label_target(
@@ -409,6 +402,9 @@ inline std::string navigation_active_subpage_label() {
 }
 
 inline void navigation_refresh_subpage_label() {
+#ifdef USE_COMPANION
+  companion_refresh_app_icon_visibility();
+#endif
   if (network_status_modal_ui().overlay) {
     set_clock_bar_companion_subpage_label(espdesktop_i18n(std::string("Settings")));
     image_card_set_clock_bar_companion_icon("", "", "");
@@ -432,7 +428,9 @@ inline void navigation_refresh_subpage_label() {
       ? (web_app ? "Web" : "Monitor") : config.icon;
   const std::string icon_url = web_app
       ? companion_web_app_icon_url(config.entity) : "";
-  image_card_set_clock_bar_companion_icon(config.entity, icon_name, icon_url);
+  image_card_set_clock_bar_companion_icon(
+      config.entity, icon_name, icon_url,
+      !web_app && companion_app_icon_enabled(config));
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(
@@ -495,21 +493,29 @@ inline bool navigation_restore_subpage_slot(int slot) {
 }
 
 inline void navigation_register_subpage_back_button(int slot,
-                                                    const BtnSlot &back_slot) {
+                                                    const BtnSlot &back_slot,
+                                                    bool neutral_background = true) {
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   if (entry != nullptr) {
     entry->back_button = back_slot.btn;
+    entry->back_neutral_background = neutral_background;
     entry->back_slot = back_slot;
   }
 }
 
 inline void navigation_register_subpage_card(int slot, int index,
                                              const BtnSlot &card_slot,
-                                             const SubpageBtn &definition) {
+                                             const SubpageBtn &definition,
+                                             bool neutral_background,
+                                             bool sensor_surface,
+                                             bool secondary_surface = false,
+                                             bool image_card = false) {
   if (index <= 0 || card_slot.btn == nullptr) return;
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   if (entry == nullptr) return;
-  entry->cards.push_back({index, card_slot.btn, card_slot, definition});
+  entry->cards.push_back({index, card_slot.btn, card_slot, definition,
+                          neutral_background, sensor_surface, secondary_surface, image_card,
+                          static_cast<int>(entry->cards.size())});
 }
 
 inline void navigation_retire_subpage(int slot, lv_obj_t *main_page_obj) {

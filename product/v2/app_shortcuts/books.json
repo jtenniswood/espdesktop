@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "appId": "com.apple.iBooksX",
+  "label": "Books",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Add a new collection to your library",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Search books",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    }
+  ]
+}

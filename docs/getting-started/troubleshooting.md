@@ -16,7 +16,7 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 ## The Display Will Not Pair
 
-Open **Connectors → Mac Companion** on the display to show a fresh code. Enter it in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget Display** in the app and reset its pairing from the connector page before trying again.
+Open **System → Mac Companion** on the display to show a fresh code. Enter it in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget Display** in the app and reset its pairing from the connector page before trying again.
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
@@ -38,3 +38,9 @@ Install the Mac app and display firmware from the same EspDesktop release. If yo
 ## Still Stuck?
 
 Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). For Home Assistant touchscreen help, use the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+
+## WiFi setup and reset recovery
+
+The `EspDesktop_XXXX` setup hotspot can take up to 90 seconds to appear. Connect to the hotspot named on the display and open its shown address if the offline setup page does not open automatically. A custom hotspot name or address is preserved. After **WiFi details saved**, reconnect your phone or computer to home WiFi and follow the display's instructions. USB Improv provisioning is also available after installation.
+
+Save a backup before using **System → System → Factory Reset**. Partial reset retains WiFi, the Home Assistant connection and Mac pairing. Complete reset requires typing **RESET**, erases saved WiFi and the Home Assistant API key, and requires pairing the Mac again. It disables WiFi networks compiled into the firmware so newly provisioned credentials remain selected after reboot. Installed firmware remains in place.

@@ -1,6 +1,6 @@
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
-import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
+import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
@@ -44,6 +44,7 @@ import {
     companionShortcutSelectionMatchesSavedParent,
     companionShortcutTabDefinitions,
     companionShortcutTabs,
+    companionShortcutTabsForCapacity,
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
     replaceCompanionDefinitions,
@@ -52,6 +53,7 @@ import {
     syncFinderFolderSelection,
     addFinderFolderTiles,
     createCompanionShortcutSubpage,
+    normalizeCompanionCardOptions,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
     setCompanionAppShortcutFolderEnabled,
@@ -171,7 +173,7 @@ export function formatCompanionShortcutActionId(actionId: string): string {
 export function companionShortcutCatalogSelection(card: any) {
     for (const app of COMPANION_SHORTCUT_APPS.filter((app) => app.catalog)) {
         const preset = companionShortcutPresetCards(app.appId).find((preset) =>
-            preset.entity === card?.entity && preset.options === card?.options);
+            preset.entity === card?.entity && preset.options === withoutCardColorOptions(card?.options));
         if (preset) return { ...preset, appId: app.appId };
     }
     return undefined;
@@ -338,6 +340,18 @@ export function companionCardMode(card: any): CompanionCardModeId {
     return decodeCompanionCard(card || {}).mode;
 }
 
+export function companionAppIconEnabled(card: any): boolean {
+    return companionCardMode(card) === "app";
+}
+
+export function normalizeCompanionAppOptions(card: any): string {
+    return normalizeCompanionCardOptions(card);
+}
+
+function companionAppLaunchCard(card: any): boolean {
+    return companionCardMode(card) === "app" && !String(card?.sensor || "");
+}
+
 export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "webapp") return COMPANION_WEB_APP_PREFIX;
@@ -385,17 +399,24 @@ export function resetCompanionMetricPresentation(card: any, nextMode: string): v
     if (card.label === previous.label) card.label = "";
     card.unit = "";
     card.precision = "";
-    card.options = "";
+    card.options = normalizedCardColorOptions(card.options);
 }
 
 export function normalizeCompanionCard(card: any): void {
+    if (!card) return;
+    const previousOptions = card.options;
+    normalizeCompanionCardFields(card);
+    card.options = preserveCardColorOptions(previousOptions, card.options);
+}
+
+function normalizeCompanionCardFields(card: any): void {
     if (!card) return;
     if (card.entity === COMPANION_STATS_PLACEHOLDER) {
         card.type = "companion";
         card.sensor = "";
         card.unit = "";
         card.precision = "";
-        card.options = "";
+        card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon("stats");
@@ -415,7 +436,7 @@ export function normalizeCompanionCard(card: any): void {
         }, card));
         card.options = String(card.options || "").split(",").filter((option) =>
             option === "large_numbers" || option === "large_numbers=off" || option === "stat_labels_off").join(",");
-        if (metric.mode === "ip_address") card.options = "";
+        if (metric.mode === "ip_address") card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon(metric.mode, card.entity);
@@ -441,9 +462,9 @@ export function normalizeCompanionCard(card: any): void {
         }
         return;
     }
-    card.options = normalizeCompanionAppShortcutOptions(card);
-    card.icon_on = "Auto";
     const mode = companionCardMode(card);
+    card.options = normalizeCompanionAppOptions(card);
+    card.icon_on = "Auto";
     if (!card.icon || card.icon === "Auto" ||
         (card.icon === "Monitor" && mode !== "app") ||
         (card.icon === "Folder" && mode === "folder")) {
@@ -465,7 +486,7 @@ export function registerCompanionCardTypes(
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
 ): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
-    const { renderButtonSettings } = cardUi;
+    const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     let companionApplications: readonly CompanionAction[] = [];
@@ -481,11 +502,17 @@ export function registerCompanionCardTypes(
     function rememberCompanionApplications(actions: readonly CompanionAction[]): boolean {
         const applications = companionApplicationActions(actions);
         for (const action of applications) companionApplicationLabels.set(action.id, action.label);
+        const iconHashesChanged = applications.some(action =>
+            action.iconHash !== companionApplications.find(previous => previous.id === action.id)?.iconHash) ||
+            companionApplications.some(previous => previous.iconHash &&
+                !applications.some(action => action.id === previous.id));
         const changed = applications.length !== companionApplications.length ||
             applications.some((action, index) =>
                 action.id !== companionApplications[index]?.id ||
                 action.label !== companionApplications[index]?.label);
         companionApplications = applications;
+        if (iconHashesChanged)
+            document.dispatchEvent(new Event("espdesktop:app-icon-cache-cleared"));
         return changed;
     }
 
@@ -501,6 +528,7 @@ export function registerCompanionCardTypes(
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
             else companionCatalogueMonitor.stop();
+            document.dispatchEvent(new Event("espdesktop:app-icon-cache-cleared"));
         });
     }
 
@@ -510,7 +538,7 @@ export function registerCompanionCardTypes(
         card.sensor = mode === "url" ? COMPANION_URL_PREFIX : "";
         card.unit = "";
         card.precision = "";
-        card.options = "";
+        card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
         card.label = "";
 
@@ -857,7 +885,7 @@ export function registerCompanionCardTypes(
             function saveBuiltShortcut(): void {
                 const modifiers = COMPANION_SHORTCUT_MODIFIERS.filter((modifier) => selectedModifiers.has(modifier));
                 card.entity = COMPANION_SHORTCUT_PREFIX + [...modifiers, selectedKey].join("+");
-                card.options = "app_shortcut_preset=custom";
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
@@ -915,7 +943,7 @@ export function registerCompanionCardTypes(
                 card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom Shortcut.
                 if (typeSelect.value === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
-                card.options = "app_shortcut_preset=custom";
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
@@ -923,7 +951,7 @@ export function registerCompanionCardTypes(
             catalogApp.addEventListener("change", function () {
                 card._shortcutCatalogApp = catalogApp.value;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
-                card.options = "";
+                card.options = normalizedCardColorOptions(card.options);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
@@ -932,12 +960,12 @@ export function registerCompanionCardTypes(
                 const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
                 if (!preset) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
-                    card.options = "";
+                    card.options = normalizedCardColorOptions(card.options);
                 } else {
                     card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
                     card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
                     card.entity = preset.entity;
-                    card.options = preset.options;
+                    card.options = preserveCardColorOptions(card.options, preset.options);
                 }
                 for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
                 renderButtonSettings();
@@ -1146,7 +1174,9 @@ export function registerCompanionCardTypes(
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
                 modalTabs.renderModalTabSettings(appSubpageDisclosure.section, card, helpers, {
                     definitions: function () { return companionShortcutTabDefinitions(card.entity); },
-                    tabs: companionShortcutTabs,
+                    tabs: (button: any) => companionShortcutTabsForCapacity(
+                        companionShortcutTabs(button), maxSlots,
+                    ),
                     normalizeOptions: function (options: string) {
                         return normalizeCompanionAppShortcutOptions({ ...card, options });
                     },
@@ -1373,7 +1403,7 @@ export function registerCompanionCardTypes(
                     card._appShortcutAppChanged = changedFromSavedApp;
                     card._modalSettingsOpen = true;
                 }
-                card.options = normalizeCompanionAppShortcutOptions(card);
+                card.options = normalizeCompanionAppOptions(card);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 if (nextLabel !== currentLabel) {
@@ -1404,7 +1434,24 @@ export function registerCompanionCardTypes(
                     helpers.saveField("label", nextLabel);
                 }
             });
-            helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+            if (initialMode === "app") {
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
+                    entity: false,
+                    icon: false,
+                });
+                const labelToggle = helpers.toggleRow(
+                    "Show label", helpers.idPrefix + "companion-app-label",
+                    !configOptionEnabled(card.options, "app_hide_label"),
+                );
+                panel?.appendChild(labelToggle.row);
+                labelToggle.input.addEventListener("change", function () {
+                    card.options = setConfigOption(card.options, "app_hide_label", !labelToggle.input.checked);
+                    helpers.saveField("options", card.options);
+                    renderPreview();
+                });
+            } else {
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+            }
             if (companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";
@@ -1449,11 +1496,28 @@ export function registerCompanionCardTypes(
                 iconFallback: companionSubtypeDefaultIcon(mode, card.entity),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
+            if (companionAppIconEnabled(card)) {
+                preview.appIconId = card.entity;
+                const background = configOptionValue(card.options, "app_bg_color").toUpperCase();
+                if (/^[0-9A-F]{6}$/.test(background)) preview.appIconBackgroundColor = background;
+                preview.iconHtml = preview.iconHtml.replace(
+                    "sp-btn-icon ", "sp-btn-icon sp-companion-app-icon-fallback ",
+                );
+            }
+            const hideAppLaunchLabel = companionAppLaunchCard(card) &&
+                configOptionEnabled(card.options, "app_hide_label");
             if (companionAppShortcutFolderEnabled(card)) {
-                const label = card.label || appLabel || card.entity || "Safari";
-                preview.labelHtml = '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
-                    helpers.escHtml(label) +
-                    '</span><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
+                if (hideAppLaunchLabel) {
+                    preview.labelHtml =
+                        '<span class="sp-btn-label-row"><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
+                } else {
+                    const label = card.label || appLabel || card.entity || "Safari";
+                    preview.labelHtml = '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
+                        helpers.escHtml(label) +
+                        '</span><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
+                }
+            } else if (hideAppLaunchLabel) {
+                preview.labelHtml = "";
             }
             return preview;
         },
@@ -1487,7 +1551,8 @@ export function registerCompanionCardTypes(
             } : null;
             let subpage = source && !appChanged
                 ? card.entity === "com.apple.finder" ? source : syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
-                : createCompanionShortcutSubpage(card.entity, companionShortcutTabs(card));
+                : createCompanionShortcutSubpage(card.entity,
+                    companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots));
             if (card.entity === "com.apple.finder") {
                 codec.buildSubpageGrid(subpage);
                 const folders = companionFolderActions(await loadCompanionActions(true));

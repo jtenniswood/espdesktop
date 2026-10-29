@@ -20,7 +20,7 @@ The JC8012P4A1 V3 rejects browser OTA firmware uploads; use native ESPHome OTA a
 
 ## Update Settings
 
-These are configured from the **Settings** tab in the [Setup](/features/setup) under the **Firmware** section. They also appear as controls in Home Assistant.
+These are configured from the **System** tab in the [Setup](/features/setup) under **System > Firmware**. They also appear as controls in Home Assistant.
 
 - **Current version** and **Available version** — compare the firmware running on your panel with the latest stable release.
 - **Auto updates** — open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
@@ -42,7 +42,7 @@ The update usually takes a minute or two. The display may show an update or load
 
 ## Installing an Older Version
 
-When older stable firmware is available, open **Previous firmware**, choose a **Version**, and press **Install**. This is intended for rolling back to one of the four most recent previous stable versions if you need to test or recover from a problem.
+When older stable firmware is available, open **Previous firmware**, choose a **Version**, and press **Install**. This is intended for rolling back to one of the four most recent previous stable versions if you need to test or recover from a problem. Keep the setup page open while it downloads the selected firmware and uploads it to your panel. Installation is confirmed only when the panel reports the selected version after restarting. If confirmation times out or the upload fails, the error remains visible so you can check the current version before retrying.
 
 ## Compatibility Notes
 

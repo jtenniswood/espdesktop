@@ -22,24 +22,21 @@ lvgl:
           align: top_left
           x: 8
           y: 8
-          text_color: 0xFFFFFF
+          text_color: $theme_text_primary_color
           hidden: true
 
-      # Clock (right aligned, updated every minute by time.yaml)
+      # Clock (home screen, left aligned, updated every minute by time.yaml)
       - label:
           text: "--:--"
           id: display_time
           text_font: font_text_body
-          align: top_right
+          align: top_left
           x: 0
           y: 8
-          text_align: center
-          text_color: 0xFFFFFF
-          clickable: true
+          text_align: left
+          text_color: $theme_text_primary_color
+          clickable: false
           hidden: true
-          on_press:
-            then:
-              - script.execute: network_status_open_info
 
       # Network status (tappable, right side of clock bar)
       - obj:
@@ -56,6 +53,9 @@ lvgl:
           scrollbar_mode: "off"
           clickable: true
           hidden: true
+          on_press:
+            then:
+              - script.execute: network_status_open_info
           widgets:
             - label:
                 id: network_status_icon_label
@@ -63,7 +63,7 @@ lvgl:
                 text_font: font_icon_status
                 align: center
                 text_align: center
-                text_color: 0xFFFFFF
+                text_color: $theme_text_primary_color
 
       # Night mode indicator (schedule night period only). Starts hidden;
       # clock_bar_apply positions and reveals it beside the network icon, so the
@@ -89,7 +89,7 @@ lvgl:
                 text_font: font_icon_status
                 align: center
                 text_align: center
-                text_color: 0xFFFFFF
+                text_color: $theme_text_primary_color
 
   # ---------------------------------------------------------------------------
   # Main page (fixed 3x5 grid of button widgets)
@@ -104,7 +104,7 @@ lvgl:
         pad_row: ${main_page_card_gap}
         pad_column: ${main_page_card_gap}
       width: 100%
-      bg_color: Black
+      bg_color: $theme_background_color
       bg_opa: cover
       pad_top: ${main_page_pad_top}
       pad_bottom: 5

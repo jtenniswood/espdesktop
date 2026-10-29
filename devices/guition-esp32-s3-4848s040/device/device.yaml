@@ -33,17 +33,25 @@ esp32:
       # The S3 display stack leaves little internal RAM for HTTPS OTA checks.
       # Allocate mbedTLS buffers from PSRAM so firmware downloads can connect.
       CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: "y"
+      # Hardware AES uses internal-RAM DMA buffers. On this S3 the largest
+      # internal block can fall below that size while display and Companion
+      # sessions are active; at 240 MHz software AES has no speed penalty.
+      CONFIG_MBEDTLS_HARDWARE_AES: "n"
       # Keep the ESP32 task watchdog long enough for display startup while
       # remaining compatible with ESPHome 2026.4 and newer.
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "30"
       # Keep WiFi startup inside the internal-RAM budget after the RGB display
       # and LVGL buffers are initialized.
       CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM: "8"
+      # The static RX pool of eight requires an RX BA window of at most 16.
+      CONFIG_ESP_WIFI_RX_BA_WIN: "16"
       CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: "y"
-      # Route ordinary allocations larger than 4 KiB to PSRAM while keeping
-      # a 32 KiB internal reserve for DMA and cache-disabled operations.
+      # Prefer PSRAM for ordinary allocations. The web UI and Companion run
+      # together; retaining small allocations internally can leave no
+      # contiguous space for network buffers. Keep a 32 KiB internal reserve
+      # for DMA and cache-disabled operations.
       CONFIG_SPIRAM_USE_MALLOC: "y"
-      CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "4096"
+      CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "0"
       CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL: "32768"
       # RGB bounce-buffer scan-out requires 64-byte data-cache lines. The
       # default 32-byte lines can desynchronise PSRAM reads from panel DMA and
@@ -65,7 +73,7 @@ external_components:
       url: ${espdesktop_component_url}
       ref: ${espdesktop_component_ref}
       path: components
-    components: [espdesktop, web_server_idf, artwork_image, mipi_rgb, companion]
+    components: [espdesktop, web_server_idf, artwork_image, mipi_rgb, companion, captive_portal]
     refresh: 1s
 
 # A local, panel-hosted TLS WebSocket endpoint for the optional macOS Companion
@@ -120,7 +128,6 @@ esphome:
     - "-DESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS=2"
     - "-DESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1"
     - "-DESPDESKTOP_LOW_HEAP_COVER_ART=1"
-    - "-DESPDESKTOP_DISABLE_WEATHER_FORECAST=1"
     # Keep C++ literals close to their functions on the S3 firmware image;
     # the modal code is large enough to otherwise trip Xtensa l32r range limits.
     - "-mtext-section-literals"
@@ -480,13 +487,18 @@ touchscreen:
     id: my_touchscreen
     display: my_display
     update_interval: 16ms
+    # Use this panel's native coordinate range instead of the GT911's
+    # auto-detected limits (candidate fix for shifted touches in #2123).
+    calibration:
+      x_min: 0
+      x_max: 480
+      y_min: 0
+      y_max: 480
     transform:
       mirror_x: false
       mirror_y: false
     on_touch:
-      - script.execute: cover_art_pause_after_touch
-      - script.wait: cover_art_pause_after_touch
-      - script.execute: screensaver_wake
+      - script.execute: cover_art_handle_touch
 
 # ---------------------------------------------------------------------------
 # Display (4" 480x480 MIPI RGB panel)
@@ -494,6 +506,8 @@ touchscreen:
 display:
   - platform: mipi_rgb
     model: GUITION-4848S040
+    # Draw each LVGL refresh off-screen, then present the finished frame.
+    double_buffered: true
     id: my_display
     # Start WiFi before the RGB panel allocates its frame buffers; otherwise the
     # WiFi driver can fail to claim enough internal RX buffers on fresh boots.
@@ -521,6 +535,10 @@ lvgl:
   # Keep the buffer small so WiFi and runtime display resources retain PSRAM
   # headroom on the memory-constrained S3.
   buffer_size: 12%
+  on_draw_start:
+    - lambda: id(my_display).begin_frame();
+  on_draw_end:
+    - lambda: id(my_display).end_frame();
   displays: my_display
   rotation: 180
   touchscreens:

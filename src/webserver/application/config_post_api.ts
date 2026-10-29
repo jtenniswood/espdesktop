@@ -16,6 +16,8 @@ export interface ConfigPersistenceFeature {
     connectFocusRegistrationPublisher(publish: () => void): void;
     subpageEntityKeys(): string[];
     specialPageEntityKeys(): string[];
+    buttonConfigByteLimit(): number;
+    subpageConfigFits(value: string, slot?: number): boolean;
     saveButtonConfig(slot: number): Promise<any>;
     saveButtonConfigAndOrder(slot: number, order: string): Promise<any>;
     saveSubpageEntity(slot: number): unknown;
@@ -90,6 +92,20 @@ export function createConfigPersistenceFeature(
         });
         return api.postQueue;
     }
+    function buttonConfigByteLimit(): number {
+        return nativePanelConfig?.maxConfigValueBytes() ?? 255;
+    }
+    function subpageConfigFits(value: string, slot?: number): boolean {
+        var nativeLimit = nativePanelConfig?.maxConfigValueBytes();
+        return nativeLimit != null
+            ? new TextEncoder().encode(value).length <= nativeLimit - (slot === -1 ? 12 : 0)
+            : !!EspDesktopModel.splitSubpageConfigChunks(value, slot === -1 ? specialPageEntityKeys().length : subpageEntityKeys().length, 255);
+    }
+    function rejectOversizedSubpage() {
+        requests().postQueueError = true;
+        showBanner("Subpage is too large to save. Update the panel firmware for more space, or shorten labels and entity IDs.", "error");
+        return Promise.resolve("failed");
+    }
     // ── Config Post API ───────────────────────────────────────────────────
     function saveButtonConfig(this: any, slot?: any) {
         var b: any = state.buttons[slot - 1];
@@ -149,7 +165,7 @@ export function createConfigPersistenceFeature(
         var keys: any = Number(slot) === -1 ? specialPageEntityKeys() : subpageEntityKeys();
         var chunks: any = EspDesktopModel.splitSubpageConfigChunks(full, keys.length, 255);
         if (!chunks)
-            return "failed";
+            return rejectOversizedSubpage();
         var previousPendingChunks: any = EspDesktopModel.splitSubpageConfigChunks(state.subpageSavePending[slot] || "", keys.length, 255) || [];
         state.subpageSavePending[slot] = full;
         var directPosts: any = [];
@@ -175,12 +191,8 @@ export function createConfigPersistenceFeature(
     function saveSubpageEntity(this: any, slot?: any) {
         var sp: any = state.subpages[slot];
         var full: any = sp ? serializeSubpageConfig(sp) : "";
-        var keys: any = Number(slot) === -1 ? specialPageEntityKeys() : subpageEntityKeys();
-        var chunks: any = EspDesktopModel.splitSubpageConfigChunks(full, keys.length, 255);
-        if (!chunks) {
-            showBanner("Page is too large to save. Shorten labels or entity IDs.", "error");
-            return "failed";
-        }
+        // Settings records include the key as well as the value.
+        if (!subpageConfigFits(full, Number(slot))) return rejectOversizedSubpage();
         var nativeSave: any = nativePanelConfig
             ? Number(slot) === -1
                 ? nativePanelConfig.writeSpecialPage(full)
@@ -222,6 +234,8 @@ export function createConfigPersistenceFeature(
         connectFocusRegistrationPublisher,
         subpageEntityKeys,
         specialPageEntityKeys,
+        buttonConfigByteLimit,
+        subpageConfigFits,
         saveButtonConfig: (slot) => saveButtonConfig(slot),
         saveButtonConfigAndOrder: (slot, order) => saveButtonConfigAndOrder(slot, order),
         saveSubpageEntity: (slot) => saveSubpageEntity(slot),

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "card_availability.h"
+#include "card_text_contrast.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
@@ -240,6 +241,55 @@ inline void parse_order_string(const std::string &order_str, int num_slots, Orde
   }
 }
 
+// A compacted portrait layout must keep every card origin. A span that would
+// cover another origin becomes a single cell only for this temporary layout.
+inline bool grid_span_overlaps_anchor(const int *positions, int position,
+                                      int slots, int cols, int rows, int width,
+                                      int reserved = -1, int offset = 0) {
+  if (cols <= 0) return false;
+  for (int r = 0; r < rows; ++r) {
+    for (int c = 0; c < width; ++c) {
+      if (r == 0 && c == 0) continue;
+      const int cell = position + r * cols + c;
+      if (position % cols + c >= cols || cell >= slots || cell == reserved) return true;
+      const int index = cell - offset;
+      if (index >= 0 && positions[index] > 0) return true;
+    }
+  }
+  return false;
+}
+
+// Read every configured token before applying a smaller portrait home capacity.
+// The saved order and span data remain unchanged for the next landscape render.
+inline void parse_order_for_layout(const std::string &order_str, int configured_slots,
+                                   int active_slots, OrderResult &result, int cols = 0) {
+  const int configured = bounded_grid_slots(configured_slots > 0 ? configured_slots : active_slots);
+  const int active = bounded_grid_slots(active_slots);
+  parse_order_string(order_str, configured, result);
+  if (active >= configured) return;
+  bool relocate = false;
+  for (int i = 0; i < configured; ++i) {
+    const int slot = result.positions[i];
+    if ((i < active && slot > active) ||
+        (i >= active && slot > 0 && slot <= active)) relocate = true;
+  }
+  if (!relocate) return;
+  int visible[MAX_GRID_SLOTS] = {};
+  int count = 0;
+  for (int i = 0; i < configured; ++i) {
+    const int slot = result.positions[i];
+    if (slot > 0 && slot <= active && count < active) visible[count++] = slot;
+  }
+  memcpy(result.positions, visible, sizeof(visible));
+  for (int pos = 0; pos < active; ++pos) {
+    const int slot = result.positions[pos];
+    if (slot > 0 && grid_span_overlaps_anchor(result.positions, pos, active, cols,
+                                               result.row_span[slot - 1], result.col_span[slot - 1])) {
+      result.row_span[slot - 1] = result.col_span[slot - 1] = 1;
+    }
+  }
+}
+
 // Saved layouts can originate on a larger display or an older web editor.
 // Downgrade any card that extends beyond the active grid before passing its
 // cell coordinates to LVGL.
@@ -366,25 +416,20 @@ inline void apply_button_colors(lv_obj_t *btn, bool has_on, uint32_t on_val,
   if (has_on) {
     lv_obj_set_style_bg_color(btn, lv_color_hex(on_val),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
+    lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(on_val)),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
     lv_obj_set_style_bg_color(btn, lv_color_hex(on_val),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+    lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(on_val)),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
   }
   if (has_off) {
     lv_obj_set_style_bg_color(btn, lv_color_hex(off_val),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+    lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(off_val)),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
   }
-}
-
-inline uint32_t card_pattern_highlight_color(uint32_t color) {
-  uint8_t r = (color >> 16) & 0xFF;
-  uint8_t g = (color >> 8) & 0xFF;
-  uint8_t b = color & 0xFF;
-  r = static_cast<uint8_t>(r + ((255 - r) * 35 / 100));
-  g = static_cast<uint8_t>(g + ((255 - g) * 35 / 100));
-  b = static_cast<uint8_t>(b + ((255 - b) * 35 / 100));
-  return (static_cast<uint32_t>(r) << 16) |
-         (static_cast<uint32_t>(g) << 8) |
-         static_cast<uint32_t>(b);
+  if (has_on || has_off) bind_card_text_contrast_events(btn);
 }
 
 inline void apply_button_on_pattern(lv_obj_t *btn, const std::string &options,
@@ -402,30 +447,6 @@ inline void apply_button_on_pattern(lv_obj_t *btn, const std::string &options,
   lv_obj_set_style_bg_grad_dir(btn, LV_GRAD_DIR_HOR, checked);
   lv_obj_set_style_bg_grad_color(btn, highlight, pressed);
   lv_obj_set_style_bg_grad_dir(btn, LV_GRAD_DIR_HOR, pressed);
-}
-
-inline void apply_card_descendant_text_color(lv_obj_t *obj, lv_color_t color) {
-  if (!obj) return;
-  int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(obj));
-  for (int32_t i = 0; i < count; i++) {
-    lv_obj_t *child = lv_obj_get_child(obj, i);
-    if (!child) continue;
-    lv_obj_set_style_text_color(child, color, LV_PART_MAIN);
-    apply_card_descendant_text_color(child, color);
-  }
-}
-
-inline void sync_card_checked_text_color(lv_obj_t *btn) {
-  if (!btn) return;
-  apply_card_descendant_text_color(
-    btn, lv_obj_get_style_text_color(btn, LV_PART_MAIN));
-}
-
-inline void set_card_checked_state(lv_obj_t *btn, bool checked) {
-  if (!btn) return;
-  if (checked) lv_obj_add_state(btn, LV_STATE_CHECKED);
-  else lv_obj_clear_state(btn, LV_STATE_CHECKED);
-  sync_card_checked_text_color(btn);
 }
 
 // Match the main-page button widget label behavior so longer titles wrap

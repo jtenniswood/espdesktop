@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.bambulab.bambu-studio",
+  "label": "BambuStudio",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New Project",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Open Project",
+      "shortcut": "command+o",
+      "icon": "Folder"
+    },
+    {
+      "id": "2",
+      "label": "Save Project",
+      "shortcut": "command+s",
+      "icon": "Download"
+    },
+    {
+      "id": "3",
+      "label": "Import geometry",
+      "shortcut": "command+i",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Slice plate",
+      "shortcut": "command+r",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Print plate",
+      "shortcut": "command+shift+g",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Select all objects",
+      "shortcut": "command+a",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "8",
+      "label": "Redo",
+      "shortcut": "command+shift+z",
+      "icon": "Chevron Right"
+    },
+    {
+      "id": "9",
+      "label": "Clone selected",
+      "shortcut": "command+k",
+      "icon": "Application"
+    }
+  ]
+}

@@ -26,10 +26,17 @@ import {
     normalizeScheduleWakeTimeout,
     normalizeScreensaverAction,
     normalizeScreensaverCameraImageMode,
+    normalizeScreensaverCameraDimming,
     normalizeScreensaverDimmedBrightness,
     normalizeTemperatureUnit,
     normalizeTimeOfDay,
+    normalizeThemeMode,
+    normalizeThemeAutoMethod,
+    parseThemeSunOffset,
 } from "../model/settings";
+import { syncThemeSettingsUi } from "./theme_settings_ui";
+import { syncCardCurveUi } from "./card_curve_ui";
+import { normalizeCardCurve } from "../model/settings";
 import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
 import { languageOptionsWithFallback, syncLanguageSelect } from "./language_state";
@@ -251,12 +258,21 @@ export function createAppStateEventHandlersFeature(
                 state.mediaPlayerSleepPreventionOn = d.value === true || val === "ON";
                 syncMediaPlayerSleepPreventionUi();
             },
+            "switch-screen_saver__cover_art_playback_control": function (this: any, val?: any, d?: any) {
+                state.coverArtPlaybackControlOn = d.value === true || val === "ON";
+                syncCoverArtScreensaverUi();
+            },
             "switch-screen_saver__cover_art": function (this: any, val?: any, d?: any) {
                 state.coverArtScreensaverOn = d.value === true || val === "ON";
                 syncCoverArtScreensaverUi();
             },
             "select-cover_art_source": function (this: any, val?: any, d?: any) {
                 state.coverArtSource = (d.value || val) === "Mac Companion" ? "Mac Companion" : "Home Assistant";
+            },
+            "switch-screen_saver__show_date": function (this: any, val?: any, d?: any) {
+                state.clockDateSupported = true;
+                state.clockDateOn = d.value === true || val === "ON";
+                syncClockScreensaverControls();
             },
             "switch-screen_saver__clock_overlay": function (this: any, val?: any, d?: any) {
                 state.clockOverlaySupported = true;
@@ -357,9 +373,17 @@ export function createAppStateEventHandlersFeature(
                 state.coverArtHomeAssistantPort = normalizeHomeAssistantArtworkPort(val);
                 syncCoverArtScreensaverUi();
             },
+            "text-home_assistant_artwork_host": function (this: any, val?: any) {
+                state.homeAssistantArtworkHost = String(val || "").trim().slice(0, 253);
+                syncCoverArtScreensaverUi();
+            },
             "select-home_assistant_artwork_endpoint_mode": function (this: any, val?: any, d?: any) {
                 state.homeAssistantArtworkEndpointMode = normalizeHomeAssistantArtworkEndpointMode(
                     d.value || val, state.homeAssistantArtworkProtocol, state.coverArtHomeAssistantPort);
+                syncCoverArtScreensaverUi();
+            },
+            "text_sensor-home_assistant_artwork_endpoint_health": function (this: any, val?: any) {
+                state.homeAssistantArtworkEndpointHealth = String(val || "");
                 syncCoverArtScreensaverUi();
             },
             "text_sensor-home_assistant_artwork_endpoint_status": function (this: any, val?: any) {
@@ -383,6 +407,13 @@ export function createAppStateEventHandlersFeature(
                 state.screensaverMetadataEntity = val;
                 syncInput(els.setScreensaverMetadata, val);
             },
+            "number-screen_saver__camera_dimming": function (this: any, val?: any, d?: any) {
+                const value = d?.value ?? val;
+                if (!Number.isFinite(parseFloat(String(value)))) return;
+                state.screensaverCameraDimmingSupported = true;
+                state.screensaverCameraDimming = normalizeScreensaverCameraDimming(value);
+                syncClockScreensaverControls();
+            },
             "select-screen_saver__camera_image_mode": function (this: any, val?: any, d?: any) {
                 state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(d.value || val);
                 syncClockScreensaverControls();
@@ -404,6 +435,45 @@ export function createAppStateEventHandlersFeature(
             "select-screen__brightness_mode": function (this: any, val?: any, d?: any) {
                 state.brightnessMode = normalizeBrightnessMode(d.value || val);
                 syncScreenScheduleUi();
+            },
+            "select-screen__theme_mode": function (this: any, val?: any, d?: any) {
+                state.themeMode = normalizeThemeMode(d.value || val);
+                syncThemeSettingsUi(state, runtime);
+                renderPreview();
+            },
+            "select-screen__card_curve": function (val?: any, d?: any) {
+                state.cardCurve = normalizeCardCurve(d.value || val);
+                state.cardCurveSupported = true;
+                syncCardCurveUi(state, runtime);
+                syncPreviewOrientation(true);
+                renderPreview();
+            },
+            "select-screen__theme_auto_method": function (this: any, val?: any, d?: any) {
+                state.themeAutoMethod = normalizeThemeAutoMethod(d.value || val);
+                syncThemeSettingsUi(state, runtime);
+            },
+            "text_sensor-screen__active_theme": function (this: any, val?: any) {
+                state.themeActive = val === "Light" ? "Light" : "Dark";
+                syncThemeSettingsUi(state, runtime);
+                renderPreview();
+            },
+            "text-screen__theme_light_start": function (this: any, val?: any) {
+                state.themeLightStart = normalizeTimeOfDay(val, "07:00");
+                syncThemeSettingsUi(state, runtime);
+            },
+            "text-screen__theme_dark_start": function (this: any, val?: any) {
+                state.themeDarkStart = normalizeTimeOfDay(val, "20:00");
+                syncThemeSettingsUi(state, runtime);
+            },
+            "number-screen__theme_sunrise_offset": function (this: any, val?: any) {
+                const offset = parseThemeSunOffset(val);
+                if (offset !== null) state.themeSunriseOffset = offset;
+                syncThemeSettingsUi(state, runtime);
+            },
+            "number-screen__theme_sunset_offset": function (this: any, val?: any) {
+                const offset = parseThemeSunOffset(val);
+                if (offset !== null) state.themeSunsetOffset = offset;
+                syncThemeSettingsUi(state, runtime);
             },
             "light-display_backlight": function (this: any, val?: any, d?: any) {
                 var brightness: any = parseFloat(d && d.brightness);
@@ -557,10 +627,12 @@ export function createAppStateEventHandlersFeature(
             "text_sensor-screen__sunrise": function (this: any, val?: any) {
                 state.sunrise = val;
                 updateSunInfo();
+                syncThemeSettingsUi(state, runtime);
             },
             "text_sensor-screen__sunset": function (this: any, val?: any) {
                 state.sunset = val;
                 updateSunInfo();
+                syncThemeSettingsUi(state, runtime);
             },
             "text_sensor-network_transport": function (this: any, val?: any) {
                 state.networkTransport = normalizeNetworkTransport(val);

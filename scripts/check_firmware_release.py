@@ -192,6 +192,7 @@ def test_release_workflow_uses_current_ota_output() -> None:
 
 def test_device_matrix_sparse_checkouts_include_product_model() -> None:
     required_paths = (
+        "common/device/screen_clock.yaml",
         "product/model_v2.json",
         "scripts/product_model_v2.py",
         "product/v2/icons.json",
@@ -546,6 +547,7 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         "guition-esp32-p4-jc1060p470": ROOT / "docs/screens/jc1060p470-v1.md",
         "guition-esp32-p4-jc1060p470-v2": ROOT / "docs/screens/jc1060p470-v2.md",
         "guition-esp32-p4-jc4880p443": ROOT / "docs/screens/jc4880p443.md",
+        "guition-esp32-p4-jc4880p443-v3": ROOT / "docs/screens/jc4880p443-v3.md",
         "guition-esp32-p4-jc8012p4a1": ROOT / "docs/screens/jc8012p4a1-v1.md",
         "guition-esp32-p4-jc8012p4a1-v2": ROOT / "docs/screens/jc8012p4a1-v2.md",
         "guition-esp32-p4-jc8012p4a1-v3": ROOT / "docs/screens/jc8012p4a1-v3.md",

@@ -51,6 +51,9 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  // Shared colours must survive the card-specific option cleanup below.
+  const std::string card_colors = card_color_options_normalized(b.options);
+  b.options = options_without_card_colors(b.options);
   if (brightness_slider_type(b.type) && !b.sensor.empty()) b.sensor.clear();
   if (fan_card_type(b.type)) {
     b.sensor.clear();
@@ -228,6 +231,10 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (b.type == "sensor") {
     b.options = sensor_card_options_normalized(b.options, b.precision);
   }
+  if (!card_colors.empty()) {
+    if (!b.options.empty()) b.options += ",";
+    b.options += card_colors;
+  }
   return b;
 }
 
@@ -293,9 +300,10 @@ inline std::vector<SubpageBtn> parse_subpage_config(const std::string &sp_cfg) {
 inline lv_obj_t *create_grid_card_button(lv_obj_t *parent, lv_coord_t radius,
                                          lv_coord_t pad,
                                          const lv_font_t *label_font,
-                                         lv_color_t text_color) {
+                                         lv_color_t text_color,
+                                         bool continuous_corners = false) {
   lv_obj_t *btn = lv_btn_create(parent);
-  lv_obj_set_style_radius(btn, radius, LV_PART_MAIN);
+  apply_grid_card_corners(btn, radius, continuous_corners);
   lv_obj_set_style_pad_all(btn, pad, LV_PART_MAIN);
   if (label_font) lv_obj_set_style_text_font(btn, label_font, LV_PART_MAIN);
   lv_obj_set_style_text_color(btn, text_color, LV_PART_MAIN);
@@ -410,7 +418,9 @@ inline std::string get_subpage_back_label(const std::string &order_str) {
       size_t label_start = std::string::npos;
       if (subpage_back_token_span(order_str, st, cm, suffix, &label_start)) {
         if (label_start != std::string::npos) {
-          std::string label = decode_compact_subpage_field(order_str, label_start, cm - label_start);
+          size_t label_end = order_str.find(':', label_start);
+          if (label_end == std::string::npos || label_end > cm) label_end = cm;
+          std::string label = decode_compact_subpage_field(order_str, label_start, label_end - label_start);
           return label.empty() ? espdesktop_i18n(std::string("Back")) : label;
         }
         return espdesktop_i18n(std::string("Back"));
@@ -419,6 +429,25 @@ inline std::string get_subpage_back_label(const std::string &order_str) {
     st = cm + 1;
   }
   return espdesktop_i18n(std::string("Back"));
+}
+
+// A colour suffix follows the encoded label: B=Return%3AHome:FF8C00.
+inline std::string get_subpage_back_color(const std::string &order_str) {
+  size_t start = 0;
+  while (start < order_str.size()) {
+    size_t end = order_str.find(',', start);
+    if (end == std::string::npos) end = order_str.size();
+    char suffix = '\0';
+    size_t label_start = std::string::npos;
+    if (subpage_back_token_span(order_str, start, end, suffix, &label_start)) {
+      if (label_start == std::string::npos) return "";
+      const size_t separator = order_str.find(':', label_start);
+      if (separator == std::string::npos || separator >= end) return "";
+      return normalize_card_color_value(order_str.substr(separator + 1, end - separator - 1));
+    }
+    start = end + 1;
+  }
+  return "";
 }
 
 // Subpage grid layout with support for a back button token ("B")
@@ -430,6 +459,7 @@ struct SubpageOrder {
   int back_row_span = 1;
   int back_col_span = 1;
   bool has_back_token = false;
+  bool compacted_portrait = false;
 };
 
 inline void subscribe_subpage_parent_indicator(
@@ -519,8 +549,8 @@ inline void subscribe_climate_subpage_parent_indicator(
 
 // Parse subpage order CSV; "B"/"Bd"/"Bw"/"Bb"/"Bt"/"Bx" tokens mark the back button position
 inline void parse_subpage_order(const std::string &order_str, int num_slots, int num_btns,
-                                SubpageOrder &result) {
-  int slot_limit = bounded_grid_slots(num_slots);
+                                SubpageOrder &result, int configured_slots = 0) {
+  int slot_limit = bounded_grid_slots(configured_slots > 0 ? configured_slots : num_slots);
   int btn_limit = bounded_grid_slots(num_btns);
   for (int i = 0; i < MAX_GRID_SLOTS; i++) {
     result.row_span[i] = 1;
@@ -558,6 +588,27 @@ inline void parse_subpage_order(const std::string &order_str, int num_slots, int
     gp2++;
     st2 = cm + 1;
   }
+  const int active = bounded_grid_slots(num_slots);
+  if (active >= slot_limit) return;
+  bool compact = result.has_back_token && result.back_pos >= active;
+  for (int i = active; i < slot_limit; ++i) compact |= result.positions[i] > 0;
+  if (!compact) return;
+  result.compacted_portrait = true;
+  int positions[MAX_GRID_SLOTS] = {};
+  int count = 0;
+  bool back_placed = false;
+  for (int i = 0; i < slot_limit; ++i) {
+    if (result.has_back_token && i == result.back_pos) {
+      result.back_pos = count;
+      ++count;
+      back_placed = true;
+    } else if (result.positions[i] > 0) {
+      // Reserve a visible cell for the explicit or implicit Back control.
+      const int limit = active - ((!result.has_back_token || !back_placed) ? 1 : 0);
+      if (count < limit) positions[count++] = result.positions[i];
+    }
+  }
+  memcpy(result.positions, positions, sizeof(positions));
 }
 
 inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
@@ -567,6 +618,11 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
     normalize_grid_span_for_position(order.back_pos, slot_limit, cols,
                                      order.back_row_span,
                                      order.back_col_span);
+  }
+  if (order.compacted_portrait && order.has_back_token &&
+      grid_span_overlaps_anchor(order.positions, order.back_pos, slot_limit, cols,
+                                order.back_row_span, order.back_col_span)) {
+    order.back_row_span = order.back_col_span = 1;
   }
   for (int position = 0; position < slot_limit; position++) {
     int button_index = order.positions[position];
@@ -580,6 +636,12 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
     int &col_span = order.col_span[button_index - 1];
     normalize_grid_span_for_position(rendered_position, slot_limit, cols,
                                      row_span, col_span);
+    if (order.compacted_portrait &&
+        grid_span_overlaps_anchor(order.positions, rendered_position, slot_limit, cols,
+                                  row_span, col_span, order.back_pos,
+                                  order.has_back_token ? 0 : 1)) {
+      row_span = col_span = 1;
+    }
   }
 }
 

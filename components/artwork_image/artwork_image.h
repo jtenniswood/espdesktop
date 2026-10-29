@@ -9,9 +9,12 @@
 #include "artwork_url.h"
 #include "image_decoder.h"
 #include "image_service.h"
+#include "transfer_observer.h"
 
 namespace esphome {
 namespace artwork_image {
+
+class GifDecoder;
 
 using t_http_codes = enum {
   HTTP_CODE_OK = 200,
@@ -33,6 +36,8 @@ enum ImageFormat {
   BMP,
   /** HEIC/HEIF image format. Detected for clear error reporting; decoder not bundled. */
   HEIC,
+  /** GIF87a/89a, with bounded animation playback when a visible consumer is bound. */
+  GIF,
 };
 
 enum ImageResizeMode {
@@ -101,6 +106,8 @@ class ArtworkImage : public PollingComponent,
     this->fixed_height_ = height;
   }
   void set_resize_mode(ImageResizeMode resize_mode) { this->resize_mode_ = resize_mode; }
+  void set_fit_background_color(uint32_t color);
+  uint32_t get_fit_background_color() const { return this->fit_background_color_; }
   void set_request_priority(ImageRequestPriority priority) { this->request_priority_ = priority; }
   void set_p4_pipeline_priority(P4PipelinePriority priority) {
     this->p4_pipeline_priority_ = priority;
@@ -143,6 +150,19 @@ class ArtworkImage : public PollingComponent,
   }
   bool has_on_finished_callbacks() const { return this->download_finished_callback_.size() != 0; }
   bool has_on_error_callbacks() const { return this->download_error_callback_.size() != 0; }
+
+  /** Bind playback visibility and redraw without treating frames as downloads.
+   * Fullscreen consumers share the expanded-view slot instead of the card slot.
+   */
+  void set_animation_callbacks(std::function<bool()> visible, std::function<void()> redraw,
+                               std::function<bool()> screen_active = {}, bool fullscreen = false) {
+    this->animation_visible_ = std::move(visible);
+    this->animation_redraw_ = std::move(redraw);
+    this->animation_screen_active_ = std::move(screen_active);
+    this->animation_fullscreen_ = fullscreen;
+  }
+  /** A cached animated still needs a new source when its screen becomes eligible. */
+  bool animation_needs_reload() const;
 
   bool is_big_endian() const { return this->is_big_endian_; }
   bool hardware_acceleration_enabled() const { return this->hardware_acceleration_enabled_; }
@@ -213,6 +233,10 @@ class ArtworkImage : public PollingComponent,
    */
   size_t resize_(int width, int height);
   size_t get_decode_buffer_size_() const { return get_buffer_size_(this->decode_buffer_width_, this->decode_buffer_height_); }
+  void fill_fit_background_();
+  bool fill_fit_background_(uint8_t *buffer, int width, int height,
+                            int content_width, int content_height,
+                            int offset_x, int offset_y);
   void discard_decode_buffer_();
   bool promote_decode_buffer_();
   void retire_active_buffer_();
@@ -232,6 +256,11 @@ class ArtworkImage : public PollingComponent,
   void log_timing_(const char *result, size_t bytes_read) const;
   bool finish_download_();
   void fail_download_();
+  void retain_animation_();
+  void pause_animation_for_refresh_();
+  void replace_animation_();
+  void stop_animation_();
+  void loop_animation_();
 
   /**
    * @brief Draw a pixel into the buffer.
@@ -245,6 +274,7 @@ class ArtworkImage : public PollingComponent,
    * @param color 32 bit color to put into the pixel.
    */
   void draw_pixel_(int x, int y, Color color);
+  void draw_pixel_to_buffer_(uint8_t *buffer, int width, int x, int y, Color color);
 
   void end_connection_();
 
@@ -253,6 +283,19 @@ class ArtworkImage : public PollingComponent,
 
   std::shared_ptr<http_request::HttpContainer> downloader_{nullptr};
   std::unique_ptr<ImageDecoder> decoder_{nullptr};
+#ifdef USE_ARTWORK_IMAGE_GIF_SUPPORT
+  std::unique_ptr<GifDecoder> animation_{nullptr};
+#endif
+  bool gif_decoding_{false};
+  bool animation_reload_pending_{false};
+  bool animation_fullscreen_{false};
+  bool animation_frame_pending_{false};
+  bool animation_frame_ready_{false};
+  uint32_t animation_frame_delay_ms_{0};
+  uint32_t animation_frame_started_ms_{0};
+  std::function<bool()> animation_visible_;
+  std::function<bool()> animation_screen_active_;
+  std::function<void()> animation_redraw_;
 
   uint8_t *buffer_;
   uint8_t *decode_buffer_{nullptr};
@@ -268,10 +311,13 @@ class ArtworkImage : public PollingComponent,
 
   const ImageFormat format_;
   ImageResizeMode resize_mode_;
+  uint32_t fit_background_color_{0};
   ImageRequestPriority request_priority_{ImageRequestPriority::BACKGROUND};
   image::Image *placeholder_{nullptr};
 
   std::string url_{""};
+  TransferStamp transfer_stamp_;
+  TransferFailure transfer_failure_{TransferFailure::CONTENT};
   int last_http_status_{0};
   bool last_error_was_ha_media_proxy_{false};
 
@@ -345,6 +391,8 @@ class ArtworkImage : public PollingComponent,
   friend bool ImageDecoder::set_size(int width, int height);
   friend bool ImageDecoder::prepare_filtered_resize(int width, int height);
   friend void ImageDecoder::draw_filtered_rgb888_row(int y, const uint8_t *data);
+  friend ScanlineResampler::RowResult ImageDecoder::draw_fast_filtered_rgb565_row(int y, const uint16_t *data,
+                                                                                size_t output_rows);
   friend void ImageDecoder::draw(int x, int y, int w, int h, const Color &color);
   friend void ImageDecoder::draw_rgb565_block(int x, int y, int w, int h, const uint8_t *data);
   friend void ImageDecoder::draw_rgb565_frame(int width, int height, size_t stride_bytes,

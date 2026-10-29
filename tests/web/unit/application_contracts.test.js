@@ -67,7 +67,7 @@ describe("browserless application contracts", () => {
     assert.match(companion, /Connect your Mac/);
     assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{padding-top:32px\}/);
+    assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
     assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
@@ -656,7 +656,7 @@ describe("browserless application contracts", () => {
       assert.doesNotMatch(source, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
     }
     for (const registration of ["registerPushCardTypes", "registerScreenLockCardTypes"]) {
-      assert.match(entry, new RegExp(`^  ${registration}\\(registry, fields\\);`, "m"));
+      assert.match(entry, new RegExp(`^  ${registration}\\(registry, fields(?:, [^\\n]+)?\\);`, "m"));
       assert.doesNotMatch(entry, new RegExp(`registerCompatibility\\(${registration}`));
     }
     assert.doesNotMatch(globals, /\bvar (?:PUSH_CARD_METADATA|SCREEN_LOCK_CARD_METADATA|pushActionSpec|pushDefaultIcon|pushDefaultIconOn):/);
@@ -725,7 +725,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,?\s*\);/);
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
     assert.match(card, /createCompanionCatalogueMonitor\(\s*\(\) => loadCompanionActions\(true\)/);
-    assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)/);
+    assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)[\s\S]*espdesktop:app-icon-cache-cleared/);
     assert.match(card, /renderModalTabSettings\(appSubpageDisclosure\.section/);
     assert.match(card, /_appShortcutDisabledTabs = companionShortcutTabs\(card\)/);
     assert.match(card, /setCompanionShortcutTabs\(card, card\._appShortcutDisabledTabs\)/);
@@ -870,7 +870,7 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
     assert.match(options, /mediaPlaylistSourceDefinitions/);
-    assert.match(entry, /registerMediaCardTypes\(registry, context\.configuration\.mediaOptions, context\.device\.id, fields, context\.controllers\.settingsUi, cardUi\);/);
+    assert.match(entry, /registerMediaCardTypes\(registry, context\.configuration\.mediaOptions, context\.configuration\.modalTabs, context\.device\.id, fields, context\.controllers\.settingsUi, cardUi\);/);
     assert.match(card, /deviceId: string/);
     assert.doesNotMatch(card, /\bDEVICE_ID\b/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerMediaCardTypes/);
@@ -1608,7 +1608,6 @@ describe("browserless application contracts", () => {
       "application/preview_render.ts",
       "application/settings_page.ts",
       "application/styles.ts",
-      "cards/image.ts",
       "cards/media.ts",
       "state/app_state.ts",
     ];
@@ -1616,6 +1615,11 @@ describe("browserless application contracts", () => {
       const source = fs.readFileSync(path.join(ROOT, "src/webserver", consumer), "utf8");
       assert.match(source, /import \{ WEB_UI_COLORS \} from /, `${consumer} should import the UI colours`);
     }
+    const imagePreview = fs.readFileSync(path.join(ROOT, "src/webserver/cards/image.ts"), "utf8");
+    assert.match(imagePreview, /import \{ PREVIEW_THEME_COLORS, previewEffectiveTheme \} from /);
+    const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
+    assert.match(styles, /previewThemeCss\("Light"\)/);
+    assert.match(styles, /\.sp-empty-cell\{--card-outline-color:color-mix\(in srgb,var\(--preview-text-muted\)/);
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(entry, /UiTokens/);

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.microsoft.Excel",
+  "label": "Microsoft Excel",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open a new blank workbook.",
+      "shortcut": "command+n",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Create a new workbook from template.",
+      "shortcut": "command+shift+p",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Display the Find dialog box.",
+      "shortcut": "control+f",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Access search (when in a cell or when a cell…",
+      "shortcut": "command+f",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Start a new line in the same cell.",
+      "shortcut": "option+enter",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Create a table.",
+      "shortcut": "command+t",
+      "icon": "Application"
+    }
+  ]
+}

@@ -210,11 +210,6 @@ assert.deepStrictEqual(Array.from(hooks.homeAssistantArtworkPortPostUrls(80)), [
   "/number/home_assistant_artwork_port/set?value=80",
   "/number/Home%20Assistant%20Artwork%20Port/set?value=80",
 ], "Home Assistant artwork port posts include object id and entity name fallbacks");
-assert.deepStrictEqual(Array.from(hooks.voiceServicesPostUrls(true)), [
-  "/switch/voice_services/turn_on",
-  "/switch/voice_services_enabled/turn_on",
-  "/switch/Voice%20Services/turn_on",
-], "voice services posts include object id aliases and entity name fallback");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "off"), true, "clock bar preview is visible when enabled");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "dim"), true, "clock bar preview stays visible for dimmed screen saver");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), true, "clock bar preview stays visible when clock screen saver is configured");
@@ -338,6 +333,18 @@ for (const [slug, device] of Object.entries(manifest.devices || {})) {
       false,
       `${slug}: generated web UI must not preview disabled weather forecast modes`
     );
+  } else {
+    assert.deepStrictEqual(
+      Array.from(generatedHooks.weatherModeOptionValues()),
+      ["", "today", "tomorrow", "daily"],
+      `${slug}: generated web UI must offer current conditions and all forecast modes`
+    );
+    for (const day of ["today", "tomorrow", "daily"]) {
+      assert.strictEqual(generatedHooks.normalizeWeatherCardMode(day), day,
+        `${slug}: generated web UI must preserve the ${day} forecast setting`);
+      assert.strictEqual(generatedHooks.weatherCardIsForecastMode({ precision: day }), true,
+        `${slug}: generated web UI must preview the ${day} forecast`);
+    }
   }
   if (device.capabilities.imageSlots === 0) {
     assert(
@@ -526,7 +533,7 @@ assert(
   "standard card icons stay in the top-left corner at every size",
 );
 assert(
-  cardStylesSource.includes("font-size:var(--btn-icon);line-height:1;color:#fff;z-index:1}"),
+  cardStylesSource.includes("font-size:var(--btn-icon);line-height:1;color:var(--card-text-color,var(--preview-text-primary));z-index:1}"),
   "standard card icons stay above slider preview fills",
 );
 assert(
@@ -753,6 +760,18 @@ const dateTimePreview = hooks.buttonTypePreviewFor("calendar", {
 assert(dateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time 2x2 preview defaults to large numbers");
 assert(previewSensorValue(dateTimePreview).includes(":"), "date/time preview renders a time value");
 
+const timezoneDateTimePreview = hooks.buttonTypePreviewForMockNow("calendar", {
+  type: "calendar",
+  precision: "datetime",
+  options: "",
+}, {
+  timezone: "Pacific/Honolulu",
+  language: "en",
+  clockFormat: "24h",
+});
+assert(previewSensorValue(timezoneDateTimePreview).startsWith("23:00"), "date/time preview formats its time in the panel timezone");
+assert(timezoneDateTimePreview.labelHtml.includes("31 December"), "date/time preview formats its date in the panel timezone");
+
 const wideDateTimePreview = hooks.buttonTypePreviewFor("calendar", {
   type: "calendar",
   precision: "datetime",
@@ -775,7 +794,7 @@ const clockPreview = hooks.buttonTypePreviewFor("clock", {
 assert(previewSensorValue(clockPreview).includes(":"), "clock preview renders a time value");
 assert(clockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock 2x2 preview defaults to large numbers");
 assert.strictEqual(clockPreview.labelHtml, "", "clock preview does not render a date label");
-assert.strictEqual(clockPreview.buttonClass, undefined, "clock 2x2 preview uses the standard wrapper");
+assert.strictEqual(clockPreview.buttonClass, "sp-clock-large", "clock 2x2 preview uses the large clock wrapper");
 
 const wideClockPreview = hooks.buttonTypePreviewFor("clock", {
   type: "clock",
@@ -785,8 +804,26 @@ const wideClockPreview = hooks.buttonTypePreviewFor("clock", {
   clockFormat: "24h",
 });
 assert(wideClockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock wide preview supports large numbers");
-assert.strictEqual(wideClockPreview.buttonClass, "sp-clock-wide-large", "clock wide large preview is left aligned");
+assert.strictEqual(wideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "clock wide large preview is left aligned");
 assert.strictEqual(wideClockPreview.labelHtml, "", "clock wide preview does not render a date label");
+
+const resizedWideClockPreview = hooks.buttonTypePreviewFor("clock", {
+  type: "clock",
+  options: "large_numbers,center_clock",
+}, {
+  cardSize: 3,
+  clockFormat: "24h",
+});
+assert.strictEqual(resizedWideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "two-column clocks ignore retained center-clock options");
+
+const centeredExtraWideClockPreview = hooks.buttonTypePreviewFor("clock", {
+  type: "clock",
+  options: "large_numbers,center_clock",
+}, {
+  cardSize: 6,
+  clockFormat: "24h",
+});
+assert.strictEqual(centeredExtraWideClockPreview.buttonClass, "sp-clock-large sp-clock-centered", "clocks wider than two columns honor center-clock");
 
 const timezonePreview = hooks.buttonTypePreviewFor("timezone", {
   entity: "America/New_York (GMT-5)",
@@ -852,20 +889,31 @@ const weatherCurrentPreview = hooks.buttonTypePreviewFor("weather", {
 assert(weatherCurrentPreview.iconHtml.includes("mdi-weather-cloudy"), "weather current preview uses the current-condition icon");
 assert(!weatherCurrentPreview.labelHtml.includes("sp-type-badge"), "weather current preview omits the card-type badge");
 
-const weatherForecastPreview = hooks.buttonTypePreviewFor("weather", {
-  entity: "weather.forecast_home",
-  label: "Garden",
-  type: "weather",
-  precision: "today",
-  options: "",
-}, {
-  cardSize: 4,
-  temperatureUnit: "\u00b0F",
+const weatherDailyPreview = hooks.buttonTypePreviewFor("weather", {
+  entity: "weather.home", type: "weather", precision: "daily", label: "Garden",
 });
-assert(weatherForecastPreview.iconHtml.includes("sp-forecast-value"), "weather forecast preview uses forecast value styling");
-assert(weatherForecastPreview.iconHtml.includes("sp-sensor-preview-large"), "weather forecast preview supports large numbers");
-assert(weatherForecastPreview.iconHtml.includes("\u00b0F"), "weather forecast preview uses the selected temperature unit");
-assert(weatherForecastPreview.labelHtml.includes("Garden"), "weather forecast preview uses the custom label");
+assert.strictEqual(weatherDailyPreview.buttonClass, "sp-weather-daily-card");
+assert.strictEqual((weatherDailyPreview.iconHtml.match(/class="sp-weather-day"/g) || []).length, 8,
+  "daily preview exposes eight sample days for width/height reflow");
+assert.strictEqual(weatherDailyPreview.labelHtml, "", "daily preview omits the separate label row");
+assert(weatherDailyPreview.iconHtml.indexOf("mdi-weather-rainy") < weatherDailyPreview.iconHtml.indexOf("Today"),
+  "daily preview places the condition icon above the weekday");
+assert(weatherDailyPreview.iconHtml.includes("18\u00B0") && !weatherDailyPreview.iconHtml.includes("\u00B0C"),
+  "daily preview displays a degree symbol without a unit letter");
+assert(!weatherDailyPreview.iconHtml.includes("16.9"), "daily preview omits the low/night temperature");
+
+for (const [mode, label, icon] of [["today", "Today", "rainy"], ["tomorrow", "Tomorrow", "sunny"]]) {
+  const preview = hooks.buttonTypePreviewFor("weather", {
+    entity: "weather.home", label: "Old label", type: "weather", precision: mode, options: "large_numbers",
+  }, {cardSize: 4, temperatureUnit: "°F"});
+  assert.strictEqual(preview.buttonClass, "sp-weather-daily-card");
+  assert.strictEqual((preview.iconHtml.match(/class="sp-weather-day"/g) || []).length, 1,
+    `${mode} forecast always previews one day`);
+  assert(preview.iconHtml.includes(label) && preview.iconHtml.includes(`mdi-weather-${icon}`));
+  assert(preview.iconHtml.indexOf(`mdi-weather-${icon}`) < preview.iconHtml.indexOf(label));
+  assert(preview.iconHtml.includes("°") && !preview.iconHtml.includes("°F") && !preview.iconHtml.includes("/10"));
+  assert.strictEqual(preview.labelHtml, "", "single-day forecasts omit the separate label row");
+}
 
 const imagePreview = hooks.buttonTypePreviewFor("image", {
   entity: "camera.seaside",
@@ -1489,14 +1537,14 @@ const mediaNowPlayingPreview = hooks.buttonTypePreviewFor("media", {
 assert(mediaNowPlayingPreview.iconHtml.includes("Track Title"), "media now-playing preview uses the shared mock title");
 assert(mediaNowPlayingPreview.labelHtml.includes("Artist Name"), "media now-playing preview uses the shared mock artist");
 assert(mediaNowPlayingPreview.labelHtml.includes("sp-media-now-artist"), "media now-playing preview keeps artist styling");
-assert(previewStylesSource.includes(".sp-media-now-artist{font-size:var(--btn-label);line-height:1.2;color:#fff;font-weight:var(--btn-label-weight,400)}"), "media artists use standard card-label typography");
+assert(previewStylesSource.includes(".sp-media-now-artist{font-size:var(--btn-label);line-height:1.2;color:var(--card-text-color,var(--preview-text-primary));font-weight:var(--btn-label-weight,400)}"), "media artists use standard card-label typography");
 
 const mediaCoverArtPreview = hooks.buttonTypePreviewFor("media", {
   entity: "media_player.office",
   sensor: "cover_art",
   type: "media",
 });
-assert.strictEqual(mediaCoverArtPreview.buttonClass, "sp-image-card", "media cover art preview uses the image-card wrapper");
+assert(mediaCoverArtPreview.buttonClass.split(/\s+/).includes("sp-image-card"), "media cover art preview uses the image-card wrapper");
 assert(mediaCoverArtPreview.iconHtml.includes("sp-image-preview"), "media cover art preview uses the shared camera-card surface");
 assert(!mediaCoverArtPreview.iconHtml.includes("sp-media-cover-preview"), "media cover art preview omits the old decorative mock");
 assert(mediaCoverArtPreview.labelHtml.includes("sp-image-label"), "media cover art preview uses the shared padded image label");
@@ -1710,7 +1758,8 @@ assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("wifi", false), false)
 assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("ethernet", true), true);
 assert.strictEqual(
   hooks.firmwareVersionAfterUpdateInfo("Dev", { state: "NO UPDATE", latest_version: "v1.11.1" }).version,
-  "v1.11.1"
+  "Dev Build",
+  "a routine update status must not replace the installed version with a public release"
 );
 assert.strictEqual(
   hooks.firmwareVersionAfterUpdateInfo("v1.10.0", { state: "NO UPDATE", latest_version: "v1.11.1" }).installAction,

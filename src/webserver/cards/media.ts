@@ -10,8 +10,10 @@ import {
     cardContractPickerKey,
 } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
+import { PREVIEW_THEME_COLORS, previewEffectiveTheme } from "../state/preview_theme";
 import { escHtml, iconSlug } from "../application/ui_primitives";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
+import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import type { ConfigMediaOptionsFeature } from "../application/config_media_options";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { SettingsUiFeature } from "../features/settings";
@@ -23,6 +25,7 @@ import { CARD_SIZE_SINGLE } from "../model/grid";
 export function registerMediaCardTypes(
     registry: CardRegistry,
     mediaOptions: ConfigMediaOptionsFeature,
+    modalTabs: ConfigModalTabOptionsFeature,
     deviceId: string,
     fields: ControlsFieldsFeature,
     settingsUi: Pick<SettingsUiFeature, "infoPanel">,
@@ -53,6 +56,11 @@ export function registerMediaCardTypes(
         setMediaCoverArtDetailsEnabled,
         mediaCoverArtSecondaryEntity,
         setMediaCoverArtSecondaryEntity,
+        mediaControlTabDefinitions,
+        mediaControlTabs,
+        setMediaControlTabs,
+        mediaPowerEntity,
+        setMediaPowerEntity,
         mediaVolumeMax,
         setMediaVolumeMax,
         mediaSpeakerGroupEntity,
@@ -640,6 +648,59 @@ export function registerMediaCardTypes(
                     rerender: true,
                 });
             }
+            if (b.sensor === "control_modal" || b.sensor === "cover_art") {
+                var modalSettingsDisclosure: any = helpers.disclosureSection(
+                    "Modal Settings", helpers.idPrefix + "media-modal-settings", b._modalSettingsOpen === true);
+                modalTabs.renderModalTabSettings(modalSettingsDisclosure.section, b, helpers, {
+                    definitions: mediaControlTabDefinitions,
+                    tabs: mediaControlTabs,
+                    normalizeOptions: function (options: any) { return normalizeMediaOptions(options, b.sensor); },
+                    setTabs: setMediaControlTabs,
+                    idPrefix: "media-tab-",
+                    hideHeading: true,
+                    tabAvailable: function (button: any, tab: string) { return tab !== "power" || !!mediaPowerEntity(button); },
+                });
+                var powerDisclosure: any = helpers.disclosureSection(
+                    "Optional Power", helpers.idPrefix + "media-optional-power",
+                    b._mediaOptionalPowerOpen === true);
+                var powerEntityField: any = helpers.renderCardEntityField(powerDisclosure.section, b, helpers, {
+                    entity: {
+                        label: "Power Entity",
+                        idSuffix: "media-power-entity",
+                        value: function (this: any) { return mediaPowerEntity(b); },
+                        placeholder: "e.g. media_player.living_room_tv",
+                        domains: ["media_player", "switch", "input_boolean", "light", "fan"],
+                        bindName: null,
+                        rerender: false,
+                    },
+                });
+                var renderedPowerAvailable: boolean = !!mediaPowerEntity(b);
+                var renderedPowerEnabled: boolean = mediaControlTabs(b).indexOf("power") >= 0;
+                function syncPowerEntity(this: any) {
+                    setMediaPowerEntity(b, powerEntityField.input.value);
+                    b._mediaOptionalPowerOpen = true;
+                    b._modalSettingsOpen = true;
+                    helpers.saveField("options", b.options);
+                }
+                function savePowerEntity(this: any) {
+                    syncPowerEntity();
+                    var available: boolean = !!mediaPowerEntity(b);
+                    var enabled: boolean = mediaControlTabs(b).indexOf("power") >= 0;
+                    if (available !== renderedPowerAvailable || enabled !== renderedPowerEnabled) {
+                        renderedPowerAvailable = available;
+                        renderedPowerEnabled = enabled;
+                        renderButtonSettings();
+                    }
+                }
+                powerEntityField.input.addEventListener("input", syncPowerEntity);
+                powerEntityField.input.addEventListener("change", savePowerEntity);
+                powerEntityField.input.addEventListener("blur", savePowerEntity);
+                powerEntityField.input.addEventListener("keydown", function (this: any, event?: any) {
+                    if (event.key === "Enter") { savePowerEntity(); this.blur(); }
+                });
+                modalSettingsDisclosure.section.appendChild(powerDisclosure.panel);
+                panel.appendChild(modalSettingsDisclosure.panel);
+            }
             var mediaAdvancedSettings: any = panel;
             if (b.sensor === "control_modal" || b.sensor === "cover_art") {
                 var mediaAdvancedDisclosure: any = helpers.disclosureSection(
@@ -794,6 +855,10 @@ export function registerMediaCardTypes(
             renderSpeakerDiscoveryEntityField(mediaAdvancedSettings);
         },
         renderPreview: function (this: any, b?: any, helpers?: any) {
+            const neutralPreview = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
+            const customBackground = helpers && helpers.cardBackgroundColor || "";
+            const customProgress = helpers && helpers.cardProgressColor || "";
+            const fallbackTextColor = helpers && helpers.cardTextColor || "#" + neutralPreview.textPrimary;
             function modeInfo(this: any, value?: any) {
                 if (value === "controls")
                     value = "play_pause";
@@ -827,6 +892,7 @@ export function registerMediaCardTypes(
                         ? cardSensorPreviewHtml(b, helpers, "42", null)
                         : '<span class="sp-btn-icon mdi mdi-' + controlIcon + '"></span>',
                     labelHtml: cardBadgeLabelHtml(helpers, mediaLabelDisplayMode(b) === "status" ? "Playing" : label, MEDIA_CARD_METADATA.preview.badge),
+                    labelEditable: mediaLabelDisplayMode(b) === "label",
                 };
             }
             if (mode === "speaker_group") {
@@ -844,8 +910,8 @@ export function registerMediaCardTypes(
                 };
             }
             if (mode === "position") {
-                var bgColor: any = WEB_UI_COLORS.secondary;
-                var progressColor: any = WEB_UI_COLORS.secondary;
+                var bgColor: any = customBackground || neutralPreview.surfacePrimary;
+                var progressColor: any = customProgress || neutralPreview.trackBackground;
                 var positionLabel: any = b.precision === "state" ? "Paused" : label;
                 var positionClass: any = "sp-sensor-preview sp-media-position-time" +
                     (cardLargeNumbersActiveForCardSize(b, helpers, MEDIA_CARD_METADATA) ? " sp-sensor-preview-large" : "");
@@ -856,13 +922,15 @@ export function registerMediaCardTypes(
                         '<span class="' + positionClass + '">' +
                         '<span class="sp-sensor-value">0:00</span></span>',
                     labelHtml: cardBadgeLabelHtml(helpers, positionLabel, MEDIA_CARD_METADATA.preview.badge),
+                    labelEditable: b.precision !== "state",
                 };
             }
             if (mode === "cover_art") {
-                var coverArtColor: any = WEB_UI_COLORS.tertiary;
+                var coverArtColor: any = customBackground || neutralPreview.surfaceCard;
                 if (mediaCoverArtDetailsEnabled(b)) {
                     var singleCoverArtCard: any = ((helpers && helpers.cardSize) || CARD_SIZE_SINGLE) === CARD_SIZE_SINGLE;
-                    var controlFontClass: any = deviceId === "guition-esp32-p4-jc4880p443"
+                    var controlFontClass: any = (deviceId === "guition-esp32-p4-jc4880p443" ||
+                        deviceId === "guition-esp32-p4-jc4880p443-v3")
                         ? " sp-media-cover-control-fonts"
                         : "";
                     return {
@@ -876,25 +944,26 @@ export function registerMediaCardTypes(
                     };
                 }
                 return {
-                    buttonClass: "sp-image-card",
+                    buttonClass: "sp-image-card sp-media-cover-placeholder",
                     iconHtml: '<span class="sp-image-preview" style="background:#' +
                         helpers.escHtml(coverArtColor) + '"></span>',
                     labelHtml: '<span class="sp-image-label"><span class="sp-image-label-stack">' +
                         '<span class="sp-image-label-text sp-image-label-shadow" aria-hidden="true">Cover Art</span>' +
-                        '<span class="sp-image-label-text sp-image-label-main">Cover Art</span></span></span>',
+                        '<span class="sp-image-label-text sp-image-label-main" style="color:' + helpers.escHtml(fallbackTextColor) + '">Cover Art</span></span></span>',
                 };
             }
             if (mode === "now_playing") {
                 var progressBg: any = "";
                 if (mediaNowPlayingProgressEnabled(b)) {
-                    var nowBgColor: any = WEB_UI_COLORS.secondary;
+                    var nowBgColor: any = customBackground || neutralPreview.surfacePrimary;
+                    var nowProgressColor: any = customProgress || neutralPreview.trackBackground;
                     progressBg =
                         '<span class="sp-slider-preview" style="inset:-2px;background:#' + helpers.escHtml(nowBgColor) + '">' +
-                            '<span class="sp-slider-track"><span class="sp-slider-fill" style="width:50%;height:100%;background:#' + WEB_UI_COLORS.secondary + '">' +
+                            '<span class="sp-slider-track"><span class="sp-slider-fill" style="width:50%;height:100%;background:#' + helpers.escHtml(nowProgressColor) + '">' +
                             '</span></span></span>';
                 }
                 else if (mediaNowPlayingPlayPauseEnabled(b)) {
-                    var playBgColor: any = WEB_UI_COLORS.secondary;
+                    var playBgColor: any = customBackground || neutralPreview.surfacePrimary;
                     progressBg =
                         '<span class="sp-slider-preview" style="inset:-2px;background:#' + helpers.escHtml(playBgColor) + '">' +
                             '</span>';
@@ -907,6 +976,7 @@ export function registerMediaCardTypes(
             return {
                 iconHtml: '<span class="sp-btn-icon mdi mdi-' + (b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : info.icon) + '"></span>',
                 labelHtml: cardBadgeLabelHtml(helpers, mode === "play_pause" && b.precision === "state" ? "Playing" : label, MEDIA_CARD_METADATA.preview.badge),
+                labelEditable: mode !== "play_pause" || b.precision !== "state",
             };
         },
     });

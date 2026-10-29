@@ -2,7 +2,13 @@ import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
-import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "../model/config_primitives";
+import {
+    configOptionEnabled,
+    configOptionValue,
+    normalizedCardColorOptions,
+    setConfigOptionValue,
+    withoutCardColorOptions,
+} from "../model/config_primitives";
 import {
     CARD_SIZE_EXTRA_LARGE,
     CARD_SIZE_LANDSCAPE_LARGE,
@@ -12,6 +18,8 @@ import {
     CARD_SIZE_PORTRAIT_LARGE,
     CARD_SIZE_SINGLE,
     CARD_SIZE_ULTRA_WIDE,
+    sizeColSpan,
+    sizeRowSpan,
 } from "../model/grid";
 import {
     cardContractDefaultConfig,
@@ -46,7 +54,7 @@ import { normalizeSavedConfigLightControl } from "../generated/saved_config_ligh
 import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
 import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
 import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
-import { normalizeCompanionAppShortcutOptions } from "./companion_shortcut_folder";
+import { normalizeCompanionCardOptions } from "./companion_shortcut_folder";
 import type { CardRegistry } from "./card_registry";
 import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
 import type { ConfigMediaOptionsFeature } from "./config_media_options";
@@ -176,7 +184,7 @@ export function createConfigCodecFeature(
         return true;
     }
     function cardRequiresSquareSize(this: any, b?: any) {
-        return !!(b && b.type === "media" && mediaEditorMode(b.sensor) === "cover_art");
+        return false;
     }
     function cardIsWifiSharing(this: any, b?: any) {
         return !!(b && (b.type === "wifi_qr" || b.type === "wifi_qr_card"));
@@ -189,19 +197,26 @@ export function createConfigCodecFeature(
         );
     }
     function cardSupportsExtraLargeSize(this: any, b?: any) {
-        return cardRequiresSquareSize(b) || cardIsWifiSharing(b);
+        return cardRequiresSquareSize(b) || cardIsWifiSharing(b) || cardSupportsMaxSize(b);
     }
     function cardSupportsMaxSize(this: any, b?: any) {
-        return !!(b && b.type === "image");
+        return !!(b && (b.type === "image" ||
+            (b.type === "media" && mediaEditorMode(b.sensor) === "cover_art")));
+    }
+    function cardSupportsSquareMaxSizes(this: any, b?: any) {
+        return !cardIsWifiSharing(b) && layout.gridRows === 3 && layout.gridCols === 3;
     }
     function cardSupportsPortraitLargeSize(this: any, b?: any) {
-        return (cardRequiresSquareSize(b) || cardSupportsMaxSize(b)) && layout.gridRows >= 4 && layout.gridCols >= 3;
+        return cardSupportsMaxSize(b) && layout.gridRows >= 4 && layout.gridCols >= 3;
     }
     function cardSupportsLandscapeLargeSize(this: any, b?: any) {
         return cardSupportsMaxSize(b) && layout.gridRows >= 3 && layout.gridCols >= 4;
     }
     function cardSupportsUltraWideSize(this: any, b?: any) {
-        return !cardRequiresSquareSize(b) && layout.gridCols >= 5;
+        return !cardIsWifiSharing(b) && layout.gridCols >= 5;
+    }
+    function cardSizeFitsLayout(this: any, size?: any) {
+        return sizeColSpan(size) <= layout.gridCols && sizeRowSpan(size) <= layout.gridRows;
     }
     function normalizeCardSizeForConfig(this: any, b?: any, size?: any) {
         size = size || CARD_SIZE_SINGLE;
@@ -211,7 +226,7 @@ export function createConfigCodecFeature(
             if (size === CARD_SIZE_SINGLE || size === CARD_SIZE_LARGE)
                 return size;
             if (size === CARD_SIZE_EXTRA_LARGE)
-                return layout.gridCols >= 3 && layout.gridRows >= 3 ? size : CARD_SIZE_SINGLE;
+                return cardSizeFitsLayout(size) ? size : CARD_SIZE_SINGLE;
             if (cardSupportsWifiPortraitSizes(b) &&
                 (size === CARD_SIZE_MAX_TALL || size === CARD_SIZE_PORTRAIT_LARGE))
                 return size;
@@ -224,12 +239,10 @@ export function createConfigCodecFeature(
         if (size === CARD_SIZE_PORTRAIT_LARGE)
             return cardSupportsPortraitLargeSize(b) ? size : CARD_SIZE_SINGLE;
         if (size === CARD_SIZE_MAX_WIDE || size === CARD_SIZE_MAX_TALL)
-            return cardSupportsMaxSize(b) ? size : CARD_SIZE_SINGLE;
-        if (!cardRequiresSquareSize(b))
-            return size;
-        return size === CARD_SIZE_LARGE || size === CARD_SIZE_EXTRA_LARGE
-            ? size
-            : CARD_SIZE_SINGLE;
+            return (cardSupportsMaxSize(b) || cardSupportsSquareMaxSizes(b)) && cardSizeFitsLayout(size)
+                ? size
+                : CARD_SIZE_SINGLE;
+        return cardSizeFitsLayout(size) ? size : CARD_SIZE_SINGLE;
     }
     function normalizeSavedConfigSensorFields(this: any, b?: any, wasLegacyTextSensor?: any) {
         if (!b)
@@ -405,8 +418,8 @@ export function createConfigCodecFeature(
             return;
         b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
     }
-    function normalizeSavedConfigImageOptions(this: any, options?: any, _b?: any) {
-        return normalizeImageOptions(options || "");
+    function normalizeSavedConfigImageOptions(this: any, options?: any, b?: any) {
+        return normalizeImageOptions(options || "", b && b.entity);
     }
     function normalizeSavedConfigClimateFields(this: any, b?: any) {
         if (!b)
@@ -461,11 +474,13 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
             for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
+            cardColorOptions = "";
         }
         if (b)
-            b.options = b.options || "";
+            b.options = withoutCardColorOptions(b.options || "");
         if (b)
             migrateSavedConfigActionLegacy(b);
         var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
@@ -507,6 +522,7 @@ export function createConfigCodecFeature(
         if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
+        if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
         return b;
     }
     function isBrightnessSliderType(this: any, type?: any) {
@@ -634,6 +650,8 @@ export function createConfigCodecFeature(
         if (type === "door_window")
             precision = normalizeDoorWindowSubtype(precision);
         var options: any = b && b.options || "";
+        var cardColorOptions: any = normalizedCardColorOptions(options);
+        options = withoutCardColorOptions(options);
         if (type === "") {
             options = normalizeSwitchConfirmationOptions(options);
         }
@@ -669,7 +687,7 @@ export function createConfigCodecFeature(
                 options = copyLargeNumbersOption("", options);
                 if (configOptionEnabled(b?.options, "stat_labels_off"))
                     options = options ? options + ",stat_labels_off" : "stat_labels_off";
-            } else options = normalizeCompanionAppShortcutOptions({
+            } else options = normalizeCompanionCardOptions({
                     ...(b || {}),
                     type,
                     entity: b && b.entity,
@@ -686,8 +704,11 @@ export function createConfigCodecFeature(
             precision = webhookButton.precision || "";
             options = webhookButton.options || "";
         }
-        else if (type === "lock" || type === "screen_lock") {
+        else if (type === "lock") {
             options = "";
+        }
+        else if (type === "screen_lock") {
+            options = configOptionEnabled(options, "screensaver_on_lock") ? "screensaver_on_lock" : "";
         }
         else if (type === "calendar" || type === "clock" || type === "timezone") {
             options = normalizeDateTimeOptions(type, options, precision);
@@ -708,7 +729,7 @@ export function createConfigCodecFeature(
             options = normalizePresenceOptions(options);
         }
         else if (type === "image") {
-            options = normalizeImageOptions(options);
+            options = normalizeImageOptions(options, b && b.entity);
         }
         else if (type === "wifi_qr" || type === "wifi_qr_card") {
             var wifiButton: any = EspDesktopModel.cloneCardConfig(b || {});
@@ -777,6 +798,7 @@ export function createConfigCodecFeature(
             unit = "";
             precision = "";
         }
+        if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
         return trimConfigFields([
             (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
             label,
@@ -832,7 +854,7 @@ export function createConfigCodecFeature(
         return EspDesktopModel.parseSubpageOrder(orderStr);
     }
     function subpageOrderForSerialize(this: any, sp?: any) {
-        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel);
+        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel, sp && sp.backColor);
     }
     function subpageSerializedOrder(this: any, sp?: any) {
         if (!sp)
@@ -997,7 +1019,7 @@ export function createConfigCodecFeature(
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
-        var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.numSlots, layout.gridCols);
+        var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.totalSlots, layout.gridCols, layout.previewSlots);
         sp.grid = result.grid;
         sp.sizes = result.sizes;
         return sp.grid;
@@ -1009,7 +1031,7 @@ export function createConfigCodecFeature(
         return JSON.stringify(sp.order) !== previousOrder;
     }
     function serializeSubpageGrid(this: any, sp?: any) {
-        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back");
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor);
     }
     function enterSubpage(this: any, homeSlot?: any) {
         state.editingSubpage = homeSlot;
@@ -1068,6 +1090,7 @@ export function createConfigCodecFeature(
         cardSupportsWifiPortraitSizes,
         cardSupportsExtraLargeSize,
         cardSupportsMaxSize,
+        cardSupportsSquareMaxSizes,
         cardSupportsPortraitLargeSize,
         cardSupportsLandscapeLargeSize,
         cardSupportsUltraWideSize,

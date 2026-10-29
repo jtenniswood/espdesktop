@@ -1,12 +1,14 @@
-import { normalizeCoverArtDelay, normalizeHomeAssistantArtworkEndpointMode, normalizeHomeAssistantArtworkProtocol, normalizeScreensaverCameraImageMode } from "../model/settings";
+import { normalizeCoverArtDelay, normalizeHomeAssistantArtworkEndpointMode, normalizeHomeAssistantArtworkProtocol, normalizeScreensaverCameraImageMode, normalizeScreensaverCameraDimming } from "../model/settings";
 import type { EntityStateFeature } from "./entity_state";
 import type { ApplicationApiFeature } from "./api";
 export interface ArtworkPostApiFeature {
     postPresenceSensorEntity(value?: any): any;
     postScreensaverCameraEntity(value?: any): any;
     postScreensaverCameraImageMode(value?: any): any;
+    postScreensaverCameraDimming(value?: any): any;
     postMediaPlayerSleepPrevention(on?: any): any;
     postMediaPlayerSleepPreventionEntity(value?: any): any;
+    postCoverArtPlaybackControl(on?: any): any;
     postCoverArtScreensaver(on?: any): any;
     postCoverArtSource(value?: any): any;
     postClockOverlay(on?: any): any;
@@ -23,6 +25,7 @@ export interface ArtworkPostApiFeature {
     homeAssistantArtworkPortPostUrls(value?: any): any;
     postHomeAssistantArtworkPort(value?: any): any;
     postHomeAssistantArtworkProtocol(value?: any): any;
+    postHomeAssistantArtworkHost(value?: any): any;
     postHomeAssistantArtworkEndpointMode(value?: any): any;
 }
 
@@ -39,6 +42,9 @@ export function createArtworkPostApiFeature(
     function postScreensaverCameraEntity(this: any, value?: any) {
         return postTextWithObjectIds(entityName("screen_saver_camera_entity"), entityObjectIds("screen_saver_camera_entity"), value);
     }
+    function postScreensaverCameraDimming(this: any, value?: any) {
+        return post(entityPostUrls("number", entityName("screen_saver_camera_dimming"), entityObjectIds("screen_saver_camera_dimming"), "set?value=" + encodeURIComponent(normalizeScreensaverCameraDimming(value))));
+    }
     function postScreensaverCameraImageMode(this: any, value?: any) {
         return postSelectWithObjectIds(entityName("screen_saver_camera_image_mode"), entityObjectIds("screen_saver_camera_image_mode"), normalizeScreensaverCameraImageMode(value));
     }
@@ -47,6 +53,9 @@ export function createArtworkPostApiFeature(
     }
     function postMediaPlayerSleepPreventionEntity(this: any, value?: any) {
         return postTextWithObjectIds(entityName("media_player_sleep_prevention_entity"), entityObjectIds("media_player_sleep_prevention_entity"), value);
+    }
+    function postCoverArtPlaybackControl(this: any, on?: any) {
+        return postSwitchWithObjectIds(entityName("screen_saver_cover_art_playback_control"), entityObjectIds("screen_saver_cover_art_playback_control"), on);
     }
     function postCoverArtScreensaver(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_cover_art"), entityObjectIds("screen_saver_cover_art"), on);
@@ -97,6 +106,9 @@ export function createArtworkPostApiFeature(
     function postHomeAssistantArtworkProtocol(this: any, value?: any) {
         return postSelectWithObjectIds(entityName("home_assistant_artwork_protocol"), entityObjectIds("home_assistant_artwork_protocol"), normalizeHomeAssistantArtworkProtocol(value));
     }
+    function postHomeAssistantArtworkHost(this: any, value?: any) {
+        return postTextWithObjectIds(entityName("home_assistant_artwork_host"), entityObjectIds("home_assistant_artwork_host"), String(value || "").trim().slice(0, 253));
+    }
     function postHomeAssistantArtworkEndpointMode(this: any, value?: any) {
         return postSelectWithObjectIds(entityName("home_assistant_artwork_endpoint_mode"), entityObjectIds("home_assistant_artwork_endpoint_mode"), normalizeHomeAssistantArtworkEndpointMode(value));
     }
@@ -104,8 +116,10 @@ export function createArtworkPostApiFeature(
         postPresenceSensorEntity,
         postScreensaverCameraEntity,
         postScreensaverCameraImageMode,
+        postScreensaverCameraDimming,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
+        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
         postClockOverlay,
@@ -122,6 +136,7 @@ export function createArtworkPostApiFeature(
         homeAssistantArtworkPortPostUrls,
         postHomeAssistantArtworkPort,
         postHomeAssistantArtworkProtocol,
+        postHomeAssistantArtworkHost,
         postHomeAssistantArtworkEndpointMode,
     };
 }

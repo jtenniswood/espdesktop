@@ -1,11 +1,17 @@
 #pragma once
 
+#include "card_modal_target.h"
+
 // Shared lifecycle driver for every Media card mode. The specialised playback,
 // artwork, playlist, progress, volume, Home Assistant, and modal helpers remain
 // in button_grid_media.h; this driver owns the main-grid/subpage boundary.
 // Contract coverage marker: "media".
 
 namespace espdesktop::cards {
+
+inline bool media_driver_theme_owned_surface(const Context &context, const ParsedCfg &config) {
+  return context.family != Family::MEDIA || media_card_mode(config.sensor) != "cover_art";
+}
 
 inline bool media_driver_matches(const Context &context) {
   using Driver = card_runtime::CardDriverId;
@@ -59,7 +65,7 @@ inline bool media_driver_setup_visual(
     : nullptr;
   setup_media_card(
     slot, config,
-    palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR,
+    palette.has_on ? palette.on_val : DEFAULT_ACCENT_COLOR,
     palette.off_val, palette.sensor_val,
     display_sensor_font(display),
     compact_portrait_cover_art
@@ -76,7 +82,8 @@ inline bool media_driver_setup_visual(
       : large_cover_art
       ? display_media_cover_art_artist_font(display)
       : nullptr,
-    display_main_width_percent(display), row_span, col_span);
+    display_main_width_percent(display), row_span, col_span,
+    palette.custom_background, palette.progress_val);
 
   // Visual setup can run well before Home Assistant data binding. Own every
   // visual context immediately so a second setup pass can retire its timers
@@ -130,9 +137,9 @@ inline bool media_driver_cleanup(
 
 struct MediaDriverEnvironment {
   const GridConfig *grid_config = nullptr;
-  uint32_t accent_color = DEFAULT_SLIDER_COLOR;
-  uint32_t secondary_color = SECONDARY_GREY;
-  uint32_t tertiary_color = TERTIARY_GREY;
+  uint32_t accent_color = DEFAULT_ACCENT_COLOR;
+  uint32_t secondary_color = theme_display_color(current_theme().surface_primary);
+  uint32_t tertiary_color = theme_display_color(current_theme().surface_secondary);
   const lv_font_t *sensor_font = nullptr;
   const lv_font_t *control_title_font = nullptr;
   const lv_font_t *control_artist_font = nullptr;
@@ -150,11 +157,11 @@ inline MediaDriverEnvironment media_driver_environment(
   MediaDriverEnvironment environment;
   environment.grid_config = &grid_config;
   environment.accent_color = palette.has_on
-    ? palette.on_val : DEFAULT_SLIDER_COLOR;
+    ? palette.on_val : DEFAULT_ACCENT_COLOR;
   environment.secondary_color = palette.has_off
-    ? palette.off_val : SECONDARY_GREY;
+    ? palette.off_val : theme_display_color(current_theme().surface_primary);
   environment.tertiary_color = palette.has_sensor_color
-    ? palette.sensor_val : TERTIARY_GREY;
+    ? palette.sensor_val : theme_display_color(current_theme().surface_secondary);
   environment.sensor_font = display_sensor_font(display);
   environment.control_title_font = display_media_control_title_font(display);
   environment.volume_number_font = display_volume_number_font(display);
@@ -498,6 +505,26 @@ inline bool media_driver_bind_subpage(
       card_runtime_context(*saved, Surface::SUBPAGE), *saved, target);
   }, media_fast_press_mode(mode) ? LV_EVENT_PRESSED : LV_EVENT_CLICKED, click);
   return true;
+}
+
+inline ModalTarget media_driver_modal_target(
+    const Context &context, const ParsedCfg &config, lv_obj_t *button) {
+  if (!media_driver_matches(context)) return {};
+  const std::string mode = media_card_mode(config.sensor);
+  if (media_control_modal_mode(mode) || mode == "cover_art") {
+    auto *runtime = button
+      ? static_cast<MediaControlCtx *>(lv_obj_get_user_data(button)) : nullptr;
+    if (!runtime) runtime = grid_media_control_runtime_for_owner(button);
+    return modal_target(runtime, config.entity, ControlModalKind::MEDIA_CONTROL,
+                        media_control_can_open_modal(runtime), media_control_open_modal);
+  }
+  if (mode == "volume") {
+    auto *runtime = button
+      ? static_cast<MediaVolumeCtx *>(lv_obj_get_user_data(button)) : nullptr;
+    return modal_target(runtime, config.entity, ControlModalKind::MEDIA_VOLUME,
+                        media_volume_can_open_modal(runtime), media_volume_open_modal);
+  }
+  return {};
 }
 
 }  // namespace espdesktop::cards

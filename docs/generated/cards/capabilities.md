@@ -17,7 +17,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Alarm | alarm | alarm_control_panel | Yes | Own picker item | Type: control_panel, away, home, night, vacation, disarm; PIN required for arming; PIN required for disarming; Visible Actions: away, home, night, vacation, disarm; Icon Display: static, status; Label Display: name, status | Visible |
 | Alarm | alarm_action | alarm_control_panel | Yes | Alarm (alarm) | None | Visible |
 | Date & Time | calendar | sensor | Yes | Own picker item | Type: clock, datetime, default, timezone; Large Clock | Visible |
-| Date & Time | clock | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
+| Date & Time | clock | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock; Center Clock | Visible |
 | Climate | climate | climate | Yes | Own picker item | Label Display: label, status, actual, target; Icon & Temperatures: icon, actual, target; Temperature Step: 1, 0.5; Large Temperature Numbers | Visible |
 | All Controls | climate_control | climate | Yes | Climate (climate) | Label Display: label, status, actual, target; Icon & Temperatures: icon, actual, target; Temperature Step: 1, 0.5; Large Temperature Numbers; Visible Tabs | Hidden |
 | Cover | cover | cover | Yes | Own picker item | Type: modal, default, tilt, toggle, open, close, stop, set_position; Position: 0-100; Visible Tabs: position, controls, tilt, presets | Visible |
@@ -37,19 +37,20 @@ This generated reference lists stable setup facts from the shared card contract.
 | Lights | light_temperature | light | Yes | Lights (light_brightness) | None | Visible |
 | Lights | light_control | light | Yes | Lights (light_brightness) | Visible Tabs: power, brightness, temperature, color | Hidden |
 | Lock | lock | lock | Yes | Own picker item | Type: default, lock, unlock | Visible |
-| Media | media | media_player | Yes | Own picker item | Type: control_modal, speaker_group, play_pause, previous, next, volume, position, now_playing, cover_art, playlist; Type: default, state; Controls: default, progress, play_pause; Show Track Details; External Source Media Entity; Maximum Volume: 1-100; Speaker Discovery Entity; Label Display: label, status; Top Left Display: icon, volume; Media Content ID / URI; Player Source / Input; Large Media Numbers | Visible |
+| Media | media | media_player | Yes | Own picker item | Type: control_modal, speaker_group, play_pause, previous, next, volume, position, now_playing, cover_art, playlist; Type: default, state; Controls: default, progress, play_pause; Show Track Details; External Source Media Entity; Maximum Volume: 1-100; Speaker Discovery Entity; Power Entity; Modal Tabs: controls, progress, volume, speakers, power; Label Display: label, status; Top Left Display: icon, volume; Media Content ID / URI; Player Source / Input; Large Media Numbers | Visible |
 | Option Select | option_select | select, input_select | Yes | Own picker item | None | Hidden |
 | Trigger | push | None | Yes | Own picker item | None | Visible |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label; Large icon with title | Visible |
-| Screen Lock | screen_lock | None | Yes | Own picker item | None | Visible |
+| Screen Lock | screen_lock | None | Yes | Own picker item | Screensaver on lock | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
 | Sensor | sensor | sensor, binary_sensor, text_sensor | Yes | Own picker item | Large Sensor Numbers; Incoming Value Unit: default, seconds, minutes, hours, days; Lit When Active; Status Translation; Input Status; Display Text; Input Status 2; Display Text 2 | Visible |
 | Local Sensor | local_sensor | sensor, text_sensor | Yes | Sensor (sensor) | None | Hidden |
 | Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | No | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
 | Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
-| Weather | weather | weather | Yes | Own picker item | Type: default, today, tomorrow; Large Temperature Numbers | Visible |
-| Camera Card | image | camera, image | Yes | Own picker item | Show Label; Show Icon; Expanded Image: fill, fit | Visible |
+| Weather | weather | weather | Yes | Own picker item | Type: default, today, tomorrow, daily | Visible |
+| Camera Card | image | camera, image | Yes | Own picker item | Show Label; Show Icon; Image fit: fill, fit; Camera refresh: off, periodic, activity; Refresh interval: 5, 10, 30; Trigger entity | Visible |
 | Wifi Sharing | wifi_qr | switch | Yes | Own picker item | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
 | QR Card | wifi_qr_card | switch | Yes | Wifi Sharing (wifi_qr) | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Hidden |
+| Screensaver | screensaver | None | Yes | Own picker item | None | Visible |

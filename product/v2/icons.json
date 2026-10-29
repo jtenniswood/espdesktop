@@ -279,6 +279,16 @@
       "mdi": "arrow-up-down"
     },
     {
+      "name": "Awning",
+      "codepoint": "F1B87",
+      "mdi": "awning"
+    },
+    {
+      "name": "Awning Outline",
+      "codepoint": "F1B88",
+      "mdi": "awning-outline"
+    },
+    {
       "name": "Battery",
       "codepoint": "F0079",
       "mdi": "battery"
@@ -442,6 +452,11 @@
       "name": "Broom",
       "codepoint": "F00E2",
       "mdi": "broom"
+    },
+    {
+      "name": "Bus",
+      "codepoint": "F00E7",
+      "mdi": "bus"
     },
     {
       "name": "Camera",
@@ -737,6 +752,26 @@
       "name": "Folder Play",
       "codepoint": "F19FA",
       "mdi": "folder-play"
+    },
+    {
+      "name": "Folder Account Outline",
+      "codepoint": "F0B9C",
+      "mdi": "folder-account-outline"
+    },
+    {
+      "name": "Folder Home Outline",
+      "codepoint": "F10B6",
+      "mdi": "folder-home-outline"
+    },
+    {
+      "name": "Folder Key Outline",
+      "codepoint": "F10EC",
+      "mdi": "folder-key-outline"
+    },
+    {
+      "name": "Folder Open Outline",
+      "codepoint": "F0DCF",
+      "mdi": "folder-open-outline"
     },
     {
       "name": "Fountain",
@@ -1689,6 +1724,11 @@
       "mdi": "track-light-off"
     },
     {
+      "name": "Train",
+      "codepoint": "F052C",
+      "mdi": "train"
+    },
+    {
       "name": "Transmission Tower",
       "codepoint": "F0D3E",
       "mdi": "transmission-tower"
@@ -1807,6 +1847,11 @@
       "name": "Weather Cloudy Alert",
       "codepoint": "F0F2F",
       "mdi": "weather-cloudy-alert"
+    },
+    {
+      "name": "Weather Cloudy Clock",
+      "codepoint": "F18F6",
+      "mdi": "weather-cloudy-clock"
     },
     {
       "name": "Weather Dust",

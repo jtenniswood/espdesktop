@@ -5,6 +5,7 @@ export interface PreviewPlacementContext {
   readonly grid: readonly number[];
   readonly sizes: SlotSizeMap;
   readonly maxSlots: number;
+  readonly maxSlotId?: number;
   readonly selected: readonly number[];
 }
 
@@ -50,11 +51,11 @@ export class PreviewPlacementController {
     const targetSlot = grid[resolvedTarget] ?? 0;
     grid[resolvedTarget] = movingSlot;
     grid[fromPos] = targetSlot;
-    applySpans(grid, sizes, context.maxSlots, gridCols);
+    applySpans(grid, sizes, context.maxSlots, gridCols, context.maxSlotId ?? context.maxSlots);
     if ((sizes[String(movingSlot)] || 1) > 1 && !sizeFitsAt(resolvedTarget, sizes[String(movingSlot)], context.maxSlots, gridCols)) {
       delete sizes[String(movingSlot)];
     }
-    return { accepted: true, grid, sizes };
+    return { accepted: true, grid: [...grid, ...context.grid.slice(context.maxSlots)], sizes };
   }
 
   moveSelected(

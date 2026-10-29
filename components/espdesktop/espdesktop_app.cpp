@@ -1,5 +1,6 @@
 #include "espdesktop_app.h"
 #include "device_reset.h"
+#include "esphome/components/artwork_image/transfer_observer.h"
 
 #include <array>
 #include <cinttypes>
@@ -27,9 +28,14 @@
 #include "panel_config_write_endpoint.h"
 #include "panel_config_http_context.h"
 #include "panel_identity_endpoint.h"
+#include "companion_app_icon_endpoint.h"
+#include "screensaver_pin_endpoint.h"
 #include "button_grid.h"
 #include "finder_folder_sync.h"
 #include "connector_state.h"
+#ifdef USE_COMPANION
+#include "../companion/companion.h"
+#endif
 
 extern "C" void espdesktop_register_web_server_handlers(
     esphome::web_server_idf::AsyncWebServer *server) {
@@ -37,9 +43,11 @@ extern "C" void espdesktop_register_web_server_handlers(
   if (server == nullptr) return;
   espdesktop::reset::register_handlers(*server);
   espdesktop::register_panel_identity_endpoint(*server);
+  espdesktop::register_screensaver_pin_endpoint(*server);
   register_local_sensor_endpoint(*server);
   register_local_action_endpoint(*server);
   register_companion_actions_endpoint(*server);
+  register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
   espdesktop::configuration::register_panel_config_capabilities_endpoint(*server);
   espdesktop::configuration::register_panel_config_read_endpoint(*server);
@@ -56,6 +64,50 @@ static const char *const TAG = "espdesktop.config";
 // short as 10 seconds. Leave enough of that window for initialization itself
 // to fail safely after the display and restored text entities have settled.
 constexpr uint32_t NATIVE_CONFIGURATION_INITIALIZATION_DELAY_MS = 5000;
+
+static void sync_app_icons_from_panel_config(const uint8_t *document,
+                                             size_t document_size) {
+#ifdef USE_COMPANION
+  configuration::PanelConfigReader reader(document, document_size);
+  if (reader.begin() != configuration::PanelConfigStatus::OK) return;
+  std::vector<std::string> application_ids;
+  auto collect_card = [&application_ids](const ParsedCfg &card) {
+    if (!companion_app_icon_enabled(card)) return;
+    if (std::find(application_ids.begin(), application_ids.end(), card.entity) == application_ids.end())
+      application_ids.push_back(card.entity);
+  };
+  auto collect_config = [&collect_card](const std::string &config) {
+    collect_card(parse_cfg(config));
+  };
+  configuration::PanelConfigRecord record;
+  configuration::PanelConfigStatus status;
+  while ((status = reader.next(&record)) == configuration::PanelConfigStatus::OK) {
+    if (record.type == configuration::PanelConfigRecordType::BUTTON) {
+      collect_config(std::string(reinterpret_cast<const char *>(record.value), record.value_size));
+    } else if (record.type == configuration::PanelConfigRecordType::SUBPAGE) {
+      const std::string subpage(reinterpret_cast<const char *>(record.value), record.value_size);
+      for (const auto &subpage_card : parse_subpage_config(subpage)) {
+        ParsedCfg card;
+        card.entity = subpage_card.entity;
+        card.label = subpage_card.label;
+        card.icon = subpage_card.icon;
+        card.icon_on = subpage_card.icon_on;
+        card.sensor = subpage_card.sensor;
+        card.unit = subpage_card.unit;
+        card.type = subpage_card.type;
+        card.precision = subpage_card.precision;
+        card.options = subpage_card.options;
+        collect_card(card);
+      }
+    }
+  }
+  if (status == configuration::PanelConfigStatus::END)
+    esphome::companion::sync_app_icon_references(application_ids);
+#else
+  (void) document;
+  (void) document_size;
+#endif
+}
 
 class EspDesktopApp::NativeConfigurationRuntime {
  public:
@@ -180,6 +232,7 @@ bool EspDesktopApp::create_native_configuration_runtime() {
                configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS>
         legacy_subpages{};
     for (size_t subpage = 0; subpage < sources.subpages.size(); ++subpage) {
+      if (sources.subpages[subpage] == nullptr) continue;
       legacy_sources.subpages[subpage].bind(sources.subpages[subpage]);
       legacy_subpages[subpage] = &legacy_sources.subpages[subpage];
     }
@@ -217,7 +270,14 @@ void EspDesktopApp::register_panel_config_endpoints() {
       *panel_config_service, runtime->document_buffer,
       runtime->slot_capacity,
       web_auth_username_ == nullptr ? "" : web_auth_username_,
-      web_auth_password_ == nullptr ? "" : web_auth_password_);
+      web_auth_password_ == nullptr ? "" : web_auth_password_
+#ifdef USE_COMPANION
+      ,
+      [](const uint8_t *document, size_t size) {
+        sync_app_icons_from_panel_config(document, size);
+      }
+#endif
+      );
   configuration::set_panel_config_read_supported(true);
   configuration::set_panel_config_write_supported(true);
   // The context transitions from not-ready to ready once. Rebinding it from
@@ -251,10 +311,25 @@ void EspDesktopApp::apply_boot_configuration() {
              static_cast<unsigned>(loaded.status));
     return;
   }
+  sync_app_icons_from_panel_config(runtime->boot_buffer, loaded.document_size);
 }
 
 void EspDesktopApp::setup() {
+  screensaver_pin().setup();
   home_assistant_endpoint_.setup();
+  esphome::artwork_image::TransferObserver::instance().set(
+      [this](const std::string &origin) -> uint32_t {
+        return home_assistant_endpoint::parse_origin(origin) == home_assistant_endpoint_.origin()
+            ? home_assistant_endpoint_.generation() : 0;
+      },
+      [this](const esphome::artwork_image::TransferNotice &notice) {
+        using Failure = esphome::artwork_image::TransferFailure;
+        home_assistant_endpoint_.report_download(
+            home_assistant_endpoint::parse_origin(notice.request.origin),
+            notice.request.endpoint_generation, notice.status,
+            notice.failure == Failure::NONE, notice.failure == Failure::TRANSPORT);
+      });
+
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
@@ -503,9 +578,19 @@ void EspDesktopApp::loop() {
 }
 
 void EspDesktopApp::on_shutdown() {
+  esphome::artwork_image::TransferObserver::instance().set({}, {});
   home_assistant_endpoint_.shutdown();
   cards::set_card_runtime_registry_service(nullptr);
   core_.stop();
 }
 
 }  // namespace espdesktop
+
+namespace esphome::companion {
+void companion_app_icon_ready(const std::string &application_id) {
+#ifdef USE_COMPANION
+  companion_refresh_cached_app_icon(application_id);
+#endif
+  notify_dashboard_content_changed();
+}
+}  // namespace esphome::companion

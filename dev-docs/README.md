@@ -44,8 +44,6 @@ usage documentation lives in the root `README.md` and under `docs/`.
 - [Firmware UI](firmware.md)
 - [Panel Identity Storage](panel-identity.md)
 - [Devices and Builds](devices-and-builds.md)
-- [P4-86 Voice Diagnostics](p4-86-voice-diagnostics.md) - temporary issue #1701
-  firmware and serial capture procedure.
 - [Modal Layout System](modal-layout-system.md)
 - [Display Lifecycle Transition Contract](display-lifecycle.md)
 - [Cover Art Mode](cover-art-mode.md)
@@ -53,6 +51,11 @@ usage documentation lives in the root `README.md` and under `docs/`.
 
 ## Upstream Ports
 
+- [EspControl five-day sync: 12–17 October 2026](upstream-sync/2026-10-17.md) — 55 merged PRs, eight new ports and destination validation.
+- [EspControl two-week sync: 1–15 October 2026](upstream-sync/2026-10-15.md) — 74 merged PRs and the current migration audit.
+
+- [EspControl monthly sync: 10 September–10 October 2026](upstream-sync/2026-10-10.md) — all 152 source PRs, 60 individual port PRs and validation evidence.
+- [October firmware compiler logs](upstream-sync/2026-10-10-firmware-logs/README.md) — compressed output with hashes, including retained failed attempts.
 - [EspControl sync: 1–22 September 2026](upstream-sync/2026-09-22.md) — complete source PR accounting and destination adaptations.
 
 ## Historical Records

@@ -18,7 +18,6 @@ export interface ControlsShellDependencies {
     readonly schedule: typeof setTimeout;
     readonly cancelSchedule: (handle: any) => void;
     readonly buildSettingsPage: (parent: HTMLElement) => void;
-    readonly buildConnectorsPage: (parent: HTMLElement) => void;
     readonly closeSettings: () => void;
     readonly postButtonPress: (name: string) => Promise<Response>;
     readonly waitForReboot: () => void;
@@ -53,9 +52,9 @@ export function createControlsShellFeature(
     const els = runtime.els;
     const document = dependencies.document;
     const state = dependencies.state;
-    const requestedInitialTab = new URLSearchParams(
-        document.defaultView?.location.search ?? "",
-    ).get("tab") === "connectors" ? "connectors" : null;
+    const initialParams = new URLSearchParams(document.defaultView?.location.search ?? "");
+    const requestedInitialTab = ["device", "connectors"].includes(initialParams.get("tab") ?? "") ||
+        initialParams.get("connector") === "mac_companion" ? "device" : null;
     // ── Build UI ───────────────────────────────────────────────────────────
     function createMdiIcon(this: any, name?: any, className?: any) {
         var icon: any = document.createElement("span");
@@ -112,8 +111,6 @@ export function createControlsShellFeature(
         els.banner = banner;
         buildHeader(root);
         buildScreenPage(root);
-        dependencies.buildConnectorsPage(root);
-        els.connectorsPage = root.querySelector("#sp-connectors");
         dependencies.buildSettingsPage(root);
         var app: any = document.querySelector("esp-app");
         if (app) {
@@ -124,7 +121,7 @@ export function createControlsShellFeature(
         }
         els.root = root;
         root.classList.add("sp-onboarding");
-        switchTab(requestedInitialTab ?? "connectors");
+        switchTab(requestedInitialTab ?? "device");
     }
     function buildHeader(this: any, parent?: any) {
         var header: any = document.createElement("div");
@@ -137,9 +134,9 @@ export function createControlsShellFeature(
         nav.className = "sp-nav";
         nav.setAttribute("aria-label", "Primary");
         var tabs: any = [
-            { id: "screen", label: "Screen" },
-            { id: "settings", label: "Settings" },
-            { id: "connectors", label: "Connectors" },
+            { id: "screen", label: "Layout" },
+            { id: "settings", label: "Screen" },
+            { id: "device", label: "System" },
         ];
         tabs.forEach(function (this: any, t?: any) {
             var tab: any = document.createElement("div");
@@ -188,6 +185,7 @@ export function createControlsShellFeature(
                 '<div class="sp-main"></div>' +
                 "</div>";
         page.appendChild(wrap);
+        els.previewScreen = wrap.querySelector(".sp-screen");
         els.topbar = wrap.querySelector(".sp-topbar");
         els.clockBarSections = {
             left: wrap.querySelector('[data-clockbar-section="left"]'),
@@ -210,7 +208,7 @@ export function createControlsShellFeature(
         var closeBtn: any = document.createElement("button");
         closeBtn.className = "sp-settings-close";
         closeBtn.innerHTML = '<svg class="sp-settings-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
-            '<path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.41L10.59 13.41 4.29 19.7 2.88 18.29 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.3-6.29z"></path>' +
+            '<path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>' +
             '</svg>';
         closeBtn.setAttribute("aria-label", "Close settings");
         closeBtn.addEventListener("click", dependencies.closeSettings);
@@ -259,18 +257,19 @@ export function createControlsShellFeature(
         return bar;
     }
     function switchTab(this: any, tab?: any) {
+        const returningToScreen = tab === "screen" && state.activeTab !== "screen";
         state.activeTab = tab;
         if (els.root)
             els.root.setAttribute("data-active-tab", tab);
-        ["screen", "connectors", "settings"].forEach(function (this: any, t?: any) {
+        ["screen", "settings", "device"].forEach(function (this: any, t?: any) {
             els["tab_" + t].className = "sp-tab" + (tab === t ? " active" : "");
             els["tab_" + t].setAttribute("aria-selected", tab === t ? "true" : "false");
         });
         els.screenPage.className = "sp-page" + (tab === "screen" ? " active" : "");
-        if (els.connectorsPage)
-            els.connectorsPage.className = "sp-page" + (tab === "connectors" ? " active" : "");
         els.settingsPage.className = "sp-page" + (tab === "settings" ? " active" : "");
+        els.devicePage.className = "sp-page" + (tab === "device" ? " active" : "");
         syncTabChrome();
+        if (returningToScreen) dependencies.renderPreview();
     }
     function setOnboardingComplete(this: any, complete: boolean, announce?: boolean) {
         if (!els.root)
@@ -282,8 +281,8 @@ export function createControlsShellFeature(
             if (announce)
                 showBanner("Connector setup complete. You can add cards to your screen.", "success");
         }
-        else if (!complete && state.activeTab !== "connectors") {
-            switchTab("connectors");
+        else if (!complete && state.activeTab !== "device") {
+            switchTab("device");
         }
     }
     function syncTabChrome(this: any) {

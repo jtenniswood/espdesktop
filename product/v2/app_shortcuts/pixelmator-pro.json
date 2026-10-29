@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "appId": "com.pixelmatorteam.pixelmator.x",
+  "label": "Pixelmator Pro",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create a new image or template",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Open an image",
+      "shortcut": "command+o",
+      "icon": "Folder"
+    },
+    {
+      "id": "2",
+      "label": "Save an image",
+      "shortcut": "command+s",
+      "icon": "Download"
+    },
+    {
+      "id": "3",
+      "label": "Export an image",
+      "shortcut": "command+e",
+      "icon": "Download"
+    },
+    {
+      "id": "4",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "5",
+      "label": "Deselect",
+      "shortcut": "command+d",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Fit image to window",
+      "shortcut": "command+0",
+      "icon": "Window Open"
+    },
+    {
+      "id": "7",
+      "label": "Create an empty layer",
+      "shortcut": "shift+command+n",
+      "icon": "Plus"
+    }
+  ]
+}

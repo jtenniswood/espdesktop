@@ -19,7 +19,7 @@ C6 firmware. The P4 transfers the C6 update internally, so the repair does **not
 need working Wifi or internet access after the USB download has completed.
 
 ::: warning This reinstalls EspDesktop
-Export your configuration from **Settings > Backup** first when the panel is still
+Export your configuration from **System > Backup** first when the panel is still
 accessible. Recovery normally preserves saved configuration, but preservation
 cannot be guaranteed after damaged or previously erased flash.
 :::

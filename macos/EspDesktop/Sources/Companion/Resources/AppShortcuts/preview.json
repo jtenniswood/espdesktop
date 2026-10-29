@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "appId": "com.apple.Preview",
+  "label": "Preview",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Go to next tab",
+      "shortcut": "control+tab",
+      "icon": "Tab"
+    },
+    {
+      "id": "1",
+      "label": "Go to previous tab",
+      "shortcut": "shift+control+tab",
+      "icon": "Tab"
+    },
+    {
+      "id": "2",
+      "label": "Move to next document in the window",
+      "shortcut": "option+pagedown",
+      "icon": "Chevron Right"
+    },
+    {
+      "id": "3",
+      "label": "Move to previous document in the window",
+      "shortcut": "option+pageup",
+      "icon": "Chevron Left"
+    }
+  ]
+}

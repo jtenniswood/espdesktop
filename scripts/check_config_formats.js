@@ -156,7 +156,7 @@ assert.strictEqual(
 );
 assert.strictEqual(hooks.cardContractSubpageTypeFromCode("H"), "climate", "generated contract exposes compact type decode");
 assert.strictEqual(hooks.cardContractLargeNumbersSupported("sensor", "text"), false, "generated contract blocks text sensor large numbers");
-assert.strictEqual(hooks.cardContractLargeNumbersSupported("weather", "tomorrow"), true, "generated contract allows weather forecast large numbers");
+assert.strictEqual(hooks.cardContractLargeNumbersSupported("weather", "tomorrow"), false, "single-day weather uses the standard forecast layout");
 current.generatedContract.requiredCards.forEach((type) => {
   assert(hooks.cardContractCardKeys().includes(type), `generated contract exposes ${type || "switch"} card identity`);
 });
@@ -298,15 +298,19 @@ assert.strictEqual(hooks.normalizeDateTimeCardMode("timezone"), "timezone", "dat
 assert.strictEqual(hooks.normalizeDateTimeCardMode("bad"), "", "date/time invalid mode falls back to date mode");
 assert.deepStrictEqual(
   Array.from(hooks.weatherModeOptionValues()),
-  ["", "today", "tomorrow"],
+  ["", "today", "tomorrow", "daily"],
   "weather mode options are spec-backed"
 );
 assert.strictEqual(hooks.normalizeWeatherCardMode("today"), "today", "weather today mode is allowed by spec");
+assert.strictEqual(hooks.normalizeWeatherCardMode("daily"), "daily", "daily forecast mode survives normalization");
+assert.strictEqual(hooks.cardContractLargeNumbersSupported("weather", "daily"), false, "daily forecast keeps its compact day readings");
+assert.strictEqual(buttonShape(hooks.parseButtonConfig("weather.home;Garden;Auto;Auto;;;weather;daily;large_numbers")).precision, "daily");
+assert.strictEqual(buttonShape(hooks.parseButtonConfig("weather.home;Garden;Auto;Auto;;;weather;daily;large_numbers")).options, "");
 assert.strictEqual(hooks.normalizeWeatherCardMode("bad"), "", "weather invalid mode falls back to current conditions");
 assert.strictEqual(
   hooks.cardContractOptionSupportedFor("weather", "large_numbers", { precision: "today" }),
-  true,
-  "weather large-number option supports forecast modes"
+  false,
+  "weather forecast layout has no large-number option"
 );
 assert.strictEqual(
   hooks.cardContractOptionSupportedFor("weather", "large_numbers", { precision: "" }),
@@ -362,7 +366,7 @@ assert.strictEqual(hooks.mediaEditorMode("controls"), "play_pause", "legacy medi
 assert.strictEqual(hooks.mediaEditorMode("cover_art"), "cover_art", "cover art media mode maps through spec");
 assert.strictEqual(hooks.mediaEditorMode("speaker_group"), "speaker_group", "speaker group media mode maps through spec");
 assert.strictEqual(hooks.mediaEditorMode("bad"), "play_pause", "invalid media mode falls back through spec");
-assert.strictEqual(hooks.cardRequiresSquareSize({ type: "media", sensor: "cover_art" }), true, "cover art cards require square sizes");
+assert.strictEqual(hooks.cardRequiresSquareSize({ type: "media", sensor: "cover_art" }), false, "cover art cards can use rectangular sizes");
 assert.strictEqual(hooks.cardSupportsExtraLargeSize({ type: "wifi_qr" }), true, "Wifi Connect cards support 3x3 sizes");
 assert.strictEqual(hooks.cardSupportsExtraLargeSize({ type: "wifi_qr_card" }), true, "Wifi QR cards support 3x3 sizes");
 assert.strictEqual(hooks.cardSupportsWifiPortraitSizes({ type: "wifi_qr" }), false, "non-10-inch Wifi cards reject portrait sizes");
@@ -378,7 +382,11 @@ assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "co
 assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 7), 7, "cover art keeps 3x3 size");
 assert.strictEqual(tenInchHooks.cardSupportsPortraitLargeSize({ type: "media", sensor: "cover_art" }), true, "10-inch cover art supports portrait-large size");
 assert.strictEqual(tenInchHooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 10), 10, "10-inch cover art keeps 3x4 size");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 6), 1, "cover art rejects non-square sizes");
+assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 2), 2, "cover art keeps tall size");
+assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 6), 6, "cover art keeps extra-wide size");
+assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 8), 8, "cover art keeps max-wide size");
+assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 9), 9, "cover art keeps max-tall size");
+assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 11), 11, "landscape 7-inch cover art keeps Massive Wide size");
 assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "image" }, 8), 8, "camera cards keep max-wide size");
 assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "image" }, 9), 9, "camera cards keep max-tall size");
 assert.strictEqual(hooks.cardSupportsLandscapeLargeSize({ type: "image" }), true, "landscape 7-inch camera cards support Massive Wide");
@@ -452,6 +460,25 @@ assert.deepStrictEqual(
   [[1, "Single (1x1)"], [4, "Large (2x2)"], [7, "Extra Large (3x3)"], [9, "Max Tall (2x3)"], [10, "Massive (3x4)"]],
   "10-inch Wifi card size menu adds 2x3 and 3x4 portrait sizes",
 );
+// Square-grid spans must survive save/transfer for ordinary and Companion cards.
+for (const squareHooks of [s3Hooks, fourInchHooks]) {
+  for (const card of [{ type: "sensor", sensor: "local", entity: "sensor.office" },
+    { type: "companion", entity: "com.apple.Safari" }, { type: "companion_stat", entity: "cpu" }]) {
+    for (const size of [8, 9]) {
+      assert.strictEqual(squareHooks.normalizeCardSizeForConfig(card, size), size);
+      assert.ok(Array.from(squareHooks.cardSizeMenuOptions(card)).some(option => option.size === size));
+      if (card.type === "companion_stat") continue; // transfer capability is checked separately
+      const moved = squareHooks.cardTransferEntriesFromEnvelopeForTest({ cards: [{ ...card, label: "Square", size }] }, false, true);
+      assert.strictEqual(moved.entries[0].size, size, "square-grid transfer keeps six-cell size");
+    }
+  }
+  for (const type of ["wifi_qr", "wifi_qr_card"]) {
+    for (const size of [8, 9]) {
+      assert.strictEqual(squareHooks.normalizeCardSizeForConfig({ type }, size), 1);
+      assert.ok(!Array.from(squareHooks.cardSizeMenuOptions({ type })).some(option => option.size === size));
+    }
+  }
+}
 const transferredSensor = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office", size: 10 }],
 }, false, true);
@@ -667,7 +694,7 @@ assert.strictEqual(
   "plain climate cards omit climate control tabs"
 );
 assert.strictEqual(
-  hooks.normalizeClimateOptions("climate_tabs=temperature%7Cmode%7Cpreset%7Cfan%7Cswing", true),
+  hooks.normalizeClimateOptions("climate_tabs=temperature%7Cmode%7Cpreset%7Cfan%7Cswing%7Chorizontal_swing", true),
   "",
   "default climate control tab order is omitted"
 );
@@ -1229,6 +1256,7 @@ const screenLockCard = {
   options: "",
 };
 assertButtonRoundTrip(hooks, "screen lock local card", screenLockCard, false);
+assertButtonRoundTrip(hooks, "screen lock screensaver on lock", { ...screenLockCard, options: "screensaver_on_lock" }, false);
 assert.deepStrictEqual(
   buttonShape(hooks.parseButtonConfig(hooks.serializeButtonConfig({
     entity: "switch.should_not_save",
@@ -1847,7 +1875,7 @@ assertButtonRoundTrip(hooks, "weather today card", {
   precision: "today",
 }, false);
 
-assertButtonRoundTrip(hooks, "weather large temperature numbers option", {
+assertButtonRoundTrip(hooks, "weather single-day forecast layout", {
   entity: "weather.forecast_home",
   label: "Today",
   icon: "Auto",
@@ -1856,13 +1884,13 @@ assertButtonRoundTrip(hooks, "weather large temperature numbers option", {
   unit: "",
   type: "weather",
   precision: "today",
-  options: "large_numbers",
+  options: "",
 }, false);
 
 assert.strictEqual(
   buttonShape(hooks.parseButtonConfig("weather.forecast_home;;;;;;weather;today;large_numbers")).options,
-  "large_numbers",
-  "weather forecast preserves large numbers option");
+  "",
+  "weather forecast clears obsolete large numbers option");
 assert.strictEqual(
   buttonShape(hooks.parseButtonConfig("weather.forecast_home;;;;;;weather;;large_numbers")).options,
   "",

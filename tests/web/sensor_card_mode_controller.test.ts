@@ -10,6 +10,12 @@ function card(overrides: Partial<CardConfig> = {}): CardConfig {
 }
 
 export function runSensorCardModeControllerTests(): void {
+  const colourController = createSensorCardModeController({ normalizeOptions: options => options });
+  const coloured = card({ options: "active_color,card_off_color=00BCD4" });
+  colourController.selectSource(coloured, "local");
+  equal(coloured.options, "card_off_color=00BCD4", "source changes preserve custom colour and clear source-specific settings");
+  colourController.selectSource(coloured, "home_assistant");
+  equal(coloured.options, "card_off_color=00BCD4", "returning to Home Assistant preserves custom colour");
   const controller = createSensorCardModeController({
     normalizeOptions: (options, precision) => `${precision}:${options}`,
   });

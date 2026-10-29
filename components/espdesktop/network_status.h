@@ -6,6 +6,7 @@
 #include "display_text.h"
 #include "settings_backlight.h"
 #include "network_status_layout.h"
+#include "screen_lock_state.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -27,11 +28,18 @@ constexpr const char *NETWORK_ICON_ETHERNET = "\U000F0200";
 // display takeover never reloads an obsolete screen.
 struct NetworkStatusModalUi {
   lv_obj_t *overlay = nullptr;
+  lv_obj_t *cards[NETWORK_STATUS_CARD_COUNT]{};
+  lv_obj_t *icons[NETWORK_STATUS_CARD_COUNT]{};
+  lv_obj_t *labels[NETWORK_STATUS_CARD_COUNT]{};
+  int card_count = 0;
   lv_obj_t *pairing_overlay = nullptr;
   lv_obj_t *pairing_code = nullptr;
   lv_obj_t *pairing_ip = nullptr;
   lv_obj_t *pairing_button = nullptr;
   lv_obj_t *pairing_label = nullptr;
+  lv_obj_t *lock_button = nullptr;
+  int grid_columns = 1;
+  int configured_rows = 1;
   lv_obj_t *wifi_label = nullptr;
   float (*wifi_quality)() = nullptr;
   const lv_font_t *text_font = nullptr;
@@ -44,6 +52,22 @@ struct NetworkStatusModalUi {
   lv_coord_t columns[MAX_GRID_SLOTS + 1]{};
   lv_coord_t rows[MAX_GRID_SLOTS + 1]{};
 };
+
+inline void network_status_apply_theme(void *context, const ThemePalette &theme) {
+  auto &ui = *static_cast<NetworkStatusModalUi *>(context);
+  if (!ui.overlay) return;
+  lv_obj_set_style_bg_color(ui.overlay, lv_color_hex(theme.background), LV_PART_MAIN);
+  for (int i = 0; i < ui.card_count; ++i) {
+    lv_obj_t *button = ui.cards[i];
+    if (!button) continue;
+    lv_obj_set_style_bg_color(button,
+                              lv_color_hex(theme_display_color(theme.surface_card)),
+                              LV_PART_MAIN);
+    lv_obj_set_style_text_color(button, lv_color_hex(theme.text_primary), LV_PART_MAIN);
+    if (ui.icons[i]) lv_obj_set_style_text_color(ui.icons[i], lv_color_hex(theme.text_primary), LV_PART_MAIN);
+    if (ui.labels[i]) lv_obj_set_style_text_color(ui.labels[i], lv_color_hex(theme.text_primary), LV_PART_MAIN);
+  }
+}
 
 inline const lv_font_t *&network_status_card_icon_font() {
   static const lv_font_t *font = nullptr;
@@ -152,6 +176,7 @@ inline void network_status_hide_modal() {
   if (ui.pairing_overlay) control_modal_close_nested_menu();
   if (ui.refresh_timer) lv_timer_del(ui.refresh_timer);
   lv_obj_t *overlay = ui.overlay;
+  if (overlay) unregister_theme_refresh(overlay);
   ui = NetworkStatusModalUi{};
   control_modal_clear_active(ControlModalKind::NETWORK_STATUS);
   if (overlay) {
@@ -177,7 +202,7 @@ inline lv_obj_t *network_status_pairing_label(lv_obj_t *parent, const char *text
   lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_style_text_font(label, network_status_modal_ui().text_font, LV_PART_MAIN);
-  lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_label_set_display_text(label, text);
   apply_text_width_compensation(label);
   return label;
@@ -202,11 +227,11 @@ inline void network_status_open_pairing() {
   lv_obj_set_align(shell.panel, LV_ALIGN_TOP_LEFT);
   control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, control_modal_card_radius(nullptr));
   auto *close = control_modal_create_round_button(shell.panel, 32, "\U000F0156",
-      ui.modal_icon_font, DARK_BORDER, SECONDARY_GREY, icon_width_compensation_percent());
+      ui.modal_icon_font, theme_display_color(current_theme().border), theme_display_color(current_theme().control_neutral), icon_width_compensation_percent());
   control_modal_style_chrome_button(close, layout, true);
   lv_obj_add_event_cb(close, [](lv_event_t *) { control_modal_close_nested_menu(); }, LV_EVENT_CLICKED, nullptr);
   auto *close_label = lv_obj_get_child(close, 0);
-  if (close_label) lv_obj_set_style_text_color(close_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  if (close_label) lv_obj_set_style_text_color(close_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
 
   // Match the original Wi-Fi details modal: centered content independent of chrome.
   auto *content = lv_obj_create(shell.panel);
@@ -223,9 +248,9 @@ inline void network_status_open_pairing() {
   auto *title = network_status_pairing_label(content, espdesktop_i18n("Pairing"));
   if (ui.title_font) lv_obj_set_style_text_font(title, ui.title_font, LV_PART_MAIN);
   auto *instruction = network_status_pairing_label(content, espdesktop_i18n("Enter this code into the desktop app"));
-  lv_obj_set_style_text_color(instruction, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+  lv_obj_set_style_text_color(instruction, lv_color_hex(current_theme().text_muted), LV_PART_MAIN);
   ui.pairing_ip = network_status_pairing_label(content, "");
-  lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   ui.pairing_code = network_status_pairing_label(content, "");
   lv_obj_update_layout(content);
   lv_obj_align(content, LV_ALIGN_CENTER, 0, 0);
@@ -234,9 +259,31 @@ inline void network_status_open_pairing() {
   network_status_refresh_page();
 }
 
+inline void network_status_refresh_lock_button() {
+  auto &ui = network_status_modal_ui();
+  if (!ui.overlay || !ui.lock_button) return;
+  const bool has_pin = espdesktop::screensaver_pin().has_pin();
+  const bool hidden = lv_obj_has_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
+  if (hidden == !has_pin) return;
+  if (has_pin) lv_obj_clear_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
+  else lv_obj_add_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
+
+  // The optional lock button is last, so hiding it leaves no gap between cards.
+  const int visible_cards = ui.card_count - (has_pin ? 0 : 1);
+  const int rows = network_status_grid_rows(ui.grid_columns, ui.configured_rows, visible_cards);
+  for (int i = 0; i < rows; ++i) ui.rows[i] = LV_GRID_FR(1);
+  ui.rows[rows] = LV_GRID_TEMPLATE_LAST;
+  lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
+}
+
+inline void network_status_lock_cb(lv_event_t *) {
+  screen_lock_activate();
+}
+
 inline void network_status_refresh_page() {
   auto &ui = network_status_modal_ui();
   if (!ui.overlay) return;
+  network_status_refresh_lock_button();
   if (ui.wifi_label && ui.wifi_quality) {
     const float quality = ui.wifi_quality();
     const std::string label = std::isfinite(quality)
@@ -299,7 +346,10 @@ inline void network_status_open_modal(const std::string &device_name,
   ui.text_font = label_font;
   ui.modal_icon_font = icon_font;
   ui.title_font = text_font;
-  const lv_color_t text_color = lv_obj_get_style_text_color(reference, LV_PART_MAIN);
+  const lv_color_t text_color = lv_color_hex(current_theme().text_primary);
+  const lv_coord_t radius = control_modal_card_radius(reference);
+  const lv_coord_t card_pad = reference ? lv_obj_get_style_pad_top(reference, LV_PART_MAIN) : 8;
+  const bool continuous_corners = card_uses_continuous_corners(reference);
 
   ui.overlay = lv_obj_create(lv_layer_top());
   // Leave the clock bar exposed, using the same reserved space as the grid.
@@ -320,6 +370,8 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_style_pad_column(ui.overlay, lv_obj_get_style_pad_column(page, LV_PART_MAIN), LV_PART_MAIN);
 
   const int cols = std::max(1, std::min(metrics.cols, MAX_GRID_SLOTS));
+  ui.grid_columns = cols;
+  ui.configured_rows = std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS));
   const int card_count = NETWORK_STATUS_CARD_COUNT - (wifi_quality ? 0 : 1);
   const int rows = network_status_grid_rows(cols,
       std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS)), card_count);
@@ -330,22 +382,25 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", "", device_name.c_str()};
-  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B", "\U000F0200"};
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", "", device_name.c_str(), espdesktop_i18n("Screen Lock")};
+  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B", "\U000F0200", find_icon("Lock")};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   int visible_index = 0;
   for (int i = 0; i < NETWORK_STATUS_CARD_COUNT; ++i) {
     if (i == NETWORK_STATUS_WIFI_CARD_INDEX && !wifi_quality) continue;
-    auto *button = create_grid_card_button(ui.overlay,
-        lv_obj_get_style_radius(reference, LV_PART_MAIN),
-        lv_obj_get_style_pad_top(reference, LV_PART_MAIN), label_font, text_color);
-    apply_button_colors(button, false, DEFAULT_SLIDER_COLOR, true,
-                        DEFAULT_OFF_COLOR);
+    auto *button = create_grid_card_button(ui.overlay, radius, card_pad,
+        label_font, text_color, continuous_corners);
+    const int card_index = ui.card_count++;
+    ui.cards[card_index] = button;
+    apply_button_colors(button, false, DEFAULT_ACCENT_COLOR, true,
+                        theme_display_color(current_theme().surface_card));
     const auto cell = network_status_grid_cell(visible_index++, cols);
     lv_obj_set_grid_cell(button, LV_GRID_ALIGN_STRETCH, cell.column, 1,
                          LV_GRID_ALIGN_STRETCH, cell.row, 1);
     BtnSlot slot = create_dynamic_card_slot(button, card_icon_font, label_font, label_font, text_color);
+    ui.icons[card_index] = slot.icon_lbl;
+    ui.labels[card_index] = slot.text_lbl;
     apply_width_compensation(slot.icon_lbl, icon_width_compensation_percent());
     apply_text_width_compensation(slot.text_lbl);
     lv_label_set_display_text(slot.text_lbl, labels[i]);
@@ -360,6 +415,12 @@ inline void network_status_open_modal(const std::string &device_name,
       ui.pairing_button = button;
       ui.pairing_label = slot.text_lbl;
       lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_open_pairing(); },
+                          LV_EVENT_CLICKED, nullptr);
+      continue;
+    }
+    if (i == NETWORK_STATUS_LOCK_CARD_INDEX) {
+      ui.lock_button = button;
+      lv_obj_add_event_cb(button, network_status_lock_cb,
                           LV_EVENT_CLICKED, nullptr);
       continue;
     }
@@ -378,6 +439,13 @@ inline void network_status_open_modal(const std::string &device_name,
   }
   control_modal_set_active(ControlModalKind::NETWORK_STATUS, ui.overlay,
                           network_status_hide_modal, ControlModalDismissPolicy::DISMISS);
+  if (!register_theme_refresh(ui.overlay, network_status_apply_theme, &ui))
+    ESP_LOGW("theme", "Refresh registry full; network status will not follow theme changes");
+  lv_obj_add_event_cb(ui.overlay, [](lv_event_t *event) {
+    unregister_theme_refresh(lv_event_get_target(event));
+    network_status_modal_ui().overlay = nullptr;
+  }, LV_EVENT_DELETE, nullptr);
+  apply_current_theme();
   lv_obj_update_layout(ui.overlay);
   network_status_refresh_page();
   ui.refresh_timer = lv_timer_create([](lv_timer_t *) { network_status_refresh_page(); }, 1000, nullptr);

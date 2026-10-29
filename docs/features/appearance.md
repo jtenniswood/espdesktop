@@ -1,16 +1,83 @@
 ---
 title: "Appearance Settings"
 description:
-  How to customise the primary colour on your EspDesktop panel.
+  Choose the panel theme and customise its active colour.
 ---
 
 # Appearance
 
-These settings control the active colour used across your panel. You'll find them in the **Settings** tab on the [Setup](/features/setup) page, under the **Appearance** section.
+The **Appearance** section is at the top of **Screen**. Its panels are
+**Active Colour**, **Card Style** (curve), **Theme**, [Idle](/features/idle) and [Clock Bar](/features/clock-bar).
 
-- **Primary** — the colour cards show when an entity is active. Use the colour picker or type a colour code (for example, `FF8C00` for orange).
+Cards use continuous corners, with the same proportions on the panel and
+setup-page preview. Choose **Card curve → Small, Medium or Large** in
+**Screen → Appearance**. The choice applies to home and subpage cards, including Back,
+is saved on the display and survives restarts.
+
+All supported displays use continuous corners that ease gradually into the
+card edges. **Medium** is the default. Corner sizes in pixels are:
+
+| Display | Small | Medium | Large |
+| --- | ---: | ---: | ---: |
+| 7-inch and 4.3-inch P4 panels (all versions) | 8 | 20 | 32 |
+| 10-inch panels (all versions) | 13 | 18 | 22 |
+| P4-86 | 21 | 28 | 35 |
+| S3 | 16 | 21 | 26 |
+
+The 7-inch and 4.3-inch P4 panels use a wider spread so each step is clearly visible.
+On other displays, Small uses 60% of Large and Medium uses 80%, rounded to whole pixels.
+The same curve applies to the network-status Settings cards, including Back and Screen Lock. Ordinary modal controls and colour swatches keep their existing button radius.
+Images, artwork and slider fills follow the same outline. The web preview
+uses the same curve, including in browsers without native continuous-corner
+support, and scales the card gaps to match the physical display. Selection
+outlines stay visible above every card type, including Cover Art. Selected-card
+and dashed empty-card outlines follow the chosen curve with even thickness.
+
+On the first boot after installing this update, new and existing displays switch
+to Medium once. Choices made afterward are saved across restarts and future updates.
+
+The curve setting is included in configuration backups. Restoring an older
+backup without it keeps the current choice. Home Assistant can also change
+the **Screen: Card Curve** select. Changes update the preview immediately
+and redraw the physical cards after the display's brief refresh delay.
+
+Find these controls in **Screen → Appearance** on the [Setup](/features/setup) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
+
+## Theme
+
+- **Dark** and **Light** select a fixed appearance.
+- Under **Automatic theme**, **Sunrise & Sunset** switches to Light at sunrise and Dark at sunset. The panel shows the calculated sunrise and sunset times when this method is selected. It uses its existing on-device calculation based on the configured timezone and approximate location. Set the correct timezone under **System → Preferences → Time**. A Home Assistant `sun.sun` entity is not required.
+- Under **Automatic theme**, **Manual** uses the panel's local clock. Set **Light from** and **Dark from** in 24-hour `HH:MM` format. The Light period can cross midnight. If both times are the same, Dark remains active.
+
+When clock or solar data is temporarily unavailable, Automatic keeps the last active appearance. A fresh boot falls back to Dark until the required data is known. The **Screen: Active Theme** Home Assistant sensor reports the effective Dark or Light palette even while Automatic is selected.
+
+Home Assistant can also change the saved settings through **Screen: Theme Mode**, **Screen: Theme Auto Method**, **Screen: Theme Light Start**, **Screen: Theme Dark Start**, **Screen: Theme Sunrise Offset**, and **Screen: Theme Sunset Offset**. Changes apply without a reboot. The setup-page preview follows the chosen manual theme or, in Automatic, the reported Active Theme.
+
+The theme changes the panel's neutral backgrounds, controls and text, including setup and loading screens. Primary/accent, artwork, camera images, cover art, QR codes and status colours keep their own colours. The clock screensaver keeps a black background and its saved text colour in both themes; theme changes do not wake the panel or reset navigation.
+
+Backups include the theme mode, automatic method, times and offsets. Older backups without these fields leave the panel's current theme settings unchanged. Older Schedule and Sun selections migrate to Automatic with the corresponding method.
+
+## Active colour
+
+- **Primary** — the colour cards show when an entity is active. Choose from the same compact grid used in individual card settings. It contains 19 preset colours and a final swatch with an eyedropper icon that opens your browser's native colour picker for any colour, including white. A checkmark shows the selected preset; an accent outline highlights a custom colour. The orange swatch is `FF8C00`, the panel's default active colour.
 - Secondary inactive cards and tertiary information cards use fixed panel colours so setup stays simpler and modal styling remains consistent.
 
-Colour changes apply to the panel automatically after a brief pause (about 200 ms), plus the time needed to redraw the cards, including cards on subpages. You do not need to restart the panel. **Reset colours** applies the default colour in the same way.
+The eyedropper swatch has a dashed border while empty and a solid border once a custom colour is chosen. Choosing a preset keeps the custom colour visible in the swatch while selecting the preset. Click the eyedropper again to restore that custom colour and open the picker. This retained colour is kept while editing the current panel; the selected colour is what is saved.
 
-Disabled cards keep their background colour and show dark grey labels and icons. Their normal text and icon colours return when the card becomes available again.
+Text and icons keep white on dark and mid-tone backgrounds, including the orange, green, teal and blue presets. Pale backgrounds use dark grey content. The panel and web preview use the same rule. Custom cards use a brighter tint when active for darker colours, or a darker shade for pale colours and white, making on and off easier to distinguish.
+
+Slider cards use a contrasting fill that keeps labels readable as values change.
+
+Striped active cards use lighter or darker stripes to keep text readable across both tones.
+
+Mac app cards use the normal card theme by default and preserve previously saved custom backgrounds.
+
+Custom card colours stay in place when changing a card’s controls, reopening its editor or switching themes. Media Cover Art uses the chosen card colour while artwork is loading or unavailable; visible artwork keeps white text. Media progress bars use a lighter or darker shade of the chosen card colour so progress remains visible.
+
+Colour changes apply to the panel automatically after a brief pause (about 200 ms), plus the time needed to redraw the cards, including cards on subpages. You do not need to restart the panel. The reset icon beside the **Appearance** arrow applies the default orange in the same way.
+
+For a quick background change, right-click a card in the web preview, then hover over **Change Colour** (marked with a chevron) to open its pop-out palette. You can also click it to open the submenu. Pick a preset or use the eyedropper for a custom colour; the choice saves immediately. You can also change several selected cards together or recolour a subpage’s **Back** card. Image and full QR cards keep their fixed backgrounds. **Reset Colour** restores the default background while keeping any separate active-state colour.
+
+Cards using their default background highlight the matching preset or custom picker for the current theme. Resetting a card’s colours restores this default selection.
+
+Disabled cards keep their background colour and show muted labels and icons. Their normal text and icon colours return when the card becomes available again.

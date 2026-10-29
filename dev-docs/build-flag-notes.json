@@ -15,10 +15,6 @@
     "purpose": "Keeps Xtensa literal pools close enough for the large generated S3 firmware translation unit to link.",
     "remove_when": "The S3 firmware is split into smaller translation units or the toolchain makes the flag unnecessary."
   },
-  "ESPDESKTOP_DISABLE_WEATHER_FORECAST=1": {
-    "purpose": "Excludes the weather-forecast card from the constrained S3 firmware.",
-    "remove_when": "The card compiles and runs with safe flash and heap headroom on that panel."
-  },
   "ESPDESKTOP_DEVICE_SLUG=\"${device_slug}\"": {
     "purpose": "Injects the selected device profile slug into the compiled firmware for diagnostics and runtime identification.",
     "remove_when": "The device slug is supplied through generated component configuration instead of a preprocessor definition."

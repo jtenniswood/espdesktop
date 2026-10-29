@@ -8,7 +8,7 @@ description:
 
 The panel can use a screensaver when it's not being used. When active, it can dim the normal screen, show a dim clock, display a Home Assistant image, or turn the backlight off so the panel goes dark. Touch the screen to wake it up.
 
-There are four screensaver modes, configured in **Settings > Sleep & Schedule > Screensaver** on the [Setup](/features/setup) page:
+There are four screensaver modes, configured in **Screen > Sleep & Schedule > Screensaver** on the [Setup](/features/setup) page:
 
 ## Disabled
 
@@ -32,17 +32,21 @@ If the 10 or 30 second choices are not shown, update the panel firmware first. T
 Use **Then** to choose what happens when the screensaver activates:
 
 - **Screen Dimmed** — keeps the normal screen visible, but lowers the backlight. The first tap wakes the screen instead of pressing a card.
-- **Clock** — shows a large drifting clock at reduced brightness. The clock repositions itself periodically to prevent burn-in.
+- **Clock** — shows a large drifting clock at reduced brightness. The time updates at each minute boundary, and the clock repositions itself to prevent burn-in.
 - **Display Off** (the default) — switches to a black screen and turns the backlight off completely. While the backlight is off, EspDesktop can exercise the LCD pixels in the background to reduce burn-in risk; this should not be visible.
 - **Camera** — on ESP32-P4 panels and the 4-inch 4848S040 ESP32-S3 panel, shows the selected `camera.*` or `image.*` entity full-screen. Choose **Fit** to keep the whole image visible (with black space where its shape does not match the panel) or **Fill** to crop the image to the screen. The image refreshes when Home Assistant reports an update and the previous successful image stays visible while a replacement downloads. If no image is available, the panel shows **Camera unavailable** and retries safely.
 
 When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brightness**. Automatic and Timed brightness modes use separate **Daytime Dimmed Screen Brightness** and **Nighttime Dimmed Screen Brightness** values, changing at the same sunrise/sunset or dawn/dusk boundary as the main screen. When Clock is selected, set separate **Daytime Clock Brightness** and **Nighttime Clock Brightness** values.
+
+**Show date** adds the local date below the Clock screensaver, centered in a smaller font. It is off by default, is saved across restarts, and moves with the clock to reduce burn-in. The month uses the panel’s selected language. Update the panel firmware if the toggle is not shown. Timer, Sensor and App Connection modes share the setting.
 
 ## App Connection
 
 The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout, and retained media playback does not replace that action with cover art. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
 
 The 4-inch ESP32-S3 camera screensaver uses the panel's native 480×480 resolution. The screensaver requests the original Home Assistant snapshot to avoid extra compression, then resizes it on the panel. If downloading or decoding it fails, subsequent requests ask Home Assistant for display-sized snapshots for the rest of that screensaver session. Sharpness still depends on the source image; filtered JPEG resizing preserves detail when reducing images and smooths edges when enlarging them.
+
+Animated GIFs from the selected `camera.*` or `image.*` entity play automatically in the Camera screensaver, with both **Fit** and **Fill** supported. Playback stops when you wake the panel or leave Camera mode. The usual [GIF file, size and memory limits](/card-types/cameras#setting-up-a-camera-card) apply; large images may play more slowly. Single-frame GIFs remain still. The media Cover Art screensaver continues to show a still frame.
 
 ### Photos from Immich
 
@@ -103,3 +107,25 @@ When Night Schedule is using fixed **Time** hours, it has priority over screensa
 If you want presence to control when the panel is in night mode, set Night Schedule to **Sensor** mode instead of **Time** mode.
 
 On the first start after updating to the separate-sensor firmware, the existing Screensaver Presence Entity is copied to the Night Schedule Sensor Entity once. You can then change either setting independently without affecting the other.
+
+## PIN protection after wake
+
+In **Screen > Sleep & Schedule > Pin Protection**, turn on **Require PIN after wake** to show the PIN controls. Enter a numeric **PIN** (1–16 digits) and choose **Save** to enable protection. Until a PIN is saved, turning on the toggle only opens setup; refreshing the page returns it to off.
+
+Use the same field and **Save** button to change the PIN. **Clear** removes it and disables protection; turning off the toggle keeps the saved PIN for later use. Saved settings survive a restart. Update the panel firmware if the controls are not shown.
+
+**Randomize keypad layout** is off by default. Turn it on to shuffle the digit layout each time the PIN keypad opens. The choice is saved on the panel.
+
+The [Screen Lock card](/card-types/screen-lock) manages the same PIN and keypad preference in its card editor. It works with **Require PIN after wake** turned off. Its **Screensaver on lock** option can start the screensaver immediately; with the option off, the current screen remains visible and touching it opens the PIN keypad. Unlocking after a screensaver also releases a preceding card lock. To clear the shared PIN, use **Clear** in **Screen > Sleep & Schedule > Pin Protection**; this releases the lock and disables automatic PIN protection.
+
+After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake, presence wake, scheduled wake, and the local Screensaver card all use the same protection. With protection disabled or no PIN saved, wake works as before. When protection is active, tapping a Cover Art playback button wakes the PIN keypad without changing playback; use your media controls after unlocking.
+
+This protects local touchscreen controls, including status buttons and alarm modals. It does not protect network, Home Assistant, OTA, or web administration access. Someone with web setup access can change or clear the PIN; configure [web authentication](/getting-started/manual-esphome-setup#advanced-password-protect-the-web-page) separately if needed. The PIN is never returned by the settings API or included in backup JSON. Importing a backup clears the destination panel's PIN, so set a new PIN on its web setup page afterward.
+
+## Start the screensaver with a card
+
+Add the **Screensaver** card to the home screen or a subpage. It needs no Home Assistant entity. Tapping it immediately starts the selected **Then** action: Display Off, Screen Dimmed, Clock, or Camera on supported panels. It works even when automatic screensavers are disabled, presence is detected, or media is playing. Tap the screen to wake it, then enter the PIN if protection is enabled.
+
+### Camera background dimming
+
+In **Screen → Screensaver**, **Background Dimming** darkens camera or image backgrounds from 0% (original brightness) to 100% (black), while keeping the clock and metadata readable. Timer and Sensor modes share the value. It survives restarts and is included in backups. Older backups keep the current value; older firmware hides the setting.

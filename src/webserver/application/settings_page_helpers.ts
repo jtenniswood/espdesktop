@@ -43,9 +43,9 @@ export interface SettingsPageHelpersControllers {
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "switchTab">;
     readonly requestApi: Pick<ApplicationApiFeature, "postScreensaverAction" | "postScreensaverDimmedBrightness" | "postScreensaverDimmedBrightnessDay" | "postScreensaverDimmedBrightnessNight" | "postSwitch">;
     readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
-    readonly clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBrightnessDay" | "postClockBrightnessNight" | "postClockScreensaver" | "postAlarmDelayAudio" | "postAlarmDelayTts" | "postAlarmDelayEntryAnnouncement" | "postAlarmDelayExitAnnouncement" | "postAlarmDelayBeepVolume" | "postAlarmDelayFinalCountdown">;
+    readonly clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBrightnessDay" | "postClockBrightnessNight" | "postClockScreensaver" | "postClockDate" | "postAlarmDelayAudio" | "postAlarmDelayTts" | "postAlarmDelayEntryAnnouncement" | "postAlarmDelayExitAnnouncement" | "postAlarmDelayBeepVolume" | "postAlarmDelayFinalCountdown">;
     readonly fields: Pick<ControlsFieldsFeature, "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "toggleRow">;
-    readonly artworkPostApi: Pick<ArtworkPostApiFeature, "postScreensaverCameraEntity" | "postScreensaverCameraImageMode">;
+    readonly artworkPostApi: Pick<ArtworkPostApiFeature, "postScreensaverCameraEntity" | "postScreensaverCameraImageMode" | "postScreensaverCameraDimming">;
 }
 
 export interface SettingsPageHelpersFeature {
@@ -75,7 +75,7 @@ export interface SettingsPageHelpersFeature {
 
 export function formatHomeAssistantArtworkEndpointStatus(status: string): string {
     const normalized = String(status || "").trim();
-    return normalized.replace(/^(?:Automatic|Fallback|Manual)\s*[—-]\s*/i, "").trim() || "Discovering";
+    return normalized || "Discovering";
 }
 
 export function createSettingsPageHelpersFeature(
@@ -90,6 +90,7 @@ export function createSettingsPageHelpersFeature(
         postClockBrightnessDay,
         postClockBrightnessNight,
         postClockScreensaver,
+        postClockDate,
         postAlarmDelayAudio,
         postAlarmDelayTts,
         postAlarmDelayEntryAnnouncement,
@@ -366,9 +367,21 @@ export function createSettingsPageHelpersFeature(
         }
         if (els.setScreensaverCameraPanel)
             els.setScreensaverCameraPanel.style.display = cameraDisplay;
+        for (const slider of [els.setScreensaverCameraDimming, els.setSensorScreensaverCameraDimming]) {
+            if (!slider) continue;
+            slider.value = String(state.screensaverCameraDimming);
+            const wrap = slider.closest(".sp-field");
+            wrap.style.display = cameraSupported && controlState.cameraVisible && state.screensaverCameraDimmingSupported ? "" : "none";
+            wrap.querySelector(".sp-range-val").textContent = state.screensaverCameraDimming + "%";
+        }
         var automaticBrightness: any = normalizeBrightnessMode(state.brightnessMode) !== "manual";
         state.clockScreensaverOn = mode === "clock";
         syncClockBarUi();
+        for (const toggle of [els.setClockDateToggle, els.setSensorClockDateToggle, els.setCompanionClockDateToggle]) {
+            if (!toggle) continue;
+            toggle.checked = state.clockDateOn;
+            toggle.closest(".sp-toggle-row").style.display = state.clockDateSupported ? "" : "none";
+        }
         if (els.setClockSelect)
             els.setClockSelect.value = mode;
         if (els.setSensorClockSelect)
@@ -489,6 +502,9 @@ export function createSettingsPageHelpersFeature(
     function syncCoverArtScreensaverUi(this: any) {
         applyCoverArtScreensaverState(_coverArtScreensaverController.normalize(coverArtScreensaverState()));
         var uiState: any = _coverArtScreensaverController.uiState(coverArtScreensaverState());
+        if (els.setCoverArtPlaybackControlToggle) {
+            els.setCoverArtPlaybackControlToggle.checked = state.coverArtPlaybackControlOn;
+        }
         if (els.setCoverArtToggle) {
             els.setCoverArtToggle.checked = !!state.coverArtScreensaverOn;
         }
@@ -522,6 +538,9 @@ export function createSettingsPageHelpersFeature(
             els.setHomeAssistantArtworkProtocol.value =
                 normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol);
         }
+        if (els.setHomeAssistantArtworkHost) {
+            els.setHomeAssistantArtworkHost.value = String(state.homeAssistantArtworkHost || "");
+        }
         if (els.setCoverArtHomeAssistantPort) {
             els.setCoverArtHomeAssistantPort.value = String(normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort));
         }
@@ -535,8 +554,12 @@ export function createSettingsPageHelpersFeature(
         if (els.setCoverArtHomeAssistantPortField) {
             els.setCoverArtHomeAssistantPortField.classList.toggle("sp-hidden", !manualEndpoint);
         }
+        if (els.setHomeAssistantArtworkHostField) {
+            els.setHomeAssistantArtworkHostField.classList.toggle("sp-hidden", !manualEndpoint);
+        }
         if (els.setHomeAssistantArtworkProtocol) els.setHomeAssistantArtworkProtocol.disabled = !manualEndpoint;
         if (els.setCoverArtHomeAssistantPort) els.setCoverArtHomeAssistantPort.disabled = !manualEndpoint;
+        if (els.setHomeAssistantArtworkHost) els.setHomeAssistantArtworkHost.disabled = !manualEndpoint;
         if (els.homeAssistantArtworkEndpointStatus) {
             var endpointStatus: any = formatHomeAssistantArtworkEndpointStatus(state.homeAssistantArtworkEndpointStatus);
             if (els.homeAssistantArtworkEndpointStatusOutput) {
@@ -544,6 +567,10 @@ export function createSettingsPageHelpersFeature(
             } else {
                 els.homeAssistantArtworkEndpointStatus.textContent = endpointStatus;
             }
+        }
+        if (els.homeAssistantArtworkEndpointHealth) {
+            els.homeAssistantArtworkEndpointHealth.textContent = state.homeAssistantArtworkEndpointHealth;
+            els.homeAssistantArtworkEndpointHealth.hidden = !state.homeAssistantArtworkEndpointHealth;
         }
         if (els.setCoverArtFilterToggle) {
             els.setCoverArtFilterToggle.checked = !!state.coverArtFilteringEnabled;
@@ -633,6 +660,18 @@ export function createSettingsPageHelpersFeature(
             syncClockScreensaverControls();
         });
         cameraImageModeField.appendChild(cameraImageModeSelect);
+        var cameraDimming = createRangeSlider("Background Dimming", state.screensaverCameraDimming, controllers.artworkPostApi.postScreensaverCameraDimming);
+        cameraDimming.range.id = selectId === "sp-set-sensor-clock-mode"
+            ? "sp-set-sensor-screensaver-camera-dimming" : "sp-set-screensaver-camera-dimming";
+        cameraDimming.range.min = "0";
+        cameraDimming.range.step = "1";
+        cameraDimming.range.value = String(state.screensaverCameraDimming);
+        cameraDimming.wrap.querySelector("label").htmlFor = cameraDimming.range.id;
+        cameraDimming.wrap.style.display = state.screensaverCameraDimmingSupported && _screensaverController.uiState(screensaverState()).cameraVisible ? "" : "none";
+        cameraDimming.range.addEventListener("input", function (this: any) {
+            state.screensaverCameraDimming = Math.max(0, Math.min(100, Math.round(Number(this.value))));
+            syncClockScreensaverControls();
+        });
         var dimBrightnessField: any = document.createElement("div");
         dimBrightnessField.style.display = _screensaverController.uiState(screensaverState()).dimVisible ? "" : "none";
         var manualDimBrightnessField: any = document.createElement("div");
@@ -669,6 +708,16 @@ export function createSettingsPageHelpersFeature(
         var clockBrightnessField: any = document.createElement("div");
         clockBrightnessField.className = "sp-clock-brightness-field";
         clockBrightnessField.style.display = _screensaverController.uiState(screensaverState()).clockVisible ? "" : "none";
+        var dateToggle = toggleRow("Show date", selectId === "sp-set-sensor-clock-mode"
+            ? "sp-set-sensor-clock-date" : selectId === "sp-set-companion-clock-mode"
+                ? "sp-set-companion-clock-date" : "sp-set-clock-date", state.clockDateOn);
+        dateToggle.row.style.display = state.clockDateSupported ? "" : "none";
+        dateToggle.input.addEventListener("change", function (this: any) {
+            state.clockDateOn = this.checked;
+            syncClockScreensaverControls();
+            postClockDate(state.clockDateOn);
+        });
+        clockBrightnessField.appendChild(dateToggle.row);
         var daySlider: any = createRangeSlider("Daytime Clock Brightness", state.clockBrightnessDay, postClockBrightnessDay);
         daySlider.range.min = "1";
         daySlider.range.step = "1";
@@ -686,10 +735,13 @@ export function createSettingsPageHelpersFeature(
         });
         clockBrightnessField.appendChild(nightSlider.wrap);
         return {
+            dateToggle: dateToggle.input,
             clockField: clockField,
             clockSelect: clockSelect,
             cameraField: cameraField,
             cameraInput: cameraInput,
+            cameraDimmingField: cameraDimming.wrap,
+            cameraDimming: cameraDimming.range,
             cameraImageModeField: cameraImageModeField,
             cameraImageModeSelect: cameraImageModeSelect,
             dimBrightnessField: dimBrightnessField,

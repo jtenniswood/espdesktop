@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "company.thebrowser.Browser",
+  "label": "Arc",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open a new tab",
+      "shortcut": "command+t",
+      "icon": "Application"
+    },
+    {
+      "id": "1",
+      "label": "Close the current tab or window",
+      "shortcut": "command+w",
+      "icon": "Application"
+    },
+    {
+      "id": "2",
+      "label": "Reopen the last closed tab",
+      "shortcut": "command+shift+t",
+      "icon": "Application"
+    },
+    {
+      "id": "3",
+      "label": "Pin or unpin the current tab",
+      "shortcut": "command+d",
+      "icon": "Application"
+    },
+    {
+      "id": "4",
+      "label": "Change the current tab URL",
+      "shortcut": "command+l",
+      "icon": "Application"
+    },
+    {
+      "id": "5",
+      "label": "Show or hide the sidebar",
+      "shortcut": "command+s",
+      "icon": "Application"
+    },
+    {
+      "id": "6",
+      "label": "Go directly to tab N",
+      "shortcut": "command+1",
+      "icon": "Application"
+    },
+    {
+      "id": "7",
+      "label": "Switch between the five most recent tabs",
+      "shortcut": "control+tab",
+      "icon": "Application"
+    },
+    {
+      "id": "8",
+      "label": "Reload the webpage",
+      "shortcut": "command+r",
+      "icon": "Application"
+    },
+    {
+      "id": "9",
+      "label": "Find text on the webpage",
+      "shortcut": "command+f",
+      "icon": "Application"
+    }
+  ]
+}

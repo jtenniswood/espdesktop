@@ -354,13 +354,19 @@ export function createControlsFieldsFeature(
     }
     function cardLargeNumbersActiveForCardSize(this: any, b?: any, helpers?: any, metadata?: any) {
         helpers = helpers || {};
+        metadata = metadata || cardLargeNumbersMetadata(b);
         if (!cardLargeNumbersSupported(b) ||
-            !cardLargeNumbersSupportsCardSize(b, helpers, metadata || cardLargeNumbersMetadata(b))) {
+            !cardLargeNumbersSupportsCardSize(b, helpers, metadata)) {
             return false;
         }
         if (largeNumbersExplicitlyDisabled(b && b.options))
             return false;
-        return (helpers.cardSize || CARD_SIZE_SINGLE) === CARD_SIZE_LARGE || cardLargeNumbersEnabled(b);
+        var large: any = metadata.largeNumbers || {};
+        var defaultEnabled: any = large.defaultEnabled;
+        var defaultActive: any = typeof defaultEnabled === "function"
+            ? !!defaultEnabled(b, helpers)
+            : (helpers.cardSize || CARD_SIZE_SINGLE) === CARD_SIZE_LARGE;
+        return defaultActive || cardLargeNumbersEnabled(b);
     }
     function cardLargeNumbersHidePreviewLabel(this: any, b?: any, helpers?: any, metadata?: any) {
         if (!cardLargeNumbersActiveForCardSize(b, helpers, metadata))
@@ -523,7 +529,7 @@ export function createControlsFieldsFeature(
     function renderCardSegmentControl(this: any, panel?: any, b?: any, helpers?: any, metadata?: any) {
         metadata = metadata || {};
         var segment: any = metadata.segment || metadata;
-        var control: any = helpers.segmentControl(segment.options || [], cardMetadataValue(segment.value, b, helpers) || "", function (this: any, value?: any, button?: any) {
+        var control: any = helpers.segmentControl(cardMetadataValue(segment.options, b, helpers) || [], cardMetadataValue(segment.value, b, helpers) || "", function (this: any, value?: any, button?: any) {
             if (segment.onSelect)
                 segment.onSelect(b, helpers, value, button, control);
         });
@@ -560,6 +566,7 @@ export function createControlsFieldsFeature(
         return {
             iconHtml: cardIconHtml(cardIconSlug(b, helpers, options.iconFallback, options.iconField), options.iconExtraHtml || ""),
             labelHtml: cardBadgeLabelHtml(helpers, options.label || "Configure", options.badge),
+            labelEditable: options.labelEditable !== false,
         };
     }
     function condField(this: any) {

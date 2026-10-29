@@ -121,6 +121,7 @@ import { registerLockCardTypes } from "./cards/lock";
 import { registerMediaCardTypes } from "./cards/media";
 import { registerPresenceCardTypes } from "./cards/presence";
 import { registerPushCardTypes } from "./cards/push";
+import { registerScreensaverCardTypes } from "./cards/screensaver";
 import { registerScreenLockCardTypes } from "./cards/screen_lock";
 import { registerSensorCardTypes } from "./cards/sensor";
 import { registerSliderCardTypes } from "./cards/slider";
@@ -210,10 +211,11 @@ function registerCards(context: ApplicationContext) {
   registerLawnMowerCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const lightCards = registerLightTemperatureCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
   registerLockCardTypes(registry, context.configuration.lockOptions, fields, cardUi);
-  registerMediaCardTypes(registry, context.configuration.mediaOptions, context.device.id, fields, context.controllers.settingsUi, cardUi);
+  registerMediaCardTypes(registry, context.configuration.mediaOptions, context.configuration.modalTabs, context.device.id, fields, context.controllers.settingsUi, cardUi);
   registerPresenceCardTypes(registry, context.configuration.options, fields);
   registerPushCardTypes(registry, fields);
-  registerScreenLockCardTypes(registry, fields);
+  registerScreenLockCardTypes(registry, fields, context.dom.document, context.dom.fetch);
+  registerScreensaverCardTypes(registry, fields);
   registerSensorCardTypes(registry, context.configuration.options, fields, cardUi,
     () => context.configuration.native.homeAssistantSupportEnabled());
   registerSliderCardTypes(
@@ -348,7 +350,6 @@ function composeApplicationContext(): ApplicationContext {
     schedule: dom.schedule,
     cancelSchedule: (handle) => { dom.window.clearTimeout(handle); },
     buildSettingsPage: (parent) => { settingsPage.buildSettingsPage(parent); },
-    buildConnectorsPage: (parent) => { connectorsPage.buildPage(parent); },
     closeSettings: () => { selection.closeSettings(); },
     postButtonPress: (name) => requestApi.postButtonPress(name),
     waitForReboot: () => { stateLoader.waitForReboot(); },
@@ -685,6 +686,7 @@ function composeApplicationContext(): ApplicationContext {
     emptyButtonConfig: () => interactions.emptyButtonConfig(),
   });
   contextMenu = createPreviewContextMenuFeature({
+    configPersistence: configurationPersistence,
     document: dom.document,
     window: dom.window,
     layout,
@@ -784,6 +786,7 @@ function composeApplicationContext(): ApplicationContext {
       ntpServer2: state.ntpServer2,
       ntpServer3: state.ntpServer3,
       coverArtHomeAssistantProtocol: state.homeAssistantArtworkProtocol,
+      coverArtHomeAssistantHost: state.homeAssistantArtworkHost,
       coverArtHomeAssistantPort: state.coverArtHomeAssistantPort,
       coverArtHomeAssistantEndpointMode: state.homeAssistantArtworkEndpointMode,
       autoUpdate: state.autoUpdate,

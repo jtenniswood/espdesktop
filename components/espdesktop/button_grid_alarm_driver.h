@@ -1,5 +1,7 @@
 #pragma once
 
+#include "card_modal_target.h"
+
 // Shared lifecycle driver for Alarm cards. The specialised PIN entry,
 // arming countdown, critical display takeover, Home Assistant, and modal
 // helpers remain in button_grid_alarm.h; this driver owns the grid/subpage
@@ -47,19 +49,22 @@ struct AlarmDriverEnvironment {
   lv_obj_t *grid_page = nullptr;
   int slot_count = 0;
   int grid_cols = 1;
-  uint32_t on_color = DEFAULT_SLIDER_COLOR;
-  uint32_t off_color = SECONDARY_GREY;
-  uint32_t tertiary_color = TERTIARY_GREY;
+  uint32_t on_color = DEFAULT_ACCENT_COLOR;
+  uint32_t off_color = theme_display_color(current_theme().surface_primary);
+  bool off_theme_owned = true;
+  uint32_t tertiary_color = theme_display_color(current_theme().surface_secondary);
+  int theme_red_percent = 100;
+  int theme_green_percent = 100;
+  int theme_blue_percent = 100;
   const lv_font_t *icon_font = nullptr;
   const lv_font_t *arming_title_font = nullptr;
   const lv_font_t *value_font = nullptr;
   const lv_font_t *key_font = nullptr;
   const lv_font_t *label_font = nullptr;
-  lv_color_t text_color = lv_color_hex(0xFFFFFF);
+  lv_color_t text_color = lv_color_hex(current_theme().text_primary);
   int width_compensation_percent = 100;
   std::function<void(espdesktop::DisplayTakeoverKind)> begin_display_takeover;
   std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;
-  AlarmDelayAudioHooks alarm_delay_audio;
   std::function<void(const std::string &)> add_parent_indicator;
 };
 
@@ -72,9 +77,13 @@ inline AlarmDriverEnvironment alarm_driver_environment(
   environment.slot_count = slot_count;
   environment.grid_cols = grid_cols;
   environment.on_color = palette.has_on
-    ? palette.on_val : DEFAULT_SLIDER_COLOR;
+    ? palette.on_val : DEFAULT_ACCENT_COLOR;
   environment.off_color = palette.off_val;
+  environment.off_theme_owned = !palette.custom_background;
   environment.tertiary_color = palette.sensor_val;
+  environment.theme_red_percent = display.color.red_percent;
+  environment.theme_green_percent = display.color.green_percent;
+  environment.theme_blue_percent = display.color.blue_percent;
   environment.icon_font = display_icon_font(display);
   environment.label_font = slot.text_lbl
     ? lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN) : nullptr;
@@ -84,12 +93,11 @@ inline AlarmDriverEnvironment alarm_driver_environment(
   environment.key_font = display_optional_media_title_font(display);
   environment.text_color = slot.text_lbl
     ? lv_obj_get_style_text_color(slot.text_lbl, LV_PART_MAIN)
-    : lv_color_hex(0xFFFFFF);
+    : lv_color_hex(current_theme().text_primary);
   environment.width_compensation_percent =
     display_main_width_percent(display);
   environment.begin_display_takeover = grid_config.begin_display_takeover;
   environment.end_display_takeover = grid_config.end_display_takeover;
-  environment.alarm_delay_audio = grid_config.alarm_delay_audio;
   return environment;
 }
 
@@ -128,8 +136,10 @@ inline AlarmCardCtx *alarm_driver_bind_data(
       environment.text_color, environment.width_compensation_percent,
       false, environment.begin_display_takeover,
       environment.end_display_takeover));
-  alarm_delay_audio_register_context(alarm);
-  alarm->audio_hooks = environment.alarm_delay_audio;
+  alarm->theme_red_percent = environment.theme_red_percent;
+  alarm->theme_green_percent = environment.theme_green_percent;
+  alarm->theme_blue_percent = environment.theme_blue_percent;
+  alarm->off_theme_owned = environment.off_theme_owned;
   if (context.surface == Surface::SUBPAGE) {
     alarm->grid_page = environment.grid_page;
   }
@@ -176,6 +186,16 @@ inline bool alarm_driver_handle_main_click(
     ? static_cast<AlarmCardCtx *>(lv_obj_get_user_data(button)) : nullptr;
   if (alarm_card_context_valid(alarm)) alarm_card_open_page(alarm);
   return true;
+}
+
+// Explicit modal-only route; it must never activate the card's command path.
+inline ModalTarget alarm_driver_modal_target(
+    const Context &context, const ParsedCfg &config, lv_obj_t *button) {
+  if (!alarm_driver_matches(context)) return {};
+  auto *runtime = button
+    ? static_cast<AlarmCardCtx *>(lv_obj_get_user_data(button)) : nullptr;
+  return modal_target(runtime, config.entity, ControlModalKind::ALARM_CONTROL,
+                      alarm_control_can_open_modal(runtime), alarm_control_open_modal);
 }
 
 }  // namespace espdesktop::cards

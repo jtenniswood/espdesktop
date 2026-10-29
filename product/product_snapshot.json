@@ -9,10 +9,10 @@
     "compatibilityFixtures": "product/v2/product_compatibility.json"
   },
   "summary": {
-    "deviceProfiles": 8,
-    "cardTypes": 44,
-    "entityNames": 115,
-    "icons": 388,
+    "deviceProfiles": 9,
+    "cardTypes": 45,
+    "entityNames": 121,
+    "icons": 397,
     "structuralIcons": 31,
     "compatibilityFixtureGroups": 2
   },
@@ -74,21 +74,22 @@
           "left": 0.49,
           "right": 0.49,
           "bottom": 0.49,
-          "gap": 0.76,
+          "gap": 0.976562,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 0.78,
+          "radius": 3.125,
           "padding": 1.37,
           "iconSize": 4.69,
           "labelSize": 1.8,
           "coverArtTitleSize": 7.421875,
           "coverArtArtistSize": 3.90625,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 1.757812
         },
         "emptyCell": {
-          "radius": 0.78
+          "radius": 3.125
         },
         "sensorBadge": {
           "top": 1,
@@ -99,7 +100,8 @@
           "bottom": 1,
           "right": 1,
           "fontSize": 2
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -118,7 +120,8 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "wrapTallLabels": true,
@@ -189,7 +192,7 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "16px",
-            "radius": "10px",
+            "radius": "32px",
             "main_page_card_gap": "\"10\"",
             "main_page_pad_top": "\"42\"",
             "main_page_compact_pad_top": "\"5\"",
@@ -201,7 +204,10 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\""
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "card_curve_small_radius": "8px",
+            "card_curve_medium_radius": "20px",
+            "button_radius": "10px"
           },
           "deviceFontPackageKey": "fonts_device",
           "networkCoprocessor": true,
@@ -210,7 +216,8 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          }
+          },
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -274,21 +281,22 @@
           "left": 0.49,
           "right": 0.49,
           "bottom": 0.49,
-          "gap": 0.76,
+          "gap": 0.976562,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 0.78,
+          "radius": 3.125,
           "padding": 1.37,
           "iconSize": 4.69,
           "labelSize": 1.8,
           "coverArtTitleSize": 7.421875,
           "coverArtArtistSize": 3.90625,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 1.757812
         },
         "emptyCell": {
-          "radius": 0.78
+          "radius": 3.125
         },
         "sensorBadge": {
           "top": 1,
@@ -299,7 +307,8 @@
           "bottom": 1,
           "right": 1,
           "fontSize": 2
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -318,7 +327,8 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "wrapTallLabels": true,
@@ -389,7 +399,7 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "16px",
-            "radius": "10px",
+            "radius": "32px",
             "main_page_card_gap": "\"10\"",
             "main_page_pad_top": "\"42\"",
             "main_page_compact_pad_top": "\"5\"",
@@ -401,7 +411,10 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\""
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "card_curve_small_radius": "8px",
+            "card_curve_medium_radius": "20px",
+            "button_radius": "10px"
           },
           "deviceFontPackageKey": "fonts_device",
           "networkCoprocessor": true,
@@ -410,7 +423,8 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          }
+          },
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -463,31 +477,32 @@
           }
         },
         "topbar": {
-          "height": 6.45,
-          "padding": "1.2cqw 0.59cqw 0.59cqw",
+          "height": 12,
+          "padding": "2.9cqw 0.59cqw 0.9cqw",
           "fontSize": 4.5
         },
         "grid": {
-          "top": 8.58,
+          "top": 12.5,
           "compactTop": 1.5,
           "left": 1.5,
           "right": 1.5,
           "bottom": 1.5,
-          "gap": 1.74,
+          "gap": 2.916667,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 1.18,
-          "padding": 2.73,
+          "radius": 6.666667,
+          "padding": 4.375,
           "iconSize": 14,
           "labelSize": 5.5,
           "coverArtTitleSize": 7.375,
           "coverArtArtistSize": 5,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 5.208333
         },
         "emptyCell": {
-          "radius": 1.18
+          "radius": 6.666667
         },
         "sensorBadge": {
           "top": 1.52,
@@ -498,7 +513,8 @@
           "bottom": 1.52,
           "right": 1.52,
           "fontSize": 4.03
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -513,11 +529,13 @@
           "mediaCoverArtTitle": "font_cover_art_title",
           "mediaCoverArtArtist": "font_cover_art_artist",
           "volumeNumber": "font_number_value_large",
+          "volumeNumberCompact": "font_clock_display",
           "volumeLabel": "font_text_body",
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "modal": {
@@ -587,22 +605,228 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "21px",
-            "radius": "10px",
+            "radius": "32px",
             "main_page_card_gap": "\"14\"",
             "main_page_pad_top": "\"50\"",
             "main_page_compact_pad_top": "\"5\"",
             "clock_bar_item_gap": "\"96\"",
             "clock_bar_visual_gap": "\"12\"",
             "clock_font_size": "\"140\"",
+            "clock_date_font": "font_text_body",
             "clock_cx": "\"240\"",
             "clock_cy": "\"400\"",
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\""
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "button_radius": "10px",
+            "card_curve_small_radius": "8px",
+            "card_curve_medium_radius": "20px"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true
+          "esp32C6FirmwareUpdate": true,
+          "apiOpenModalAction": true
+        }
+      },
+      "settings": {
+        "largeSensorUnitOffsetPercent": -10
+      }
+    },
+    "guition-esp32-p4-jc4880p443-v3": {
+      "slug": "guition-esp32-p4-jc4880p443-v3",
+      "slots": 6,
+      "capabilities": {
+        "imageSlots": 6
+      },
+      "public": {
+        "name": "Guition JC4880P443 V3 (production silicon)",
+        "docsPath": "/screens/jc4880p443-v3",
+        "screenSize": "4.3 inches",
+        "resolution": "480 x 800",
+        "orientation": "Portrait"
+      },
+      "layout": {
+        "cols": 2,
+        "rows": 3,
+        "firmwareGrid": "3x2",
+        "portraitCols": 3
+      },
+      "rotation": {
+        "enabled": true,
+        "options": [
+          "0",
+          "90",
+          "180",
+          "270"
+        ],
+        "displayOffset": 180
+      },
+      "internalRelays": [],
+      "web": {
+        "dragMode": "displace",
+        "dragAnimation": true,
+        "screen": {
+          "width": "44%",
+          "aspect": "480/800"
+        },
+        "portrait": {
+          "cols": 3,
+          "rows": 2,
+          "screen": {
+            "width": "74%",
+            "aspect": "800/480"
+          }
+        },
+        "topbar": {
+          "height": 12,
+          "padding": "2.9cqw 0.59cqw 0.9cqw",
+          "fontSize": 4.5
+        },
+        "grid": {
+          "top": 12.5,
+          "compactTop": 1.5,
+          "left": 1.5,
+          "right": 1.5,
+          "bottom": 1.5,
+          "gap": 2.916667,
+          "fr": "1fr"
+        },
+        "btn": {
+          "radius": 6.666667,
+          "padding": 4.375,
+          "iconSize": 14,
+          "labelSize": 5.5,
+          "coverArtTitleSize": 7.375,
+          "coverArtArtistSize": 5,
+          "labelLines": 2,
+          "labelLinesDouble": 3,
+          "smallTextSize": 5.208333
+        },
+        "emptyCell": {
+          "radius": 6.666667
+        },
+        "sensorBadge": {
+          "top": 1.52,
+          "right": 1.52,
+          "fontSize": 3.22
+        },
+        "subpageBadge": {
+          "bottom": 1.52,
+          "right": 1.52,
+          "fontSize": 4.03
+        },
+        "continuousCorners": true
+      },
+      "firmware": {
+        "build": {
+          "chip": "ESP32-P4"
+        },
+        "fonts": {
+          "icon": "font_icon_main",
+          "sensor": "font_number_value",
+          "largeSensor": "font_number_value_large",
+          "mediaTitle": "font_text_title",
+          "mediaControlTitle": "font_cover_art_title",
+          "mediaCoverArtTitle": "font_cover_art_title",
+          "mediaCoverArtArtist": "font_cover_art_artist",
+          "volumeNumber": "font_number_value_large",
+          "volumeNumberCompact": "font_clock_display",
+          "volumeLabel": "font_text_body",
+          "climateCardIcon": "font_icon_card",
+          "subpageChevron": "font_icon_status",
+          "climateOptionTitle": "font_text_body",
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
+        },
+        "display": {
+          "modal": {
+            "layoutFamily": "compact-portrait",
+            "density": "compact",
+            "memoryTier": "standard",
+            "baseTouchTarget": 46
+          },
+          "wrapTallLabels": false,
+          "refreshRebuildsSubpages": true,
+          "subpageChevronX": 3,
+          "subpageChevronY": -2,
+          "subpageChevronTextWidthPercent": 96,
+          "coverArt": {
+            "cover_art_size": "480",
+            "cover_art_decode_size": "480",
+            "cover_art_x": "0",
+            "cover_art_y": "0",
+            "cover_art_accent_x": "0",
+            "cover_art_accent_y": "480",
+            "cover_art_accent_width": "480",
+            "cover_art_accent_height": "320",
+            "cover_art_accent_bg_opa": "100%",
+            "cover_art_accent_opa": "100%",
+            "cover_art_panel_x": "24",
+            "cover_art_panel_y": "514",
+            "cover_art_panel_width": "432",
+            "cover_art_panel_height": "262",
+            "cover_art_panel_pad_top": "0",
+            "cover_art_panel_pad_bottom": "0",
+            "cover_art_panel_pad_left": "0",
+            "cover_art_panel_pad_right": "0",
+            "cover_art_panel_pad_row": "0",
+            "cover_art_title_font": "font_cover_art_title",
+            "cover_art_title_max_height": "130",
+            "cover_art_title_line_space": "0",
+            "cover_art_artist_font": "font_cover_art_artist",
+            "cover_art_artist_pad_top": "10",
+            "cover_art_artist_long_mode": "dot",
+            "cover_art_time_font": "font_cover_art_time",
+            "cover_art_time_pad_top": "14",
+            "cover_art_progress_width": "480",
+            "cover_art_progress_height": "4",
+            "cover_art_text_color": "0xFFFFFF",
+            "cover_art_square_overlay": "false",
+            "cover_art_live_image_updates": "false"
+          }
+        },
+        "package": {
+          "firmwareVersion": "dev",
+          "substitutions": {
+            "screen_width": "\"480\"",
+            "screen_height": "\"800\"",
+            "content_width": "\"440\"",
+            "setup_icon_font_id": "font_icon_main",
+            "setup_title_font_id": "font_text_title",
+            "setup_body_font_id": "font_text_body",
+            "setup_pad_row": "\"20\"",
+            "setup_loading_pad_row": "\"40\"",
+            "setup_action_button_width": "\"200\"",
+            "setup_action_button_height": "\"56\"",
+            "setup_action_button_radius": "\"12\"",
+            "icon_font": "font_icon_main",
+            "subpage_chevron_font": "font_icon_status",
+            "label_font": "font_text_body",
+            "media_title_font": "font_text_title",
+            "unit_font": "font_text_body",
+            "sensor_value_font": "font_number_value",
+            "padding": "21px",
+            "radius": "32px",
+            "main_page_card_gap": "\"14\"",
+            "main_page_pad_top": "\"50\"",
+            "main_page_compact_pad_top": "\"5\"",
+            "clock_bar_item_gap": "\"96\"",
+            "clock_bar_visual_gap": "\"12\"",
+            "clock_font_size": "\"140\"",
+            "clock_date_font": "font_text_body",
+            "clock_cx": "\"240\"",
+            "clock_cy": "\"400\"",
+            "screen_saver_clock_min_brightness": "\"1\"",
+            "screen_saver_clock_default_brightness": "\"35\"",
+            "screen_schedule_clock_min_brightness": "\"1\"",
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "button_radius": "10px",
+            "card_curve_small_radius": "8px",
+            "card_curve_medium_radius": "20px"
+          },
+          "deviceFontPackageKey": "fonts_lg",
+          "esp32C6FirmwareUpdate": true,
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -665,21 +889,22 @@
           "left": 0.39,
           "right": 0.39,
           "bottom": 0.39,
-          "gap": 0.76,
+          "gap": 0.78125,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 0.86,
+          "radius": 1.71875,
           "padding": 1.41,
           "iconSize": 4.1,
           "labelSize": 1.88,
           "coverArtTitleSize": 6.875,
           "coverArtArtistSize": 3.125,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 1.5625
         },
         "emptyCell": {
-          "radius": 0.86
+          "radius": 1.71875
         },
         "sensorBadge": {
           "top": 0.86,
@@ -690,7 +915,8 @@
           "bottom": 0.86,
           "right": 0.86,
           "fontSize": 1.56
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -709,7 +935,8 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "wrapTallLabels": true,
@@ -778,7 +1005,7 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "18px",
-            "radius": "11px",
+            "radius": "22px",
             "main_page_card_gap": "\"10\"",
             "main_page_pad_top": "\"46\"",
             "main_page_compact_pad_top": "\"5\"",
@@ -790,13 +1017,15 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\""
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
           "esp32C6FirmwareUpdate": true,
           "extraPackages": {
             "battery": "!include device/battery.yaml"
-          }
+          },
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -859,21 +1088,22 @@
           "left": 0.39,
           "right": 0.39,
           "bottom": 0.39,
-          "gap": 0.76,
+          "gap": 0.78125,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 0.86,
+          "radius": 1.71875,
           "padding": 1.41,
           "iconSize": 4.1,
           "labelSize": 1.88,
           "coverArtTitleSize": 6.875,
           "coverArtArtistSize": 3.125,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 1.5625
         },
         "emptyCell": {
-          "radius": 0.86
+          "radius": 1.71875
         },
         "sensorBadge": {
           "top": 0.86,
@@ -884,7 +1114,8 @@
           "bottom": 0.86,
           "right": 0.86,
           "fontSize": 1.56
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -903,7 +1134,8 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "wrapTallLabels": true,
@@ -972,7 +1204,7 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "18px",
-            "radius": "11px",
+            "radius": "22px",
             "main_page_card_gap": "\"10\"",
             "main_page_pad_top": "\"46\"",
             "main_page_compact_pad_top": "\"5\"",
@@ -984,10 +1216,12 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\""
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true
+          "esp32C6FirmwareUpdate": true,
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -1011,7 +1245,8 @@
         "cols": 5,
         "rows": 4,
         "firmwareGrid": "5x4",
-        "portraitCols": 4
+        "portraitCols": 3,
+        "portraitSlots": 18
       },
       "rotation": {
         "enabled": true,
@@ -1032,12 +1267,13 @@
           "aspect": "1280/800"
         },
         "portrait": {
-          "cols": 4,
-          "rows": 5,
+          "cols": 3,
+          "rows": 6,
           "screen": {
             "width": "63%",
             "aspect": "800/1280"
-          }
+          },
+          "slots": 18
         },
         "topbar": {
           "height": 3.59,
@@ -1050,21 +1286,22 @@
           "left": 0.39,
           "right": 0.39,
           "bottom": 0.39,
-          "gap": 0.76,
+          "gap": 0.78125,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 0.86,
+          "radius": 1.71875,
           "padding": 1.41,
           "iconSize": 4.1,
           "labelSize": 1.88,
           "coverArtTitleSize": 6.875,
           "coverArtArtistSize": 3.125,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 1.5625
         },
         "emptyCell": {
-          "radius": 0.86
+          "radius": 1.71875
         },
         "sensorBadge": {
           "top": 0.86,
@@ -1075,7 +1312,8 @@
           "bottom": 0.86,
           "right": 0.86,
           "fontSize": 1.56
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -1094,7 +1332,8 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "wrapTallLabels": true,
@@ -1163,7 +1402,7 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "18px",
-            "radius": "11px",
+            "radius": "22px",
             "main_page_card_gap": "\"10\"",
             "main_page_pad_top": "\"46\"",
             "main_page_compact_pad_top": "\"5\"",
@@ -1175,10 +1414,12 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\""
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true
+          "esp32C6FirmwareUpdate": true,
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -1241,21 +1482,22 @@
           "left": 1.04,
           "right": 1.04,
           "bottom": 0.83,
-          "gap": 1.39,
+          "gap": 2.083333,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 1.67,
+          "radius": 4.861111,
           "padding": 2.92,
           "iconSize": 9.58,
           "labelSize": 3.96,
           "coverArtTitleSize": 14.583333,
           "coverArtArtistSize": 8.333333,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 3.75
         },
         "emptyCell": {
-          "radius": 1.67
+          "radius": 4.861111
         },
         "sensorBadge": {
           "top": 2.08,
@@ -1266,7 +1508,8 @@
           "bottom": 2.08,
           "right": 2.08,
           "fontSize": 4
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -1285,7 +1528,8 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "modal": {
@@ -1352,7 +1596,7 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "21px",
-            "radius": "12px",
+            "radius": "35px",
             "main_page_card_gap": "\"15\"",
             "main_page_pad_top": "\"60\"",
             "main_page_compact_pad_top": "\"6\"",
@@ -1369,23 +1613,23 @@
             "voice_timer_alert_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac\"",
             "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
             "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
-            "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\""
+            "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\"",
+            "button_radius": "12px",
+            "speaker_amplifier_pin": "\"GPIO53\""
           },
           "deviceFontPackageKey": "fonts_device",
           "touchscreenPackage": true,
-          "localVoiceServices": true,
-          "alarmDelayAudio": true,
           "networkCoprocessor": true,
           "esp32C6FirmwareUpdate": true,
           "ethernetSelectable": true,
           "extraPackages": {
-            "voice_assistant": "!include device/voice_assistant.yaml",
-            "physical_volume_button": "!include device/physical_volume_button${network_package_suffix}.yaml"
+            "speaker_output": "!include ../../common/device/speaker_output_p4.yaml"
           },
           "backlightPwmFrequency": {
             "wifi": "100Hz",
             "ethernet": "20000Hz"
-          }
+          },
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -1440,9 +1684,6 @@
         "coverArtSquareOverlay": true,
         "dragMode": "displace",
         "dragAnimation": true,
-        "disabledCardTypes": [
-          "weather_forecast"
-        ],
         "screen": {
           "width": "55%",
           "aspect": "1/1"
@@ -1458,11 +1699,11 @@
           "left": 1.04,
           "right": 1.04,
           "bottom": 0.83,
-          "gap": 1.39,
+          "gap": 2.083333,
           "fr": "1fr"
         },
         "btn": {
-          "radius": 1.67,
+          "radius": 5.416667,
           "padding": 2.92,
           "iconSize": 9.58,
           "labelSize": 4.583333,
@@ -1470,10 +1711,11 @@
           "coverArtTitleSize": 14.583333,
           "coverArtArtistSize": 8.333333,
           "labelLines": 2,
-          "labelLinesDouble": 3
+          "labelLinesDouble": 3,
+          "smallTextSize": 3.75
         },
         "emptyCell": {
-          "radius": 1.67
+          "radius": 5.416667
         },
         "sensorBadge": {
           "top": 2.08,
@@ -1484,7 +1726,8 @@
           "bottom": 2.08,
           "right": 2.08,
           "fontSize": 4
-        }
+        },
+        "continuousCorners": true
       },
       "firmware": {
         "build": {
@@ -1503,7 +1746,8 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_body"
+          "climateOptionValue": "font_text_body",
+          "smallText": "font_text_small"
         },
         "display": {
           "modal": {
@@ -1574,7 +1818,7 @@
             "unit_font": "font_text_body",
             "sensor_value_font": "font_number_value",
             "padding": "14px",
-            "radius": "8px",
+            "radius": "26px",
             "main_page_card_gap": "\"10\"",
             "main_page_pad_top": "\"40\"",
             "main_page_compact_pad_top": "\"4\"",
@@ -1586,10 +1830,14 @@
             "screen_saver_clock_min_brightness": "\"1\"",
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
-            "screen_schedule_clock_default_brightness": "\"10\""
+            "screen_schedule_clock_default_brightness": "\"10\"",
+            "card_curve_small_radius": "16px",
+            "card_curve_medium_radius": "21px",
+            "button_radius": "8px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "apiNavigateAction": false
+          "apiNavigateAction": true,
+          "apiOpenModalAction": true
         }
       },
       "settings": {
@@ -1687,7 +1935,8 @@
         "weather",
         "image",
         "wifi_qr",
-        "timer"
+        "timer",
+        "screensaver"
       ],
       "capabilities": [
         "informationOnly",
@@ -2198,10 +2447,10 @@
           "capabilities": {
             "informationOnly": true,
             "subscriptions": true,
-            "actions": false,
+            "actions": true,
             "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
+            "modal": true,
+            "runtimeAllocation": true,
             "subpage": true
           }
         },
@@ -2246,7 +2495,19 @@
           "capabilities": {
             "informationOnly": true,
             "subscriptions": true,
-            "actions": false,
+            "actions": true,
+            "numericControl": false,
+            "modal": true,
+            "runtimeAllocation": true,
+            "subpage": true
+          }
+        },
+        "screensaver": {
+          "driver": "screensaver",
+          "capabilities": {
+            "informationOnly": false,
+            "subscriptions": false,
+            "actions": true,
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": false,
@@ -3177,6 +3438,12 @@
             "label": "Large Clock",
             "kind": "flag",
             "omitDefault": true
+          },
+          {
+            "name": "center_clock",
+            "label": "Center Clock",
+            "kind": "flag",
+            "omitDefault": true
           }
         ],
         "normalization": {
@@ -3215,7 +3482,8 @@
           },
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
-            "large_numbers"
+            "large_numbers",
+            "center_clock"
           ],
           "optionHook": "normalize_date_time_options"
         },
@@ -3407,7 +3675,7 @@
             "name": "climate_tabs",
             "label": "Visible Tabs",
             "kind": "text",
-            "defaultValue": "temperature|mode|preset|fan|swing",
+            "defaultValue": "temperature|mode|preset|fan|swing|horizontal_swing",
             "omitDefault": true
           }
         ],
@@ -4846,6 +5114,48 @@
             ]
           },
           {
+            "name": "power_entity",
+            "label": "Power Entity",
+            "kind": "text",
+            "omitDefault": true,
+            "applicability": [
+              {
+                "source": "field",
+                "name": "sensor",
+                "operator": "in",
+                "value": [
+                  "control_modal",
+                  "cover_art"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "media_tabs",
+            "label": "Modal Tabs",
+            "kind": "text",
+            "values": [
+              "controls",
+              "progress",
+              "volume",
+              "speakers",
+              "power"
+            ],
+            "defaultValue": "controls|progress|volume|speakers",
+            "omitDefault": true,
+            "applicability": [
+              {
+                "source": "field",
+                "name": "sensor",
+                "operator": "in",
+                "value": [
+                  "control_modal",
+                  "cover_art"
+                ]
+              }
+            ]
+          },
+          {
             "name": "label_display",
             "label": "Label Display",
             "kind": "choice",
@@ -4989,6 +5299,8 @@
             "cover_art_details",
             "cover_art_secondary_entity",
             "speaker_group_entity",
+            "power_entity",
+            "media_tabs",
             "volume_max",
             "playlist_content_id",
             "playlist_content_type",
@@ -5108,6 +5420,14 @@
         "domains": [],
         "options": [
           {
+            "name": "custom_icon",
+            "label": "Use custom icon",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "app_shortcuts",
             "label": "App Subpage",
             "kind": "flag",
@@ -5163,6 +5483,22 @@
             "omitDefault": true
           },
           {
+            "name": "app_bg_color",
+            "label": "App background colour",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "app_hide_label",
+            "label": "Hide app label",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "webapp_icon_title",
             "label": "Large icon with title",
             "kind": "flag",
@@ -5212,6 +5548,7 @@
           },
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
+            "custom_icon",
             "app_shortcuts",
             "finder_open_behavior",
             "finder_open_override",
@@ -5219,7 +5556,9 @@
             "app_shortcut_preset",
             "large_numbers",
             "stat_labels_off",
-            "webapp_icon_title"
+            "webapp_icon_title",
+            "app_bg_color",
+            "app_hide_label"
           ],
           "optionHook": "normalize_date_time_options"
         },
@@ -5239,6 +5578,14 @@
         "label": "Screen Lock",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "screensaver_on_lock",
+            "label": "Screensaver on lock",
+            "kind": "flag",
+            "omitDefault": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -5269,11 +5616,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "screensaver_on_lock"
+          ]
         },
         "default": {
           "entity": "",
@@ -5878,23 +6227,12 @@
             "values": [
               "",
               "today",
-              "tomorrow"
+              "tomorrow",
+              "daily"
             ],
             "defaultValue": "",
             "storageField": "precision",
             "omitDefault": true
-          },
-          {
-            "name": "large_numbers",
-            "label": "Large Temperature Numbers",
-            "kind": "flag",
-            "omitDefault": true,
-            "supportedWhen": {
-              "precision": [
-                "today",
-                "tomorrow"
-              ]
-            }
           }
         ],
         "normalization": {
@@ -5932,9 +6270,7 @@
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "large_numbers"
-          ],
+          "canonicalOptionOrder": [],
           "migrationActions": [
             "legacy_weather_forecast"
           ],
@@ -5974,13 +6310,43 @@
           },
           {
             "name": "image_modal_mode",
-            "label": "Expanded Image",
+            "label": "Image fit",
             "kind": "choice",
             "values": [
               "fill",
               "fit"
             ],
             "defaultValue": "fill",
+            "omitDefault": true
+          },
+          {
+            "name": "image_modal_refresh_mode",
+            "label": "Camera refresh",
+            "kind": "choice",
+            "values": [
+              "off",
+              "periodic",
+              "activity"
+            ],
+            "defaultValue": "off",
+            "omitDefault": true
+          },
+          {
+            "name": "image_modal_refresh_interval",
+            "label": "Refresh interval",
+            "kind": "choice",
+            "values": [
+              "5",
+              "10",
+              "30"
+            ],
+            "defaultValue": "10",
+            "omitDefault": true
+          },
+          {
+            "name": "image_modal_refresh_trigger",
+            "label": "Trigger entity",
+            "kind": "text",
             "omitDefault": true
           }
         ],
@@ -6023,7 +6389,10 @@
           "canonicalOptionOrder": [
             "image_label",
             "image_icon",
-            "image_modal_mode"
+            "image_modal_mode",
+            "image_modal_refresh_mode",
+            "image_modal_refresh_interval",
+            "image_modal_refresh_trigger"
           ],
           "optionHook": "normalize_image_options"
         },
@@ -6265,6 +6634,58 @@
           "precision": "tomorrow",
           "options": ""
         }
+      },
+      "screensaver": {
+        "label": "Screensaver",
+        "allowInSubpage": true,
+        "domains": [],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "clear"
+            },
+            "label": {
+              "policy": "clear"
+            },
+            "icon": {
+              "policy": "default",
+              "value": "Monitor"
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "screensaver"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "clear"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": []
+        },
+        "default": {
+          "entity": "",
+          "label": "",
+          "icon": "Monitor",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "screensaver",
+          "precision": "",
+          "options": ""
+        }
       }
     },
     "migrationActions": {
@@ -6495,12 +6916,6 @@
           "text"
         ]
       },
-      "weather": {
-        "precisions": [
-          "today",
-          "tomorrow"
-        ]
-      },
       "calendar": true,
       "clock": true,
       "climate": true,
@@ -6550,7 +6965,8 @@
       "screen_lock": "SL",
       "webhook": "WH",
       "internal": "I",
-      "subpage": "G"
+      "subpage": "G",
+      "screensaver": "SS"
     }
   },
   "entityNames": {
@@ -6822,93 +7238,6 @@
         ]
       },
       {
-        "key": "voice_services",
-        "domain": "switch",
-        "name": "Voice Services",
-        "objectIds": [
-          "voice_services",
-          "voice_services_enabled"
-        ],
-        "groups": [
-          "settings_voice"
-        ]
-      },
-      {
-        "key": "alarm_delay_audio",
-        "domain": "switch",
-        "name": "Alarm Delay: Audio",
-        "objectIds": [
-          "alarm_delay__audio",
-          "alarm_delay_audio",
-          "alarm_delay_audio_enabled"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_tts",
-        "domain": "switch",
-        "name": "Alarm Delay: TTS",
-        "objectIds": [
-          "alarm_delay__tts",
-          "alarm_delay_tts",
-          "alarm_delay_tts_enabled"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_entry_announcement",
-        "domain": "text",
-        "name": "Alarm Delay: Entry Announcement",
-        "objectIds": [
-          "alarm_delay__entry_announcement",
-          "alarm_delay_entry_announcement"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_exit_announcement",
-        "domain": "text",
-        "name": "Alarm Delay: Exit Announcement",
-        "objectIds": [
-          "alarm_delay__exit_announcement",
-          "alarm_delay_exit_announcement"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_beep_volume",
-        "domain": "number",
-        "name": "Alarm Delay: Beep Volume",
-        "objectIds": [
-          "alarm_delay__beep_volume",
-          "alarm_delay_beep_volume"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
-        "key": "alarm_delay_final_countdown",
-        "domain": "number",
-        "name": "Alarm Delay: Final Countdown",
-        "objectIds": [
-          "alarm_delay__final_countdown",
-          "alarm_delay_final_countdown",
-          "alarm_delay_final_countdown_seconds"
-        ],
-        "groups": [
-          "settings_alarm_audio"
-        ]
-      },
-      {
         "key": "screen_temperature_degree_symbol",
         "domain": "switch",
         "name": "Screen: Temperature Degree Symbol",
@@ -7035,6 +7364,19 @@
         ]
       },
       {
+        "key": "screen_saver_camera_dimming",
+        "domain": "number",
+        "name": "Screen Saver: Camera Dimming",
+        "objectIds": [
+          "screen_saver__camera_dimming",
+          "screen_saver_camera_dimming",
+          "screensaver_camera_dimming"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
         "key": "presence_sensor_entity",
         "domain": "text",
         "name": "Presence Sensor Entity",
@@ -7051,6 +7393,19 @@
         "name": "Screen Schedule Sensor Entity",
         "objectIds": [
           "screen_schedule_sensor_entity"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_saver_cover_art_playback_control",
+        "domain": "switch",
+        "name": "Screen Saver: Cover Art Playback Control",
+        "objectIds": [
+          "screen_saver__cover_art_playback_control",
+          "screen_saver_cover_art_playback_control",
+          "cover_art_playback_control_enabled"
         ],
         "groups": [
           "settings"
@@ -7208,6 +7563,17 @@
         ]
       },
       {
+        "key": "home_assistant_artwork_endpoint_health",
+        "domain": "text_sensor",
+        "name": "Home Assistant Artwork Connection Health",
+        "objectIds": [
+          "home_assistant_artwork_endpoint_health"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
         "key": "home_assistant_artwork_protocol",
         "domain": "select",
         "name": "Home Assistant Artwork Protocol",
@@ -7225,6 +7591,17 @@
         "name": "Home Assistant Artwork Port",
         "objectIds": [
           "home_assistant_artwork_port"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "home_assistant_artwork_host",
+        "domain": "text",
+        "name": "Home Assistant Artwork Host",
+        "objectIds": [
+          "home_assistant_artwork_host"
         ],
         "groups": [
           "settings"
@@ -7327,6 +7704,19 @@
           "screen_saver__clock",
           "screen_saver_clock",
           "clock_screensaver_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_saver_show_date",
+        "domain": "switch",
+        "name": "Screen Saver: Show Date",
+        "objectIds": [
+          "screen_saver__show_date",
+          "screen_saver_show_date",
+          "clock_screensaver_show_date"
         ],
         "groups": [
           "settings"
@@ -7457,6 +7847,75 @@
           "screen_brightness_mode",
           "brightness_mode"
         ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_theme_mode",
+        "domain": "select",
+        "name": "Screen: Theme Mode",
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_card_curve",
+        "domain": "select",
+        "name": "Screen: Card Curve",
+        "objectIds": [
+          "screen__card_curve",
+          "screen_card_curve",
+          "card_curve_select"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_theme_auto_method",
+        "domain": "select",
+        "name": "Screen: Theme Auto Method",
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_theme_light_start",
+        "domain": "text",
+        "name": "Screen: Theme Light Start",
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_theme_dark_start",
+        "domain": "text",
+        "name": "Screen: Theme Dark Start",
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_theme_sunrise_offset",
+        "domain": "number",
+        "name": "Screen: Theme Sunrise Offset",
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_theme_sunset_offset",
+        "domain": "number",
+        "name": "Screen: Theme Sunset Offset",
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_active_theme",
+        "domain": "text_sensor",
+        "name": "Screen: Active Theme",
         "groups": [
           "settings"
         ]
@@ -8080,6 +8539,16 @@
         "mdi": "arrow-up-down"
       },
       {
+        "name": "Awning",
+        "codepoint": "F1B87",
+        "mdi": "awning"
+      },
+      {
+        "name": "Awning Outline",
+        "codepoint": "F1B88",
+        "mdi": "awning-outline"
+      },
+      {
         "name": "Battery",
         "codepoint": "F0079",
         "mdi": "battery"
@@ -8243,6 +8712,11 @@
         "name": "Broom",
         "codepoint": "F00E2",
         "mdi": "broom"
+      },
+      {
+        "name": "Bus",
+        "codepoint": "F00E7",
+        "mdi": "bus"
       },
       {
         "name": "Camera",
@@ -8538,6 +9012,26 @@
         "name": "Folder Play",
         "codepoint": "F19FA",
         "mdi": "folder-play"
+      },
+      {
+        "name": "Folder Account Outline",
+        "codepoint": "F0B9C",
+        "mdi": "folder-account-outline"
+      },
+      {
+        "name": "Folder Home Outline",
+        "codepoint": "F10B6",
+        "mdi": "folder-home-outline"
+      },
+      {
+        "name": "Folder Key Outline",
+        "codepoint": "F10EC",
+        "mdi": "folder-key-outline"
+      },
+      {
+        "name": "Folder Open Outline",
+        "codepoint": "F0DCF",
+        "mdi": "folder-open-outline"
       },
       {
         "name": "Fountain",
@@ -9490,6 +9984,11 @@
         "mdi": "track-light-off"
       },
       {
+        "name": "Train",
+        "codepoint": "F052C",
+        "mdi": "train"
+      },
+      {
         "name": "Transmission Tower",
         "codepoint": "F0D3E",
         "mdi": "transmission-tower"
@@ -9608,6 +10107,11 @@
         "name": "Weather Cloudy Alert",
         "codepoint": "F0F2F",
         "mdi": "weather-cloudy-alert"
+      },
+      {
+        "name": "Weather Cloudy Clock",
+        "codepoint": "F18F6",
+        "mdi": "weather-cloudy-clock"
       },
       {
         "name": "Weather Dust",
@@ -10130,6 +10634,7 @@
           "guition-esp32-p4-jc1060p470",
           "guition-esp32-p4-jc1060p470-v2",
           "guition-esp32-p4-jc4880p443",
+          "guition-esp32-p4-jc4880p443-v3",
           "guition-esp32-p4-jc8012p4a1",
           "guition-esp32-p4-jc8012p4a1-v2",
           "guition-esp32-p4-jc8012p4a1-v3",

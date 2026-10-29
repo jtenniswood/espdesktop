@@ -160,6 +160,44 @@ export function createSettingsCompanionSectionFeature(
         status.setAttribute("aria-live", "polite");
         body.appendChild(status);
 
+        const iconCacheNote = document.createElement("p");
+        iconCacheNote.className = "sp-setting-note sp-companion-note";
+        iconCacheNote.textContent = "Clear downloaded app icons if you need to refresh them. Icons used by your cards will be requested again from the Mac app.";
+        body.appendChild(iconCacheNote);
+        const clearIconCacheButton = createActionButton(
+            "sp-action-btn sp-companion-cache-clear",
+            "Clear app icon cache",
+            "delete",
+            "Clear downloaded app icons",
+        );
+        clearIconCacheButton.classList.add("sp-hidden");
+        body.appendChild(clearIconCacheButton);
+        let clearingIconCache = false;
+
+        async function clearIconCache(): Promise<void> {
+            if (clearingIconCache || !latestState?.available) return;
+            if (!window.confirm(
+                "Clear downloaded app icons? Icons used by cards will be requested again from the connected Mac app. Until they arrive, cards may show their custom fallback icons.",
+            )) return;
+            clearingIconCache = true;
+            clearIconCacheButton.disabled = true;
+            try {
+                const response = await fetch("/companion/app-icons/clear", {
+                    method: "POST",
+                    headers: { Accept: "application/json" },
+                });
+                if (!response.ok) throw new Error("App icon cache clear was not accepted");
+                document.dispatchEvent(new Event("espdesktop:app-icon-cache-cleared"));
+                showBanner("App icon cache cleared. Icons are being requested again.", "success");
+            } catch {
+                showBanner("Could not clear the app icon cache.", "error");
+            } finally {
+                clearingIconCache = false;
+                clearIconCacheButton.disabled = false;
+            }
+        }
+        clearIconCacheButton.addEventListener("click", () => { void clearIconCache(); });
+
         const resetButton = createActionButton(
             "sp-action-btn sp-delete-btn sp-destructive-btn",
             "Reset pairing",
@@ -215,6 +253,8 @@ export function createSettingsCompanionSectionFeature(
             setHidden(instructions, value.connected);
             setHidden(badge, !value.paired);
             setHidden(resetButton, !value.paired);
+            setHidden(iconCacheNote, !value.available);
+            setHidden(clearIconCacheButton, !value.available);
         }
 
         async function refreshStatus(): Promise<void> {

@@ -9,7 +9,7 @@ After pairing the Mac app, open the display's address in a browser and use its b
 
 ## Add a Mac Control
 
-1. Open the **Screen** tab in the display's web page.
+1. Open the **Layout** tab in the display's web page.
 2. Select an empty tile and choose **Companion**.
 3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, **Open URL**, **Window control**, or **Stats**.
 4. Set the options and choose **Apply Configuration** to save the layout.
@@ -19,17 +19,34 @@ Apps and folders must first be approved in the Mac app. Keyboard shortcuts and w
 ## Arrange and Personalise Cards
 
 - Drag cards to move them. Dropping one onto an occupied tile shifts that card to the next available space.
-- Right-click a card and choose **Size** to make it wider or taller.
+- Drag a card’s bottom-right resize handle to make it wider or taller. Press Escape or cancel the drag to keep the original size.
+- Click a displayed card name to rename it and press Enter to save. Escape or clicking away cancels. Generated status text stays automatic.
 - Change a card's icon, label, and colour in its settings.
 - Create [subpages](/features/subpages) to group related Mac controls or keep an app's shortcuts together.
 - Right-click a card and use **Copy Code** and **Paste Code** to reuse a layout on another display.
 
 The display preview shows the saved arrangement. Choose **Apply Configuration** after editing to send it to the touchscreen.
 
+## Screen and System Settings
+
+Use **Screen** for appearance, card curves, backlight, rotation and sleep settings, including [PIN protection](#protect-the-touchscreen). Use **System** for preferences, naming, backups, firmware updates and reset controls. **Connectors** keeps Mac pairing and connection status together.
+
+## Protect the Touchscreen
+
+Open **Screen → Sleep & Schedule → Pin Protection**, turn on **Require PIN after wake**, enter a numeric PIN of 1–16 digits and choose **Save**. You can also randomize the keypad. **Clear** removes the saved PIN and unlocks the display.
+
+The Screen Lock card uses the same PIN. The Screensaver card starts your selected sleep action immediately. Unlock protection applies to local touch controls; web administration and Mac access keep their own authentication. The PIN is excluded from backups, and importing a backup clears the PIN on the destination display.
+
 ## Back Up Your Layout
 
-Use the setup page's backup controls to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
+Use **System → System → Backup** to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
 
 The **Connectors** tab provides setup and status for Mac Companion. The EspDesktop configurator does not offer Home Assistant setup or new Home Assistant-backed cards, even if Home Assistant is already connected. Home Assistant cards already saved on a display remain in its layout.
 
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+
+## Quick card colours
+
+Right-click a preview card and open **Change Colour** to choose a preset or custom background. Select several cards to recolour them together; subpage Back cards also support this. **Reset Colour** restores the default background while preserving a separate active colour. Changes save immediately.
+
+Current firmware supports up to 4 KB per saved card or subpage record (4,095 bytes of content). The editor keeps the smaller limits when connected to older firmware. Export a backup before downgrading firmware: larger layouts cannot fit its older text storage.

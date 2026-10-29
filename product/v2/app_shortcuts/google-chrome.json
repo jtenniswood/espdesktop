@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "appId": "com.google.Chrome",
+  "label": "Google Chrome",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open a new window",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Open a new window in Incognito mode",
+      "shortcut": "command+shift+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Open a new tab, and jump to it",
+      "shortcut": "command+t",
+      "icon": "Tab"
+    },
+    {
+      "id": "3",
+      "label": "Open the Find Bar to search the current page",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "4",
+      "label": "Jump to the next match to your Find Bar search",
+      "shortcut": "command+g",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "5",
+      "label": "Jump to the previous match to your Find Bar",
+      "shortcut": "command+shift+g",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "6",
+      "label": "When Find Bar is open, search for selected text",
+      "shortcut": "command+e",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "7",
+      "label": "Save your current webpage as a bookmark",
+      "shortcut": "command+d",
+      "icon": "Download"
+    },
+    {
+      "id": "8",
+      "label": "Save all open tabs as bookmarks in a new folder",
+      "shortcut": "command+shift+d",
+      "icon": "Tab"
+    },
+    {
+      "id": "9",
+      "label": "Search the web",
+      "shortcut": "command+option+f",
+      "icon": "Spotlight"
+    }
+  ]
+}

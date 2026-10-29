@@ -237,11 +237,13 @@ def check_build(dist):
         'generated/cards/capabilities': BASE + 'card-types/companion',
         'generated/cards/runtime-coverage': 'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
     }
+    redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'
     screen_guides = {
         '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
         'jc1060p470': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc4880p443': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc4880p443-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'),
         'jc8012p4a1': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc8012p4a1-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc8012p4a1-v3': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),

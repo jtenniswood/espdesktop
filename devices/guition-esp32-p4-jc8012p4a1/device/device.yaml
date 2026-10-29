@@ -68,7 +68,7 @@ external_components:
       url: ${espdesktop_component_url}
       ref: ${espdesktop_component_ref}
       path: components
-    components: [espdesktop, web_server_idf, artwork_image, gsl3680]
+    components: [espdesktop, web_server_idf, artwork_image, gsl3680, captive_portal]
     refresh: 1s
 
 espdesktop:
@@ -357,9 +357,7 @@ touchscreen:
       mirror_x: true
       mirror_y: false
     on_touch:
-      - script.execute: cover_art_pause_after_touch
-      - script.wait: cover_art_pause_after_touch
-      - script.execute: screensaver_wake
+      - script.execute: cover_art_handle_touch
 
 # ---------------------------------------------------------------------------
 # Display (10.1" 800x1280 native MIPI DSI panel)

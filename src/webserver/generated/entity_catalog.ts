@@ -156,65 +156,6 @@ export const ENTITY_CATALOG = {
       "domain": "sensor",
       "name": "Battery"
     },
-    "voice_services": {
-      "domain": "switch",
-      "name": "Voice Services",
-      "objectIds": [
-        "voice_services",
-        "voice_services_enabled"
-      ]
-    },
-    "alarm_delay_audio": {
-      "domain": "switch",
-      "name": "Alarm Delay: Audio",
-      "objectIds": [
-        "alarm_delay__audio",
-        "alarm_delay_audio",
-        "alarm_delay_audio_enabled"
-      ]
-    },
-    "alarm_delay_tts": {
-      "domain": "switch",
-      "name": "Alarm Delay: TTS",
-      "objectIds": [
-        "alarm_delay__tts",
-        "alarm_delay_tts",
-        "alarm_delay_tts_enabled"
-      ]
-    },
-    "alarm_delay_entry_announcement": {
-      "domain": "text",
-      "name": "Alarm Delay: Entry Announcement",
-      "objectIds": [
-        "alarm_delay__entry_announcement",
-        "alarm_delay_entry_announcement"
-      ]
-    },
-    "alarm_delay_exit_announcement": {
-      "domain": "text",
-      "name": "Alarm Delay: Exit Announcement",
-      "objectIds": [
-        "alarm_delay__exit_announcement",
-        "alarm_delay_exit_announcement"
-      ]
-    },
-    "alarm_delay_beep_volume": {
-      "domain": "number",
-      "name": "Alarm Delay: Beep Volume",
-      "objectIds": [
-        "alarm_delay__beep_volume",
-        "alarm_delay_beep_volume"
-      ]
-    },
-    "alarm_delay_final_countdown": {
-      "domain": "number",
-      "name": "Alarm Delay: Final Countdown",
-      "objectIds": [
-        "alarm_delay__final_countdown",
-        "alarm_delay_final_countdown",
-        "alarm_delay_final_countdown_seconds"
-      ]
-    },
     "screen_temperature_degree_symbol": {
       "domain": "switch",
       "name": "Screen: Temperature Degree Symbol",
@@ -297,6 +238,15 @@ export const ENTITY_CATALOG = {
         "screensaver_camera_image_mode"
       ]
     },
+    "screen_saver_camera_dimming": {
+      "domain": "number",
+      "name": "Screen Saver: Camera Dimming",
+      "objectIds": [
+        "screen_saver__camera_dimming",
+        "screen_saver_camera_dimming",
+        "screensaver_camera_dimming"
+      ]
+    },
     "presence_sensor_entity": {
       "domain": "text",
       "name": "Presence Sensor Entity",
@@ -309,6 +259,15 @@ export const ENTITY_CATALOG = {
       "name": "Screen Schedule Sensor Entity",
       "objectIds": [
         "screen_schedule_sensor_entity"
+      ]
+    },
+    "screen_saver_cover_art_playback_control": {
+      "domain": "switch",
+      "name": "Screen Saver: Cover Art Playback Control",
+      "objectIds": [
+        "screen_saver__cover_art_playback_control",
+        "screen_saver_cover_art_playback_control",
+        "cover_art_playback_control_enabled"
       ]
     },
     "screen_saver_media_player_sleep_prevention": {
@@ -414,6 +373,13 @@ export const ENTITY_CATALOG = {
         "home_assistant_artwork_endpoint_status"
       ]
     },
+    "home_assistant_artwork_endpoint_health": {
+      "domain": "text_sensor",
+      "name": "Home Assistant Artwork Connection Health",
+      "objectIds": [
+        "home_assistant_artwork_endpoint_health"
+      ]
+    },
     "home_assistant_artwork_protocol": {
       "domain": "select",
       "name": "Home Assistant Artwork Protocol",
@@ -427,6 +393,13 @@ export const ENTITY_CATALOG = {
       "name": "Home Assistant Artwork Port",
       "objectIds": [
         "home_assistant_artwork_port"
+      ]
+    },
+    "home_assistant_artwork_host": {
+      "domain": "text",
+      "name": "Home Assistant Artwork Host",
+      "objectIds": [
+        "home_assistant_artwork_host"
       ]
     },
     "screen_saver_daytime_clock_brightness": {
@@ -493,6 +466,15 @@ export const ENTITY_CATALOG = {
         "screen_saver__clock",
         "screen_saver_clock",
         "clock_screensaver_enabled"
+      ]
+    },
+    "screen_saver_show_date": {
+      "domain": "switch",
+      "name": "Screen Saver: Show Date",
+      "objectIds": [
+        "screen_saver__show_date",
+        "screen_saver_show_date",
+        "clock_screensaver_show_date"
       ]
     },
     "screen_saver_clock_overlay": {
@@ -567,6 +549,43 @@ export const ENTITY_CATALOG = {
         "screen_brightness_mode",
         "brightness_mode"
       ]
+    },
+    "screen_theme_mode": {
+      "domain": "select",
+      "name": "Screen: Theme Mode"
+    },
+    "screen_card_curve": {
+      "domain": "select",
+      "name": "Screen: Card Curve",
+      "objectIds": [
+        "screen__card_curve",
+        "screen_card_curve",
+        "card_curve_select"
+      ]
+    },
+    "screen_theme_auto_method": {
+      "domain": "select",
+      "name": "Screen: Theme Auto Method"
+    },
+    "screen_theme_light_start": {
+      "domain": "text",
+      "name": "Screen: Theme Light Start"
+    },
+    "screen_theme_dark_start": {
+      "domain": "text",
+      "name": "Screen: Theme Dark Start"
+    },
+    "screen_theme_sunrise_offset": {
+      "domain": "number",
+      "name": "Screen: Theme Sunrise Offset"
+    },
+    "screen_theme_sunset_offset": {
+      "domain": "number",
+      "name": "Screen: Theme Sunset Offset"
+    },
+    "screen_active_theme": {
+      "domain": "text_sensor",
+      "name": "Screen: Active Theme"
     },
     "screen_schedule_enabled": {
       "domain": "switch",
@@ -840,8 +859,10 @@ export const ENTITY_CATALOG = {
       "screen_saver_metadata_entity",
       "screen_saver_metadata_overlay",
       "screen_saver_camera_image_mode",
+      "screen_saver_camera_dimming",
       "presence_sensor_entity",
       "screen_schedule_sensor_entity",
+      "screen_saver_cover_art_playback_control",
       "screen_saver_media_player_sleep_prevention",
       "media_player_sleep_prevention_entity",
       "screen_saver_cover_art",
@@ -854,8 +875,10 @@ export const ENTITY_CATALOG = {
       "screen_saver_hide_cover_art_external_input",
       "home_assistant_artwork_endpoint_mode",
       "home_assistant_artwork_endpoint_status",
+      "home_assistant_artwork_endpoint_health",
       "home_assistant_artwork_protocol",
       "home_assistant_artwork_port",
+      "home_assistant_artwork_host",
       "screen_saver_daytime_clock_brightness",
       "screen_saver_nighttime_clock_brightness",
       "screen_saver_clock_brightness",
@@ -865,6 +888,7 @@ export const ENTITY_CATALOG = {
       "screensaver_timeout",
       "home_screen_timeout",
       "screen_saver_clock",
+      "screen_saver_show_date",
       "screen_saver_clock_overlay",
       "screen_timezone",
       "screen_active_timezone",
@@ -879,6 +903,14 @@ export const ENTITY_CATALOG = {
       "wifi_strength",
       "display_backlight",
       "screen_brightness_mode",
+      "screen_theme_mode",
+      "screen_card_curve",
+      "screen_theme_auto_method",
+      "screen_theme_light_start",
+      "screen_theme_dark_start",
+      "screen_theme_sunrise_offset",
+      "screen_theme_sunset_offset",
+      "screen_active_theme",
       "screen_schedule_enabled",
       "screen_schedule_trigger",
       "screen_schedule_sensor_activation",
@@ -910,17 +942,6 @@ export const ENTITY_CATALOG = {
     "settings_battery": [
       "screen_battery_status",
       "battery_percent"
-    ],
-    "settings_voice": [
-      "voice_services"
-    ],
-    "settings_alarm_audio": [
-      "alarm_delay_audio",
-      "alarm_delay_tts",
-      "alarm_delay_entry_announcement",
-      "alarm_delay_exit_announcement",
-      "alarm_delay_beep_volume",
-      "alarm_delay_final_countdown"
     ],
     "settings_optional": [
       "screen_rotation"

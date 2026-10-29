@@ -39,6 +39,37 @@ export function normalizeTimeOfDay(value: unknown, fallback: string): string {
   return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
 }
 
+export function normalizeThemeMode(value: unknown): string {
+  const mode = String(value || "").trim().toLowerCase();
+  if (mode === "light") return "Light";
+  if (mode === "auto" || mode === "schedule" || mode === "sun") return "Auto";
+  return "Dark";
+}
+
+export function normalizeCardCurve(value: unknown): string {
+  const preset = String(value || "").trim().toLowerCase();
+  return preset === "small" ? "Small" : preset === "large" ? "Large" : "Medium";
+}
+
+export function cardCurveRadius(baseRadius: number, preset: unknown, radii?: Readonly<Record<string, number>>): number {
+  const curve = normalizeCardCurve(preset);
+  if (radii?.[curve] !== undefined) return radii[curve];
+  return Math.round(baseRadius * (curve === "Small" ? .6 : curve === "Medium" ? .8 : 1));
+}
+
+export function normalizeThemeAutoMethod(value: unknown): string {
+  const method = String(value || "").trim().toLowerCase();
+  return method === "sun" || method === "sunrise / sunset" || method === "sunrise_sunset"
+    ? "Sunrise / Sunset" : "Time";
+}
+
+export function parseThemeSunOffset(value: unknown): number | null {
+  const text = String(value == null ? "" : value).trim();
+  if (!/^[+-]?\d+$/.test(text)) return null;
+  const offset = Number(text);
+  return Number.isSafeInteger(offset) && offset >= -180 && offset <= 180 ? offset : null;
+}
+
 export function normalizeBrightnessMode(value: unknown): string {
   const mode = String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
   if (mode === "manual") return "manual";
@@ -164,6 +195,11 @@ export function screensaverActionOption(value: unknown): string {
   return "Display Off";
 }
 
+export function normalizeScreensaverCameraDimming(value: unknown): number {
+  const n = parseFloat(String(value));
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : 0;
+}
+
 export function normalizeScreensaverCameraImageMode(value: unknown): string {
   return String(value || "").trim().toLowerCase() === "fill" ? "Fill" : "Fit";
 }
@@ -201,6 +237,10 @@ export function normalizeHomeAssistantArtworkPort(value: unknown): number {
 
 export function normalizeHomeAssistantArtworkProtocol(value: unknown): string {
   return String(value || "").trim().toLowerCase() === "https" ? "https" : "http";
+}
+
+export function normalizeHomeAssistantArtworkHost(value: unknown): string {
+  return String(value == null ? "" : value).trim().slice(0, 253);
 }
 
 export function normalizeHomeAssistantArtworkEndpointMode(
@@ -321,6 +361,7 @@ export interface BackupPanelSettingsCurrent {
   ntpServer1: string;
   ntpServer2: string;
   ntpServer3: string;
+  coverArtHomeAssistantHost: string;
   coverArtHomeAssistantProtocol: string;
   coverArtHomeAssistantPort: number;
   coverArtHomeAssistantEndpointMode: string;
@@ -365,17 +406,21 @@ export interface BackupPanelSettingsState {
   screensaverMetadataEntity: string;
   metadataOverlay: boolean;
   screensaverCameraImageMode: string;
+  screensaverCameraDimming: number;
   mediaPlayerSleepPrevention: boolean;
   mediaPlayerSleepPreventionEntity: string;
   coverArtScreensaver: boolean;
   coverArtSource: string;
+  clockDate: boolean;
   clockOverlay: boolean;
   coverArtMediaPlayerEntity: string;
   coverArtSecondaryMediaPlayerEntity: string;
   coverArtAttributeConditions: string;
   coverArtDelay: unknown;
+  coverArtPlaybackControl: boolean;
   coverArtTrackOverlayDuration: unknown;
   coverArtHideExternalInput: boolean;
+  coverArtHomeAssistantHost: string;
   coverArtHomeAssistantProtocol: string;
   coverArtHomeAssistantPort: number;
   coverArtHomeAssistantEndpointMode: string;
@@ -464,6 +509,9 @@ export function normalizeBackupPanelSettings(
   const coverArtHomeAssistantProtocol = objectValue(settings, "home_assistant_artwork_protocol") != null
     ? normalizeHomeAssistantArtworkProtocol(settings.home_assistant_artwork_protocol)
     : normalizeHomeAssistantArtworkProtocol(current.coverArtHomeAssistantProtocol);
+  const coverArtHomeAssistantHost = objectValue(settings, "home_assistant_artwork_host") != null
+    ? normalizeHomeAssistantArtworkHost(settings.home_assistant_artwork_host)
+    : normalizeHomeAssistantArtworkHost(current.coverArtHomeAssistantHost);
   const coverArtHomeAssistantPort = objectValue(settings, "home_assistant_artwork_port") != null
     ? normalizeHomeAssistantArtworkPort(settings.home_assistant_artwork_port)
     : normalizeHomeAssistantArtworkPort(current.coverArtHomeAssistantPort);
@@ -515,6 +563,7 @@ export function normalizeBackupPanelSettings(
     screensaverMode: normalizeScreensaverMode(settings.screensaver_mode),
     presenceSensorEntity: String(settings.presence_sensor_entity || ""),
     screensaverCameraEntity: String(settings.screensaver_camera_entity || ""),
+    screensaverCameraDimming: normalizeScreensaverCameraDimming(settings.screensaver_camera_dimming),
     screensaverMetadataEntity: String(settings.screensaver_metadata_entity || ""),
     metadataOverlay: objectValue(settings, "metadata_overlay") != null
       ? !!settings.metadata_overlay
@@ -528,6 +577,7 @@ export function normalizeBackupPanelSettings(
     mediaPlayerSleepPreventionEntity: String(settings.media_player_sleep_prevention_entity || settings.cover_art_media_player_entity || ""),
     coverArtScreensaver: !!settings.cover_art_screensaver,
     coverArtSource: normalizeCoverArtSource(settings.cover_art_source),
+    clockDate: !!settings.clock_date,
     clockOverlay: objectValue(settings, "clock_overlay") != null
       ? !!settings.clock_overlay
       : false,
@@ -537,10 +587,12 @@ export function normalizeBackupPanelSettings(
     coverArtDelay: normalizeCoverArtDelay(
       objectValue(settings, "cover_art_delay") != null ? settings.cover_art_delay : 10,
     ),
+    coverArtPlaybackControl: objectValue(settings, "cover_art_playback_control") != null ? !!settings.cover_art_playback_control : true,
     coverArtTrackOverlayDuration: objectValue(settings, "cover_art_track_overlay_duration") != null ? settings.cover_art_track_overlay_duration : 5,
     coverArtHideExternalInput: objectValue(settings, "cover_art_hide_external_input") != null
       ? !!settings.cover_art_hide_external_input
       : true,
+    coverArtHomeAssistantHost,
     coverArtHomeAssistantProtocol,
     coverArtHomeAssistantPort,
     coverArtHomeAssistantEndpointMode: normalizeHomeAssistantArtworkEndpointMode(

@@ -270,6 +270,7 @@ select:
         - lambda: |-
             set_espdesktop_language(id(language_select).current_option());
             refresh_calendar_cards();
+        - script.execute: time_update
         - script.execute: network_setup_text_refresh
         - script.execute: ha_setup_text_refresh
         - script.execute: ha_actions_text_refresh
@@ -456,6 +457,13 @@ script:
           const std::string active_timezone = effective_timezone_option(timezone_option);
           apply_timezone(active_timezone);
           id(screen_active_timezone_sensor).publish_state(active_timezone);
+      - if:
+          condition:
+            lambda: |-
+              return id(espdesktop_app).display().current_mode_is(
+                  espdesktop::DisplayMode::CLOCK);
+          then:
+            - script.execute: clock_screensaver_update_time
       - lvgl.label.update:
           id: display_time
           text: !lambda |-
@@ -493,6 +501,7 @@ script:
             update_calendar_cards_time(false, 0, 0, 0, 0, false);
             update_timezone_cards(false, 0, active_timezone, use_12h);
           }
+      - script.execute: theme_settings_refresh
 
 interval:
   - interval: 5s

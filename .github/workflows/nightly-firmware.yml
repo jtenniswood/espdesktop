@@ -9,6 +9,9 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ESPDESKTOP_DOCKER_BUILD_CACHE_KEEP: 2GB
 
+permissions:
+  contents: read
+
 concurrency:
   group: nightly-firmware
   cancel-in-progress: true
@@ -27,6 +30,7 @@ jobs:
             common/assets/*.yaml
             common/assets/fonts/*
             common/assets/icons.json
+            common/device/screen_clock.yaml
             product/v2/card_contract.json
             common/config/entity_names.json
             common/config/strings.*.txt
@@ -60,7 +64,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install dependencies
         run: npm ci --prefer-offline
@@ -75,6 +79,8 @@ jobs:
     name: Compile Firmware
     needs: device-matrix
     runs-on: self-hosted
+    outputs:
+      failed_targets: ${{ steps.firmware.outputs.failed_targets }}
     steps:
       - name: Prepare self-hosted workspace
         run: |
@@ -141,13 +147,26 @@ jobs:
           ESPHOME_IMAGE="ghcr.io/esphome/esphome:${ESPHOME_VERSION}"
           LOCK_FILE="/tmp/espdesktop-esphome-image.lock"
           if command -v flock >/dev/null 2>&1; then
-            flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}"
+            flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}" || {
+              echo "Initial ESPHome image pull failed; pruning stale Docker state and retrying."
+              ESPDESKTOP_DOCKER_PRUNE_CONTAINERS=false \
+                ESPDESKTOP_DOCKER_PRUNE_VOLUMES=false \
+                bash scripts/reclaim_actions_disk.sh
+              flock "${LOCK_FILE}" ${DOCKER} pull "${ESPHOME_IMAGE}"
+            }
           else
-            ${DOCKER} pull "${ESPHOME_IMAGE}"
+            ${DOCKER} pull "${ESPHOME_IMAGE}" || {
+              echo "Initial ESPHome image pull failed; pruning stale Docker state and retrying."
+              ESPDESKTOP_DOCKER_PRUNE_CONTAINERS=false \
+                ESPDESKTOP_DOCKER_PRUNE_VOLUMES=false \
+                bash scripts/reclaim_actions_disk.sh
+              ${DOCKER} pull "${ESPHOME_IMAGE}"
+            }
           fi
           echo "ESPHOME_IMAGE=${ESPHOME_IMAGE}" >> "$GITHUB_ENV"
 
       - name: Compile firmware targets
+        id: firmware
         working-directory: espdesktop-nightly
         run: |
           SOURCE_DIR="${PWD}"
@@ -183,8 +202,18 @@ jobs:
               -e PLATFORMIO_SETTING_ENABLE_TELEMETRY=false \
               -v "${shared_platformio_cache}:/config/.esphome" \
               -v "${build_cache}:/config/${build_input_dir}/.esphome" \
-              "${ESPHOME_IMAGE}" \
-              compile "/config/${build_input_dir}/${target}")
+              --entrypoint /bin/sh \
+              "${ESPHOME_IMAGE}" -c '
+                # Execute the cache-setting entrypoint as a child process. Its
+                # final exec replaces that child; this shell still reports size.
+                /entrypoint.sh compile "$1"
+                compile_status=$?
+                python3 /config/scripts/report_firmware_size.py \
+                  --target "$2" --build-root "$3" \
+                  --compile-status "$compile_status" \
+                  --summary "$3/firmware-size-summary.md"
+              ' sh "/config/${build_input_dir}/${target}" "${target}" \
+              "/config/${build_input_dir}/.esphome")
             create_status=$?
             if [ "${create_status}" -ne 0 ]; then
               rm -rf "${target_cache_root}"
@@ -206,6 +235,20 @@ jobs:
 
             ${DOCKER} start -a "${container}"
             compile_status=$?
+            # A containerized self-hosted runner cannot read the Docker host's
+            # bind-mount paths. Measure inside the build container, then copy
+            # only the report back before removing the container.
+            size_summary="${target_cache_root}/firmware-size-summary.md"
+            if ${DOCKER} cp "${container}:/config/${build_input_dir}/.esphome/firmware-size-summary.md" "${size_summary}"; then
+              if [ -f "$GITHUB_STEP_SUMMARY" ] && grep -Fq '## Firmware size and headroom' "$GITHUB_STEP_SUMMARY"; then
+                tail -n +5 "${size_summary}" >> "$GITHUB_STEP_SUMMARY"
+              else
+                cat "${size_summary}" >> "$GITHUB_STEP_SUMMARY"
+              fi
+            else
+              echo "::error::Could not retrieve firmware size report for ${target}"
+              compile_status=1
+            fi
             cleanup_container
             trap - EXIT
             bash scripts/reclaim_actions_disk.sh
@@ -225,6 +268,7 @@ jobs:
             echo "::endgroup::"
           done < nightly-slugs.txt
 
+          echo "failed_targets=${failures# }" >> "$GITHUB_OUTPUT"
           if [ -n "${failures}" ]; then
             echo "::error::Firmware compile failures:${failures}"
             exit 1
@@ -238,3 +282,48 @@ jobs:
           rm -rf "${RUNNER_TEMP}/espdesktop-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -rf .esphome .firmware-builds
           bash scripts/reclaim_actions_disk.sh
+
+  report-failure:
+    name: Report Nightly Failure
+    needs: [device-matrix, compile]
+    if: ${{ always() && (needs.device-matrix.result == 'failure' || needs.compile.result == 'failure') }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create issue for failed nightly build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_REF: ${{ github.ref_name }}
+          MATRIX_RESULT: ${{ needs.device-matrix.result }}
+          COMPILE_RESULT: ${{ needs.compile.result }}
+          FAILED_TARGETS: ${{ needs.compile.outputs.failed_targets }}
+        run: |
+          python3 - <<'PY' > nightly-failure.md
+          import os
+
+          print("The nightly firmware build failed and needs investigation.\n")
+          print(f"- Build logs: {os.environ['RUN_URL']}")
+          print(f"- Attempt: {os.environ['RUN_ATTEMPT']}")
+          print(f"- Branch: `{os.environ['BUILD_REF']}`")
+          print(f"- Commit: `{os.environ['BUILD_SHA']}`")
+          print(f"- Device matrix: {os.environ['MATRIX_RESULT']}")
+          print(f"- Firmware compilation: {os.environ['COMPILE_RESULT']}")
+          print("\n### Failed firmware targets\n")
+          targets = os.environ.get("FAILED_TARGETS", "").split()
+          if targets:
+              for target in targets:
+                  print(f"- `{target}`")
+          else:
+              print("No target list was recorded. Check the logs for setup, matrix, or cleanup failures.")
+          print("\n### Action needed\n")
+          print("Investigate the linked logs, fix the cause in a pull request, and rerun the nightly workflow to verify all devices build successfully.")
+          PY
+          gh issue create \
+            --title "Nightly firmware build failed (run #${RUN_NUMBER}, attempt ${RUN_ATTEMPT})" \
+            --body-file nightly-failure.md

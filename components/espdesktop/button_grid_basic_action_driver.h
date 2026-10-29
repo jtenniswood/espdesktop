@@ -4,7 +4,7 @@
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
 // Contract coverage markers: type == "", "action", "alarm_action",
-// "companion", "fan_switch", "internal", "light_switch", "push", "screen_lock", "webhook".
+// "companion", "fan_switch", "internal", "light_switch", "push", "screen_lock", "screensaver", "webhook".
 
 namespace espdesktop::cards {
 
@@ -20,6 +20,7 @@ inline bool basic_action_driver_matches(const Context &context,
     case Driver::PUSH:
     case Driver::COMPANION:
     case Driver::SCREEN_LOCK:
+    case Driver::SCREENSAVER:
     case Driver::WEBHOOK:
       return !action_card_option_select(config);
     case Driver::FAN:
@@ -31,10 +32,15 @@ inline bool basic_action_driver_matches(const Context &context,
 
 inline bool basic_action_driver_setup_visual(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    uint32_t sensor_color = TERTIARY_GREY) {
+    uint32_t sensor_color = theme_display_color(current_theme().surface_secondary)) {
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
+    case Driver::SCREENSAVER:
+      lv_label_set_display_text(slot.icon_lbl, find_icon("Monitor"));
+      lv_label_set_display_text(slot.text_lbl, espdesktop_i18n("Screensaver"));
+      apply_push_button_transition(slot.btn);
+      break;
     case Driver::SCREEN_LOCK:
       setup_screen_lock_card(slot, config);
       break;
@@ -174,15 +180,13 @@ inline AlarmActionCtx *basic_action_driver_bind_alarm_action(
   card->pin_label_font = card->key_label_font;
   card->icon_font = display_icon_font(display);
   card->arming_title_font = card->key_label_font;
-  card->on_color = palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR;
+  card->on_color = palette.has_on ? palette.on_val : DEFAULT_ACCENT_COLOR;
   card->off_color = palette.off_val;
   card->tertiary_color = palette.sensor_val;
   card->width_compensation_percent = display_main_width_percent(display);
   card->grid_cols = grid_cols;
   card->begin_display_takeover = grid_config.begin_display_takeover;
   card->end_display_takeover = grid_config.end_display_takeover;
-  card->audio_hooks = grid_config.alarm_delay_audio;
-  alarm_delay_audio_register_context(card);
   alarm_set_card_state_colors(card, card->on_color);
 
   AlarmActionCtx *action = context.surface == Surface::SUBPAGE
@@ -202,7 +206,7 @@ inline FanCardCtx *basic_action_driver_bind_fan_switch(
   if (config.entity.empty()) return nullptr;
   FanCardCtx *fan = create_fan_card_context(
     slot, config,
-    palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR,
+    palette.has_on ? palette.on_val : DEFAULT_ACCENT_COLOR,
     palette.off_val, palette.sensor_val,
     lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN),
     display_icon_font(display), display_main_width_percent(display));
@@ -325,11 +329,19 @@ inline bool basic_action_driver_bind_subpage(
       }, LV_EVENT_CLICKED, click);
       break;
     }
-    case Driver::SCREEN_LOCK:
+    case Driver::SCREENSAVER:
       lv_obj_add_event_cb(slot.btn, [](lv_event_t *) {
-        screen_lock_toggle();
+        if (force_screensaver_action()) force_screensaver_action()();
       }, LV_EVENT_CLICKED, nullptr);
       break;
+    case Driver::SCREEN_LOCK: {
+      auto *screensaver_on_lock = grid_delete_with_owner(slot.btn,
+          new bool(cfg_option_enabled(config.options, "screensaver_on_lock")));
+      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        screen_lock_activate(*static_cast<const bool *>(lv_event_get_user_data(event)));
+      }, LV_EVENT_CLICKED, screensaver_on_lock);
+      break;
+    }
     case Driver::PUSH: {
       std::string label = config.label.empty()
         ? espdesktop_i18n(std::string("Push")) : config.label;
@@ -487,8 +499,11 @@ inline bool basic_action_driver_handle_main_click(
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
+    case Driver::SCREENSAVER:
+      if (force_screensaver_action()) force_screensaver_action()();
+      break;
     case Driver::SCREEN_LOCK:
-      screen_lock_toggle();
+      screen_lock_activate(cfg_option_enabled(config.options, "screensaver_on_lock"));
       break;
     case Driver::PUSH: {
       std::string label = config.label;

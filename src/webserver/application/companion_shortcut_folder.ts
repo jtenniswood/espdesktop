@@ -12,11 +12,14 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
     if (webChanged) COMPANION_WEB_APPS.splice(0, COMPANION_WEB_APPS.length, ...webApps);
     return shortcutChanged || webChanged;
 }
+
+import { companionSavedCardMode } from "../model/companion_card_codec";
 import {
     configOptionEnabled,
     configOptionValue,
     setConfigOption,
     setConfigOptionValue,
+    preserveCardColorOptions,
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { isBackOrderToken } from "../model/subpage";
@@ -62,7 +65,13 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
     if (bundleIdentifier.startsWith("webapp.")) {
         return COMPANION_WEB_APPS.find((app) => "webapp." + app.id === bundleIdentifier)?.label || "";
     }
-    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.label || "";
+    return companionShortcutApp(bundleIdentifier)?.label || "";
+}
+
+function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
+    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier ||
+        (app.appId === "com.adobe.PremierePro" &&
+            /^com\.adobe\.PremierePro\.\d+$/.test(bundleIdentifier)));
 }
 
 export function companionAppShortcutFolderEnabled(card: any): boolean {
@@ -75,8 +84,8 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
     const retainWebAppTitle = typeof card.entity === "string" && card.entity.startsWith("webapp.") &&
         configOptionEnabled(card.options, "webapp_icon_title");
-    const finish = (options: string): string => retainWebAppTitle
-        ? setConfigOption(options, "webapp_icon_title", true) : options;
+    const finish = (options: string): string => preserveCardColorOptions(card.options,
+        retainWebAppTitle ? setConfigOption(options, "webapp_icon_title", true) : options);
     const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
     if (presetMarker === COMPANION_SHORTCUT_CUSTOM_PRESET && companionShortcutActionIdValid(card.entity)) {
         return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker));
@@ -109,6 +118,26 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     const value = tabs.length === 0 ? "none" :
         tabs.join("|") === defaults.join("|") ? "" : tabs.join("|");
     return finish(setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, value));
+}
+
+/** Normalize the saved options owned by each Companion card mode. */
+export function normalizeCompanionCardOptions(card: any): string {
+    if (!card || card.type !== "companion") return "";
+    let options = normalizeCompanionAppShortcutOptions(card);
+    if (companionSavedCardMode(card) !== "app") return options;
+
+    // App launch cards now always use the Mac app icon. Drop the legacy opt-out
+    // token while preserving other saved app appearance settings.
+    options = setConfigOption(options, "custom_icon", false);
+    for (const legacySize of ["app_icon_fill", "app_icon_medium", "app_icon_cover"])
+        options = setConfigOption(options, legacySize, false);
+    const customColor = configOptionValue(card.options, "app_bg_color");
+    if (/^[0-9a-f]{6}$/i.test(customColor))
+        options = setConfigOptionValue(options, "app_bg_color", customColor.toUpperCase());
+    if (!card.sensor) {
+        options = setConfigOption(options, "app_hide_label", configOptionEnabled(card.options, "app_hide_label"));
+    }
+    return options;
 }
 
 export function setCompanionAppShortcutFolderEnabled(card: any, enabled: boolean): void {
@@ -159,7 +188,7 @@ export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOp
 }
 
 export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
-    const appShortcuts = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier)?.shortcuts;
+    const appShortcuts = companionShortcutApp(bundleIdentifier)?.shortcuts;
     const webAppShortcuts = bundleIdentifier.startsWith("webapp.")
         ? COMPANION_WEB_APPS.find((app) => "webapp." + app.id === bundleIdentifier)?.shortcuts
         : COMPANION_WEB_APPS.find((app) => app.id === bundleIdentifier)?.shortcuts;
@@ -290,7 +319,7 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {
-    const app = COMPANION_SHORTCUT_APPS.find((candidate) => candidate.appId === bundleIdentifier);
+    const app = companionShortcutApp(bundleIdentifier);
     const webAppId = bundleIdentifier.replace(/^webapp\./, "");
     const webApp = COMPANION_WEB_APPS.find((candidate) => candidate.id === webAppId);
     return markCompanionShortcutPresets(bundleIdentifier, (app?.shortcuts || webApp?.shortcuts || []).map((item) =>
@@ -310,6 +339,10 @@ export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: 
         sizes: {},
         backLabel: "Back",
     };
+}
+
+export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlots: number): string[] {
+    return tabs.slice(0, Math.max(0, maxSlots - 1));
 }
 
 export function finderFolderTabs(subpage: any): string[] {

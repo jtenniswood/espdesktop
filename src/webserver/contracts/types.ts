@@ -163,6 +163,7 @@ export interface SubpageConfig {
   order: readonly string[];
   buttons: readonly CardConfig[];
   backLabel?: string;
+  backColor?: string;
   grid?: readonly number[];
   sizes?: Readonly<Record<string, number>>;
 }
@@ -219,6 +220,7 @@ export interface DeviceProfile {
     portrait?: {
       cols: number;
       rows: number;
+      slots?: number;
       screen: {
         width: string;
         aspect: string;

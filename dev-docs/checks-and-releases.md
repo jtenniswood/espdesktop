@@ -69,6 +69,16 @@ Playbooks use three consistent levels:
 A successful compile is automated evidence, not physical-device confirmation.
 Record flashing and device behavior separately in the pull request.
 
+## Firmware Build Coverage
+
+Pull request firmware checks compile one representative P4 board (7-inch
+`guition-esp32-p4-jc1060p470`) and one S3 board (4-inch
+`guition-esp32-s3-4848s040`). The P4 check also compiles its recovery firmware.
+Nightly builds compile every supported device, including P4 recovery firmware.
+A failed nightly run opens a repository issue with the run logs, tested commit,
+job results, and failed targets when available. Setup and matrix failures also
+open an issue; cancelled runs do not. Each failed attempt creates a new issue.
+
 ## Release Boundary
 
 Firmware releases start as private GitHub drafts. The manually dispatched build

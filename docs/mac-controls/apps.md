@@ -15,6 +15,10 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
+Mac app icons automatically fit the available card space. With **Show label** off, the icon can grow larger; one or two label lines reduce its size so the artwork and title stay separate. The app settings and right-click menu have no size picker. Previously saved icon sizes use the same automatic layout. The active app keeps a coloured outline.
+
+App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
+
 Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac.
 
 ## Open a Website

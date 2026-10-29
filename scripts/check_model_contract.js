@@ -42,6 +42,32 @@ for (const token of ["Bw", "Bt", "Bx"]) {
   );
 }
 
+for (const token of ["B", "Bd", "Bw", "Bb", "Bt", "Bx"]) {
+  const encoded = model.backOrderToken(token, "Return:Home, 50%|;", "#ffec16");
+  assert.strictEqual(encoded, `${token}=Return%3AHome%2C 50%25%7C%3B:FFEC16`);
+  assert.deepStrictEqual(model.parseBackOrderToken(encoded), {
+    token, label: "Return:Home, 50%|;", color: "FFEC16",
+  });
+  for (const value of [encoded + ",1|switch.test:Test", "~" + encoded + ",1|,switch.test,Test"]) {
+    const parsed = model.parseRawSubpageConfig(value, code => code);
+    assert.strictEqual(parsed.backColor, "FFEC16");
+    assert.strictEqual(parsed.backLabel, "Return:Home, 50%|;");
+    const grid = model.buildSubpageGrid(parsed, 15, 5);
+    assert.strictEqual(model.serializeSubpageGrid(grid.grid, grid.sizes, parsed.backLabel, parsed.backColor)[0], encoded);
+    const structured = model.structuredSubpageFromParsed(parsed);
+    assert.strictEqual(structured.back_color, "FFEC16");
+    assert.strictEqual(model.parseStructuredSubpageConfig(structured).backColor, "FFEC16");
+    assert.strictEqual(model.subpageOrderForSerialize(parsed.order, parsed.backLabel, parsed.backColor)[0], encoded);
+    assert.strictEqual(model.subpageOrderForSerialize([encoded], "Back", "")[0], token, "reset removes colour suffix");
+  }
+}
+assert.strictEqual(model.parseBackOrderToken("B=Back:invalid").color, undefined);
+assert.strictEqual(model.parseStructuredSubpageConfig({ back_color: "invalid" }).backColor, undefined);
+assert.strictEqual(model.parseStructuredSubpageConfig({ back_color: "#abcdef" }).backColor, "ABCDEF");
+assert.strictEqual(model.backOrderToken("B", "Back", "invalid"), "B");
+assert.strictEqual(model.backOrderToken("B", "Back", "FFEC16"), "B=:FFEC16", "coloured default Back keeps its translated label");
+assert.deepStrictEqual(model.parseBackOrderToken("B=:FFEC16"), { token: "B", label: "Back", color: "FFEC16" });
+
 function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -94,6 +120,8 @@ assert.deepStrictEqual(plain(model.decodeMediaCardConfigV1({
   coverArtAction: "control_modal",
   showTrackDetails: false,
   secondaryEntity: "",
+  powerEntity: "",
+  controlTabs: ["controls", "progress", "volume", "speakers"],
   controlLabelDisplay: "status",
   controlNumberDisplay: "icon",
   maxVolumePercent: 100,
@@ -121,6 +149,17 @@ assert.strictEqual(model.decodeMediaCardConfigV1({
   sensor: "cover_art",
   options: "cover_art_secondary_entity=media_player.apple_tv",
 }).secondaryEntity, "media_player.apple_tv", "Media decoder exposes the external-source player");
+assert.strictEqual(model.decodeMediaCardConfigV1({
+  type: "media", sensor: "control_modal", options: "power_entity=media_player.tv",
+}).powerEntity, "media_player.tv", "Media decoder exposes the separate power entity");
+assert.strictEqual(model.decodeMediaCardConfigV1({
+  type: "media", sensor: "cover_art", options: "power_entity=media_player.tv",
+}).powerEntity, "media_player.tv", "Cover Art shares the separate power entity");
+for (const mode of ["control_modal", "cover_art"]) {
+  const modal = model.decodeMediaCardConfigV1({type: "media", sensor: mode, options: "media_tabs=power%7Cvolume%7Cpower,power_entity=media_player.tv"});
+  assert.deepStrictEqual(plain(modal.controlTabs), ["power", "volume"], `${mode} exposes ordered unique modal tabs`);
+  assert.strictEqual(modal.powerEntity, "media_player.tv", `${mode} exposes the separate power device`);
+}
 const coverArtAdvanced = model.decodeMediaCardConfigV1({
   type: "media",
   sensor: "cover_art",
@@ -142,6 +181,8 @@ assert.deepStrictEqual(plain(model.decodeMediaCardConfigV1({
   coverArtAction: "control_modal",
   showTrackDetails: false,
   secondaryEntity: "",
+  powerEntity: "",
+  controlTabs: ["controls", "progress", "volume", "speakers"],
   controlLabelDisplay: "status",
   controlNumberDisplay: "icon",
   maxVolumePercent: 1,
@@ -228,6 +269,7 @@ const transferSubpageCard = {
   subpage: {
     order: ["B", "1w"],
     back_label: "Return Home",
+    back_color: "F5F5F5",
     buttons: [{
       entity: "light.kitchen",
       label: "Kitchen",
@@ -612,13 +654,16 @@ const panelSettings = model.normalizeBackupPanelSettings({
   screensaver_mode: "timer",
   screensaver_action: "Screen Dimmed",
   screensaver_camera_image_mode: "fill",
+  screensaver_camera_dimming: 50,
   screensaver_metadata_entity: "sensor.current_photo_caption",
   cover_art_hide_external_input: true,
   home_assistant_artwork_endpoint_mode: "Manual",
+  home_assistant_artwork_host: "ha.example.test",
   home_assistant_artwork_protocol: "https",
   home_assistant_artwork_port: "80",
   firmware_auto_update: false,
   firmware_update_frequency: "Weekly",
+  clock_date: true,
   clock_brightness_day: 44,
   clock_brightness_night: 22,
   screensaver_dimmed_brightness: 15,
@@ -635,6 +680,7 @@ const panelSettings = model.normalizeBackupPanelSettings({
   ntpServer2: "1.pool.ntp.org",
   ntpServer3: "2.pool.ntp.org",
   coverArtHomeAssistantProtocol: "http",
+  coverArtHomeAssistantHost: "",
   coverArtHomeAssistantPort: 8123,
   autoUpdate: true,
   updateFrequency: "Daily",
@@ -661,6 +707,7 @@ assert.strictEqual(panelSettings.screensaverMode, "timer", "panel screensaver mo
 assert.strictEqual(panelSettings.screensaverAction, "dim", "panel screensaver action imports");
 assert.strictEqual(panelSettings.screensaverCameraImageMode, "Fill", "panel camera image mode imports");
 assert.strictEqual(panelSettings.screensaverMetadataEntity, "sensor.current_photo_caption", "panel photo metadata entity imports");
+assert.strictEqual(panelSettings.clockDate, true, "saved date setting is restored");
 assert.strictEqual(panelSettings.metadataOverlay, true, "older backups with a metadata entity keep metadata enabled");
 const metadataSettingsCurrent = {
   ...panelSettings, clockFormatOptions: ["12h", "24h"], screenRotationOptions: ["0"],
@@ -669,11 +716,13 @@ const metadataSettingsCurrent = {
 assert.strictEqual(model.normalizeBackupPanelSettings({
   screensaver_metadata_entity: "sensor.current_photo_caption", metadata_overlay: false,
 }, metadataSettingsCurrent).metadataOverlay, false, "explicitly disabled metadata stays off when restoring a saved entity");
+assert.strictEqual(model.normalizeBackupPanelSettings({}, metadataSettingsCurrent).clockDate, false, "older backups default date off");
 assert.strictEqual(model.normalizeBackupPanelSettings({}, metadataSettingsCurrent).metadataOverlay, false, "metadata defaults off without a saved entity");
 assert.strictEqual(model.normalizeScreensaverCameraImageMode("unexpected"), "Fit", "invalid camera image mode defaults to Fit");
 assert.strictEqual(panelSettings.coverArtHideExternalInput, true, "panel cover art external-input setting imports");
 assert.strictEqual(panelSettings.coverArtHomeAssistantEndpointMode, "Manual", "panel Home Assistant artwork endpoint mode imports");
 assert.strictEqual(panelSettings.coverArtHomeAssistantProtocol, "https", "panel Home Assistant artwork protocol imports");
+assert.strictEqual(panelSettings.coverArtHomeAssistantHost, "ha.example.test", "panel Home Assistant artwork host imports");
 assert.strictEqual(panelSettings.coverArtHomeAssistantPort, 80, "panel Home Assistant artwork port imports");
 assert.strictEqual(
   model.normalizeHomeAssistantArtworkEndpointMode(undefined, "http", 8123),
@@ -852,3 +901,31 @@ assert.strictEqual(legacyPanelSettings.autoUpdate, false, "legacy panel settings
 assert.strictEqual(legacyPanelSettings.updateFrequency, "Monthly", "legacy panel settings keep current firmware update frequency");
 
 console.log("Model contract tests passed.");
+
+assert.strictEqual(
+  model.normalizeBackupPanelSettings({ cover_art_playback_control: false }, {
+    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
+    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
+    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
+    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
+    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
+  }).coverArtPlaybackControl,
+  false,
+  "explicit playback control setting remains off",
+);
+assert.strictEqual(
+  model.normalizeBackupPanelSettings({}, {
+    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
+    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
+    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
+    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
+    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
+  }).coverArtPlaybackControl,
+  true,
+  "missing playback control setting defaults on",
+);
+
+assert.strictEqual(panelSettings.screensaverCameraDimming, 50, "camera dimming imports into saved settings");
+for (const [value, expected] of [[0, 0], [100, 100], ["25 %", 25], [-5, 0], [120, 100], ["invalid", 0], [undefined, 0]]) {
+  assert.strictEqual(model.normalizeScreensaverCameraDimming(value), expected, "camera dimming normalizes " + value);
+}

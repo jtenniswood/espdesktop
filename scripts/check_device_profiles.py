@@ -7,6 +7,8 @@ import json
 import re
 from pathlib import Path
 
+import yaml
+
 import device_matrix
 import generate_device_slots
 from device_profiles import (
@@ -125,6 +127,16 @@ def test_s3_exposes_camera_and_media_cover_art(profiles: dict[str, dict]) -> Non
     )
 
 
+def test_s3_exposes_weather_forecasts(profiles: dict[str, dict]) -> None:
+    slug = "guition-esp32-s3-4848s040"
+    disabled = set(web_config(profiles[slug]).get("disabledCardTypes", []))
+    assert "weather_forecast" not in disabled, f"{slug}: Today and Tomorrow forecasts must be available"
+    device = S3_DEVICE_YAML.read_text(encoding="utf-8")
+    assert "-DESPDESKTOP_DISABLE_WEATHER_FORECAST=1" not in device, (
+        f"{slug}: firmware must retain forecast modes and request Home Assistant forecasts"
+    )
+
+
 def test_public_device_capabilities(profile_slugs: list[str]) -> None:
     expected = public_device_capabilities()
     actual = read_json(DEVICE_CAPABILITIES_JSON)
@@ -219,7 +231,7 @@ def test_s3_low_heap_policy() -> None:
 
     for option in (
         'CONFIG_SPIRAM_USE_MALLOC: "y"',
-        'CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "4096"',
+        'CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "0"',
         'CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL: "32768"',
         'CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"',
     ):
@@ -272,38 +284,52 @@ def test_companion_startup_order() -> None:
         "Companion builds must identify themselves to connector migration"
     )
 
+class _EsphomeLoader(yaml.SafeLoader):
+    """Reads ESPHome YAML, keeping the value of tags such as !include or !lambda."""
+
+
+def _construct_tagged(loader: yaml.SafeLoader, _tag: str, node: yaml.Node):
+    if isinstance(node, yaml.ScalarNode):
+        return loader.construct_scalar(node)
+    if isinstance(node, yaml.SequenceNode):
+        return loader.construct_sequence(node, deep=True)
+    return loader.construct_mapping(node, deep=True)
+
+
+_EsphomeLoader.add_multi_constructor("!", _construct_tagged)
+
 
 def test_native_panel_config_bindings(slug: str, profile: dict, device: str) -> None:
-    espdesktop = re.search(r"(?ms)^espdesktop:\n(?P<body>(?:^  .*\n|^\s*$\n)*)", device)
-    assert espdesktop, f"{slug}: device.yaml is missing its espdesktop block"
-    body = espdesktop.group("body")
-    assert "  panel_config:\n" in body, (
+    espdesktop = (yaml.load(device, _EsphomeLoader) or {}).get("espdesktop")
+    assert isinstance(espdesktop, dict), f"{slug}: device.yaml is missing its espdesktop block"
+    panel_config = espdesktop.get("panel_config")
+    assert isinstance(panel_config, dict), (
         f"{slug}: device.yaml must enable native panel configuration so "
         "cards that contain device-owned settings remain available"
     )
 
     slots = int(profile["slots"])
+    buttons = panel_config.get("buttons")
+    assert isinstance(buttons, list) and len(buttons) == slots, (
+        f"{slug}: native panel config must provide exactly {slots} button bindings"
+    )
     bindings = [
-        int(slot)
-        for slot in re.findall(r"(?m)^      - config: button_(\d+)_config$", body)
+        button.get("config") if isinstance(button, dict) else None
+        for button in buttons
     ]
-    assert bindings == list(range(1, slots + 1)), (
+    assert bindings == [f"button_{slot}_config" for slot in range(1, slots + 1)], (
         f"{slug}: native panel config bindings must cover slots 1-{slots} exactly; "
         f"found {bindings}"
     )
 
-    chunk_rows = re.findall(r"(?m)^        subpage_chunks: \[([^\n]+)\]$", body)
-    assert len(chunk_rows) == slots, (
-        f"{slug}: native panel config must provide subpage chunks for all {slots} slots"
-    )
     chunk_count = 4 if "button_template_4chunk.yaml" in (
         ROOT / "devices" / slug / "packages.yaml"
     ).read_text(encoding="utf-8") else 8
-    for slot, row in enumerate(chunk_rows, start=1):
+    for slot, button in enumerate(buttons, start=1):
         expected = [f"subpage_{slot}_config", f"subpage_{slot}_config_ext"] + [
             f"subpage_{slot}_config_ext_{suffix}" for suffix in range(2, chunk_count)
         ]
-        actual = [value.strip() for value in row.split(",")]
+        actual = button.get("subpage_chunks")
         assert actual == expected, (
             f"{slug}: slot {slot} native subpage bindings differ: {actual} != {expected}"
         )
@@ -319,7 +345,17 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
         sensors = sensor_path.read_text(encoding="utf-8")
         assert f'device_slug: "{slug}"' in package, f"{slug}: packages.yaml missing device slug"
         assert f'firmware_manifest_slug: "{slug}"' in package, f"{slug}: packages.yaml missing manifest slug"
-        assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
+        portrait_slots = profile["layout"].get("portraitSlots")
+        if portrait_slots is None:
+            assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
+        else:
+            assert f"cfg.num_slots = portrait ? {portrait_slots} : {profile['slots']};" in sensors, (
+                f"{slug}: sensors.yaml missing portrait slot capacity"
+            )
+            for slot in range(portrait_slots, profile["slots"]):
+                assert f"lv_obj_add_flag(slots[{slot}].btn, LV_OBJ_FLAG_HIDDEN);" in sensors, (
+                    f"{slug}: sensors.yaml must hide portrait-only unavailable slot {slot + 1}"
+                )
         test_native_panel_config_bindings(slug, profile, device)
         label_lines = profile["web"]["btn"]["labelLines"]
         label_lines_tall = profile["web"]["btn"]["labelLinesDouble"]
@@ -369,12 +405,27 @@ def test_v3_release_configuration() -> None:
     assert "ref: ${espdesktop_component_ref}" in package, "V3 MIPI source must use the configured component ref"
     assert "components: [mipi_dsi]" in package, "V3 must retain the patched MIPI component"
     assert "web_server:\n  ota: false" in package, "V3 browser firmware uploads must be disabled"
-    assert package.count("restore_mode: ALWAYS_OFF") >= 2, "V3 update switches must default off"
+    assert "restore_mode: ALWAYS_OFF" not in package, "V3 firmware update switches must use shared defaults"
     assert "espdesktop_component_url: \"file:///config\"" in factory
     assert "espdesktop_component_ref: \"HEAD\"" in factory
     assert 'js_include: "../docs/public/webserver/embedded/www.js"' in factory
     assert f"!include {V3_SLUG}.factory.yaml" in recovery
     assert "esp32_c6_recovery.yaml" in recovery
+
+
+def test_jc4880p443_v3_configuration() -> None:
+    slug = "guition-esp32-p4-jc4880p443-v3"
+    device = (ROOT / "devices" / slug / "device" / "device.yaml").read_text(encoding="utf-8")
+    package = (ROOT / "devices" / slug / "packages.yaml").read_text(encoding="utf-8")
+    original = (ROOT / "devices" / "guition-esp32-p4-jc4880p443" / "device" / "device.yaml").read_text(encoding="utf-8")
+    assert "engineering_sample: false" in device and "cpu_frequency: 360MHz" in device
+    assert "engineering_sample: true" in original, "Original profile must still target older P4 silicon"
+    assert "mode: hex" in device and "model: JC4880P443" in device
+    assert "platform: gt911" in device and "frequency: 100kHz" in device
+    assert "artwork_image, mipi_dsi]" in device, "Production P4 requires the DSI clock fix"
+    assert "url: ${espdesktop_component_url}" in device and "ref: ${espdesktop_component_ref}" in device
+    for suffix in (".yaml", ".factory.yaml", ".recovery.yaml"):
+        assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
 def test_public_api_encryption_policy(profile_slugs: list[str]) -> None:
@@ -487,23 +538,6 @@ def test_p4_crash_restart_preserves_safe_mode_counter() -> None:
         assert "App.safe_reboot();" not in handler, (
             f"{slug}: crash restart must preserve the failed-boot counter"
         )
-
-
-def test_local_voice_generation_uses_capability() -> None:
-    voice_device = {
-        "slug": "semantic-voice-test",
-        "package": {"localVoiceServices": True},
-    }
-    standard_device = {
-        "slug": "esp32-p4-86",
-        "package": {"firmwareVersion": "dev"},
-    }
-    assert "open_device_volume_control" in "\n".join(
-        generate_device_slots.voice_substitution_lines(voice_device)
-    ), "local voice generation must follow the semantic capability"
-    assert "open_device_volume_control" not in "\n".join(
-        generate_device_slots.voice_substitution_lines(standard_device)
-    ), "the device slug alone must not enable local voice generation"
 
 
 def test_square_s3_reapplies_clock_bar_after_screen_changes() -> None:
@@ -702,17 +736,22 @@ def test_web_screen_aspect_matches_public_resolution() -> None:
             )
 
 
-def test_web_grid_spacing_matches_across_screen_sizes() -> None:
+def test_web_card_geometry_matches_firmware() -> None:
     profiles = load_device_profiles()
-    expected = None
     for slug, profile in profiles.items():
-        grid = profile["web"]["grid"]
-        rendered_gap = float(grid["gap"]) * web_screen_width_percent(profile) / 100.0
-        if expected is None:
-            expected = rendered_gap
-        assert abs(rendered_gap - expected) <= 0.01, (
-            f"{slug}: web preview grid spacing must match the other generated screen layouts"
-        )
+        substitutions = profile["firmware"]["package"]["substitutions"]
+        width = float(substitutions["screen_width"].strip('"'))
+        gap = float(substitutions["main_page_card_gap"].strip('"'))
+        radius = float(substitutions["radius"].removesuffix("px"))
+        for field, web_value, expected in (
+            ("grid.gap", profile["web"]["grid"]["gap"], gap),
+            ("btn.radius", profile["web"]["btn"]["radius"], radius),
+            ("emptyCell.radius", profile["web"]["emptyCell"]["radius"], radius),
+        ):
+            preview_pixels = float(web_value) * width / 100.0
+            assert abs(preview_pixels - expected) <= 0.0001, (
+                f"{slug}: web.{field} must scale to the firmware's {expected}px"
+            )
 
 
 def test_setup_icon_glyphs() -> None:
@@ -770,8 +809,8 @@ def test_weather_card_visual_matches_preview() -> None:
     assert '"HA Actions"' not in weather_forecast, (
         "forecast weather errors should keep the configured/default label like the web preview"
     )
-    assert 'lv_label_set_display_text(slot.unit_lbl, display_temperature_unit_symbol())' in weather_driver, (
-        "forecast weather placeholder should show the configured unit like the web preview"
+    assert 'weather_daily_setup(slot, config, display)' in weather_driver, (
+        "all forecast modes should use the shared forecast layout"
     )
     assert 'lv_label_set_display_text(ref.unit_lbl, normalized_unit.c_str())' in weather_forecast, (
         "forecast weather unavailable state should keep showing the configured unit"
@@ -997,7 +1036,7 @@ def test_current_weather_state_keeps_normal_card_visuals() -> None:
     assert "bump_ha_subscription_generation();" in grid, (
         "dashboard reconfiguration must invalidate stale current weather subscriptions"
     )
-    assert "weather_forecast_cancel_pending_requests();" in grid, (
+    assert "weather_forecast_cancel_pending_requests(false);" in grid, (
         "dashboard reconfiguration must cancel stale weather forecast action responses"
     )
     assert grid.count("if (bind_basic_sensor_card(") >= 2, (
@@ -1016,7 +1055,10 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
     pr = device_matrix.pr_matrix(profiles)
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in release["include"]], "release matrix")
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in nightly["include"]], "nightly matrix")
-    assert_profile_slugs(profile_slugs, [entry["slug"] for entry in pr["include"]], "PR matrix")
+    pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr["include"]]
+    expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
+    assert len(pr_chips) == len(set(pr_chips)), "PR matrix repeats a chip family"
+    assert set(pr_chips) == expected_chips, "PR matrix does not cover every chip family"
 
 
 def test_public_firmware_slugs(profile_slugs: list[str]) -> None:
@@ -1036,20 +1078,21 @@ def main() -> int:
     test_s3_exposes_camera_and_media_cover_art(profiles)
     test_generated_yaml(profiles)
     test_v3_release_configuration()
+    test_jc4880p443_v3_configuration()
     test_public_api_encryption_policy(profile_slugs)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
     test_p4_crash_restart_preserves_safe_mode_counter()
-    test_local_voice_generation_uses_capability()
     test_square_s3_reapplies_clock_bar_after_screen_changes()
     test_rotation_refresh_rebuilds_subpages()
     test_restored_display_sensors_bind_without_reboot()
     test_seven_inch_width_compensation_rotates_with_screen()
     test_subpage_config_changes_schedule_live_refresh()
     test_web_screen_aspect_matches_public_resolution()
-    test_web_grid_spacing_matches_across_screen_sizes()
+    test_web_card_geometry_matches_firmware()
     test_setup_icon_glyphs()
     test_weather_card_visual_matches_preview()
+    test_s3_exposes_weather_forecasts(profiles)
     test_weather_card_mode_visibility_reset()
     test_grid_phase2_uses_cleaned_spanned_layout()
     test_card_label_line_clamp_matches_preview_on_subpages()

@@ -8,6 +8,7 @@ on:
       - 'devices/manifest.json'
       - 'scripts/check_public_firmware.py'
       - 'scripts/check_docs_site.py'
+      - 'scripts/check_docs_installer.js'
       - 'scripts/build.py'
       - 'scripts/prepare_release_web_assets.py'
       - 'scripts/prune_actions_cache.sh'
@@ -32,7 +33,7 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ESPDESKTOP_NPM_CACHE_MAX_MB: 512
-  OPTIONAL_STABLE_FIRMWARE_SLUGS: guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
+  OPTIONAL_STABLE_FIRMWARE_SLUGS: guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc4880p443-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
 
 jobs:
   build-docs:
@@ -47,7 +48,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install dependencies
         run: |
@@ -130,6 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       has_stable: ${{ steps.stable.outputs.has_stable }}
+      has_firmware: ${{ steps.upload_firmware.outputs['artifact-id'] != '' }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -392,6 +394,7 @@ jobs:
           if [ "$MISSING" = true ]; then exit 1; fi
 
       - name: Upload firmware artifact
+        id: upload_firmware
         if: hashFiles('firmware/**') != ''
         uses: actions/upload-artifact@v7
         with:
@@ -420,8 +423,8 @@ jobs:
           path: dist
 
       - name: Download firmware artifact
+        if: needs.download-firmware.outputs.has_firmware == 'true'
         uses: actions/download-artifact@v8
-        continue-on-error: true
         with:
           name: firmware
           path: dist/firmware
@@ -441,6 +444,6 @@ jobs:
           python3 scripts/check_public_firmware.py
           --base-url "${{ steps.deployment.outputs.page_url }}"
           --manifest devices/manifest.json
-          --optional-stable-slugs guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
+          --optional-stable-slugs guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc4880p443-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
           --retries 5
           --delay 20

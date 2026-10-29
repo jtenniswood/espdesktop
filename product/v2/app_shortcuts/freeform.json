@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "appId": "com.apple.freeform",
+  "label": "Freeform",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Create a new board",
+      "shortcut": "command+n",
+      "icon": "Plus"
+    },
+    {
+      "id": "1",
+      "label": "Create a copy of a board (duplicate)",
+      "shortcut": "shift+command+d",
+      "icon": "Plus"
+    },
+    {
+      "id": "2",
+      "label": "Search boards",
+      "shortcut": "command+f",
+      "icon": "Spotlight"
+    },
+    {
+      "id": "3",
+      "label": "Apply Bold format to selected text",
+      "shortcut": "command+b",
+      "icon": "Palette"
+    },
+    {
+      "id": "4",
+      "label": "Apply Italic format to selected text",
+      "shortcut": "command+i",
+      "icon": "Palette"
+    },
+    {
+      "id": "5",
+      "label": "Apply Underline format to selected text",
+      "shortcut": "command+u",
+      "icon": "Palette"
+    }
+  ]
+}

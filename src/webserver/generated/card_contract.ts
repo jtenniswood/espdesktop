@@ -1082,6 +1082,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "label": "Large Clock",
         "kind": "flag",
         "omitDefault": true
+      },
+      {
+        "name": "center_clock",
+        "label": "Center Clock",
+        "kind": "flag",
+        "omitDefault": true
       }
     ],
     "normalization": {
@@ -1120,7 +1126,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       "unknownOptions": "drop",
       "canonicalOptionOrder": [
-        "large_numbers"
+        "large_numbers",
+        "center_clock"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -1312,7 +1319,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "name": "climate_tabs",
         "label": "Visible Tabs",
         "kind": "text",
-        "defaultValue": "temperature|mode|preset|fan|swing",
+        "defaultValue": "temperature|mode|preset|fan|swing|horizontal_swing",
         "omitDefault": true
       }
     ],
@@ -2751,6 +2758,48 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         ]
       },
       {
+        "name": "power_entity",
+        "label": "Power Entity",
+        "kind": "text",
+        "omitDefault": true,
+        "applicability": [
+          {
+            "source": "field",
+            "name": "sensor",
+            "operator": "in",
+            "value": [
+              "control_modal",
+              "cover_art"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "media_tabs",
+        "label": "Modal Tabs",
+        "kind": "text",
+        "values": [
+          "controls",
+          "progress",
+          "volume",
+          "speakers",
+          "power"
+        ],
+        "defaultValue": "controls|progress|volume|speakers",
+        "omitDefault": true,
+        "applicability": [
+          {
+            "source": "field",
+            "name": "sensor",
+            "operator": "in",
+            "value": [
+              "control_modal",
+              "cover_art"
+            ]
+          }
+        ]
+      },
+      {
         "name": "label_display",
         "label": "Label Display",
         "kind": "choice",
@@ -2894,6 +2943,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "cover_art_details",
         "cover_art_secondary_entity",
         "speaker_group_entity",
+        "power_entity",
+        "media_tabs",
         "volume_max",
         "playlist_content_id",
         "playlist_content_type",
@@ -3013,6 +3064,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "domains": [],
     "options": [
       {
+        "name": "custom_icon",
+        "label": "Use custom icon",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "app_shortcuts",
         "label": "App Subpage",
         "kind": "flag",
@@ -3068,6 +3127,22 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": true
       },
       {
+        "name": "app_bg_color",
+        "label": "App background colour",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "app_hide_label",
+        "label": "Hide app label",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "webapp_icon_title",
         "label": "Large icon with title",
         "kind": "flag",
@@ -3117,6 +3192,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       "unknownOptions": "drop",
       "canonicalOptionOrder": [
+        "custom_icon",
         "app_shortcuts",
         "finder_open_behavior",
         "finder_open_override",
@@ -3124,7 +3200,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "app_shortcut_preset",
         "large_numbers",
         "stat_labels_off",
-        "webapp_icon_title"
+        "webapp_icon_title",
+        "app_bg_color",
+        "app_hide_label"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -3144,6 +3222,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "label": "Screen Lock",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "screensaver_on_lock",
+        "label": "Screensaver on lock",
+        "kind": "flag",
+        "omitDefault": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -3174,11 +3260,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "screensaver_on_lock"
+      ]
     },
     "default": {
       "entity": "",
@@ -3783,23 +3871,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "values": [
           "",
           "today",
-          "tomorrow"
+          "tomorrow",
+          "daily"
         ],
         "defaultValue": "",
         "storageField": "precision",
         "omitDefault": true
-      },
-      {
-        "name": "large_numbers",
-        "label": "Large Temperature Numbers",
-        "kind": "flag",
-        "omitDefault": true,
-        "supportedWhen": {
-          "precision": [
-            "today",
-            "tomorrow"
-          ]
-        }
       }
     ],
     "normalization": {
@@ -3837,9 +3914,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "large_numbers"
-      ],
+      "canonicalOptionOrder": [],
       "migrationActions": [
         "legacy_weather_forecast"
       ],
@@ -3879,13 +3954,43 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "image_modal_mode",
-        "label": "Expanded Image",
+        "label": "Image fit",
         "kind": "choice",
         "values": [
           "fill",
           "fit"
         ],
         "defaultValue": "fill",
+        "omitDefault": true
+      },
+      {
+        "name": "image_modal_refresh_mode",
+        "label": "Camera refresh",
+        "kind": "choice",
+        "values": [
+          "off",
+          "periodic",
+          "activity"
+        ],
+        "defaultValue": "off",
+        "omitDefault": true
+      },
+      {
+        "name": "image_modal_refresh_interval",
+        "label": "Refresh interval",
+        "kind": "choice",
+        "values": [
+          "5",
+          "10",
+          "30"
+        ],
+        "defaultValue": "10",
+        "omitDefault": true
+      },
+      {
+        "name": "image_modal_refresh_trigger",
+        "label": "Trigger entity",
+        "kind": "text",
         "omitDefault": true
       }
     ],
@@ -3928,7 +4033,10 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "canonicalOptionOrder": [
         "image_label",
         "image_icon",
-        "image_modal_mode"
+        "image_modal_mode",
+        "image_modal_refresh_mode",
+        "image_modal_refresh_interval",
+        "image_modal_refresh_trigger"
       ],
       "optionHook": "normalize_image_options"
     },
@@ -4168,6 +4276,58 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "unit": "",
       "type": "weather",
       "precision": "tomorrow",
+      "options": ""
+    }
+  },
+  "screensaver": {
+    "label": "Screensaver",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "clear"
+        },
+        "label": {
+          "policy": "clear"
+        },
+        "icon": {
+          "policy": "default",
+          "value": "Monitor"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "screensaver"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Monitor",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "screensaver",
+      "precision": "",
       "options": ""
     }
   }
@@ -4672,10 +4832,10 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
     "capabilities": {
       "informationOnly": true,
       "subscriptions": true,
-      "actions": false,
+      "actions": true,
       "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
+      "modal": true,
+      "runtimeAllocation": true,
       "subpage": true
     }
   },
@@ -4720,7 +4880,19 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
     "capabilities": {
       "informationOnly": true,
       "subscriptions": true,
-      "actions": false,
+      "actions": true,
+      "numericControl": false,
+      "modal": true,
+      "runtimeAllocation": true,
+      "subpage": true
+    }
+  },
+  "screensaver": {
+    "driver": "screensaver",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": false,
+      "actions": true,
       "numericControl": false,
       "modal": false,
       "runtimeAllocation": false,
@@ -4800,7 +4972,8 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "screen_lock": "SL",
   "webhook": "WH",
   "internal": "I",
-  "subpage": "G"
+  "subpage": "G",
+  "screensaver": "SS"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
   "TM": "timer",
@@ -4842,7 +5015,8 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "SL": "screen_lock",
   "WH": "webhook",
   "I": "internal",
-  "G": "subpage"
+  "G": "subpage",
+  "SS": "screensaver"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
   "": true,
@@ -4851,12 +5025,6 @@ export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRu
     "excludedPrecisions": [
       "icon",
       "text"
-    ]
-  },
-  "weather": {
-    "precisions": [
-      "today",
-      "tomorrow"
     ]
   },
   "calendar": true,
@@ -4871,9 +5039,12 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "actions": "actions",
   "active_color": "active_color",
   "alarm_card_type": "alarm_card_type",
+  "app_bg_color": "app_bg_color",
+  "app_hide_label": "app_hide_label",
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
+  "center_clock": "center_clock",
   "climate_tabs": "climate_tabs",
   "confirm_message": "confirm_message",
   "confirm_no": "confirm_no",
@@ -4887,6 +5058,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "cover_mode": "cover_mode",
   "cover_position": "cover_position",
   "cover_tabs": "cover_tabs",
+  "custom_icon": "custom_icon",
   "date_time_mode": "date_time_mode",
   "fan_light_entity": "fan_light_entity",
   "fan_tabs": "fan_tabs",
@@ -4899,6 +5071,9 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "image_icon": "image_icon",
   "image_label": "image_label",
   "image_modal_mode": "image_modal_mode",
+  "image_modal_refresh_interval": "image_modal_refresh_interval",
+  "image_modal_refresh_mode": "image_modal_refresh_mode",
+  "image_modal_refresh_trigger": "image_modal_refresh_trigger",
   "internal_mode": "internal_mode",
   "label_display": "label_display",
   "large_numbers": "large_numbers",
@@ -4909,6 +5084,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "media_display": "media_display",
   "media_mode": "media_mode",
   "media_now_playing_controls": "media_now_playing_controls",
+  "media_tabs": "media_tabs",
   "number_display": "number_display",
   "on_pattern": "on_pattern",
   "pass64": "pass64",
@@ -4917,6 +5093,8 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "playlist_content_id": "playlist_content_id",
   "playlist_content_type": "playlist_content_type",
   "playlist_player_source": "playlist_player_source",
+  "power_entity": "power_entity",
+  "screensaver_on_lock": "screensaver_on_lock",
   "script_fields": "script_fields",
   "security": "security",
   "speaker_group_entity": "speaker_group_entity",

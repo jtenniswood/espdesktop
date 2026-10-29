@@ -5,15 +5,8 @@
 #include "cover_art.h"
 #include "media_playback_modes.h"
 #include "media_power_capability.h"
+#include "media_control_tabs.h"
 #include "media_metadata_policy.h"
-
-enum class MediaControlTab : uint8_t {
-  CONTROLS = 0,
-  PROGRESS = 1,
-  VOLUME = 2,
-  SPEAKERS = 3,
-  POWER = 4,
-};
 
 constexpr lv_coord_t MEDIA_CONTROL_VOLUME_VALUE_Y_REF_PX = -8;
 constexpr int MEDIA_CONTROL_SPEAKERS_TAB_ICON_SCALE_PERCENT = 80;
@@ -22,6 +15,11 @@ constexpr lv_opa_t MEDIA_CONTROL_SPEAKER_VOLUME_TEXT_OPA = 204;
 
 struct MediaControlCtx {
   std::string entity_id;
+  std::string power_entity;
+  espdesktop::media::ControlTabs control_tabs = espdesktop::media::parse_control_tabs("");
+  std::string power_state_text = "unknown";
+  bool power_state_known = false;
+  bool power_available = false;
   std::string label;
   std::string friendly_name;
   std::string state_text = "unknown";
@@ -46,9 +44,9 @@ struct MediaControlCtx {
   int max_pct = 100;
   int pending_pct = -1;
   uint32_t pending_until_ms = 0;
-  uint32_t accent_color = DEFAULT_SLIDER_COLOR;
-  uint32_t secondary_color = SECONDARY_GREY;
-  uint32_t tertiary_color = TERTIARY_GREY;
+  uint32_t accent_color = DEFAULT_ACCENT_COLOR;
+  uint32_t secondary_color = theme_display_color(current_theme().surface_primary);
+  uint32_t tertiary_color = theme_display_color(current_theme().surface_secondary);
   lv_obj_t *btn = nullptr;
   lv_obj_t *icon_lbl = nullptr;
   lv_obj_t *label_lbl = nullptr;
@@ -109,6 +107,7 @@ struct MediaControlModalUi {
   lv_obj_t *panel = nullptr;
   lv_obj_t *back_btn = nullptr;
   lv_obj_t *tab_row = nullptr;
+  espdesktop::media::ControlTabs visible_tabs;
   lv_obj_t *controls_tab = nullptr;
   lv_obj_t *progress_tab = nullptr;
   lv_obj_t *volume_tab = nullptr;
@@ -145,6 +144,10 @@ struct MediaControlModalUi {
   lv_obj_t *power_icon_lbl = nullptr;
   lv_obj_t *power_status_lbl = nullptr;
   MediaControlCtx *active = nullptr;
+  MediaControlCtx *display_text_ctx = nullptr;
+  std::string display_title;
+  std::string display_artist;
+  bool display_text_valid = false;
   MediaControlTab tab = MediaControlTab::CONTROLS;
   bool updating_progress = false;
   bool updating_volume = false;
@@ -215,8 +218,7 @@ inline bool media_control_progress_supported(MediaControlCtx *ctx) {
 }
 
 inline bool media_control_power_supported(MediaControlCtx *ctx) {
-  return ctx && espdesktop::media::power_toggle_supported(
-    ctx->supported_features_known, ctx->supported_features);
+  return ctx && !ctx->power_entity.empty();
 }
 
 inline bool media_control_shuffle_supported(MediaControlCtx *ctx) {
@@ -231,24 +233,26 @@ inline bool media_control_repeat_supported(MediaControlCtx *ctx) {
 
 inline espdesktop::media::PowerCommand media_control_power_command(
     MediaControlCtx *ctx) {
-  if (!ctx) return espdesktop::media::PowerCommand::NONE;
+  if (!media_control_power_supported(ctx)) return espdesktop::media::PowerCommand::NONE;
   return espdesktop::media::power_command(
-    ctx->supported_features_known, ctx->supported_features,
-    ctx->state_known, ctx->available, ctx->state_text);
+    true, espdesktop::media::SUPPORT_TURN_ON | espdesktop::media::SUPPORT_TURN_OFF,
+    ctx->power_state_known, ctx->power_available, ctx->power_state_text);
 }
 
 inline void media_control_send_power_action(MediaControlCtx *ctx) {
   const auto command = media_control_power_command(ctx);
   if (command == espdesktop::media::PowerCommand::TURN_ON) {
-    send_media_player_action(ctx->entity_id, "media_player.turn_on");
+    send_media_player_action(ctx->power_entity, "homeassistant.turn_on");
   } else if (command == espdesktop::media::PowerCommand::TURN_OFF) {
-    send_media_player_action(ctx->entity_id, "media_player.turn_off");
+    send_media_player_action(ctx->power_entity, "homeassistant.turn_off");
   }
 }
 
-inline std::string media_metadata_text(esphome::StringRef value, const char *fallback) {
-  std::string text = decode_html_entities(
-    string_ref_limited(value, HA_STATE_TEXT_MAX_LEN));
+inline std::string media_metadata_text(
+    esphome::StringRef value, const char *fallback,
+    size_t max_bytes = std::string::npos) {
+  std::string text = espdesktop::media::normalize_media_display_text(
+    decode_html_entities(string_ref_limited(value, HA_STATE_TEXT_MAX_LEN)), max_bytes);
   if (text.empty() || text == "unknown" || text == "unavailable")
     text = fallback ? fallback : "--";
   return text;
@@ -285,7 +289,8 @@ inline void media_position_now_playing_artist(MediaNowPlayingCtx *ctx) {
 inline void media_set_now_playing_artist(MediaNowPlayingCtx *ctx,
                                          esphome::StringRef artist) {
   if (!ctx) return;
-  std::string text = media_metadata_text(artist, "");
+  const std::string text = media_metadata_text(
+    artist, "", sizeof(ctx->artist) - 1);
   std::strncpy(ctx->artist, text.c_str(), sizeof(ctx->artist) - 1);
   ctx->artist[sizeof(ctx->artist) - 1] = '\0';
 }
@@ -308,6 +313,52 @@ inline void media_control_clear_tab_content();
 inline void media_control_refresh_speakers(MediaControlCtx *ctx);
 inline void media_control_refresh_group_member_volumes(MediaControlCtx *ctx);
 inline size_t media_control_group_size(MediaControlCtx *ctx);
+inline espdesktop::media::ControlTabs media_control_visible_tabs(MediaControlCtx *ctx) {
+  if (!ctx) return espdesktop::media::parse_control_tabs("controls");
+  if (ctx->group_only) return espdesktop::media::parse_control_tabs("speakers");
+  if (!ctx->available) {
+    espdesktop::media::ControlTabs visible;
+    if (ctx->control_tabs.contains(MediaControlTab::POWER) &&
+        media_control_power_command(ctx) != espdesktop::media::PowerCommand::NONE) {
+      visible.add(MediaControlTab::POWER);
+    }
+    return visible;
+  }
+  return espdesktop::media::visible_control_tabs(ctx->control_tabs,
+    media_control_progress_supported(ctx),
+    media_group_speaker_tab_available(ctx->grouping_supported, ctx->speaker_discovery_available,
+                                     media_control_group_size(ctx) > 1),
+    media_control_power_supported(ctx));
+}
+
+inline bool media_control_tab_layout_changed(MediaControlCtx *ctx) {
+  const MediaControlModalUi &ui = media_control_modal_ui();
+  return ctx && ui.active == ctx && !(ui.visible_tabs == media_control_visible_tabs(ctx));
+}
+
+inline bool media_control_can_open_modal(MediaControlCtx *ctx) {
+  if (!ctx || (ctx->group_only && !ctx->grouping_supported)) return false;
+  return ctx->available || (!ctx->group_only &&
+    media_control_visible_tabs(ctx).contains(MediaControlTab::POWER));
+}
+
+inline void media_control_refresh_open_modal(MediaControlCtx *ctx, bool layout_needed = false) {
+  if (!ctx || media_control_modal_ui().active != ctx) return;
+  if (!media_control_can_open_modal(ctx)) media_control_hide_modal();
+  else if (layout_needed || media_control_tab_layout_changed(ctx)) media_control_layout_modal(ctx);
+  else media_control_refresh_modal(ctx);
+}
+
+inline void media_control_ensure_visible_tab(MediaControlCtx *ctx) {
+  MediaControlModalUi &ui = media_control_modal_ui();
+  if (!ctx || ui.active != ctx) return;
+  const auto visible = media_control_visible_tabs(ctx);
+  if (visible.contains(ui.tab)) return;
+  if (ui.tab == MediaControlTab::SPEAKERS) ui.speaker_generation++;
+  media_control_clear_tab_content();
+  ui.tab = visible.tabs[0];
+}
+
 inline bool media_control_group_volume_percent(MediaControlCtx *ctx, int *pct);
 inline void media_control_apply_group_volume_percent(MediaControlCtx *ctx, int pct,
                                                       bool send_action = true);
@@ -323,8 +374,10 @@ inline void media_playback_detach_control(MediaControlCtx *ctx);
 inline void media_playback_detach_volume(MediaVolumeCtx *ctx);
 inline void media_playback_detach_playlist(MediaPlaylistCtx *ctx);
 inline void media_playback_detach_now_playing(MediaNowPlayingCtx *ctx);
+inline void media_cover_art_unregister_theme(MediaNowPlayingCtx *ctx);
 inline void media_playback_detach_slider(SliderCtx *ctx);
 inline void media_playback_attach_control(MediaPlaybackState *state, MediaControlCtx *ctx);
+inline void media_playback_attach_power_control(MediaPlaybackState *state, MediaControlCtx *ctx);
 inline void media_playback_subscribe_playback_state(MediaPlaybackState *state);
 inline void media_playback_subscribe_content(MediaPlaybackState *state);
 inline void media_playback_subscribe_metadata(MediaPlaybackState *state);
@@ -409,6 +462,13 @@ inline void subscribe_media_control_state(MediaControlCtx *ctx) {
   media_playback_subscribe_metadata(state);
   media_playback_subscribe_volume(state);
   media_playback_subscribe_modes(state);
+  if (!ctx->power_entity.empty()) {
+    MediaPlaybackState *power = media_playback_ensure_state(ctx->power_entity);
+    if (power) {
+      media_playback_attach_power_control(power, ctx);
+      media_playback_subscribe_playback_state(power);
+    }
+  }
   if (!ctx->speaker_group_entity.empty()) {
     media_playback_subscribe_grouping(state);
     media_playback_subscribe_speaker_discovery(state, ctx->speaker_group_entity);
@@ -579,7 +639,8 @@ inline void media_set_pending_seek_position(SliderCtx *ctx, int value) {
   media_apply_position(ctx);
 }
 
-constexpr int MEDIA_PLAYBACK_STATE_MAX = MAX_GRID_SLOTS + MAX_SUBPAGE_ITEMS;
+// Cover Art can use distinct main, secondary artwork, and optional power entities.
+constexpr int MEDIA_PLAYBACK_STATE_MAX = 3 * (MAX_GRID_SLOTS + MAX_SUBPAGE_ITEMS);
 constexpr size_t MEDIA_PLAYBACK_STATE_CONSUMERS_MAX =
   static_cast<size_t>(MAX_GRID_SLOTS + MAX_SUBPAGE_ITEMS);
 
@@ -656,6 +717,7 @@ struct MediaPlaybackState {
   lv_timer_t *progress_timer = nullptr;
   std::vector<SliderCtx *> sliders;
   std::vector<MediaControlCtx *> controls;
+  std::vector<MediaControlCtx *> power_controls;
   std::vector<MediaVolumeCtx *> volumes;
   std::vector<MediaPlaylistCtx *> playlists;
   std::vector<MediaNowPlayingCtx *> now_playing;
@@ -693,6 +755,7 @@ inline void media_playback_detach_control(MediaControlCtx *ctx) {
   for (MediaPlaybackState *state : media_playback_states()) {
     if (!state) continue;
     media_playback_erase_consumer(state->controls, ctx);
+    media_playback_erase_consumer(state->power_controls, ctx);
     media_playback_refresh_progress_timer(state);
   }
 }
@@ -745,6 +808,7 @@ inline void delete_media_playlist_context(MediaPlaylistCtx *ctx) {
 
 inline void delete_media_now_playing_context(MediaNowPlayingCtx *ctx) {
   if (!ctx) return;
+  media_cover_art_unregister_theme(ctx);
   media_playback_detach_now_playing(ctx);
   delete ctx;
 }
@@ -817,6 +881,7 @@ inline void media_playback_reset_state(MediaPlaybackState *state,
   state->artwork_content_mask = 0;
   std::vector<SliderCtx *>().swap(state->sliders);
   std::vector<MediaControlCtx *>().swap(state->controls);
+  std::vector<MediaControlCtx *>().swap(state->power_controls);
   std::vector<MediaVolumeCtx *>().swap(state->volumes);
   std::vector<MediaPlaylistCtx *>().swap(state->playlists);
   std::vector<MediaNowPlayingCtx *>().swap(state->now_playing);
@@ -1083,6 +1148,61 @@ inline bool media_playback_has_current_content(const MediaPlaybackState *state) 
     state->has_state, state->available, has_content);
 }
 
+inline bool image_card_media_artwork_visible(const ImageCardCtx *ctx);
+
+inline void media_cover_art_apply_theme(MediaNowPlayingCtx *ctx,
+                                       const ThemePalette &theme) {
+  if (!ctx || !ctx->cover_art_mode || !ctx->btn) return;
+  const bool artwork_visible = image_card_media_artwork_visible(ctx->cover_art);
+  // The fallback is a normal card. White text belongs only to visible artwork,
+  // whose image and contrast overlay remain independent of the UI theme.
+  const uint32_t background = ctx->custom_fallback_background
+      ? ctx->fallback_background_color : theme_display_color(theme.surface_card);
+  lv_obj_set_style_bg_color(ctx->btn, lv_color_hex(background), LV_PART_MAIN);
+  const uint32_t fallback_foreground = ctx->custom_fallback_background
+      ? readable_text_color_for_bg(background) : theme.text_primary;
+  const lv_color_t foreground = lv_color_hex(
+      artwork_visible ? CARD_ACCENT_TEXT_COLOR : fallback_foreground);
+  lv_obj_set_style_text_color(ctx->btn, foreground, LV_PART_MAIN);
+  const lv_color_t label_foreground = artwork_visible
+      ? foreground : lv_obj_get_style_text_color(ctx->btn, LV_PART_MAIN);
+  lv_obj_t *labels[] = {ctx->icon_lbl, ctx->idle_lbl, ctx->title_lbl, ctx->artist_lbl};
+  for (lv_obj_t *label : labels) {
+    if (label) {
+      lv_obj_set_style_text_color(label, label_foreground, LV_PART_MAIN);
+      if (artwork_visible) lv_obj_add_flag(label, LV_OBJ_FLAG_USER_2);
+      else lv_obj_clear_flag(label, LV_OBJ_FLAG_USER_2);
+    }
+  }
+  set_card_content_disabled(ctx->btn, lv_obj_has_state(ctx->btn, LV_STATE_DISABLED));
+}
+
+inline std::vector<MediaNowPlayingCtx *> &media_cover_art_theme_cards() {
+  static std::vector<MediaNowPlayingCtx *> cards;
+  return cards;
+}
+
+inline void media_cover_art_apply_theme_cards(void *context,
+                                             const ThemePalette &theme) {
+  for (auto *ctx : *static_cast<std::vector<MediaNowPlayingCtx *> *>(context))
+    media_cover_art_apply_theme(ctx, theme);
+}
+
+inline void media_cover_art_register_theme(MediaNowPlayingCtx *ctx) {
+  auto &cards = media_cover_art_theme_cards();
+  cards.push_back(ctx);
+  // Share one refresh binding across main-grid and subpage cover-art cards.
+  if (!register_theme_refresh(&cards, media_cover_art_apply_theme_cards, &cards))
+    ESP_LOGW("theme", "Refresh registry full; cover-art fallbacks will not follow theme changes");
+  media_cover_art_apply_theme(ctx, current_theme());
+}
+
+inline void media_cover_art_unregister_theme(MediaNowPlayingCtx *ctx) {
+  auto &cards = media_cover_art_theme_cards();
+  media_playback_erase_consumer(cards, ctx);
+  if (cards.empty()) unregister_theme_refresh(&cards);
+}
+
 inline void media_cover_art_set_idle_placeholder(MediaNowPlayingCtx *ctx,
                                                  bool visible) {
   if (!ctx || !ctx->cover_art_mode) return;
@@ -1147,11 +1267,13 @@ inline void media_playback_apply_state_to_now_playing_snapshot(
     }
   }
   if (ctx->title_lbl) {
-    const std::string title =
+    std::string title =
       idle_placeholder ? std::string()
       : ctx->external_source_fallback && state->external_source && !state->source.empty()
         ? state->source
         : state->title.empty() ? std::string("--") : state->title;
+    title = espdesktop::media::normalize_media_display_text(title);
+    if (title.empty() && !idle_placeholder) title = "--";
     lv_label_set_display_text(ctx->title_lbl, title.c_str());
     if (!idle_placeholder &&
         (ctx->show_track_details || ctx->external_source_fallback)) {
@@ -1161,12 +1283,14 @@ inline void media_playback_apply_state_to_now_playing_snapshot(
     }
   }
   if (ctx->artist_lbl) {
-    std::strncpy(ctx->artist, state->artist.c_str(), sizeof(ctx->artist) - 1);
+    const std::string artist = espdesktop::media::normalize_media_display_text(
+      state->artist, sizeof(ctx->artist) - 1);
+    std::strncpy(ctx->artist, artist.c_str(), sizeof(ctx->artist) - 1);
     ctx->artist[sizeof(ctx->artist) - 1] = '\0';
     media_apply_now_playing_artist_text(ctx);
     if (!idle_placeholder &&
         espdesktop::cover_art::media_now_playing_artist_visible(
-          !state->artist.empty(), ctx->external_source,
+          !artist.empty(), ctx->external_source,
           ctx->show_track_details, ctx->external_source_fallback)) {
       lv_obj_clear_flag(ctx->artist_lbl, LV_OBJ_FLAG_HIDDEN);
     } else {
@@ -1270,10 +1394,12 @@ inline void media_playback_apply_state_to_volumes(MediaPlaybackState *state) {
 inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
                                                   MediaControlCtx *ctx) {
   if (!state || !ctx) return;
-  const bool previous_power_supported = espdesktop::media::power_toggle_supported(
-    ctx->supported_features_known, ctx->supported_features);
+  const bool previous_power_supported = media_control_power_supported(ctx);
   const bool previous_shuffle_supported = media_control_shuffle_supported(ctx);
   const bool previous_repeat_supported = media_control_repeat_supported(ctx);
+  const bool state_text_changed = state->has_state
+    ? ctx->state_text != state->state_text
+    : ctx->state_text != "unknown";
   bool metadata_changed = ctx->title != state->title ||
                           ctx->artist != state->artist ||
                           ctx->friendly_name != state->friendly_name;
@@ -1284,6 +1410,11 @@ inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
   ctx->title = state->title;
   ctx->artist = state->artist;
   ctx->friendly_name = state->friendly_name;
+  MediaControlModalUi &modal_ui = media_control_modal_ui();
+  if (modal_ui.display_text_ctx == ctx &&
+      (metadata_changed || state_text_changed)) {
+    modal_ui.display_text_valid = false;
+  }
   MediaSpeakerDiscoveryState *discovery = nullptr;
   for (MediaSpeakerDiscoveryState &candidate : state->speaker_discoveries) {
     if (candidate.entity_id == ctx->speaker_group_entity) {
@@ -1315,8 +1446,7 @@ inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
   ctx->volume_known = state->volume_known;
   ctx->supported_features_known = state->supported_features_known;
   ctx->supported_features = state->supported_features;
-  const bool power_supported = espdesktop::media::power_toggle_supported(
-    ctx->supported_features_known, ctx->supported_features);
+  const bool power_supported = media_control_power_supported(ctx);
   const bool shuffle_supported = media_control_shuffle_supported(ctx);
   const bool repeat_supported = media_control_repeat_supported(ctx);
   ctx->shuffle_known = shuffle_supported && state->shuffle_known;
@@ -1394,14 +1524,13 @@ inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
                      : ctx->highlight_playing && ctx->playing));
   media_control_refresh_parent_card(ctx);
   MediaControlModalUi &ui = media_control_modal_ui();
-  if (ui.active == ctx && !ctx->available) {
-    media_control_hide_modal();
-  } else if (ui.active == ctx) {
+  if (ui.active == ctx) {
     const bool mode_capabilities_changed =
       previous_shuffle_supported != shuffle_supported ||
       previous_repeat_supported != repeat_supported;
     bool layout_needed = metadata_changed || grouping_changed ||
                          previous_power_supported != power_supported ||
+                         media_control_tab_layout_changed(ctx) ||
                          mode_capabilities_changed;
     if (mode_capabilities_changed && ui.tab == MediaControlTab::CONTROLS) {
       media_control_clear_tab_content();
@@ -1415,8 +1544,7 @@ inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
     if (!power_supported && ui.tab == MediaControlTab::POWER) {
       layout_needed = true;
     }
-    if (layout_needed) media_control_layout_modal(ctx);
-    else media_control_refresh_modal(ctx);
+    media_control_refresh_open_modal(ctx, layout_needed);
   }
 }
 
@@ -1427,7 +1555,37 @@ inline void media_playback_apply_state_to_controls(MediaPlaybackState *state) {
   }
 }
 
+inline void media_playback_apply_state_to_power_control(MediaPlaybackState *state,
+                                                       MediaControlCtx *ctx) {
+  if (!state || !ctx) return;
+  ctx->power_state_known = state->has_state;
+  ctx->power_available = state->available;
+  ctx->power_state_text = state->state_text;
+  if (media_control_modal_ui().active == ctx) media_control_refresh_open_modal(ctx);
+  else media_control_refresh_power(ctx);
+}
+
+inline void media_playback_attach_power_control(MediaPlaybackState *state, MediaControlCtx *ctx) {
+  if (!state || !ctx) return;
+  for (MediaControlCtx *existing : state->power_controls) {
+    if (existing == ctx) {
+      media_playback_apply_state_to_power_control(state, ctx);
+      return;
+    }
+  }
+  if (state->power_controls.size() < MEDIA_PLAYBACK_STATE_CONSUMERS_MAX) {
+    state->power_controls.push_back(ctx);
+    media_playback_apply_state_to_power_control(state, ctx);
+    return;
+  }
+  ESP_LOGW("media", "No shared media power slot available for %s", state->entity_id.c_str());
+}
+
 inline void media_playback_apply_state_to_consumers(MediaPlaybackState *state) {
+  if (!state) return;
+  for (MediaControlCtx *ctx : state->power_controls) {
+    media_playback_apply_state_to_power_control(state, ctx);
+  }
   media_playback_apply_state_to_sliders(state);
   media_playback_apply_state_to_buttons(state);
   media_playback_apply_state_to_now_playing(state);
@@ -2476,19 +2634,32 @@ inline void setup_media_control_button(lv_obj_t *btn, lv_obj_t *icon_lbl,
 
 inline std::string media_control_title_text(MediaControlCtx *ctx) {
   if (!ctx) return "--";
-  if (!ctx->title.empty()) return ctx->title;
+  const std::string title = espdesktop::media::normalize_media_display_text(ctx->title);
+  if (!title.empty()) return title;
   return media_status_text(ctx->state_text);
 }
 
 inline std::string media_control_artist_text(MediaControlCtx *ctx) {
   if (!ctx) return "";
+  const std::string artist = espdesktop::media::normalize_media_display_text(ctx->artist);
   if (!espdesktop::media::media_modal_artist_visible(
-        ctx->cover_art_mode, ctx->state_text, !ctx->artist.empty())) {
+        ctx->cover_art_mode, ctx->state_text, !artist.empty())) {
     return "";
   }
-  if (!ctx->artist.empty()) return ctx->artist;
-  if (!ctx->friendly_name.empty()) return ctx->friendly_name;
-  return ctx->label;
+  if (!artist.empty()) return artist;
+  const std::string friendly_name = espdesktop::media::normalize_media_display_text(ctx->friendly_name);
+  if (!friendly_name.empty()) return friendly_name;
+  return espdesktop::media::normalize_media_display_text(ctx->label);
+}
+
+inline void media_control_ensure_display_text_cache(MediaControlCtx *ctx) {
+  MediaControlModalUi &ui = media_control_modal_ui();
+  if (!ctx) return;
+  if (ui.display_text_ctx == ctx && ui.display_text_valid) return;
+  ui.display_text_ctx = ctx;
+  ui.display_title = media_control_title_text(ctx);
+  ui.display_artist = media_control_artist_text(ctx);
+  ui.display_text_valid = true;
 }
 
 inline int media_control_volume_max_pct(MediaControlCtx *ctx) {
@@ -2562,6 +2733,7 @@ inline lv_obj_t *media_control_create_progress_fill(lv_obj_t *slider, lv_color_t
   lv_obj_t *fill = lv_obj_create(slider);
   if (!fill) return nullptr;
   lv_obj_set_size(fill, 0, 0);
+  theme_set_content_background(fill);
   lv_obj_set_style_bg_color(fill, fill_color, LV_PART_MAIN);
   lv_obj_set_style_bg_opa(fill, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(fill, 0, LV_PART_MAIN);
@@ -2578,7 +2750,8 @@ inline lv_obj_t *media_control_create_progress_handle(lv_obj_t *slider) {
   lv_obj_t *handle = lv_obj_create(slider);
   if (!handle) return nullptr;
   lv_obj_set_size(handle, 0, 0);
-  lv_obj_set_style_bg_color(handle, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  theme_set_primary_foreground_fill(handle);
+  lv_obj_set_style_bg_color(handle, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(handle, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(handle, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(handle, 0, LV_PART_MAIN);
@@ -2625,6 +2798,7 @@ inline void media_control_update_progress_fill(lv_obj_t *slider, lv_obj_t *fill,
   lv_coord_t height = lv_obj_get_height(slider);
   if (width <= 0 || height <= 0) return;
   pct = media_clamp_percent(pct);
+  theme_set_content_background(fill);
   lv_obj_set_style_bg_color(fill, fill_color, LV_PART_MAIN);
   lv_coord_t fill_w = media_control_progress_fill_width(slider, pct);
   lv_obj_set_size(fill, fill_w, height);
@@ -2756,19 +2930,21 @@ inline void media_control_refresh_power(MediaControlCtx *ctx) {
   if (!ctx || ui.active != ctx || !ui.power_btn) return;
   const auto command = media_control_power_command(ctx);
   const bool interactive = command != espdesktop::media::PowerCommand::NONE;
-  const bool on = ctx->state_known && ctx->available && ctx->state_text != "off" &&
-                  ctx->state_text != "unknown" && ctx->state_text != "unavailable";
+  const bool on = command == espdesktop::media::PowerCommand::TURN_OFF;
+  const uint32_t bg_color = on ? ctx->accent_color
+                               : theme_display_color(current_theme().surface_primary);
+  theme_set_content_background(ui.power_btn, on);
   lv_obj_set_style_bg_color(
-    ui.power_btn,
-    lv_color_hex(on ? ctx->accent_color : SECONDARY_GREY), LV_PART_MAIN);
+    ui.power_btn, lv_color_hex(bg_color), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(ui.power_btn, LV_OPA_COVER, LV_PART_MAIN);
   if (ui.power_icon_lbl) {
     lv_label_set_display_text(ui.power_icon_lbl, find_icon("Power"));
     lv_obj_set_style_text_color(
-      ui.power_icon_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+      ui.power_icon_lbl, lv_color_hex(on ? readable_text_color_for_bg(bg_color)
+                                         : current_theme().text_primary), LV_PART_MAIN);
   }
   if (ui.power_status_lbl) {
-    const std::string status = !ctx->state_known
+    const std::string status = !interactive
       ? espdesktop_i18n(std::string("Unknown"))
       : (on ? espdesktop_i18n(std::string("On"))
             : espdesktop_i18n(std::string("Off")));
@@ -2782,13 +2958,17 @@ inline void media_control_style_playback_mode_button(lv_obj_t *btn,
                                                       bool interactive,
                                                       uint32_t accent_color) {
   if (!btn) return;
+  theme_set_content_background(btn, active);
+  const uint32_t bg_color = active ? accent_color
+                                   : theme_display_color(current_theme().surface_primary);
   lv_obj_set_style_bg_color(
-    btn, lv_color_hex(active ? accent_color : SECONDARY_GREY), LV_PART_MAIN);
+    btn, lv_color_hex(bg_color), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_t *label = lv_obj_get_child(btn, 0);
   if (label) {
     lv_obj_set_style_text_color(
-      label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+      label, lv_color_hex(active ? readable_text_color_for_bg(bg_color)
+                                 : current_theme().text_primary), LV_PART_MAIN);
   }
   media_control_apply_availability(btn, btn, interactive);
 }
@@ -2824,10 +3004,9 @@ inline void media_control_refresh_playback_modes(MediaControlCtx *ctx) {
 inline void media_control_refresh_modal(MediaControlCtx *ctx) {
   MediaControlModalUi &ui = media_control_modal_ui();
   if (!ctx || ui.active != ctx) return;
-  std::string title = media_control_title_text(ctx);
-  std::string artist = media_control_artist_text(ctx);
-  if (ui.title_lbl) lv_label_set_display_text(ui.title_lbl, title.c_str());
-  if (ui.artist_lbl) lv_label_set_display_text(ui.artist_lbl, artist.c_str());
+  media_control_ensure_display_text_cache(ctx);
+  if (ui.title_lbl) lv_label_set_display_text(ui.title_lbl, ui.display_title.c_str());
+  if (ui.artist_lbl) lv_label_set_display_text(ui.artist_lbl, ui.display_artist.c_str());
   media_control_refresh_play_icon(ctx);
   media_control_refresh_progress(ctx);
   media_control_refresh_volume(ctx);
@@ -2875,46 +3054,39 @@ inline void media_control_apply_volume_percent(MediaControlCtx *ctx, int pct,
 
 inline void media_control_style_tab(lv_obj_t *btn, bool active) {
   if (!btn) return;
+  control_modal_track_theme_tab(btn);
   lv_obj_set_style_bg_color(
-    btn, lv_color_hex(active ? DARK_TEXT_PRIMARY : SECONDARY_GREY), LV_PART_MAIN);
+    btn, lv_color_hex(active ? current_theme().text_primary : theme_display_color(current_theme().surface_primary)), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(btn, active ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
   lv_obj_t *label = lv_obj_get_child(btn, 0);
   if (label) {
     lv_obj_set_style_text_color(
-      label, lv_color_hex(active ? TERTIARY_GREY : DARK_TEXT_PRIMARY), LV_PART_MAIN);
+      label, lv_color_hex(active ? theme_display_color(current_theme().surface_secondary) : current_theme().text_primary), LV_PART_MAIN);
   }
 }
 
 inline void media_control_apply_tab_visibility() {
   MediaControlModalUi &ui = media_control_modal_ui();
-  bool progress_supported = media_control_progress_supported(ui.active);
-  bool speakers_supported = ui.active && media_group_speaker_tab_available(
-    ui.active->grouping_supported, ui.active->speaker_discovery_available,
-    media_control_group_size(ui.active) > 1);
-  bool power_supported = media_control_power_supported(ui.active);
-  bool show_controls = ui.tab == MediaControlTab::CONTROLS;
-  bool show_progress = progress_supported && ui.tab == MediaControlTab::PROGRESS;
-  bool show_volume = ui.tab == MediaControlTab::VOLUME;
-  bool show_speakers = ui.tab == MediaControlTab::SPEAKERS;
-  bool show_power = power_supported && ui.tab == MediaControlTab::POWER;
-  if (ui.progress_tab) {
-    if (progress_supported) lv_obj_clear_flag(ui.progress_tab, LV_OBJ_FLAG_HIDDEN);
-    else lv_obj_add_flag(ui.progress_tab, LV_OBJ_FLAG_HIDDEN);
+  if (!ui.active) return;
+  const auto visible = media_control_visible_tabs(ui.active);
+  if (ui.tab_row) {
+    if (!ui.active->group_only && visible.count > 1) lv_obj_clear_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
   }
-  if (ui.speakers_tab) {
-    if (speakers_supported) lv_obj_clear_flag(ui.speakers_tab, LV_OBJ_FLAG_HIDDEN);
-    else lv_obj_add_flag(ui.speakers_tab, LV_OBJ_FLAG_HIDDEN);
+  const struct { lv_obj_t *btn; MediaControlTab tab; } buttons[] = {
+    {ui.controls_tab, MediaControlTab::CONTROLS},
+    {ui.progress_tab, MediaControlTab::PROGRESS},
+    {ui.volume_tab, MediaControlTab::VOLUME},
+    {ui.speakers_tab, MediaControlTab::SPEAKERS},
+    {ui.power_tab, MediaControlTab::POWER},
+  };
+  for (const auto &button : buttons) {
+    if (!button.btn) continue;
+    if (visible.contains(button.tab)) lv_obj_clear_flag(button.btn, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(button.btn, LV_OBJ_FLAG_HIDDEN);
+    media_control_style_tab(button.btn, button.tab == ui.tab);
   }
-  if (ui.power_tab) {
-    if (power_supported) lv_obj_clear_flag(ui.power_tab, LV_OBJ_FLAG_HIDDEN);
-    else lv_obj_add_flag(ui.power_tab, LV_OBJ_FLAG_HIDDEN);
-  }
-  media_control_style_tab(ui.controls_tab, show_controls);
-  media_control_style_tab(ui.progress_tab, show_progress);
-  media_control_style_tab(ui.volume_tab, show_volume);
-  media_control_style_tab(ui.speakers_tab, show_speakers);
-  media_control_style_tab(ui.power_tab, show_power);
 }
 
 inline void media_control_layout_modal(MediaControlCtx *ctx);
@@ -2923,21 +3095,14 @@ inline lv_obj_t *media_control_create_tab_button(lv_obj_t *parent, const char *i
                                                  const lv_font_t *font,
                                                  MediaControlTab tab) {
   lv_obj_t *btn = control_modal_create_flat_icon_button(
-    parent, icon, font, SECONDARY_GREY, LV_OPA_TRANSP, 100, 180);
+    parent, icon, font, theme_display_color(current_theme().surface_primary), LV_OPA_TRANSP, 100, 180);
   if (!btn) return nullptr;
   light_control_center_icon_label(control_modal_icon_label(btn));
   lv_obj_add_event_cb(btn, [](lv_event_t *e) {
     MediaControlTab tab = static_cast<MediaControlTab>(
       reinterpret_cast<uintptr_t>(lv_event_get_user_data(e)));
     MediaControlModalUi &ui = media_control_modal_ui();
-    if (tab == MediaControlTab::PROGRESS &&
-        !media_control_progress_supported(ui.active)) {
-      return;
-    }
-    if (tab == MediaControlTab::POWER &&
-        !media_control_power_supported(ui.active)) {
-      return;
-    }
+    if (!media_control_visible_tabs(ui.active).contains(tab)) return;
     if (ui.tab == tab) return;
     if (ui.tab == MediaControlTab::SPEAKERS) {
       ui.speaker_generation++;
@@ -2979,11 +3144,7 @@ inline bool media_control_ensure_speakers_tab_button(MediaControlCtx *ctx) {
     media_control_group_size(ctx) > 1);
   if (!supported) {
     if (ui.speakers_tab) lv_obj_add_flag(ui.speakers_tab, LV_OBJ_FLAG_HIDDEN);
-    if (ui.tab == MediaControlTab::SPEAKERS) {
-      ui.speaker_generation++;
-      media_control_clear_tab_content();
-      ui.tab = MediaControlTab::CONTROLS;
-    }
+    media_control_ensure_visible_tab(ctx);
     return true;
   }
   if (!ui.speakers_tab) {
@@ -3031,7 +3192,7 @@ inline lv_obj_t *media_control_create_icon_button(lv_obj_t *parent, const char *
                                                   uint32_t pressed_color,
                                                   int width_compensation_percent) {
   lv_obj_t *btn = control_modal_create_flat_icon_button(
-    parent, icon, font, SECONDARY_GREY, LV_OPA_COVER,
+    parent, icon, font, theme_display_color(current_theme().surface_primary), LV_OPA_COVER,
     width_compensation_percent);
   if (!btn) return nullptr;
   control_modal_apply_pressed_fill_color(btn, pressed_color);
@@ -3046,6 +3207,7 @@ inline void media_control_style_progress_slider(lv_obj_t *slider, uint32_t backg
   lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_bg_color(slider, lv_color_hex(tint_color), LV_PART_INDICATOR);
   lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_INDICATOR);
+  theme_set_content_foreground(slider);
   lv_obj_set_style_bg_color(slider, lv_color_hex(tint_color), LV_PART_KNOB);
   lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_KNOB);
   lv_obj_set_style_border_width(slider, 0, LV_PART_MAIN);
@@ -3063,7 +3225,7 @@ inline void media_control_create_controls_tab_content(MediaControlCtx *ctx) {
 
   ui.title_lbl = lv_label_create(ui.content_box);
   if (!ui.title_lbl) return;
-  lv_obj_set_style_text_color(ui.title_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(ui.title_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_text_align(ui.title_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_style_text_line_space(ui.title_lbl, 0, LV_PART_MAIN);
   if (ctx->title_font) lv_obj_set_style_text_font(ui.title_lbl, ctx->title_font, LV_PART_MAIN);
@@ -3072,7 +3234,7 @@ inline void media_control_create_controls_tab_content(MediaControlCtx *ctx) {
 
   ui.artist_lbl = lv_label_create(ui.content_box);
   if (ui.artist_lbl) {
-    lv_obj_set_style_text_color(ui.artist_lbl, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+    lv_obj_set_style_text_color(ui.artist_lbl, lv_color_hex(current_theme().text_muted), LV_PART_MAIN);
     lv_obj_set_style_text_align(ui.artist_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (ctx->label_font) lv_obj_set_style_text_font(ui.artist_lbl, ctx->label_font, LV_PART_MAIN);
     lv_label_set_long_mode(ui.artist_lbl, LV_LABEL_LONG_DOT);
@@ -3146,7 +3308,7 @@ inline void media_control_create_progress_tab_content(MediaControlCtx *ctx) {
   ui.progress_refresh_pending = true;
   lv_obj_add_flag(ui.progress_slider, LV_OBJ_FLAG_HIDDEN);
   media_control_style_progress_slider(
-    ui.progress_slider, SECONDARY_GREY, ctx->accent_color);
+    ui.progress_slider, theme_display_color(current_theme().surface_primary), ctx->accent_color);
   ui.progress_fill = media_control_create_progress_fill(
     ui.progress_slider, lv_color_hex(ctx->accent_color));
   ui.progress_handle = media_control_create_progress_handle(ui.progress_slider);
@@ -3156,7 +3318,7 @@ inline void media_control_create_progress_tab_content(MediaControlCtx *ctx) {
   if (ui.progress_time_lbl) {
     lv_obj_add_flag(ui.progress_time_lbl, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_display_text(ui.progress_time_lbl, "0:00");
-    lv_obj_set_style_text_color(ui.progress_time_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+    lv_obj_set_style_text_color(ui.progress_time_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
     lv_obj_set_style_text_align(ui.progress_time_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (ctx->title_font) lv_obj_set_style_text_font(ui.progress_time_lbl, ctx->title_font, LV_PART_MAIN);
     apply_text_width_compensation(ui.progress_time_lbl);
@@ -3229,11 +3391,11 @@ inline void media_control_create_volume_tab_content(MediaControlCtx *ctx) {
              : media_clamp_percent(ctx->current_pct));
   lv_obj_set_style_bg_opa(ui.volume_arc, LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_set_style_border_width(ui.volume_arc, 0, LV_PART_MAIN);
-  lv_obj_set_style_arc_color(ui.volume_arc, lv_color_hex(DARK_TRACK_BACKGROUND), LV_PART_MAIN);
+  lv_obj_set_style_arc_color(ui.volume_arc, lv_color_hex(theme_display_color(current_theme().track_background)), LV_PART_MAIN);
   lv_obj_set_style_arc_color(ui.volume_arc, lv_color_hex(ctx->accent_color), LV_PART_INDICATOR);
   lv_obj_set_style_arc_rounded(ui.volume_arc, true, LV_PART_MAIN);
   lv_obj_set_style_arc_rounded(ui.volume_arc, true, LV_PART_INDICATOR);
-  lv_obj_set_style_bg_color(ui.volume_arc, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_KNOB);
+  lv_obj_set_style_bg_color(ui.volume_arc, lv_color_hex(current_theme().text_primary), LV_PART_KNOB);
   lv_obj_set_style_border_width(ui.volume_arc, 0, LV_PART_KNOB);
   lv_obj_set_style_shadow_width(ui.volume_arc, 0, LV_PART_KNOB);
   lv_obj_add_flag(ui.volume_arc, LV_OBJ_FLAG_ADV_HITTEST);
@@ -3275,7 +3437,7 @@ inline void media_control_create_volume_tab_content(MediaControlCtx *ctx) {
   ui.volume_group_lbl = lv_label_create(ui.content_box);
   if (ui.volume_group_lbl) {
     lv_label_set_display_text(ui.volume_group_lbl, espdesktop_i18n("Group"));
-    lv_obj_set_style_text_color(ui.volume_group_lbl, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+    lv_obj_set_style_text_color(ui.volume_group_lbl, lv_color_hex(current_theme().text_muted), LV_PART_MAIN);
     lv_obj_set_style_text_align(ui.volume_group_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (ctx->label_font) lv_obj_set_style_text_font(ui.volume_group_lbl, ctx->label_font, LV_PART_MAIN);
     apply_text_width_compensation(ui.volume_group_lbl);
@@ -3285,7 +3447,7 @@ inline void media_control_create_volume_tab_content(MediaControlCtx *ctx) {
   ui.volume_pct_lbl = lv_label_create(ui.content_box);
   if (ui.volume_pct_lbl) {
     lv_label_set_display_text(ui.volume_pct_lbl, "0");
-    lv_obj_set_style_text_color(ui.volume_pct_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+    lv_obj_set_style_text_color(ui.volume_pct_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
     lv_obj_set_style_text_align(ui.volume_pct_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (ctx->number_font) lv_obj_set_style_text_font(ui.volume_pct_lbl, ctx->number_font, LV_PART_MAIN);
     apply_text_width_compensation(ui.volume_pct_lbl);
@@ -3293,10 +3455,10 @@ inline void media_control_create_volume_tab_content(MediaControlCtx *ctx) {
 
   ui.volume_minus_btn = control_modal_create_round_button(
     ui.content_box, 56, find_icon("Minus"), ctx->icon_font,
-    DARK_BORDER, SECONDARY_GREY, ctx->width_compensation_percent);
+    theme_display_color(current_theme().border), theme_display_color(current_theme().surface_primary), ctx->width_compensation_percent);
   ui.volume_plus_btn = control_modal_create_round_button(
     ui.content_box, 56, find_icon("Plus"), ctx->icon_font,
-    DARK_BORDER, SECONDARY_GREY, ctx->width_compensation_percent);
+    theme_display_color(current_theme().border), theme_display_color(current_theme().surface_primary), ctx->width_compensation_percent);
   control_modal_apply_pressed_fill_color(ui.volume_minus_btn, ctx->accent_color);
   control_modal_apply_pressed_fill_color(ui.volume_plus_btn, ctx->accent_color);
   if (ui.volume_minus_btn) {
@@ -3365,7 +3527,7 @@ inline void media_control_set_speaker_status(const char *text, bool error = fals
   lv_label_set_display_text(ui.speakers_status_lbl, text ? text : "");
   lv_obj_set_style_text_color(
     ui.speakers_status_lbl,
-    lv_color_hex(error ? 0xFF6B6B : DARK_TEXT_MUTED), LV_PART_MAIN);
+    lv_color_hex(error ? 0xFF6B6B : current_theme().text_muted), LV_PART_MAIN);
 }
 
 inline std::string media_control_speaker_fallback_name(const std::string &entity_id) {
@@ -3406,12 +3568,13 @@ inline void media_control_refresh_speaker_row(MediaControlCtx *ctx,
   if (!row->pending) row->selected = media_control_group_contains(ctx, row->entity_id);
   const bool show_volume = media_control_speaker_row_shows_volume(ctx, row);
   const bool visible = true;
-  const uint32_t bg_color = row->selected ? ctx->accent_color : ctx->secondary_color;
-  const uint32_t text_color = row->selected
-    ? DARK_TEXT_PRIMARY : readable_text_color_for_bg(bg_color);
+  const uint32_t bg_color = row->selected ? ctx->accent_color : theme_display_color(current_theme().surface_primary);
+  const uint32_t text_color = row->selected ? readable_text_color_for_bg(bg_color)
+                                            : current_theme().text_primary;
   if (row->row) {
     if (visible) lv_obj_clear_flag(row->row, LV_OBJ_FLAG_HIDDEN);
     else lv_obj_add_flag(row->row, LV_OBJ_FLAG_HIDDEN);
+    theme_set_content_background(row->row, row->selected);
     lv_obj_set_style_bg_color(row->row, lv_color_hex(bg_color), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(row->row, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(row->row, 0, LV_PART_MAIN);
@@ -3684,27 +3847,38 @@ inline lv_obj_t *media_control_create_speaker_volume_button(
     lv_coord_t size, const char *icon, bool increase) {
   if (!ctx || !row || !parent) return nullptr;
   lv_obj_t *btn = lv_btn_create(parent);
+  // Volume taps belong to this control, not the surrounding membership row.
+  lv_obj_clear_flag(btn, LV_OBJ_FLAG_EVENT_BUBBLE);
   lv_obj_set_size(btn, size, size);
   lv_obj_set_style_radius(btn, size / 2, LV_PART_MAIN);
-  lv_obj_set_style_bg_color(btn, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  theme_set_primary_foreground_fill(btn);
+  lv_obj_set_style_bg_color(btn, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_all(btn, 0, LV_PART_MAIN);
   control_modal_apply_pressed_fill(btn);
   lv_obj_t *label = lv_label_create(btn);
+  lv_obj_clear_flag(label, LV_OBJ_FLAG_CLICKABLE);
   lv_label_set_display_text(label, icon);
   if (ctx->icon_font) lv_obj_set_style_text_font(label, ctx->icon_font, LV_PART_MAIN);
+  theme_set_content_foreground(label);
   lv_obj_set_style_text_color(label, lv_color_hex(ctx->accent_color), LV_PART_MAIN);
   lv_obj_center(label);
   lv_obj_set_user_data(btn, row);
   lv_obj_add_event_cb(btn, [](lv_event_t *event) {
+    // A child icon can be the original target of a bubbled event. Only the
+    // button handling the callback owns a MediaSpeakerRowState pointer.
+    lv_obj_t *button = static_cast<lv_obj_t *>(lv_event_get_current_target(event));
     MediaSpeakerRowState *row = static_cast<MediaSpeakerRowState *>(
-      lv_obj_get_user_data(static_cast<lv_obj_t *>(lv_event_get_target(event))));
-    if (!row || !row->available || !row->volume_known) return;
+      lv_obj_get_user_data(button));
+    MediaControlModalUi &ui = media_control_modal_ui();
+    MediaControlCtx *ctx = ui.active;
+    if (!ctx || !row ||
+        std::find(ui.speaker_rows.begin(), ui.speaker_rows.end(), row) ==
+          ui.speaker_rows.end()) return;
+    if (!row->available || !row->volume_known) return;
     const bool increase = reinterpret_cast<uintptr_t>(lv_event_get_user_data(event)) != 0;
-    MediaControlCtx *ctx = media_control_modal_ui().active;
-    if (!ctx) return;
     row->volume_pct = media_group_step_volume(
       row->volume_pct, increase, media_control_volume_max_pct(ctx));
     bool stored = false;
@@ -3900,7 +4074,7 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
   lv_obj_set_height(row->name_label, speaker_text_h);
   lv_label_set_long_mode(row->name_label, LV_LABEL_LONG_DOT);
   lv_obj_set_style_text_align(row->name_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
-  lv_obj_set_style_text_color(row->name_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_color(row->name_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
   if (ctx->label_font) lv_obj_set_style_text_font(row->name_label, ctx->label_font, LV_PART_MAIN);
 
   row->volume_label = lv_label_create(row->text_box);
@@ -4013,7 +4187,7 @@ inline void media_control_create_speakers_tab_content(MediaControlCtx *ctx) {
   ui.speakers_status_lbl = lv_label_create(ui.speakers_box);
   lv_obj_set_width(ui.speakers_status_lbl, LV_PCT(100));
   lv_obj_set_style_text_align(ui.speakers_status_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-  lv_obj_set_style_text_color(ui.speakers_status_lbl, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
+  lv_obj_set_style_text_color(ui.speakers_status_lbl, lv_color_hex(current_theme().text_muted), LV_PART_MAIN);
   lv_obj_add_flag(ui.speakers_status_lbl, LV_OBJ_FLAG_HIDDEN);
   ui.speaker_list = lv_obj_create(ui.speakers_box);
   lv_obj_set_width(ui.speaker_list, LV_PCT(100));
@@ -4067,7 +4241,7 @@ inline void media_control_create_power_tab_content(MediaControlCtx *ctx) {
   if (ui.power_status_lbl) {
     lv_label_set_display_text(ui.power_status_lbl, espdesktop_i18n("Unknown"));
     lv_obj_set_style_text_color(
-      ui.power_status_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+      ui.power_status_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
     lv_obj_set_style_text_align(ui.power_status_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (ctx->label_font) {
       lv_obj_set_style_text_font(ui.power_status_lbl, ctx->label_font, LV_PART_MAIN);
@@ -4130,14 +4304,7 @@ inline void media_control_clear_tab_content() {
 inline void media_control_ensure_tab_content(MediaControlCtx *ctx) {
   MediaControlModalUi &ui = media_control_modal_ui();
   if (!ctx || ui.active != ctx) return;
-  if (ui.tab == MediaControlTab::PROGRESS && !media_control_progress_supported(ctx)) {
-    media_control_clear_tab_content();
-    ui.tab = MediaControlTab::CONTROLS;
-  }
-  if (ui.tab == MediaControlTab::POWER && !media_control_power_supported(ctx)) {
-    media_control_clear_tab_content();
-    ui.tab = MediaControlTab::CONTROLS;
-  }
+  media_control_ensure_visible_tab(ctx);
   if (ui.tab == MediaControlTab::CONTROLS) {
     ui.controls_box = ui.content_box;
     media_control_create_controls_tab_content(ctx);
@@ -4169,16 +4336,10 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
   control_modal_apply_panel_layout(ui.overlay, ui.panel, layout, control_modal_card_radius(ctx->btn));
   control_modal_apply_back_button_layout(ui.back_btn, layout);
 
-  const bool progress_supported = media_control_progress_supported(ctx);
-  const bool speakers_supported = media_group_speaker_tab_available(
-    ctx->grouping_supported, ctx->speaker_discovery_available,
-    media_control_group_size(ctx) > 1);
-  const bool power_supported = media_control_power_supported(ctx);
-  const bool show_tabs = !ctx->group_only;
-  const int media_control_tab_count = show_tabs
-    ? espdesktop::media::media_control_tab_count(
-        progress_supported, power_supported, speakers_supported)
-    : 0;
+  const auto visible_tabs = media_control_visible_tabs(ctx);
+  ui.visible_tabs = visible_tabs;
+  const bool show_tabs = !ctx->group_only && visible_tabs.count > 1;
+  const int media_control_tab_count = show_tabs ? visible_tabs.count : 0;
   ControlModalTabLayout tabs_layout = {};
   if (show_tabs) {
     tabs_layout = control_modal_calc_tab_layout(layout, media_control_tab_count, true);
@@ -4191,14 +4352,19 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
     MediaControlTab tab;
   };
   MediaControlTabLayout tabs[5] = {};
-  int tab_count = 0;
-  tabs[tab_count++] = {ui.controls_tab, MediaControlTab::CONTROLS};
-  if (progress_supported) tabs[tab_count++] = {ui.progress_tab, MediaControlTab::PROGRESS};
-  tabs[tab_count++] = {ui.volume_tab, MediaControlTab::VOLUME};
-  if (speakers_supported) tabs[tab_count++] = {ui.speakers_tab, MediaControlTab::SPEAKERS};
-  if (power_supported) tabs[tab_count++] = {ui.power_tab, MediaControlTab::POWER};
-  for (int i = 0; i < tab_count; i++) {
-    if (!tabs[i].btn) continue;
+  const int tab_count = visible_tabs.count;
+  for (int i = 0; i < tab_count; ++i) {
+    const auto tab = visible_tabs.tabs[i];
+    lv_obj_t *btn = nullptr;
+    switch (tab) {
+      case MediaControlTab::CONTROLS: btn = ui.controls_tab; break;
+      case MediaControlTab::PROGRESS: btn = ui.progress_tab; break;
+      case MediaControlTab::VOLUME: btn = ui.volume_tab; break;
+      case MediaControlTab::SPEAKERS: btn = ui.speakers_tab; break;
+      case MediaControlTab::POWER: btn = ui.power_tab; break;
+    }
+    tabs[i] = {btn, tab};
+    if (!show_tabs || !tabs[i].btn) continue;
     bool active = tabs[i].tab == ui.tab;
     control_modal_layout_tab_button(tabs[i].btn, layout, tabs_layout, i, active);
     if (tabs[i].tab == MediaControlTab::SPEAKERS) {
@@ -4214,8 +4380,8 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
     }
   }
 
-  // A standalone Speaker Group has no tab bar, so its list would otherwise
-  // start behind the Back control. Keep the first row below that touch target.
+  // Without a tab bar, keep content below the Back control. This also covers
+  // a standalone Speaker Group or a popup with one visible tab.
   lv_coord_t content_safe_top = 0;
   if (!show_tabs) {
     content_safe_top = layout.back_inset_y + layout.back_size +
@@ -4245,12 +4411,12 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
     }
   }
   if (ui.title_lbl) {
-    std::string title = media_control_title_text(ctx);
-    lv_label_set_display_text(ui.title_lbl, title.c_str());
+    media_control_ensure_display_text_cache(ctx);
+    lv_label_set_display_text(ui.title_lbl, ui.display_title.c_str());
   }
   if (ui.artist_lbl) {
-    std::string artist = media_control_artist_text(ctx);
-    lv_label_set_display_text(ui.artist_lbl, artist.c_str());
+    media_control_ensure_display_text_cache(ctx);
+    lv_label_set_display_text(ui.artist_lbl, ui.display_artist.c_str());
   }
   const lv_font_t *title_font = ctx->title_font
     ? ctx->title_font
@@ -4417,12 +4583,19 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
     lv_coord_t volume_buttons_up = control_modal_scaled_px(18, layout.short_side);
     if (volume_buttons_up < 12) volume_buttons_up = 12;
     volume_buttons_layout.controls_center_y -= volume_buttons_up;
+    const bool compact_landscape =
+      display_modal_uses_compact_landscape_controls(layout.profile);
     control_modal_apply_step_buttons_layout(
-      ui.volume_minus_btn, ui.volume_plus_btn, volume_buttons_layout);
+      ui.volume_minus_btn, ui.volume_plus_btn, volume_buttons_layout,
+      compact_landscape, control_modal_scaled_px(4, layout.short_side), 256);
     if (ui.volume_pct_lbl) {
+      const lv_font_t *number_font = display_modal_volume_number_font(ctx->number_font);
+      if (number_font) {
+        lv_obj_set_style_text_font(ui.volume_pct_lbl, number_font, LV_PART_MAIN);
+      }
       apply_text_width_compensation(ui.volume_pct_lbl);
       lv_obj_align(ui.volume_pct_lbl, LV_ALIGN_CENTER, 0,
-        volume_layout.arc_center_y +
+        (compact_landscape ? 0 : volume_layout.arc_center_y) +
         control_modal_scaled_px(MEDIA_CONTROL_VOLUME_VALUE_Y_REF_PX, volume_layout.short_side));
     }
     if (ui.volume_group_lbl && ui.volume_pct_lbl) {
@@ -4488,6 +4661,9 @@ inline MediaControlCtx *create_media_control_context(
     int width_compensation_percent) {
   MediaControlCtx *ctx = new MediaControlCtx();
   ctx->entity_id = p.entity;
+  const auto media_config = espdesktop::media::decode_config_v1(p);
+  ctx->power_entity = media_config.power_entity;
+  ctx->control_tabs = media_config.control_tabs;
   ctx->label = media_control_card_label(p);
   ctx->cover_art_mode = media_card_mode(p.sensor) == "cover_art";
   ctx->max_pct = media_volume_max_percent(p);
@@ -4514,18 +4690,20 @@ inline MediaControlCtx *create_media_control_context(
 }
 
 inline void media_control_open_modal(MediaControlCtx *ctx) {
-  if (!ctx || !ctx->available || (ctx->group_only && !ctx->grouping_supported)) return;
+  if (!media_control_can_open_modal(ctx)) return;
   ControlModalShell shell = control_modal_open_shell(
     ControlModalKind::MEDIA_CONTROL, ctx->btn, ctx->width_compensation_percent,
     ctx->icon_font, media_control_hide_modal);
   MediaControlModalUi &ui = media_control_modal_ui();
   ui.active = ctx;
+  ui.display_text_ctx = ctx;
+  ui.display_text_valid = false;
   ui.overlay = shell.overlay;
   ui.panel = shell.panel;
   ui.back_btn = shell.close_btn;
   static uint32_t speaker_generation = 1;
   ui.speaker_generation = speaker_generation++;
-  ui.tab = ctx->group_only ? MediaControlTab::SPEAKERS : MediaControlTab::CONTROLS;
+  ui.tab = media_control_visible_tabs(ctx).tabs[0];
   if (!ui.panel) return;
   if (!ctx->group_only) set_clock_bar_modal_label(ctx->label);
 
@@ -4589,7 +4767,9 @@ inline void setup_media_card(BtnSlot &s, const ParsedCfg &p, uint32_t on_color,
                              const lv_font_t *media_artist_font,
                              int width_compensation_percent = 100,
                              int row_span = 1,
-                             int col_span = 1) {
+                             int col_span = 1,
+                             bool custom_background = false,
+                             uint32_t progress_color = DEFAULT_ACCENT_COLOR) {
   lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
   std::string mode = media_card_mode(p.sensor);
   if (mode == "playlist") {
@@ -4620,10 +4800,13 @@ inline void setup_media_card(BtnSlot &s, const ParsedCfg &p, uint32_t on_color,
     ctx->idle_lbl = s.text_lbl;
     ctx->content_padding = padding;
     ctx->cover_art_mode = mode == "cover_art";
+    ctx->custom_fallback_background = custom_background;
+    ctx->fallback_background_color = secondary_color;
     ctx->show_track_details = mode != "cover_art" || media_cover_art_details_enabled(p);
     ctx->play_pause_background = mode == "now_playing" && media_now_playing_play_pause_enabled(p);
     if (mode == "now_playing" && media_now_playing_progress_enabled(p)) {
-      ctx->progress_slider = setup_media_progress_background(s.btn, secondary_color, tertiary_color, p.entity);
+      ctx->progress_slider = setup_media_progress_background(
+        s.btn, custom_background ? progress_color : secondary_color, tertiary_color, p.entity);
     }
     const CardPadding layout_padding = ctx->progress_slider ? padding : CardPadding{};
     lv_obj_set_user_data(s.sensor_container, (void *)ctx);
@@ -4665,6 +4848,7 @@ inline void setup_media_card(BtnSlot &s, const ParsedCfg &p, uint32_t on_color,
       // Wait for a known, available inactive state before presenting the card
       // as idle. Initial loading and unavailable entities are not idle.
       media_cover_art_set_idle_placeholder(ctx, false);
+      media_cover_art_register_theme(ctx);
       media_position_now_playing_artist(ctx);
       return;
     }
@@ -4685,7 +4869,8 @@ inline void setup_media_card(BtnSlot &s, const ParsedCfg &p, uint32_t on_color,
     const CardPadding padding = capture_card_padding(s.btn);
     lv_color_t text_color = lv_obj_get_style_text_color(s.sensor_lbl, LV_PART_MAIN);
     lv_obj_t *slider = setup_media_position_layout(
-      s.btn, s.icon_lbl, s.text_lbl, p, secondary_color, tertiary_color,
+      s.btn, s.icon_lbl, s.text_lbl, p,
+      custom_background ? progress_color : secondary_color, tertiary_color,
       sensor_font, text_color, padding, width_compensation_percent);
     lv_obj_set_user_data(s.sensor_container, (void *)slider);
     return;
@@ -4882,68 +5067,6 @@ inline void subscribe_media_volume_state(MediaVolumeCtx *ctx) {
   media_playback_subscribe_playback_state(state);
   media_playback_subscribe_volume(state);
 }
-
-#ifdef USE_MEDIA_PLAYER
-inline void open_device_volume_modal(lv_obj_t *anchor,
-                                     esphome::media_player::MediaPlayer *player,
-                                     const lv_font_t *value_font,
-                                     const lv_font_t *number_font,
-                                     const lv_font_t *unit_font,
-                                     const lv_font_t *label_font,
-                                     const lv_font_t *icon_font,
-                                     int width_compensation_percent = 100,
-                                     std::function<bool()> mic_muted = nullptr,
-                                     std::function<void(bool)> set_mic_muted = nullptr) {
-  if (!player) return;
-  static MediaVolumeCtx *ctx = nullptr;
-  static esphome::media_player::MediaPlayer *subscribed_player = nullptr;
-  if (!ctx) {
-    ctx = new MediaVolumeCtx();
-    ctx->max_pct = 100;
-    ctx->accent_color = DEFAULT_SLIDER_COLOR;
-    ctx->secondary_color = SECONDARY_GREY;
-    ctx->tertiary_color = TERTIARY_GREY;
-  }
-  if (subscribed_player != player) {
-    subscribed_player = player;
-    MediaVolumeCtx *callback_ctx = ctx;
-    player->add_on_state_callback([callback_ctx, player](esphome::media_player::MediaPlayerState) {
-      int pct = media_clamp_percent((int)(player->volume * 100.0f + 0.5f));
-      if (media_volume_pending_active(callback_ctx) && callback_ctx->pending_pct == pct) {
-        callback_ctx->pending_pct = -1;
-        callback_ctx->pending_until_ms = 0;
-      }
-      if (!media_volume_pending_active(callback_ctx)) {
-        callback_ctx->current_pct = pct;
-        media_volume_set_card_value(callback_ctx, pct);
-        media_volume_set_modal_value(callback_ctx, pct);
-      }
-    });
-  }
-  ctx->entity_id.clear();
-  ctx->label = espdesktop_i18n(std::string("Device Volume"));
-  ctx->clock_bar_title = espdesktop_i18n_key("voice");
-  ctx->btn = anchor;
-  ctx->current_pct = media_clamp_percent((int)(player->volume * 100.0f + 0.5f));
-  ctx->volume_known = true;
-  ctx->pending_pct = -1;
-  ctx->pending_until_ms = 0;
-  ctx->width_compensation_percent = normalize_width_compensation_percent(width_compensation_percent);
-  ctx->value_font = value_font;
-  ctx->number_font = number_font ? number_font : value_font;
-  ctx->unit_font = unit_font;
-  ctx->label_font = label_font;
-  ctx->icon_font = icon_font;
-  ctx->available = true;
-  ctx->mic_muted = mic_muted;
-  ctx->set_mic_muted = set_mic_muted;
-  ctx->apply_percent = [player](int pct) {
-    float volume = media_clamp_percent(pct) / 100.0f;
-    player->make_call().set_volume(volume).perform();
-  };
-  media_volume_open_modal(ctx);
-}
-#endif
 
 inline void subscribe_media_slider_state(lv_obj_t *btn_ptr,
                                          lv_obj_t *slider,

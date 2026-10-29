@@ -21,50 +21,20 @@ lvgl:
           align: top_left
           x: 12
           y: 17
-          text_color: 0xFFFFFF
+          text_color: $theme_text_primary_color
           hidden: true
-      # Clock (right aligned, updated every minute by time.yaml)
+      # Clock (home screen, left aligned, updated every minute by time.yaml)
       - label:
           text: "--:--"
           id: display_time
           text_font: font_text_body
-          align: top_right
+          align: top_left
           x: 0
           y: 17
-          text_align: center
-          text_color: 0xFFFFFF
-          clickable: true
+          text_align: left
+          text_color: $theme_text_primary_color
+          clickable: false
           hidden: true
-          on_press:
-            then:
-              - script.execute: network_status_open_info
-
-      # Voice volume (separate touch target beside network/settings)
-      - obj:
-          id: voice_clock_bar_mute_button
-          align: top_right
-          x: -74
-          y: 6
-          width: 48
-          height: 48
-          bg_opa: 0%
-          border_width: 0
-          pad_all: 0
-          scrollable: false
-          scrollbar_mode: "off"
-          clickable: true
-          hidden: true
-          widgets:
-            - label:
-                id: voice_clock_bar_mute_icon_label
-                text: "\U000F036C"
-                text_font: font_icon_clock_bar
-                align: center
-                text_align: center
-                text_color: 0xFFFFFF
-          on_press:
-            then:
-              - script.execute: open_device_volume_control
 
       # Network status (tappable, right side of clock bar)
       - obj:
@@ -81,6 +51,9 @@ lvgl:
           scrollbar_mode: "off"
           clickable: true
           hidden: true
+          on_press:
+            then:
+              - script.execute: network_status_open_info
           widgets:
             - label:
                 id: network_status_icon_label
@@ -88,7 +61,7 @@ lvgl:
                 text_font: font_icon_clock_bar
                 align: center
                 text_align: center
-                text_color: 0xFFFFFF
+                text_color: $theme_text_primary_color
 
       # Night mode indicator (schedule night period only). Starts hidden;
       # clock_bar_apply positions and reveals it beside the network icon, so the
@@ -114,7 +87,7 @@ lvgl:
                 text_font: font_icon_clock_bar
                 align: center
                 text_align: center
-                text_color: 0xFFFFFF
+                text_color: $theme_text_primary_color
 
   # ---------------------------------------------------------------------------
   # Main page (fixed 3x3 grid of button widgets)
@@ -129,7 +102,7 @@ lvgl:
         pad_row: ${main_page_card_gap}
         pad_column: ${main_page_card_gap}
       width: 100%
-      bg_color: Black
+      bg_color: $theme_background_color
       bg_opa: cover
       pad_top: ${main_page_pad_top}
       pad_bottom: 6

@@ -80,7 +80,7 @@ jobs:
       - uses: actions/setup-node@v7
         if: steps.icon_changes.outputs.changed == 'true'
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install dependencies
         if: steps.icon_changes.outputs.changed == 'true'
@@ -139,7 +139,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install pinned timezone data
         shell: bash
@@ -204,10 +204,9 @@ jobs:
 
   docs:
     name: Build Docs
-    needs: [sync-icons, validate]
+    needs: sync-icons
     if: >-
       always() &&
-      needs.validate.result == 'success' &&
       (github.event_name == 'pull_request' || needs.sync-icons.outputs.changed != 'true')
     runs-on: ubuntu-latest
     steps:
@@ -216,7 +215,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install dependencies
         run: |
@@ -226,6 +225,12 @@ jobs:
           bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPDESKTOP_NPM_CACHE_MAX_MB}" --strategy reset
 
       - run: npm run docs:build
+
+      - name: Install Chromium for installer checks
+        run: npx playwright install --with-deps chromium
+
+      - name: Check browser USB installer
+        run: npm run docs:check-installer
 
   ci-gate:
     name: CI Gate

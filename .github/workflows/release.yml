@@ -37,6 +37,12 @@ jobs:
           ref: ${{ inputs.release_tag }}
       - run: git sparse-checkout disable || true
 
+      - name: Checkout release validation tooling
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: release-validation-tools
+
       - name: Pin release source revision
         id: source
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -52,7 +58,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Prepare Python test environment
         shell: bash
@@ -62,11 +68,21 @@ jobs:
           "${PYTHON_VENV}/bin/python" -m pip install \
             --disable-pip-version-check \
             --no-cache-dir \
-            "PyYAML==6.0.2"
+            "PyYAML==6.0.3"
           PYTHON_SITE_PACKAGES="$("${PYTHON_VENV}/bin/python" -c 'import site; print(site.getsitepackages()[0])')"
           echo "PATH=${PYTHON_VENV}/bin:${PATH}" >> "${GITHUB_ENV}"
           echo "PYTHONPATH=${PYTHON_SITE_PACKAGES}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
           echo "${PYTHON_VENV}/bin" >> "${GITHUB_PATH}"
+
+      - name: Install pinned ESPHome test dependency
+        shell: bash
+        run: |
+          source .github/esphome.env
+          PYTHON_VENV="${RUNNER_TEMP}/espdesktop-release-python"
+          "${PYTHON_VENV}/bin/python" -m pip install \
+            --disable-pip-version-check \
+            --no-cache-dir \
+            "esphome==${ESPHOME_VERSION}"
 
       - name: Ensure CMake is available
         shell: bash
@@ -98,6 +114,14 @@ jobs:
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
 
+      - name: Verify checked-in generated outputs
+        run: |
+          python3 scripts/build.py --self-test
+          python3 scripts/build.py --check
+
+      - name: Verify checked-in web asset manifest
+        run: node scripts/check_web_asset_manifest.js
+
       - name: Prepare release web assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -122,6 +146,22 @@ jobs:
             mkdir -p "docs/public/webserver/$(dirname "${BUNDLE_PATH}")"
             curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
               -o "docs/public/webserver/${BUNDLE_PATH}"
+            # Verify imported bytes before generating or pre-verifying release assets.
+            python3 - "${BUNDLE_PATH}" "${LEGACY_WEB_MANIFEST}" "${LEGACY_STABLE_TAG}" <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          import sys
+          downloaded = Path("docs/public/webserver") / sys.argv[1]
+          expected = downloaded.parent.name
+          actual = hashlib.sha256(downloaded.read_bytes()).hexdigest()
+          published = json.loads(Path(sys.argv[2]).read_text())
+          entry = next(item for item in published["bundles"] if sys.argv[3] in item["firmwareVersions"])
+          if entry.get("id") != expected or entry.get("sha256") != expected or entry.get("path") != sys.argv[1]:
+              raise SystemExit("Published legacy bundle metadata disagrees with its content-addressed path")
+          if actual != expected:
+              raise SystemExit("Published legacy web bundle does not match its content-addressed path")
+          PY
             export ESPDESKTOP_LEGACY_WEB_MANIFEST="${LEGACY_WEB_MANIFEST}"
             export ESPDESKTOP_LEGACY_FIRMWARE_VERSION="${LEGACY_STABLE_TAG}"
             echo "ESPDESKTOP_LEGACY_WEB_MANIFEST=${LEGACY_WEB_MANIFEST}" >> "$GITHUB_ENV"
@@ -148,7 +188,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          npm run check:release-preflight
+          python3 release-validation-tools/scripts/check_tasks.py run release \
+            --root "${GITHUB_WORKSPACE}" \
+            --preverified-task generated \
+            --preverified-task web-asset-manifest
           python3 scripts/check_release_contract.py --github-repository "${GITHUB_REPOSITORY}"
 
   device-matrix:
@@ -333,6 +376,9 @@ jobs:
             ${DOCKER} cp \
               "${container}:/config/${BUILD_INPUT_DIR}/.esphome/build" \
               "${build_cache}/" 2>/dev/null || true
+            python3 scripts/report_firmware_size.py \
+              --target "${config_file}" --build-root "${build_cache}" \
+              --compile-status "${status}" || status=1
             cleanup_container
             trap - EXIT
             return "${status}"
@@ -498,7 +544,7 @@ jobs:
   espdesktop-release:
     name: Sign and notarize EspDesktop
     needs: preflight
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7.0.1
         with:

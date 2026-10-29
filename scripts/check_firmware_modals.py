@@ -715,6 +715,8 @@ def firmware_media_modal_power_tab_errors(root: Path) -> list[str]:
         return ["components/espdesktop/button_grid_media.h: keep the conditional media Power tab"]
 
     text = path.read_text(encoding="utf-8")
+    tabs_path = path.parent / "media_control_tabs.h"
+    if tabs_path.exists(): text += tabs_path.read_text(encoding="utf-8")
     required = (
         "POWER = 4",
         "media_control_power_supported",
@@ -722,14 +724,14 @@ def firmware_media_modal_power_tab_errors(root: Path) -> list[str]:
         "media_control_create_power_tab_content",
         "media_control_refresh_power",
         "previous_power_supported != power_supported",
-        "ui.tab == MediaControlTab::POWER && !media_control_power_supported(ctx)",
-        "ui.tab = MediaControlTab::CONTROLS",
-        "media_control_tab_count(",
+        "media_control_ensure_visible_tab(ctx)",
+        "ui.tab = visible.tabs[0]",
+        "visible_tabs.count",
         "MediaControlTabLayout tabs[5]",
     )
     if any(needle not in text for needle in required):
         return [
-            "components/espdesktop/button_grid_media.h: keep the conditional media Power tab, dynamic relayout, and safe Controls fallback"
+            "components/espdesktop/button_grid_media.h: keep the conditional media Power tab, dynamic relayout, and safe visible-tab fallback"
         ]
     return []
 
@@ -953,7 +955,8 @@ def firmware_fan_light_fallback_errors(root: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
     required = (
         'if (ctx->type == "fan_control" && fan_light_supported(ctx)) return true;',
-        'if (!ctx || (!ctx->available && !fan_light_supported(ctx))) return;',
+        'return ctx && (ctx->available || fan_light_supported(ctx)) &&',
+        'if (!fan_control_can_open_modal(ctx)) return;',
         "ctx->light_available = !ha_state_unavailable_ref(state);",
         "if (ui.active == ctx && fan_control_visible_tabs(ctx).count == 0) fan_control_hide_modal();",
     )
@@ -1509,10 +1512,10 @@ def valid_media_modal_power_tab_text() -> str:
         "inline void media_control_create_power_tab_content() {}\n"
         "inline void media_control_refresh_power() {}\n"
         "bool changed = previous_power_supported != power_supported;\n"
-        "if (ui.tab == MediaControlTab::POWER && !media_control_power_supported(ctx)) {\n"
-        "  ui.tab = MediaControlTab::CONTROLS;\n"
+        "media_control_ensure_visible_tab(ctx);\n"
+        "  ui.tab = visible.tabs[0];\n"
         "}\n"
-        "int count = media_control_tab_count(progress_supported, power_supported);\n"
+        "int count = visible_tabs.count;\n"
         "MediaControlTabLayout tabs[5] = {};\n"
     )
 
@@ -1837,8 +1840,12 @@ def run_self_test() -> int:
         "inline bool fan_control_supported(FanCardCtx *ctx) {\n"
         "  if (ctx->type == \"fan_control\" && fan_light_supported(ctx)) return true;\n"
         "}\n"
+        "inline bool fan_control_can_open_modal(FanCardCtx *ctx) {\n"
+        "  return ctx && (ctx->available || fan_light_supported(ctx)) &&\n"
+        "         fan_control_visible_tabs(ctx).count > 0;\n"
+        "}\n"
         "inline void fan_control_open_modal(FanCardCtx *ctx) {\n"
-        "  if (!ctx || (!ctx->available && !fan_light_supported(ctx))) return;\n"
+        "  if (!fan_control_can_open_modal(ctx)) return;\n"
         "}\n"
         "inline void subscribe_fan_card_state(FanCardCtx *ctx) {\n"
         "  ctx->light_available = !ha_state_unavailable_ref(state);\n"
@@ -1856,8 +1863,8 @@ def run_self_test() -> int:
     expect_fan_light_fallback_errors(
         "fan light modal requires fan availability",
         valid_fan_light_fallback.replace(
-            "if (!ctx || (!ctx->available && !fan_light_supported(ctx))) return;",
-            "if (!ctx || !ctx->available) return;",
+            "return ctx && (ctx->available || fan_light_supported(ctx)) &&",
+            "return ctx && ctx->available &&",
         ),
         ("keep the separate light tab available",),
     )
@@ -2280,9 +2287,9 @@ def run_self_test() -> int:
     expect_media_modal_power_tab_errors(
         "media Power tab loses safe fallback",
         valid_media_modal_power_tab_text().replace(
-            "  ui.tab = MediaControlTab::CONTROLS;\n", ""
+            "  ui.tab = visible.tabs[0];\n", ""
         ),
-        ("safe Controls fallback",),
+        ("safe visible-tab fallback",),
     )
     valid_playback_modes = valid_media_modal_playback_mode_text()
     expect_media_modal_playback_mode_errors(

@@ -54,7 +54,7 @@ external_components:
       url: ${espdesktop_component_url}
       ref: ${espdesktop_component_ref}
       path: components
-    components: [espdesktop, web_server_idf, artwork_image]
+    components: [espdesktop, web_server_idf, artwork_image, captive_portal]
     refresh: 1s
 
 espdesktop:
@@ -258,6 +258,7 @@ light:
 # I2C bus and touchscreen (GT911 capacitive, wakes screensaver on touch)
 # ---------------------------------------------------------------------------
 i2c:
+  id: bus_a
   sda: GPIO7
   scl: GPIO8
   scan: false
@@ -268,9 +269,7 @@ touchscreen:
     id: my_touchscreen
     display: my_display
     on_touch:
-      - script.execute: cover_art_pause_after_touch
-      - script.wait: cover_art_pause_after_touch
-      - script.execute: screensaver_wake
+      - script.execute: cover_art_handle_touch
 
 # ---------------------------------------------------------------------------
 # Display (4.3" 480x800 MIPI DSI panel)
