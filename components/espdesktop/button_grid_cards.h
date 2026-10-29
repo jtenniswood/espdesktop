@@ -3,6 +3,7 @@
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 #include "button_grid_datetime_cards.h"
+#include "card_icon_size.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
