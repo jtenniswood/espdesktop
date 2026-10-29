@@ -52,6 +52,14 @@ area and hides the label. This also applies to Mac application artwork. The
 choice is saved per card on the home screen and subpages; choosing Small or
 Medium restores the label unless you have explicitly hidden it.
 
+Set **Screen → Appearance → Card Style → Default icon size** to choose the
+starting size for all cards. Cards without a manual size follow this setting,
+including cards inside subpages. Any explicit Small, Medium, or Large choice
+stays unchanged when the default changes. Choose **Use Default** in a card's
+right-click menu, or **Default** in Card Settings, to make it follow the global
+setting again. The display remembers the default after reboot, and backups
+include it. Older backups without this setting keep the current default.
+
 Subpage arrows sit immediately after the label, or at the lower left when no
 label is shown. A grey circle keeps the arrow visible over large artwork.
 

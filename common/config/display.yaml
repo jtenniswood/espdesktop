@@ -45,6 +45,11 @@ esphome:
               card_curve_medium_default_migrated->update();
               global_preferences->sync();
             }
+    # Restore the icon default before the grid's -100 initialization phase.
+    - priority: -95
+      then:
+        - lambda: |-
+            espdesktop::set_card_icon_default_size(id(default_icon_size_select).current_option());
     - priority: -100
       then:
         - lambda: |-
@@ -632,6 +637,29 @@ switch:
 
 select:
   - platform: template
+    name: "${entity_screen_default_icon_size}"
+    id: default_icon_size_select
+    entity_category: config
+    icon: "mdi:arrow-expand"
+    optimistic: true
+    restore_value: true
+    initial_option: "Small"
+    options:
+      - "Small"
+      - "Medium"
+      - "Large"
+    web_server:
+      sorting_group_id: sg_display
+    on_value:
+      then:
+        - lambda: 'espdesktop::set_card_icon_default_size(x);'
+        - if:
+            condition:
+              lambda: 'return grid_phase2_complete();'
+            then:
+              - script.execute: refresh_subpage_grid
+
+  - platform: template
     name: "${entity_screen_card_curve}"
     id: card_curve_select
     entity_category: config
@@ -710,7 +738,7 @@ select:
     internal: true
     id: screensaver_camera_image_mode
     entity_category: config
-    icon: "mdi:image-size-select-large"
+    icon: "mdi:arrow-expand"
     optimistic: true
     restore_value: true
     initial_option: "Fit"

@@ -2831,7 +2831,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
       for (const size of ["Medium", "Large", "Small"]) {
         await chooseSize(2, size);
         const saved = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
-        assert(size === "Small" ? !saved.includes("icon_size=") : saved.includes(`icon_size=${size.toLowerCase()}`), "right-click choice persists");
+        assert(saved.includes(`icon_size=${size.toLowerCase()}`), "right-click choice persists");
         assert.strictEqual(await card(2).locator(".sp-btn-label").isVisible(), size !== "Large", "Large hides the label; other sizes restore it");
         const bounds = await card(2).boundingBox();
         const image = await card(2).locator(".sp-companion-app-icon").boundingBox();
@@ -8343,6 +8343,99 @@ async function assertCameraScreensaverDimming(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertGlobalIconSize(browser, testCase) {
+  for (const native of [false, true]) {
+    console.log(`Checking global icon size: ${testCase.slug}/${native ? "native" : "legacy"}`);
+    const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[2] = "light.desk;Desk;Lightbulb;Auto;;;;;icon_size=small";
+    fixture.document.subpages[3] = "~B,1,2|,light.kitchen,Kitchen,Lightbulb,Auto|,light.desk,Desk,Lightbulb,Auto,,,,icon_size=medium";
+    let savedDefault = "Small";
+    const legacyTextState = {};
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
+    const defaultPosts = [];
+    await context.route("**/select/screen__default_icon_size/set**", async route => {
+      savedDefault = new URL(route.request().url()).searchParams.get("option");
+      defaultPosts.push(savedDefault);
+      await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
+    });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
+    const sizes = page.getByRole("group", { name: "Default icon size", exact: true });
+    async function open() {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await seedNativeDocument(page, fixture);
+      await page.evaluate(preset => window.__seedEspState([
+        { id: "select-screen__default_icon_size", state: preset, value: preset, option: ["Small", "Medium", "Large"] },
+      ]), savedDefault);
+    }
+    async function openStyle() {
+      await page.getByRole("tab", { name: "Screen", exact: true }).click();
+      if (!(await sizes.isVisible())) await page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-default-icon-size") }).locator(".card-header").click();
+    }
+    try {
+      await open();
+      const originalSmall = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
+      await openStyle();
+      const posted = page.waitForResponse(response => response.url().includes("/select/screen__default_icon_size/set?option=Large"));
+      await sizes.getByRole("button", { name: "Large", exact: true }).click();
+      await posted;
+      assert.strictEqual(savedDefault, "Large", "global setting reaches the display select");
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      assert.strictEqual(await card(1).getAttribute("data-icon-size"), "large", "unconfigured cards inherit Large");
+      assert(!(await card(1).locator(".sp-btn-label").isVisible()), "inherited Large hides the label");
+      assert.strictEqual(await card(2).getAttribute("data-icon-size"), "small", "manual Small overrides global Large");
+      assert(await card(2).locator(".sp-btn-label").isVisible());
+      assert.strictEqual(native ? fixture.document.buttons[2] : legacyTextState.button_2_config, originalSmall, "global changes do not rewrite per-card choices");
+      await card(2).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).click();
+      await page.locator(".sp-ctx-submenu").getByRole("button", { name: "Use Default", exact: true }).click();
+      await page.waitForFunction(() => document.querySelector('.sp-main [data-slot="2"]')?.dataset.iconSize === "large");
+      assert(!(native ? fixture.document.buttons[2] : legacyTextState.button_2_config).includes("icon_size="), "Use Default removes the saved override");
+      await card(3).locator(".sp-subpage-badge").click();
+      await page.locator(".sp-back-btn").waitFor();
+      assert.strictEqual(await card(1).getAttribute("data-icon-size"), "large", "subpage cards inherit the global size");
+      assert.strictEqual(await card(2).getAttribute("data-icon-size"), "medium", "subpage manual sizes stay fixed");
+      await page.locator(".sp-back-btn .sp-back-hit").click();
+      // Device/HA events also update inherited cards without changing overrides.
+      await page.evaluate(() => window.__seedEspState([
+        { id: "select-screen__default_icon_size", state: "Medium", value: "Medium" },
+      ]));
+      assert.strictEqual(await card(1).getAttribute("data-icon-size"), "medium");
+      assert(await card(1).locator(".sp-btn-label").isVisible(), "labels return when inherited size shrinks");
+      await open();
+      await openStyle();
+      assert.strictEqual(await sizes.getByRole("button", { name: "Large", exact: true }).getAttribute("aria-pressed"), "true", "reload follows the saved display setting");
+      // Backup settings use the same queue on every profile. Exercise both
+      // native and legacy restore formats on the S3 without repeating full
+      // device restores for each preview geometry.
+      if (testCase.slug !== "guition-esp32-s3-4848s040") {
+        assert.deepStrictEqual(errors, []);
+        continue;
+      }
+      await openBackupControls(page);
+      const downloadPromise = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Export", exact: true }).click();
+      const backup = JSON.parse(fs.readFileSync(await (await downloadPromise).path(), "utf8"));
+      assert.strictEqual(backup.screen.default_icon_size, "large", "backups include the global default");
+      const previousPosts = defaultPosts.length;
+      await importBackup(page, backupFixture(testCase.slug, testCase.slots), "default-icon-size-legacy");
+      await page.waitForSelector(".sp-banner.sp-success", { timeout: 30000 });
+      assert.strictEqual(defaultPosts.length, previousPosts, "older backups preserve the current default");
+      backup.screen.default_icon_size = "medium";
+      await page.locator(".sp-banner").evaluate(node => { node.className = "sp-banner"; });
+      await importBackup(page, backup, "default-icon-size-restore");
+      await page.waitForSelector(".sp-banner.sp-success", { timeout: 30000 });
+      assert.strictEqual(savedDefault, "Medium", "backup restore restores the global size");
+      assert.deepStrictEqual(errors, []);
+    } finally { await context.close(); }
+  }
+}
+
 async function assertStandardIconSizes(browser, testCase) {
   for (const native of [true, false]) {
     console.log(`Checking standard icon sizes: ${testCase.name}/${native ? "native" : "legacy"}`);
@@ -8373,7 +8466,7 @@ async function assertStandardIconSizes(browser, testCase) {
         await sizes.getByRole("button", { name: size, exact: true }).click();
         await page.getByRole("button", { name: "Save", exact: true }).click();
         const saved = () => native ? fixture.document.buttons[slot] : legacyTextState[`button_${slot}_config`] || "";
-        const persisted = () => size === "Small" ? !saved().includes("icon_size=") : saved().includes("icon_size=" + size.toLowerCase());
+        const persisted = () => saved().includes("icon_size=" + size.toLowerCase());
         const deadline = Date.now() + 10000;
         while (!persisted() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
         assert(persisted(), "icon size was saved to the display configuration");
@@ -8406,6 +8499,11 @@ async function assertStandardIconSizes(browser, testCase) {
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_GLOBAL_ICON_SIZE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertGlobalIconSize(browser, testCase);
+      console.log("Global icon size inheritance, overrides, reload and backup checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_CAPACITY_ONLY === "1") {
@@ -8544,6 +8642,7 @@ async function assertStandardIconSizes(browser, testCase) {
       }
       await assertNativeProfileJourney(browser, testCase);
       await assertStandardIconSizes(browser, testCase);
+      await assertGlobalIconSize(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);

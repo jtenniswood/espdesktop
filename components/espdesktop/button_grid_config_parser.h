@@ -1625,7 +1625,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     if (!p.options.empty()) p.options += ",";
     p.options += card_colors;
   }
-  if (icon_size == "medium" || icon_size == "large") {
+  if (icon_size == "small" || icon_size == "medium" || icon_size == "large") {
     if (!p.options.empty()) p.options += ",";
     p.options += "icon_size=" + icon_size;
   }

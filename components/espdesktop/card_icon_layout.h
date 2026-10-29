@@ -15,9 +15,8 @@ struct Binding {
 };
 
 inline void update(Binding &b) {
-  if (!b.card || !b.icon || b.updating) return;
+  if (!b.card || !b.icon || b.updating || lv_obj_has_flag(b.icon, LV_OBJ_FLAG_HIDDEN)) return;
   b.updating = true;
-  if (b.label && b.size == "large") lv_obj_add_flag(b.label, LV_OBJ_FLAG_HIDDEN);
   lv_obj_update_layout(b.card);
   int zoom = 256;
   if (b.size == "medium" || b.size == "large") {
@@ -68,6 +67,7 @@ inline void on_event(lv_event_t *event) {
 inline void attach(lv_obj_t *card, lv_obj_t *icon, lv_obj_t *label,
                    const std::string &size, int percent, bool vertical) {
   if (!card || !icon) return;
+  const std::string effective = resolved_card_icon_size(size);
   Binding *b = nullptr;
   for (uint32_t i = 0; i < lv_obj_get_event_count(icon); ++i) {
     auto *event = lv_obj_get_event_dsc(icon, i);
@@ -77,16 +77,18 @@ inline void attach(lv_obj_t *card, lv_obj_t *icon, lv_obj_t *label,
     }
   }
   if (!b) {
-    if (size != "medium" && size != "large") return;
-    b = new (std::nothrow) Binding{card, icon, label, size, percent, vertical};
+    if (effective != "medium" && effective != "large") return;
+    b = new (std::nothrow) Binding{card, icon, label, effective, percent, vertical};
     if (!b) return;
     if (!lv_obj_add_event_cb(icon, on_event, LV_EVENT_ALL, b)) { delete b; return; }
     lv_obj_add_event_cb(card, on_event, LV_EVENT_ALL, b);
     if (label) lv_obj_add_event_cb(label, on_event, LV_EVENT_ALL, b);
   }
-  b->size = size;
+  b->size = effective;
   b->percent = percent;
   b->vertical = vertical;
+  if (label && effective == "large" && !lv_obj_has_flag(icon, LV_OBJ_FLAG_HIDDEN))
+    lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
   update(*b);
 }
 }  // namespace espdesktop::card_icons

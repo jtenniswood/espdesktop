@@ -72,6 +72,23 @@ int main() {
   assert(icon.zoom_x == 384 && icon.zoom_y == 307);
   espdesktop::card_icons::attach(&card,&icon,&label,"small",100,false);
   assert(icon.zoom_x == 256 && icon.zoom_y == 256);
+  espdesktop::set_card_icon_default_size("Large");
+  espdesktop::card_icons::attach(&card,&icon,&label,"",100,false);
+  assert(label.hidden && icon.zoom_x == 960);
+  label.hidden = false; // Card drivers restore normal visibility on refresh.
+  emit(label, LV_EVENT_STYLE_CHANGED);
+  assert(!label.hidden); // A stale Large binding must not undo the driver reset.
+  espdesktop::set_card_icon_default_size("Medium");
+  espdesktop::card_icons::attach(&card,&icon,&label,"",100,false);
+  assert(!label.hidden && icon.zoom_x == 384);
+  espdesktop::set_card_icon_default_size("Large");
+  espdesktop::card_icons::attach(&card,&icon,&label,"small",100,false);
+  assert(!label.hidden && icon.zoom_x == 256);
+  icon.hidden = true;
+  espdesktop::card_icons::attach(&card,&icon,&label,"",100,false);
+  assert(!label.hidden); // Cards without visible icons retain their labels.
+  espdesktop::set_card_icon_default_size("Small");
+  icon.hidden = false;
   emit(icon,LV_EVENT_DELETE);
   assert(card.events.empty() && label.events.empty());
   espdesktop::card_icons::attach(&card,&icon,&label,"large",100,false);

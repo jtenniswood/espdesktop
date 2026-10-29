@@ -1,5 +1,5 @@
 import { createColorSwatches } from "../components/color_swatches";
-import { cardIconSize, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
+import { cardIconSizeOverride, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
 import { companionSavedCardMode } from "../model/companion_card_codec";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -326,18 +326,18 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         const homeSlot = state.editingSubpage;
         const submenu = document.createElement("div");
         submenu.className = "sp-ctx-submenu";
-        for (const size of ["small", "medium", "large"] as const) {
+        for (const size of ["", "small", "medium", "large"] as const) {
             const button = document.createElement("button");
             button.className = "sp-ctx-item";
             button.type = "button";
-            button.textContent = size.charAt(0).toUpperCase() + size.slice(1);
-            button.setAttribute("aria-pressed", String(iconSlots.every(slot => cardIconSize(c.buttons[slot - 1].options) === size)));
+            button.textContent = size ? size.charAt(0).toUpperCase() + size.slice(1) : "Use Default";
+            button.setAttribute("aria-pressed", String(iconSlots.every(slot => cardIconSizeOverride(c.buttons[slot - 1].options) === size)));
             button.addEventListener("click", async () => {
                 if (savingIconSize || isConfigLocked() || ctx().buttons !== c.buttons || state.editingSubpage !== homeSlot) return;
                 const changes = iconSlots.map(slot => {
                     const card = c.buttons[slot - 1];
                     return { slot, card, previous: card.options,
-                        next: setConfigOptionValue(card.options, "icon_size", size === "small" ? "" : size) };
+                        next: setConfigOptionValue(card.options, "icon_size", size) };
                 });
                 const subpage = c.isSub ? getSubpage(homeSlot) : null;
                 if (subpage) {
@@ -392,7 +392,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             });
             submenu.appendChild(button);
         }
-        addCtxSubmenu("image-size-select-large", "Icon Size", submenu);
+        addCtxSubmenu("arrow-expand", "Icon Size", submenu);
     }
     function addBulkCardMenuItems(this: any, slots?: any) {
         addColourMenuItem(slots);

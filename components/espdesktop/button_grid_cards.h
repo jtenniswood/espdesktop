@@ -555,7 +555,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
-       cfg_option_value(p.options, "icon_size") == "large")) {
+       espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")) == "large")) {
     lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -569,7 +569,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_display_text(s.icon_lbl, icon);
   if (companion_app_icon_enabled(p)) {
 #ifdef USE_COMPANION
-    companion_set_card_icon_image(s, p.entity, cfg_option_value(p.options, "icon_size"));
+    companion_set_card_icon_image(s, p.entity,
+        espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")));
     esphome::companion::request_app_icon(p.entity);
 #endif
   } else if (s.app_icon_img) {

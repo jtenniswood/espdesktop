@@ -406,8 +406,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 }
                 appendResizeHandle(btn);
                 main.appendChild(btn);
-                const standardIconSize = cardIconSize(b.options);
-                btn.dataset.iconSize = standardIconSize;
+                const standardIconSize = btn.querySelector(".sp-btn-icon") || typePreview?.appIconId
+                    ? cardIconSize(b.options, state.defaultIconSize) : "small";
+                btn.setAttribute("data-icon-size", standardIconSize);
                 if (standardIconSize !== "small" && !typePreview?.appIconId) {
                     resizeStandardIcon(btn);
                     standardIconResizeObserver?.observe(btn);
