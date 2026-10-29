@@ -157,6 +157,7 @@ def model_schema(config):
                 *pixel_modes, lower=True
             ),
             cv.Optional(CONF_TRANSFORM): transform,
+            cv.Optional("double_buffered", default=False): cv.boolean,
             cv.Required(CONF_MODEL): cv.one_of(model.name, upper=True),
             model.option(CONF_INVERT_COLORS, False): cv.boolean,
             model.option(CONF_USE_AXIS_FLIPS, True): cv.boolean,
@@ -278,6 +279,7 @@ async def to_code(config):
     width, height = model_dimensions(config, model)
     var = cg.new_Pvariable(config[CONF_ID], width, height)
     cg.add(var.set_model(model.name))
+    cg.add(var.set_double_buffered(config["double_buffered"]))
     if enable_pin := config.get(CONF_ENABLE_PIN):
         enable = [await cg.gpio_pin_expression(pin) for pin in enable_pin]
         cg.add(var.set_enable_pins(enable))
