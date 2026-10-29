@@ -60,8 +60,9 @@ right-click menu, or **Default** in Card Settings, to make it follow the global
 setting again. The display remembers the default after reboot, and backups
 include it. Older backups without this setting keep the current default.
 
-Subpage arrows sit immediately after the label, or at the lower left when no
-label is shown. A grey circle keeps the arrow visible over large artwork.
+In the web setup preview, subpage arrows sit immediately after the label, or at
+the lower left when no label is shown. A grey circle keeps the arrow visible
+over large artwork. These arrows and circles are not shown on the physical display.
 
 ## Theme
 

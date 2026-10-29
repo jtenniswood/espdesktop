@@ -223,28 +223,8 @@ struct lv_event_t { lv_obj_t *target; void *data; int code = 0; };
 inline int lv_event_get_code(lv_event_t *event) { return event->code; }
 inline void *lv_event_get_user_data(lv_event_t *event) { return event->data; }
 inline lv_obj_t *lv_event_get_target(lv_event_t *event) { return event->target; }
-inline TestEventHandler *lv_obj_add_event_cb(lv_obj_t *obj, lv_event_cb_t cb, int code, void *data) {
+inline void lv_obj_add_event_cb(lv_obj_t *obj, lv_event_cb_t cb, int code, void *data) {
   obj->handlers.push_back({cb, code, data});
-  return &obj->handlers.back();
-}
-inline uint32_t lv_obj_get_event_count(lv_obj_t *obj) { return obj->handlers.size(); }
-inline TestEventHandler *lv_obj_get_event_dsc(lv_obj_t *obj, uint32_t index) { return &obj->handlers[index]; }
-inline lv_event_cb_t lv_event_dsc_get_cb(TestEventHandler *event) { return event->callback; }
-inline void *lv_event_dsc_get_user_data(TestEventHandler *event) { return event->data; }
-inline lv_obj_t *lv_event_get_current_target(lv_event_t *event) { return event->target; }
-constexpr int LV_EVENT_LAYOUT_CHANGED = 6;
-constexpr int LV_EVENT_SIZE_CHANGED = 7;
-constexpr int LV_EVENT_STYLE_CHANGED = 8;
-constexpr int LV_RADIUS_CIRCLE = 32767;
-constexpr int LV_TEXT_FLAG_NONE = 0;
-struct lv_point_t { int x = 0, y = 0; };
-inline int lv_obj_get_content_width(lv_obj_t *obj) { return obj->width; }
-inline int lv_obj_get_style_text_letter_space(lv_obj_t *, int) { return 0; }
-inline void lv_obj_set_style_bg_opa(lv_obj_t *, int, int) {}
-inline void lv_obj_set_style_radius(lv_obj_t *, int, int) {}
-inline void lv_text_get_size(lv_point_t *size, const char *text, const lv_font_t *font,
-                            int, int, int width, int) {
-  *size = {std::min(width, static_cast<int>(std::strlen(text)) * 8), font->line_height};
 }
 inline void lv_obj_remove_event_cb_with_user_data(lv_obj_t *obj, lv_event_cb_t cb, void *data) {
   auto &handlers = obj->handlers;
@@ -278,6 +258,18 @@ inline void lv_obj_move_background(lv_obj_t *) { lv_obj_move_background_calls++;
 #include "button_grid_layout.h"
 
 int main() {
+  // Subpage arrows and their backgrounds belong only in the web setup UI.
+  lv_obj_t navigation_card, navigation_label, navigation_chevron;
+  BtnSlot navigation_slot;
+  navigation_slot.btn = &navigation_card;
+  navigation_slot.text_lbl = &navigation_label;
+  navigation_slot.subpage_lbl = &navigation_chevron;
+  for (const bool requested : {false, true}) {
+    lv_obj_clear_flag(&navigation_chevron, LV_OBJ_FLAG_HIDDEN);
+    set_subpage_chevron_visible(navigation_slot, requested);
+    assert(lv_obj_has_flag(&navigation_chevron, LV_OBJ_FLAG_HIDDEN));
+  }
+
   int row_span = 0;
   int col_span = 0;
   grid_token_spans('\0', row_span, col_span);
@@ -1207,7 +1199,6 @@ def main() -> int:
         shutil.copy2(BACKLIGHT_FADE_HEADER, tmp_path / "backlight_fade.h")
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
-        shutil.copy2(LAYOUT_HEADER.with_name("card_chevron_layout.h"), tmp_path / "card_chevron_layout.h")
         shutil.copy2(LAYOUT_HEADER.with_name("card_availability.h"), tmp_path / "card_availability.h")
         shutil.copy2(LAYOUT_HEADER.with_name("card_text_contrast.h"), tmp_path / "card_text_contrast.h")
         for name in ("theme_palette.h", "display_color.h"):

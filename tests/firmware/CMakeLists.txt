@@ -826,11 +826,5 @@ add_test(NAME card_icon_layout_test COMMAND card_icon_layout_test)
 add_test(NAME special_page_gesture_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/special_page_gesture_test.py ${CMAKE_CXX_COMPILER})
 
-add_executable(card_chevron_layout_test card_chevron_layout_test.cpp)
-target_compile_features(card_chevron_layout_test PRIVATE cxx_std_17)
-target_compile_options(card_chevron_layout_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(card_chevron_layout_test PRIVATE ../../components/espdesktop)
-add_test(NAME card_chevron_layout_test COMMAND card_chevron_layout_test)
-
 add_test(NAME default_icon_size_boot_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/default_icon_size_boot_test.py)

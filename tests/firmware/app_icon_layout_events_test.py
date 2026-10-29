@@ -42,7 +42,6 @@ struct CompanionAppIconImageData {
   int display_side = 0;
   size_t display_bytes = 0;
   std::string icon_size = "large";
-  lv_obj_t *chevron = nullptr;
   struct { uint8_t *allocate(size_t) { return nullptr; } } pixel_allocator;
   struct { struct { int w = 0, h = 0, stride = 0; } header; size_t data_size = 0; uint8_t *data = nullptr; } descriptor;
   void release_display_pixels() { display_side = 0; }

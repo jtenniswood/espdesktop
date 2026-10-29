@@ -40,7 +40,6 @@ struct CompanionAppIconImageData {
   }
   lv_obj_t *fallback_icon = nullptr;
   lv_obj_t *card_label = nullptr;
-  lv_obj_t *chevron = nullptr;
   std::string icon_size;
   std::string application_id;
   espdesktop::cover_art::AccentPalette accent_palette{};
@@ -194,7 +193,6 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
 #endif
   // Faint icon shadows can extend beyond the fitted artwork into the label.
   if (source.card_label) lv_obj_move_foreground(source.card_label);
-  if (source.chevron) lv_obj_move_foreground(source.chevron);
   source.layout_updating = false;
 }
 
@@ -309,7 +307,6 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->application_id = application_id;
   source->fallback_icon = slot.icon_lbl;
   source->card_label = slot.text_lbl;
-  source->chevron = slot.subpage_lbl;
   source->icon_size = icon_size;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
