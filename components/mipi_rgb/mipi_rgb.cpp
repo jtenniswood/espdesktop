@@ -431,6 +431,8 @@ void MipiRgb::dump_pins_(uint8_t start, uint8_t end, const char *name, uint8_t o
 }
 
 void MipiRgb::dump_config() {
+  ESP_LOGCONFIG(TAG, "Complete-frame presentation: %s",
+                YESNO(this->double_buffered_ && this->frames_.available()));
   char reset_buf[GPIO_SUMMARY_MAX_LEN];
   char de_buf[GPIO_SUMMARY_MAX_LEN];
   char pclk_buf[GPIO_SUMMARY_MAX_LEN];
