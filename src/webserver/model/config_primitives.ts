@@ -97,8 +97,20 @@ export function withoutCardColorOptions(options: unknown): string {
   ).filter(Boolean).join(",");
 }
 
+export function cardIconSize(options: unknown): "small" | "medium" | "large" {
+  const size = configOptionValue(options, "icon_size");
+  return size === "medium" || size === "large" ? size : "small";
+}
+
+export function preserveCardIconSize(options: unknown, normalized: unknown): string {
+  const size = cardIconSize(options);
+  return setConfigOptionValue(normalized, "icon_size", size === "small" ? "" : size);
+}
+
 export function preserveCardColorOptions(options: unknown, normalized: unknown): string {
-  return [withoutCardColorOptions(normalized), normalizedCardColorOptions(options)].filter(Boolean).join(",");
+  // Type-specific editors preserve shared card presentation settings together.
+  return preserveCardIconSize(options,
+    [withoutCardColorOptions(normalized), normalizedCardColorOptions(options)].filter(Boolean).join(","));
 }
 
 export function setCardColor(options: unknown, value: unknown): string {

@@ -43,6 +43,14 @@ and redraw the physical cards after the display's brief refresh delay.
 
 Find these controls in **Screen → Appearance** on the [Setup](/features/setup) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
 
+## Card icon size
+
+Open a card's **Card Settings** and choose **Icon size → Small, Medium or Large**
+for standard icons. Small keeps the existing size; Medium and Large enlarge the
+icon to 1.5× and 2×, with a limit to keep it inside the card and above its label.
+The choice is saved per card and applies on home and subpages. Mac application
+artwork continues to fit its card automatically.
+
 ## Theme
 
 - **Dark** and **Light** select a fixed appearance.

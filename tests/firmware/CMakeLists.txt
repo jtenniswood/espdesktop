@@ -807,3 +807,9 @@ add_test(NAME rgb_frame_buffer_test COMMAND rgb_frame_buffer_test)
 add_test(NAME rgb_frame_present_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/rgb_frame_present_test.py)
+
+add_executable(card_icon_size_test card_icon_size_test.cpp)
+target_compile_features(card_icon_size_test PRIVATE cxx_std_17)
+target_compile_options(card_icon_size_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(card_icon_size_test PRIVATE stubs ../../components/espdesktop)
+add_test(NAME card_icon_size_test COMMAND card_icon_size_test)

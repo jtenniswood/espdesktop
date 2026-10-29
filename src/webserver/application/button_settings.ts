@@ -1,6 +1,6 @@
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
-import { configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
+import { cardIconSize, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
@@ -1010,6 +1010,18 @@ export function createButtonSettingsFeature(
             }
             syncActiveColorControls();
             colourControls.editor.appendChild(activeColorField);
+        }
+        if (panel.querySelector('[id="' + idPrefix + 'icon"]')) {
+            const iconSizes = segmentControl([
+                ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
+            ], cardIconSize(b.options), function (size: string) {
+                b.options = setConfigOptionValue(b.options, "icon_size", size === "small" ? "" : size);
+                saveField("options", b.options);
+                renderPreview();
+            });
+            iconSizes.segment.setAttribute("role", "group");
+            iconSizes.segment.setAttribute("aria-label", "Icon size");
+            panel.appendChild(fieldWithControl("Icon size", null, iconSizes.segment));
         }
         groupCardSettingsFields(panel, idPrefix);
         Object.keys(openDisclosureIds).forEach(function (this: any, id?: any) {

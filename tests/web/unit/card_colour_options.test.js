@@ -143,3 +143,22 @@ test("back button colours survive saving, reloading, resizing and reset", () => 
     assert.equal(codec.parseSubpageConfig(encoded).backColor, undefined);
   }
 });
+
+
+test("standard icon sizes survive saving, reopening and other card option edits", () => {
+  const codec = loadCodec();
+  for (const type of ["", "sensor", "media", "subpage", "companion", "light_control"]) {
+    for (const size of ["medium", "large"]) {
+      const card = { entity: type === "companion" ? "shortcut.command+c" : "light.kitchen",
+        label: "Kitchen", icon: "Lightbulb", type, sensor: "", precision: "", options: "icon_size=" + size };
+      const reopened = codec.parseButtonConfig(codec.serializeButtonConfig(card));
+      assert.equal(colours.configOptionValue(reopened.options, "icon_size"), size, type + "/" + size);
+      assert.equal(codec.serializeButtonConfig(reopened), codec.serializeButtonConfig(card));
+    }
+  }
+  const card = { type: "", options: "icon_size=large" };
+  codec.setCardOnPattern(card, "stripes");
+  assert.equal(colours.configOptionValue(card.options, "icon_size"), "large");
+  assert.equal(colours.cardIconSize("icon_size=invalid"), "small");
+  assert.equal(colours.preserveCardIconSize("icon_size=small", "icon_size=large"), "");
+});
