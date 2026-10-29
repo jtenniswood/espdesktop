@@ -729,7 +729,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
         ".sp-subpage-badge{font-size:var(--btn-label);line-height:1;color:#fff;flex-shrink:0;" +
         "display:inline-flex;align-items:center;justify-content:center;width:1.35em;height:1.35em;" +
-        "cursor:pointer;padding:0;border-radius:50%;background:#666}" +
+        "cursor:pointer;padding:0;background:transparent;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.65)}" +
         ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-start}" +
         ".sp-btn[data-icon-size=large] .sp-btn-label{display:none}" +
         ".sp-hide-subpage-chevrons .sp-subpage-badge{display:none}" +

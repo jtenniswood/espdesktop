@@ -2839,9 +2839,9 @@ async function assertAutomaticAppIcons(browser, testCase) {
         const badge = card(2).locator(".sp-subpage-badge");
         const arrow = await badge.boundingBox();
         const badgeStyle = await badge.evaluate(el => ({ background: getComputedStyle(el).backgroundColor,
-          radius: parseFloat(getComputedStyle(el).borderRadius), width: el.getBoundingClientRect().width }));
-        assert.strictEqual(badgeStyle.background, "rgb(102, 102, 102)", "chevron has a grey background");
-        assert(badgeStyle.radius >= 50 || badgeStyle.radius >= badgeStyle.width / 2, "chevron background is circular");
+          shadow: getComputedStyle(el).textShadow }));
+        assert.strictEqual(badgeStyle.background, "rgba(0, 0, 0, 0)", "chevron has no background");
+        assert.notStrictEqual(badgeStyle.shadow, "none", "the chevron glyph has a shadow over artwork");
         if (size === "Large") {
           assert(arrow.x < bounds.x + bounds.width / 3, "hidden-label chevron sits on the left");
           const available = await card(2).evaluate(el => Math.min(el.clientWidth - parseFloat(getComputedStyle(el).paddingLeft) - parseFloat(getComputedStyle(el).paddingRight),

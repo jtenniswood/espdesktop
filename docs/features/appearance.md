@@ -61,8 +61,8 @@ setting again. The display remembers the default after reboot, and backups
 include it. Older backups without this setting keep the current default.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
-the lower left when no label is shown. A grey circle keeps the arrow visible
-over large artwork. These arrows and circles are not shown on the physical display.
+the lower left when no label is shown. A soft shadow keeps the arrow visible
+over large artwork, without a background. These arrows are not shown on the physical display.
 
 ## Theme
 
