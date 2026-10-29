@@ -825,3 +825,6 @@ add_test(NAME card_icon_layout_test COMMAND card_icon_layout_test)
 
 add_test(NAME special_page_gesture_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/special_page_gesture_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME default_icon_size_boot_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/default_icon_size_boot_test.py)
