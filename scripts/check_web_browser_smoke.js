@@ -7417,8 +7417,16 @@ async function assertHomeAssistantConnectorLayout(browser) {
       assert(await page.locator("#sp-device > .sp-config > :first-child").evaluate(
         element => element.id === "sp-connectors"), `${testCase.name}: connectors come first in System`);
       assert.strictEqual(await page.locator(".sp-page.active").count(), 1);
-      for (const width of [360, 320]) {
+      for (const width of [testCase.viewport.width, 360, 320]) {
         await page.setViewportSize({ width, height: 740 });
+        await page.getByRole("tab", { name: "Screen", exact: true }).click();
+        const screenTopGap = await page.locator("#sp-settings > .sp-config").evaluate(config =>
+          config.firstElementChild.getBoundingClientRect().top - config.getBoundingClientRect().top);
+        await page.getByRole("tab", { name: "System", exact: true }).click();
+        const connectorsTopGap = await page.locator("#sp-device > .sp-config").evaluate(config =>
+          config.querySelector(".sp-connectors-heading").getBoundingClientRect().top - config.getBoundingClientRect().top);
+        assert(Math.abs(connectorsTopGap - screenTopGap) < 0.5,
+          `${testCase.name}: Connectors and Screen have matching top spacing at ${width}px`);
         assert(await connectors.isVisible(), `${testCase.name}: connectors visible at ${width}px`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
           `${testCase.name}: System fits at ${width}px`);

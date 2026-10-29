@@ -270,7 +270,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-config{padding:var(--gap) var(--gap) var(--gap)}" +
         ".sp-settings-status-header{display:flex;align-items:baseline;justify-content:space-between;" +
         "gap:12px;margin:48px 2px 14px;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}" +
-        ".sp-config>.sp-settings-status-header:first-child{margin-top:10px}" +
+        ".sp-config>.sp-settings-status-header:first-child,.sp-config>.sp-connectors-section:first-child{margin-top:10px}" +
         ".sp-settings-status-title{font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:.06em}" +
         ".sp-settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);" +
         "z-index:180;align-items:center;justify-content:center;" +
@@ -755,7 +755,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-tab{padding:0 4px;font-size:.75rem}" +
         ".sp-tab-docs{margin-left:2px;padding-left:10px;gap:4px}" +
         ".sp-settings-status-header{margin:40px 2px 12px}" +
-        ".sp-config>.sp-settings-status-header:first-child{margin-top:12px}" +
+        ".sp-config>.sp-settings-status-header:first-child,.sp-config>.sp-connectors-section:first-child{margin-top:12px}" +
         ".card{border-radius:10px;margin-bottom:10px}" +
         ".card-header{min-height:56px;box-sizing:border-box}" +
         ".sp-field{margin-bottom:22px}" +
