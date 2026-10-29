@@ -14,6 +14,11 @@ source = stubs + r'''
 struct NavigationSubpageEntry { lv_obj_t *screen; TimerCardCtx *timer; };
 std::vector<NavigationSubpageEntry> entries;
 auto &navigation_subpages() { return entries; }
+std::vector<lv_obj_t *> grid_screens;
+auto &navigation_grid_screens() { return grid_screens; }
+void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
+  if (screen) grid_screens.push_back(screen);
+}
 lv_obj_t home;
 lv_obj_t *active_screen = &home;
 lv_obj_t *lv_scr_act() { return active_screen; }

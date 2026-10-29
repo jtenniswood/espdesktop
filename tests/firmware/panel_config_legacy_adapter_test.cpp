@@ -391,6 +391,40 @@ bool legacy_unicode_capacity_is_checked_before_writing() {
   return true;
 }
 
+bool special_page_keeps_unicode_and_large_native_values() {
+  FakeText order("1"), button("old");
+  std::array<FakeText, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> fields{};
+  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> chunks{};
+  for (size_t i = 0; i < fields.size(); ++i) chunks[i] = &fields[i];
+  PanelConfigTextBindings bindings;
+  bindings.set_device_profile("profile");
+  bindings.set_button_order(&order);
+  bindings.set_special_page_chunks(chunks);
+  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> empty{};
+  bindings.set_button(1, &button, empty);
+  for (const bool large : {false, true}) {
+    std::string page(large ? 3000 : 254, 'x');
+    page += "😀";
+    std::array<uint8_t, 8192> bytes{};
+    PanelConfigWriter writer(bytes.data(), bytes.size());
+    size_t size = 0;
+    if (writer.begin() != PanelConfigStatus::OK ||
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>("profile"), 7) != PanelConfigStatus::OK ||
+        writer.append_setting(reinterpret_cast<const uint8_t *>("special_page"), 12,
+            reinterpret_cast<const uint8_t *>(page.data()), page.size()) != PanelConfigStatus::OK ||
+        writer.finish(&size) != PanelConfigStatus::OK) return false;
+    if (!bindings.publish_document(bytes.data(), size)) return false;
+    std::string restored;
+    for (const auto &field : fields) restored += field.value();
+    if (restored != page) return false;
+    if (!large && fields[0].value().size() != 254) return false;
+    const auto writes = order.persistent_writes;
+    if (bindings.persist_document(bytes.data(), size) == large) return false;
+    if (large && order.persistent_writes != writes) return false;
+  }
+  return true;
+}
+
 }  // namespace
 
 int main() {
@@ -400,7 +434,8 @@ int main() {
                  native_document_updates_live_grid_without_writing_legacy_preferences() &&
                  twenty_slot_document_reaches_order_and_subpage_settings() &&
                  expanded_native_configuration_preserves_every_byte() &&
-                 legacy_unicode_capacity_is_checked_before_writing()
+                 legacy_unicode_capacity_is_checked_before_writing() &&
+                 special_page_keeps_unicode_and_large_native_values()
              ? 0
              : 1;
 }

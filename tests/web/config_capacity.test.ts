@@ -72,6 +72,9 @@ export async function runConfigCapacityTests(): Promise<void> {
   equal(persistence.subpageConfigFits("x".repeat(4095)), true, "the complete 4 KB record budget fits");
   equal(persistence.subpageConfigFits("x".repeat(4096)), false, "the slot byte counts towards the 4 KB record limit");
   equal(persistence.subpageConfigFits("é".repeat(2048)), false, "native capacity counts UTF-8 bytes");
+  equal(persistence.subpageConfigFits("x".repeat(4083), -1), true, "special-page records reserve space for their setting key");
+  equal(persistence.subpageConfigFits("x".repeat(4084), -1), false, "special pages cannot overflow the native setting record");
+  equal(persistence.subpageConfigFits("é".repeat(2042), -1), false, "special-page capacity counts UTF-8 bytes");
   state.subpages[1] = {} as any;
   equal(await persistence.saveSubpageEntity(1), "saved", "large subpages use native storage");
   equal(postedValue, largeSubpage, "native saves retain every byte");

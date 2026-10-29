@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from generate_media_lifecycle_integration import definition
 
 ROOT = Path(__file__).resolve().parents[2]
 ui = (ROOT / 'components/espdesktop/screensaver_pin_ui.h').read_text()
@@ -11,7 +12,7 @@ ui = ui[ui.index('struct ScreensaverPinUi'):]
 lock = (ROOT / 'components/espdesktop/screen_lock_state.h').read_text()
 lock = lock[lock.index('struct ScreenLockCardRef'):]
 navigation = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
-navigation = navigation[navigation.index('inline bool navigation_return_home'):navigation.index('inline void navigation_clear_home_targets')]
+navigation = definition(navigation, 'navigation_return_home')[1]
 settings = (ROOT / 'components/espdesktop/network_status.h').read_text()
 settings = settings[settings.index('inline void network_status_refresh_lock_button'):settings.index('inline void network_status_refresh_page', settings.index('inline void network_status_refresh_lock_button'))]
 stubs = r'''

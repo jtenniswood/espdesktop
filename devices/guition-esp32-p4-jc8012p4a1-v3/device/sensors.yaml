@@ -70,6 +70,7 @@ script:
             lv_obj_add_flag(slots[19].btn, LV_OBJ_FLAG_HIDDEN);
           }
           cfg.subpage_chevrons_enabled = id(subpage_chevrons_enabled).state;
+          cfg.special_page_config = id(special_page_config).state + id(special_page_config_ext).state + id(special_page_config_ext_2).state + id(special_page_config_ext_3).state + id(special_page_config_ext_4).state + id(special_page_config_ext_5).state + id(special_page_config_ext_6).state + id(special_page_config_ext_7).state;
           cfg.card_corner_radius = card_curve_radius(22, id(card_curve_select).current_option());
           cfg.continuous_card_corners = true;
           cfg.subpage_chevron_x = 4;
@@ -268,6 +269,7 @@ script:
             lv_obj_add_flag(slots[19].btn, LV_OBJ_FLAG_HIDDEN);
           }
           cfg.subpage_chevrons_enabled = id(subpage_chevrons_enabled).state;
+          cfg.special_page_config = id(special_page_config).state + id(special_page_config_ext).state + id(special_page_config_ext_2).state + id(special_page_config_ext_3).state + id(special_page_config_ext_4).state + id(special_page_config_ext_5).state + id(special_page_config_ext_6).state + id(special_page_config_ext_7).state;
           cfg.card_corner_radius = card_curve_radius(22, id(card_curve_select).current_option());
           cfg.continuous_card_corners = true;
           cfg.subpage_chevron_x = 4;
@@ -503,6 +505,7 @@ esphome:
               lv_obj_add_flag(slots[19].btn, LV_OBJ_FLAG_HIDDEN);
             }
             cfg.subpage_chevrons_enabled = id(subpage_chevrons_enabled).state;
+            cfg.special_page_config = id(special_page_config).state + id(special_page_config_ext).state + id(special_page_config_ext_2).state + id(special_page_config_ext_3).state + id(special_page_config_ext_4).state + id(special_page_config_ext_5).state + id(special_page_config_ext_6).state + id(special_page_config_ext_7).state;
             cfg.card_corner_radius = card_curve_radius(22, id(card_curve_select).current_option());
             cfg.continuous_card_corners = true;
             cfg.subpage_chevron_x = 4;
@@ -690,6 +693,7 @@ esphome:
               lv_obj_add_flag(slots[19].btn, LV_OBJ_FLAG_HIDDEN);
             }
             cfg.subpage_chevrons_enabled = id(subpage_chevrons_enabled).state;
+            cfg.special_page_config = id(special_page_config).state + id(special_page_config_ext).state + id(special_page_config_ext_2).state + id(special_page_config_ext_3).state + id(special_page_config_ext_4).state + id(special_page_config_ext_5).state + id(special_page_config_ext_6).state + id(special_page_config_ext_7).state;
             cfg.card_corner_radius = card_curve_radius(22, id(card_curve_select).current_option());
             cfg.continuous_card_corners = true;
             cfg.subpage_chevron_x = 4;
