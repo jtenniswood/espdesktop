@@ -575,6 +575,9 @@ export function syncCompanionShortcutSubpage(
     subpage.buttons = newButtons;
     subpage.order = newOrder;
     subpage.sizes = {};
+    // Button IDs and positions have changed. Until the grid is rebuilt, read
+    // shortcut selections from the new order rather than the old cached grid.
+    subpage.grid = [];
     return subpage;
 }
 

@@ -6493,6 +6493,65 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   }
 }
 
+async function assertAppSubpageCapacity(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const shortcuts = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const { encodeConfigField } = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
+  for (const native of [false, true]) {
+    const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C5%7C6";
+    const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "5", "6"]);
+    subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
+    subpage.order.push("5", "", "", "");
+    fixture.document.subpages[1] = "~" + subpage.order.join(",") + "|" + subpage.buttons.map(card =>
+      [card.type, card.entity, card.label, card.icon, card.icon_on, card.sensor, card.unit, card.precision, card.options]
+        .map(encodeConfigField).join(",")).join("|");
+    const legacyTextState = {};
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    async function openAppSettings() {
+      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+      if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true")
+        await app.locator(".sp-disclosure-button").click();
+      return app;
+    }
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await seedNativeDocument(page, fixture);
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      // Four managed shortcuts, one custom card and Back leave three cells.
+      await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+      assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
+      await page.locator(".sp-back-btn .sp-back-hit").click();
+      let app = await openAppSettings();
+      for (const id of ["1", "2", "4"]) {
+        await page.locator("#sp-inp-companion-shortcut-" + id).evaluate(input => input.click());
+        assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "available shortcut enables");
+        assert.strictEqual(await app.getByText(/No free subpage space/).count(), 0, "three empty cells do not produce a full-page warning");
+      }
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const saved = () => native ? fixture.document.subpages[1] : Object.entries(legacyTextState)
+        .filter(([key]) => key.includes("subpage_1")).map(([,value]) => value).join("");
+      const deadline = Date.now() + 10000;
+      while ((!saved()?.includes("shortcut.command+enter") || !saved()?.includes("shortcut.option+command+b")) && Date.now() < deadline)
+        await new Promise(resolve => setTimeout(resolve, 25));
+      assert(saved().includes("shortcut.command+enter") && saved().includes("shortcut.command+t") && saved().includes("shortcut.option+command+b"), "all three added shortcuts are saved");
+      assert(saved().includes("Custom shortcut"), "the existing custom card is retained");
+      app = await openAppSettings();
+      for (const id of ["1", "2", "4"])
+        assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "saved shortcut remains enabled when reopened");
+      assert.deepStrictEqual(errors, []);
+    } finally { await context.close(); }
+  }
+}
+
 async function assertCompanionStorageSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   for (const type of ["companion", "subpage"]) {
@@ -8354,6 +8413,11 @@ async function assertStandardIconSizes(browser, testCase) {
       console.log("System connector layout and pairing link browser checks passed.");
       return;
     }
+    if (process.env.ESPDESKTOP_APP_SUBPAGE_CAPACITY_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertAppSubpageCapacity(browser, testCase);
+      console.log("App subpage free-slot selection and persistence checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_STANDARD_ICON_SIZES_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertStandardIconSizes(browser, testCase);
       console.log("Standard icon sizes passed for native and legacy configurations.");
@@ -8486,6 +8550,7 @@ async function assertStandardIconSizes(browser, testCase) {
       await assertNativeProfileJourney(browser, testCase);
       await assertStandardIconSizes(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);
