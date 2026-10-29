@@ -3,6 +3,7 @@ import { companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import {
+    preserveCardIconSize,
     configOptionEnabled,
     configOptionValue,
     normalizedCardColorOptions,
@@ -474,13 +475,15 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
             for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
             cardColorOptions = "";
+            iconSizeOptions = "";
         }
         if (b)
-            b.options = withoutCardColorOptions(b.options || "");
+            b.options = setConfigOptionValue(withoutCardColorOptions(b.options || ""), "icon_size", "");
         if (b)
             migrateSavedConfigActionLegacy(b);
         var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
@@ -523,6 +526,7 @@ export function createConfigCodecFeature(
             b.options = "";
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
+        if (b) b.options = preserveCardIconSize(iconSizeOptions, b.options);
         return b;
     }
     function isBrightnessSliderType(this: any, type?: any) {
@@ -650,8 +654,9 @@ export function createConfigCodecFeature(
         if (type === "door_window")
             precision = normalizeDoorWindowSubtype(precision);
         var options: any = b && b.options || "";
+        const iconSizeOptions = options;
         var cardColorOptions: any = normalizedCardColorOptions(options);
-        options = withoutCardColorOptions(options);
+        options = setConfigOptionValue(withoutCardColorOptions(options), "icon_size", "");
         if (type === "") {
             options = normalizeSwitchConfirmationOptions(options);
         }
@@ -799,6 +804,7 @@ export function createConfigCodecFeature(
             precision = "";
         }
         if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
+        options = preserveCardIconSize(iconSizeOptions, options);
         return trimConfigFields([
             (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
             label,

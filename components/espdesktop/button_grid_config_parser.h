@@ -1527,6 +1527,21 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  const std::string icon_size = cfg_option_value(p.options, "icon_size");
+  // Remove the shared option before type-specific normalization, then restore it.
+  std::string type_options;
+  size_t start = 0;
+  while (start < p.options.size()) {
+    size_t end = p.options.find(',', start);
+    if (end == std::string::npos) end = p.options.size();
+    const std::string token = p.options.substr(start, end - start);
+    if (!token.empty() && token.compare(0, 10, "icon_size=") != 0) {
+      if (!type_options.empty()) type_options += ",";
+      type_options += token;
+    }
+    start = end + 1;
+  }
+  p.options = type_options;
   const std::string card_colors = card_color_options_normalized(p.options);
   p.options = options_without_card_colors(p.options);
   // Retired Mac playback cards become empty slots, including inside subpages.
@@ -1609,6 +1624,10 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (!card_colors.empty()) {
     if (!p.options.empty()) p.options += ",";
     p.options += card_colors;
+  }
+  if (icon_size == "medium" || icon_size == "large") {
+    if (!p.options.empty()) p.options += ",";
+    p.options += "icon_size=" + icon_size;
   }
   return p;
 }
