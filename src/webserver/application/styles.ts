@@ -725,13 +725,13 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-fw-btn.sp-fw-btn-busy{background:rgba(35,37,43,.5);color:#8a8d94;" +
         "border-color:rgba(74,77,84,.45);border-radius:999px;padding:8px 28px;opacity:1}" +
         ".sp-fw-btn.sp-fw-btn-busy:hover{background:rgba(35,37,43,.5);border-color:rgba(74,77,84,.45)}" +
-        ".sp-btn-label-row{display:flex;align-items:baseline;width:100%;overflow:hidden;position:relative;z-index:1}" +
-        ".sp-btn-label-row .sp-btn-label{flex:1;min-width:0}" +
-        ".sp-subpage-badge{font-size:var(--btn-label);line-height:1;color:var(--card-text-color,var(--preview-text-primary));flex-shrink:0;" +
-        "cursor:pointer;padding:0 0 0 2px;border-radius:4px}" +
-        ".sp-btn:has(>.sp-resize-handle) .sp-subpage-badge{margin-right:max(0px,calc(40px - var(--btn-pad)))}" +
-        ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-end}" +
-        ".sp-btn:has(>.sp-resize-handle) .sp-btn-label-row:has(>.sp-subpage-badge:only-child)>.sp-subpage-badge{margin-right:max(0px,calc(44px - var(--btn-pad)))}" +
+        ".sp-btn-label-row{display:flex;align-items:flex-end;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
+        ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
+        ".sp-subpage-badge{font-size:var(--btn-label);line-height:1;color:#fff;flex-shrink:0;" +
+        "display:inline-flex;align-items:center;justify-content:center;width:1.35em;height:1.35em;" +
+        "cursor:pointer;padding:0;border-radius:50%;background:#666}" +
+        ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-start}" +
+        ".sp-btn[data-icon-size=large] .sp-btn-label{display:none}" +
         ".sp-hide-subpage-chevrons .sp-subpage-badge{display:none}" +
         "@media(max-width:768px){" +
         ":root{--gap:12px}" +

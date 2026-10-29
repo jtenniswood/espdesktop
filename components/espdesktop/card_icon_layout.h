@@ -17,6 +17,7 @@ struct Binding {
 inline void update(Binding &b) {
   if (!b.card || !b.icon || b.updating) return;
   b.updating = true;
+  if (b.label && b.size == "large") lv_obj_add_flag(b.label, LV_OBJ_FLAG_HIDDEN);
   lv_obj_update_layout(b.card);
   int zoom = 256;
   if (b.size == "medium" || b.size == "large") {

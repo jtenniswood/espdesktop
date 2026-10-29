@@ -45,11 +45,15 @@ Find these controls in **Screen → Appearance** on the [Setup](/features/setup)
 
 ## Card icon size
 
-Open a card's **Card Settings** and choose **Icon size → Small, Medium or Large**
-for standard icons. Small keeps the existing size; Medium and Large enlarge the
-icon to 1.5× and 2×, with a limit to keep it inside the card and above its label.
-The choice is saved per card and applies on home and subpages. Mac application
-artwork continues to fit its card automatically.
+Right-click a card in the layout preview and choose **Icon Size → Small, Medium
+or Large**, or use **Icon size** in **Card Settings**. Small keeps the normal icon
+size; Medium enlarges it to 1.5× above the label; Large fills the available card
+area and hides the label. This also applies to Mac application artwork. The
+choice is saved per card on the home screen and subpages; choosing Small or
+Medium restores the label unless you have explicitly hidden it.
+
+Subpage arrows sit immediately after the label, or at the lower left when no
+label is shown. A grey circle keeps the arrow visible over large artwork.
 
 ## Theme
 

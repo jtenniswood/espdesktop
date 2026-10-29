@@ -1,9 +1,27 @@
 #include <array>
 #include <cassert>
 #include "app_icon_layout.h"
+#include "app_icon_resampler.h"
 
 int main() {
   using espdesktop::app_icon::fit_side;
+  // Red opaque artwork beside transparent black must retain its colour at
+  // partially covered edges. Reductions average coverage, not dark mattes.
+  const uint8_t input[] = {0, 248, 0, 0, 0, 248, 0, 0, 255, 0, 255, 0};
+  uint8_t reduced[3]{};
+  espdesktop::app_icon::resize_pixels(input, 2, reduced, 1);
+  assert(reduced[0] == 0 && reduced[1] == 248 && reduced[2] == 128);
+  uint8_t enlarged[4 * 4 * 3]{};
+  espdesktop::app_icon::resize_pixels(input, 2, enlarged, 4);
+  assert(enlarged[0] == 0 && enlarged[1] == 248);
+  assert(enlarged[32] == 255 && enlarged[33] > 0 && enlarged[33] < 255);
+  for (int i = 0; i < 16; ++i) {
+    if (enlarged[32 + i]) assert(enlarged[i * 2 + 1] == 248);
+  }
+  uint8_t identity[sizeof(input)]{};
+  espdesktop::app_icon::resize_pixels(input, 2, identity, 2);
+  for (size_t i = 0; i < sizeof(input); ++i) assert(input[i] == identity[i]);
+
   assert(fit_side(100, 100, 0, 5, 8, {}) == 100);
   assert(fit_side(100, 100, 20, 5, 8, {}) == 75);
   assert(fit_side(100, 100, 40, 5, 8, {}) == 55);

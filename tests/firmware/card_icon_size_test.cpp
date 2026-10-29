@@ -14,7 +14,7 @@ int main() {
   using espdesktop::card_icon_zoom;
   assert(card_icon_zoom("small", 48, 48, 200, 150) == 256);
   assert(card_icon_zoom("medium", 48, 48, 200, 150) == 384);
-  assert(card_icon_zoom("large", 48, 48, 200, 150) == 512);
+  assert(card_icon_zoom("large", 48, 48, 200, 150) == 800);
   assert(card_icon_zoom("large", 48, 48, 200, 72) == 384);
   assert(card_icon_zoom("large", 48, 48, 60, 150) == 320);
   assert(card_icon_zoom("large", 48, 48, 60, 0) == 1);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "card_chevron_layout.h"
+
 #include "card_availability.h"
 #include "card_text_contrast.h"
 
@@ -468,11 +470,8 @@ inline void set_subpage_chevron_visible(BtnSlot &s, bool visible,
                                         int x_offset = 0,
                                         int y_offset = 2,
                                         int text_width_percent = 94) {
-  if (!s.subpage_lbl) return;
-  (void) visible;
   (void) x_offset;
   (void) y_offset;
   (void) text_width_percent;
-  lv_obj_add_flag(s.subpage_lbl, LV_OBJ_FLAG_HIDDEN);
-  if (s.text_lbl) configure_button_label_wrap(s.text_lbl);
+  espdesktop::card_chevron::attach(s.btn, s.text_lbl, s.subpage_lbl, visible);
 }

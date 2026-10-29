@@ -162,12 +162,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const label = button.querySelector<HTMLElement>(".sp-btn-label, .sp-btn-label-row");
         const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
         const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
-            - (label?.getBoundingClientRect().height || 0) - 4;
-        const requested = button.dataset.iconSize === "large" ? 2 : 1.5;
-        const scale = Math.max(0.01, Math.min(requested,
-            width / Math.max(1, icon.offsetWidth), height / Math.max(1, icon.offsetHeight)));
-        icon.style.transformOrigin = "top left";
-        icon.style.transform = "scale(" + scale + ")";
+            - (button.dataset.iconSize === "large" ? 0 : (label?.getBoundingClientRect().height || 0) + 4);
+        icon.style.fontSize = "";
+        const naturalSize = parseFloat(view.getComputedStyle(icon).fontSize);
+        const requested = button.dataset.iconSize === "large" ? Infinity : naturalSize * 1.5;
+        icon.style.fontSize = Math.max(1, Math.min(requested, width, height)) + "px";
     }
     const standardIconResizeObserver = typeof ResizeObserver === "function"
         ? new ResizeObserver(entries => entries.forEach(entry => {
@@ -187,8 +186,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const labelHeight = label ? label.getBoundingClientRect().height : 0;
         const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
         const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-        const side = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 4),
+        const fitted = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 4),
             artwork.artworkWidthFraction, artwork.artworkHeightFraction);
+        const size = button.getAttribute("data-icon-size");
+        const requested = size === "large" ? fitted : smallSide * (size === "medium" ? 1.5 : 1)
+            / artwork.artworkWidthFraction;
+        const side = Math.min(fitted, requested);
         icon.style.width = side + "px";
         icon.style.height = side + "px";
         icon.style.left = (parseFloat(style.paddingLeft) - side * artwork.insetLeftPercent / 100) + "px";
@@ -404,8 +407,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 appendResizeHandle(btn);
                 main.appendChild(btn);
                 const standardIconSize = cardIconSize(b.options);
+                btn.dataset.iconSize = standardIconSize;
                 if (standardIconSize !== "small" && !typePreview?.appIconId) {
-                    btn.dataset.iconSize = standardIconSize;
                     resizeStandardIcon(btn);
                     standardIconResizeObserver?.observe(btn);
                     const title = btn.querySelector(".sp-btn-label, .sp-btn-label-row");

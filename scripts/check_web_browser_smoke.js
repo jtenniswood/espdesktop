@@ -2790,8 +2790,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;card_off_color=123ABC";
-    fixture.document.subpages[3] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto,,,,app_hide_label";
-    fixture.document.buttons[2] = "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts,app_hide_label";
+    fixture.document.buttons[2] = "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts";
     fixture.document.subpages[2] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
@@ -2813,62 +2812,57 @@ async function assertAutomaticAppIcons(browser, testCase) {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
+    async function chooseSize(slot, size) {
+      await card(slot).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).click();
+      await page.locator(".sp-ctx-submenu").getByRole("button", { name: size, exact: true }).click();
+      await page.waitForFunction(({ slot, size }) =>
+        document.querySelector(`.sp-main [data-slot="${slot}"]`)?.dataset.iconSize === size.toLowerCase(), { slot, size });
+      await card(slot).locator(".sp-companion-app-icon").waitFor();
+    }
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.__eventSources?.length > 0);
       await seedNativeDocument(page, fixture);
-      const image = card(1).locator(".sp-companion-app-icon");
-      await image.waitFor();
-      const badge = card(2).locator(".sp-subpage-badge");
-      await badge.waitFor();
+      await page.getByRole("tab", { name: "Layout" }).click();
+      await card(1).locator(".sp-companion-app-icon").waitFor();
       await card(2).locator(".sp-companion-app-icon").waitFor();
-      const badgeBounds = await badge.boundingBox();
-      const resizeBounds = await card(2).locator(".sp-resize-handle").boundingBox();
-      const cardBounds = await card(2).boundingBox();
-      assert(badgeBounds.x > cardBounds.x + cardBounds.width / 2, "hidden-label chevron stays on the right");
-      assert(resizeBounds.x - badgeBounds.x - badgeBounds.width >= 8, "chevron remains clear of the resize control");
-      assert(await badge.evaluate(element => {
-        const bounds = element.getBoundingClientRect();
-        const hit = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
-        return hit === element || element.contains(hit);
-      }), "app artwork cannot cover or intercept clicks on the subpage chevron");
-      await badge.click();
-      await page.locator(".sp-back-btn").waitFor();
-      await page.locator(".sp-back-btn .sp-back-hit").click();
-      await card(1).waitFor();
-      await card(1).click({ button: "right" });
-      assert.strictEqual(await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).count(), 0,
-        "automatic icon sizing removes the right-click size control");
-      await page.keyboard.press("Escape");
-      const label = card(1).locator(".sp-btn-label");
-      await card(1).evaluate(element => { element.style.width = "180px"; element.style.height = "180px"; });
-      await label.evaluate(element => { element.style.cssText = "font-size:16px;line-height:20px;white-space:pre-line;max-height:40px"; });
-      const sides = [];
-      for (const text of [null, "Safari", "Safari\nBrowser"]) {
-        await label.evaluate((element, text) => {
-          element.style.display = text === null ? "none" : "block";
-          element.textContent = text || "Safari";
-        }, text);
-        await page.waitForTimeout(100);
-        const bounds = await card(1).boundingBox();
-        const artwork = await image.boundingBox();
-        const left = artwork.x + artwork.width / 8;
-        const top = artwork.y + artwork.height / 8;
-        const bottom = top + artwork.height * 0.75;
-        assert(left >= bounds.x && top >= bounds.y && left + artwork.width * 0.75 <= bounds.x + bounds.width + 1,
-          "visible app artwork remains inside the card");
-        if (text !== null) {
-          const labelBounds = await label.boundingBox();
-          assert(bottom < labelBounds.y - 2, "icon leaves a gap above the rendered label");
+      const widths = {};
+      for (const size of ["Medium", "Large", "Small"]) {
+        await chooseSize(2, size);
+        const saved = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
+        assert(size === "Small" ? !saved.includes("icon_size=") : saved.includes(`icon_size=${size.toLowerCase()}`), "right-click choice persists");
+        assert.strictEqual(await card(2).locator(".sp-btn-label").isVisible(), size !== "Large", "Large hides the label; other sizes restore it");
+        const bounds = await card(2).boundingBox();
+        const image = await card(2).locator(".sp-companion-app-icon").boundingBox();
+        widths[size] = image.width;
+        const badge = card(2).locator(".sp-subpage-badge");
+        const arrow = await badge.boundingBox();
+        const badgeStyle = await badge.evaluate(el => ({ background: getComputedStyle(el).backgroundColor,
+          radius: parseFloat(getComputedStyle(el).borderRadius), width: el.getBoundingClientRect().width }));
+        assert.strictEqual(badgeStyle.background, "rgb(102, 102, 102)", "chevron has a grey background");
+        assert(badgeStyle.radius >= 50 || badgeStyle.radius >= badgeStyle.width / 2, "chevron background is circular");
+        if (size === "Large") {
+          assert(arrow.x < bounds.x + bounds.width / 3, "hidden-label chevron sits on the left");
+          const available = await card(2).evaluate(el => Math.min(el.clientWidth - parseFloat(getComputedStyle(el).paddingLeft) - parseFloat(getComputedStyle(el).paddingRight),
+            el.clientHeight - parseFloat(getComputedStyle(el).paddingTop) - parseFloat(getComputedStyle(el).paddingBottom)));
+          assert(Math.abs(image.width * 0.75 - available) < 2, "Large artwork fills the content box");
+        } else {
+          const label = await card(2).locator(".sp-btn-label").boundingBox();
+          assert(Math.abs(arrow.x - label.x - label.width - 4) <= 2, "chevron follows the end of the label");
+          assert(image.y + image.height * 0.875 < label.y, "small and medium artwork remain above the label");
         }
-        sides.push(artwork.width);
       }
-      assert(sides[0] > sides[1] && sides[1] > sides[2], "no label, one line and two lines receive progressively smaller icons");
-      await card(1).hover();
-      await page.mouse.down();
-      assert.strictEqual(await card(1).evaluate(element => getComputedStyle(element, "::after").borderTopWidth), "3px",
-        "automatic app cards keep their active outline");
-      await page.mouse.up();
+      assert(widths.Small < widths.Medium && widths.Medium < widths.Large, "all app icon sizes are distinct");
+      // Use the same menu inside a subpage and verify the complete subpage record.
+      await card(2).locator(".sp-subpage-badge").click();
+      await page.locator(".sp-back-btn").waitFor();
+      await chooseSize(1, "Large");
+      const subpageSaved = native ? fixture.document.subpages[2] : Object.entries(legacyTextState)
+        .filter(([key]) => key.includes("subpage_2")).map(([,value]) => value).join("");
+      assert(subpageSaved.includes("icon_size=large"), "subpage icon size is saved");
+      await chooseSize(1, "Small");
+      assert(await card(1).locator(".sp-btn-label").isVisible(), "subpage label returns with Small");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
   }
@@ -8389,7 +8383,8 @@ async function assertStandardIconSizes(browser, testCase) {
           return { iconBottom: icon.bottom, titleTop: title.top, width: icon.width };
         });
         widths[size] = geometry.width;
-        assert(geometry.iconBottom <= geometry.titleTop + 1, `${testCase.name}/${size}: icon stays above title`);
+        if (size === "Large") assert(!(await card.locator(".sp-btn-label").isVisible()), "Large hides the title");
+        else assert(geometry.iconBottom <= geometry.titleTop + 1, `${testCase.name}/${size}: icon stays above title`);
         await card.click();
         await page.getByRole("button", { name: "Edit", exact: true }).click();
         await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
@@ -8453,7 +8448,7 @@ async function assertStandardIconSizes(browser, testCase) {
     }
     if (process.env.ESPDESKTOP_CONTEXT_ICON_SIZE_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertAutomaticAppIcons(browser, testCase);
-      console.log("Automatic app icon sizing passed for native and legacy configurations.");
+      console.log("Right-click app icon sizes and chevrons passed for native and legacy configurations.");
       return;
     }
     if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {

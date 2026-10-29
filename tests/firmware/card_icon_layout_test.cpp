@@ -28,6 +28,7 @@ void lv_text_get_size(lv_point_t *p, const char *, lv_font_t *, int, int, int, i
 void lv_obj_get_coords(lv_obj_t *o, lv_area_t *out) { *out = o->bounds; }
 int lv_obj_get_style_pad_right(lv_obj_t *o, int) { return o->pad; }
 int lv_obj_get_style_pad_bottom(lv_obj_t *o, int) { return o->pad; }
+void lv_obj_add_flag(lv_obj_t *o, int) { o->hidden = true; }
 bool lv_obj_has_flag(lv_obj_t *o, int) { return o->hidden; }
 void lv_obj_set_style_transform_pivot_x(lv_obj_t *, int, int) {}
 void lv_obj_set_style_transform_pivot_y(lv_obj_t *, int, int) {}
@@ -57,18 +58,15 @@ int main() {
   icon.bounds = {10,10,189,57}; // Full-width label still contains a 48px glyph.
   label.bounds = {10,160,189,189};
   espdesktop::card_icons::attach(&card,&icon,&label,"large",100,false);
-  assert(icon.zoom_x == 512 && icon.zoom_y == 512);
-  // Slider cards have cleared padding, but keep their original 10px inset.
-  card.pad = 0;
-  label.bounds.y1 = 86;
-  emit(label,LV_EVENT_SIZE_CHANGED);
-  assert(icon.zoom_y == 384); // 86 - 10 - 4 = 72px, exactly 1.5x.
+  assert(label.hidden);
+  assert(icon.zoom_x == 960 && icon.zoom_y == 960); // Fill the 180px content box.
+  // Wrapped label changes cannot reduce Large, which intentionally hides it.
   label.bounds.y1 = 62;
   emit(label,LV_EVENT_SIZE_CHANGED);
-  assert(icon.zoom_y == 256); // A second line arrived through a subscription.
+  assert(icon.zoom_y == 960);
+  // The card driver restores label visibility before applying another size.
+  label.hidden = false;
   label.bounds.y1 = 160;
-  emit(card,LV_EVENT_LAYOUT_CHANGED);
-  assert(icon.zoom_y == 512);
   espdesktop::card_icons::attach(&card,&icon,&label,"medium",80,true);
   assert(icon.events.size() == 1 && card.events.size() == 1 && label.events.size() == 1);
   assert(icon.zoom_x == 384 && icon.zoom_y == 307);

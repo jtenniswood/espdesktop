@@ -13,13 +13,15 @@ source = r'''
 #include <cassert>
 #include <cstdint>
 #include <vector>
+#include <string>
+#include "app_icon_resampler.h"
 #include "app_icon_layout.h"
 #define VERSION_CODE(a,b,c) ((a)*10000+(b)*100+(c))
 #define ESPHOME_VERSION_CODE VERSION_CODE(2026,9,1)
 constexpr int LV_PART_MAIN = 0, LV_OBJ_FLAG_HIDDEN = 1;
 constexpr int LV_ALIGN_TOP_LEFT = 0, LV_IMAGE_ALIGN_CONTAIN = 0;
 constexpr int LV_EVENT_LAYOUT_CHANGED = 1, LV_EVENT_SIZE_CHANGED = 2;
-namespace esphome::companion { constexpr int APP_ICON_SIDE = 8; }
+namespace esphome::companion { constexpr int APP_ICON_SIDE = 8, APP_ICON_PIXEL_BYTES = 8 * 8 * 3; }
 struct lv_font_t { int line_height = 40; };
 struct lv_obj_t;
 struct lv_event_t { void *data; };
@@ -36,7 +38,15 @@ struct lv_obj_t {
 };
 struct CompanionAppIconImageData {
   bool app_icon_mode = true, image_loaded = true, layout_updating = false;
-  uint8_t *pixels = nullptr;
+  uint8_t *pixels = nullptr, *display_pixels = nullptr;
+  int display_side = 0;
+  size_t display_bytes = 0;
+  std::string icon_size = "large";
+  lv_obj_t *chevron = nullptr;
+  struct { uint8_t *allocate(size_t) { return nullptr; } } pixel_allocator;
+  struct { struct { int w = 0, h = 0, stride = 0; } header; size_t data_size = 0; uint8_t *data = nullptr; } descriptor;
+  void release_display_pixels() { display_side = 0; }
+
   lv_obj_t *fallback_icon = nullptr, *card_label = nullptr;
 };
 lv_obj_t *lv_obj_get_parent(lv_obj_t *o) { return o->parent; }
@@ -53,6 +63,8 @@ void lv_obj_move_foreground(lv_obj_t *o) {
   children.push_back(o);
 }
 void lv_image_set_inner_align(lv_obj_t *, int) {}
+void lv_image_set_src(lv_obj_t *, void *) {}
+void lv_image_set_antialias(lv_obj_t *, bool) {}
 void *lv_event_get_user_data(lv_event_t *e) { return e->data; }
 void *lv_obj_get_user_data(lv_obj_t *o) { return o->data; }
 void lv_obj_add_event_cb(lv_obj_t *o, Callback callback, int code, void *data) {
@@ -105,9 +117,15 @@ int main() {
   button.width = 80;
   emit(button, LV_EVENT_LAYOUT_CHANGED);
   assert(icon.width == 80);
+  data.icon_size = "small";
+  emit(button, LV_EVENT_SIZE_CHANGED);
+  assert(icon.width == 40);
+  data.icon_size = "medium";
+  emit(button, LV_EVENT_SIZE_CHANGED);
+  assert(icon.width == 60);
   data.app_icon_mode = false; label.height = 0;
   emit(label, LV_EVENT_SIZE_CHANGED);
-  assert(icon.width == 80); // Reused non-app cards do not retain layout effects.
+  assert(icon.width == 60); // Reused non-app cards do not retain layout effects.
   assert(!data.layout_updating);
 }
 '''
