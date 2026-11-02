@@ -148,7 +148,7 @@ test("back button colours survive saving, reloading, resizing and reset", () => 
 test("standard icon sizes survive saving, reopening and other card option edits", () => {
   const codec = loadCodec();
   for (const type of ["", "sensor", "media", "subpage", "companion", "light_control"]) {
-    for (const size of ["medium", "large"]) {
+    for (const size of ["small", "medium", "large"]) {
       const card = { entity: type === "companion" ? "shortcut.command+c" : "light.kitchen",
         label: "Kitchen", icon: "Lightbulb", type, sensor: "", precision: "", options: "icon_size=" + size };
       const reopened = codec.parseButtonConfig(codec.serializeButtonConfig(card));
@@ -160,5 +160,22 @@ test("standard icon sizes survive saving, reopening and other card option edits"
   codec.setCardOnPattern(card, "stripes");
   assert.equal(colours.configOptionValue(card.options, "icon_size"), "large");
   assert.equal(colours.cardIconSize("icon_size=invalid"), "small");
-  assert.equal(colours.preserveCardIconSize("icon_size=small", "icon_size=large"), "");
+  assert.equal(colours.preserveCardIconSize("icon_size=small", "icon_size=large"), "icon_size=small");
+});
+
+
+test("global icon sizes affect inherited cards while every manual size remains fixed", () => {
+  for (const defaultSize of ["small", "medium", "large"]) {
+    assert.equal(colours.cardIconSize("card_off_color=123456", defaultSize), defaultSize);
+    for (const manualSize of ["small", "medium", "large"]) {
+      const options = "card_off_color=123456,icon_size=" + manualSize;
+      assert.equal(colours.cardIconSize(options, defaultSize), manualSize);
+      const inherited = colours.setConfigOptionValue(options, "icon_size", "");
+      assert.equal(colours.cardIconSize(inherited, defaultSize), defaultSize);
+      assert.equal(colours.configOptionValue(inherited, "card_off_color"), "123456");
+    }
+  }
+  assert.equal(colours.cardIconSize("", "Large"), "large");
+  assert.equal(colours.cardIconSize("icon_size=invalid", "medium"), "medium");
+  assert.equal(colours.preserveCardIconSize("", "icon_size=large,card_off_color=123456"), "card_off_color=123456");
 });

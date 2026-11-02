@@ -258,6 +258,18 @@ inline void lv_obj_move_background(lv_obj_t *) { lv_obj_move_background_calls++;
 #include "button_grid_layout.h"
 
 int main() {
+  // Subpage arrows and their backgrounds belong only in the web setup UI.
+  lv_obj_t navigation_card, navigation_label, navigation_chevron;
+  BtnSlot navigation_slot;
+  navigation_slot.btn = &navigation_card;
+  navigation_slot.text_lbl = &navigation_label;
+  navigation_slot.subpage_lbl = &navigation_chevron;
+  for (const bool requested : {false, true}) {
+    lv_obj_clear_flag(&navigation_chevron, LV_OBJ_FLAG_HIDDEN);
+    set_subpage_chevron_visible(navigation_slot, requested);
+    assert(lv_obj_has_flag(&navigation_chevron, LV_OBJ_FLAG_HIDDEN));
+  }
+
   int row_span = 0;
   int col_span = 0;
   grid_token_spans('\0', row_span, col_span);

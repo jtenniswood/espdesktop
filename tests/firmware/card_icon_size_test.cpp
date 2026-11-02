@@ -14,16 +14,28 @@ int main() {
   using espdesktop::card_icon_zoom;
   assert(card_icon_zoom("small", 48, 48, 200, 150) == 256);
   assert(card_icon_zoom("medium", 48, 48, 200, 150) == 384);
-  assert(card_icon_zoom("large", 48, 48, 200, 150) == 512);
+  assert(card_icon_zoom("large", 48, 48, 200, 150) == 800);
   assert(card_icon_zoom("large", 48, 48, 200, 72) == 384);
   assert(card_icon_zoom("large", 48, 48, 60, 150) == 320);
   assert(card_icon_zoom("large", 48, 48, 60, 0) == 1);
   for (const auto &type : {"", "sensor", "media", "subpage", "companion", "light_control"}) {
-    for (const auto &size : {"medium", "large"}) {
+    for (const auto &size : {"small", "medium", "large"}) {
       const auto card = parse_cfg(std::string("light.kitchen;Kitchen;Lightbulb;;;;") + type + ";;icon_size=" + size);
       assert(cfg_option_value(card.options, "icon_size") == size);
       assert(normalize_parsed_cfg(card).options == card.options);
     }
   }
   assert(parse_cfg("light.kitchen;Kitchen;Lightbulb;;;;;;icon_size=invalid").options.empty());
+  using espdesktop::resolved_card_icon_size;
+  using espdesktop::set_card_icon_default_size;
+  set_card_icon_default_size("Large");
+  assert(resolved_card_icon_size("") == "large");
+  assert(card_icon_zoom("", 48, 48, 200, 150) == 800);
+  assert(resolved_card_icon_size("small") == "small");
+  assert(card_icon_zoom("small", 48, 48, 200, 150) == 256);
+  set_card_icon_default_size("Medium");
+  assert(resolved_card_icon_size("") == "medium");
+  assert(resolved_card_icon_size("large") == "large");
+  set_card_icon_default_size("invalid");
+  assert(resolved_card_icon_size("") == "small");
 }

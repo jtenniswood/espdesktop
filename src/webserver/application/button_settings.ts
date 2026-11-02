@@ -1,7 +1,7 @@
 import { companionSavedCardMode } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
-import { cardIconSize, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
+import { cardIconSizeOverride, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
@@ -1015,9 +1015,9 @@ export function createButtonSettingsFeature(
         if (panel.querySelector('[id="' + idPrefix + 'icon"]') || b.type === "subpage" ||
             (b.type === "companion" && companionSavedCardMode(b) === "stats")) {
             const iconSizes = segmentControl([
-                ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
-            ], cardIconSize(b.options), function (size: string) {
-                b.options = setConfigOptionValue(b.options, "icon_size", size === "small" ? "" : size);
+                ["", "Default"], ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
+            ], cardIconSizeOverride(b.options), function (size: string) {
+                b.options = setConfigOptionValue(b.options, "icon_size", size);
                 saveField("options", b.options);
                 renderPreview();
             });

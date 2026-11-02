@@ -1,3 +1,5 @@
+import { normalizeCardIconSize } from "../model/config_primitives";
+import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { state } from "../state/app_instance";
 import { FALLBACK_TIMEZONE_OPTION, NTP_SERVER_DEFAULTS } from "../state/app_state";
 import { applyClockBarStateValue } from "../state/event_state";
@@ -439,6 +441,12 @@ export function createAppStateEventHandlersFeature(
             "select-screen__theme_mode": function (this: any, val?: any, d?: any) {
                 state.themeMode = normalizeThemeMode(d.value || val);
                 syncThemeSettingsUi(state, runtime);
+                renderPreview();
+            },
+            "select-screen__default_icon_size": function (val?: any, d?: any) {
+                state.defaultIconSize = normalizeCardIconSize(d.value || val);
+                state.defaultIconSizeSupported = true;
+                syncDefaultIconSizeUi(state, runtime);
                 renderPreview();
             },
             "select-screen__card_curve": function (val?: any, d?: any) {

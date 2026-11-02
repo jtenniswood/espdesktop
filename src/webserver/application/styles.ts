@@ -662,7 +662,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ctx-colours>.sp-card-color-presets{margin:4px 14px 10px}" +
         ".sp-ctx-item{display:flex;align-items:center;gap:10px;padding:8px 14px;" +
         "cursor:pointer;font-size:.8rem;color:var(--text);transition:background .15s;white-space:nowrap}" +
-        ".sp-ctx-option{width:100%;border:0;background:transparent;font-family:inherit;text-align:left}" +
+        ".sp-ctx-option{appearance:none;box-sizing:border-box;width:100%;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;font-family:inherit;font-weight:inherit;line-height:inherit;text-align:left}" +
         ".sp-ctx-option:disabled{opacity:.5;cursor:wait}" +
         ".sp-ctx-option:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}" +
         ".sp-ctx-item:hover{background:var(--accent-soft)}" +
@@ -676,9 +676,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ctx-sub-trigger:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}" +
         ".sp-ctx-sub-trigger::after{content:'\\F0142';font-family:'Material Design Icons';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.5;pointer-events:none}" +
         ".sp-ctx-submenu{display:none;position:fixed;background:var(--surface);" +
-        "border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;min-width:120px;" +
+        "border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;min-width:160px;" +
         "box-shadow:var(--shadow-3);z-index:201}" +
-        ".sp-ctx-check{font-size:14px;width:18px;text-align:center;color:var(--accent)}" +
+        ".sp-ctx-check{display:inline-flex;justify-content:center;flex-shrink:0;font-size:14px;width:18px;text-align:center;color:var(--accent)}" +
         ".sp-banner{padding:12px var(--gap);font-size:.8rem;font-weight:500;text-align:center;display:none}" +
         ".sp-banner.sp-error{display:block;background:rgba(244,63,94,.16);color:#f66f81;border-bottom:1px solid rgba(244,63,94,.25)}" +
         ".sp-banner.sp-offline{display:block;background:var(--accent);color:#fff;border-bottom:none}" +
@@ -725,13 +725,13 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-fw-btn.sp-fw-btn-busy{background:rgba(35,37,43,.5);color:#8a8d94;" +
         "border-color:rgba(74,77,84,.45);border-radius:999px;padding:8px 28px;opacity:1}" +
         ".sp-fw-btn.sp-fw-btn-busy:hover{background:rgba(35,37,43,.5);border-color:rgba(74,77,84,.45)}" +
-        ".sp-btn-label-row{display:flex;align-items:baseline;width:100%;overflow:hidden;position:relative;z-index:1}" +
-        ".sp-btn-label-row .sp-btn-label{flex:1;min-width:0}" +
-        ".sp-subpage-badge{font-size:var(--btn-label);line-height:1;color:var(--card-text-color,var(--preview-text-primary));flex-shrink:0;" +
-        "cursor:pointer;padding:0 0 0 2px;border-radius:4px}" +
-        ".sp-btn:has(>.sp-resize-handle) .sp-subpage-badge{margin-right:max(0px,calc(40px - var(--btn-pad)))}" +
-        ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-end}" +
-        ".sp-btn:has(>.sp-resize-handle) .sp-btn-label-row:has(>.sp-subpage-badge:only-child)>.sp-subpage-badge{margin-right:max(0px,calc(44px - var(--btn-pad)))}" +
+        ".sp-btn-label-row{display:flex;align-items:flex-end;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
+        ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
+        ".sp-subpage-badge{font-size:var(--btn-label);line-height:1;color:#fff;flex-shrink:0;" +
+        "display:inline-flex;align-items:center;justify-content:center;width:1.35em;height:1.35em;" +
+        "cursor:pointer;padding:0;background:transparent;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.65)}" +
+        ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-start}" +
+        ".sp-btn[data-icon-size=large] .sp-btn-label{display:none}" +
         ".sp-hide-subpage-chevrons .sp-subpage-badge{display:none}" +
         "@media(max-width:768px){" +
         ":root{--gap:12px}" +

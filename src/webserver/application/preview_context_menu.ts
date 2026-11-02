@@ -1,5 +1,5 @@
 import { createColorSwatches } from "../components/color_swatches";
-import { configOptionValue, setCardColor } from "../model/config_primitives";
+import { cardIconSizeOverride, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
 import { companionSavedCardMode } from "../model/companion_card_codec";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -315,8 +315,93 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("restore", "Reset Colour", () => saveColour(""), false, submenu);
         return submenu;
     }
+    let savingIconSize = false;
+    function addIconSizeMenuItem(slots: number[]) {
+        const c = ctx();
+        const iconSlots = slots.filter(slot => {
+            const card = c.buttons[slot - 1];
+            return !!card && card.type !== "image" && card.type !== "wifi_qr_card";
+        });
+        if (!iconSlots.length) return;
+        const homeSlot = state.editingSubpage;
+        const submenu = document.createElement("div");
+        submenu.className = "sp-ctx-submenu";
+        for (const size of ["", "small", "medium", "large"] as const) {
+            const button = document.createElement("button");
+            button.className = "sp-ctx-item sp-ctx-option";
+            button.type = "button";
+            const selected = iconSlots.every(slot => cardIconSizeOverride(c.buttons[slot - 1].options) === size);
+            const check = document.createElement("span");
+            check.className = "sp-ctx-check";
+            check.setAttribute("aria-hidden", "true");
+            check.textContent = selected ? "✓" : "";
+            button.append(check, document.createTextNode(size ? size.charAt(0).toUpperCase() + size.slice(1) : "Use Default"));
+            button.setAttribute("aria-pressed", String(selected));
+            button.addEventListener("click", async () => {
+                if (savingIconSize || isConfigLocked() || ctx().buttons !== c.buttons || state.editingSubpage !== homeSlot) return;
+                const changes = iconSlots.map(slot => {
+                    const card = c.buttons[slot - 1];
+                    return { slot, card, previous: card.options,
+                        next: setConfigOptionValue(card.options, "icon_size", size) };
+                });
+                const subpage = c.isSub ? getSubpage(homeSlot) : null;
+                if (subpage) {
+                    const candidate = { ...subpage, buttons: subpage.buttons.map((card: any) => ({ ...card })) };
+                    changes.forEach(change => { candidate.buttons[change.slot - 1].options = change.next; });
+                    candidate.order = serializeSubpageGrid(candidate);
+                    if (!dependencies.configPersistence.subpageConfigFits(serializeSubpageConfig(candidate))) {
+                        hideContextMenu();
+                        showBanner("Subpage is too large to save. Shorten labels or entity IDs.", "error");
+                        return;
+                    }
+                } else if (changes.some(change => new TextEncoder().encode(serializeButtonConfig({ ...change.card, options: change.next })).length > dependencies.configPersistence.buttonConfigByteLimit())) {
+                    hideContextMenu();
+                    showBanner("Card settings are too large to save. Shorten labels or entity IDs.", "error");
+                    return;
+                }
+                const succeeded = (result: any) => result != null && result !== false &&
+                    !["authentication-required", "conflict", "too-large", "failed", "unsupported"].includes(result) && result.ok !== false;
+                savingIconSize = true;
+                hideContextMenu();
+                try {
+                    if (subpage) {
+                        const previousOrder = subpage.order;
+                        const previousPending = state.subpageSavePending[Number(homeSlot)];
+                        changes.forEach(change => { change.card.options = change.next; });
+                        let saved = false;
+                        try { saved = succeeded(await saveSubpageConfig(homeSlot)); } catch {}
+                        if (!saved) {
+                            changes.forEach(change => { if (change.card.options === change.next) change.card.options = change.previous; });
+                            subpage.order = previousOrder;
+                            if (previousPending === undefined) delete state.subpageSavePending[Number(homeSlot)];
+                            else state.subpageSavePending[Number(homeSlot)] = previousPending;
+                            showBanner("Could not save the icon size. Reload the configuration and try again.", "error");
+                        }
+                    } else {
+                        for (const change of changes) {
+                            change.card.options = change.next;
+                            let saved = false;
+                            try { saved = succeeded(await dependencies.configPersistence.saveButtonConfig(change.slot)); } catch {}
+                            if (!saved) {
+                                if (change.card.options === change.next) change.card.options = change.previous;
+                                showBanner("Could not save an icon size. Reload the configuration before retrying.", "error");
+                                break;
+                            }
+                        }
+                    }
+                } finally {
+                    savingIconSize = false;
+                    renderPreview();
+                    renderButtonSettings();
+                }
+            });
+            submenu.appendChild(button);
+        }
+        addCtxSubmenu("arrow-expand", "Icon Size", submenu);
+    }
     function addBulkCardMenuItems(this: any, slots?: any) {
         addColourMenuItem(slots);
+        addIconSizeMenuItem(slots);
         addCtxItem("clipboard-outline", "Copy " + slots.length + " Cards", function (this: any) { copyButtons(slots); });
         addCtxItem("code-json", "Copy " + slots.length + " Cards as Code", function (this: any) { showCopyCardCode(slots); });
         addCtxItem("content-cut", "Cut " + slots.length + " Cards", function (this: any) { cutButtons(slots); });
@@ -364,6 +449,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         var b: any = c.buttons[slot - 1];
         addCtxItem("pencil", "Edit Card", function (this: any) { openCardSettings(slot); });
         addColourMenuItem([slot]);
+        addIconSizeMenuItem([slot]);
         var ctxTypeDef: any = dependencies.cards.definitions[(b && b.type) || ""];
         if (ctxTypeDef && ctxTypeDef.contextMenuItems &&
             (!c.isSub || buttonTypeRegistryValue(ctxTypeDef, "allowInSubpage", false))) {

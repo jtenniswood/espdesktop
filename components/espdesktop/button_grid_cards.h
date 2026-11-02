@@ -3,10 +3,12 @@
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 #include "button_grid_datetime_cards.h"
+#include "card_icon_size.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
 #include "app_icon_layout.h"
+#include "app_icon_resampler.h"
 #include "cover_art.h"
 #include "esphome/core/version.h"
 
@@ -26,6 +28,9 @@ struct CompanionAppIconImageData {
   esphome::RAMAllocator<uint8_t> pixel_allocator{
       esphome::RAMAllocator<uint8_t>::ALLOC_EXTERNAL};
   uint8_t *pixels = nullptr;
+  uint8_t *display_pixels = nullptr;
+  int display_side = 0;
+  size_t display_bytes = 0;
 
   bool prepare_pixels(const std::string &id) {
     std::array<uint8_t, 32> hash{};
@@ -35,6 +40,7 @@ struct CompanionAppIconImageData {
   }
   lv_obj_t *fallback_icon = nullptr;
   lv_obj_t *card_label = nullptr;
+  std::string icon_size;
   std::string application_id;
   espdesktop::cover_art::AccentPalette accent_palette{};
   uint32_t custom_background_rgb = 0;
@@ -52,7 +58,15 @@ struct CompanionAppIconImageData {
   bool palette_applied = false;
   bool layout_updating = false;
 
+  void release_display_pixels() {
+    if (display_pixels) pixel_allocator.deallocate(display_pixels, display_bytes);
+    display_pixels = nullptr;
+    display_side = 0;
+    display_bytes = 0;
+  }
+
   void release_pixels() {
+    release_display_pixels();
     if (!pixels) return;
     pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
     pixels = nullptr;
@@ -61,6 +75,7 @@ struct CompanionAppIconImageData {
   }
 
   ~CompanionAppIconImageData() {
+    release_display_pixels();
     if (pixels) pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
   }
 };
@@ -142,7 +157,30 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
       ? lv_obj_get_height(source.card_label) : 0;
   constexpr int canvas = esphome::companion::APP_ICON_SIDE;
   const auto insets = espdesktop::app_icon::artwork_insets(source.pixels + canvas * canvas * 2, canvas);
-  const int side = espdesktop::app_icon::fit_side(width, height, label_height, gap, canvas, insets);
+  const int fitted = espdesktop::app_icon::fit_side(width, height, label_height, gap, canvas, insets);
+  const int requested = source.icon_size == "large" ? fitted :
+      (small_side * (source.icon_size == "medium" ? 150 : 100) / 100) * canvas /
+      std::max(1, canvas - static_cast<int>(insets.left + insets.right));
+  const int side = std::min(fitted, requested);
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  if (source.display_side != side) {
+    source.release_display_pixels();
+    const size_t bytes = static_cast<size_t>(side) * side * 3;
+    source.display_pixels = source.pixel_allocator.allocate(bytes);
+    if (source.display_pixels) {
+      source.display_bytes = bytes;
+      espdesktop::app_icon::resize_pixels(source.pixels, canvas, source.display_pixels, side);
+      source.display_side = side;
+    }
+    source.descriptor.header.w = source.display_pixels ? side : canvas;
+    source.descriptor.header.h = source.descriptor.header.w;
+    source.descriptor.header.stride = source.descriptor.header.w * 2;
+    source.descriptor.data_size = source.display_pixels ? bytes : esphome::companion::APP_ICON_PIXEL_BYTES;
+    source.descriptor.data = source.display_pixels ? source.display_pixels : source.pixels;
+    lv_image_set_src(image, &source.descriptor);
+  }
+  lv_image_set_antialias(image, true);
+#endif
   lv_obj_set_size(image, side, side);
   lv_obj_align(image, LV_ALIGN_TOP_LEFT,
       -(insets.left * side + canvas / 2) / canvas,
@@ -191,6 +229,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     return false;
   }
   source.image_loaded = true;
+  source.release_display_pixels();
   constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
                                  esphome::companion::APP_ICON_SIDE;
   for (size_t i = 0; i < pixel_count; ++i) {
@@ -240,7 +279,8 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   return true;
 }
 
-inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id) {
+inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
+                                          const std::string &icon_size) {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -267,6 +307,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->application_id = application_id;
   source->fallback_icon = slot.icon_lbl;
   source->card_label = slot.text_lbl;
+  source->icon_size = icon_size;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
   const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
@@ -511,7 +552,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     ? companion_default_action_label(p.entity, p.sensor) : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
-      cfg_option_token_present(p.options, "app_hide_label")) {
+      (cfg_option_token_present(p.options, "app_hide_label") ||
+       espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")) == "large")) {
     lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -525,7 +567,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_display_text(s.icon_lbl, icon);
   if (companion_app_icon_enabled(p)) {
 #ifdef USE_COMPANION
-    companion_set_card_icon_image(s, p.entity);
+    companion_set_card_icon_image(s, p.entity,
+        espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")));
     esphome::companion::request_app_icon(p.entity);
 #endif
   } else if (s.app_icon_img) {

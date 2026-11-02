@@ -199,6 +199,8 @@ export interface AppState {
   brightnessNightVal: number;
   brightnessMode: string;
   themeMode: string;
+  defaultIconSize: "small" | "medium" | "large";
+  defaultIconSizeSupported: boolean;
   cardCurve: string;
   cardCurveSupported: boolean;
   themeAutoMethod: string;
