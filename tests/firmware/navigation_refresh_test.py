@@ -12,18 +12,23 @@ def function(path, signature):
     return source[start:source.index("\n}", start) + 2]
 
 code = r'''
+#include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <vector>
 struct lv_obj_t { lv_obj_t *screen; };
 struct lv_event_t {};
-struct CompanionAppIconImageData { bool app_icon_mode = true, image_loaded = false; uint8_t *pixels = nullptr; };
+struct CompanionAppIconImageData { bool app_icon_mode = true, image_loaded = false; uint8_t *pixels = nullptr; size_t display_bytes = 0; };
+namespace esphome::companion { constexpr size_t APP_ICON_PIXEL_BYTES = 172800; }
 struct GridRuntimeAllocation { lv_obj_t *owner; void *ptr; void (*deleter)(void *); };
 template<class T> void grid_delete_runtime_ptr(void *) {}
 std::vector<GridRuntimeAllocation> allocations;
 auto &grid_runtime_allocations() { return allocations; }
 lv_obj_t home{}, subpage{}, home_image{&home}, subpage_image{&subpage};
+std::vector<lv_obj_t *> screens{&home, &subpage};
+auto &navigation_grid_screens() { return screens; }
 lv_obj_t *active = &home;
 lv_obj_t *lv_scr_act() { return active; }
 lv_obj_t *lv_obj_get_screen(lv_obj_t *o) { return o->screen; }
@@ -54,25 +59,57 @@ int main() {
   assert(title_refreshes == 1 && applies == 1 && main_icon.image_loaded);
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
-  assert(title_refreshes == 2 && applies == 3 && child_icon.image_loaded && !main_icon.image_loaded);
-  // The second screen event and periodic refresh must not restyle every hidden card.
+  assert(title_refreshes == 2 && applies == 2 && child_icon.image_loaded && main_icon.image_loaded);
+  // Duplicate events and returning home reuse both decoded and scaled pixels.
   navigation_subpage_screen_changed(nullptr);
-  assert(title_refreshes == 3 && applies == 3);
   active = &home;
   navigation_subpage_screen_changed(nullptr);
-  assert(title_refreshes == 4 && applies == 5 && main_icon.image_loaded && !child_icon.image_loaded);
+  assert(title_refreshes == 4 && applies == 2);
   navigation_subpage_clock_bar_refresh() = nullptr;
   navigation_subpage_screen_changed(nullptr);
-  assert(title_refreshes == 5 && applies == 5); // Startup fallback still refreshes.
-  // A failed icon load retains storage even though image_loaded is false.
-  // Hiding its page must free that storage once, without touching it again.
-  main_icon.image_loaded = false;
-  assert(main_icon.pixels);
+  assert(title_refreshes == 5 && applies == 2);
+  // Existing icon update/connection callbacks release stale hidden pixels.
+  companion_apply_cached_app_icon(child_icon, &subpage_image);
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
-  assert(main_icon.pixels == nullptr && child_icon.image_loaded && applies == 7);
+  assert(child_icon.image_loaded && applies == 4);
+  // Failed loads must release their leftover allocation when hidden.
+  child_icon.image_loaded = false;
+  active = &home;
+  navigation_subpage_screen_changed(nullptr);
+  assert(child_icon.pixels == nullptr && applies == 5);
+  // Scaled pixels count toward the hidden budget as well as source pixels.
+  main_icon.display_bytes = 1024 * 1024;
+  active = &subpage;
+  navigation_subpage_screen_changed(nullptr);
+  assert(!main_icon.pixels && child_icon.image_loaded && applies == 7);
   navigation_subpage_screen_changed(nullptr);
   assert(applies == 7);
+  // Camera, sleep, and other non-grid screens reclaim the complete cache.
+  lv_obj_t camera{};
+  active = &camera;
+  navigation_subpage_screen_changed(nullptr);
+  assert(!main_icon.pixels && !child_icon.pixels && applies == 8);
+  navigation_subpage_screen_changed(nullptr);
+  assert(applies == 8);
+  // Several individually small entries must share the same total budget.
+  CompanionAppIconImageData icons[7];
+  lv_obj_t images[7];
+  allocations.clear();
+  active = &subpage;
+  for (int i = 0; i < 7; ++i) {
+    images[i].screen = &home;
+    icons[i].image_loaded = true;
+    icons[i].pixels = reinterpret_cast<uint8_t *>(1);
+    allocations.push_back({&images[i], &icons[i], grid_delete_runtime_ptr<CompanionAppIconImageData>});
+  }
+  companion_refresh_app_icon_visibility();
+  size_t retained = 0;
+  for (const auto &icon : icons) if (icon.pixels) retained += esphome::companion::APP_ICON_PIXEL_BYTES;
+  assert(retained == 6 * esphome::companion::APP_ICON_PIXEL_BYTES);
+  assert(retained <= 1024 * 1024 && applies == 9);
+  companion_refresh_app_icon_visibility();
+  assert(applies == 9);
 }
 '''
 with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:
@@ -81,4 +118,4 @@ with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:
     subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra", "-Werror",
                     str(temp / "test.cpp"), "-o", str(temp / "test")], check=True)
     subprocess.run([str(temp / "test")], check=True)
-print("Page transitions refresh titles once and leave already-released hidden icons alone.")
+print("Page transitions reuse icons within a bounded cache and reclaim pixels for non-grid screens.")
