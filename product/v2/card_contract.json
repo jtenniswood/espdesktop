@@ -4370,7 +4370,9 @@
       "label": "Weather",
       "allowInSubpage": true,
       "domains": [
-        "weather"
+        "weather",
+        "sensor",
+        "input_number"
       ],
       "options": [
         {
@@ -4381,11 +4383,61 @@
             "",
             "today",
             "tomorrow",
-            "daily"
+            "daily",
+            "wind",
+            "rainfall"
           ],
           "defaultValue": "",
           "storageField": "precision",
           "omitDefault": true
+        },
+        {
+          "name": "wind_source",
+          "label": "Wind Source",
+          "kind": "choice",
+          "values": [
+            "weather",
+            "sensors"
+          ],
+          "defaultValue": "weather",
+          "omitDefault": true,
+          "applicability": [
+            {
+              "source": "field",
+              "name": "precision",
+              "operator": "equals",
+              "value": "wind"
+            }
+          ],
+          "supportedWhen": {
+            "precision": [
+              "wind"
+            ]
+          }
+        },
+        {
+          "name": "rainfall_source",
+          "label": "Rainfall Source",
+          "kind": "choice",
+          "values": [
+            "sensor",
+            "forecast"
+          ],
+          "defaultValue": "sensor",
+          "omitDefault": true,
+          "applicability": [
+            {
+              "source": "field",
+              "name": "precision",
+              "operator": "equals",
+              "value": "rainfall"
+            }
+          ],
+          "supportedWhen": {
+            "precision": [
+              "rainfall"
+            ]
+          }
         }
       ],
       "normalization": {
@@ -4404,7 +4456,8 @@
             "policy": "keep"
           },
           "sensor": {
-            "policy": "clear"
+            "policy": "hook",
+            "hook": "normalize_weather_fields"
           },
           "unit": {
             "policy": "keep"
@@ -4423,7 +4476,10 @@
           }
         },
         "unknownOptions": "drop",
-        "canonicalOptionOrder": [],
+        "canonicalOptionOrder": [
+          "wind_source",
+          "rainfall_source"
+        ],
         "migrationActions": [
           "legacy_weather_forecast"
         ],

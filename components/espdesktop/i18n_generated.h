@@ -264,7 +264,6 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "Backlight") == 0) return "Podsvícení";
   if (std::strcmp(text, "Cover Art") == 0) return "Obal alba";
-  if (std::strcmp(text, "Local Action") == 0) return "Místní akce";
   if (std::strcmp(text, "Output Volume") == 0) return "Hlasitost výstupu";
   if (std::strcmp(text, "Input Volume") == 0) return "Hlasitost vstupu";
   if (std::strcmp(text, "Open URL") == 0) return "Otevřít URL";
@@ -561,7 +560,6 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "Backlight") == 0) return "Baggrundslys";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumcover";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokal handling";
   if (std::strcmp(text, "Output Volume") == 0) return "Udgangslydstyrke";
   if (std::strcmp(text, "Input Volume") == 0) return "Indgangslydstyrke";
   if (std::strcmp(text, "Open URL") == 0) return "Åbn URL";
@@ -856,7 +854,6 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nachts";
   if (std::strcmp(text, "Backlight") == 0) return "Hintergrundbeleuchtung";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumcover";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokale Aktion";
   if (std::strcmp(text, "Output Volume") == 0) return "Ausgabelautstärke";
   if (std::strcmp(text, "Input Volume") == 0) return "Eingabelautstärke";
   if (std::strcmp(text, "Open URL") == 0) return "URL öffnen";
@@ -1165,7 +1162,6 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noche";
   if (std::strcmp(text, "Backlight") == 0) return "Retroiluminación";
   if (std::strcmp(text, "Cover Art") == 0) return "Portada";
-  if (std::strcmp(text, "Local Action") == 0) return "Acción local";
   if (std::strcmp(text, "Output Volume") == 0) return "Volumen de salida";
   if (std::strcmp(text, "Input Volume") == 0) return "Volumen de entrada";
   if (std::strcmp(text, "Open URL") == 0) return "Abrir URL";
@@ -1485,7 +1481,6 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Yö";
   if (std::strcmp(text, "Backlight") == 0) return "Taustavalo";
   if (std::strcmp(text, "Cover Art") == 0) return "Kansikuva";
-  if (std::strcmp(text, "Local Action") == 0) return "Paikallinen toiminto";
   if (std::strcmp(text, "Output Volume") == 0) return "Ulostulon äänenvoimakkuus";
   if (std::strcmp(text, "Input Volume") == 0) return "Sisääntulon äänenvoimakkuus";
   if (std::strcmp(text, "Open URL") == 0) return "Avaa URL";
@@ -1783,7 +1778,6 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nuit";
   if (std::strcmp(text, "Backlight") == 0) return "Rétroéclairage";
   if (std::strcmp(text, "Cover Art") == 0) return "Pochette";
-  if (std::strcmp(text, "Local Action") == 0) return "Action locale";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume de sortie";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume d’entrée";
   if (std::strcmp(text, "Open URL") == 0) return "Ouvrir l’URL";
@@ -2113,7 +2107,6 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "לילה";
   if (std::strcmp(text, "Backlight") == 0) return "תאורה אחורית";
   if (std::strcmp(text, "Cover Art") == 0) return "עטיפת אלבום";
-  if (std::strcmp(text, "Local Action") == 0) return "פעולה מקומית";
   if (std::strcmp(text, "Output Volume") == 0) return "עוצמת פלט";
   if (std::strcmp(text, "Input Volume") == 0) return "עוצמת קלט";
   if (std::strcmp(text, "Open URL") == 0) return "פתיחת כתובת URL";
@@ -2424,7 +2417,6 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Éjszaka";
   if (std::strcmp(text, "Backlight") == 0) return "Háttérvilágítás";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumborító";
-  if (std::strcmp(text, "Local Action") == 0) return "Helyi művelet";
   if (std::strcmp(text, "Output Volume") == 0) return "Kimeneti hangerő";
   if (std::strcmp(text, "Input Volume") == 0) return "Bemeneti hangerő";
   if (std::strcmp(text, "Open URL") == 0) return "URL megnyitása";
@@ -2729,7 +2721,6 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Notte";
   if (std::strcmp(text, "Backlight") == 0) return "Retroilluminazione";
   if (std::strcmp(text, "Cover Art") == 0) return "Copertina";
-  if (std::strcmp(text, "Local Action") == 0) return "Azione locale";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume di uscita";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume di ingresso";
   if (std::strcmp(text, "Open URL") == 0) return "Apri URL";
@@ -3036,7 +3027,6 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "Backlight") == 0) return "Bakgrunnsbelysning";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumomslag";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokal handling";
   if (std::strcmp(text, "Output Volume") == 0) return "Utgangsvolum";
   if (std::strcmp(text, "Input Volume") == 0) return "Inngangsvolum";
   if (std::strcmp(text, "Open URL") == 0) return "Åpne URL";
@@ -3337,7 +3327,6 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nacht";
   if (std::strcmp(text, "Backlight") == 0) return "Achtergrondverlichting";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumhoes";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokale actie";
   if (std::strcmp(text, "Output Volume") == 0) return "Uitvoervolume";
   if (std::strcmp(text, "Input Volume") == 0) return "Invoervolume";
   if (std::strcmp(text, "Mac App") == 0) return "Mac-app";
@@ -3640,7 +3629,6 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "Backlight") == 0) return "Podświetlenie";
   if (std::strcmp(text, "Cover Art") == 0) return "Okładka";
-  if (std::strcmp(text, "Local Action") == 0) return "Akcja lokalna";
   if (std::strcmp(text, "Output Volume") == 0) return "Głośność wyjścia";
   if (std::strcmp(text, "Input Volume") == 0) return "Głośność wejścia";
   if (std::strcmp(text, "Open URL") == 0) return "Otwórz URL";
@@ -3945,7 +3933,6 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   if (std::strcmp(text, "Backlight") == 0) return "Luz de fundo";
   if (std::strcmp(text, "Cover Art") == 0) return "Capa do álbum";
-  if (std::strcmp(text, "Local Action") == 0) return "Ação local";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume de saída";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume de entrada";
   if (std::strcmp(text, "Open URL") == 0) return "Abrir URL";
@@ -4249,7 +4236,6 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   if (std::strcmp(text, "Backlight") == 0) return "Luz de fundo";
   if (std::strcmp(text, "Cover Art") == 0) return "Capa do álbum";
-  if (std::strcmp(text, "Local Action") == 0) return "Ação local";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume de saída";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume de entrada";
   if (std::strcmp(text, "Open URL") == 0) return "Abrir URL";
@@ -4567,7 +4553,6 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noapte";
   if (std::strcmp(text, "Backlight") == 0) return "Iluminare de fundal";
   if (std::strcmp(text, "Cover Art") == 0) return "Copertă";
-  if (std::strcmp(text, "Local Action") == 0) return "Acțiune locală";
   if (std::strcmp(text, "Output Volume") == 0) return "Volum de ieșire";
   if (std::strcmp(text, "Input Volume") == 0) return "Volum de intrare";
   if (std::strcmp(text, "Open URL") == 0) return "Deschide URL";
@@ -4887,7 +4872,6 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Ночь";
   if (std::strcmp(text, "Backlight") == 0) return "Подсветка";
   if (std::strcmp(text, "Cover Art") == 0) return "Обложка";
-  if (std::strcmp(text, "Local Action") == 0) return "Локальное действие";
   if (std::strcmp(text, "Output Volume") == 0) return "Громкость выхода";
   if (std::strcmp(text, "Input Volume") == 0) return "Громкость входа";
   if (std::strcmp(text, "Open URL") == 0) return "Открыть URL";
@@ -5192,7 +5176,6 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "Backlight") == 0) return "Podsvietenie";
   if (std::strcmp(text, "Cover Art") == 0) return "Obal albumu";
-  if (std::strcmp(text, "Local Action") == 0) return "Miestna akcia";
   if (std::strcmp(text, "Output Volume") == 0) return "Hlasitosť výstupu";
   if (std::strcmp(text, "Input Volume") == 0) return "Hlasitosť vstupu";
   if (std::strcmp(text, "Open URL") == 0) return "Otvoriť URL";
@@ -5502,7 +5485,6 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noč";
   if (std::strcmp(text, "Backlight") == 0) return "Osvetlitev ozadja";
   if (std::strcmp(text, "Cover Art") == 0) return "Naslovnica albuma";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokalno dejanje";
   if (std::strcmp(text, "Output Volume") == 0) return "Izhodna glasnost";
   if (std::strcmp(text, "Input Volume") == 0) return "Vhodna glasnost";
   if (std::strcmp(text, "Open URL") == 0) return "Odpri URL";
@@ -5803,7 +5785,6 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "Backlight") == 0) return "Bakgrundsbelysning";
   if (std::strcmp(text, "Cover Art") == 0) return "Omslagsbild";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokal åtgärd";
   if (std::strcmp(text, "Output Volume") == 0) return "Utgångsvolym";
   if (std::strcmp(text, "Input Volume") == 0) return "Ingångsvolym";
   if (std::strcmp(text, "Open URL") == 0) return "Öppna URL";
@@ -6116,7 +6097,6 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Gece";
   if (std::strcmp(text, "Backlight") == 0) return "Arka aydınlatma";
   if (std::strcmp(text, "Cover Art") == 0) return "Albüm kapağı";
-  if (std::strcmp(text, "Local Action") == 0) return "Yerel işlem";
   if (std::strcmp(text, "Output Volume") == 0) return "Çıkış ses düzeyi";
   if (std::strcmp(text, "Input Volume") == 0) return "Giriş ses düzeyi";
   if (std::strcmp(text, "Open URL") == 0) return "URL aç";
@@ -6432,7 +6412,6 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Ніч";
   if (std::strcmp(text, "Backlight") == 0) return "Підсвічування";
   if (std::strcmp(text, "Cover Art") == 0) return "Обкладинка";
-  if (std::strcmp(text, "Local Action") == 0) return "Локальна дія";
   if (std::strcmp(text, "Output Volume") == 0) return "Гучність виходу";
   if (std::strcmp(text, "Input Volume") == 0) return "Гучність входу";
   if (std::strcmp(text, "Open URL") == 0) return "Відкрити URL";
@@ -6819,6 +6798,21 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "Thurs";
   if (std::strcmp(key, "weekday_fri") == 0) return "Fri";
   if (std::strcmp(key, "weekday_sat") == 0) return "Sat";
+  if (std::strcmp(key, "label_connect") == 0) return "Connect";
+  if (std::strcmp(key, "label_local_action") == 0) return "Local Action";
+  if (std::strcmp(key, "label_switch") == 0) return "Switch";
+  if (std::strcmp(key, "label_lighting") == 0) return "Lighting";
+  if (std::strcmp(key, "label_garage") == 0) return "Garage";
+  if (std::strcmp(key, "label_sensor") == 0) return "Sensor";
+  if (std::strcmp(key, "label_camera") == 0) return "Camera";
+  if (std::strcmp(key, "wind_north") == 0) return "North";
+  if (std::strcmp(key, "wind_north_east") == 0) return "North East";
+  if (std::strcmp(key, "wind_east") == 0) return "East";
+  if (std::strcmp(key, "wind_south_east") == 0) return "South East";
+  if (std::strcmp(key, "wind_south") == 0) return "South";
+  if (std::strcmp(key, "wind_south_west") == 0) return "South West";
+  if (std::strcmp(key, "wind_west") == 0) return "West";
+  if (std::strcmp(key, "wind_north_west") == 0) return "North West";
   return key;
 }
 
@@ -7127,6 +7121,13 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "čt";
   if (std::strcmp(key, "weekday_fri") == 0) return "pá";
   if (std::strcmp(key, "weekday_sat") == 0) return "so";
+  if (std::strcmp(key, "label_connect") == 0) return "Připojit";
+  if (std::strcmp(key, "label_local_action") == 0) return "Místní akce";
+  if (std::strcmp(key, "label_switch") == 0) return "Spínač";
+  if (std::strcmp(key, "label_lighting") == 0) return "Osvětlení";
+  if (std::strcmp(key, "label_garage") == 0) return "Garáž";
+  if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7426,6 +7427,11 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "tor.";
   if (std::strcmp(key, "weekday_fri") == 0) return "fre.";
   if (std::strcmp(key, "weekday_sat") == 0) return "lør.";
+  if (std::strcmp(key, "label_connect") == 0) return "Forbind";
+  if (std::strcmp(key, "label_local_action") == 0) return "Lokal handling";
+  if (std::strcmp(key, "label_switch") == 0) return "Kontakt";
+  if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7729,6 +7735,11 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "Do.";
   if (std::strcmp(key, "weekday_fri") == 0) return "Fr.";
   if (std::strcmp(key, "weekday_sat") == 0) return "Sa.";
+  if (std::strcmp(key, "label_connect") == 0) return "Verbinden";
+  if (std::strcmp(key, "label_local_action") == 0) return "Lokale Aktion";
+  if (std::strcmp(key, "label_switch") == 0) return "Schalter";
+  if (std::strcmp(key, "label_lighting") == 0) return "Beleuchtung";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8043,6 +8054,12 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "jue.";
   if (std::strcmp(key, "weekday_fri") == 0) return "vie.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
+  if (std::strcmp(key, "label_connect") == 0) return "Conectar";
+  if (std::strcmp(key, "label_local_action") == 0) return "Acción local";
+  if (std::strcmp(key, "label_switch") == 0) return "Interruptor";
+  if (std::strcmp(key, "label_lighting") == 0) return "Iluminación";
+  if (std::strcmp(key, "label_garage") == 0) return "Garaje";
+  if (std::strcmp(key, "label_camera") == 0) return "Cámara";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8360,6 +8377,13 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "to";
   if (std::strcmp(key, "weekday_fri") == 0) return "pe";
   if (std::strcmp(key, "weekday_sat") == 0) return "la";
+  if (std::strcmp(key, "label_connect") == 0) return "Yhdistä";
+  if (std::strcmp(key, "label_local_action") == 0) return "Paikallinen toiminto";
+  if (std::strcmp(key, "label_switch") == 0) return "Kytkin";
+  if (std::strcmp(key, "label_lighting") == 0) return "Valaistus";
+  if (std::strcmp(key, "label_garage") == 0) return "Autotalli";
+  if (std::strcmp(key, "label_sensor") == 0) return "Anturi";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8668,6 +8692,12 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "jeu.";
   if (std::strcmp(key, "weekday_fri") == 0) return "ven.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sam.";
+  if (std::strcmp(key, "label_connect") == 0) return "Connecter";
+  if (std::strcmp(key, "label_local_action") == 0) return "Action locale";
+  if (std::strcmp(key, "label_switch") == 0) return "Interrupteur";
+  if (std::strcmp(key, "label_lighting") == 0) return "Éclairage";
+  if (std::strcmp(key, "label_sensor") == 0) return "Capteur";
+  if (std::strcmp(key, "label_camera") == 0) return "Caméra";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8992,6 +9022,13 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "ה׳";
   if (std::strcmp(key, "weekday_fri") == 0) return "ו׳";
   if (std::strcmp(key, "weekday_sat") == 0) return "ש׳";
+  if (std::strcmp(key, "label_connect") == 0) return "התחבר";
+  if (std::strcmp(key, "label_local_action") == 0) return "פעולה מקומית";
+  if (std::strcmp(key, "label_switch") == 0) return "מתג";
+  if (std::strcmp(key, "label_lighting") == 0) return "תאורה";
+  if (std::strcmp(key, "label_garage") == 0) return "מוסך";
+  if (std::strcmp(key, "label_sensor") == 0) return "חיישן";
+  if (std::strcmp(key, "label_camera") == 0) return "מצלמה";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9308,6 +9345,13 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "csüt.";
   if (std::strcmp(key, "weekday_fri") == 0) return "pén.";
   if (std::strcmp(key, "weekday_sat") == 0) return "szomb.";
+  if (std::strcmp(key, "label_connect") == 0) return "Csatlakozás";
+  if (std::strcmp(key, "label_local_action") == 0) return "Helyi művelet";
+  if (std::strcmp(key, "label_switch") == 0) return "Kapcsoló";
+  if (std::strcmp(key, "label_lighting") == 0) return "Világítás";
+  if (std::strcmp(key, "label_garage") == 0) return "Garázs";
+  if (std::strcmp(key, "label_sensor") == 0) return "Érzékelő";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9621,6 +9665,12 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "gio.";
   if (std::strcmp(key, "weekday_fri") == 0) return "ven.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sab.";
+  if (std::strcmp(key, "label_connect") == 0) return "Connetti";
+  if (std::strcmp(key, "label_local_action") == 0) return "Azione locale";
+  if (std::strcmp(key, "label_switch") == 0) return "Interruttore";
+  if (std::strcmp(key, "label_lighting") == 0) return "Illuminazione";
+  if (std::strcmp(key, "label_sensor") == 0) return "Sensore";
+  if (std::strcmp(key, "label_camera") == 0) return "Telecamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9926,6 +9976,12 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "tor.";
   if (std::strcmp(key, "weekday_fri") == 0) return "fre.";
   if (std::strcmp(key, "weekday_sat") == 0) return "lør.";
+  if (std::strcmp(key, "label_connect") == 0) return "Koble til";
+  if (std::strcmp(key, "label_local_action") == 0) return "Lokal handling";
+  if (std::strcmp(key, "label_switch") == 0) return "Bryter";
+  if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
+  if (std::strcmp(key, "label_garage") == 0) return "Garasje";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10230,6 +10286,10 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "do.";
   if (std::strcmp(key, "weekday_fri") == 0) return "vr.";
   if (std::strcmp(key, "weekday_sat") == 0) return "za.";
+  if (std::strcmp(key, "label_connect") == 0) return "Verbinden";
+  if (std::strcmp(key, "label_local_action") == 0) return "Lokale actie";
+  if (std::strcmp(key, "label_switch") == 0) return "Schakelaar";
+  if (std::strcmp(key, "label_lighting") == 0) return "Verlichting";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10535,6 +10595,13 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "czw.";
   if (std::strcmp(key, "weekday_fri") == 0) return "pt.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sob.";
+  if (std::strcmp(key, "label_connect") == 0) return "Połącz";
+  if (std::strcmp(key, "label_local_action") == 0) return "Akcja lokalna";
+  if (std::strcmp(key, "label_switch") == 0) return "Przełącznik";
+  if (std::strcmp(key, "label_lighting") == 0) return "Oświetlenie";
+  if (std::strcmp(key, "label_garage") == 0) return "Garaż";
+  if (std::strcmp(key, "label_sensor") == 0) return "Czujnik";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10841,6 +10908,12 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "qui.";
   if (std::strcmp(key, "weekday_fri") == 0) return "sex.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
+  if (std::strcmp(key, "label_connect") == 0) return "Conectar";
+  if (std::strcmp(key, "label_local_action") == 0) return "Ação local";
+  if (std::strcmp(key, "label_switch") == 0) return "Interruptor";
+  if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
+  if (std::strcmp(key, "label_garage") == 0) return "Garagem";
+  if (std::strcmp(key, "label_camera") == 0) return "Câmera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11154,6 +11227,12 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "qui.";
   if (std::strcmp(key, "weekday_fri") == 0) return "sex.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
+  if (std::strcmp(key, "label_connect") == 0) return "Ligar";
+  if (std::strcmp(key, "label_local_action") == 0) return "Ação local";
+  if (std::strcmp(key, "label_switch") == 0) return "Interruptor";
+  if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
+  if (std::strcmp(key, "label_garage") == 0) return "Garagem";
+  if (std::strcmp(key, "label_camera") == 0) return "Câmara";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11470,6 +11549,13 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "joi";
   if (std::strcmp(key, "weekday_fri") == 0) return "vin.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sâm.";
+  if (std::strcmp(key, "label_connect") == 0) return "Conectare";
+  if (std::strcmp(key, "label_local_action") == 0) return "Acțiune locală";
+  if (std::strcmp(key, "label_switch") == 0) return "Întrerupător";
+  if (std::strcmp(key, "label_lighting") == 0) return "Iluminat";
+  if (std::strcmp(key, "label_garage") == 0) return "Garaj";
+  if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
+  if (std::strcmp(key, "label_camera") == 0) return "Cameră";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11793,6 +11879,13 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "чт";
   if (std::strcmp(key, "weekday_fri") == 0) return "пт";
   if (std::strcmp(key, "weekday_sat") == 0) return "сб";
+  if (std::strcmp(key, "label_connect") == 0) return "Подключиться";
+  if (std::strcmp(key, "label_local_action") == 0) return "Локальное действие";
+  if (std::strcmp(key, "label_switch") == 0) return "Выключатель";
+  if (std::strcmp(key, "label_lighting") == 0) return "Освещение";
+  if (std::strcmp(key, "label_garage") == 0) return "Гараж";
+  if (std::strcmp(key, "label_sensor") == 0) return "Датчик";
+  if (std::strcmp(key, "label_camera") == 0) return "Камера";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12102,6 +12195,13 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "št";
   if (std::strcmp(key, "weekday_fri") == 0) return "pi";
   if (std::strcmp(key, "weekday_sat") == 0) return "so";
+  if (std::strcmp(key, "label_connect") == 0) return "Pripojiť";
+  if (std::strcmp(key, "label_local_action") == 0) return "Miestna akcia";
+  if (std::strcmp(key, "label_switch") == 0) return "Spínač";
+  if (std::strcmp(key, "label_lighting") == 0) return "Osvetlenie";
+  if (std::strcmp(key, "label_garage") == 0) return "Garáž";
+  if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12415,6 +12515,13 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "čet.";
   if (std::strcmp(key, "weekday_fri") == 0) return "pet.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sob.";
+  if (std::strcmp(key, "label_connect") == 0) return "Poveži";
+  if (std::strcmp(key, "label_local_action") == 0) return "Lokalno dejanje";
+  if (std::strcmp(key, "label_switch") == 0) return "Stikalo";
+  if (std::strcmp(key, "label_lighting") == 0) return "Razsvetljava";
+  if (std::strcmp(key, "label_garage") == 0) return "Garaža";
+  if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12718,6 +12825,11 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "tor";
   if (std::strcmp(key, "weekday_fri") == 0) return "fre";
   if (std::strcmp(key, "weekday_sat") == 0) return "lör";
+  if (std::strcmp(key, "label_connect") == 0) return "Anslut";
+  if (std::strcmp(key, "label_local_action") == 0) return "Lokal åtgärd";
+  if (std::strcmp(key, "label_switch") == 0) return "Strömbrytare";
+  if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13035,6 +13147,13 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "Per";
   if (std::strcmp(key, "weekday_fri") == 0) return "Cum";
   if (std::strcmp(key, "weekday_sat") == 0) return "Cmt";
+  if (std::strcmp(key, "label_connect") == 0) return "Bağlan";
+  if (std::strcmp(key, "label_local_action") == 0) return "Yerel eylem";
+  if (std::strcmp(key, "label_switch") == 0) return "Anahtar";
+  if (std::strcmp(key, "label_lighting") == 0) return "Aydınlatma";
+  if (std::strcmp(key, "label_garage") == 0) return "Garaj";
+  if (std::strcmp(key, "label_sensor") == 0) return "Sensör";
+  if (std::strcmp(key, "label_camera") == 0) return "Kamera";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13353,6 +13472,13 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "чт";
   if (std::strcmp(key, "weekday_fri") == 0) return "пт";
   if (std::strcmp(key, "weekday_sat") == 0) return "сб";
+  if (std::strcmp(key, "label_connect") == 0) return "Підключитися";
+  if (std::strcmp(key, "label_local_action") == 0) return "Локальна дія";
+  if (std::strcmp(key, "label_switch") == 0) return "Вимикач";
+  if (std::strcmp(key, "label_lighting") == 0) return "Освітлення";
+  if (std::strcmp(key, "label_garage") == 0) return "Гараж";
+  if (std::strcmp(key, "label_sensor") == 0) return "Датчик";
+  if (std::strcmp(key, "label_camera") == 0) return "Камера";
   return espdesktop_i18n_key_en(key);
 }
 

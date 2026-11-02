@@ -577,9 +577,15 @@ void EspDesktopApp::loop() {
   register_panel_config_endpoints();
 }
 
+void EspDesktopApp::on_safe_shutdown() {
+  // ESPHome runs all safe-shutdown hooks before any on_shutdown hook. mDNS
+  // shuts down before this AFTER_WIFI component, freeing outstanding query
+  // handles, so release our discovery query while the service is still alive.
+  home_assistant_endpoint_.shutdown();
+}
+
 void EspDesktopApp::on_shutdown() {
   esphome::artwork_image::TransferObserver::instance().set({}, {});
-  home_assistant_endpoint_.shutdown();
   cards::set_card_runtime_registry_service(nullptr);
   core_.stop();
 }

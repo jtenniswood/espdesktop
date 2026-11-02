@@ -741,6 +741,8 @@ def cmd_manifest(args: argparse.Namespace) -> None:
         "name": "EspDesktop",
         "version": args.version,
         "home_assistant_domain": "esphome",
+        # WiFi is configured through the device hotspot, not over USB.
+        "new_install_improv_wait_time": 0,
         "builds": [
             {
                 "chipFamily": args.chip,
@@ -770,6 +772,7 @@ def cmd_recovery_manifest(args: argparse.Namespace) -> None:
         "version": args.version,
         "home_assistant_domain": "esphome",
         "new_install_prompt_erase": True,
+        "new_install_improv_wait_time": 0,
         "builds": [
             {
                 "chipFamily": "ESP32-P4",

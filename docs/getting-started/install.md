@@ -27,7 +27,7 @@ Try another USB-C cable. Some cables only provide power; the first install needs
 
 ## Connect the Display to WiFi
 
-If the USB installer offers **Connect to WiFi**, you can enter your network details there. Otherwise:
+Configure WiFi through the display’s setup hotspot:
 
 1. Wait up to 90 seconds for the `EspDesktop_XXXX` hotspot shown on the display. `XXXX` is the last four MAC-address characters; custom hotspot names are preserved.
 2. Connect your phone or computer to the hotspot. If its offline setup page does not open, visit the address shown on the display (normally `http://192.168.4.1`).
@@ -42,4 +42,4 @@ Open that address in a browser to reach the display's setup page. Choose **Syste
 - [Explore Mac Controls](/card-types/companion)
 - [Configure your control surface](/features/setup)
 - If a supported ESP32-P4 display cannot join WiFi, follow the [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
-- For Home Assistant panels and controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
+- For Home Assistant panels and controls, use the [EspDesktop documentation](https://jtenniswood.github.io/espcontrol/).

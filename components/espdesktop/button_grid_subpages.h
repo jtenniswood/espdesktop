@@ -72,7 +72,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
     b.precision = "tomorrow";
     if (b.label == "Weather") b.label.clear();
   }
-  if (b.type == "weather" && !card_runtime_weather_forecast_precision(b.precision)) {
+  if (b.type == "weather" && b.precision != "wind" && b.precision != "rainfall" && !card_runtime_weather_forecast_precision(b.precision)) {
     b.precision.clear();
   }
   if (b.type == "media") {
@@ -89,17 +89,17 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
                b.sensor != "playlist") {
       b.sensor = "play_pause";
     }
-    if (b.sensor == "previous" && b.label == "Skip Previous") b.label = "Previous";
-    if (b.sensor == "next" && b.label == "Skip Next") b.label = "Next";
+    if (b.sensor == "previous" && b.label == "Skip Previous") b.label = espdesktop_i18n("Previous");
+    if (b.sensor == "next" && b.label == "Skip Next") b.label = espdesktop_i18n("Next");
     if (b.sensor == "volume") {
-      if (b.label.empty() || b.label == "Media") b.label = "Volume";
+      if (b.label.empty() || b.label == "Media") b.label = espdesktop_i18n("Volume");
       b.icon = "Auto";
     }
     if (b.sensor == "playlist") {
-      if (b.label.empty() || b.label == "Media") b.label = "Playlist";
+      if (b.label.empty() || b.label == "Media") b.label = espdesktop_i18n("Playlist");
       if (b.icon.empty() || b.icon == "Auto") b.icon = "Music";
     }
-    if (b.sensor == "position" && (b.label.empty() || b.label == "Track")) b.label = "Position";
+    if (b.sensor == "position" && (b.label.empty() || b.label == "Track")) b.label = espdesktop_i18n("Position");
     if (b.sensor == "now_playing") {
       b.precision = (b.precision == "progress" || b.precision == "play_pause") ? b.precision : "";
     } else if (b.sensor == "cover_art") {
@@ -150,10 +150,12 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
     b.precision.clear();
     b.icon_on.clear();
     b.options = alarm_card_options_normalized(b.options);
-    if (b.label.empty()) {
-      if (b.sensor == "home") b.label = "Arm Home";
-      else if (b.sensor == "disarm") b.label = "Disarm";
-      else b.label = "Arm Away";
+    const char *label_key = b.sensor == "home" ? "arm_home"
+      : b.sensor == "night" ? "arm_night"
+      : b.sensor == "vacation" ? "arm_vacation"
+      : b.sensor == "disarm" ? "disarm" : "arm_away";
+    if (b.label.empty() || b.label == espdesktop_i18n_key_en(label_key)) {
+      b.label = espdesktop_i18n_key(label_key);
     }
     if (b.icon.empty() || b.icon == "Auto" || alarm_action_legacy_icon_name(b.sensor, b.icon)) {
       b.icon = alarm_action_icon_name(b.sensor);
@@ -224,7 +226,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       b.type != "webhook" && b.type != "wifi_qr" && b.type != "wifi_qr_card" &&
       b.type != "sensor" && b.type != "door_window" && b.type != "presence" &&
       b.type != "subpage" && b.type != "light_control" && b.type != "media" &&
-      b.type != "image" &&
+      b.type != "image" && b.type != "weather" &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
   }

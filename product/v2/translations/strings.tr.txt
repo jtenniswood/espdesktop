@@ -334,3 +334,20 @@ weekday_weds=Çar
 weekday_thurs=Per
 weekday_fri=Cum
 weekday_sat=Cmt
+
+# Default card labels (label_ keys use key-based lookup only)
+label_connect=Bağlan
+label_local_action=Yerel eylem
+label_switch=Anahtar
+label_lighting=Aydınlatma
+label_garage=Garaj
+label_sensor=Sensör
+label_camera=Kamera
+wind_north=North
+wind_north_east=North East
+wind_east=East
+wind_south_east=South East
+wind_south=South
+wind_south_west=South West
+wind_west=West
+wind_north_west=North West

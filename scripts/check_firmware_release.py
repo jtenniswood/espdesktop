@@ -285,6 +285,7 @@ def make_release_files(base: Path, slug: str = SLUG, version: str = VERSION) -> 
         "--ota", str(ota),
         "--out", str(manifest),
     ])
+    assert json.loads(manifest.read_text())["new_install_improv_wait_time"] == 0
     return manifest, factory, ota
 
 
@@ -307,6 +308,7 @@ def make_recovery_files(
         "--recovery", str(recovery),
         "--out", str(recovery_manifest),
     ])
+    assert json.loads(recovery_manifest.read_text())["new_install_improv_wait_time"] == 0
     return recovery_manifest, recovery, c6_firmware, normal_factory, normal_ota
 
 

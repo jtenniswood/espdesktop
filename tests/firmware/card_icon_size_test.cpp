@@ -5,8 +5,7 @@
 #include "esphome/core/string_ref.h"
 struct lv_obj_t {};
 inline void lv_label_set_text(lv_obj_t *, const char *) {}
-inline const char *espdesktop_i18n(const char *text) { return text ? text : ""; }
-inline std::string espdesktop_i18n(const std::string &text) { return text; }
+#include "i18n_generated.h"
 #include "button_grid_config_parser.h"
 #include "card_icon_size.h"
 
