@@ -3443,10 +3443,19 @@
     }
   ],
   "validation": {
-    "host": "in progress",
-    "browser": "in progress",
-    "docs": "passed: 17 canonical pages",
-    "firmware": "GitHub full matrix required; local Docker daemon unavailable",
-    "physical": "not performed"
-  }
+    "host": "Complete local CI graph passed all 53 tasks on the combined sources, including all 159 firmware host tests and 28 runtime-runner regression tests. Pinned ESPHome 2026.10.1 / Python 3.12.",
+    "browser": "Wind and Rainfall sources/save/reload/style checks passed on combined sources; global icon inheritance/overrides/reload/backup passed all nine layouts in native and legacy modes. Broader browser suite still running from pre-merge revision.",
+    "docs": "Production build/link checks passed: 17 canonical pages. Developer documentation index/freshness passed.",
+    "firmware": "Full nine-device workflow dispatched at implementation revision: https://github.com/jtenniswood/espdesktop/actions/runs/41469968277; running/queued, not a pass. Representative PR firmware run: https://github.com/jtenniswood/espdesktop/actions/runs/41469592283. Local Docker daemon unavailable.",
+    "macApp": "GitHub macOS build/verification passed at implementation revision: https://github.com/jtenniswood/espdesktop/actions/runs/41469592139.",
+    "review": "Automated review completed without findings for 6e58b88c8237ed2c2ea8b42adcbcce6a20b9bc25 (before merging main); no inline findings as of this update.",
+    "physical": "Not performed. No display flashed.",
+    "bundle": {
+      "bytes": 2773043,
+      "gzipBytes": 1102008
+    }
+  },
+  "integratedMain": "d1dde75d3679734f8eb0540eb913e273786a16ec",
+  "implementationRevision": "8364ba6bfbbc865336752ed59e78bd0861deffdb",
+  "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/225"
 }

@@ -12,14 +12,14 @@ change saved configuration.
 
 ## Set up
 
-Use the pinned Python environment from [Contributing](./development-environment.md#preparing-a-branch).
+Use the pinned Python environment from [Development Environment](./development-environment.md).
 ESPHome provides the `aioesphomeapi` dependency. Python 3.12 or newer is recommended.
 Run commands from the repository root with that environment active.
 
 Start with a passive two-minute check, replacing the example address:
 
 ```sh
-npm run test:device-runtime -- --host 192.168.6.105 --duration 120
+npm run test:device-runtime -- --host 192.168.1.50 --duration 120
 ```
 
 The target is always explicit; the runner does not discover or test other panels.
@@ -33,7 +33,7 @@ To repeatedly open and close the media panel, name an entity already configured
 on that device:
 
 ```sh
-npm run test:device-runtime -- --host 192.168.6.105 --duration 180 \
+npm run test:device-runtime -- --host 192.168.1.50 --duration 180 \
   --modal-entity media_player.office --modal-cycles 30 --modal-dwell 1
 ```
 
@@ -54,8 +54,8 @@ Optionally require an exact ESPHome version and build timestamp, as reported by
 the device's native API:
 
 ```sh
-npm run test:device-runtime -- --host 192.168.6.105 \
-  --expect-version 2026.9.1 --expect-build '2026-10-17 19:13:43 +0100'
+npm run test:device-runtime -- --host 192.168.1.50 \
+  --expect-version 2026.10.1 --expect-build '2026-10-17 19:13:43 +0100'
 ```
 
 For protected devices, set `ESPDESKTOP_API_PASSWORD` or
