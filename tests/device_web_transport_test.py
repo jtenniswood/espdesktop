@@ -45,9 +45,10 @@ class Device(http.server.BaseHTTPRequestHandler):
             if state.get("reboots") and state["streams"] > 2:
                 uptime = 1
             if state.get("missing_ping"):
-                body = b"event: state\ndata: {}\n\n"
+                body = b'event: state\nid: 123\ndata: {"uptime":123}\n\n'
             else:
-                body = f'event: ping\ndata: {{"uptime":{uptime}}}\n\n'.encode()
+                identifier = state.get("ping_id", uptime)
+                body = f'event: ping\nid: {identifier}\ndata: {{"title":"EspDesktop","ota":true}}\n\n'.encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Transfer-Encoding", "chunked")
@@ -121,6 +122,8 @@ class DeviceWebTests(unittest.TestCase):
             self.assertEqual(set(server.state["requests"]),
                              {"/", "/events", "/espdesktop/version", "/api/v1/config"})
             self.assertEqual(report["native_api"]["status"], "not_requested")
+            self.assertEqual(report["metrics"]["uptime_start"], 101)
+            self.assertGreater(report["metrics"]["uptime_end"], 101)
 
     def test_configuration_change_fails(self):
         with device(config_changes=True) as server:
@@ -150,6 +153,13 @@ class DeviceWebTests(unittest.TestCase):
                 report = self.run_device(server, monitor, "--native-api", "--require-stall-cleanup")
                 self.assertEqual(report["status"], "failed")
                 self.assertTrue(monitor.started and monitor.stopped)
+
+    def test_invalid_ping_ids_fail_preflight(self):
+        for identifier in ("", "invalid", -1, 0x100000000):
+            with self.subTest(identifier=identifier), device(ping_id=identifier) as server:
+                report = self.run_device(server)
+                self.assertEqual(report["status"], "failed")
+                self.assertEqual(report["metrics"]["event_reconnects"], 0)
 
     def test_interrupt_closes_stalled_streams_and_preserves_report(self):
         with device() as server:

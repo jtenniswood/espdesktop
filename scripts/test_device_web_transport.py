@@ -18,6 +18,8 @@ import time
 from datetime import datetime, timezone
 import urllib.request
 
+from test_device_runtime import read_boot_clock
+
 
 MAX_BODY = 2 * 1024 * 1024
 
@@ -82,27 +84,12 @@ class DeviceHTTP:
             if not response.headers.get("Content-Type", "").startswith("text/event-stream"):
                 raise CheckFailure("/events did not return an event stream")
             # Consume only the initial ping, not the entity dump that follows.
-            deadline = time.monotonic() + self.timeout
-            for _ in range(32):
-                if time.monotonic() >= deadline:
-                    break
-                line = response.readline(65537)
-                if not line or len(line) > 65536:
-                    break
-                if not line.startswith(b"data:"):
-                    continue
-                data = json.loads(line[5:])
-                uptime = data.get("uptime") if isinstance(data, dict) else None
-                if isinstance(uptime, bool) or not isinstance(uptime, (int, float)):
-                    continue
-                if not math.isfinite(uptime) or uptime < 0:
-                    raise CheckFailure("Invalid device uptime")
-                if self.uptimes and uptime < self.uptimes[-1]:
-                    raise CheckFailure("Device uptime decreased: possible reboot")
-                self.uptimes.append(uptime)
-                self.reconnects += 1
-                return response
-            raise CheckFailure("No valid event-stream ping/uptime received")
+            uptime = read_boot_clock(response)
+            if self.uptimes and uptime < self.uptimes[-1]:
+                raise CheckFailure("Device uptime decreased: possible reboot")
+            self.uptimes.append(uptime)
+            self.reconnects += 1
+            return response
         except BaseException:
             response.close()
             raise
