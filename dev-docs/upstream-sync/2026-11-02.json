@@ -3444,18 +3444,127 @@
   ],
   "validation": {
     "host": "Complete local CI graph passed all 53 tasks on the combined sources, including all 159 firmware host tests and 28 runtime-runner regression tests. Pinned ESPHome 2026.10.1 / Python 3.12.",
-    "browser": "Wind and Rainfall sources/save/reload/style checks passed on combined sources; global icon inheritance/overrides/reload/backup passed all nine layouts in native and legacy modes. Broader browser suite still running from pre-merge revision.",
+    "browser": "Complete browser smoke suite passed all nine generated layouts on the pre-main-merge sources. Final combined-source Wind/Rainfall journeys and global icon inheritance/overrides/reload/backup passed all nine layouts in native and legacy modes.",
     "docs": "Production build/link checks passed: 17 canonical pages. Developer documentation index/freshness passed.",
-    "firmware": "Full nine-device workflow dispatched at implementation revision: https://github.com/jtenniswood/espdesktop/actions/runs/41469968277; running/queued, not a pass. Representative PR firmware run: https://github.com/jtenniswood/espdesktop/actions/runs/41469592283. Local Docker daemon unavailable.",
+    "firmware": "Three representative factory builds passed natively at 207faab6f78d02c9a58d25291df470d5878d2063 with pinned ESPHome 2026.10.1. Compiled EspDesktop, web_server_idf and Companion sources match the checkout byte-for-byte. GitHub 7-inch P4 factory and recovery builds passed at 8364ba6bf (firmware inputs unchanged). Full nine-device matrix remains running/queued: https://github.com/jtenniswood/espdesktop/actions/runs/41469968277. Current PR firmware run: https://github.com/jtenniswood/espdesktop/actions/runs/41470663578. Logs and artifact hashes are retained in firmwareBuilds.",
     "macApp": "GitHub macOS build/verification passed at implementation revision: https://github.com/jtenniswood/espdesktop/actions/runs/41469592139.",
     "review": "Automated review completed without findings for 6e58b88c8237ed2c2ea8b42adcbcce6a20b9bc25 (before merging main); no inline findings as of this update.",
     "physical": "Not performed. No display flashed.",
     "bundle": {
       "bytes": 2773043,
       "gzipBytes": 1102008
-    }
+    },
+    "remoteCi": "Current PR CI Gate, generated validation, docs, PR Process and Mac app verification passed at 207faab6f78d02c9a58d25291df470d5878d2063. CI run https://github.com/jtenniswood/espdesktop/actions/runs/41470663278; Mac run https://github.com/jtenniswood/espdesktop/actions/runs/41470663004."
   },
   "integratedMain": "d1dde75d3679734f8eb0540eb913e273786a16ec",
   "implementationRevision": "8364ba6bfbbc865336752ed59e78bd0861deffdb",
-  "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/225"
+  "destinationPr": "https://github.com/jtenniswood/espdesktop/pull/225",
+  "firmwareBuilds": [
+    {
+      "device": "guition-esp32-s3-4848s040",
+      "entryPoint": "builds/guition-esp32-s3-4848s040.factory.yaml",
+      "revision": "207faab6f78d02c9a58d25291df470d5878d2063",
+      "esphome": "2026.10.1",
+      "method": "native ESPHome, local component URL and repository MDI font path overrides only",
+      "status": "passed",
+      "log": {
+        "path": "dev-docs/upstream-sync/2026-11-02-firmware-logs/8877a85e54478b3cbb6d0fabed2d92aaee969dea5d367110460ebe267331cd34.log.gz",
+        "sha256": "8877a85e54478b3cbb6d0fabed2d92aaee969dea5d367110460ebe267331cd34",
+        "rawSha256": "67705365013fdc1a524dbd59e482e406b4845ea61b7c82df52a073e40291cfbe",
+        "rawBytes": 222294
+      },
+      "matchedCompiledSourceFiles": 220,
+      "artifacts": {
+        "firmware.factory.bin": {
+          "bytes": 5395680,
+          "sha256": "ecd7ae8a0416c77b03fda4116ee8aec565802369bebf2ec46ee3dfd48957afbd"
+        },
+        "firmware.ota.bin": {
+          "bytes": 5264608,
+          "sha256": "59cbe823fb93f0d270886ce1e4e982bb3340ed2d70fd78829467dbd187e7792b"
+        },
+        "firmware.elf": {
+          "bytes": 63262268,
+          "sha256": "abcbd0a52c00546e5b59af992cba67ee5c0109649e814b9ee4be8c58d7cfd630"
+        }
+      }
+    },
+    {
+      "device": "guition-esp32-p4-jc1060p470",
+      "entryPoint": "builds/guition-esp32-p4-jc1060p470.factory.yaml",
+      "revision": "207faab6f78d02c9a58d25291df470d5878d2063",
+      "esphome": "2026.10.1",
+      "method": "native ESPHome, local component URL and repository MDI font path overrides only",
+      "status": "passed",
+      "log": {
+        "path": "dev-docs/upstream-sync/2026-11-02-firmware-logs/4f4de72406b4b34b9707c9d72de0fa79fb0aac129b7a49f32bfebb71cd4032f8.log.gz",
+        "sha256": "4f4de72406b4b34b9707c9d72de0fa79fb0aac129b7a49f32bfebb71cd4032f8",
+        "rawSha256": "8d154a54c95e9a85b0d8af7e57691db4e56a373c2a87ed01b3ad76c42020c454",
+        "rawBytes": 230213
+      },
+      "matchedCompiledSourceFiles": 213,
+      "artifacts": {
+        "firmware.factory.bin": {
+          "bytes": 5750128,
+          "sha256": "c9088b424a4127f81930973d44429f4278ba35c4e8ae86d5fd72450d62863e0c"
+        },
+        "firmware.ota.bin": {
+          "bytes": 5619056,
+          "sha256": "d2a8f2583ac4dd68fb606f69ad17d27e872428a4db7fec68c20a218ae03ebe9f"
+        },
+        "firmware.elf": {
+          "bytes": 58691808,
+          "sha256": "262cb6d1093fff28129f04b1866043b301bb26d1bf51c7d8053f6557acff9a85"
+        }
+      }
+    },
+    {
+      "device": "guition-esp32-p4-jc4880p443",
+      "entryPoint": "builds/guition-esp32-p4-jc4880p443.factory.yaml",
+      "revision": "207faab6f78d02c9a58d25291df470d5878d2063",
+      "esphome": "2026.10.1",
+      "method": "native ESPHome, local component URL and repository MDI font path overrides only",
+      "status": "passed",
+      "log": {
+        "path": "dev-docs/upstream-sync/2026-11-02-firmware-logs/6ec7aec2454bc088b946bcba57b7302df0274853f7ee8271bf025ff9b85330cc.log.gz",
+        "sha256": "6ec7aec2454bc088b946bcba57b7302df0274853f7ee8271bf025ff9b85330cc",
+        "rawSha256": "5897920373fae3255bf9a3587a18429d02ddc4a1a485924c7488f4bc332019c5",
+        "rawBytes": 228283
+      },
+      "matchedCompiledSourceFiles": 213,
+      "artifacts": {
+        "firmware.factory.bin": {
+          "bytes": 5724608,
+          "sha256": "24f8014d0952c3f1d10d7751ff86e24c51c1c738900921d1606fd4fb330ff02f"
+        },
+        "firmware.ota.bin": {
+          "bytes": 5593536,
+          "sha256": "12492a8c9473deabec495153832c6c2c1c3ca5fe83747a29fcf4ba9fc0171114"
+        },
+        "firmware.elf": {
+          "bytes": 58081036,
+          "sha256": "bd573b8c991cee7f6c7cf04712bcd703ae467e288a63042b5f547ffe96a71cac"
+        }
+      }
+    },
+    {
+      "device": "guition-esp32-p4-jc1060p470",
+      "revision": "8364ba6bfbbc865336752ed59e78bd0861deffdb",
+      "esphome": "2026.10.1",
+      "method": "GitHub pinned Docker firmware workflow",
+      "targets": [
+        "factory",
+        "recovery"
+      ],
+      "status": "passed",
+      "job": "https://github.com/jtenniswood/espdesktop/actions/runs/41469968277/job/125360802722",
+      "log": {
+        "path": "dev-docs/upstream-sync/2026-11-02-firmware-logs/45f3ccb6fc0c63c974211b6f27b4cef30770dca2f9de4b909f5faab95b72a5b9.log.gz",
+        "sha256": "45f3ccb6fc0c63c974211b6f27b4cef30770dca2f9de4b909f5faab95b72a5b9",
+        "rawSha256": "335121a5e8df41e97d67b4f8f0e26110fd905ab0b4e1d82c9fb2a6eb4ef70ec7",
+        "rawBytes": 611699
+      }
+    }
+  ],
+  "firmwareInputTreeSha256": "08bf4b5624e8ef27c6cfecd0f01158e45d29bb67bbea6dc1222feeba33ce446d"
 }
