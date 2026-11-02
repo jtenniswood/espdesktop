@@ -210,6 +210,12 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
 #endif
   // Faint icon shadows can extend beyond the fitted artwork into the label.
   if (source.card_label) lv_obj_move_foreground(source.card_label);
+  // Finished pixels are sufficient on visible pages too. Keeping every
+  // 240x240 original until navigation consumes drawing headroom during boot.
+  // A later size/connection change reloads the original from the icon store.
+  if (source.display_pixels && source.descriptor.data == source.display_pixels) {
+    source.release_source_pixels();
+  }
   source.layout_updating = false;
 }
 
