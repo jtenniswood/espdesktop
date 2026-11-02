@@ -264,7 +264,6 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "Backlight") == 0) return "Podsvícení";
   if (std::strcmp(text, "Cover Art") == 0) return "Obal alba";
-  if (std::strcmp(text, "Local Action") == 0) return "Místní akce";
   if (std::strcmp(text, "Output Volume") == 0) return "Hlasitost výstupu";
   if (std::strcmp(text, "Input Volume") == 0) return "Hlasitost vstupu";
   if (std::strcmp(text, "Open URL") == 0) return "Otevřít URL";
@@ -561,7 +560,6 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "Backlight") == 0) return "Baggrundslys";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumcover";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokal handling";
   if (std::strcmp(text, "Output Volume") == 0) return "Udgangslydstyrke";
   if (std::strcmp(text, "Input Volume") == 0) return "Indgangslydstyrke";
   if (std::strcmp(text, "Open URL") == 0) return "Åbn URL";
@@ -856,7 +854,6 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nachts";
   if (std::strcmp(text, "Backlight") == 0) return "Hintergrundbeleuchtung";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumcover";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokale Aktion";
   if (std::strcmp(text, "Output Volume") == 0) return "Ausgabelautstärke";
   if (std::strcmp(text, "Input Volume") == 0) return "Eingabelautstärke";
   if (std::strcmp(text, "Open URL") == 0) return "URL öffnen";
@@ -1165,7 +1162,6 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noche";
   if (std::strcmp(text, "Backlight") == 0) return "Retroiluminación";
   if (std::strcmp(text, "Cover Art") == 0) return "Portada";
-  if (std::strcmp(text, "Local Action") == 0) return "Acción local";
   if (std::strcmp(text, "Output Volume") == 0) return "Volumen de salida";
   if (std::strcmp(text, "Input Volume") == 0) return "Volumen de entrada";
   if (std::strcmp(text, "Open URL") == 0) return "Abrir URL";
@@ -1485,7 +1481,6 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Yö";
   if (std::strcmp(text, "Backlight") == 0) return "Taustavalo";
   if (std::strcmp(text, "Cover Art") == 0) return "Kansikuva";
-  if (std::strcmp(text, "Local Action") == 0) return "Paikallinen toiminto";
   if (std::strcmp(text, "Output Volume") == 0) return "Ulostulon äänenvoimakkuus";
   if (std::strcmp(text, "Input Volume") == 0) return "Sisääntulon äänenvoimakkuus";
   if (std::strcmp(text, "Open URL") == 0) return "Avaa URL";
@@ -1783,7 +1778,6 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nuit";
   if (std::strcmp(text, "Backlight") == 0) return "Rétroéclairage";
   if (std::strcmp(text, "Cover Art") == 0) return "Pochette";
-  if (std::strcmp(text, "Local Action") == 0) return "Action locale";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume de sortie";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume d’entrée";
   if (std::strcmp(text, "Open URL") == 0) return "Ouvrir l’URL";
@@ -2113,7 +2107,6 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "לילה";
   if (std::strcmp(text, "Backlight") == 0) return "תאורה אחורית";
   if (std::strcmp(text, "Cover Art") == 0) return "עטיפת אלבום";
-  if (std::strcmp(text, "Local Action") == 0) return "פעולה מקומית";
   if (std::strcmp(text, "Output Volume") == 0) return "עוצמת פלט";
   if (std::strcmp(text, "Input Volume") == 0) return "עוצמת קלט";
   if (std::strcmp(text, "Open URL") == 0) return "פתיחת כתובת URL";
@@ -2424,7 +2417,6 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Éjszaka";
   if (std::strcmp(text, "Backlight") == 0) return "Háttérvilágítás";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumborító";
-  if (std::strcmp(text, "Local Action") == 0) return "Helyi művelet";
   if (std::strcmp(text, "Output Volume") == 0) return "Kimeneti hangerő";
   if (std::strcmp(text, "Input Volume") == 0) return "Bemeneti hangerő";
   if (std::strcmp(text, "Open URL") == 0) return "URL megnyitása";
@@ -2729,7 +2721,6 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Notte";
   if (std::strcmp(text, "Backlight") == 0) return "Retroilluminazione";
   if (std::strcmp(text, "Cover Art") == 0) return "Copertina";
-  if (std::strcmp(text, "Local Action") == 0) return "Azione locale";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume di uscita";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume di ingresso";
   if (std::strcmp(text, "Open URL") == 0) return "Apri URL";
@@ -3036,7 +3027,6 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "Backlight") == 0) return "Bakgrunnsbelysning";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumomslag";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokal handling";
   if (std::strcmp(text, "Output Volume") == 0) return "Utgangsvolum";
   if (std::strcmp(text, "Input Volume") == 0) return "Inngangsvolum";
   if (std::strcmp(text, "Open URL") == 0) return "Åpne URL";
@@ -3337,7 +3327,6 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nacht";
   if (std::strcmp(text, "Backlight") == 0) return "Achtergrondverlichting";
   if (std::strcmp(text, "Cover Art") == 0) return "Albumhoes";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokale actie";
   if (std::strcmp(text, "Output Volume") == 0) return "Uitvoervolume";
   if (std::strcmp(text, "Input Volume") == 0) return "Invoervolume";
   if (std::strcmp(text, "Mac App") == 0) return "Mac-app";
@@ -3640,7 +3629,6 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "Backlight") == 0) return "Podświetlenie";
   if (std::strcmp(text, "Cover Art") == 0) return "Okładka";
-  if (std::strcmp(text, "Local Action") == 0) return "Akcja lokalna";
   if (std::strcmp(text, "Output Volume") == 0) return "Głośność wyjścia";
   if (std::strcmp(text, "Input Volume") == 0) return "Głośność wejścia";
   if (std::strcmp(text, "Open URL") == 0) return "Otwórz URL";
@@ -3945,7 +3933,6 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   if (std::strcmp(text, "Backlight") == 0) return "Luz de fundo";
   if (std::strcmp(text, "Cover Art") == 0) return "Capa do álbum";
-  if (std::strcmp(text, "Local Action") == 0) return "Ação local";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume de saída";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume de entrada";
   if (std::strcmp(text, "Open URL") == 0) return "Abrir URL";
@@ -4249,7 +4236,6 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noite";
   if (std::strcmp(text, "Backlight") == 0) return "Luz de fundo";
   if (std::strcmp(text, "Cover Art") == 0) return "Capa do álbum";
-  if (std::strcmp(text, "Local Action") == 0) return "Ação local";
   if (std::strcmp(text, "Output Volume") == 0) return "Volume de saída";
   if (std::strcmp(text, "Input Volume") == 0) return "Volume de entrada";
   if (std::strcmp(text, "Open URL") == 0) return "Abrir URL";
@@ -4567,7 +4553,6 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noapte";
   if (std::strcmp(text, "Backlight") == 0) return "Iluminare de fundal";
   if (std::strcmp(text, "Cover Art") == 0) return "Copertă";
-  if (std::strcmp(text, "Local Action") == 0) return "Acțiune locală";
   if (std::strcmp(text, "Output Volume") == 0) return "Volum de ieșire";
   if (std::strcmp(text, "Input Volume") == 0) return "Volum de intrare";
   if (std::strcmp(text, "Open URL") == 0) return "Deschide URL";
@@ -4887,7 +4872,6 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Ночь";
   if (std::strcmp(text, "Backlight") == 0) return "Подсветка";
   if (std::strcmp(text, "Cover Art") == 0) return "Обложка";
-  if (std::strcmp(text, "Local Action") == 0) return "Локальное действие";
   if (std::strcmp(text, "Output Volume") == 0) return "Громкость выхода";
   if (std::strcmp(text, "Input Volume") == 0) return "Громкость входа";
   if (std::strcmp(text, "Open URL") == 0) return "Открыть URL";
@@ -5192,7 +5176,6 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noc";
   if (std::strcmp(text, "Backlight") == 0) return "Podsvietenie";
   if (std::strcmp(text, "Cover Art") == 0) return "Obal albumu";
-  if (std::strcmp(text, "Local Action") == 0) return "Miestna akcia";
   if (std::strcmp(text, "Output Volume") == 0) return "Hlasitosť výstupu";
   if (std::strcmp(text, "Input Volume") == 0) return "Hlasitosť vstupu";
   if (std::strcmp(text, "Open URL") == 0) return "Otvoriť URL";
@@ -5502,7 +5485,6 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Noč";
   if (std::strcmp(text, "Backlight") == 0) return "Osvetlitev ozadja";
   if (std::strcmp(text, "Cover Art") == 0) return "Naslovnica albuma";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokalno dejanje";
   if (std::strcmp(text, "Output Volume") == 0) return "Izhodna glasnost";
   if (std::strcmp(text, "Input Volume") == 0) return "Vhodna glasnost";
   if (std::strcmp(text, "Open URL") == 0) return "Odpri URL";
@@ -5803,7 +5785,6 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Nattetid";
   if (std::strcmp(text, "Backlight") == 0) return "Bakgrundsbelysning";
   if (std::strcmp(text, "Cover Art") == 0) return "Omslagsbild";
-  if (std::strcmp(text, "Local Action") == 0) return "Lokal åtgärd";
   if (std::strcmp(text, "Output Volume") == 0) return "Utgångsvolym";
   if (std::strcmp(text, "Input Volume") == 0) return "Ingångsvolym";
   if (std::strcmp(text, "Open URL") == 0) return "Öppna URL";
@@ -6116,7 +6097,6 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Gece";
   if (std::strcmp(text, "Backlight") == 0) return "Arka aydınlatma";
   if (std::strcmp(text, "Cover Art") == 0) return "Albüm kapağı";
-  if (std::strcmp(text, "Local Action") == 0) return "Yerel işlem";
   if (std::strcmp(text, "Output Volume") == 0) return "Çıkış ses düzeyi";
   if (std::strcmp(text, "Input Volume") == 0) return "Giriş ses düzeyi";
   if (std::strcmp(text, "Open URL") == 0) return "URL aç";
@@ -6432,7 +6412,6 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Nighttime") == 0) return "Ніч";
   if (std::strcmp(text, "Backlight") == 0) return "Підсвічування";
   if (std::strcmp(text, "Cover Art") == 0) return "Обкладинка";
-  if (std::strcmp(text, "Local Action") == 0) return "Локальна дія";
   if (std::strcmp(text, "Output Volume") == 0) return "Гучність виходу";
   if (std::strcmp(text, "Input Volume") == 0) return "Гучність входу";
   if (std::strcmp(text, "Open URL") == 0) return "Відкрити URL";

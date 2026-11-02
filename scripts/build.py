@@ -696,11 +696,13 @@ def gen_i18n_header():
             f"inline const char *espdesktop_i18n_{fn}(const char *text) {{",
             "  if (!text) return \"\";",
         ])
+        # Older destination keys can share the same English static label.
+        # Exclude the text itself so those aliases cannot translate HA values.
+        static_labels = {value for key, value in english.items() if key.startswith("label_")}
         seen_sources = set()
         for key, source in english.items():
-            # Static card labels can also be arbitrary HA names/options. Keep
-            # label_ entries available only through explicit key-based lookup.
-            if key.startswith("label_"):
+            # Static defaults are translated only through explicit key lookup.
+            if source in static_labels:
                 continue
             if source in seen_sources:
                 continue
