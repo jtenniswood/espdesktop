@@ -50,7 +50,7 @@ On the 480×480 S3 with the default font sizes and eight available days:
 
 The exact count depends on the panel's fonts, available forecast days, translated labels and stale-data status. The editor preview uses the same layout rules and updates when the card is resized.
 
-Forecasts refresh hourly and after reconnecting. Providers must supply a daily forecast and may return fewer than eight days.
+If a refresh fails, the previous forecast keeps its layout and the details popup shows **Last forecast**. Forecasts refresh hourly and after reconnecting. Providers must supply a daily forecast and may return fewer than eight days.
 
 While loading, forecast cards show a single cloud-and-clock icon and **Loading**. The day layout appears when data arrives. A failed refresh keeps the last available forecast and marks it **Last forecast**; if no forecast is available, the card shows **Forecast unavailable**.
 
@@ -87,3 +87,34 @@ The modal allocates only available day panels, up to six, with one reusable two-
 | `exceptional` | Exceptional |
 | `unknown` | Unknown |
 | `unavailable` | Unavailable |
+
+## Wind
+
+Choose **Weather → Wind**, then choose a **Wind Source**:
+
+- **Forecast** — use the weather entity's wind direction, speed and speed unit.
+- **Sensor** — pick a **Wind Direction Sensor** and a **Wind Speed Sensor**. Direction can be degrees, compass abbreviations, or full English compass names; speed uses its sensor's `unit_of_measurement`. Each reading updates independently, so a missing speed does not hide a valid direction.
+
+ The arrow points toward the compass direction the wind comes **from** (north is up), and the label names that direction. Speed appears below in the weather entity's wind speed unit, such as **12.5 km/h**. Direction uses eight compass points; degree bearings and compass abbreviations are supported. Missing direction or speed shows **--** for that reading. An unavailable weather entity clears both readings; with separate sensors, only the unavailable reading clears.
+
+Wind updates with the entity and does not need forecast actions permission. It works on the home screen and subpages.
+## Rainfall
+
+Choose **Weather → Rainfall**, then choose **Rainfall Source**:
+
+- **Sensor** — select a sensor such as `sensor.rainfall_today`. The card shows its current numeric value and `unit_of_measurement`; the selected sensor determines the measurement period. Sensor units are retained, including mm, inches, or a rate unit if you deliberately select a rate sensor. No Home Assistant actions permission is needed.
+- **Forecast** — select a weather entity. The card shows today's **predicted precipitation amount**, not measured rain or rain probability, using the provider's precipitation unit. Enable Home Assistant actions permission as for the other forecast cards. Tap the card for forecast details.
+
+Both sources use the same small secondary text and 70% alpha as forecast temperatures, on home cards and subpages. Amounts show up to three decimal places without trailing zeros. Zero remains **0**; missing, invalid or unavailable sensor readings show **--**. Forecast refreshes, missing dates and stale data follow the existing forecast behavior. A provider's precipitation total can include snow or other precipitation, not only rain.
+
+## Forecast Details
+
+Tap any forecast card to open up to six days in a **3×2 grid**, showing conditions, high/low temperatures, wind speed, rain chance and rainfall where available. Wind and rainfall retain the provider's units. **Last forecast** marks stale data. Current Conditions cards do not open forecast details.
+
+## Supported Conditions
+
+Standard Home Assistant weather states use matching icons. Current Conditions keeps provider-specific labels, such as **Light Rain**; unknown or unavailable states show a fallback icon and readable label.
+
+::: details Older configurations
+**Temperatures Today** and **Temperatures Tomorrow** cards retain their day selection and use the current forecast layout. A separate **Weather Forecast** card loads as **Tomorrow's Forecast**. The old custom label and large temperature number controls no longer apply.
+:::

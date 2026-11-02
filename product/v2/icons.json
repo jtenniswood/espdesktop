@@ -190,6 +190,36 @@
       "codepoint": "F0319",
       "mdi": "lan-disconnect",
       "comment": "Disconnected connector card"
+    },
+    {
+      "name": "Wind arrow-top-right",
+      "codepoint": "F005C",
+      "mdi": "arrow-top-right"
+    },
+    {
+      "name": "Wind arrow-right",
+      "codepoint": "F0054",
+      "mdi": "arrow-right"
+    },
+    {
+      "name": "Wind arrow-bottom-right",
+      "codepoint": "F0043",
+      "mdi": "arrow-bottom-right"
+    },
+    {
+      "name": "Wind arrow-bottom-left",
+      "codepoint": "F0042",
+      "mdi": "arrow-bottom-left"
+    },
+    {
+      "name": "Wind arrow-left",
+      "codepoint": "F004D",
+      "mdi": "arrow-left"
+    },
+    {
+      "name": "Wind arrow-top-left",
+      "codepoint": "F005B",
+      "mdi": "arrow-top-left"
     }
   ],
   "icons": [
@@ -452,6 +482,11 @@
       "name": "Broom",
       "codepoint": "F00E2",
       "mdi": "broom"
+    },
+    {
+      "name": "Bunk Bed",
+      "codepoint": "F1302",
+      "mdi": "bunk-bed"
     },
     {
       "name": "Bus",
@@ -1129,6 +1164,11 @@
       "mdi": "mailbox"
     },
     {
+      "name": "Menu",
+      "codepoint": "F035C",
+      "mdi": "menu"
+    },
+    {
       "name": "Message Video",
       "codepoint": "F036B",
       "mdi": "message-video"
@@ -1577,6 +1617,11 @@
       "name": "Sprinkler Variant",
       "codepoint": "F1060",
       "mdi": "sprinkler-variant"
+    },
+    {
+      "name": "Stairs",
+      "codepoint": "F04CD",
+      "mdi": "stairs"
     },
     {
       "name": "Stop",

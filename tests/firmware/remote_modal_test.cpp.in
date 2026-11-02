@@ -82,6 +82,8 @@ bool locked = false, alarm = false, fail_open = false, phase2_ready = true;
 bool pipeline_suspended = false;
 bool image_card_pipeline_suspended() { return pipeline_suspended; }
 bool grid_phase2_complete() { return phase2_ready; }
+bool ha_connected = true;
+bool ha_api_state_connected() { return ha_connected; }
 bool screen_lock_enabled() { return locked; }
 bool alarm_display_takeover_active() { return alarm; }
 ControlModalActiveState<lv_obj_t> modal;
@@ -257,6 +259,12 @@ int main() {
     assert(espdesktop_can_open_modal(test.entity, true));
     assert(espdesktop_open_modal(test.entity, true));
     assert(modal.kind == test.kind && commands == 0 && current_page == &home);
+    if (test.kind == ControlModalKind::OPTION_SELECT) {
+      ha_connected = false;
+      assert(!espdesktop_can_open_modal(test.entity, true));
+      assert(!espdesktop_open_modal(test.entity, true));
+      ha_connected = true;
+    }
     if (test.kind != ControlModalKind::WIFI_QR) {
       const int old_opens = opens, old_closes = closes;
       runtime.available = false; runtime.image_ready = false;

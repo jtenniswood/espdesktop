@@ -12,6 +12,8 @@ usage documentation lives in the root `README.md` and under `docs/`.
 
 ## Workflows
 
+- [Live Device Runtime Tests](device-runtime-tests.md) - optional health and crash observation for an explicitly selected panel.
+
 - [Documentation Search and Answer Visibility](docs-discovery.md) - build checks,
   crawler hosting, Search Console ownership, and measurement.
 
@@ -50,6 +52,8 @@ usage documentation lives in the root `README.md` and under `docs/`.
 - [Font Guidelines](font-guidelines.md)
 
 ## Upstream Ports
+
+- [EspControl monthly sync: 2 October–2 November 2026](upstream-sync/2026-11-02.md) — 132 merged PRs, 25 new ports and full source accounting.
 
 - [EspControl five-day sync: 12–17 October 2026](upstream-sync/2026-10-17.md) — 55 merged PRs, eight new ports and destination validation.
 - [EspControl two-week sync: 1–15 October 2026](upstream-sync/2026-10-15.md) — 74 merged PRs and the current migration audit.

@@ -335,3 +335,20 @@ weekday_weds=ד׳
 weekday_thurs=ה׳
 weekday_fri=ו׳
 weekday_sat=ש׳
+
+# Default card labels (label_ keys use key-based lookup only)
+label_connect=התחבר
+label_local_action=פעולה מקומית
+label_switch=מתג
+label_lighting=תאורה
+label_garage=מוסך
+label_sensor=חיישן
+label_camera=מצלמה
+wind_north=North
+wind_north_east=North East
+wind_east=East
+wind_south_east=South East
+wind_south=South
+wind_south_west=South West
+wind_west=West
+wind_north_west=North West
