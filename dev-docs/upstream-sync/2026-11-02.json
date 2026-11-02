@@ -2531,7 +2531,7 @@
       "mergeSha": "e4e909278aeefac1713fb42054a9d0db0ddca58b",
       "changedFiles": [],
       "disposition": "Not applicable",
-      "evidence": "Prior review: dev-docs/upstream-sync/2026-10-17.json. Reorganizes/removes EspControl Home Assistant, Immich, multi-screen or reference documentation that is excluded from EspDesktop public docs. Preserve the explicit Mac-focused srcExclude/sidebar contract in docs/.vitepress/config.mts; no HA settings tree or routes introduced."
+      "evidence": "The landed commit has the same tree as its first parent: no additional file changes landed. Prior review: dev-docs/upstream-sync/2026-10-17.json. Reorganizes/removes EspControl Home Assistant, Immich, multi-screen or reference documentation that is excluded from EspDesktop public docs. Preserve the explicit Mac-focused srcExclude/sidebar contract in docs/.vitepress/config.mts; no HA settings tree or routes introduced."
     },
     {
       "number": 2253,
