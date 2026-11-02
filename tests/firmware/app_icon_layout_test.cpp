@@ -1,5 +1,6 @@
 #include <array>
 #include <cassert>
+#include <vector>
 #include "app_icon_layout.h"
 #include "app_icon_resampler.h"
 
@@ -21,6 +22,32 @@ int main() {
   uint8_t identity[sizeof(input)]{};
   espdesktop::app_icon::resize_pixels(input, 2, identity, 2);
   for (size_t i = 0; i < sizeof(input); ++i) assert(input[i] == identity[i]);
+
+  // Compare native arithmetic with the original wide implementation across
+  // real icon sizes, the overflow boundary, and transparent/opaque artwork.
+  for (const int source_side : {1, 2, 17, 240, 512, 513}) {
+    std::vector<uint8_t> source(source_side * source_side * 3);
+    for (const int target_side : {1, 16, 60, 120, 200, 256, 257, 400}) {
+      uint32_t random = 12345;
+      for (auto &byte : source) {
+        random = random * 1664525u + 1013904223u;
+        byte = random >> 24;
+      }
+      std::vector<uint8_t> actual(target_side * target_side * 3), expected(actual.size());
+      const auto compare = [&] {
+        espdesktop::app_icon::resize_pixels(source.data(), source_side, actual.data(), target_side);
+        espdesktop::app_icon::resize_pixels_with<esphome::artwork_image::ResampleAxis, uint64_t>(
+            source.data(), source_side, expected.data(), target_side);
+        assert(actual == expected);
+      };
+      compare();
+      // Maximal colour and coverage exercise accumulation/rounding overflow.
+      std::fill(source.begin(), source.end(), 255);
+      compare();
+      std::fill(source.begin() + source_side * source_side * 2, source.end(), 0);
+      compare();
+    }
+  }
 
   assert(fit_side(100, 100, 0, 5, 8, {}) == 100);
   assert(fit_side(100, 100, 20, 5, 8, {}) == 75);
