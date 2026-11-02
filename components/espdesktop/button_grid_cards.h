@@ -31,6 +31,8 @@ struct CompanionAppIconImageData {
   uint8_t *display_pixels = nullptr;
   int display_side = 0;
   size_t display_bytes = 0;
+  espdesktop::app_icon::Insets artwork_insets{};
+  bool artwork_insets_ready = false;
 
   bool prepare_pixels(const std::string &id) {
     std::array<uint8_t, 32> hash{};
@@ -65,11 +67,14 @@ struct CompanionAppIconImageData {
     display_bytes = 0;
   }
 
+  void release_source_pixels() {
+    if (pixels) pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
+    pixels = nullptr;
+  }
+
   void release_pixels() {
     release_display_pixels();
-    if (!pixels) return;
-    pixel_allocator.deallocate(pixels, esphome::companion::APP_ICON_PIXEL_BYTES);
-    pixels = nullptr;
+    release_source_pixels();
     descriptor.data = nullptr;
     image_loaded = false;
   }
@@ -80,6 +85,7 @@ struct CompanionAppIconImageData {
   }
 };
 
+inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image);
 inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner);
 inline void companion_refresh_cached_app_icon(const std::string &application_id);
 
@@ -144,8 +150,7 @@ inline void companion_update_app_icon_card_palette(
 inline void companion_refresh_app_icon_connection_state(bool online);
 
 inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
-  if (!image || !source.app_icon_mode || !source.image_loaded || !source.pixels || source.layout_updating) return;
-  source.layout_updating = true;
+  if (!image || !source.app_icon_mode || !source.image_loaded || (!source.pixels && !source.display_pixels) || source.layout_updating) return;
   lv_obj_t *button = lv_obj_get_parent(image);
   const int width = lv_obj_get_content_width(button);
   const int height = lv_obj_get_content_height(button);
@@ -156,13 +161,25 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   const int label_height = source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)
       ? lv_obj_get_height(source.card_label) : 0;
   constexpr int canvas = esphome::companion::APP_ICON_SIDE;
-  const auto insets = espdesktop::app_icon::artwork_insets(source.pixels + canvas * canvas * 2, canvas);
+  if (!source.artwork_insets_ready && source.pixels) {
+    source.artwork_insets = espdesktop::app_icon::artwork_insets(source.pixels + canvas * canvas * 2, canvas);
+    source.artwork_insets_ready = true;
+  }
+  const auto insets = source.artwork_insets;
   const int fitted = espdesktop::app_icon::fit_side(width, height, label_height, gap, canvas, insets);
   const int requested = source.icon_size == "large" ? fitted :
       (small_side * (source.icon_size == "medium" ? 150 : 100) / 100) * canvas /
       std::max(1, canvas - static_cast<int>(insets.left + insets.right));
   const int side = std::min(fitted, requested);
+  source.layout_updating = true;
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  if (source.display_side != side && !source.pixels) {
+    // Hidden pages retain only their finished image. A real size change needs
+    // the original again; unchanged layout events never read flash or rescale.
+    source.layout_updating = false;
+    companion_apply_cached_app_icon(source, image);
+    return;
+  }
   if (source.display_side != side) {
     source.release_display_pixels();
     const size_t bytes = static_cast<size_t>(side) * side * 3;
@@ -229,6 +246,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     return false;
   }
   source.image_loaded = true;
+  source.artwork_insets_ready = false;
   source.release_display_pixels();
   constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
                                  esphome::companion::APP_ICON_SIDE;

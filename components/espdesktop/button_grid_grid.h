@@ -1574,8 +1574,11 @@ inline void companion_refresh_app_icon_visibility() {
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
     lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
-    if (!image || lv_obj_get_screen(image) == lv_scr_act() || !source->pixels) continue;
-    const size_t bytes = esphome::companion::APP_ICON_PIXEL_BYTES + source->display_bytes;
+    if (!image || lv_obj_get_screen(image) == lv_scr_act() || (!source->pixels && !source->display_pixels)) continue;
+    // The finished image is sufficient for redraws and cached layout metrics.
+    // Keep the original only when resizing failed and LVGL is displaying it.
+    if (source->image_loaded && source->display_pixels) source->release_source_pixels();
+    const size_t bytes = (source->pixels ? esphome::companion::APP_ICON_PIXEL_BYTES : 0) + source->display_bytes;
     if (retain_hidden && source->image_loaded && bytes <= hidden_cache_limit - retained_bytes) {
       retained_bytes += bytes;
       continue;

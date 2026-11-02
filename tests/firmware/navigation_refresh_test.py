@@ -20,7 +20,7 @@ code = r'''
 #include <vector>
 struct lv_obj_t { lv_obj_t *screen; };
 struct lv_event_t {};
-struct CompanionAppIconImageData { bool app_icon_mode = true, image_loaded = false; uint8_t *pixels = nullptr; size_t display_bytes = 0; };
+struct CompanionAppIconImageData { bool app_icon_mode = true, image_loaded = false; uint8_t *pixels = nullptr, *display_pixels = nullptr; size_t display_bytes = 0; void release_source_pixels() { pixels = nullptr; } };
 namespace esphome::companion { constexpr size_t APP_ICON_PIXEL_BYTES = 172800; }
 struct GridRuntimeAllocation { lv_obj_t *owner; void *ptr; void (*deleter)(void *); };
 template<class T> void grid_delete_runtime_ptr(void *) {}
@@ -38,6 +38,7 @@ void companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t
   ++applies;
   source.image_loaded = image->screen == active;
   source.pixels = source.image_loaded ? reinterpret_cast<uint8_t *>(1) : nullptr;
+  if (!source.image_loaded) { source.display_pixels = nullptr; source.display_bytes = 0; }
 }
 void navigation_refresh_subpage_label() {
   ++title_refreshes;
@@ -110,6 +111,27 @@ int main() {
   assert(retained <= 1024 * 1024 && applies == 9);
   companion_refresh_app_icon_visibility();
   assert(applies == 9);
+  // All nine home icons fit when only the ready-to-draw images are retained.
+  CompanionAppIconImageData ready_icons[9];
+  lv_obj_t ready_images[9];
+  allocations.clear();
+  for (int i = 0; i < 9; ++i) {
+    ready_images[i].screen = &home;
+    ready_icons[i].image_loaded = true;
+    ready_icons[i].pixels = ready_icons[i].display_pixels = reinterpret_cast<uint8_t *>(1);
+    ready_icons[i].display_bytes = 160 * 160 * 3;
+    allocations.push_back({&ready_images[i], &ready_icons[i], grid_delete_runtime_ptr<CompanionAppIconImageData>});
+  }
+  companion_refresh_app_icon_visibility();
+  for (const auto &icon : ready_icons) assert(!icon.pixels && icon.display_pixels && icon.image_loaded);
+  assert(applies == 9);
+  active = &home;
+  companion_refresh_app_icon_visibility();
+  assert(applies == 9); // Back to home needs no flash reads/resizing.
+  active = &camera;
+  companion_refresh_app_icon_visibility();
+  for (const auto &icon : ready_icons) assert(!icon.pixels && !icon.display_pixels && !icon.image_loaded);
+  assert(applies == 18);
 }
 '''
 with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:

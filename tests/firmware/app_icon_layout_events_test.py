@@ -41,6 +41,8 @@ struct CompanionAppIconImageData {
   uint8_t *pixels = nullptr, *display_pixels = nullptr;
   int display_side = 0;
   size_t display_bytes = 0;
+  espdesktop::app_icon::Insets artwork_insets{};
+  bool artwork_insets_ready = false;
   std::string icon_size = "large";
   struct { uint8_t *allocate(size_t) { return nullptr; } } pixel_allocator;
   struct { struct { int w = 0, h = 0, stride = 0; } header; size_t data_size = 0; uint8_t *data = nullptr; } descriptor;
@@ -74,6 +76,10 @@ void emit(lv_obj_t &o, int code) {
     lv_event_t e{event.data}; event.callback(&e);
   }
 }
+'''
+source += r'''
+unsigned reloads = 0;
+bool companion_apply_cached_app_icon(CompanionAppIconImageData &, lv_obj_t *) { ++reloads; return true; }
 '''
 header = (ROOT / 'components/espdesktop/button_grid_cards.h').read_text()
 for name in ('companion_layout_card_app_icon', 'companion_app_icon_layout_changed',
@@ -122,6 +128,13 @@ int main() {
   data.icon_size = "medium";
   emit(button, LV_EVENT_SIZE_CHANGED);
   assert(icon.width == 60);
+  // A retained final image needs neither source pixels nor another scan.
+  data.display_pixels = pixels.data(); data.display_side = 60; data.pixels = nullptr;
+  emit(button, LV_EVENT_LAYOUT_CHANGED);
+  assert(icon.width == 60 && reloads == 0 && !data.layout_updating);
+  label.height = 90;
+  emit(label, LV_EVENT_SIZE_CHANGED);
+  assert(reloads == 1 && !data.layout_updating); // Real size change reloads the original.
   data.app_icon_mode = false; label.height = 0;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(icon.width == 60); // Reused non-app cards do not retain layout effects.
