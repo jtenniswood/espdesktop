@@ -41,10 +41,22 @@ struct CompanionAppIconImageData {
   uint8_t *pixels = nullptr, *display_pixels = nullptr;
   int display_side = 0;
   size_t display_bytes = 0;
+  espdesktop::app_icon::Insets artwork_insets{};
+  bool artwork_insets_ready = false;
   std::string icon_size = "large";
-  struct { uint8_t *allocate(size_t) { return nullptr; } } pixel_allocator;
+  struct {
+    bool enabled = false;
+    std::vector<uint8_t> storage;
+    uint8_t *allocate(size_t bytes) {
+      if (!enabled) return nullptr;
+      storage.resize(bytes);
+      return storage.data();
+    }
+  } pixel_allocator;
   struct { struct { int w = 0, h = 0, stride = 0; } header; size_t data_size = 0; uint8_t *data = nullptr; } descriptor;
   void release_display_pixels() { display_side = 0; }
+  unsigned source_releases = 0;
+  void release_source_pixels() { if (pixels) ++source_releases; pixels = nullptr; }
 
   lv_obj_t *fallback_icon = nullptr, *card_label = nullptr;
 };
@@ -75,6 +87,10 @@ void emit(lv_obj_t &o, int code) {
   }
 }
 '''
+source += r'''
+unsigned reloads = 0;
+bool companion_apply_cached_app_icon(CompanionAppIconImageData &, lv_obj_t *) { ++reloads; return true; }
+'''
 header = (ROOT / 'components/espdesktop/button_grid_cards.h').read_text()
 for name in ('companion_layout_card_app_icon', 'companion_app_icon_layout_changed',
              'companion_track_app_icon_layout'):
@@ -94,6 +110,7 @@ int main() {
   companion_track_app_icon_layout(&button, &label, &icon);
   emit(button, LV_EVENT_LAYOUT_CHANGED);
   assert(icon.height == 70);
+  assert(data.pixels == pixels.data()); // Allocation fallback keeps the original.
   assert(button.children.back() == &label);
   // A catalogue refresh wraps the app name. Only the label emits an event.
   lv_obj_move_foreground(&icon); // Simulate artwork being raised after initial load.
@@ -122,10 +139,39 @@ int main() {
   data.icon_size = "medium";
   emit(button, LV_EVENT_SIZE_CHANGED);
   assert(icon.width == 60);
+  // A retained final image needs neither source pixels nor another scan.
+  data.display_pixels = pixels.data(); data.display_side = 60; data.pixels = nullptr;
+  emit(button, LV_EVENT_LAYOUT_CHANGED);
+  assert(icon.width == 60 && reloads == 0 && !data.layout_updating);
+  label.height = 90;
+  emit(label, LV_EVENT_SIZE_CHANGED);
+  assert(reloads == 1 && !data.layout_updating); // Real size change reloads the original.
   data.app_icon_mode = false; label.height = 0;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(icon.width == 60); // Reused non-app cards do not retain layout effects.
   assert(!data.layout_updating);
+  // Visible pages must not retain nine full originals beside resized images.
+  // Run the actual layout function with successful allocations, not just eviction.
+  std::array<CompanionAppIconImageData, 9> visible;
+  for (auto &entry : visible) {
+    lv_obj_t card, caption, image, glyph;
+    card.width = card.height = 100;
+    caption.height = 20;
+    image.parent = caption.parent = &card;
+    card.children = {&caption, &image};
+    entry.pixels = pixels.data();
+    entry.pixel_allocator.enabled = true;
+    entry.fallback_icon = &glyph;
+    entry.card_label = &caption;
+    companion_layout_card_app_icon(entry, &image);
+    assert(entry.display_pixels && entry.descriptor.data == entry.display_pixels);
+    assert(!entry.pixels && entry.source_releases == 1);
+    assert(entry.image_loaded && entry.artwork_insets_ready);
+    const auto *finished = entry.descriptor.data;
+    companion_layout_card_app_icon(entry, &image);
+    assert(entry.descriptor.data == finished && entry.source_releases == 1);
+    entry.fallback_icon = entry.card_label = nullptr;
+  }
 }
 '''
 with tempfile.TemporaryDirectory(prefix='app-icon-events-') as directory:

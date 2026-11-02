@@ -121,6 +121,12 @@ lvgl:
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "9" } }
 
 interval:
+  # Navigation checks are lightweight and should not wait for card refreshes.
+  - interval: 50ms
+    then:
+      - lambda: |-
+          navigation_return_from_companion_shortcuts_if_needed(id(main_page)->obj);
+          navigation_open_companion_subpage_if_requested(id(main_page)->obj);
   - interval: 500ms
     then:
       - lambda: |-
@@ -128,8 +134,6 @@ interval:
           // updates set the refresh flag, so consume only real changes instead
           // of reparsing every card and repainting twice a second while idle.
           companion_refresh_cards_if_requested();
-          navigation_return_from_companion_shortcuts_if_needed(id(main_page)->obj);
-          navigation_open_companion_subpage_if_requested(id(main_page)->obj);
           static bool previous_companion_connection = false;
           const bool connected = companion_connected();
           if (connected != previous_companion_connection) {

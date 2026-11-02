@@ -1561,16 +1561,38 @@ inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
 }
 
 inline void companion_refresh_app_icon_visibility() {
+  // Keep a bounded working set across home/app transitions. Reloading and
+  // resampling every home icon synchronously delays the first screen redraw.
+  // Non-grid screens (including camera/screensaver pages) reclaim it all.
+  constexpr size_t hidden_cache_limit = 1024u * 1024u;
+  const auto &screens = navigation_grid_screens();
+  const bool retain_hidden =
+      std::find(screens.begin(), screens.end(), lv_scr_act()) != screens.end();
+  size_t retained_bytes = 0;
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
     lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
-    if (!image) continue;
-    const bool visible = lv_obj_get_screen(image) == lv_scr_act();
-    // A failed flash read can leave allocated pixels without a loaded image.
-    // Skip hidden cards only once their pixel storage has actually been freed.
-    if ((visible && !source->image_loaded) || (!visible && source->pixels))
+    if (!image || lv_obj_get_screen(image) == lv_scr_act() || (!source->pixels && !source->display_pixels)) continue;
+    // The finished image is sufficient for redraws and cached layout metrics.
+    // Keep the original only when resizing failed and LVGL is displaying it.
+    if (source->image_loaded && source->display_pixels) source->release_source_pixels();
+    const size_t bytes = (source->pixels ? esphome::companion::APP_ICON_PIXEL_BYTES : 0) + source->display_bytes;
+    if (retain_hidden && source->image_loaded && bytes <= hidden_cache_limit - retained_bytes) {
+      retained_bytes += bytes;
+      continue;
+    }
+    // Also release storage left behind by a failed load.
+    companion_apply_cached_app_icon(*source, image);
+  }
+  // Release over-budget hidden images before allocating visible ones.
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->app_icon_mode || source->image_loaded) continue;
+    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    if (image && lv_obj_get_screen(image) == lv_scr_act())
       companion_apply_cached_app_icon(*source, image);
   }
 }
