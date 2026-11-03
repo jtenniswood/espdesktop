@@ -86,6 +86,10 @@ commit with `gh workflow run ci.yml --ref <pushed-ref> -f browser_preflight=true
 The optional `Release Browser Preflight` job checks browser behavior without
 creating a release tag or draft. It supplements the full release preflight and
 does not build firmware or sign the Mac app.
+It defaults to the self-hosted release runners; choose `browser_runner=ubuntu-latest`
+to compare against a hosted Linux runner. Optional `browser_profile=<device-slug>`
+and `browser_scope=standard-icons` inputs narrow a diagnostic run. Full browser
+preflight is still required before tagging.
 
 Firmware releases start as private GitHub drafts. The manually dispatched build
 workflow checks out one immutable tag in every job, materializes the selected

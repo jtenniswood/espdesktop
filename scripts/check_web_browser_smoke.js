@@ -8499,6 +8499,7 @@ async function assertStandardIconSizes(browser, testCase) {
       for (const slot of [1, 2, 3]) {
       const card = page.locator(`.sp-main [data-slot="${slot}"]`);
       const widths = {};
+      const measurements = {};
       for (const size of ["Medium", "Large", "Small"]) {
         await card.click();
         await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -8515,9 +8516,13 @@ async function assertStandardIconSizes(browser, testCase) {
         const geometry = await card.evaluate(el => {
           const icon = el.querySelector(".sp-btn-icon").getBoundingClientRect();
           const title = el.querySelector(".sp-btn-label").getBoundingClientRect();
-          return { iconBottom: icon.bottom, titleTop: title.top, width: icon.width };
+          return { iconBottom: icon.bottom, titleTop: title.top, width: icon.width,
+            size: el.dataset.iconSize, cardWidth: el.clientWidth, cardHeight: el.clientHeight,
+            fontSize: getComputedStyle(el.querySelector(".sp-btn-icon")).fontSize,
+            fonts: document.fonts.status };
         });
         widths[size] = geometry.width;
+        measurements[size] = geometry;
         if (size === "Large") assert(!(await card.locator(".sp-btn-label").isVisible()), "Large hides the title");
         else assert(geometry.iconBottom <= geometry.titleTop + 1, `${testCase.name}/${size}: icon stays above title`);
         await card.click();
@@ -8529,7 +8534,7 @@ async function assertStandardIconSizes(browser, testCase) {
         await page.keyboard.press("Escape");
       }
       assert(widths.Medium > widths.Small && widths.Large >= widths.Medium,
-        `${testCase.name}/${native ? "native" : "legacy"}/slot ${slot}: size selections enlarge the visible icon: ${JSON.stringify(widths)}`);
+        `${testCase.name}/${native ? "native" : "legacy"}/slot ${slot}: size selections enlarge the visible icon: ${JSON.stringify(measurements)}`);
       }
     } finally { await context.close(); }
   }
