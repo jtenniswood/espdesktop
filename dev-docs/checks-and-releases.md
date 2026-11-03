@@ -82,7 +82,7 @@ open an issue; cancelled runs do not. Each failed attempt creates a new issue.
 ## Release Boundary
 
 Before tagging, run the complete browser suite on Linux for a pushed branch or
-commit with `gh workflow run ci.yml --ref <pushed-ref> -f browser_preflight=true`.
+tag with `gh workflow run ci.yml --ref <pushed-ref> -f browser_preflight=true`.
 The optional `Release Browser Preflight` job checks browser behavior without
 creating a release tag or draft. It supplements the full release preflight and
 does not build firmware or sign the Mac app.
