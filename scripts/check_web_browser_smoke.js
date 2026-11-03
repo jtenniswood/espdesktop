@@ -2944,7 +2944,7 @@ async function assertContextColourPicker(browser, testCase) {
       await page.waitForFunction(() => window.__eventSources?.length > 0);
       await seedNativeDocument(page, fixture);
       await openPicker(card(1));
-      const submenu = menu.locator(".sp-ctx-submenu");
+      const submenu = menu.locator(".sp-ctx-submenu.sp-ctx-colours");
       const trigger = menu.getByRole("button", { name: "Change Colour", exact: true });
       let menuBounds = await menu.boundingBox();
       let paletteBounds = await submenu.boundingBox();
