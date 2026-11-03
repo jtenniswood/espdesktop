@@ -6869,7 +6869,9 @@ async function assertMediaCoverArtCompactPreview(page, label) {
     largeCard.classList.remove("sp-media-cover-details-single");
     largeCard.classList.add("sp-btn-big");
     largeCard.style.cssText = "position:fixed;left:-1000px;top:0;width:400px;height:400px";
-    document.body.appendChild(largeCard);
+    // Keep container-relative typography scoped to the device preview. Moving
+    // these samples to body makes cqw units use the browser viewport instead.
+    card.parentElement.appendChild(largeCard);
     const largeTitleRect = largeCard.querySelector(".sp-media-cover-details-title").getBoundingClientRect();
     const largeArtistRow = largeCard.querySelector(".sp-media-cover-details-row");
     const largeArtistRect = largeArtistRow.querySelector(".sp-media-now-artist").getBoundingClientRect();
@@ -6878,7 +6880,7 @@ async function assertMediaCoverArtCompactPreview(page, label) {
     extraLargeCard.classList.remove("sp-media-cover-details-single");
     extraLargeCard.classList.add("sp-btn-extra-large");
     extraLargeCard.style.cssText = "position:fixed;left:-1000px;top:0;width:600px;height:600px";
-    document.body.appendChild(extraLargeCard);
+    card.parentElement.appendChild(extraLargeCard);
     const extraLargeTitleLineClamp = getComputedStyle(
       extraLargeCard.querySelector(".sp-media-cover-details-title"),
     ).webkitLineClamp;
@@ -6897,6 +6899,7 @@ async function assertMediaCoverArtCompactPreview(page, label) {
       standardFontWeight: standardStyle.fontWeight,
       hasTypeBadge: Boolean(card.querySelector(".sp-type-badge")),
       largeArtistMarginTop,
+      largeArtistFontSize: getComputedStyle(largeArtistRow.querySelector(".sp-media-now-artist")).fontSize,
       largeTitleArtistGap: largeArtistRect.top - largeTitleRect.bottom,
       extraLargeTitleLineClamp,
       extraLargeArtistFontWeight,
@@ -6913,6 +6916,7 @@ async function assertMediaCoverArtCompactPreview(page, label) {
   assert.strictEqual(layout.fontSize, layout.standardFontSize, `${label}: Cover Art artist uses the card-label size`);
   assert.strictEqual(layout.fontWeight, layout.standardFontWeight, `${label}: Cover Art artist uses the card-label weight`);
   assert.strictEqual(layout.hasTypeBadge, false, `${label}: 1x1 Cover Art omits the card-type icon`);
+  assert.strictEqual(layout.largeArtistFontSize, layout.fontSize, `${label}: 2x2 Cover Art sample keeps device-preview text scaling`);
   assert(layout.largeArtistMarginTop > 0, `${label}: 2x2 Cover Art artist has extra top spacing`);
   assert(layout.largeTitleArtistGap >= layout.largeArtistMarginTop - 1, `${label}: 2x2 Cover Art title and artist remain separated`);
   assert.strictEqual(layout.extraLargeTitleLineClamp, "5", `${label}: 3x3 Cover Art title is limited to five lines`);
