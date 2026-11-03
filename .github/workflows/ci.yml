@@ -2,6 +2,25 @@ name: CI
 
 on:
   workflow_dispatch:
+    inputs:
+      browser_preflight:
+        description: Run the complete release browser checks before tagging
+        type: boolean
+        default: false
+      browser_runner:
+        description: Browser preflight runner
+        type: choice
+        options: [self-hosted, ubuntu-latest]
+        default: self-hosted
+      browser_profile:
+        description: Optional device slug for focused browser checks
+        type: string
+        default: ''
+      browser_scope:
+        description: Browser checks to run
+        type: choice
+        options: [full, standard-icons]
+        default: full
   pull_request:
     types: [opened, synchronize, reopened, edited]
   push:
@@ -37,7 +56,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ inputs.browser_preflight && github.run_id || 'normal' }}
   cancel-in-progress: true
 
 jobs:
@@ -231,6 +250,38 @@ jobs:
 
       - name: Check browser USB installer
         run: npm run docs:check-installer
+
+  browser-preflight:
+    name: Release Browser Preflight
+    if: github.event_name == 'workflow_dispatch' && inputs.browser_preflight
+    runs-on: ${{ inputs.browser_runner }}
+    timeout-minutes: 45
+    steps:
+      - name: Prepare self-hosted workspace
+        if: inputs.browser_runner == 'self-hosted'
+        run: |
+          rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?* 2>/dev/null ||
+            sudo rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?*
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm ci
+      - name: Install browser runtime
+        run: npx playwright install --with-deps chromium
+      - name: Run release browser checks
+        env:
+          ESPDESKTOP_BROWSER_PROFILE: ${{ inputs.browser_profile }}
+          ESPDESKTOP_STANDARD_ICON_SIZES_ONLY: ${{ inputs.browser_scope == 'standard-icons' && '1' || '' }}
+        run: node scripts/check_web_browser_smoke.js
+      - name: Upload browser failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-browser-failures
+          path: .cache/web-browser-smoke/
+          if-no-files-found: ignore
 
   ci-gate:
     name: CI Gate
