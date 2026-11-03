@@ -8528,7 +8528,8 @@ async function assertStandardIconSizes(browser, testCase) {
           .getByRole("button", { name: size, exact: true }).evaluate(el => el.classList.contains("active")), "saved icon size reopens selected");
         await page.keyboard.press("Escape");
       }
-      assert(widths.Medium > widths.Small && widths.Large >= widths.Medium, "size selections enlarge the visible icon");
+      assert(widths.Medium > widths.Small && widths.Large >= widths.Medium,
+        `${testCase.name}/${native ? "native" : "legacy"}/slot ${slot}: size selections enlarge the visible icon: ${JSON.stringify(widths)}`);
       }
     } finally { await context.close(); }
   }
