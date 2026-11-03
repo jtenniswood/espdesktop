@@ -8513,14 +8513,22 @@ async function assertStandardIconSizes(browser, testCase) {
         const deadline = Date.now() + 10000;
         while (!persisted() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
         assert(persisted(), "icon size was saved to the display configuration");
-        const geometry = await card.evaluate(el => {
+        // Saving can replace the preview grid after a locator resolves. Query
+        // and measure the current card in the same browser operation instead
+        // of reading a detached card's zero-size geometry.
+        const geometryHandle = await page.waitForFunction(({ slot, size }) => {
+          const el = document.querySelector(`.sp-main [data-slot="${slot}"]`);
+          if (!el?.isConnected || el.dataset.iconSize !== size || el.clientWidth === 0) return false;
           const icon = el.querySelector(".sp-btn-icon").getBoundingClientRect();
+          if (icon.width === 0 || icon.height === 0) return false;
           const title = el.querySelector(".sp-btn-label").getBoundingClientRect();
           return { iconBottom: icon.bottom, titleTop: title.top, width: icon.width,
             size: el.dataset.iconSize, cardWidth: el.clientWidth, cardHeight: el.clientHeight,
             fontSize: getComputedStyle(el.querySelector(".sp-btn-icon")).fontSize,
             fonts: document.fonts.status };
-        });
+        }, { slot, size: size.toLowerCase() });
+        const geometry = await geometryHandle.jsonValue();
+        await geometryHandle.dispose();
         widths[size] = geometry.width;
         measurements[size] = geometry;
         if (size === "Large") assert(!(await card.locator(".sp-btn-label").isVisible()), "Large hides the title");
