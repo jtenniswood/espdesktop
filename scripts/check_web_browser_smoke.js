@@ -8090,9 +8090,14 @@ async function assertWeatherWidthScaling(browser) {
       return visible[1].getBoundingClientRect().left - visible[0].getBoundingClientRect().right;
     });
     assert(columnGap >= 19, 'Daily forecast preview matches the wider device gap between columns: ' + columnGap);
-    for (const height of [120, 240]) {
+    for (const [height, expectedRows] of [[120, 1], [160, 1], [240, 2]]) {
       await page.locator('#weather').evaluate((card, value) => { card.style.height = value + 'px'; }, height);
       await page.waitForFunction(value => Math.abs(document.querySelector('#weather').getBoundingClientRect().height - value) < 1, height);
+      // ResizeObserver updates the row plan after layout. Measure the settled
+      // result rather than racing the change from a single row to a grid.
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      assert.strictEqual(Number(await page.locator('#weather').getAttribute('data-weather-rows')), expectedRows,
+        `Forecast height ${height}px uses ${expectedRows} row(s).`);
       const columns = await page.locator('.sp-weather-day').evaluateAll(days => days
         .filter(day => getComputedStyle(day).display !== 'none').map(day => {
           const column = day.getBoundingClientRect();
@@ -8105,9 +8110,16 @@ async function assertWeatherWidthScaling(browser) {
       for (const column of columns) {
         assert([column.iconLeft, column.dayLeft, column.temperatureLeft].every(left => Math.abs(left - column.left) < 1),
           'Each forecast day aligns its icon and text to the left.');
-        assert(Math.abs(column.iconTop - column.top) < 1 && Math.abs(column.temperatureBottom - column.bottom) < 1,
-          'Forecast icons stay at the top and temperatures stay at the bottom as the card height changes.');
-        assert(column.dayTop - column.iconBottom > 10, 'Forecast text has open space above it.');
+        if (expectedRows === 1) {
+          assert(Math.abs(column.iconTop - column.top) < 1 && Math.abs(column.temperatureBottom - column.bottom) < 1,
+            'Single-row forecasts keep icons at the top and temperatures at the bottom as the card height changes.');
+          assert(column.dayTop - column.iconBottom > 10, 'Single-row forecast text has open space above it.');
+        } else {
+          assert(column.iconTop >= column.top && column.temperatureBottom <= column.bottom &&
+            Math.abs((column.iconTop - column.top) - (column.bottom - column.temperatureBottom)) < 1,
+            'Grid forecasts centre each complete icon and temperature group within its row.');
+          assert(column.dayTop - column.iconBottom >= 5, 'Grid forecast text keeps its compact icon gap.');
+        }
       }
     }
     console.log('Daily forecast browser scaling passed: ' + counts.join(',') + ' complete columns.');
