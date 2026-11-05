@@ -345,7 +345,7 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const expectedSlackLabels = [
     "Compose a new message", "Start a search", "Browse DMs", "Jump to most recent unread",
-    "Open the All Unread view", "Search this conversation", "Show keyboard shortcuts",
+    "Open the All Unread view", "Search chat", "Show keyboard shortcuts",
     "Previous unread conversation", "Next unread conversation", "Quick switch to channel or DM",
   ];
   if (slackPreset.map((card) => card.label).join("|") !== expectedSlackLabels.join("|")) {

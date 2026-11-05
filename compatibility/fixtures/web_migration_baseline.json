@@ -59,6 +59,7 @@
       "alarmDelayFinalCountdown": 10,
       "temperatureDegreeSymbol": true,
       "subpageChevron": true,
+      "autoOpenAppSubpages": true,
       "timezone": "Europe/London (GMT+0)",
       "temperatureUnit": "°F",
       "language": "en",

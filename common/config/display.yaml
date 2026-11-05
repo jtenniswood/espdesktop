@@ -50,6 +50,13 @@ esphome:
       then:
         - lambda: |-
             espdesktop::set_card_icon_default_size(id(default_icon_size_select).current_option());
+    # Template switches restore before the application core starts. Apply the
+    # saved Companion navigation preference after startup, before grid setup.
+    - priority: -96
+      then:
+        - lambda: |-
+            if (espdesktop::active_espdesktop_app_core() != nullptr)
+              companion_set_auto_open_app_subpages(id(companion_auto_open_app_subpages_enabled).state);
     - priority: -100
       then:
         - lambda: |-
@@ -464,6 +471,25 @@ switch:
             id(indoor_temp_enable).state,
             id(outdoor_temp_enable).state,
             id(indoor_temp), id(outdoor_temp));
+
+  - platform: template
+    name: "${entity_companion_auto_open_app_subpages}"
+    internal: true
+    id: companion_auto_open_app_subpages_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    icon: "mdi:application"
+    web_server:
+      sorting_group_id: sg_display
+    on_turn_on:
+      - lambda: |-
+          if (espdesktop::active_espdesktop_app_core() != nullptr)
+            companion_set_auto_open_app_subpages(true);
+    on_turn_off:
+      - lambda: |-
+          if (espdesktop::active_espdesktop_app_core() != nullptr)
+            companion_set_auto_open_app_subpages(false);
 
   - platform: template
     name: "${entity_screen_subpage_chevron}"

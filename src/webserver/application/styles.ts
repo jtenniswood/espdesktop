@@ -289,6 +289,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal::-webkit-scrollbar-thumb{background:#fff;border-radius:999px}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
         "height:100%;margin:0;border-radius:0;border:none}}" +
+        ".sp-rename-dialog{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:.875rem;line-height:1.5;box-sizing:border-box;padding:var(--gap);margin:auto;width:calc(100% - 40px);max-width:420px;max-height:80dvh;height:fit-content;border:1px solid var(--border);border-radius:var(--radius);color:var(--text)}" +
+        ".sp-rename-dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
+        ".sp-rename-dialog .sp-section-title{padding-right:40px}.sp-rename-dialog .sp-field{margin-bottom:0}.sp-rename-error:empty{display:none}" +
         ".sp-settings-close{position:absolute;top:10px;right:12px;width:36px;height:36px;" +
         "border-radius:999px;border:1px solid var(--border);background:var(--surface2);" +
         "color:var(--text2);display:flex;align-items:center;justify-content:center;" +

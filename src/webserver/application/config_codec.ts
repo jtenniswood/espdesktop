@@ -861,7 +861,7 @@ export function createConfigCodecFeature(
         return EspDesktopModel.parseSubpageOrder(orderStr);
     }
     function subpageOrderForSerialize(this: any, sp?: any) {
-        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel, sp && sp.backColor);
+        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel, sp && sp.backColor, sp && sp.title);
     }
     function subpageSerializedOrder(this: any, sp?: any) {
         if (!sp)
@@ -1023,6 +1023,9 @@ export function createConfigCodecFeature(
         else if (!subpage.backLabel) {
             subpage.backLabel = backLabelFromOrder(subpage.order);
         }
+        if (homeSlot === -1 && (!subpage.backLabel || subpage.backLabel === "Back")) {
+            subpage.backLabel = "Close";
+        }
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
@@ -1038,7 +1041,7 @@ export function createConfigCodecFeature(
         return JSON.stringify(sp.order) !== previousOrder;
     }
     function serializeSubpageGrid(this: any, sp?: any) {
-        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor);
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title);
     }
     function enterSubpage(this: any, homeSlot?: any) {
         state.editingSubpage = homeSlot;

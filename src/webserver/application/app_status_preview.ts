@@ -264,8 +264,16 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
                 const appName = companionShortcutFolderAppLabel(parent?.entity);
                 const label = document.createElement("span");
                 label.className = "sp-clockbar-subpage-label";
-                label.textContent = state.editingSubpage === -1 ? "Special Page" : String(parent?.label || "").trim() || appName || "Subpage";
+                label.textContent = state.editingSubpage === -1 ? state.subpages[-1]?.title || "Special Page" : String(parent?.label || "").trim() || appName || "Subpage";
                 title.title = label.textContent;
+                if (state.editingSubpage === -1 && !state.configLocked) {
+                    title.dataset.renameSpecialPage = "";
+                    title.tabIndex = 0;
+                    title.setAttribute("role", "button");
+                    title.setAttribute("aria-label", "Rename Special Page");
+                    title.title = "Click to rename";
+                    title.style.cursor = "pointer";
+                }
                 title.appendChild(label);
                 container.className = "sp-clockbar-section sp-clockbar-left";
                 container.appendChild(title);
