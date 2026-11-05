@@ -386,6 +386,18 @@ inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
   lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 }
 
+// Back cards inherit the display default just like ordinary cards.
+inline void refresh_subpage_back_layout(BtnSlot &slot, const GridConfig &cfg,
+                                        const DisplayProfile &display, int row_span) {
+  display_apply_main_width(slot.icon_lbl, display);
+  display_apply_slot_text_width(slot, display);
+  if (slot.text_lbl) lv_obj_clear_flag(slot.text_lbl, LV_OBJ_FLAG_HIDDEN);
+  apply_card_label_line_clamp(slot.text_lbl, cfg, row_span);
+  configure_button_label_wrap(slot.text_lbl);
+  espdesktop::card_icons::attach(slot.btn, slot.icon_lbl, slot.text_lbl, "",
+      display_main_width_percent(display), width_compensation_vertical_axis());
+}
+
 inline bool card_slot_static_child(const BtnSlot &s, lv_obj_t *child) {
   const bool is_static_child = child == s.icon_lbl || child == s.sensor_container ||
                                child == s.text_lbl || child == s.subpage_lbl;
@@ -1403,9 +1415,8 @@ inline bool grid_refresh_subpage_layouts(
       entry->back_button, entry->screen,
       sp_order.back_pos % COLS, sp_order.back_pos / COLS,
       sp_order.back_col_span, sp_order.back_row_span, COLS, ROWS);
-    apply_card_label_line_clamp(entry->back_slot.text_lbl, cfg,
+    refresh_subpage_back_layout(entry->back_slot, cfg, display,
                                 sp_order.back_row_span);
-    configure_button_label_wrap(entry->back_slot.text_lbl);
 
     // Preserve card instances (and their HA subscriptions), but hide cards
     // removed from the saved order so stale content is never left visible.
@@ -2386,12 +2397,9 @@ inline void grid_phase2(
     BtnSlot back_slot = create_dynamic_card_slot(
       back_btn, sp_icon_fnt, display_sensor_font(display), sp_btn_fnt, sp_txt_color,
       cfg.subpage_chevron_font);
-    display_apply_main_width(back_slot.icon_lbl, display);
-    display_apply_slot_text_width(back_slot, display);
     lv_label_set_display_text(back_slot.icon_lbl, "\U000F0141");
     lv_label_set_display_text(back_slot.text_lbl, sp_back_label.c_str());
-    apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
-    configure_button_label_wrap(back_slot.text_lbl);
+    refresh_subpage_back_layout(back_slot, cfg, display, sp_ord.back_row_span);
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {

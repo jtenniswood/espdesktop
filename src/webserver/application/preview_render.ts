@@ -316,6 +316,13 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
+                backBtn.setAttribute("data-icon-size", state.defaultIconSize);
+                if (state.defaultIconSize !== "small") {
+                    resizeStandardIcon(backBtn);
+                    standardIconResizeObserver?.observe(backBtn);
+                    const title = backBtn.querySelector(".sp-btn-label");
+                    if (title) standardIconResizeObserver?.observe(title);
+                }
             }
             else if (slot > 0) {
                 if (slot > (c.isSub ? c.buttons.length : c.maxSlots)) {
