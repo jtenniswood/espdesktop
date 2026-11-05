@@ -302,7 +302,7 @@ for (const [slug, device] of Object.entries(manifest.devices || {})) {
   );
   assert.strictEqual(
     generatedTimezones[generatedTimezones.length - 1],
-    "Auto (Home Assistant)",
+    "Auto (Mac Companion)",
     `${slug}: Auto timezone remains available as the new-install default option`
   );
   assert(

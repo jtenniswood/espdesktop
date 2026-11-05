@@ -39,7 +39,7 @@ function deviceConfig(overrides: Partial<DeviceConfig> = {}): DeviceConfig {
 
 export function runStateContractTests(): void {
   const first = createInitialState(deviceConfig({
-    timezoneOptions: ["UTC (GMT+0)", "Auto (Home Assistant)"],
+    timezoneOptions: ["UTC (GMT+0)", "Auto (Mac Companion)"],
     features: { screenRotation: true, screenRotationDefault: "180", screenRotationOptions: ["0", "180"] },
   }));
   const second = createInitialState(deviceConfig());
