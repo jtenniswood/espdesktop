@@ -632,8 +632,11 @@ def firmware_ntp_startup_errors(
     if time_path.exists():
         rel = time_path.relative_to(root)
         text = time_path.read_text(encoding="utf-8")
-        boot_section = text.split("\nselect:", 1)[0]
-        if "- script.execute: ntp_servers_apply" in boot_section:
+        boot_match = re.search(
+            r"(?ms)^esphome:\n(?P<body>.*?)(?=^[A-Za-z_][A-Za-z_0-9]*:|\Z)", text,
+        )
+        boot_section = boot_match.group("body") if boot_match else ""
+        if re.search(r"(?m)^\s*- script.execute: ntp_servers_apply\s*$", boot_section):
             errors.append(f"{rel}: defer custom NTP server apply until networking has an IP address")
         if "# NTP server settings" in text:
             ntp_text_section = text.split("# NTP server settings", 1)[1].split("text_sensor:", 1)[0]
@@ -5832,7 +5835,6 @@ def run_self_test() -> int:
         "  on_boot:\n"
         "    then:\n"
         "      - lambda: apply_timezone();\n"
-        "# Ask Home Assistant for time once connected\n"
         "# NTP server settings\n"
         "text:\n"
         "  - platform: template\n"
