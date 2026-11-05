@@ -87,7 +87,7 @@ export function createAppStateEventHandlersFeature(
     const { render: renderPreview } = preview;
     const { syncPreviewOrientation } = core;
     const els = runtime.els;
-    const { timezoneOptionsWithFallback, isHomeAssistantAutoTimezone } = environment;
+    const { timezoneOptionsWithFallback, isAutomaticTimezone } = environment;
     const { syncUi: syncScreenScheduleUi } = schedule;
     const { applyState: applyScreensaverTimeoutState } = screensaverTimeout;
     const {
@@ -571,7 +571,7 @@ export function createAppStateEventHandlersFeature(
             },
             "text_sensor-screen__active_timezone": function (this: any, val?: any, d?: any) {
                 state.activeTimezone = d.value || val || FALLBACK_TIMEZONE_OPTION;
-                if (isHomeAssistantAutoTimezone(state.timezone)) {
+                if (isAutomaticTimezone(state.timezone)) {
                     if (normalizeTemperatureUnit(state.temperatureUnit) === "Auto")
                         updateTempPreview();
                     renderPreview();

@@ -61,3 +61,11 @@ test("finds compact folder records with escaped labels and reserved card identif
   assert.equal(report[0].type, "light_switch");
   assert.equal(report[0].label, "Desk | light");
 });
+
+test("restoring the former automatic timezone selects Mac timezone without altering manual choices", () => {
+  const { normalizeTimezoneOption } = loadTypescriptTest("src/webserver/model/settings.ts");
+  assert.equal(normalizeTimezoneOption("Auto (Home Assistant)", "UTC (GMT+0)"), "Auto (Mac Companion)");
+  assert.equal(normalizeTimezoneOption("Auto (Mac Companion)", "UTC (GMT+0)"), "Auto (Mac Companion)");
+  assert.equal(normalizeTimezoneOption("Europe/London", "UTC (GMT+0)"), "Europe/London");
+  assert.equal(normalizeTimezoneOption(undefined, "Europe/London"), "Europe/London");
+});

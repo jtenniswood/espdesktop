@@ -1879,7 +1879,7 @@ script:
       - if:
           condition:
             lambda: |-
-              auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+              auto now = id(panel_time).now();
               return screen_schedule_blocks_cover_art(
                        id(screen_schedule_trigger).state,
                        id(schedule_enabled).state,
@@ -2104,7 +2104,7 @@ script:
             lambda: |-
               if (!id(espdesktop_app).display().generation_is_current(
                     id(cover_art_delay_generation))) return false;
-              auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+              auto now = id(panel_time).now();
               bool schedule_blocks = screen_schedule_blocks_cover_art(
                   id(screen_schedule_trigger).state,
                   id(schedule_enabled).state,
@@ -3091,7 +3091,7 @@ script:
       - if:
           condition:
             lambda: |-
-              auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+              auto now = id(panel_time).now();
               bool schedule_blocks = screen_schedule_blocks_cover_art(
                   id(screen_schedule_trigger).state,
                   id(schedule_enabled).state,

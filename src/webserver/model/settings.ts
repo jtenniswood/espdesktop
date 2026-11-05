@@ -457,6 +457,10 @@ function normalizeUpdateFrequency(value: unknown, options: readonly string[], fa
   return options.indexOf(frequency) !== -1 ? frequency : fallback;
 }
 
+export function normalizeTimezoneOption(value: unknown, fallback: string): string {
+  return value === "Auto (Home Assistant)" ? "Auto (Mac Companion)" : String(value || fallback);
+}
+
 export function normalizeBackupPanelSettings(
   settings: Record<string, unknown>,
   current: BackupPanelSettingsCurrent,
@@ -544,7 +548,7 @@ export function normalizeBackupPanelSettings(
     subpageChevron: objectValue(settings, "subpage_chevron") != null
       ? !!settings.subpage_chevron
       : true,
-    timezone: String(settings.timezone || current.timezone),
+    timezone: normalizeTimezoneOption(settings.timezone, current.timezone),
     temperatureUnit: normalizeTemperatureUnit(settings.temperature_unit),
     language: normalizeLanguage(settings.language || current.language),
     clockFormat,

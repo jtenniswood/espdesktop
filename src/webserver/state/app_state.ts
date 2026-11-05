@@ -2,7 +2,7 @@ import type { CardConfig } from "../contracts/types";
 import { WEB_UI_COLORS } from "./ui_tokens";
 import type { AppState, DeviceConfig } from "./types";
 
-export const AUTO_TIMEZONE_OPTION = "Auto (Home Assistant)";
+export const AUTO_TIMEZONE_OPTION = "Auto (Mac Companion)";
 export const FALLBACK_TIMEZONE_OPTION = "UTC (GMT+0)";
 export const NTP_SERVER_DEFAULTS = ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"] as const;
 export const LANGUAGE_LABELS: Readonly<Record<string, string>> = {

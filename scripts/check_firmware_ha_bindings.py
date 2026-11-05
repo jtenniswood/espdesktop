@@ -632,7 +632,7 @@ def firmware_ntp_startup_errors(
     if time_path.exists():
         rel = time_path.relative_to(root)
         text = time_path.read_text(encoding="utf-8")
-        boot_section = text.split("# Ask Home Assistant", 1)[0]
+        boot_section = text.split("\nselect:", 1)[0]
         if "- script.execute: ntp_servers_apply" in boot_section:
             errors.append(f"{rel}: defer custom NTP server apply until networking has an IP address")
         if "# NTP server settings" in text:

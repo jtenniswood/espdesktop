@@ -865,7 +865,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 }
                 if (!controllers.nativePanelConfig?.homeAssistantSupportEnabled() && !requestApi.postQueueError) {
                     const warning = legacyHomeAssistantWarning(legacyHomeAssistantCards(nativeDocument));
-                    if (warning) controllers.shell.showBanner?.(warning, "warning");
+                    if (warning) backupPlan.warnings.push(warning);
                 }
                 return layoutRestoreResult;
                 }

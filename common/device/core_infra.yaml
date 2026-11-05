@@ -107,11 +107,10 @@ script:
             - lambda: |-
                 if (ha_api_connected()) refresh_image_cards();
                 if (ha_api_state_connected()) {
-                  id(homeassistant_time).update();
                   ha_flush_deferred_state_requests();
                 }
             - script.execute: cover_art_resubscribe
-            - script.execute: timezone_after_homeassistant_time_sync
+            - script.execute: timezone_refresh
             - script.execute: backlight_recalc_sunrise_sunset
             - script.execute: screen_schedule_check
             - delay: 8s

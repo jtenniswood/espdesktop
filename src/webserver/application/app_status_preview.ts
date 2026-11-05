@@ -46,7 +46,7 @@ export interface AppStatusPreviewFeature {
 
 export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: CoreFeature, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, clockBar: ClockBarFeature): AppStatusPreviewFeature {
     const { now: webserverNow } = core;
-    const { isHomeAssistantAutoTimezone, effectiveTimezoneOptionForWeb, voiceServicesUiState } = environment;
+    const { isAutomaticTimezone, effectiveTimezoneOptionForWeb, voiceServicesUiState } = environment;
     const els = runtime.els;
     const {
         clockBarTemperatureUnitSymbol,
@@ -56,7 +56,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
     } = clockBar;
     // ── Clock (minute-aligned) ─────────────────────────────────────────────
     function getTzId(this: any, tz?: any) {
-        if (isHomeAssistantAutoTimezone(tz))
+        if (isAutomaticTimezone(tz))
             return "UTC";
         var idx: any = tz.indexOf(" (");
         return idx > 0 ? tz.substring(0, idx) : tz;
@@ -93,7 +93,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         }
     }
     function formatTimezoneOption(this: any, opt?: any) {
-        if (isHomeAssistantAutoTimezone(opt))
+        if (isAutomaticTimezone(opt))
             return opt;
         var tzId: any = getTzId(opt);
         var offset: any = timezoneOffsetMinutes(tzId, webserverNow());
