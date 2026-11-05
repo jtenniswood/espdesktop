@@ -446,7 +446,30 @@ inline std::string get_subpage_back_color(const std::string &order_str) {
       if (label_start == std::string::npos) return "";
       const size_t separator = order_str.find(':', label_start);
       if (separator == std::string::npos || separator >= end) return "";
-      return normalize_card_color_value(order_str.substr(separator + 1, end - separator - 1));
+      const size_t title_separator = order_str.find(':', separator + 1);
+      const size_t color_end = title_separator < end ? title_separator : end;
+      return normalize_card_color_value(order_str.substr(separator + 1, color_end - separator - 1));
+    }
+    start = end + 1;
+  }
+  return "";
+}
+
+// Optional encoded page title follows the back label and colour: B=::My%3APage.
+inline std::string get_subpage_title(const std::string &order_str) {
+  size_t start = 0;
+  while (start < order_str.size()) {
+    size_t end = order_str.find(',', start);
+    if (end == std::string::npos) end = order_str.size();
+    char suffix = '\0';
+    size_t label_start = std::string::npos;
+    if (subpage_back_token_span(order_str, start, end, suffix, &label_start) &&
+        label_start != std::string::npos) {
+      const size_t color = order_str.find(':', label_start);
+      if (color >= end) return "";
+      const size_t title = order_str.find(':', color + 1);
+      if (title >= end) return "";
+      return decode_compact_subpage_field(order_str, title + 1, end - title - 1);
     }
     start = end + 1;
   }

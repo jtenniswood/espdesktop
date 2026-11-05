@@ -16,6 +16,7 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
+  splitSubpageConfigChunks,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = freshWebOutputDir();
@@ -702,6 +703,10 @@ function nativeDocumentEvents(document) {
   });
   Object.entries(document.subpages).forEach(([slot, state]) => {
     events.push({ id: `text-subpage_${slot}_config`, state });
+  });
+  const specialPageChunks = splitSubpageConfigChunks(document.settings.special_page || "", 8, 255) || [];
+  ["", "_ext", "_ext_2", "_ext_3", "_ext_4", "_ext_5", "_ext_6", "_ext_7"].forEach((suffix, index) => {
+    events.push({ id: `text-special_page_config${suffix}`, state: specialPageChunks[index] || "" });
   });
   return events;
 }
@@ -8659,10 +8664,102 @@ async function assertRainfallEditor(browser) {
   } finally {await context.close()}
 }
 
+async function assertSpecialPageRename(browser, testCase) {
+  const nativeState = nativeConfigState(testCase.slug);
+  const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
+    ? { width: 390, height: 844 } : testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  const title = page.getByRole("button", { name: "Rename Special Page", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Rename", exact: true });
+  const input = page.getByLabel("Page name", { exact: true });
+  const custom = "Office: Tools, 50% | 日本語 <test>";
+  async function openPage() {
+    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+    await title.waitFor();
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await openPage();
+    assert.strictEqual(await title.innerText(), "Special Page");
+    await title.click();
+    await input.fill("Cancelled name");
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), "Special Page");
+    await title.press("Enter");
+    await input.fill("Escape name");
+    await input.press("Escape");
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), "Special Page");
+    await title.press("Space");
+    await input.fill(custom);
+    if (process.env.ESPDESKTOP_SPECIAL_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SPECIAL_PAGE_SCREENSHOT });
+    await input.press("Enter");
+    await dialog.waitFor({ state: "hidden" });
+    assert.strictEqual(await title.innerText(), custom);
+    await page.locator(".sp-main .sp-empty-cell").first().click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Paste Code", { exact: true }).click();
+    const pasteDialog = page.locator(".sp-transfer-dialog");
+    await pasteDialog.locator("textarea").fill(JSON.stringify({
+      format: "espdesktop.cards", version: 1, source: { device: testCase.slug, firmware: "test" },
+      cards: [{ entity: "light.kitchen", label: "Kitchen", icon: "Lightbulb", icon_on: "Auto",
+        sensor: "", unit: "", type: "", precision: "", options: "", size: 1 }],
+    }));
+    await pasteDialog.getByRole("button", { name: "Paste", exact: true }).click();
+    assert.deepStrictEqual((await page.locator(".sp-transfer-error").allTextContents()).filter(Boolean), [], "card code is accepted");
+    await pasteDialog.waitFor({ state: "detached" });
+    await waitForNativeState(nativeState, () => nativeState.document.settings.special_page.includes("Kitchen"), "paste a card into the renamed Special Page");
+    assert.strictEqual(await title.innerText(), custom, "pasting a card retains the page name");
+    const saved = nativeState.document.settings.special_page;
+    assert(saved.includes("Office%3A Tools%2C 50%25 %7C 日本語 <test>"));
+    await page.reload();
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await openPage();
+    assert.strictEqual(await title.innerText(), custom, "name persists after reload");
+    await title.click();
+    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
+    assert.strictEqual(await input.inputValue(), "", "reset selects the default title");
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), custom, "cancel discards a reset");
+    await title.click();
+    await dialog.getByRole("button", { name: "Close rename", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), custom, "close preserves the saved name");
+    await title.click();
+    await input.fill("Failed name");
+    let reject = true;
+    await page.route("**/api/v1/config/**", async route => {
+      if (reject && route.request().method() === "PUT") return route.fulfill({ status: 500, body: "Failed" });
+      return route.fallback();
+    });
+    await dialog.getByRole("button", { name: "Save", exact: true }).click();
+    await dialog.getByRole("alert").filter({ hasText: "Could not save" }).waitFor();
+    assert.strictEqual(await title.innerText(), custom, "failure restores the saved title");
+    assert.strictEqual(await input.inputValue(), "Failed name", "failure preserves the draft");
+    assert.strictEqual(nativeState.document.settings.special_page, saved);
+    reject = false;
+    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
+    await input.press("Enter");
+    await dialog.waitFor({ state: "hidden" });
+    assert.strictEqual(await title.innerText(), "Special Page", "saving reset restores default");
+    console.log(`${testCase.name}: Special Page rename, reload, cancel, keyboard and save failure passed.`);
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_SPECIAL_PAGE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSpecialPageRename(browser, testCase);
+      return;
+    }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
@@ -8688,6 +8785,7 @@ async function assertRainfallEditor(browser) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
+    await assertSpecialPageRename(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RAINFALL_ONLY === "1") { await assertRainfallEditor(browser); return; }
