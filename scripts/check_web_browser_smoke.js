@@ -8666,12 +8666,13 @@ async function assertRainfallEditor(browser) {
 
 async function assertSpecialPageRename(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
-  const context = await browser.newContext({ viewport: testCase.viewport });
+  const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
+    ? { width: 390, height: 844 } : testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
   const page = await context.newPage();
   await installFakeEventSource(page);
   const title = page.getByRole("button", { name: "Rename Special Page", exact: true });
-  const dialog = page.getByRole("dialog", { name: "Rename Special Page" });
+  const dialog = page.getByRole("dialog", { name: "Rename", exact: true });
   const input = page.getByLabel("Page name", { exact: true });
   const custom = "Office: Tools, 50% | 日本語 <test>";
   async function openPage() {
@@ -8721,6 +8722,16 @@ async function assertSpecialPageRename(browser, testCase) {
     await openPage();
     assert.strictEqual(await title.innerText(), custom, "name persists after reload");
     await title.click();
+    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
+    assert.strictEqual(await input.inputValue(), "", "reset selects the default title");
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), custom, "cancel discards a reset");
+    await title.click();
+    await dialog.getByRole("button", { name: "Close rename", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), custom, "close preserves the saved name");
+    await title.click();
     await input.fill("Failed name");
     let reject = true;
     await page.route("**/api/v1/config/**", async route => {
@@ -8733,10 +8744,10 @@ async function assertSpecialPageRename(browser, testCase) {
     assert.strictEqual(await input.inputValue(), "Failed name", "failure preserves the draft");
     assert.strictEqual(nativeState.document.settings.special_page, saved);
     reject = false;
-    await input.fill("   ");
+    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
     await input.press("Enter");
     await dialog.waitFor({ state: "hidden" });
-    assert.strictEqual(await title.innerText(), "Special Page", "blank restores default");
+    assert.strictEqual(await title.innerText(), "Special Page", "saving reset restores default");
     console.log(`${testCase.name}: Special Page rename, reload, cancel, keyboard and save failure passed.`);
   } finally { await context.close(); }
 }

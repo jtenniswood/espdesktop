@@ -35,9 +35,9 @@ To customise a Back card, edit its name and colours in the editor. Its default a
 Swipe up from the bottom edge of the home screen or a card subpage to open a
 separate page. A short upward swipe from the bottom edge opens it; a long drag
 is not needed. Configure it with **Special Page** in the web layout editor.
-Click the page title in the preview to rename it, then choose **Save**. Clear the
-name to restore the default. The custom title is saved with the page and appears
-on the display with updated firmware.
+Click the page title in the preview to rename it, then choose **Save**. Use the
+reset icon and save to restore the default. The custom title is saved with the
+page and appears on the display with updated firmware.
 It starts empty, supports ordinary cards, and cannot contain nested subpages.
 Its Back button returns to the screen you came from. Screen Lock blocks the
 swipe, and the gesture is unavailable on setup screens, screensavers and modals.
