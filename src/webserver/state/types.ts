@@ -94,6 +94,7 @@ export interface RuntimeSubpage {
   sizes: SlotSizeMap;
   backLabel?: string;
   backColor?: string;
+  title?: string;
 }
 
 export interface AppClipboard {
