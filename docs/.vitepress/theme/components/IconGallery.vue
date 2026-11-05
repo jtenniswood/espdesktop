@@ -413,6 +413,7 @@ const ICON_GROUPS = {
   'Bunk Bed': 'Rooms & Furniture',
   'Stairs': 'Rooms & Furniture',
   'Menu': 'General',
+  'Search': 'General',
   'Bed King': 'Rooms & Furniture',
   'Bed Queen': 'Rooms & Furniture',
   'Chair Rolling': 'Rooms & Furniture',

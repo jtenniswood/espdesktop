@@ -3187,9 +3187,9 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "5",
-        "label": "Search this conversation",
+        "label": "Search chat",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "6",
