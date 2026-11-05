@@ -34,6 +34,7 @@ struct NavigationSubpageEntry {
   int slot = 0;
   int display_order = 0;
   std::string kind;
+  std::string title;
   lv_obj_t *screen = nullptr;
   lv_obj_t *back_button = nullptr;
   bool back_neutral_background = true;
@@ -314,9 +315,11 @@ inline void navigation_register_subpage(int slot, int display_order,
 }
 
 inline void navigation_register_special_page(lv_obj_t *screen,
-                                             lv_obj_t *main_page_obj) {
+                                             lv_obj_t *main_page_obj,
+                                             const std::string &title = "") {
   navigation_special_page_main_screen() = main_page_obj;
   navigation_register_subpage(NAVIGATION_SPECIAL_PAGE_SLOT, 0, "special", screen);
+  if (auto *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT)) entry->title = title;
   navigation_register_grid_screen_gesture(screen);
 }
 
@@ -396,6 +399,7 @@ inline std::string navigation_active_subpage_label() {
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
+  if (entry && entry->kind == "special") return entry->title;
   if (entry == nullptr || parent == nullptr) return "";
   if (!parent->label.empty()) return parent->label;
   // Unlabelled app folders retain their familiar application-name fallback.

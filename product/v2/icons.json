@@ -1599,6 +1599,11 @@
       "mdi": "speaker-play"
     },
     {
+      "name": "Search",
+      "codepoint": "F0349",
+      "mdi": "magnify"
+    },
+    {
       "name": "Spotlight",
       "codepoint": "F04C8",
       "mdi": "spotlight"
