@@ -570,7 +570,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         positionMenu(ctxMenu, e);
     }
     function addBackButtonMenuItems(this: any) {
-        addCtxItem("pencil", "Edit Label", function (this: any) { openCardSettings(-2); });
+        addCtxItem("pencil", "Edit", function (this: any) { openCardSettings(-2); });
         addColourMenuItem([-2]);
         addIconSizeMenuItem([-2]);
         addCtxItem("keyboard-return", "Exit Subpage", function (this: any) { exitSubpage(); });

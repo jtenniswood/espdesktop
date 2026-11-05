@@ -2889,7 +2889,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await page.locator(".sp-back-btn").waitFor();
       await card(-2).locator(".sp-companion-app-icon").waitFor();
       assert.strictEqual(await card(-2).locator(".sp-btn-label").evaluate(el => getComputedStyle(el, "::before").content),
-        '"‹ "', "Back label retains a small navigation chevron");
+        "none", "Back label has no extra chevron");
       const backWidths = {};
       for (const size of ["Small", "Medium", "Large"]) {
         await chooseSize(-2, size);
@@ -2914,6 +2914,22 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await page.waitForFunction(() => document.querySelector('.sp-back-btn')?.dataset.iconSize === "small");
       const backSaved = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
       assert(!backSaved.includes("app_shortcuts_back_icon_size="), "Use Default clears the override");
+      await card(-2).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit", { exact: true }).click();
+      for (const size of ["Medium", "Large", "Small", "Default"]) {
+        await page.getByRole("group", { name: "App icon size", exact: true }).getByRole("button", { name: size, exact: true }).click();
+        const value = size === "Default" ? "small" : size.toLowerCase();
+        await page.waitForFunction(value => document.querySelector('.sp-back-btn')?.dataset.iconSize === value, value);
+        const deadline = Date.now() + 10000;
+        const savedSize = () => (native ? fixture.document.buttons[2] : legacyTextState.button_2_config) || "";
+        while ((size === "Default" ? savedSize().includes("app_shortcuts_back_icon_size=") :
+            !savedSize().includes(`app_shortcuts_back_icon_size=${value}`)) && Date.now() < deadline)
+          await page.waitForTimeout(25);
+        assert(size === "Default" ? !savedSize().includes("app_shortcuts_back_icon_size=") :
+          savedSize().includes(`app_shortcuts_back_icon_size=${value}`), "Back settings panel persists each icon size");
+        assert(savedSize().includes("icon_size=small"), "Back settings preserve the home icon size");
+      }
+      await page.getByRole("button", { name: "Done", exact: true }).click();
       await chooseSize(1, "Large");
       const subpageSaved = native ? fixture.document.subpages[2] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_2")).map(([,value]) => value).join("");
