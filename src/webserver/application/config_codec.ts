@@ -1023,6 +1023,9 @@ export function createConfigCodecFeature(
         else if (!subpage.backLabel) {
             subpage.backLabel = backLabelFromOrder(subpage.order);
         }
+        if (homeSlot === -1 && (!subpage.backLabel || subpage.backLabel === "Back")) {
+            subpage.backLabel = "Close";
+        }
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {

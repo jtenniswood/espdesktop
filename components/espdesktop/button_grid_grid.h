@@ -2341,7 +2341,7 @@ inline void grid_phase2(
 
     auto sp_btns = parse_subpage_config(sp_cfg);
     std::string sp_order_str = get_subpage_order(sp_cfg);
-    std::string sp_back_label = get_subpage_back_label(sp_order_str);
+    std::string sp_back_label = get_subpage_back_label(sp_order_str, is_special_page);
 
     SubpageOrder sp_ord;
     parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
@@ -2388,7 +2388,7 @@ inline void grid_phase2(
       cfg.subpage_chevron_font);
     display_apply_main_width(back_slot.icon_lbl, display);
     display_apply_slot_text_width(back_slot, display);
-    lv_label_set_display_text(back_slot.icon_lbl, "\U000F0141");
+    lv_label_set_display_text(back_slot.icon_lbl, is_special_page ? "\U000F0156" : "\U000F0141");
     lv_label_set_display_text(back_slot.text_lbl, sp_back_label.c_str());
     apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
     configure_button_label_wrap(back_slot.text_lbl);

@@ -299,12 +299,13 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
                 var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                var backLabel = subpage?.backLabel || "Back";
+                var isSpecialPage = state.editingSubpage === -1;
+                var backLabel = subpage?.backLabel || (isSpecialPage ? "Close" : "Back");
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-chevron-left"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : 'chevron-left') + '"></span>' +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor

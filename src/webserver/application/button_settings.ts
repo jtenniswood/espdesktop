@@ -164,18 +164,19 @@ export function createButtonSettingsFeature(
         var sp: any = getSubpage(state.editingSubpage);
         var title: any = document.createElement("div");
         title.className = "sp-section-title";
-        title.textContent = "Back Button";
+        const defaultLabel = state.editingSubpage === -1 ? "Close" : "Back";
+        title.textContent = defaultLabel + " Button";
         container.appendChild(title);
         var panel: any = document.createElement("div");
         panel.className = "sp-panel";
         var lf: any = document.createElement("div");
         lf.className = "sp-field";
         lf.appendChild(fieldLabel("Label", "sp-sp-inp-back-label"));
-        var labelInp: any = textInput("sp-sp-inp-back-label", sp.backLabel || "Back", "Back");
+        var labelInp: any = textInput("sp-sp-inp-back-label", sp.backLabel || defaultLabel, defaultLabel);
         lf.appendChild(labelInp);
         panel.appendChild(lf);
         function saveBackLabel(this: any) {
-            sp.backLabel = labelInp.value || "Back";
+            sp.backLabel = labelInp.value || defaultLabel;
             saveSubpageConfig(state.editingSubpage);
             renderPreview();
         }
