@@ -36,6 +36,6 @@ Swipe up from the bottom edge of the home screen or a card subpage to open a
 separate page. A short upward swipe from the bottom edge opens it; a long drag
 is not needed. Configure it with **Special Page** in the web layout editor.
 It starts empty, supports ordinary cards, and cannot contain nested subpages.
-Its Back button returns to the screen you came from. Screen Lock blocks the
-swipe, and the gesture is unavailable on setup screens, screensavers and modals.
+Its **Close** button, marked with a cross icon, returns to the screen you came
+from. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
 The page is saved on the display and included in backups.

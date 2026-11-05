@@ -409,8 +409,9 @@ inline bool subpage_back_token_span(const std::string &order_str, size_t start, 
   return true;
 }
 
-inline std::string get_subpage_back_label(const std::string &order_str) {
-  if (order_str.empty()) return espdesktop_i18n(std::string("Back"));
+inline std::string get_subpage_back_label(const std::string &order_str, bool is_special_page = false) {
+  const std::string default_label = espdesktop_i18n(std::string(is_special_page ? "Close" : "Back"));
+  if (order_str.empty()) return default_label;
   size_t st = 0;
   while (st <= order_str.length()) {
     size_t cm = order_str.find(',', st);
@@ -423,14 +424,14 @@ inline std::string get_subpage_back_label(const std::string &order_str) {
           size_t label_end = order_str.find(':', label_start);
           if (label_end == std::string::npos || label_end > cm) label_end = cm;
           std::string label = decode_compact_subpage_field(order_str, label_start, label_end - label_start);
-          return label.empty() ? espdesktop_i18n(std::string("Back")) : label;
+          return label.empty() || (is_special_page && (label == "Back" || label == "Close")) ? default_label : label;
         }
-        return espdesktop_i18n(std::string("Back"));
+        return default_label;
       }
     }
     st = cm + 1;
   }
-  return espdesktop_i18n(std::string("Back"));
+  return default_label;
 }
 
 // A colour suffix follows the encoded label: B=Return%3AHome:FF8C00.
