@@ -21,10 +21,10 @@ inline std::string resolved_card_icon_size(const std::string &override_size) {
 
 // LVGL uses 256 for an unscaled glyph. Large fills the available card area.
 inline int card_icon_zoom(const std::string &size, int icon_width, int icon_height,
-                          int available_width, int available_height) {
+                          int available_width, int available_height, int medium_zoom = 384) {
   const std::string effective = resolved_card_icon_size(size);
-  const int requested = effective == "large" ? 32767 : effective == "medium" ? 384 : 256;
-  if (requested == 256 || icon_width <= 0 || icon_height <= 0) return 256;
+  const int requested = effective == "large" ? 32767 : effective == "medium" ? medium_zoom : 256;
+  if (effective == "small" || icon_width <= 0 || icon_height <= 0) return 256;
   return std::max(1, std::min(requested, std::min(
       available_width * 256 / icon_width, available_height * 256 / icon_height)));
 }

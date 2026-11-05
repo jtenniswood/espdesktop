@@ -785,6 +785,22 @@ def test_climate_card_icon_glyphs() -> None:
         )
 
 
+def test_native_medium_icon_fonts() -> None:
+    for font_path in sorted((ROOT / "devices").glob("*/device/fonts.yaml")):
+        text = font_path.read_text(encoding="utf-8")
+        sizes = {}
+        for role in ("main", "medium"):
+            match = re.search(
+                rf"id: font_icon_{role}\n\s*size: (\d+)\n\s*bpp: 4\n"
+                r"\s*glyphs: !include .*common/assets/icon_glyphs.yaml", text)
+            assert match, f"{font_path}: missing full 4bpp {role} icon font"
+            sizes[role] = int(match.group(1))
+        assert sizes["medium"] == sizes["main"] * 3 // 2, font_path
+        sensors = font_path.with_name("sensors.yaml").read_text(encoding="utf-8")
+        assert sensors.count("cfg.medium_icon_font = id(font_icon_medium)->get_lv_font();") == sensors.count(
+            "cfg.icon_font = id(font_icon_main)->get_lv_font();"), font_path
+
+
 def test_weather_card_visual_matches_preview() -> None:
     cards = BUTTON_GRID_CARDS.read_text(encoding="utf-8")
     weather_driver = BUTTON_GRID_WEATHER_DRIVER.read_text(encoding="utf-8")
@@ -1091,6 +1107,7 @@ def main() -> int:
     test_web_screen_aspect_matches_public_resolution()
     test_web_card_geometry_matches_firmware()
     test_setup_icon_glyphs()
+    test_native_medium_icon_fonts()
     test_weather_card_visual_matches_preview()
     test_s3_exposes_weather_forecasts(profiles)
     test_weather_card_mode_visibility_reset()

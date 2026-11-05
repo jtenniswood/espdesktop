@@ -39,6 +39,7 @@ struct GridConfig {
   int color_correction_blue_percent = COLOR_CORRECTION_BLUE_PERCENT;
   const lv_font_t *small_text_font = nullptr;
   const lv_font_t *icon_font;
+  const lv_font_t *medium_icon_font = nullptr;
   const lv_font_t *sp_sensor_font;
   const lv_font_t *sp_large_sensor_font = nullptr;
   int large_sensor_unit_offset_percent = -10;
@@ -1056,7 +1057,7 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
   display_apply_main_width(s.icon_lbl, display);
   espdesktop::card_icons::attach(s.btn, s.icon_lbl, s.text_lbl,
       cfg_option_value(p.options, "icon_size"), display_main_width_percent(display),
-      width_compensation_vertical_axis());
+      width_compensation_vertical_axis(), cfg.medium_icon_font);
   control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);
 #ifdef USE_COMPANION

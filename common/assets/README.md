@@ -16,7 +16,8 @@ the right size on every device.
 
 | Style ID | Intended use |
 | --- | --- |
-| `font_icon_main` | Main action icons and setup icons |
+| `font_icon_main` | Small action icons and setup icons |
+| `font_icon_medium` | Native Medium card icons; higher-resolution source for Large |
 | `font_icon_card` | Smaller fixed climate option chip icons |
 | `font_icon_status` | Status, network, and subpage indicator icons |
 | `font_text_body` | Labels, setup body copy, and normal UI text |

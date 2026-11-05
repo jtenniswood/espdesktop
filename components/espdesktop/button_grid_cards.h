@@ -3,7 +3,7 @@
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 #include "button_grid_datetime_cards.h"
-#include "card_icon_size.h"
+#include "card_icon_layout.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
@@ -155,7 +155,7 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   const int width = lv_obj_get_content_width(button);
   const int height = lv_obj_get_content_height(button);
   const lv_font_t *font = source.fallback_icon
-      ? lv_obj_get_style_text_font(source.fallback_icon, LV_PART_MAIN) : nullptr;
+      ? espdesktop::card_icons::native_font(source.fallback_icon) : nullptr;
   const int small_side = font ? font->line_height : 48;
   const int gap = std::max(3, small_side / 4);
   const int label_height = source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)

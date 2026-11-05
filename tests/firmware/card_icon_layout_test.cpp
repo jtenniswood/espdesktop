@@ -8,7 +8,7 @@ constexpr int LV_EVENT_SIZE_CHANGED = 2, LV_EVENT_LAYOUT_CHANGED = 3, LV_EVENT_S
 constexpr int LV_OBJ_FLAG_HIDDEN = 1, LV_COORD_MAX = 32767, LV_TEXT_FLAG_NONE = 0;
 struct lv_point_t { int x = 0, y = 0; };
 struct lv_area_t { int x1 = 0, y1 = 0, x2 = 199, y2 = 199; };
-struct lv_font_t {};
+struct lv_font_t { int line_height = 48; };
 struct lv_obj_t;
 struct lv_event_t { lv_obj_t *target; int code; void *data; };
 using Callback = void (*)(lv_event_t *);
@@ -16,15 +16,17 @@ struct Event { Callback cb; void *data; };
 struct lv_obj_t {
   lv_area_t bounds;
   lv_font_t font;
+  const lv_font_t *selected_font = &font;
   int pad = 10, zoom_x = 256, zoom_y = 256;
   bool hidden = false;
   std::vector<Event> events;
 };
 void lv_obj_update_layout(lv_obj_t *) {}
 const char *lv_label_get_text(lv_obj_t *) { return "icon"; }
-lv_font_t *lv_obj_get_style_text_font(lv_obj_t *o, int) { return &o->font; }
+const lv_font_t *lv_obj_get_style_text_font(lv_obj_t *o, int) { return o->selected_font; }
+void lv_obj_set_style_text_font(lv_obj_t *o, const lv_font_t *font, int) { o->selected_font = font; }
 int lv_obj_get_style_text_letter_space(lv_obj_t *, int) { return 0; }
-void lv_text_get_size(lv_point_t *p, const char *, lv_font_t *, int, int, int, int) { *p = {48,48}; }
+void lv_text_get_size(lv_point_t *p, const char *, const lv_font_t *font, int, int, int, int) { *p = {font->line_height,font->line_height}; }
 void lv_obj_get_coords(lv_obj_t *o, lv_area_t *out) { *out = o->bounds; }
 int lv_obj_get_style_pad_right(lv_obj_t *o, int) { return o->pad; }
 int lv_obj_get_style_pad_bottom(lv_obj_t *o, int) { return o->pad; }
@@ -84,6 +86,19 @@ int main() {
   espdesktop::set_card_icon_default_size("Large");
   espdesktop::card_icons::attach(&card,&icon,&label,"small",100,false);
   assert(!label.hidden && icon.zoom_x == 256);
+  // Medium uses native 72px artwork at 1:1, while the original 48px Small
+  // and app-artwork reference remain intact across size changes.
+  lv_font_t medium{72};
+  espdesktop::card_icons::attach(&card,&icon,&label,"medium",100,false,&medium);
+  assert(icon.selected_font == &medium && icon.zoom_x == 256);
+  assert(espdesktop::card_icons::native_font(&icon) == &icon.font);
+  espdesktop::card_icons::attach(&card,&icon,&label,"small",100,false,&medium);
+  assert(icon.selected_font == &icon.font && icon.zoom_x == 256);
+  // Medium must still shrink to fit a narrow card, including compensation.
+  card.bounds.x2 = 69;
+  espdesktop::card_icons::attach(&card,&icon,&label,"medium",80,false,&medium);
+  assert(icon.zoom_x == 179 && icon.zoom_y == 224);
+  card.bounds.x2 = 199;
   icon.hidden = true;
   espdesktop::card_icons::attach(&card,&icon,&label,"",100,false);
   assert(!label.hidden); // Cards without visible icons retain their labels.

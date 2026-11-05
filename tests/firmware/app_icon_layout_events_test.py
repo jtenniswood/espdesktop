@@ -64,6 +64,9 @@ lv_obj_t *lv_obj_get_parent(lv_obj_t *o) { return o->parent; }
 int lv_obj_get_content_width(lv_obj_t *o) { return o->width; }
 int lv_obj_get_content_height(lv_obj_t *o) { return o->height; }
 const lv_font_t *lv_obj_get_style_text_font(lv_obj_t *o, int) { return &o->font; }
+namespace espdesktop::card_icons {
+const lv_font_t *native_font(lv_obj_t *o) { return lv_obj_get_style_text_font(o, LV_PART_MAIN); }
+}
 bool lv_obj_has_flag(lv_obj_t *o, int) { return o->hidden; }
 int lv_obj_get_height(lv_obj_t *o) { return o->height; }
 void lv_obj_set_size(lv_obj_t *o, int w, int h) { o->width = w; o->height = h; }

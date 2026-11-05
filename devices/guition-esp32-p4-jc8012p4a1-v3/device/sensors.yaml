@@ -83,6 +83,7 @@ script:
           cfg.modal_profile.memory_tier = DisplayModalMemoryTier::STANDARD;
           cfg.modal_profile.base_touch_target = 76;
           cfg.icon_font = id(font_icon_main)->get_lv_font();
+          cfg.medium_icon_font = id(font_icon_medium)->get_lv_font();
           cfg.sp_sensor_font = id(font_number_value)->get_lv_font();
           cfg.sp_large_sensor_font = id(font_number_value_large)->get_lv_font();
           cfg.large_sensor_unit_offset_percent = -10;
@@ -282,6 +283,7 @@ script:
           cfg.modal_profile.memory_tier = DisplayModalMemoryTier::STANDARD;
           cfg.modal_profile.base_touch_target = 76;
           cfg.icon_font = id(font_icon_main)->get_lv_font();
+          cfg.medium_icon_font = id(font_icon_medium)->get_lv_font();
           cfg.sp_sensor_font = id(font_number_value)->get_lv_font();
           cfg.sp_large_sensor_font = id(font_number_value_large)->get_lv_font();
           cfg.large_sensor_unit_offset_percent = -10;
@@ -518,6 +520,7 @@ esphome:
             cfg.modal_profile.memory_tier = DisplayModalMemoryTier::STANDARD;
             cfg.modal_profile.base_touch_target = 76;
             cfg.icon_font = id(font_icon_main)->get_lv_font();
+            cfg.medium_icon_font = id(font_icon_medium)->get_lv_font();
             cfg.sp_sensor_font = id(font_number_value)->get_lv_font();
             cfg.sp_large_sensor_font = id(font_number_value_large)->get_lv_font();
             cfg.large_sensor_unit_offset_percent = -10;
@@ -706,6 +709,7 @@ esphome:
             cfg.modal_profile.memory_tier = DisplayModalMemoryTier::STANDARD;
             cfg.modal_profile.base_touch_target = 76;
             cfg.icon_font = id(font_icon_main)->get_lv_font();
+            cfg.medium_icon_font = id(font_icon_medium)->get_lv_font();
             cfg.sp_sensor_font = id(font_number_value)->get_lv_font();
             cfg.sp_large_sensor_font = id(font_number_value_large)->get_lv_font();
             cfg.large_sensor_unit_offset_percent = -10;

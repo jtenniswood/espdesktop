@@ -13,6 +13,13 @@ font:
     bpp: 4
     glyphs: !include ../../../common/assets/icon_glyphs.yaml
 
+  # Native medium card icons; avoid enlarging the small glyph bitmap.
+  - file: '${mdi_font_file}'
+    id: font_icon_medium
+    size: 93
+    bpp: 4
+    glyphs: !include ../../../common/assets/icon_glyphs.yaml
+
   # Smaller card icons
   - file: '${mdi_font_file}'
     id: font_icon_card
