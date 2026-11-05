@@ -726,8 +726,9 @@ if "lv_obj_align(icon_lbl, LV_ALIGN_TOP_LEFT, 0, 0);" not in climate:
 if "configure_button_label_wrap(text_lbl);" not in subscriptions:
     raise SystemExit("Toggle state updates must restore full-width label wrapping when icons reappear")
 for required in (
-    "configure_button_label_wrap(entry->back_slot.text_lbl);",
-    "configure_button_label_wrap(back_slot.text_lbl);",
+    "configure_button_label_wrap(slot.text_lbl);",
+    "refresh_subpage_back_layout(entry->back_slot, cfg, display,",
+    "refresh_subpage_back_layout(back_slot, cfg, display, sp_ord.back_row_span);",
 ):
     if required not in grid:
         raise SystemExit(f"Subpage label clamps must restore full-width wrapping: {required}")

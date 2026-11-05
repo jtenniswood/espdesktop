@@ -977,8 +977,13 @@ def test_card_label_line_clamp_matches_preview_on_subpages() -> None:
     assert "lv_obj_set_style_max_height(label, max_height, LV_PART_MAIN);" in grid, (
         "card labels must clip only after reaching the configured line limit"
     )
-    assert "apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);" in grid, (
+    back_layout = re.search(r"inline void refresh_subpage_back_layout\([\s\S]*?\n\}", grid)
+    assert back_layout, "back cards must share a layout routine"
+    assert "apply_card_label_line_clamp(slot.text_lbl, cfg, row_span);" in back_layout.group(0), (
         "subpage back labels must follow the configured line limit"
+    )
+    assert "refresh_subpage_back_layout(back_slot, cfg, display, sp_ord.back_row_span);" in grid, (
+        "new back cards must apply their row span through the shared layout routine"
     )
     assert "refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);" in grid, (
         "subpage card labels must follow the configured line limit before card-specific geometry is restored"
