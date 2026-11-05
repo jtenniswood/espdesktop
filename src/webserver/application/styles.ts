@@ -735,6 +735,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "cursor:pointer;padding:0;background:transparent;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.65)}" +
         ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-start}" +
         ".sp-btn[data-icon-size=large] .sp-btn-label{display:none}" +
+        ".sp-btn.sp-app-back-btn[data-icon-size=large] .sp-btn-label{display:block}" +
         ".sp-hide-subpage-chevrons .sp-subpage-badge{display:none}" +
         "@media(max-width:768px){" +
         ":root{--gap:12px}" +

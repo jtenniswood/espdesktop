@@ -25,6 +25,7 @@ import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { isBackOrderToken } from "../model/subpage";
 
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
+export const COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION = "app_shortcuts_back_icon_size";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
 export const FINDER_OPEN_BEHAVIOR_OPTION = "finder_open_behavior";
 export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
@@ -113,6 +114,9 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
     if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return finish(options);
+    const backIconSize = configOptionValue(card.options, COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION);
+    if (["small", "medium", "large"].includes(backIconSize))
+        options = setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION, backIconSize);
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :

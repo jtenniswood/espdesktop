@@ -1525,6 +1525,9 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     add_token("app_shortcuts");
     const std::string tabs = companion_app_shortcut_tabs_normalized(p);
     if (!tabs.empty()) add_token("app_shortcuts_tabs=" + encode_compact_field(tabs));
+    const std::string back_icon_size = cfg_option_value(p.options, "app_shortcuts_back_icon_size");
+    if (back_icon_size == "small" || back_icon_size == "medium" || back_icon_size == "large")
+      add_token("app_shortcuts_back_icon_size=" + back_icon_size);
   }
   if (p.type == "companion" && p.entity.rfind("shortcut.", 0) != 0) {
     const std::string custom_color = cfg_option_value(p.options, "app_bg_color");

@@ -3107,6 +3107,20 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "docsHidden": true
       },
       {
+        "name": "app_shortcuts_back_icon_size",
+        "label": "App Subpage Back Icon Size",
+        "kind": "choice",
+        "values": [
+          "small",
+          "medium",
+          "large"
+        ],
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true,
+        "defaultValue": "small"
+      },
+      {
         "name": "app_shortcut_preset",
         "label": "App Shortcut Preset",
         "kind": "text",
@@ -3197,6 +3211,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "finder_open_behavior",
         "finder_open_override",
         "app_shortcuts_tabs",
+        "app_shortcuts_back_icon_size",
         "app_shortcut_preset",
         "large_numbers",
         "stat_labels_off",
@@ -5099,6 +5114,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_hide_label": "app_hide_label",
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
+  "app_shortcuts_back_icon_size": "app_shortcuts_back_icon_size",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
   "center_clock": "center_clock",
   "climate_tabs": "climate_tabs",

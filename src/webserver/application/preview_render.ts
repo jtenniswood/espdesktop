@@ -1,7 +1,9 @@
+import { companionCardHasAppIcon } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
+import { companionAppShortcutFolderEnabled, COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION } from "./companion_shortcut_folder";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
@@ -249,6 +251,41 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.setAttribute("aria-label", "Rename card");
         title.title = "Click to rename; Enter to save";
     }
+    function bindAppIconPreview(btn: HTMLElement, applicationId: string, backgroundColor: string, applyPalette = true): void {
+        const fallbackIcon = btn.querySelector<HTMLElement>(".sp-companion-app-icon-fallback");
+        const loadAppIcon = function (attempt: number): void {
+            void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
+                if (!btn.isConnected) return;
+                if (!previewIcon) {
+                    if (attempt < 12) window.setTimeout(function () {
+                        loadAppIcon(attempt + 1);
+                    }, Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
+                    return;
+                }
+                const appIcon = document.createElement("img");
+                appIcon.className = "sp-btn-icon sp-companion-app-icon" + (btn.classList.contains("sp-back-btn") ? " sp-back-hit" : "");
+                btn.classList.add("sp-companion-app-icon-fit-card");
+                appIcon.alt = "";
+                appIcon.setAttribute("aria-hidden", "true");
+                appIcon.src = previewIcon.dataUrl;
+                appIconArtwork.set(appIcon, previewIcon);
+                btn.appendChild(appIcon);
+                resizeAppIcon(btn);
+                appIconResizeObserver?.observe(btn);
+                const label = btn.querySelector(".sp-btn-label");
+                if (label) appIconResizeObserver?.observe(label);
+                if (fallbackIcon) fallbackIcon.hidden = true;
+                if (applyPalette && previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
+                    btn.style.backgroundColor = "#" + previewIcon.defaultColor;
+                    btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
+                    btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
+                    btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
+                    btn.classList.add("sp-companion-app-icon-card");
+                }
+            });
+        };
+        loadAppIcon(0);
+    }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
@@ -297,6 +334,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
+                const parent = c.isSub ? state.buttons[Number(state.editingSubpage) - 1] : null;
+                if (parent && companionAppShortcutFolderEnabled(parent) && companionCardHasAppIcon(parent)) {
+                    backBtn.classList.add("sp-app-back-btn");
+                    backBtn.setAttribute("data-icon-size", cardIconSize(
+                        "icon_size=" + configOptionValue(parent.options, COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION), state.defaultIconSize));
+                    const fallback = backBtn.querySelector(".sp-btn-icon");
+                    fallback?.classList.add("sp-companion-app-icon-fallback");
+                    bindAppIconPreview(backBtn, parent.entity, "", false);
+                }
+
             }
             else if (slot > 0) {
                 if (slot > (c.isSub ? c.buttons.length : c.maxSlots)) {
@@ -392,42 +439,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 btn.setAttribute("data-icon-size", appIconSize);
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {
-                    const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
-                    const applicationId = typePreview.appIconId;
-                    const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
-                        ? typePreview.appIconBackgroundColor : "");
-                    const loadAppIcon = function (attempt: number): void {
-                        void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
-                            if (!btn.isConnected) return;
-                            if (!previewIcon) {
-                                if (attempt < 12) window.setTimeout(function () {
-                                    loadAppIcon(attempt + 1);
-                                }, Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
-                                return;
-                            }
-                        const appIcon = document.createElement("img");
-                        appIcon.className = "sp-btn-icon sp-companion-app-icon";
-                        btn.classList.add("sp-companion-app-icon-fit-card");
-                        appIcon.alt = "";
-                        appIcon.setAttribute("aria-hidden", "true");
-                        appIcon.src = previewIcon.dataUrl;
-                        appIconArtwork.set(appIcon, previewIcon);
-                        btn.appendChild(appIcon);
-                        resizeAppIcon(btn);
-                        appIconResizeObserver?.observe(btn);
-                        const label = btn.querySelector(".sp-btn-label");
-                        if (label) appIconResizeObserver?.observe(label);
-                        if (fallbackIcon) fallbackIcon.hidden = true;
-                        if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
-                            btn.style.backgroundColor = "#" + previewIcon.defaultColor;
-                            btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
-                            btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
-                            btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
-                            btn.classList.add("sp-companion-app-icon-card");
-                        }
-                        });
-                    };
-                    loadAppIcon(0);
+                    bindAppIconPreview(btn, typePreview.appIconId, cardOffColor ||
+                        (typeof typePreview.appIconBackgroundColor === "string" ? typePreview.appIconBackgroundColor : ""));
                 }
                 if (["light_brightness", "fan_speed", "cover", "slider", "light_temperature"].indexOf(b.type) !== -1) {
                     applySliderPreviewTextContrast(btn, cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary, sliderFillColor);

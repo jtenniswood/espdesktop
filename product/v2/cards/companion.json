@@ -47,6 +47,20 @@
       "docsHidden": true
     },
     {
+      "name": "app_shortcuts_back_icon_size",
+      "label": "App Subpage Back Icon Size",
+      "kind": "choice",
+      "values": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "omitDefault": true,
+      "hidden": true,
+      "docsHidden": true,
+      "defaultValue": "small"
+    },
+    {
       "name": "app_shortcut_preset",
       "label": "App Shortcut Preset",
       "kind": "text",
@@ -137,6 +151,7 @@
       "finder_open_behavior",
       "finder_open_override",
       "app_shortcuts_tabs",
+      "app_shortcuts_back_icon_size",
       "app_shortcut_preset",
       "large_numbers",
       "stat_labels_off",

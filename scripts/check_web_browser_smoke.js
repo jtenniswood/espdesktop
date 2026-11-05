@@ -2887,12 +2887,62 @@ async function assertAutomaticAppIcons(browser, testCase) {
       // Use the same menu inside a subpage and verify the complete subpage record.
       await card(2).locator(".sp-subpage-badge").click();
       await page.locator(".sp-back-btn").waitFor();
+      await card(-2).locator(".sp-companion-app-icon").waitFor();
+      assert.strictEqual(await card(-2).locator(".sp-btn-label").evaluate(el => getComputedStyle(el, "::before").content),
+        "none", "Back label has no extra chevron");
+      const backWidths = {};
+      for (const size of ["Small", "Medium", "Large"]) {
+        await chooseSize(-2, size);
+        const deadline = Date.now() + 10000;
+        while (!(native ? fixture.document.buttons[2] : legacyTextState.button_2_config)?.includes(`app_shortcuts_back_icon_size=${size.toLowerCase()}`) && Date.now() < deadline)
+          await page.waitForTimeout(25);
+        const saved = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
+        assert(saved.includes(`app_shortcuts_back_icon_size=${size.toLowerCase()}`), `Back icon size persists on its parent app card (${native ? "native" : "legacy"}, ${size}): ${saved}`);
+        assert(saved.includes("icon_size=small"), "Back size leaves the home icon size unchanged");
+        assert(await card(-2).locator(".sp-btn-label").isVisible(), "Back label stays visible at every icon size");
+        const measured = await page.waitForFunction(() => {
+          const icon = document.querySelector('.sp-back-btn .sp-companion-app-icon');
+          const width = icon?.getBoundingClientRect().width;
+          return width > 0 ? width : false;
+        });
+        backWidths[size] = await measured.jsonValue();
+      }
+      assert(backWidths.Small < backWidths.Medium && backWidths.Medium < backWidths.Large, "Back artwork uses all three sizes");
+      await card(-2).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByRole("button", { name: "App Icon Size", exact: true }).click();
+      await page.locator(".sp-ctx-submenu").getByRole("button", { name: "Use Default", exact: true }).click();
+      await page.waitForFunction(() => document.querySelector('.sp-back-btn')?.dataset.iconSize === "small");
+      const backSaved = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
+      assert(!backSaved.includes("app_shortcuts_back_icon_size="), "Use Default clears the override");
+      await card(-2).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit", { exact: true }).click();
+      for (const size of ["Medium", "Large", "Small", "Default"]) {
+        await page.getByRole("group", { name: "App icon size", exact: true }).getByRole("button", { name: size, exact: true }).click();
+        const value = size === "Default" ? "small" : size.toLowerCase();
+        await page.waitForFunction(value => document.querySelector('.sp-back-btn')?.dataset.iconSize === value, value);
+        const deadline = Date.now() + 10000;
+        const savedSize = () => (native ? fixture.document.buttons[2] : legacyTextState.button_2_config) || "";
+        while ((size === "Default" ? savedSize().includes("app_shortcuts_back_icon_size=") :
+            !savedSize().includes(`app_shortcuts_back_icon_size=${value}`)) && Date.now() < deadline)
+          await page.waitForTimeout(25);
+        assert(size === "Default" ? !savedSize().includes("app_shortcuts_back_icon_size=") :
+          savedSize().includes(`app_shortcuts_back_icon_size=${value}`), "Back settings panel persists each icon size");
+        assert(savedSize().includes("icon_size=small"), "Back settings preserve the home icon size");
+      }
+      await page.getByRole("button", { name: "Done", exact: true }).click();
       await chooseSize(1, "Large");
       const subpageSaved = native ? fixture.document.subpages[2] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_2")).map(([,value]) => value).join("");
       assert(subpageSaved.includes("icon_size=large"), "subpage icon size is saved");
       await chooseSize(1, "Small");
       assert(await card(1).locator(".sp-btn-label").isVisible(), "subpage label returns with Small");
+      await card(-2).locator(".sp-companion-app-icon").waitFor();
+      const backHit = await card(-2).locator(".sp-companion-app-icon").boundingBox();
+      await page.mouse.click(backHit.x + backHit.width / 2, backHit.y + backHit.height / 2);
+      await page.waitForFunction(() => !document.querySelector('.sp-back-btn'));
+      await card(2).locator(".sp-subpage-badge").click();
+      await card(-2).locator(".sp-companion-app-icon").waitFor();
+      assert.strictEqual(await card(-2).getAttribute("data-icon-size"), "small", "Back default survives leaving and reopening the subpage");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
   }

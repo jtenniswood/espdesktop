@@ -26,7 +26,7 @@ import type { PreviewRenderFeature } from "./preview_render";
 import { cardPickerConnectors, type CardPickerConnector } from "../features/preview";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
-import { cardOwnsSubpage } from "./companion_shortcut_folder";
+import { companionAppShortcutFolderEnabled, COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION, cardOwnsSubpage } from "./companion_shortcut_folder";
 
 export function entityMatchesDomains(entityId?: any, domains?: any): boolean {
     var value: any = String(entityId || "").trim();
@@ -195,6 +195,41 @@ export function createButtonSettingsFeature(
                 saveSubpageConfig(state.editingSubpage);
                 renderPreview();
             });
+        const homeSlot = Number(state.editingSubpage);
+        const parent = state.buttons[homeSlot - 1];
+        if (parent && companionAppShortcutFolderEnabled(parent) && companionCardHasAppIcon(parent)) {
+            const optionKey = COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION;
+            const iconSizes = segmentControl([
+                ["", "Default"], ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
+            ], configOptionValue(parent.options, optionKey), async (size: string) => {
+                if (isConfigLocked() || state.editingSubpage !== homeSlot || state.buttons[homeSlot - 1] !== parent) return;
+                const previous = parent.options;
+                const next = setConfigOptionValue(previous, optionKey, size);
+                if (new TextEncoder().encode(serializeButtonConfig({ ...parent, options: next })).length > configPersistence.buttonConfigByteLimit()) {
+                    showBanner("Card settings are too large to save. Shorten labels or entity IDs.", "error");
+                    renderButtonSettings();
+                    return;
+                }
+                Object.values(iconSizes.buttons).forEach((button: any) => { button.disabled = true; });
+                parent.options = next;
+                try {
+                    const result = await configPersistence.saveButtonConfig(homeSlot);
+                    if (result == null || result === false || result.ok === false ||
+                        ["authentication-required", "conflict", "too-large", "failed", "unsupported"].includes(result))
+                        throw new Error("Icon size save failed");
+                } catch {
+                    if (parent.options === next) parent.options = previous;
+                    showBanner("Could not save the icon size. Reload the configuration and try again.", "error");
+                } finally {
+                    renderPreview();
+                    if (state.editingSubpage === homeSlot && ctx().selected[0] === -2 && els.settingsOverlay?.classList.contains("sp-visible"))
+                        renderButtonSettings();
+                }
+            });
+            iconSizes.segment.setAttribute("role", "group");
+            iconSizes.segment.setAttribute("aria-label", "App icon size");
+            panel.appendChild(fieldWithControl("App icon size", null, iconSizes.segment));
+        }
         var doneRow: any = document.createElement("div");
         doneRow.className = "sp-btn-row sp-btn-row--save";
         var doneBtn: any = createActionButton("sp-action-btn sp-save-btn", "Done");
