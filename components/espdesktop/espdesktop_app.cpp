@@ -571,6 +571,9 @@ void EspDesktopApp::sync_finder_folders() {
 void EspDesktopApp::loop() {
   home_assistant_endpoint_.loop();
   core_.run_once();
+  // Transport callbacks only request a refresh; apply it on the UI loop.
+  // The atomic flag keeps this cheap when no Companion state has changed.
+  companion_refresh_cards_if_requested();
   sync_finder_folders();
   // The app core starts before WiFi so Home Assistant boot automations are
   // safe. The IDF web server starts later, so retry idempotent registrations.

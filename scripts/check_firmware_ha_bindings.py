@@ -2635,8 +2635,8 @@ def firmware_screensaver_wake_guard_errors(
                 errors.append(f"{rel}: keep the shared wake guard until the wake touch is released")
             if "timeout: 2s" not in guard_body:
                 errors.append(f"{rel}: clear the shared wake guard after a stuck touch timeout")
-            if "delay: 250ms" not in guard_body:
-                errors.append(f"{rel}: retain the shared wake guard while touch input settles")
+            if "delay: 50ms" not in guard_body:
+                errors.append(f"{rel}: retain a short shared wake guard while touch input settles")
             if "screensaver_fill_screen(id(screensaver_wake_touch_guard))" not in guard_body:
                 errors.append(f"{rel}: resize the shared wake guard for every display layout")
             if "lv_obj_move_foreground(id(screensaver_wake_touch_guard))" not in guard_body:
@@ -7453,7 +7453,7 @@ def run_self_test() -> int:
         "          condition:\n"
         "            lambda: 'return lv_indev_get_state(indev) != LV_INDEV_STATE_PRESSED;'\n"
         "          timeout: 2s\n"
-        "      - delay: 250ms\n"
+        "      - delay: 50ms\n"
         "      - globals.set:\n"
         "          id: screensaver_wake_touch_guard_active\n"
         "          value: 'false'\n"

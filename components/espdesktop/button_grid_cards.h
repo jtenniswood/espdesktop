@@ -478,7 +478,7 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
   static lv_style_transition_dsc_t push_trans;
   static bool push_trans_inited = false;
   if (!push_trans_inited) {
-    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 400, 0, NULL);
+    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 120, 0, NULL);
     push_trans_inited = true;
   }
   lv_obj_set_style_transition(btn, &push_trans,

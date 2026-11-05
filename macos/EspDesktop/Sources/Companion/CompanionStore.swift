@@ -466,8 +466,14 @@ final class CompanionStore: NSObject, ObservableObject {
             let result = folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
             return result.isEmpty ? [] : [result]
         }
-        guard CompanionWindowDetector.hasVisibleWindow(for: application),
-              approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
+        guard approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
+        let visible = await CompanionFocusQuery.waitForVisibleWindow(
+            isCurrentApplication: {
+                NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier
+            },
+            hasVisibleWindow: { CompanionWindowDetector.hasVisibleWindow(for: application) }
+        )
+        guard visible, approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
         return [bundleIdentifier]
     }
 
@@ -520,7 +526,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     @objc private func frontmostApplicationDidChange(_: Notification) {
-        if isConnected { connection.publishFocusedAction() }
+        if isConnected { connection.publishFocusedAction(invalidatePendingQuery: true) }
     }
 
     @objc private func systemTimeZoneDidChange(_: Notification) {

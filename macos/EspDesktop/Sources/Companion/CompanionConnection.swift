@@ -886,7 +886,12 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "timezone.changed", "identifier": identifier])
     }
 
-    func publishFocusedAction() {
+    func publishFocusedAction(invalidatePendingQuery: Bool = false) {
+        if invalidatePendingQuery {
+            // A new foreground app must not wait for an obsolete browser/Finder query.
+            focusPublicationTask?.cancel()
+            focusPublicationTask = nil
+        }
         guard sessionAuthenticated, focusPublicationTask == nil, let requestingTask = task else { return }
         focusPublicationTask = Task { [weak self, weak requestingTask] in
             guard let self else { return }

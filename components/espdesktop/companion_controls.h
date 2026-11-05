@@ -446,8 +446,6 @@ inline bool companion_application_focused(const std::string &application_id) {
 }
 
 inline bool companion_action_active(const std::string &action_id) {
-  const auto snapshot = companion_runtime_snapshot();
-
   return companion_action_focused(action_id);
 }
 
