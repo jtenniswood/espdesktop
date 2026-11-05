@@ -11,6 +11,6 @@ export function syncDefaultIconSizeUi(state: AppState, runtime: UiRuntimeState):
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
     button.disabled = !state.defaultIconSizeSupported;
-    button.title = state.defaultIconSizeSupported ? "" : "Update the display firmware to change the default icon size.";
+    button.title = state.defaultIconSizeSupported ? "" : "Update the display firmware to change the default app icon size.";
   }
 }

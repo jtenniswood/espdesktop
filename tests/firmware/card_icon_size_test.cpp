@@ -19,9 +19,18 @@ int main() {
   assert(card_icon_zoom("large", 48, 48, 60, 0) == 1);
   for (const auto &type : {"", "sensor", "media", "subpage", "companion", "light_control"}) {
     for (const auto &size : {"small", "medium", "large"}) {
-      const auto card = parse_cfg(std::string("light.kitchen;Kitchen;Lightbulb;;;;") + type + ";;icon_size=" + size);
-      assert(cfg_option_value(card.options, "icon_size") == size);
+      const std::string entity = std::string(type) == "companion" ? "shortcut.command+c" : "light.kitchen";
+      const auto card = parse_cfg(entity + ";Kitchen;Lightbulb;;;;" + type + ";;icon_size=" + size);
+      assert(cfg_option_value(card.options, "icon_size").empty());
       assert(normalize_parsed_cfg(card).options == card.options);
+    }
+  }
+  for (const auto &entity : {"com.apple.finder", "shortcut.command+c", "folder.Documents",
+                             "webapp.example", "window.close", "stat.cpu"}) {
+    for (const auto &size : {"small", "medium", "large"}) {
+      const auto card = parse_cfg(std::string(entity) + ";App;Monitor;;;;companion;;icon_size=" + size);
+      assert(cfg_option_value(card.options, "icon_size") ==
+             (std::string(entity) == "com.apple.finder" ? size : ""));
     }
   }
   assert(parse_cfg("light.kitchen;Kitchen;Lightbulb;;;;;;icon_size=invalid").options.empty());

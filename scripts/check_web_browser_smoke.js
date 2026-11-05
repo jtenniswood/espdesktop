@@ -2814,7 +2814,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
     async function chooseSize(slot, size) {
       await card(slot).click({ button: "right" });
-      const trigger = page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true });
+      const trigger = page.locator(".sp-ctx-menu").getByRole("button", { name: "App Icon Size", exact: true });
       await trigger.click();
       const submenu = page.locator(".sp-ctx-submenu").filter({ has: page.getByRole("button", { name: "Use Default", exact: true }) });
       assert.deepStrictEqual(await submenu.getByRole("button").allTextContents().then(labels => labels.map(label => label.replace("✓", "").trim())),
@@ -8389,8 +8389,9 @@ async function assertGlobalIconSize(browser, testCase) {
   for (const native of [false, true]) {
     console.log(`Checking global icon size: ${testCase.slug}/${native ? "native" : "legacy"}`);
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[2] = "light.desk;Desk;Lightbulb;Auto;;;;;icon_size=small";
-    fixture.document.subpages[3] = "~B,1,2|,light.kitchen,Kitchen,Lightbulb,Auto|,light.desk,Desk,Lightbulb,Auto,,,,icon_size=medium";
+    fixture.document.buttons[1] = "com.apple.finder;Finder;Monitor;Auto;;;companion;;";
+    fixture.document.buttons[2] = "com.apple.Safari;Safari;Monitor;Auto;;;companion;;icon_size=small";
+    fixture.document.subpages[3] = "~B,1,2|companion,com.apple.finder,Finder,Monitor,Auto|companion,com.apple.Safari,Safari,Monitor,Auto,,,,icon_size=medium";
     let savedDefault = "Small";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
@@ -8406,7 +8407,7 @@ async function assertGlobalIconSize(browser, testCase) {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
-    const sizes = page.getByRole("group", { name: "Default icon size", exact: true });
+    const sizes = page.getByRole("group", { name: "Default app icon size", exact: true });
     async function open() {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.__eventSources?.length > 0);
@@ -8434,7 +8435,7 @@ async function assertGlobalIconSize(browser, testCase) {
       assert(await card(2).locator(".sp-btn-label").isVisible());
       assert.strictEqual(native ? fixture.document.buttons[2] : legacyTextState.button_2_config, originalSmall, "global changes do not rewrite per-card choices");
       await card(2).click({ button: "right" });
-      await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).click();
+      await page.locator(".sp-ctx-menu").getByRole("button", { name: "App Icon Size", exact: true }).click();
       await page.locator(".sp-ctx-submenu").getByRole("button", { name: "Use Default", exact: true }).click();
       await page.waitForFunction(() => document.querySelector('.sp-main [data-slot="2"]')?.dataset.iconSize === "large");
       assert(!(native ? fixture.document.buttons[2] : legacyTextState.button_2_config).includes("icon_size="), "Use Default removes the saved override");
@@ -8480,70 +8481,41 @@ async function assertGlobalIconSize(browser, testCase) {
 
 async function assertStandardIconSizes(browser, testCase) {
   for (const native of [true, false]) {
-    console.log(`Checking standard icon sizes: ${testCase.name}/${native ? "native" : "legacy"}`);
+    console.log(`Checking fixed non-app icons: ${testCase.name}/${native ? "native" : "legacy"}`);
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[2] = "stats;Stats;Gauge;;;;companion;;";
-    fixture.document.buttons[3] = ";Monitor;Monitor;;;;subpage;;";
+    fixture.document.buttons[1] = "light.kitchen;Kitchen;Lightbulb;Auto;;;;;icon_size=large";
+    fixture.document.buttons[2] = "stats;Stats;Gauge;;;;companion;;icon_size=medium";
+    fixture.document.buttons[3] = ";Monitor;Monitor;;;;subpage;;icon_size=large";
+    fixture.document.subpages[3] = "~B,1|,light.kitchen,Kitchen,Lightbulb,Auto,,,,icon_size=large";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
     const page = await context.newPage();
-    await page.addInitScript(() => { window.__ESPDESKTOP_TEST_HOOKS__ = {}; });
     await installFakeEventSource(page);
+    async function assertFixed(slot) {
+      const card = page.locator(`.sp-main [data-slot="${slot}"]`);
+      assert.strictEqual(await card.getAttribute("data-icon-size"), "small", "ordinary icons ignore global and saved sizes");
+      assert(await card.locator(".sp-btn-label").isVisible(), "ordinary icons retain their label");
+      await card.click({ button: "right" });
+      assert.strictEqual(await page.locator(".sp-ctx-menu").getByRole("button", { name: /Icon Size/ }).count(), 0,
+        "ordinary icons have no size context menu");
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      assert.strictEqual(await page.locator(".sp-settings-modal").getByRole("group", { name: /icon size/i }).count(), 0,
+        "ordinary icons have no size editor");
+      await page.keyboard.press("Escape");
+    }
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-      await page.waitForSelector("#sp-app");
       await page.waitForFunction(() => window.__eventSources?.length > 0);
       await seedNativeDocument(page, fixture);
+      await page.evaluate(() => window.__seedEspState([
+        { id: "select-screen__default_icon_size", state: "Large", value: "Large" },
+      ]));
       await page.getByRole("tab", { name: "Layout" }).click();
-      for (const slot of [1, 2, 3]) {
-      const card = page.locator(`.sp-main [data-slot="${slot}"]`);
-      const widths = {};
-      const measurements = {};
-      for (const size of ["Medium", "Large", "Small"]) {
-        await card.click();
-        await page.getByRole("button", { name: "Edit", exact: true }).click();
-        await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
-          .first().locator(".sp-disclosure-button").click();
-        const sizes = page.getByRole("group", { name: "Icon size", exact: true });
-        await sizes.getByRole("button", { name: size, exact: true }).click();
-        await page.getByRole("button", { name: "Save", exact: true }).click();
-        const saved = () => native ? fixture.document.buttons[slot] : legacyTextState[`button_${slot}_config`] || "";
-        const persisted = () => saved().includes("icon_size=" + size.toLowerCase());
-        const deadline = Date.now() + 10000;
-        while (!persisted() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
-        assert(persisted(), "icon size was saved to the display configuration");
-        // Saving can replace the preview grid after a locator resolves. Query
-        // and measure the current card in the same browser operation instead
-        // of reading a detached card's zero-size geometry.
-        const geometryHandle = await page.waitForFunction(({ slot, size }) => {
-          const el = document.querySelector(`.sp-main [data-slot="${slot}"]`);
-          if (!el?.isConnected || el.dataset.iconSize !== size || el.clientWidth === 0) return false;
-          const icon = el.querySelector(".sp-btn-icon").getBoundingClientRect();
-          if (icon.width === 0 || icon.height === 0) return false;
-          const title = el.querySelector(".sp-btn-label").getBoundingClientRect();
-          return { iconBottom: icon.bottom, titleTop: title.top, width: icon.width,
-            size: el.dataset.iconSize, cardWidth: el.clientWidth, cardHeight: el.clientHeight,
-            fontSize: getComputedStyle(el.querySelector(".sp-btn-icon")).fontSize,
-            fonts: document.fonts.status };
-        }, { slot, size: size.toLowerCase() });
-        const geometry = await geometryHandle.jsonValue();
-        await geometryHandle.dispose();
-        widths[size] = geometry.width;
-        measurements[size] = geometry;
-        if (size === "Large") assert(!(await card.locator(".sp-btn-label").isVisible()), "Large hides the title");
-        else assert(geometry.iconBottom <= geometry.titleTop + 1, `${testCase.name}/${size}: icon stays above title`);
-        await card.click();
-        await page.getByRole("button", { name: "Edit", exact: true }).click();
-        await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
-          .first().locator(".sp-disclosure-button").click();
-        assert(await page.getByRole("group", { name: "Icon size", exact: true })
-          .getByRole("button", { name: size, exact: true }).evaluate(el => el.classList.contains("active")), "saved icon size reopens selected");
-        await page.keyboard.press("Escape");
-      }
-      assert(widths.Medium > widths.Small && widths.Large >= widths.Medium,
-        `${testCase.name}/${native ? "native" : "legacy"}/slot ${slot}: size selections enlarge the visible icon: ${JSON.stringify(measurements)}`);
-      }
+      for (const slot of [1, 2, 3]) await assertFixed(slot);
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.locator(".sp-back-btn").waitFor();
+      await assertFixed(1);
     } finally { await context.close(); }
   }
 }
@@ -8708,7 +8680,7 @@ async function assertRainfallEditor(browser) {
     }
     if (process.env.ESPDESKTOP_STANDARD_ICON_SIZES_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertStandardIconSizes(browser, testCase);
-      console.log("Standard icon sizes passed for native and legacy configurations.");
+      console.log("Fixed non-app icon layouts and missing size controls passed for native and legacy configurations.");
       return;
     }
     if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
