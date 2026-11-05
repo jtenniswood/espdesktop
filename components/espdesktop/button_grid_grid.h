@@ -1539,21 +1539,26 @@ inline void grid_delete_runtime_ptr(void *ptr) {
 }
 
 #ifdef USE_COMPANION
-inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
-  if (!owner) return nullptr;
-  void *image_data = nullptr;
-  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
-    if (allocation.owner == owner &&
-        allocation.deleter == grid_delete_runtime_ptr<CompanionAppIconImageData>) {
-      image_data = allocation.ptr;
-      break;
-    }
-  }
-  if (!image_data) return nullptr;
+// Callers walking runtime allocations already know the icon data. Look only
+// through that card's children instead of searching the full registry again.
+inline lv_obj_t *grid_find_companion_app_icon_image_for_data(
+    lv_obj_t *owner, const void *image_data) {
+  if (!owner || !image_data) return nullptr;
   const int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(owner));
   for (int32_t i = 0; i < count; i++) {
     lv_obj_t *child = lv_obj_get_child(owner, i);
     if (child && lv_obj_get_user_data(child) == image_data) return child;
+  }
+  return nullptr;
+}
+
+inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
+  if (!owner) return nullptr;
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.owner == owner &&
+        allocation.deleter == grid_delete_runtime_ptr<CompanionAppIconImageData>) {
+      return grid_find_companion_app_icon_image_for_data(owner, allocation.ptr);
+    }
   }
   return nullptr;
 }
@@ -1571,7 +1576,7 @@ inline void companion_refresh_app_icon_visibility() {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
     if (!image || lv_obj_get_screen(image) == lv_scr_act() || (!source->pixels && !source->display_pixels)) continue;
     // The finished image is sufficient for redraws and cached layout metrics.
     // Keep the original only when resizing failed and LVGL is displaying it.
@@ -1589,7 +1594,7 @@ inline void companion_refresh_app_icon_visibility() {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode || source->image_loaded) continue;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
     if (image && lv_obj_get_screen(image) == lv_scr_act())
       companion_apply_cached_app_icon(*source, image);
   }
@@ -1606,7 +1611,7 @@ inline void companion_refresh_cached_app_icon(const std::string &application_id)
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode ||
         (!application_id.empty() && source->application_id != application_id)) continue;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
     if (image) companion_apply_cached_app_icon(*source, image);
   }
   navigation_refresh_subpage_label();
@@ -1618,7 +1623,7 @@ inline void companion_refresh_app_icon_connection_state(bool online) {
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
     source->companion_online = online;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
     if (image && source->image_loaded) {
       // Reload the unmodified cached pixels before switching between the
       // monochrome offline icon and the original-color online icon.
