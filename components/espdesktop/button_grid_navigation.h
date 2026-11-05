@@ -230,6 +230,10 @@ inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
             registered_devices.end()) {
       continue;
     }
+    // Recognize a short, deliberate swipe, including slower finger movement.
+    // LVGL defaults to 50 px and resets gesture travel below 3 px per sample.
+    lv_indev_set_gesture_min_distance(indev, 24);
+    lv_indev_set_gesture_min_velocity(indev, 1);
     lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
                           LV_EVENT_GESTURE, nullptr);
     registered_devices.push_back(indev);

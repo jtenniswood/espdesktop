@@ -8,12 +8,13 @@ from generate_media_lifecycle_integration import definition
 ROOT = Path(__file__).resolve().parents[2]
 header = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
 handler = definition(header, 'navigation_grid_screen_gesture')[1]
+registration = definition(header, 'navigation_register_grid_screen_gesture')[1]
 stubs = r'''
 #include <algorithm>
 #include <cassert>
 #include <vector>
 using lv_coord_t = int;
-constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1;
+constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1, LV_INDEV_TYPE_POINTER=1;
 struct lv_obj_t { int height=480; } grid, other, overlay;
 struct lv_point_t { int x=0,y=0; };
 struct lv_indev_t { int direction=LV_DIR_TOP; lv_point_t point{0,420}, vector{0,-50}; } device;
@@ -21,7 +22,7 @@ struct lv_event_t { int code=LV_EVENT_GESTURE; } event;
 struct Modal { lv_obj_t *overlay=nullptr; } modal, nested;
 bool allowed=true, locked=false, has_pointer=true;
 lv_obj_t *active=&grid;
-int opened=0, waited=0;
+int opened=0, waited=0, distance=50, velocity=3, callbacks=0;
 std::vector<lv_obj_t *> screens{&grid};
 int lv_event_get_code(lv_event_t *e) { return e->code; }
 lv_indev_t *lv_indev_active() { return has_pointer ? &device : nullptr; }
@@ -37,9 +38,21 @@ void lv_indev_get_vect(lv_indev_t *p,lv_point_t *out) { *out=p->vector; }
 int lv_obj_get_height(lv_obj_t *o) { return o->height; }
 bool navigation_open_special_page() { ++opened; return true; }
 void lv_indev_wait_release(lv_indev_t *) { ++waited; }
+lv_indev_t *lv_indev_get_next(lv_indev_t *p) { return p ? nullptr : &device; }
+int lv_indev_get_type(lv_indev_t *) { return LV_INDEV_TYPE_POINTER; }
+void lv_indev_set_gesture_min_distance(lv_indev_t *, int value) { distance=value; }
+void lv_indev_set_gesture_min_velocity(lv_indev_t *, int value) { velocity=value; }
+void lv_indev_add_event_cb(lv_indev_t *, void (*)(lv_event_t *), int, void *) { ++callbacks; }
 '''
 checks = r'''
 int main() {
+  navigation_register_grid_screen_gesture(nullptr);
+  assert(callbacks==0);
+  navigation_register_grid_screen_gesture(&grid);
+  // A short swipe and slower movement are accepted by the configured recognizer.
+  assert(distance==24 && velocity==1 && callbacks==1);
+  navigation_register_grid_screen_gesture(&grid);
+  assert(callbacks==1 && screens.size()==1);
   navigation_grid_screen_gesture(nullptr);
   locked=true; navigation_grid_screen_gesture(&event); locked=false;
   allowed=false; navigation_grid_screen_gesture(&event); allowed=true;
@@ -52,12 +65,16 @@ int main() {
   assert(opened==0 && waited==0);
   navigation_grid_screen_gesture(&event);
   assert(opened==1 && waited==1);
+  // A gesture delivered with a small per-sample vector still opens at the bottom.
+  device.point.y=445; device.vector.y=-2;
+  navigation_grid_screen_gesture(&event);
+  assert(opened==2 && waited==2);
 }
 '''
 with tempfile.TemporaryDirectory() as tmp:
     source=Path(tmp)/'test.cpp'
     binary=Path(tmp)/'test'
-    source.write_text(stubs+handler+checks)
+    source.write_text(stubs+handler+registration+checks)
     subprocess.run([sys.argv[1] if len(sys.argv)>1 else 'c++','-std=c++17','-Wall','-Wextra','-Werror',str(source),'-o',str(binary)],check=True)
     subprocess.run([str(binary)],check=True)
 print('Special-page gesture guards passed for Screen Lock, modals, setup/screensaver modes and bottom-origin swipes.')
