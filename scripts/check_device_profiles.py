@@ -992,8 +992,8 @@ def test_spanned_cards_refresh_after_clock_bar_padding_changes() -> None:
     assert "struct ClockBarResponsiveGridCard" in clock_bar, (
         "spanned card dimensions must be tracked outside the one-time grid placement pass"
     )
-    assert "clock_bar_refresh_responsive_grid_cards();" in clock_bar, (
-        "clock-bar padding changes must resize registered wide/tall/large cards"
+    assert "clock_bar_refresh_responsive_grid_cards(page);" in clock_bar, (
+        "clock-bar padding changes must resize wide/tall/large cards on the affected page"
     )
     assert "clock_bar_register_responsive_grid_card(" in layout, (
         "wide/tall/large cards must register their measured grid span"
