@@ -1541,7 +1541,7 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   const std::string icon_size = cfg_option_value(p.options, "icon_size");
-  // Remove the shared option before type-specific normalization, then restore it.
+  // Remove legacy sizes before normalization; only app artwork retains a size override.
   std::string type_options;
   size_t start = 0;
   while (start < p.options.size()) {
@@ -1639,7 +1639,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     if (!p.options.empty()) p.options += ",";
     p.options += card_colors;
   }
-  if (icon_size == "small" || icon_size == "medium" || icon_size == "large") {
+  if (companion_app_icon_enabled(p) &&
+      (icon_size == "small" || icon_size == "medium" || icon_size == "large")) {
     if (!p.options.empty()) p.options += ",";
     p.options += "icon_size=" + icon_size;
   }

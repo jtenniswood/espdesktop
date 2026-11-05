@@ -129,8 +129,8 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         });
         defaultIconSize.segment.id = "sp-set-default-icon-size";
         defaultIconSize.segment.setAttribute("role", "group");
-        defaultIconSize.segment.setAttribute("aria-label", "Default icon size");
-        cardStyleBody.appendChild(fieldLabel("Default icon size"));
+        defaultIconSize.segment.setAttribute("aria-label", "Default app icon size");
+        cardStyleBody.appendChild(fieldLabel("Default app icon size"));
         cardStyleBody.appendChild(defaultIconSize.segment);
         els.setDefaultIconSizeButtons = defaultIconSize.buttons;
         syncDefaultIconSizeUi(state, runtime);

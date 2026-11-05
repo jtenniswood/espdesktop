@@ -154,25 +154,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
-    function resizeStandardIcon(button: HTMLElement): void {
-        const icon = button.querySelector<HTMLElement>(".sp-btn-icon:not(img)");
-        const view = document.defaultView;
-        if (!icon || !view) return;
-        const style = view.getComputedStyle(button);
-        const label = button.querySelector<HTMLElement>(".sp-btn-label, .sp-btn-label-row");
-        const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-        const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
-            - (button.dataset.iconSize === "large" ? 0 : (label?.getBoundingClientRect().height || 0) + 4);
-        icon.style.fontSize = "";
-        const naturalSize = parseFloat(view.getComputedStyle(icon).fontSize);
-        const requested = button.dataset.iconSize === "large" ? Infinity : naturalSize * 1.5;
-        icon.style.fontSize = Math.max(1, Math.min(requested, width, height)) + "px";
-    }
-    const standardIconResizeObserver = typeof ResizeObserver === "function"
-        ? new ResizeObserver(entries => entries.forEach(entry => {
-            const button = entry.target.closest<HTMLElement>(".sp-btn");
-            if (button) resizeStandardIcon(button);
-        })) : null;
     // Use a single measured side for square images at every card aspect ratio.
     function resizeAppIcon(button: Element): void {
         const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon");
@@ -270,7 +251,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
-        standardIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
         var main: any = els.previewMain;
@@ -406,15 +386,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 }
                 appendResizeHandle(btn);
                 main.appendChild(btn);
-                const standardIconSize = btn.querySelector(".sp-btn-icon") || typePreview?.appIconId
+                const appIconSize = typePreview?.appIconId
                     ? cardIconSize(b.options, state.defaultIconSize) : "small";
-                btn.setAttribute("data-icon-size", standardIconSize);
-                if (standardIconSize !== "small" && !typePreview?.appIconId) {
-                    resizeStandardIcon(btn);
-                    standardIconResizeObserver?.observe(btn);
-                    const title = btn.querySelector(".sp-btn-label, .sp-btn-label-row");
-                    if (title) standardIconResizeObserver?.observe(title);
-                }
+                btn.setAttribute("data-icon-size", appIconSize);
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;

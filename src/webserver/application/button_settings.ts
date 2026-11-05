@@ -1,4 +1,4 @@
-import { companionSavedCardMode } from "../model/companion_card_codec";
+import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { cardIconSizeOverride, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
@@ -1012,8 +1012,7 @@ export function createButtonSettingsFeature(
             syncActiveColorControls();
             colourControls.editor.appendChild(activeColorField);
         }
-        if (panel.querySelector('[id="' + idPrefix + 'icon"]') || b.type === "subpage" ||
-            (b.type === "companion" && companionSavedCardMode(b) === "stats")) {
+        if (companionCardHasAppIcon(b)) {
             const iconSizes = segmentControl([
                 ["", "Default"], ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
             ], cardIconSizeOverride(b.options), function (size: string) {
@@ -1022,8 +1021,8 @@ export function createButtonSettingsFeature(
                 renderPreview();
             });
             iconSizes.segment.setAttribute("role", "group");
-            iconSizes.segment.setAttribute("aria-label", "Icon size");
-            panel.appendChild(fieldWithControl("Icon size", null, iconSizes.segment));
+            iconSizes.segment.setAttribute("aria-label", "App icon size");
+            panel.appendChild(fieldWithControl("App icon size", null, iconSizes.segment));
         }
         groupCardSettingsFields(panel, idPrefix);
         Object.keys(openDisclosureIds).forEach(function (this: any, id?: any) {

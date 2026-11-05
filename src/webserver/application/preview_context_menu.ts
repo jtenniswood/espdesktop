@@ -1,6 +1,6 @@
 import { createColorSwatches } from "../components/color_swatches";
 import { cardIconSizeOverride, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
-import { companionSavedCardMode } from "../model/companion_card_codec";
+import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import type { ConfigPersistenceFeature } from "./config_post_api";
 import { state } from "../state/app_instance";
@@ -320,7 +320,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         const c = ctx();
         const iconSlots = slots.filter(slot => {
             const card = c.buttons[slot - 1];
-            return !!card && card.type !== "image" && card.type !== "wifi_qr_card";
+            return !!card && companionCardHasAppIcon(card);
         });
         if (!iconSlots.length) return;
         const homeSlot = state.editingSubpage;
@@ -397,7 +397,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             });
             submenu.appendChild(button);
         }
-        addCtxSubmenu("arrow-expand", "Icon Size", submenu);
+        addCtxSubmenu("arrow-expand", "App Icon Size", submenu);
     }
     function addBulkCardMenuItems(this: any, slots?: any) {
         addColourMenuItem(slots);
