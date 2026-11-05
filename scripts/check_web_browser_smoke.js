@@ -8482,6 +8482,7 @@ async function assertStandardIconSizes(browser, testCase) {
   for (const native of [true, false]) {
     console.log(`Checking standard icon sizes: ${testCase.name}/${native ? "native" : "legacy"}`);
     const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[1] = "light.kitchen;Kitchen;Lightbulb;Auto;;;;;card_off_color=FFFFFF,card_on_color=FFFFFF,card_active_color=custom";
     fixture.document.buttons[2] = "stats;Stats;Gauge;;;;companion;;";
     fixture.document.buttons[3] = ";Monitor;Monitor;;;;subpage;;";
     const legacyTextState = {};
@@ -8538,10 +8539,12 @@ async function assertStandardIconSizes(browser, testCase) {
             const icon = el.querySelector(".sp-btn-icon").getBoundingClientRect();
             const bounds = el.getBoundingClientRect();
             return { background: style.backgroundColor, padding: style.padding,
-              left: icon.left - bounds.left, top: icon.top - bounds.top };
+              left: icon.left - bounds.left, top: icon.top - bounds.top,
+              iconColor: getComputedStyle(el.querySelector(".sp-btn-icon")).color };
           });
           assert.strictEqual(appearance.background, "rgba(0, 0, 0, 0)", "Large has no button background");
           assert.strictEqual(appearance.padding, "0px", "Large has no inside padding");
+          assert.strictEqual(appearance.iconColor, "rgb(255, 255, 255)", "Large uses page contrast even with a pale card colour");
           assert(Math.abs(appearance.left) < 1 && Math.abs(appearance.top) < 1,
             "Large icon starts at the card edge");
 

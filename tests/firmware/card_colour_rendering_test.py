@@ -38,6 +38,7 @@ using lv_event_cb_t = void (*)(lv_event_t *);
 struct lv_obj_t {
   uint32_t background[3] = {}, text[3] = {}, gradient[3] = {}, border[3] = {}, outline[3] = {};
   int gradient_direction[3] = {};
+  int bg_opa = LV_OPA_COVER;
   int state = 0;
   int flags = 0;
   std::vector<lv_event_cb_t> events;
@@ -60,7 +61,8 @@ void lv_obj_set_style_text_color(lv_obj_t *obj, uint32_t rgb, int selector) { ob
 constexpr int LV_GRAD_DIR_HOR = 1;
 void lv_obj_set_style_bg_grad_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->gradient[selector] = rgb; }
 void lv_obj_set_style_bg_grad_dir(lv_obj_t *obj, int direction, int selector) { obj->gradient_direction[selector] = direction; }
-void lv_obj_set_style_bg_opa(lv_obj_t *, int, int) {}
+void lv_obj_set_style_bg_opa(lv_obj_t *obj, int opacity, int) { obj->bg_opa = opacity; }
+int lv_obj_get_style_bg_opa(lv_obj_t *obj, int) { return obj->bg_opa; }
 void lv_obj_set_style_border_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->border[selector] = rgb; }
 void lv_obj_set_style_outline_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->outline[selector] = rgb; }
 void lv_obj_set_style_border_width(lv_obj_t *, int, int) {}
@@ -322,6 +324,19 @@ int main() {
   set_espdesktop_language("en");
   for (const ThemePalette *theme : {&DARK_THEME, &LIGHT_THEME}) {
     set_active_theme_palette(*theme);
+    // Removing a pale tile fill must not leave a dark icon on a dark page.
+    lv_obj_t transparent_card, transparent_icon;
+    transparent_card.children = {&transparent_icon};
+    apply_button_colors(&transparent_card, true, 0xFFFFFF, true, 0xFFFFFF);
+    lv_obj_set_style_bg_opa(&transparent_card, LV_OPA_TRANSP, LV_PART_MAIN);
+    for (int state : {LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED}) {
+      transparent_card.state = state;
+      sync_card_checked_text_color(&transparent_card);
+      assert(transparent_icon.text[0] == theme_display_color(theme->text_primary));
+    }
+    lv_obj_set_style_bg_opa(&transparent_card, LV_OPA_COVER, LV_PART_MAIN);
+    sync_card_checked_text_color(&transparent_card);
+    assert(transparent_icon.text[0] == display_text_color_for_bg(0xFFFFFF));
     // Forecast temperatures retain muted grey through card contrast updates.
     lv_obj_t forecast_card, forecast_day, forecast_icon, forecast_temperature;
     forecast_card.children={&forecast_day,&forecast_icon,&forecast_temperature};

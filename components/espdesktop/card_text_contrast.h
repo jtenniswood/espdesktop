@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include "lvgl.h"
+#include "display_color.h"
+#include "theme_palette.h"
 
 // Shared by grid rendering and Companion focus; inline definitions must be
 // visible to every component that updates a card state.
@@ -19,7 +21,11 @@ inline void apply_card_descendant_text_color(lv_obj_t *obj, lv_color_t color) {
 
 inline void sync_card_checked_text_color(lv_obj_t *btn) {
   if (!btn) return;
-  const lv_color_t text_color = lv_obj_get_style_text_color(btn, LV_PART_MAIN);
+  // Transparent cards sit on the page, so their stored fill colours must
+  // not choose the foreground, even while checked or pressed.
+  const lv_color_t text_color = lv_obj_get_style_bg_opa(btn, LV_PART_MAIN) == LV_OPA_TRANSP
+      ? lv_color_hex(theme_display_color(current_theme().text_primary))
+      : lv_obj_get_style_text_color(btn, LV_PART_MAIN);
   apply_card_descendant_text_color(btn, text_color);
 }
 
