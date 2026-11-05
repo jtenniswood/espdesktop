@@ -12,7 +12,7 @@
     "deviceProfiles": 9,
     "cardTypes": 45,
     "entityNames": 122,
-    "icons": 400,
+    "icons": 401,
     "structuralIcons": 37,
     "compatibilityFixtureGroups": 2
   },
@@ -9936,6 +9936,11 @@
         "name": "Speaker Play",
         "codepoint": "F1B72",
         "mdi": "speaker-play"
+      },
+      {
+        "name": "Search",
+        "codepoint": "F0349",
+        "mdi": "magnify"
       },
       {
         "name": "Spotlight",
