@@ -36,6 +36,7 @@ test("finds retired cards in native, legacy folder and special-page records with
 test("keeps Mac, local controls and ordinary folders available while identifying mixed HA options", () => {
   for (const [type, data] of [
     ["companion_app", { entity: "com.apple.Safari" }],
+    ["slider", { entity: "media.output_volume" }], ["slider", { entity: "media.input_volume" }],
     ["action", { sensor: "local" }], ["sensor", { sensor: "local" }],
     ["subpage", {}], ["subpage", { options: "subpage_connector=mac_companion" }],
     ["subpage", { options: "subpage_kind=companion_stat" }],
@@ -43,6 +44,7 @@ test("keeps Mac, local controls and ordinary folders available while identifying
     ["wifi_qr", { options: "wifi_tabs=qr%7Ccredentials" }], ["webhook", {}],
   ]) assert.equal(cardRequiresHomeAssistant(type, data), false, type);
   for (const [type, data] of [
+    ["slider", { entity: "light.desk" }], ["slider", { entity: "number.volume" }],
     ["", { entity: "switch.desk" }], ["calendar", { entity: "sensor.date" }],
     ["action", { sensor: "scene.turn_on" }], ["sensor", { entity: "sensor.room" }],
     ["subpage", { options: "subpage_kind=climate" }],
@@ -74,4 +76,17 @@ test("old artwork source choices migrate to Mac Companion", () => {
   const { normalizeCoverArtSource } = loadTypescriptTest("src/webserver/model/settings.ts");
   for (const previous of ["Home Assistant", "Mac Companion", "", undefined])
     assert.equal(normalizeCoverArtSource(previous), "Mac Companion");
+});
+
+
+test("backup audit keeps both Mac volume slider modes without hiding legacy entity sliders", () => {
+  const document = { deviceProfile: "test", buttons: {
+    1: "media.output_volume;Speaker;Auto;Auto;;;slider;;",
+    2: "media.input_volume;Microphone;Auto;Auto;;;slider;;",
+    3: "light.desk;Desk brightness;Auto;Auto;;;slider;;",
+  }, subpages: {}, settings: {} };
+  const before = encodePanelConfig(document);
+  const report = legacyHomeAssistantCards(document);
+  assert.deepEqual(report.map(card => card.location), ["Card 3"]);
+  assert.deepEqual(encodePanelConfig(document), before);
 });
