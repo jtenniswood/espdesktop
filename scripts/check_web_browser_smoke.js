@@ -2899,13 +2899,20 @@ async function assertAutomaticAppIcons(browser, testCase) {
         const saved = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
         assert(saved.includes(`app_shortcuts_back_icon_size=${size.toLowerCase()}`), `Back icon size persists on its parent app card (${native ? "native" : "legacy"}, ${size}): ${saved}`);
         assert(saved.includes("icon_size=small"), "Back size leaves the home icon size unchanged");
-        assert(await card(-2).locator(".sp-btn-label").isVisible(), "Back label stays visible at every icon size");
+        assert.strictEqual(await card(-2).locator(".sp-btn-label").isVisible(), size !== "Large",
+          "Large Back artwork hides its label; Small and Medium restore it");
         const measured = await page.waitForFunction(() => {
           const icon = document.querySelector('.sp-back-btn .sp-companion-app-icon');
           const width = icon?.getBoundingClientRect().width;
           return width > 0 ? width : false;
         });
         backWidths[size] = await measured.jsonValue();
+        if (size === "Large") {
+          const available = await card(-2).evaluate(el => Math.min(
+            el.clientWidth - parseFloat(getComputedStyle(el).paddingLeft) - parseFloat(getComputedStyle(el).paddingRight),
+            el.clientHeight - parseFloat(getComputedStyle(el).paddingTop) - parseFloat(getComputedStyle(el).paddingBottom)));
+          assert(Math.abs(backWidths[size] * 0.75 - available) < 2, "Large Back artwork fills the content box like home app artwork");
+        }
       }
       assert(backWidths.Small < backWidths.Medium && backWidths.Medium < backWidths.Large, "Back artwork uses all three sizes");
       await card(-2).click({ button: "right" });
@@ -2928,6 +2935,8 @@ async function assertAutomaticAppIcons(browser, testCase) {
         assert(size === "Default" ? !savedSize().includes("app_shortcuts_back_icon_size=") :
           savedSize().includes(`app_shortcuts_back_icon_size=${value}`), "Back settings panel persists each icon size");
         assert(savedSize().includes("icon_size=small"), "Back settings preserve the home icon size");
+        assert.strictEqual(await card(-2).locator(".sp-btn-label").isVisible(), size !== "Large",
+          "Back settings apply the same label visibility as the context menu");
       }
       await page.getByRole("button", { name: "Done", exact: true }).click();
       await chooseSize(1, "Large");

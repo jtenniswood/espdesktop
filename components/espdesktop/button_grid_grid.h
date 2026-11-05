@@ -2394,8 +2394,10 @@ inline void grid_phase2(
     // Keep the chevron as a fallback until artwork is available.
     if (!is_special_page && companion_app_shortcuts_enabled(p) && companion_app_icon_enabled(p)) {
 #ifdef USE_COMPANION
-      companion_set_card_icon_image(back_slot, p.entity, espdesktop::resolved_card_icon_size(
-          cfg_option_value(p.options, "app_shortcuts_back_icon_size")));
+      const std::string back_icon_size = espdesktop::resolved_card_icon_size(
+          cfg_option_value(p.options, "app_shortcuts_back_icon_size"));
+      if (back_icon_size == "large") lv_obj_add_flag(back_slot.text_lbl, LV_OBJ_FLAG_HIDDEN);
+      companion_set_card_icon_image(back_slot, p.entity, back_icon_size);
       esphome::companion::request_app_icon(p.entity);
 #endif
     }

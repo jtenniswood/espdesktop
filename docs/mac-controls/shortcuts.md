@@ -23,7 +23,7 @@ Shortcuts must include Command, Control, or Option with a supported letter, numb
 
 An approved **Companion → Applications** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. These are the same definitions used by the standalone Shortcut Catalog.
 
-The Back tile shows the Mac app’s icon above its label. In the setup page, right-click the Back tile and choose **App Icon Size → Small, Medium, Large**, or **Use Default**. The same choices are available under **App icon size** in the Back Button settings. This changes the Back icon independently of the home-screen app icon; the Back label stays visible at every size.
+The Back tile shows the Mac app’s icon above its label. In the setup page, right-click the Back tile and choose **App Icon Size → Small, Medium, Large**, or **Use Default**. The same choices are available under **App icon size** in the Back Button settings. This changes the Back icon independently of the home-screen app icon; Large hides the Back label and expands the app icon to fill the tile, matching the home app-card style. Small and Medium show the label.
 
 The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and Codex. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
 
