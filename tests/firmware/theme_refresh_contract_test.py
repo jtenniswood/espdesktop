@@ -11,8 +11,6 @@ for name, page in (
     ("screen_loading.yaml", "loading_page"),
     ("screen_loading_ethernet.yaml", "loading_page"),
     ("screen_wifi_setup.yaml", "wifi_setup_page"),
-    ("screen_ha_setup.yaml", "ha_setup_page"),
-    ("screen_ha_actions.yaml", "ha_actions_page"),
     ("screen_ethernet_setup.yaml", "ethernet_setup_page"),
     ("screen_button_setup.yaml", "button_setup_page"),
 ):

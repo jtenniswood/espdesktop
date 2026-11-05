@@ -443,8 +443,8 @@ function normalizeScreensaverMode(value: unknown): string {
   return mode === "sensor" || mode === "timer" || mode === "companion" || mode === "disabled" ? mode : "disabled";
 }
 
-export function normalizeCoverArtSource(value: unknown): string {
-  return String(value || "") === "Mac Companion" ? "Mac Companion" : "Home Assistant";
+export function normalizeCoverArtSource(_value: unknown): string {
+  return "Mac Companion";
 }
 
 function normalizeScreenRotationValue(value: unknown, options: readonly string[]): string {
@@ -455,6 +455,10 @@ function normalizeScreenRotationValue(value: unknown, options: readonly string[]
 function normalizeUpdateFrequency(value: unknown, options: readonly string[], fallback: string): string {
   const frequency = String(value == null ? "" : value);
   return options.indexOf(frequency) !== -1 ? frequency : fallback;
+}
+
+export function normalizeTimezoneOption(value: unknown, fallback: string): string {
+  return value === "Auto (Home Assistant)" ? "Auto (Mac Companion)" : String(value || fallback);
 }
 
 export function normalizeBackupPanelSettings(
@@ -544,7 +548,7 @@ export function normalizeBackupPanelSettings(
     subpageChevron: objectValue(settings, "subpage_chevron") != null
       ? !!settings.subpage_chevron
       : true,
-    timezone: String(settings.timezone || current.timezone),
+    timezone: normalizeTimezoneOption(settings.timezone, current.timezone),
     temperatureUnit: normalizeTemperatureUnit(settings.temperature_unit),
     language: normalizeLanguage(settings.language || current.language),
     clockFormat,

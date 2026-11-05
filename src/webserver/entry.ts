@@ -934,8 +934,7 @@ function composeApplicationContext(): ApplicationContext {
     schedulePostApi, fields, settingsHelpers,
   );
   const coverArtSection = createSettingsCoverArtSectionFeature(
-    configurationCodec, runtime, entityState, statusPreview, artworkPostApi,
-    fields, settingsHelpers, coverArtScreensaver, mediaPlayback,
+    runtime, artworkPostApi, fields, settingsHelpers, coverArtScreensaver,
   );
   const systemSection = createSettingsSystemSectionFeature({
     buildIdentityCard: identity.buildCard,
@@ -946,8 +945,7 @@ function composeApplicationContext(): ApplicationContext {
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
-    dom, shell, fields, companionSection, !!layout.config.features?.companion,
-    () => nativePanelConfig.homeAssistantSupportEnabled(),
+    dom, shell, companionSection, !!layout.config.features?.companion,
   );
   let temperatureHomeAssistantConnected = connectorsPage.homeAssistantConnected();
   connectorsPage.onStatusChange(() => {

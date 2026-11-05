@@ -10,7 +10,7 @@ export interface EnvironmentStateFeature {
     applyVoiceServicesState(next: { enabled: boolean }): void;
     voiceServicesUiState(): ReturnType<VoiceServicesController["uiState"]>;
     setVoiceServicesEnabled(enabled: boolean): void;
-    isHomeAssistantAutoTimezone(value?: any): boolean;
+    isAutomaticTimezone(value?: any): boolean;
     effectiveTimezoneOptionForWeb(value?: any): any;
     timezoneOptionsWithFallback(options?: any, selected?: any, preserveSelectedAuto?: any): any[];
     monthNameForIndex(index?: any): string;
@@ -39,20 +39,20 @@ export function createEnvironmentStateFeature(
     function setVoiceServicesEnabled(enabled: boolean) {
         applyVoiceServicesState(voiceServicesController.setEnabled(voiceServicesState(), enabled));
     }
-    function isHomeAssistantAutoTimezone(value?: any) {
-        return String(value || "") === AUTO_TIMEZONE_OPTION;
+    function isAutomaticTimezone(value?: any) {
+        return String(value || "") === AUTO_TIMEZONE_OPTION || value === "Auto (Home Assistant)";
     }
     function effectiveTimezoneOptionForWeb(value?: any) {
-        if (!isHomeAssistantAutoTimezone(value))
+        if (!isAutomaticTimezone(value))
             return value;
         var active: any = String(state && state.activeTimezone || "").trim();
-        return active && !isHomeAssistantAutoTimezone(active) ? active : FALLBACK_TIMEZONE_OPTION;
+        return active && !isAutomaticTimezone(active) ? active : FALLBACK_TIMEZONE_OPTION;
     }
     function timezoneOptionsWithFallback(options?: any, selected?: any, preserveSelectedAuto?: any) {
         var list: any = Array.isArray(options) && options.length ? options.slice() : defaultTimezoneOptions();
         var supportsAuto: any = list.indexOf(AUTO_TIMEZONE_OPTION) !== -1;
         if (selected && list.indexOf(selected) === -1 &&
-            (!isHomeAssistantAutoTimezone(selected) || supportsAuto || preserveSelectedAuto)) {
+            (!isAutomaticTimezone(selected) || supportsAuto || preserveSelectedAuto)) {
             list.unshift(selected);
         }
         return list;
@@ -76,7 +76,7 @@ export function createEnvironmentStateFeature(
         applyVoiceServicesState,
         voiceServicesUiState,
         setVoiceServicesEnabled,
-        isHomeAssistantAutoTimezone,
+        isAutomaticTimezone,
         effectiveTimezoneOptionForWeb,
         timezoneOptionsWithFallback,
         monthNameForIndex,

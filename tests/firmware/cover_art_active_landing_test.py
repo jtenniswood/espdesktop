@@ -25,7 +25,7 @@ struct Toggle { bool state; } cover_art_screensaver_enabled{true};
 struct Text { std::string state; } cover_art_media_player_entity{"media_player.test"}, screensaver_mode{"off"};
 Toggle media_player_sleep_prevention_enabled{false};
 uint32_t cover_art_manual_pause_until_ms = 0;
-bool cover_art_media_playing = true, cover_art_companion_source_active = false, alarm = false;
+bool cover_art_media_playing = true, cover_art_companion_source_active = true, alarm = false;
 bool alarm_display_takeover_active() { return alarm; }
 #define id(x) x
 bool rearm() {
@@ -36,7 +36,7 @@ source += r'''
 void reset() {
   espdesktop_app.controller = {};
   cover_art_screensaver_enabled.state = true;
-  cover_art_media_playing = true; cover_art_companion_source_active = false;
+  cover_art_media_playing = true; cover_art_companion_source_active = true;
   cover_art_media_player_entity.state = "media_player.test"; alarm = false;
   screensaver_mode.state = "off"; media_player_sleep_prevention_enabled.state = false;
   cover_art_manual_pause_until_ms = 0;
@@ -44,7 +44,8 @@ void reset() {
 int main() {
   reset(); assert(rearm());
   // Companion owns an image without a Home Assistant media-player entity.
-  cover_art_media_player_entity.state.clear(); assert(!rearm());
+  cover_art_media_player_entity.state.clear(); assert(rearm());
+  cover_art_companion_source_active = false; assert(!rearm());
   cover_art_companion_source_active = true; assert(rearm());
   cover_art_media_playing = false; assert(!rearm());
   reset(); cover_art_screensaver_enabled.state = false; assert(!rearm());

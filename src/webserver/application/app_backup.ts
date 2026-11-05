@@ -1,3 +1,4 @@
+import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
@@ -123,16 +124,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postScreensaverCameraImageMode,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
-        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
         postClockOverlay,
-        postCoverArtMediaPlayerEntity,
-        postCoverArtSecondaryMediaPlayerEntity,
-        postCoverArtConditions,
         postCoverArtDelay,
         postCoverArtTrackOverlayDuration,
-        postCoverArtHideExternalInput,
         postHomeAssistantArtworkProtocol,
         postHomeAssistantArtworkHost,
         postHomeAssistantArtworkPort,
@@ -297,18 +293,13 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 screensaver_camera_dimming: state.screensaverCameraDimmingSupported ? state.screensaverCameraDimming : undefined,
                 screensaver_camera_image_mode: normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode),
                 media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
-                media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity || state.coverArtMediaPlayerEntity,
+                media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
                 clock_date: state.clockDateOn,
                 clock_overlay: state.clockOverlayOn,
-                cover_art_media_player_entity: state.coverArtMediaPlayerEntity,
-                cover_art_secondary_media_player_entity: state.coverArtSecondaryMediaPlayerEntity,
-                cover_art_attribute_conditions: state.coverArtAttributeConditions,
                 cover_art_delay: state.coverArtDelay,
-                cover_art_playback_control: state.coverArtPlaybackControlOn,
                 cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
-                cover_art_hide_external_input: state.coverArtHideExternalInputOn,
                 home_assistant_artwork_protocol: normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol),
                 home_assistant_artwork_host: String(state.homeAssistantArtworkHost || "").trim().slice(0, 253),
                 home_assistant_artwork_port: normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort),
@@ -602,19 +593,15 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         controllers.artworkPostApi.postScreensaverCameraDimming(importedSettings.screensaverCameraDimming);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
                     postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
-                    postCoverArtPlaybackControl(importedSettings.coverArtPlaybackControl);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
-                    postCoverArtSource(importedSettings.coverArtSource);
+                    if (controllers.layout.config.features?.companion)
+                        postCoverArtSource(importedSettings.coverArtSource);
                     if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
                     if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
                     if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
                         controllers.artworkPostApi.postMetadataOverlay(importedSettings.metadataOverlay);
-                    postCoverArtMediaPlayerEntity(importedSettings.coverArtMediaPlayerEntity);
-                    postCoverArtSecondaryMediaPlayerEntity(importedSettings.coverArtSecondaryMediaPlayerEntity);
-                    postCoverArtConditions(importedSettings.coverArtAttributeConditions);
                     postCoverArtDelay(importedSettings.coverArtDelay);
                     postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
-                    postCoverArtHideExternalInput(importedSettings.coverArtHideExternalInput);
                     postHomeAssistantArtworkProtocol(importedSettings.coverArtHomeAssistantProtocol);
                     postHomeAssistantArtworkHost(importedSettings.coverArtHomeAssistantHost);
                     postHomeAssistantArtworkPort(importedSettings.coverArtHomeAssistantPort);
@@ -690,7 +677,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
                     state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
                     state.coverArtDelay = importedSettings.coverArtDelay;
-                    state.coverArtPlaybackControlOn = importedSettings.coverArtPlaybackControl;
                     state.coverArtTrackOverlayDuration = importedSettings.coverArtTrackOverlayDuration;
                     state.coverArtHideExternalInputOn = importedSettings.coverArtHideExternalInput;
                     state.homeAssistantArtworkProtocol = importedSettings.coverArtHomeAssistantProtocol;
@@ -861,6 +847,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                             backupMessage: "Configuration restored, but panel naming or restart failed: " + (error as Error).message,
                         });
                     }
+                }
+                if (!controllers.nativePanelConfig?.homeAssistantSupportEnabled() && !requestApi.postQueueError) {
+                    const warning = legacyHomeAssistantWarning(legacyHomeAssistantCards(nativeDocument));
+                    if (warning) backupPlan.warnings.push(warning);
                 }
                 return layoutRestoreResult;
                 }

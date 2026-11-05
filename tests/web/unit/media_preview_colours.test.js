@@ -6,7 +6,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 const esbuild = require("esbuild");
 
-function mediaPreviewFixtures() {
+function mediaPreviewFixtures(homeAssistantSupported = true) {
   const root = path.resolve(__dirname, "../../..");
   const bundled = esbuild.buildSync({
     stdin: { contents: `
@@ -66,11 +66,13 @@ function mediaPreviewFixtures() {
           shell: { isConfigLocked() { return false; } },
           grid: { ctx() { return { grid: [1], buttons: [button], maxSlots: 1, sizes: {}, selected: [], isSub: subpage }; }, resolveIcon() { return "music"; }, sizeClass() { return ""; } },
           selection: { renderSelectionBar() {}, updatePreviewHint() {} },
+          homeAssistantSupported: () => homeAssistantSupported,
         }).render();
         const card = main.children[0];
         fixtures.push({
           name: `${theme}/${subpage ? "secondary" : "main"}/${mode}/${precision}/${extra}/${colour}`,
           html: card.innerHTML, className: card.className,
+          warning: card.title || "", warningBadge: card.children.some(child => child.className.includes("mdi-alert")),
           style: Object.fromEntries(Object.entries(card.style).filter(([, value]) => typeof value === "string")),
           expectedBackground: "#" + (base || (mode === "cover_art" ? neutral.surfaceCard : neutral.surfacePrimary)),
           expectedFill: mode === "position" || precision === "progress" ? "#" + (base ? progressColours[base] : neutral.trackBackground) : null,
@@ -98,5 +100,18 @@ test("media overlays and cover placeholders reflect the validated card colour on
     if (fixture.placeholder) {
       assert(fixture.html.includes('class="sp-image-label-text sp-image-label-main" style="color:' + fixture.expectedForeground + '"'), fixture.name + " placeholder contrast");
     }
+  }
+});
+
+test("unsupported saved cards show a warning on main and folder previews without replacing their label", () => {
+  const supported = mediaPreviewFixtures(true).fixtures;
+  for (const [index, fixture] of mediaPreviewFixtures(false).fixtures.entries()) {
+    assert.match(fixture.warning, /Home Assistant unavailable/);
+    assert.equal(fixture.warningBadge, true, fixture.name);
+    assert.equal(fixture.html, supported[index].html, "warning preserves the original card preview");
+  }
+  for (const fixture of mediaPreviewFixtures(true).fixtures) {
+    assert.equal(fixture.warning, "");
+    assert.equal(fixture.warningBadge, false);
   }
 });

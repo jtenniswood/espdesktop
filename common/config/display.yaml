@@ -541,21 +541,6 @@ switch:
             - script.execute: screensaver_idle_check
 
   - platform: template
-    name: "${entity_screen_saver_cover_art_playback_control}"
-    internal: true
-    id: cover_art_playback_control_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    icon: "mdi:play-pause"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - script.execute: cover_art_refresh_playback_setting
-    on_turn_off:
-      - script.execute: cover_art_refresh_playback_setting
-
-  - platform: template
     name: "${entity_screen_saver_cover_art}"
     internal: true
     id: cover_art_screensaver_enabled
@@ -566,7 +551,7 @@ switch:
     web_server:
       sorting_group_id: sg_screensaver
     on_turn_on:
-      - script.execute: cover_art_resubscribe
+      - script.execute: cover_art_refresh_source
       - script.execute: cover_art_playback_refresh
     on_turn_off:
       - script.execute: cover_art_disable
@@ -619,21 +604,6 @@ switch:
       - script.execute: photo_metadata_refresh_subscription
     on_turn_off:
       - script.execute: photo_metadata_refresh_subscription
-
-  - platform: template
-    name: "${entity_screen_saver_hide_cover_art_external_input}"
-    internal: true
-    id: cover_art_hide_external_input_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    icon: "mdi:television-classic"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - script.execute: cover_art_apply_external_input_policy
-    on_turn_off:
-      - script.execute: cover_art_apply_external_input_policy
 
 select:
   - platform: template
@@ -981,75 +951,6 @@ text:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
             then:
               - script.execute: screensaver_idle_check
-
-  - platform: template
-    name: "${entity_screen_saver_cover_art_entity}"
-    internal: true
-    id: cover_art_media_player_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:speaker-play"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - globals.set:
-            id: cover_art_subscribed_entity
-            value: '""'
-        - script.execute: cover_art_playback_stopped
-        - script.execute: cover_art_resubscribe
-
-  - platform: template
-    name: "${entity_screen_saver_cover_art_secondary_entity}"
-    internal: true
-    id: cover_art_secondary_media_player_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:video-input-hdmi"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - globals.set:
-            id: cover_art_subscribed_entity
-            value: '""'
-        - script.execute: cover_art_playback_stopped
-        - script.execute: cover_art_resubscribe
-
-  - platform: template
-    name: "${entity_screen_saver_cover_art_conditions}"
-    internal: true
-    id: cover_art_attribute_conditions
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 240
-    mode: text
-    entity_category: config
-    icon: "mdi:filter-check"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - globals.set:
-            id: cover_art_subscribed_entity
-            value: '""'
-        - script.execute: cover_art_playback_stopped
-        - script.execute: cover_art_resubscribe
 
 number:
   - platform: template

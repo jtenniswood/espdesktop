@@ -31,6 +31,10 @@ If the Mac app asks you to unlock your Mac or allow Keychain access, do that fir
 
 For the control's exact requirements, see [Mac Controls](/card-types/companion).
 
+## A Saved Card Shows Home Assistant Unavailable
+
+A warning badge marks saved cards that need Home Assistant when the installed firmware does not support it. Restoring a backup also reports these cards, including cards inside folders and the special page. Their saved configuration is kept; replace or remove them in the editor. Mac and local cards remain available.
+
 ## A Mac App or Display Update Breaks Compatibility
 
 Install the Mac app and display firmware from the same EspDesktop release. If you are testing a development build, use the matching display firmware as well. See [Companion Compatibility](/reference/companion-compatibility).

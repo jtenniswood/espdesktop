@@ -51,6 +51,15 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  // Shared appearance options must survive the same cleanup as main cards.
+  const std::string icon_size = cfg_option_value(b.options, "icon_size");
+  std::string type_options;
+  for (const auto &token : split_subpage_fields(b.options, ',')) {
+    if (token.empty() || token.compare(0, 10, "icon_size=") == 0) continue;
+    if (!type_options.empty()) type_options += ",";
+    type_options += token;
+  }
+  b.options = type_options;
   // Shared colours must survive the card-specific option cleanup below.
   const std::string card_colors = card_color_options_normalized(b.options);
   b.options = options_without_card_colors(b.options);
@@ -236,6 +245,10 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (!card_colors.empty()) {
     if (!b.options.empty()) b.options += ",";
     b.options += card_colors;
+  }
+  if (icon_size == "small" || icon_size == "medium" || icon_size == "large") {
+    if (!b.options.empty()) b.options += ",";
+    b.options += "icon_size=" + icon_size;
   }
   return b;
 }

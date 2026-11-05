@@ -8,16 +8,10 @@ export interface ArtworkPostApiFeature {
     postScreensaverCameraDimming(value?: any): any;
     postMediaPlayerSleepPrevention(on?: any): any;
     postMediaPlayerSleepPreventionEntity(value?: any): any;
-    postCoverArtPlaybackControl(on?: any): any;
     postCoverArtScreensaver(on?: any): any;
     postCoverArtSource(value?: any): any;
     postClockOverlay(on?: any): any;
     postMetadataOverlay(on?: any): any;
-    postCoverArtMediaPlayerEntity(value?: any): any;
-    postCoverArtSecondaryMediaPlayerEntity(value?: any): any;
-    postCoverArtConditions(value?: any): any;
-    coverArtHideExternalInputPostUrls(on?: any): any;
-    postCoverArtHideExternalInput(on?: any): any;
     coverArtDelayPostUrls(value?: any): any;
     postCoverArtDelay(value?: any): any;
     coverArtTrackOverlayDurationPostUrls(value?: any): any;
@@ -54,14 +48,11 @@ export function createArtworkPostApiFeature(
     function postMediaPlayerSleepPreventionEntity(this: any, value?: any) {
         return postTextWithObjectIds(entityName("media_player_sleep_prevention_entity"), entityObjectIds("media_player_sleep_prevention_entity"), value);
     }
-    function postCoverArtPlaybackControl(this: any, on?: any) {
-        return postSwitchWithObjectIds(entityName("screen_saver_cover_art_playback_control"), entityObjectIds("screen_saver_cover_art_playback_control"), on);
-    }
     function postCoverArtScreensaver(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_cover_art"), entityObjectIds("screen_saver_cover_art"), on);
     }
     function postCoverArtSource(this: any, value?: any) {
-        const source = value === "Mac Companion" ? "Mac Companion" : "Home Assistant";
+        const source = "Mac Companion";
         return postSelectWithObjectIds(entityName("cover_art_source"), entityObjectIds("cover_art_source"), source);
     }
     function postClockOverlay(this: any, on?: any) {
@@ -69,21 +60,6 @@ export function createArtworkPostApiFeature(
     }
     function postMetadataOverlay(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_metadata_overlay"), entityObjectIds("screen_saver_metadata_overlay"), on);
-    }
-    function postCoverArtMediaPlayerEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_saver_cover_art_entity"), entityObjectIds("screen_saver_cover_art_entity"), value);
-    }
-    function postCoverArtSecondaryMediaPlayerEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_saver_cover_art_secondary_entity"), entityObjectIds("screen_saver_cover_art_secondary_entity"), value);
-    }
-    function postCoverArtConditions(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_saver_cover_art_conditions"), entityObjectIds("screen_saver_cover_art_conditions"), value);
-    }
-    function coverArtHideExternalInputPostUrls(this: any, on?: any) {
-        return entityPostUrls("switch", entityName("screen_saver_hide_cover_art_external_input"), entityObjectIds("screen_saver_hide_cover_art_external_input"), on ? "turn_on" : "turn_off");
-    }
-    function postCoverArtHideExternalInput(this: any, on?: any) {
-        return post(coverArtHideExternalInputPostUrls(on));
     }
     function coverArtDelayPostUrls(this: any, value?: any) {
         return entityPostUrls("number", entityName("screen_saver_cover_art_delay"), entityObjectIds("screen_saver_cover_art_delay"), "set?value=" + encodeURIComponent(normalizeCoverArtDelay(value)));
@@ -119,16 +95,10 @@ export function createArtworkPostApiFeature(
         postScreensaverCameraDimming,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
-        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
         postClockOverlay,
         postMetadataOverlay,
-        postCoverArtMediaPlayerEntity,
-        postCoverArtSecondaryMediaPlayerEntity,
-        postCoverArtConditions,
-        coverArtHideExternalInputPostUrls,
-        postCoverArtHideExternalInput,
         coverArtDelayPostUrls,
         postCoverArtDelay,
         coverArtTrackOverlayDurationPostUrls,

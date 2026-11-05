@@ -189,21 +189,18 @@ esphome:
         - lambda: |-
             register_companion_now_playing_handlers(
               [](const CompanionNowPlayingSnapshot &snapshot) {
-                if (!id(cover_art_companion_source_active)) return;
+                if (!id(cover_art_companion_source_active) ||
+                    !id(cover_art_screensaver_enabled).state) return;
                 const uint32_t previous_generation =
                   static_cast<uint32_t>(id(cover_art_content_fingerprint));
                 id(cover_art_content_fingerprint) = snapshot.generation;
                 id(cover_art_title) = snapshot.title;
                 id(cover_art_artist) = snapshot.artist;
                 id(cover_art_album) = snapshot.album;
-                id(cover_art_media_source) = snapshot.source_application_name;
                 id(cover_art_media_duration) = snapshot.duration;
                 id(cover_art_media_position) = snapshot.position;
                 id(cover_art_position_anchor) = snapshot.position;
                 id(cover_art_position_anchor_epoch) = 0;
-                id(cover_art_active_media_player_entity) = "companion";
-                id(cover_art_attribute_conditions_match) = true;
-                id(cover_art_external_input_active) = false;
                 const bool playing =
                   snapshot.playback_state == CompanionPlaybackState::PLAYING;
                 id(cover_art_media_playing) = playing;
@@ -222,6 +219,7 @@ esphome:
               [](uint32_t generation, uint8_t *data, size_t size) -> bool {
                 const auto runtime = companion_runtime_snapshot();
                 if (!id(cover_art_companion_source_active) ||
+                    !id(cover_art_screensaver_enabled).state ||
                     generation != runtime.now_playing.generation) return false;
                 id(cover_art_download_generation) = 0;
                 bool decoded = false;
@@ -358,7 +356,7 @@ light:
         - if:
             condition:
               lambda: |-
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto now = id(panel_time).now();
                 return (id(espdesktop_app).display().target_source_is(
                             espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
                         id(espdesktop_app).display().target_mode_is(
@@ -644,22 +642,12 @@ select:
     icon: "mdi:album"
     optimistic: true
     restore_value: true
-    initial_option: "Home Assistant"
+    initial_option: "Mac Companion"
     options:
-      - "Home Assistant"
       - "Mac Companion"
     on_value:
       then:
-        - lambda: |-
-            id(cover_art_companion_source_active) = id(cover_art_source).current_option() == "Mac Companion";
-            if (id(cover_art_companion_source_active)) {
-              auto &handler = companion_now_playing_handler();
-              if (handler) handler(companion_runtime_snapshot().now_playing);
-              esphome::companion::request_companion_now_playing_artwork();
-            } else {
-              id(cover_art_playback_stopped).execute();
-            }
-            id(cover_art_resubscribe).execute();
+        - script.execute: cover_art_refresh_source
 
   - platform: template
     name: "${entity_screen_rotation}"

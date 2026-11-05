@@ -632,8 +632,11 @@ def firmware_ntp_startup_errors(
     if time_path.exists():
         rel = time_path.relative_to(root)
         text = time_path.read_text(encoding="utf-8")
-        boot_section = text.split("# Ask Home Assistant", 1)[0]
-        if "- script.execute: ntp_servers_apply" in boot_section:
+        boot_match = re.search(
+            r"(?ms)^esphome:\n(?P<body>.*?)(?=^[A-Za-z_][A-Za-z_0-9]*:|\Z)", text,
+        )
+        boot_section = boot_match.group("body") if boot_match else ""
+        if re.search(r"(?m)^\s*- script.execute: ntp_servers_apply\s*$", boot_section):
             errors.append(f"{rel}: defer custom NTP server apply until networking has an IP address")
         if "# NTP server settings" in text:
             ntp_text_section = text.split("# NTP server settings", 1)[1].split("text_sensor:", 1)[0]
@@ -1238,7 +1241,8 @@ def firmware_cover_art_lifecycle_controller_errors(
     if (
         "transition_is_current(" not in hide_effect
         or "artwork_image.release: cover_art_downloaded_image" not in hide_effect
-        or 'std::string("${device_slug}") == "guition-esp32-s3-4848s040"' not in hide_effect
+        or ("cover_art_refresh_source" not in cover_art_text and
+            'std::string("${device_slug}") == "guition-esp32-s3-4848s040"' not in hide_effect)
     ):
         errors.append(f"{cover_art_rel}: preserve guarded S3 image release when cover art is hidden")
 
@@ -1250,6 +1254,13 @@ def firmware_cover_art_lifecycle_controller_errors(
         "cover_art_refresh_progress": "transition_is_current(",
         "cover_art_delayed_playback_stopped": "generation_is_current(",
     }
+    if "cover_art_refresh_source" in cover_art_text:
+        guarded_scripts = {
+            "cover_art_delay_timer": "generation_is_current(",
+            "cover_art_prepare_activation": "source_generation",
+            "cover_art_request_artwork": "transition_is_current(",
+            "cover_art_refresh_progress": "transition_is_current(",
+        }
     for script_id, marker in guarded_scripts.items():
         body = yaml_script_body(cover_art_text, script_id) or ""
         if marker not in body:
@@ -1308,8 +1319,8 @@ def firmware_media_sleep_prevention_errors(
             ):
                 errors.append(f"{rel}: keep the normal screensaver idle during cover art stop grace")
             cover_art_sleep_match = re.search(
-                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,360}"
-                r"id\(cover_art_media_playing\)[\s\S]{0,360}"
+                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,360}?"
+                r"id\(cover_art_media_playing\)[\s\S]{0,360}?"
                 r"then:\s*\n\s*-\s*script\.execute:\s*([a-zA-Z0-9_]+)",
                 sleep_body,
             )
@@ -3944,10 +3955,8 @@ def run_scan() -> int:
     errors.extend(firmware_weather_reconnect_errors(CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_unavailable_retry_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_cover_request_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_cover_art_external_input_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_stale_image_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_refresh_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_playback_grace_errors(COVER_ART_PATH, ROOT))
+    from check_companion_artwork import errors as companion_artwork_errors
+    errors.extend(companion_artwork_errors(ROOT))
     errors.extend(firmware_cover_art_disable_errors(COVER_ART_PATH, ROOT))
     errors.extend(
         firmware_camera_screensaver_retained_token_errors(
@@ -3962,8 +3971,6 @@ def run_scan() -> int:
     errors.extend(firmware_media_group_lifecycle_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_power_binding_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_playback_mode_binding_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_cover_art_low_heap_progress_errors(FIRMWARE_DIR, COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_progress_visibility_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_image_card_entity_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_base_url_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_quality_errors(FIRMWARE_DIR, ROOT))
@@ -5832,7 +5839,6 @@ def run_self_test() -> int:
         "  on_boot:\n"
         "    then:\n"
         "      - lambda: apply_timezone();\n"
-        "# Ask Home Assistant for time once connected\n"
         "# NTP server settings\n"
         "text:\n"
         "  - platform: template\n"

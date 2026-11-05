@@ -695,12 +695,14 @@ int main() {
   assert(convert_temperature_value_for_display_float(50.7f, "\u00B0F") < 10.4f);
   assert(convert_temperature_value_for_display(10, "\u00B0C") == 10);
 
-  esphome::companion::register_companion_timezone_home_assistant_connected_provider([]() { return false; });
   esphome::companion::companion_set_timezone_id("Europe/London");
+  assert(effective_timezone_option("Auto (Mac Companion)") == "Europe/London");
   assert(effective_timezone_option("Auto (Home Assistant)") == "Europe/London");
-  esphome::companion::register_companion_timezone_home_assistant_connected_provider([]() { return true; });
-  assert(effective_timezone_option("Auto (Home Assistant)") == "UTC (GMT+0)");
+  esphome::companion::companion_set_timezone_id("Invalid/Timezone");
+  assert(effective_timezone_option("Auto (Mac Companion)") == "UTC (GMT+0)");
   esphome::companion::companion_set_timezone_id("");
+  assert(effective_timezone_option("Auto (Mac Companion)") == "UTC (GMT+0)");
+  assert(effective_timezone_option("Europe/Paris") == "Europe/Paris");
 
   auto migrated = parse_cfg("media_player.living:Living:Speaker:Auto:controls::media");
   assert(migrated.type.empty());

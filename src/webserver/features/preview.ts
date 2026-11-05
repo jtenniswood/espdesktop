@@ -1,9 +1,6 @@
-import { cardContractOptionName } from "../generated/card_contract";
+import { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
+export { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { configOptionValue } from "../model/config_primitives";
-
-const SUBPAGE_CONNECTOR_OPTION = cardContractOptionName("subpage_connector");
-const SUBPAGE_KIND_OPTION = cardContractOptionName("subpage_kind");
-const WIFI_QR_TABS_OPTION = cardContractOptionName("wifi_tabs");
 
 import { activeCardColor, lighterCardColor } from "../model/config_primitives";
 
@@ -125,14 +122,6 @@ const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
 // restricted to those local modes while Home Assistant is disabled.
 const LOCAL_ONLY_CARD_TYPES = new Set(["action", "sensor"]);
 
-const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
-  "calendar", "push", "slider",
-]);
-
-const LOCAL_CARD_TYPES = new Set([
-  "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
-]);
-
 export type CardPickerConnector = "home_assistant" | "mac_companion";
 
 export function cardPickerConnectors(
@@ -143,44 +132,6 @@ export function cardPickerConnectors(
   if (homeAssistantEnabled) connectors.push(["home_assistant", "Home Assistant"]);
   if (companionSupported) connectors.push(["mac_companion", "Mac Companion"]);
   return connectors;
-}
-
-export function cardTypeConnector(key: string): CardPickerOption["connector"] {
-  if (key === "companion" || key.startsWith("companion_")) return "mac_companion";
-  if (HOME_ASSISTANT_ONLY_CARD_TYPES.has(key)) return "home_assistant";
-  if (key === "action" || key === "sensor") {
-    return "home_assistant_or_local";
-  }
-  if (key === "webhook") return "network";
-  if (LOCAL_CARD_TYPES.has(key)) return "local";
-  return "home_assistant";
-}
-
-export function cardRequiresHomeAssistant(
-  key: string,
-  card: {
-    readonly entity?: string | null;
-    readonly options?: string | null;
-    readonly sensor?: string | null;
-  } | null | undefined,
-): boolean {
-  if (key === "subpage") {
-    const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
-    const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);
-    if (connector === "mac_companion" || kind === "companion_stat") return false;
-    const hasState = !!(card?.sensor || card?.entity);
-    // An unconfigured folder is only navigation; presets and state bindings
-    // use Home Assistant, including on an otherwise plain folder card.
-    return connector === "home_assistant" || !!kind || hasState;
-  }
-  if (key === "wifi_qr" || key === "wifi_qr_card") {
-    const tabs = configOptionValue(card?.options, WIFI_QR_TABS_OPTION).split("|");
-    return tabs.includes("guest") || /^switch\./.test(String(card?.entity || ""));
-  }
-  const source = cardTypeConnector(key);
-  if (source === "home_assistant") return true;
-  if (source !== "home_assistant_or_local") return false;
-  return card?.sensor !== "local";
 }
 
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {

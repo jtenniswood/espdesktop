@@ -9,11 +9,7 @@ int main() {
   using namespace espdesktop::configuration;
   std::array<char, PANEL_CONFIG_CAPABILITIES_MAX_JSON_BYTES> capabilities{};
   size_t capabilities_size = 0;
-#ifdef ESPDESKTOP_HOME_ASSISTANT_SUPPORT
-  const char *home_assistant_capability = "\"home_assistant_support\":true";
-#else
   const char *home_assistant_capability = "\"home_assistant_support\":false";
-#endif
   const bool passed = PANEL_CONFIG_API_VERSION == 1 &&
                       PANEL_CONFIG_WEB_ASSET_VERSION == 2 &&
                       std::strcmp(PANEL_CONFIG_WEB_ASSET_DELIVERY, "manifest") == 0 &&

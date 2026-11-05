@@ -641,9 +641,9 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         function syncScreensaverModeOptions(this: any) {
             var haConnected = homeAssistantConnected();
             schedule.setHomeAssistantConnected(haConnected);
-            coverArtCard.hidden = !haConnected;
-            coverArtCard.classList.toggle("sp-hidden", !haConnected);
             var companionAvailable = companionConfigured();
+            coverArtCard.hidden = !companionAvailable;
+            coverArtCard.classList.toggle("sp-hidden", !companionAvailable);
             sensorBtn.hidden = !haConnected;
             sensorBtn.classList.toggle("sp-hidden", !haConnected);
             companionBtn.hidden = !companionAvailable;

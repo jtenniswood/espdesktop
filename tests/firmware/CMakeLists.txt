@@ -559,17 +559,10 @@ add_test(NAME display_schedule_test COMMAND
 add_test(NAME cover_art_activation_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_activation_test.py
   --compiler ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_rotation_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_rotation_test.py
-  --compiler ${CMAKE_CXX_COMPILER})
 add_test(NAME presence_transition_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/presence_transition_test.py)
 add_test(NAME ha_reconnect_recovery_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ha_reconnect_recovery_test.py)
-add_test(NAME cover_art_metadata_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_metadata_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_pending_reads_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_pending_reads_test.py ${CMAKE_CXX_COMPILER})
 add_executable(rgb565_scaler_test rgb565_scaler_test.cpp)
 target_compile_features(rgb565_scaler_test PRIVATE cxx_std_17)
 target_compile_options(rgb565_scaler_test PRIVATE -Wall -Wextra -Werror)
@@ -720,8 +713,6 @@ add_test(NAME wifi_setup_address_test COMMAND
 add_test(NAME wifi_setup_package_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_setup_package_test.py)
 
-add_test(NAME cover_art_playback_source_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_playback_source_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME fan_control_label_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fan_control_label_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME cover_confirmation_test COMMAND
@@ -884,3 +875,14 @@ target_include_directories(rainfall_card_test PRIVATE ../../components/espdeskto
 add_test(NAME weather_wind_test COMMAND weather_wind_test)
 
 add_test(NAME rainfall_card_test COMMAND rainfall_card_test)
+
+add_executable(connector_state_test connector_state_test.cpp)
+target_compile_features(connector_state_test PRIVATE cxx_std_17)
+target_compile_options(connector_state_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(connector_state_test PRIVATE stubs ../../components/espdesktop)
+add_test(NAME connector_state_test COMMAND connector_state_test)
+
+add_test(NAME companion_artwork_contract_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_companion_artwork.py)
+add_test(NAME companion_artwork_contract_self_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_companion_artwork.py --self-test)

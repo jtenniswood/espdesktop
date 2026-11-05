@@ -47,21 +47,13 @@ describe("browserless application contracts", () => {
 
   test("models connector onboarding and card sources", runConnectorsFeatureTests);
 
-  test("gates Home Assistant connector setup behind firmware opt-in and keeps Companion guidance", () => {
+  test("removes Home Assistant connector setup and keeps Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    assert.match(connectors, /if \(homeAssistantSupported\(\)\) \{\s*homeAssistantCard = buildHomeAssistantCard\(\)/);
-    assert.match(connectors, /function homeAssistantConnected\(\): boolean \{[\s\S]*!homeAssistantSupported\(\)/);
-    assert.match(connectors, /function homeAssistantCardPickerEnabled\(\): boolean \{\s*return homeAssistantSupported\(\) &&/);
-    assert.match(connectors, /setHidden\(unavailableMessage, homeAssistantSupported\(\)\)/);
+    assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
-    const component = fs.readFileSync(path.join(ROOT, "components/espdesktop/__init__.py"), "utf8");
-    assert.match(component, /CONF_HOME_ASSISTANT_SUPPORT = "home_assistant_support"/);
-    assert.match(component, /cv.Optional\(CONF_HOME_ASSISTANT_SUPPORT, default=False\)/);
-    assert.match(component, /if config\[CONF_HOME_ASSISTANT_SUPPORT\]:\s+cg.add_define\("ESPDESKTOP_HOME_ASSISTANT_SUPPORT"\)/);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
-    assert.match(connectors, /connectors\/home-assistant\/complete|connectors\/home-assistant\/forget/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);
@@ -84,7 +76,7 @@ describe("browserless application contracts", () => {
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
     assert.match(screensaver, /state\.screensaverMode === "companion"/);
     assert.match(eventHandlers, /val === "companion"/);
-    assert.match(connectors, /homeAssistantConnected\(\)/);
+    assert.match(connectors, /homeAssistantConnected: \(\) => false/);
     assert.match(connectors, /companionConfigured\(\)/);
   });
 
@@ -282,7 +274,7 @@ describe("browserless application contracts", () => {
 
   test("injects status preview into settings and backup consumers", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    for (const relativePath of ["settings_page.ts", "settings_page_helpers.ts", "settings_cover_art_section.ts", "app_backup.ts"]) {
+    for (const relativePath of ["settings_page.ts", "settings_page_helpers.ts", "app_backup.ts"]) {
       const source = fs.readFileSync(path.join(ROOT, "src/webserver/application", relativePath), "utf8");
       assert.match(source, /AppStatusPreviewFeature/, `${relativePath} should declare its status-preview dependency`);
     }
@@ -1120,7 +1112,6 @@ describe("browserless application contracts", () => {
       "src/webserver/application/settings_page.ts",
       "src/webserver/application/settings_page_helpers.ts",
       "src/webserver/application/settings_schedule_section.ts",
-      "src/webserver/application/settings_cover_art_section.ts",
     ];
     for (const relativePath of consumers) {
       const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
