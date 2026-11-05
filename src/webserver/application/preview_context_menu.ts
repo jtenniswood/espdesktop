@@ -166,7 +166,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     function addColourMenuItem(slots: number[]) {
         const colourSlots = slots.filter(supportsCardColour);
         if (!colourSlots.length) return;
-        addCtxSubmenu("palette", "Change Colour", createColourPicker(colourSlots));
+        addCtxSubmenu("palette", "Card Colour", createColourPicker(colourSlots));
     }
     function addCtxSubmenu(icon: string, label: string, submenu: HTMLElement) {
         const item = document.createElement("div");
@@ -400,8 +400,8 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxSubmenu("arrow-expand", "Icon Size", submenu);
     }
     function addBulkCardMenuItems(this: any, slots?: any) {
-        addColourMenuItem(slots);
         addIconSizeMenuItem(slots);
+        addColourMenuItem(slots);
         addCtxItem("clipboard-outline", "Copy " + slots.length + " Cards", function (this: any) { copyButtons(slots); });
         addCtxItem("code-json", "Copy " + slots.length + " Cards as Code", function (this: any) { showCopyCardCode(slots); });
         addCtxItem("content-cut", "Cut " + slots.length + " Cards", function (this: any) { cutButtons(slots); });
@@ -448,8 +448,8 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         var c: any = ctx();
         var b: any = c.buttons[slot - 1];
         addCtxItem("pencil", "Edit Card", function (this: any) { openCardSettings(slot); });
-        addColourMenuItem([slot]);
         addIconSizeMenuItem([slot]);
+        addColourMenuItem([slot]);
         var ctxTypeDef: any = dependencies.cards.definitions[(b && b.type) || ""];
         if (ctxTypeDef && ctxTypeDef.contextMenuItems &&
             (!c.isSub || buttonTypeRegistryValue(ctxTypeDef, "allowInSubpage", false))) {
