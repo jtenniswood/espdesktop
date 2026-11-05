@@ -312,7 +312,7 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!codexPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Codex presets must contain only Companion keyboard shortcuts");
   }
-  const expectedCodexLabels = ["Command", "Approve", "Browser", "Sidebar", "Side panel", "Terminal", "Terminal"];
+  const expectedCodexLabels = ["Command", "Approve", "Browser", "Sidebar", "Terminal (Bottom)", "Terminal (Side)", "Terminal (Side)"];
   if (codexPreset.map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
     throw new Error("Codex shortcut labels should stay short");
   }

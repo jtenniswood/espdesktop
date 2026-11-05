@@ -30,21 +30,21 @@
     },
     {
       "id": "4",
-      "label": "Side panel",
+      "label": "Terminal (Bottom)",
       "shortcut": "option+command+b",
-      "icon": "Tab"
+      "icon": "Dock Bottom"
     },
     {
       "id": "5",
-      "label": "Terminal",
+      "label": "Terminal (Side)",
       "shortcut": "command+j",
-      "icon": "Application"
+      "icon": "Dock Right"
     },
     {
       "id": "6",
-      "label": "Terminal",
+      "label": "Terminal (Side)",
       "shortcut": "control+keybackquote",
-      "icon": "Application"
+      "icon": "Dock Right"
     }
   ]
 }
