@@ -1,3 +1,4 @@
+import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
@@ -861,6 +862,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                             backupMessage: "Configuration restored, but panel naming or restart failed: " + (error as Error).message,
                         });
                     }
+                }
+                if (!controllers.nativePanelConfig?.homeAssistantSupportEnabled() && !requestApi.postQueueError) {
+                    const warning = legacyHomeAssistantWarning(legacyHomeAssistantCards(nativeDocument));
+                    if (warning) controllers.shell.showBanner?.(warning, "warning");
                 }
                 return layoutRestoreResult;
                 }
