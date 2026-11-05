@@ -700,9 +700,23 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         }
         onStatusChange(syncHomeAssistantSettingsVisibility);
         syncHomeAssistantSettingsVisibility();
+        const appSubpageBody = document.createElement("div");
+        const autoOpenAppSubpages = toggleRow("Open app subpages on focus", "sp-set-auto-open-app-subpages", state.autoOpenAppSubpages);
+        appSubpageBody.appendChild(autoOpenAppSubpages.row);
+        els.setAutoOpenAppSubpages = autoOpenAppSubpages.input;
+        autoOpenAppSubpages.input.addEventListener("change", function (this: HTMLInputElement) {
+            state.autoOpenAppSubpages = this.checked;
+            postAutoOpenAppSubpages(this.checked);
+        });
+        const appSubpageNote = document.createElement("p");
+        appSubpageNote.className = "sp-setting-note";
+        appSubpageNote.textContent = "Applies to all app subpages. When enabled, focusing an app on your Mac opens its subpage automatically. When disabled, press an app card while it is on to open its subpage. Pressing an off card only focuses the app.";
+        appSubpageBody.appendChild(appSubpageNote);
+        const appSubpageCard = makeCollapsibleCard("App Subpages", appSubpageBody, true);
         appendSettingsSection(config, "Appearance", [
             activeColourCard,
             cardStyleCard,
+            appSubpageCard,
             themeCard,
             idleCard,
             clockBarCard,
@@ -717,25 +731,11 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             scheduleCard,
             screensaverPinCard,
         ]);
-        const appSubpageBody = document.createElement("div");
-        const autoOpenAppSubpages = toggleRow("Open app subpages on focus", "sp-set-auto-open-app-subpages", state.autoOpenAppSubpages);
-        appSubpageBody.appendChild(autoOpenAppSubpages.row);
-        els.setAutoOpenAppSubpages = autoOpenAppSubpages.input;
-        autoOpenAppSubpages.input.addEventListener("change", function (this: HTMLInputElement) {
-            state.autoOpenAppSubpages = this.checked;
-            postAutoOpenAppSubpages(this.checked);
-        });
-        const appSubpageNote = document.createElement("p");
-        appSubpageNote.className = "sp-setting-note";
-        appSubpageNote.textContent = "Applies to all app subpages. When enabled, focusing an app on your Mac opens its subpage automatically. When disabled, press an app card while it is on to open its subpage. Pressing an off card only focuses the app.";
-        appSubpageBody.appendChild(appSubpageNote);
-        const appSubpageCard = makeCollapsibleCard("App subpages", appSubpageBody, true);
         connectorState.buildPage(deviceConfig);
         appendSettingsSection(deviceConfig, "Preferences", [
             languageCard,
             timeSettingsCard,
             temperatureCard,
-            appSubpageCard,
         ]);
         appendSettingsSection(deviceConfig, "System", [
             systemSettingsCards.identityCard,

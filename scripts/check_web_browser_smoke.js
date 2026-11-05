@@ -8678,8 +8678,11 @@ async function assertAppSubpageOpeningPreference(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await seedNativeDocument(page, fixture);
     await page.waitForFunction(() => !document.querySelector("#sp-app").classList.contains("sp-onboarding"));
-    await page.getByRole("tab", { name: "System", exact: true }).click();
-    const card = page.locator("#sp-device .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    assert.strictEqual(await card.locator(".card-header h3").textContent(), "App Subpages");
+    assert.strictEqual(await card.evaluate(element => element.previousElementSibling.querySelector(".card-header h3").textContent), "Card Style",
+      "App Subpages appears directly below Card Style on the Screen tab");
     if (await card.evaluate(element => element.classList.contains("collapsed"))) await card.locator(".card-header").click();
   }
   try {

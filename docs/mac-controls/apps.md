@@ -42,4 +42,4 @@ To contribute templates for another app, see [Run Mac Keyboard Shortcuts](/mac-c
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
 
-App subpages open automatically when their app gains focus by default. To require a press instead, turn off **System → Preferences → App subpages → Open app subpages on focus**. Press an off app card to focus it, then press its on card to open the subpage. This setting applies to every app subpage on the display.
+App subpages open automatically when their app gains focus by default. To require a press instead, turn off **Screen → App Subpages → Open app subpages on focus**. Press an off app card to focus it, then press its on card to open the subpage. This setting applies to every app subpage on the display.
