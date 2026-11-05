@@ -1455,7 +1455,7 @@ export function registerCompanionCardTypes(
             if (companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";
-                editButton.textContent = "Edit " + companionShortcutFolderAppLabel(card.entity) + " Subpage";
+                editButton.textContent = "Edit Subpage";
                 editButton.addEventListener("click", function () {
                     selection.closeSettings();
                     codec.enterSubpage(slot);
@@ -1523,7 +1523,7 @@ export function registerCompanionCardTypes(
         },
         contextMenuItems: function (slot?: any, card?: any, helpers?: any) {
             if (helpers?.isSub || !companionAppShortcutFolderEnabled(card)) return;
-            helpers.addCtxItem("cog", "Edit " + companionShortcutFolderAppLabel(card.entity) + " Subpage", function () {
+            helpers.addCtxItem("cog", "Edit Subpage", function () {
                 codec.enterSubpage(slot);
             });
         },
