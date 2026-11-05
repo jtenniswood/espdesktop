@@ -8667,7 +8667,7 @@ async function assertRainfallEditor(browser) {
 async function assertSpecialPageRename(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState });
+  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
   const page = await context.newPage();
   await installFakeEventSource(page);
   const title = page.getByRole("button", { name: "Rename Special Page", exact: true });
@@ -8700,6 +8700,19 @@ async function assertSpecialPageRename(browser, testCase) {
     await input.press("Enter");
     await dialog.waitFor({ state: "hidden" });
     assert.strictEqual(await title.innerText(), custom);
+    await page.locator(".sp-main .sp-empty-cell").first().click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Paste Code", { exact: true }).click();
+    const pasteDialog = page.locator(".sp-transfer-dialog");
+    await pasteDialog.locator("textarea").fill(JSON.stringify({
+      format: "espdesktop.cards", version: 1, source: { device: testCase.slug, firmware: "test" },
+      cards: [{ entity: "light.kitchen", label: "Kitchen", icon: "Lightbulb", icon_on: "Auto",
+        sensor: "", unit: "", type: "", precision: "", options: "", size: 1 }],
+    }));
+    await pasteDialog.getByRole("button", { name: "Paste", exact: true }).click();
+    assert.deepStrictEqual((await page.locator(".sp-transfer-error").allTextContents()).filter(Boolean), [], "card code is accepted");
+    await pasteDialog.waitFor({ state: "detached" });
+    await waitForNativeState(nativeState, () => nativeState.document.settings.special_page.includes("Kitchen"), "paste a card into the renamed Special Page");
+    assert.strictEqual(await title.innerText(), custom, "pasting a card retains the page name");
     const saved = nativeState.document.settings.special_page;
     assert(saved.includes("Office%3A Tools%2C 50%25 %7C 日本語 <test>"));
     await page.reload();

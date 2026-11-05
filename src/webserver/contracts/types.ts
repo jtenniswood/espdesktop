@@ -164,6 +164,7 @@ export interface SubpageConfig {
   buttons: readonly CardConfig[];
   backLabel?: string;
   backColor?: string;
+  title?: string;
   grid?: readonly number[];
   sizes?: Readonly<Record<string, number>>;
 }
