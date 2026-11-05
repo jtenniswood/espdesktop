@@ -103,6 +103,11 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-voice-preview:not(.sp-visible){display:none}" +
         ".sp-main{position:absolute;top:var(--grid-top);left:var(--grid-left);right:var(--grid-right);bottom:var(--grid-bottom);" +
         "display:grid;grid-template-columns:var(--grid-cols);grid-template-rows:var(--grid-rows);gap:var(--grid-gap);overflow:hidden}" +
+        ".sp-main.sp-has-subpage-header{top:calc(var(--grid-top) + var(--subpage-header-side) + var(--grid-gap))}" +
+        ".sp-subpage-header{position:absolute;top:var(--grid-top);left:var(--grid-left);right:var(--grid-right);height:var(--subpage-header-side);display:flex;align-items:center;gap:var(--grid-gap);color:var(--preview-text-primary);pointer-events:none}" +
+        ".sp-subpage-header-icon{position:relative;width:var(--subpage-header-side);height:100%;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:var(--btn-icon)}" +
+        ".sp-subpage-header-icon img{position:absolute;max-width:none}" +
+        ".sp-subpage-header-name{line-height:1.2;font-size:var(--btn-label);font-weight:var(--btn-label-weight,400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}" +
         ".sp-main.sp-grid-loading{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility .2s}" +
         ".sp-btn{border-radius:var(--btn-r);padding:var(--btn-pad);" +
         "display:flex;flex-direction:column;justify-content:space-between;" +

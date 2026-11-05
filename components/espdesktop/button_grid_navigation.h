@@ -39,6 +39,9 @@ struct NavigationSubpageEntry {
   lv_obj_t *back_button = nullptr;
   bool back_neutral_background = true;
   BtnSlot back_slot{};
+  BtnSlot header_icon_slot{};
+  lv_obj_t *header = nullptr;
+  lv_obj_t *header_title = nullptr;
   struct Card {
     int index = 0;
     lv_obj_t *button = nullptr;
@@ -418,7 +421,17 @@ inline void navigation_refresh_subpage_label() {
     image_card_set_clock_bar_companion_icon("", "", "");
     return;
   }
-  set_clock_bar_companion_subpage_label(navigation_active_subpage_label());
+  const std::string title = navigation_active_subpage_label();
+  if (auto *active = navigation_find_slot(navigation_active_subpage_slot())) {
+    if (active->header_title) {
+      lv_label_set_display_text(active->header_title,
+          title.empty() ? espdesktop_i18n(active->kind == "special" ? "Special Page" : "Subpage") : title.c_str());
+      set_clock_bar_companion_subpage_label("");
+      image_card_set_clock_bar_companion_icon("", "", "");
+      return;
+    }
+  }
+  set_clock_bar_companion_subpage_label(title);
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);

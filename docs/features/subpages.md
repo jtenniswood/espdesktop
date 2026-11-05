@@ -9,6 +9,8 @@ description: Create extra pages on your EspDesktop display to organise cards int
 
 A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards.
 
+Each subpage shows its name and icon above a shorter button grid. App shortcut pages use the app icon and name. The header keeps the same number of card spaces and stays below the clock bar when it is enabled.
+
 ## Create a Subpage
 
 1. Open the display's setup page in a browser and choose the **Layout** tab.

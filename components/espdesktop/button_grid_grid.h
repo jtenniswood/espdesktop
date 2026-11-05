@@ -1307,6 +1307,71 @@ inline std::string optional_text_state(esphome::text::Text **configs, int index)
   return (configs != nullptr && configs[index] != nullptr) ? configs[index]->state : "";
 }
 
+// Keep the grid's original rows and columns. A heading sits in its own
+// reserved top inset so spans and the clock bar keep their existing geometry.
+inline void grid_create_subpage_header(
+    NavigationSubpageEntry &entry, const ParsedCfg &parent,
+    const BtnSlot *parent_slot, const lv_font_t *text_font,
+    const lv_font_t *icon_font, lv_coord_t gap) {
+  lv_obj_t *screen = entry.screen;
+  lv_obj_update_layout(screen);
+  const int short_side = std::min(lv_obj_get_width(screen), lv_obj_get_height(screen));
+  const lv_coord_t side = std::max<int>(text_font->line_height, short_side * 9 / 100);
+  gap = std::max<lv_coord_t>(4, gap);
+  const lv_coord_t inset = side + gap;
+  clock_bar_grid_page_insets().push_back({screen, inset});
+  lv_obj_set_style_pad_top(screen,
+      lv_obj_get_style_pad_top(screen, LV_PART_MAIN) + inset, LV_PART_MAIN);
+
+  entry.header = lv_obj_create(screen);
+  lv_obj_remove_style_all(entry.header);
+  lv_obj_add_flag(entry.header, LV_OBJ_FLAG_IGNORE_LAYOUT);
+  lv_obj_clear_flag(entry.header, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(entry.header, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_size(entry.header, LV_PCT(100), side);
+  lv_obj_set_pos(entry.header, 0, -inset);
+  lv_obj_set_style_text_color(entry.header,
+      lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
+  lv_obj_set_flex_flow(entry.header, LV_FLEX_FLOW_ROW);
+  lv_obj_set_flex_align(entry.header, LV_FLEX_ALIGN_START,
+      LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  lv_obj_set_style_pad_column(entry.header, gap, LV_PART_MAIN);
+
+  auto &icon = entry.header_icon_slot;
+  icon.btn = lv_obj_create(entry.header);
+  lv_obj_remove_style_all(icon.btn);
+  lv_obj_set_size(icon.btn, side, side);
+  lv_obj_clear_flag(icon.btn, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(icon.btn, LV_OBJ_FLAG_SCROLLABLE);
+  icon.icon_lbl = lv_label_create(icon.btn);
+  lv_obj_set_style_text_font(icon.icon_lbl, icon_font, LV_PART_MAIN);
+  const char *glyph = parent_slot && parent_slot->icon_lbl
+      ? lv_label_get_text(parent_slot->icon_lbl) : "\U000F024B";
+  lv_label_set_text(icon.icon_lbl, glyph);
+  lv_obj_update_layout(icon.icon_lbl);
+  const int glyph_side = std::max(lv_obj_get_width(icon.icon_lbl), lv_obj_get_height(icon.icon_lbl));
+  if (glyph_side > side) lv_obj_set_style_transform_zoom(
+      icon.icon_lbl, side * 256 / glyph_side, LV_PART_MAIN);
+  lv_obj_center(icon.icon_lbl);
+#ifdef USE_COMPANION
+  if (companion_app_icon_enabled(parent)) {
+    companion_set_card_icon_image(icon, parent.entity, "large");
+    esphome::companion::request_app_icon(parent.entity);
+  }
+#else
+  (void) parent;
+#endif
+
+  entry.header_title = lv_label_create(entry.header);
+  lv_obj_set_style_text_font(entry.header_title, text_font, LV_PART_MAIN);
+  lv_obj_set_flex_grow(entry.header_title, 1);
+  lv_label_set_long_mode(entry.header_title, LV_LABEL_LONG_DOT);
+  const std::string title = !entry.title.empty() ? entry.title :
+      parent_slot && parent_slot->text_lbl ? lv_label_get_text(parent_slot->text_lbl) : parent.label;
+  lv_label_set_display_text(entry.header_title,
+      title.empty() ? espdesktop_i18n(entry.kind == "special" ? "Special Page" : "Subpage") : title.c_str());
+}
+
 // Moving a card changes only the saved order, not the card itself. Keep the
 // existing LVGL widgets and their Home Assistant callbacks alive, and update
 // just their grid cells. Structural card edits are applied on the next normal
@@ -1813,6 +1878,7 @@ inline void grid_release_runtime_allocations(
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;
   ha_release_callbacks_for_owner(entry.screen);
+  grid_release_runtime_allocations(entry.header_icon_slot.btn);
   screen_lock_unregister_tree(entry.screen);
   grid_prepare_media_runtime_for_visual_reset(entry.back_button);
   grid_release_runtime_allocations(entry.back_button);
@@ -2376,6 +2442,10 @@ inline void grid_phase2(
     lv_obj_set_style_pad_column(sub_scr, mp_pad_col, LV_PART_MAIN);
     lv_obj_clear_flag(sub_scr, LV_OBJ_FLAG_SCROLLABLE);
     clock_bar_clear_responsive_grid_cards(sub_scr);
+    if (auto *entry = navigation_find_slot(navigation_slot)) {
+      grid_create_subpage_header(*entry, p, is_special_page ? nullptr : &slots[si],
+          sp_btn_fnt, sp_icon_fnt, mp_pad_row);
+    }
 
     lv_obj_t *back_btn = create_grid_card_button(
       sub_scr, sp_radius, sp_pad, sp_btn_fnt, sp_txt_color, cfg.continuous_card_corners);

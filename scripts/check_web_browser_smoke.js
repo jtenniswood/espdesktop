@@ -116,9 +116,9 @@ function nativeConfigState(slug) {
 
 async function assertSubpageTitleTypography(page, label, nativeState) {
   await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-  await page.waitForSelector(".sp-clockbar-subpage-title");
+  await page.waitForSelector(".sp-subpage-header-name");
   const typography = await page.evaluate(() => {
-    const title = document.querySelector(".sp-clockbar-subpage-title");
+    const title = document.querySelector(".sp-subpage-header-name");
     const cardLabel = document.querySelector(".sp-main .sp-btn-label");
     const titleStyle = getComputedStyle(title);
     const cardStyle = getComputedStyle(cardLabel);
@@ -178,7 +178,7 @@ async function assertSubpageTitleTypography(page, label, nativeState) {
     initialColor, `${label}: reset restores the theme colour`);
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.locator(".sp-back-btn .sp-back-hit").click();
-  await page.waitForSelector(".sp-clockbar-subpage-title", { state: "detached" });
+  await page.waitForSelector(".sp-subpage-header-name", { state: "detached" });
 }
 
 function htmlFor(slug, embeddedFallback = false) {
@@ -6553,6 +6553,7 @@ async function assertAppSubpageCapacity(browser, testCase) {
       // Four managed shortcuts, one custom card and Back leave three cells.
       await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
       assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
+      assert.strictEqual(await page.locator(".sp-subpage-header-name").innerText(), "Codex");
       await page.locator(".sp-back-btn .sp-back-hit").click();
       let app = await openAppSettings();
       for (const id of ["1", "2", "4"]) {
@@ -8771,6 +8772,40 @@ async function assertAppSubpageOpeningPreference(browser) {
   } finally { await context.close(); }
 }
 
+async function assertSubpageHeaders(browser, testCase) {
+  const fixture = nativeConfigState(testCase.slug);
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, homeAssistantSupport: true });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, fixture);
+    assert.strictEqual(await page.locator(".sp-subpage-header").count(), 0, "home keeps its full grid");
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    assert.strictEqual(await page.locator(".sp-subpage-header-name").innerText(), "Rooms");
+    const geometry = await page.evaluate(() => {
+      const header = document.querySelector(".sp-subpage-header").getBoundingClientRect();
+      const grid = document.querySelector(".sp-main").getBoundingClientRect();
+      const screen = document.querySelector(".sp-screen").getBoundingClientRect();
+      const cards = [...document.querySelectorAll(".sp-main > *")].map(card => card.getBoundingClientRect());
+      return { header: { top: header.top, bottom: header.bottom, height: header.height },
+        grid: { top: grid.top, bottom: grid.bottom }, screen: { top: screen.top, bottom: screen.bottom },
+        inside: cards.every(card => card.top >= grid.top - 1 && card.bottom <= grid.bottom + 1) };
+    });
+    assert(geometry.header.height > 10, "header has visible icon space");
+    assert(geometry.header.top >= geometry.screen.top, "header stays within the screen");
+    assert(geometry.header.bottom < geometry.grid.top, "header has a gap above the cards");
+    assert(geometry.inside && geometry.grid.bottom <= geometry.screen.bottom, "all grid cells stay on screen");
+    if (process.env.ESPDESKTOP_SUBPAGE_HEADER_SCREENSHOT)
+      await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_SUBPAGE_HEADER_SCREENSHOT });
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    assert.strictEqual(await page.locator(".sp-subpage-header").count(), 0, "returning home removes the header");
+    console.log(`${testCase.name}: subpage header and grid bounds passed.`);
+  } finally { await context.close(); }
+}
+
 async function assertSpecialPageRename(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
@@ -8863,6 +8898,10 @@ async function assertSpecialPageRename(browser, testCase) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_SUBPAGE_HEADERS_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSubpageHeaders(browser, testCase);
+      return;
+    }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
       await assertAppSubpageOpeningPreference(browser);
       return;
