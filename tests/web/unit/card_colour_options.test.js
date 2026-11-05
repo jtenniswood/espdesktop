@@ -145,22 +145,33 @@ test("back button colours survive saving, reloading, resizing and reset", () => 
 });
 
 
-test("standard icon sizes survive saving, reopening and other card option edits", () => {
+test("only native app artwork retains saved icon sizes", () => {
   const codec = loadCodec();
-  for (const type of ["", "sensor", "media", "subpage", "companion", "light_control"]) {
+  const cards = [
+    { type: "", entity: "light.kitchen" },
+    { type: "sensor", entity: "sensor.temperature" },
+    { type: "media", entity: "media_player.kitchen" },
+    { type: "subpage", entity: "" },
+    { type: "light_control", entity: "light.kitchen" },
+    { type: "companion", entity: "shortcut.command+c" },
+    { type: "companion", entity: "stat.cpu" },
+    { type: "companion", entity: "folder.Documents" },
+    { type: "companion", entity: "webapp.example" },
+    { type: "companion", entity: "window.close" },
+    { type: "companion", entity: "com.apple.safari", sensor: "url.https%3A%2F%2Fexample.com" },
+    { type: "companion", entity: "com.apple.finder", app: true },
+  ];
+  for (const card of cards) {
     for (const size of ["small", "medium", "large"]) {
-      const card = { entity: type === "companion" ? "shortcut.command+c" : "light.kitchen",
-        label: "Kitchen", icon: "Lightbulb", type, sensor: "", precision: "", options: "icon_size=" + size };
-      const reopened = codec.parseButtonConfig(codec.serializeButtonConfig(card));
-      assert.equal(colours.configOptionValue(reopened.options, "icon_size"), size, type + "/" + size);
-      assert.equal(codec.serializeButtonConfig(reopened), codec.serializeButtonConfig(card));
+      const saved = { label: "Kitchen", icon: "Lightbulb", sensor: "", precision: "",
+        ...card, options: "icon_size=" + size };
+      const reopened = codec.parseButtonConfig(codec.serializeButtonConfig(saved));
+      assert.equal(colours.configOptionValue(reopened.options, "icon_size"), card.app ? size : "", card.entity + "/" + size);
+      const legacy = [saved.entity, saved.label, saved.icon, "", saved.sensor, "", saved.type, "", saved.options].join(";");
+      const migrated = codec.parseButtonConfig(legacy);
+      assert.equal(colours.configOptionValue(migrated.options, "icon_size"), card.app ? size : "");
     }
   }
-  const card = { type: "", options: "icon_size=large" };
-  codec.setCardOnPattern(card, "stripes");
-  assert.equal(colours.configOptionValue(card.options, "icon_size"), "large");
-  assert.equal(colours.cardIconSize("icon_size=invalid"), "small");
-  assert.equal(colours.preserveCardIconSize("icon_size=small", "icon_size=large"), "icon_size=small");
 });
 
 

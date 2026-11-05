@@ -43,22 +43,21 @@ and redraw the physical cards after the display's brief refresh delay.
 
 Find these controls in **Screen → Appearance** on the [Setup](/features/setup) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
 
-## Card icon size
+## App icon size
 
-Right-click a card in the layout preview and choose **Icon Size → Small, Medium
-or Large**, or use **Icon size** in **Card Settings**. Small keeps the normal icon
-size; Medium enlarges it to 1.5× above the label; Large fills the available card
-area and hides the label. This also applies to Mac application artwork. The
-choice is saved per card on the home screen and subpages; choosing Small or
-Medium restores the label unless you have explicitly hidden it.
+Set **Screen → Appearance → Card Style → Default app icon size** to choose the
+starting size for Mac application artwork, including apps inside subpages.
+Small keeps the original size; Medium enlarges it to 1.5× above the label;
+Large fills the available card area and hides the label.
 
-Set **Screen → Appearance → Card Style → Default icon size** to choose the
-starting size for all cards. Cards without a manual size follow this setting,
-including cards inside subpages. Any explicit Small, Medium, or Large choice
-stays unchanged when the default changes. Choose **Use Default** in a card's
-right-click menu, or **Default** in Card Settings, to make it follow the global
-setting again. The display remembers the default after reboot, and backups
-include it. Older backups without this setting keep the current default.
+Right-click an app card and choose **App Icon Size**, or use **App icon size**
+in **Card Settings**, to override the default for that app. Choose **Use Default**
+in the menu or **Default** in Card Settings to follow the global setting again.
+The display remembers the default after reboot, and backups include it. Older
+backups without this setting keep the current default.
+
+All other card icons keep their original small layout and have no size setting.
+Previously saved sizes for those icons are ignored.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
 the lower left when no label is shown. A soft shadow keeps the arrow visible

@@ -1,5 +1,5 @@
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
-import { companionMetricForEntity } from "../model/companion_card_codec";
+import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import {
@@ -527,7 +527,7 @@ export function createConfigCodecFeature(
             b.options = "";
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
-        if (b) b.options = preserveCardIconSize(iconSizeOptions, b.options);
+        if (b) b.options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", b.options);
         return b;
     }
     function isBrightnessSliderType(this: any, type?: any) {
@@ -805,7 +805,7 @@ export function createConfigCodecFeature(
             precision = "";
         }
         if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
-        options = preserveCardIconSize(iconSizeOptions, options);
+        options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", options);
         return trimConfigFields([
             (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
             label,

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "card_icon_layout.h"
 
 #include "card_curve.h"
 
@@ -1054,9 +1053,6 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   display_apply_main_width(s.icon_lbl, display);
-  espdesktop::card_icons::attach(s.btn, s.icon_lbl, s.text_lbl,
-      cfg_option_value(p.options, "icon_size"), display_main_width_percent(display),
-      width_compensation_vertical_axis());
   control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);
 #ifdef USE_COMPANION
