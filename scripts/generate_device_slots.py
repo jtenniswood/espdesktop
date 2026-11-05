@@ -234,8 +234,6 @@ def package_file_text(device: dict) -> str:
                 f"!include ../../common/device/screen_loading{network_suffix}.yaml",
             ),
             include_line(network_screen_key, f"!include {network_screen_path}"),
-            include_line("screen_ha", "!include ../../common/device/screen_ha_setup.yaml"),
-            include_line("screen_ha_act", "!include ../../common/device/screen_ha_actions.yaml"),
             include_line("screen_setup", "!include ../../common/device/screen_button_setup.yaml"),
             include_line("screen_clock", "!include ../../common/device/screen_clock.yaml"),
             include_line("screen_art", "!include ../../common/device/screen_cover_art.yaml"),

@@ -20,8 +20,6 @@ esphome:
                                        active_timezone);
           id(screen_active_timezone_sensor).publish_state(active_timezone);
       - script.execute: network_setup_text_refresh
-      - script.execute: ha_setup_text_refresh
-      - script.execute: ha_actions_text_refresh
       - script.execute: button_setup_text_refresh
       - script.execute: camera_screensaver_text_refresh
 
@@ -256,8 +254,6 @@ select:
             refresh_calendar_cards();
         - script.execute: time_update
         - script.execute: network_setup_text_refresh
-        - script.execute: ha_setup_text_refresh
-        - script.execute: ha_actions_text_refresh
         - script.execute: button_setup_text_refresh
         - script.execute: camera_screensaver_text_refresh
         - script.execute: refresh_button_grid

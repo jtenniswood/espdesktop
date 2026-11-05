@@ -336,11 +336,9 @@ void EspDesktopApp::setup() {
     ESP_LOGE(TAG, "Application core failed to start");
   }
   connectors::connector_state_service().setup(
-      panel_config_button_order_ != nullptr &&
-          !panel_config_button_order_->state.empty(),
       web_auth_username_, web_auth_password_);
   clock_bar_home_assistant_configured_provider() = []() {
-    return connectors::connector_state_service().status().home_assistant_configured;
+    return false;
   };
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.

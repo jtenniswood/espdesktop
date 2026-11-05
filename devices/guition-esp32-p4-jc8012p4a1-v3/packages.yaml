@@ -146,8 +146,6 @@ packages:
   # ---------------------------------------------------------------------------
   screen_loading:  !include ../../common/device/screen_loading.yaml
   screen_wifi:     !include ../../common/device/screen_wifi_setup.yaml
-  screen_ha:       !include ../../common/device/screen_ha_setup.yaml
-  screen_ha_act:   !include ../../common/device/screen_ha_actions.yaml
   screen_setup:    !include ../../common/device/screen_button_setup.yaml
   screen_clock:    !include ../../common/device/screen_clock.yaml
   screen_art:      !include ../../common/device/screen_cover_art.yaml

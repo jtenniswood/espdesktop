@@ -41,7 +41,7 @@ The Screen Lock card uses the same PIN. The Screensaver card starts your selecte
 
 Use **System → System → Backup** to save a copy of the display configuration before making major changes. Keep the backup file private if it contains web addresses or other personal configuration.
 
-The **Connectors** tab provides setup and status for Mac Companion. The EspDesktop configurator does not offer Home Assistant setup or new Home Assistant-backed cards, even if Home Assistant is already connected. Home Assistant cards already saved on a display remain in its layout.
+The **Connectors** tab provides setup and status for Mac Companion. Local cards remain usable without pairing a Mac. Home Assistant setup screens and connector endpoints have been removed, and firmware no longer accepts the former `home_assistant_support` opt-in. Home Assistant cards already saved on a display remain in its layout so their configuration can be recovered.
 
 For Home Assistant setup and panel features, see [EspControl docs](https://jtenniswood.github.io/espcontrol/).
 

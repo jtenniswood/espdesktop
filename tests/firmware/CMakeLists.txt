@@ -884,3 +884,9 @@ target_include_directories(rainfall_card_test PRIVATE ../../components/espdeskto
 add_test(NAME weather_wind_test COMMAND weather_wind_test)
 
 add_test(NAME rainfall_card_test COMMAND rainfall_card_test)
+
+add_executable(connector_state_test connector_state_test.cpp)
+target_compile_features(connector_state_test PRIVATE cxx_std_17)
+target_compile_options(connector_state_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(connector_state_test PRIVATE stubs ../../components/espdesktop)
+add_test(NAME connector_state_test COMMAND connector_state_test)

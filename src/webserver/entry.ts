@@ -946,8 +946,7 @@ function composeApplicationContext(): ApplicationContext {
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
-    dom, shell, fields, companionSection, !!layout.config.features?.companion,
-    () => nativePanelConfig.homeAssistantSupportEnabled(),
+    dom, shell, companionSection, !!layout.config.features?.companion,
   );
   let temperatureHomeAssistantConnected = connectorsPage.homeAssistantConnected();
   connectorsPage.onStatusChange(() => {
