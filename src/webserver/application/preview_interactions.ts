@@ -264,7 +264,7 @@ export function createPreviewInteractionsFeature(
             });
         }
         function isBackExitTarget(this: any, e?: any, target?: any) {
-            var icon: any = target.querySelector(".sp-back-hit");
+            var icon: any = target.querySelector(".sp-back-hit:not([hidden])");
             if (!icon)
                 return false;
             var rect: any = icon.getBoundingClientRect();

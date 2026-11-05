@@ -82,3 +82,18 @@ test("legacy icon sizes clear on save while label visibility and app subpages su
     assert(options.configOptionEnabled(saved, token));
   assert.equal(api.normalizeCompanionCardOptions({ ...card, options: saved }), saved);
 });
+
+
+test("Back icon sizes survive normalization independently of home icon sizes", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const options = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
+  for (const size of ["small", "medium", "large"]) {
+    const card = { type: "companion", entity: "com.apple.finder", sensor: "",
+      options: `app_shortcuts,icon_size=large,app_shortcuts_back_icon_size=${size}` };
+    const normalized = api.normalizeCompanionCardOptions(card);
+    assert.equal(options.configOptionValue(normalized, "app_shortcuts_back_icon_size"), size);
+    assert.equal(options.configOptionValue(normalized, "icon_size"), "large");
+  }
+  assert(!api.normalizeCompanionCardOptions({ type: "companion", entity: "com.apple.finder",
+    options: "app_shortcuts,app_shortcuts_back_icon_size=invalid" }).includes("app_shortcuts_back_icon_size"));
+});

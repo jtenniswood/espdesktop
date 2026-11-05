@@ -1391,7 +1391,7 @@ inline bool grid_refresh_subpage_layouts(
     // below. A deferred structural edit must keep its current grid intact.
     lv_obj_set_grid_dsc_array(entry->screen, subpage_cols, subpage_rows);
     entry->back_neutral_background = apply_subpage_back_colors(entry->back_button, order, display);
-    const std::string back_label = get_subpage_back_label(order);
+    const std::string back_label = ((entry->kind == "app_shortcuts" && companion_app_icon_enabled(parent_config)) ? "‹ " : "") + get_subpage_back_label(order);
     if (entry->back_slot.text_lbl != nullptr) {
       lv_label_set_display_text(entry->back_slot.text_lbl, back_label.c_str());
     }
@@ -2385,22 +2385,20 @@ inline void grid_phase2(
     display_apply_main_width(back_slot.icon_lbl, display);
     display_apply_slot_text_width(back_slot, display);
     lv_label_set_display_text(back_slot.icon_lbl, is_special_page ? "\U000F0156" : "\U000F0141");
-    lv_label_set_display_text(back_slot.text_lbl, sp_back_label.c_str());
+    lv_label_set_display_text(back_slot.text_lbl,
+        ((companion_app_shortcuts_enabled(p) && companion_app_icon_enabled(p)) ? "‹ " + sp_back_label : sp_back_label).c_str());
     apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
     configure_button_label_wrap(back_slot.text_lbl);
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
 
     // App shortcut folders use their app artwork as the Back tile's icon.
     // Keep the chevron as a fallback until artwork is available.
-    if (!is_special_page && companion_app_shortcuts_enabled(p)) {
-      if (p.entity.rfind("webapp.", 0) == 0) {
-        image_card_bind_companion_webapp_icon(back_slot, p, cfg);
-      } else {
+    if (!is_special_page && companion_app_shortcuts_enabled(p) && companion_app_icon_enabled(p)) {
 #ifdef USE_COMPANION
-        companion_set_card_icon_image(back_slot, p.entity, "small");
-        esphome::companion::request_app_icon(p.entity);
+      companion_set_card_icon_image(back_slot, p.entity, espdesktop::resolved_card_icon_size(
+          cfg_option_value(p.options, "app_shortcuts_back_icon_size")));
+      esphome::companion::request_app_icon(p.entity);
 #endif
-      }
     }
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {

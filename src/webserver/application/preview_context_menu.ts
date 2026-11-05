@@ -1,3 +1,4 @@
+import { companionAppShortcutFolderEnabled, COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION } from "./companion_shortcut_folder";
 import { createColorSwatches } from "../components/color_swatches";
 import { cardIconSizeOverride, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
@@ -318,8 +319,13 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     let savingIconSize = false;
     function addIconSizeMenuItem(slots: number[]) {
         const c = ctx();
+        const backCard = c.isSub && slots.length === 1 && slots[0] === -2
+            ? state.buttons[Number(state.editingSubpage) - 1] : null;
+        if (backCard && (!companionAppShortcutFolderEnabled(backCard) || backCard.entity.startsWith("webapp."))) return;
+        const optionKey = backCard ? COMPANION_APP_SHORTCUTS_BACK_ICON_SIZE_OPTION : "icon_size";
+        const cardForSlot = (slot: number) => backCard || c.buttons[slot - 1];
         const iconSlots = slots.filter(slot => {
-            const card = c.buttons[slot - 1];
+            const card = cardForSlot(slot);
             return !!card && companionCardHasAppIcon(card);
         });
         if (!iconSlots.length) return;
@@ -330,7 +336,10 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             const button = document.createElement("button");
             button.className = "sp-ctx-item sp-ctx-option";
             button.type = "button";
-            const selected = iconSlots.every(slot => cardIconSizeOverride(c.buttons[slot - 1].options) === size);
+            const selected = iconSlots.every(slot => {
+                const options = cardForSlot(slot).options;
+                return (backCard ? configOptionValue(options, optionKey) : cardIconSizeOverride(options)) === size;
+            });
             const check = document.createElement("span");
             check.className = "sp-ctx-check";
             check.setAttribute("aria-hidden", "true");
@@ -340,11 +349,11 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             button.addEventListener("click", async () => {
                 if (savingIconSize || isConfigLocked() || ctx().buttons !== c.buttons || state.editingSubpage !== homeSlot) return;
                 const changes = iconSlots.map(slot => {
-                    const card = c.buttons[slot - 1];
-                    return { slot, card, previous: card.options,
-                        next: setConfigOptionValue(card.options, "icon_size", size) };
+                    const card = cardForSlot(slot);
+                    return { slot: backCard ? Number(homeSlot) : slot, card, previous: card.options,
+                        next: setConfigOptionValue(card.options, optionKey, size) };
                 });
-                const subpage = c.isSub ? getSubpage(homeSlot) : null;
+                const subpage = c.isSub && !backCard ? getSubpage(homeSlot) : null;
                 if (subpage) {
                     const candidate = { ...subpage, buttons: subpage.buttons.map((card: any) => ({ ...card })) };
                     changes.forEach(change => { candidate.buttons[change.slot - 1].options = change.next; });
@@ -563,6 +572,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     function addBackButtonMenuItems(this: any) {
         addCtxItem("pencil", "Edit Label", function (this: any) { openCardSettings(-2); });
         addColourMenuItem([-2]);
+        addIconSizeMenuItem([-2]);
         addCtxItem("keyboard-return", "Exit Subpage", function (this: any) { exitSubpage(); });
     }
     function showEmptySlotMenu(this: any, e?: any, pos?: any) {

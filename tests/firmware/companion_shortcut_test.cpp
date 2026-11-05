@@ -79,6 +79,12 @@ int main() {
   assert(companion_app_icon_enabled(safari_launch));
   assert(companion_app_shortcuts_enabled(safari_launch));
   assert(companion_card_options_normalized(safari_launch) == "app_shortcuts");
+  for (const std::string size : {"small", "medium", "large"}) {
+    safari_launch.options = "app_shortcuts,app_shortcuts_back_icon_size=" + size;
+    assert(companion_card_options_normalized(safari_launch) == safari_launch.options);
+  }
+  safari_launch.options = "app_shortcuts,app_shortcuts_back_icon_size=invalid";
+  assert(companion_card_options_normalized(safari_launch) == "app_shortcuts");
   safari_launch.options = "app_shortcuts,app_shortcuts_auto_switch";
   assert(companion_app_shortcuts_enabled(safari_launch));
   assert(companion_card_options_normalized(safari_launch) == "app_shortcuts");

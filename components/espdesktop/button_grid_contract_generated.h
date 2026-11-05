@@ -309,6 +309,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_BG_COLOR = "app_bg_color";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_HIDE_LABEL = "app_hide_label";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUT_PRESET = "app_shortcut_preset";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS = "app_shortcuts";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_BACK_ICON_SIZE = "app_shortcuts_back_icon_size";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_TABS = "app_shortcuts_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CENTER_CLOCK = "center_clock";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CLIMATE_TABS = "climate_tabs";
