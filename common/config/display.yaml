@@ -466,6 +466,21 @@ switch:
             id(indoor_temp), id(outdoor_temp));
 
   - platform: template
+    name: "${entity_companion_auto_open_app_subpages}"
+    internal: true
+    id: companion_auto_open_app_subpages_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    icon: "mdi:application"
+    web_server:
+      sorting_group_id: sg_display
+    on_turn_on:
+      - lambda: companion_set_auto_open_app_subpages(true);
+    on_turn_off:
+      - lambda: companion_set_auto_open_app_subpages(false);
+
+  - platform: template
     name: "${entity_screen_subpage_chevron}"
     internal: true
     id: subpage_chevrons_enabled

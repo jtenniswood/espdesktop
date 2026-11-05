@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 45,
-    "entityNames": 122,
+    "entityNames": 123,
     "icons": 400,
     "structuralIcons": 37,
     "compatibilityFixtureGroups": 2
@@ -7311,6 +7311,19 @@
           "screen__temperature_degree_symbol",
           "screen_temperature_degree_symbol",
           "temperature_degree_symbol_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "companion_auto_open_app_subpages",
+        "domain": "switch",
+        "name": "Companion: Auto Open App Subpages",
+        "objectIds": [
+          "companion__auto_open_app_subpages",
+          "companion_auto_open_app_subpages",
+          "companion_auto_open_app_subpages_enabled"
         ],
         "groups": [
           "settings"

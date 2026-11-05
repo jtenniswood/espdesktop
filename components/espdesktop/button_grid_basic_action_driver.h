@@ -530,9 +530,17 @@ inline bool basic_action_driver_handle_main_click(
       lv_obj_t *screen = nullptr;
       if (companion_app_shortcuts_enabled(config) && button) {
         screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
-        if (screen) {
+        if (screen && !companion_auto_open_app_subpages()) {
+          // In manual mode, the first press focuses the app. Only an already
+          // active (on) card opens its subpage, without invoking the app again.
+          if (companion_action_active(config.entity) && lv_obj_is_valid(screen)) {
+            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            break;
+          }
+        }
+        if (screen && companion_auto_open_app_subpages()) {
           companion_expect_action_result(request_id, config.entity, [screen]() {
-            if (lv_obj_is_valid(screen)) {
+            if (companion_auto_open_app_subpages() && lv_obj_is_valid(screen)) {
               lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
             }
           }, esphome::millis() + 10000);

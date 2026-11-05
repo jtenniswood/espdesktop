@@ -265,6 +265,31 @@ int main() {
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
   assert(!companion_consume_subpage_return_request());
+  // Manual mode clears pending navigation, keeps focus feedback, and never
+  // opens or returns from a page because another app becomes focused.
+  companion_set_focused_action("com.apple.Safari");
+  assert(!companion_pending_auto_subpage_action().empty());
+  companion_set_auto_open_app_subpages(false);
+  assert(!companion_auto_open_app_subpages());
+  assert(companion_pending_auto_subpage_action().empty());
+  assert(!companion_consume_subpage_return_request());
+  companion_set_focused_action("com.apple.finder");
+  assert(companion_action_active("com.apple.finder"));
+  assert(companion_pending_auto_subpage_action().empty());
+  assert(!companion_consume_subpage_return_request());
+  companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
+  assert(companion_action_active("webapp.google-docs"));
+  assert(companion_pending_auto_subpage_action().empty());
+  assert(!companion_consume_subpage_return_request());
+  companion_set_auto_open_app_subpages(true);
+  assert(companion_auto_open_app_subpages());
+  assert(companion_pending_auto_subpage_action().empty());
+  companion_set_focused_action("com.apple.finder");
+  assert(companion_pending_auto_subpage_action() == "com.apple.finder");
+  assert(companion_consume_subpage_return_request());
+  assert(companion_consume_auto_subpage_action("com.apple.finder"));
+  companion_set_focused_action("");
+  companion_consume_subpage_return_request();
   assert(companion_volume_control_valid("media.output_volume"));
   assert(companion_volume_control_valid("media.input_volume"));
   assert(!companion_volume_control_valid("media.screen_brightness"));

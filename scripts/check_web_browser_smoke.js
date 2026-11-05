@@ -8659,10 +8659,61 @@ async function assertRainfallEditor(browser) {
   } finally {await context.close()}
 }
 
+async function assertAppSubpageOpeningPreference(browser) {
+  const testCase = ACTIVE_CASES[0];
+  const fixture = nativeConfigState(testCase.slug);
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const posts = [];
+  await context.route("**/switch/*auto_open_app_subpages*/**", async route => {
+    posts.push(new URL(route.request().url()).pathname.split("/").pop());
+    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  async function open() {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    await page.waitForFunction(() => !document.querySelector("#sp-app").classList.contains("sp-onboarding"));
+    await page.getByRole("tab", { name: "System", exact: true }).click();
+    const card = page.locator("#sp-device .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    if (await card.evaluate(element => element.classList.contains("collapsed"))) await card.locator(".card-header").click();
+  }
+  try {
+    await open();
+    const toggle = page.locator("#sp-set-auto-open-app-subpages");
+    assert(await toggle.isChecked(), "automatic opening remains the default");
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("auto_open_app_subpages") && response.url().endsWith("/turn_off")),
+      toggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(posts, ["turn_off"], "manual opening is saved as a global device preference");
+    await open();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
+    ]));
+    await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").checked);
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("auto_open_app_subpages") && response.url().endsWith("/turn_on")),
+      toggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(posts, ["turn_off", "turn_on"]);
+    assert.deepStrictEqual(errors, [], "the setting and device events cause no browser errors");
+    console.log("Global app subpage preference browser checks passed.");
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
+      await assertAppSubpageOpeningPreference(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
@@ -8792,6 +8843,7 @@ async function assertRainfallEditor(browser) {
       console.log("Home Assistant visibility browser checks passed.");
       return;
     }
+    await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }
     await assertHomeAssistantConnectorLayout(browser);

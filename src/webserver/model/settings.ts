@@ -390,6 +390,7 @@ export interface BackupPanelSettingsState {
   alarmDelayFinalCountdown: number;
   temperatureDegreeSymbol: boolean;
   subpageChevron: boolean;
+  autoOpenAppSubpages: boolean;
   timezone: string;
   temperatureUnit: string;
   language: string;
@@ -540,6 +541,9 @@ export function normalizeBackupPanelSettings(
     alarmDelayFinalCountdown: normalizeAlarmDelayFinalCountdown(settings.alarm_delay_final_countdown),
     temperatureDegreeSymbol: objectValue(settings, "temperature_degree_symbol") != null
       ? !!settings.temperature_degree_symbol
+      : true,
+    autoOpenAppSubpages: objectValue(settings, "auto_open_app_subpages") != null
+      ? !!settings.auto_open_app_subpages
       : true,
     subpageChevron: objectValue(settings, "subpage_chevron") != null
       ? !!settings.subpage_chevron

@@ -331,6 +331,18 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  void set_auto_open_app_subpages(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto_open_app_subpages_ = enabled;
+    pending_auto_subpage_action_id_.clear();
+    subpage_return_requested.store(false);
+  }
+
+  bool auto_open_app_subpages() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return auto_open_app_subpages_;
+  }
+
   bool set_focused_action(std::string action_id) {
     std::vector<std::string> identifiers;
     if (!action_id.empty()) identifiers.push_back(std::move(action_id));
@@ -359,9 +371,9 @@ class CompanionRuntimeService {
       return application_id;
     }();
     const std::string previous_auto_subpage_id = focused_auto_subpage_id_;
-    const bool should_return = connected_ && !previous_auto_subpage_id.empty() &&
+    const bool should_return = auto_open_app_subpages_ && connected_ && !previous_auto_subpage_id.empty() &&
       auto_subpage_id != previous_auto_subpage_id;
-    if (accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
+    if (!auto_open_app_subpages_ || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
     else if (previous_auto_subpage_id != auto_subpage_id) pending_auto_subpage_action_id_ = auto_subpage_id;
     focused_action_ids_ = std::move(accepted);
     focused_action_id_ = parent_id(focused_action_ids_);
@@ -417,6 +429,7 @@ class CompanionRuntimeService {
   std::vector<CompanionValue> values_;
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
+  bool auto_open_app_subpages_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
   bool keyboard_actions_supported_{false};
