@@ -446,6 +446,7 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append(f"            cfg.color_correction_green_percent = {correction['green']};")
         lines.append(f"            cfg.color_correction_blue_percent = {correction['blue']};")
     lines.append(f"            cfg.icon_font = id({device['icon_font']})->get_lv_font();")
+    lines.append("            cfg.medium_icon_font = id(font_icon_medium)->get_lv_font();")
     lines.append(f"            cfg.sp_sensor_font = id({device['sensor_font']})->get_lv_font();")
     lines.append(f"            cfg.sp_large_sensor_font = id({device['large_sensor_font']})->get_lv_font();")
     lines.append(f"            cfg.large_sensor_unit_offset_percent = {device['large_sensor_unit_offset_percent']};")
