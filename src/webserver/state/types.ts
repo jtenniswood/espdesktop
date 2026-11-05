@@ -150,6 +150,7 @@ export interface AppState {
   wifiStrengthPercent: number;
   temperatureDegreeSymbolOn: boolean;
   subpageChevronsOn: boolean;
+  autoOpenAppSubpages: boolean;
   presenceEntity: string;
   screensaverCameraEntity: string;
   screensaverCameraSupported: boolean;

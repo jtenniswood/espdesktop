@@ -50,9 +50,9 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postAutoOpenAppSubpages">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "infoPanel" | "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
     const { render: renderPreview } = preview;
-    const { appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
+    const { infoPanel, appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
     const { buildCoverArtSettingsCard } = coverArtSection;
     const { buildSystemSettingsCards } = systemSection;
@@ -66,7 +66,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
     const { postPresenceSensorEntity, postClockOverlay } = artworkPostApi;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
-    const { postClockBar, postBatteryStatus } = clockBarPostApi;
+    const { postClockBar, postBatteryStatus, postAutoOpenAppSubpages } = clockBarPostApi;
     const els = runtime.els;
     const { timezoneOptionsWithFallback } = environment;
     const { syncUi: syncScreenScheduleUi } = schedule;
@@ -700,9 +700,23 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         }
         onStatusChange(syncHomeAssistantSettingsVisibility);
         syncHomeAssistantSettingsVisibility();
+        const appSubpageBody = document.createElement("div");
+        const autoOpenAppSubpages = toggleRow("Open app subpages on focus", "sp-set-auto-open-app-subpages", state.autoOpenAppSubpages);
+        appSubpageBody.appendChild(autoOpenAppSubpages.row);
+        els.setAutoOpenAppSubpages = autoOpenAppSubpages.input;
+        autoOpenAppSubpages.input.addEventListener("change", function (this: HTMLInputElement) {
+            state.autoOpenAppSubpages = this.checked;
+            postAutoOpenAppSubpages(this.checked);
+        });
+        appSubpageBody.appendChild(infoPanel(
+            "sp-app-subpages-info",
+            "Applies to all app subpages. When enabled, focusing an app on your Mac opens its subpage automatically. When disabled, press an app card while it is on to open its subpage. Pressing an off card only focuses the app.",
+        ));
+        const appSubpageCard = makeCollapsibleCard("App Subpages", appSubpageBody, true);
         appendSettingsSection(config, "Appearance", [
             activeColourCard,
             cardStyleCard,
+            appSubpageCard,
             themeCard,
             idleCard,
             clockBarCard,
