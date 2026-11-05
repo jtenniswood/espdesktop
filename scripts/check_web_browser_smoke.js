@@ -2925,15 +2925,15 @@ async function assertContextColourPicker(browser, testCase) {
     const menu = page.locator(".sp-ctx-menu");
     const openPicker = async target => {
       await target.click({ button: "right" });
-      const trigger = menu.getByRole("button", { name: "Change Colour", exact: true });
+      const trigger = menu.getByRole("button", { name: "Card Colour", exact: true });
       await trigger.hover();
       await menu.getByRole("group", { name: "Card colour presets", exact: true }).waitFor();
       assert.strictEqual(await trigger.getAttribute("aria-expanded"), "true");
-      assert.strictEqual(await trigger.locator(".mdi-palette").count(), 1, `${label}: Change Colour uses the palette icon`);
-      assert.strictEqual(await menu.getByText(/^Card Colours?$/, { exact: true }).count(), 0,
+      assert.strictEqual(await trigger.locator(".mdi-palette").count(), 1, `${label}: Card Colour uses the palette icon`);
+      assert.strictEqual(await menu.locator(".sp-ctx-submenu.sp-ctx-colours").getByText(/^Card Colours?$/, { exact: true }).count(), 0,
         `${label}: the colour panel has no redundant title`);
       assert(await trigger.evaluate(el => !["none", "normal", '""'].includes(getComputedStyle(el, "::after").content)),
-        `${label}: Change Colour shows a submenu chevron`);
+        `${label}: Card Colour shows a submenu chevron`);
       assert(await menu.locator(":scope > .sp-ctx-item").count() > 0,
         `${label}: the original menu remains alongside the palette`);
       assert.strictEqual(await page.locator(".sp-settings-overlay.sp-visible").count(), 0,
@@ -2945,7 +2945,7 @@ async function assertContextColourPicker(browser, testCase) {
       await seedNativeDocument(page, fixture);
       await openPicker(card(1));
       const submenu = menu.locator(".sp-ctx-submenu.sp-ctx-colours");
-      const trigger = menu.getByRole("button", { name: "Change Colour", exact: true });
+      const trigger = menu.getByRole("button", { name: "Card Colour", exact: true });
       let menuBounds = await menu.boundingBox();
       let paletteBounds = await submenu.boundingBox();
       assert(paletteBounds.x >= menuBounds.x + menuBounds.width - 1,
@@ -3004,7 +3004,7 @@ async function assertContextColourPicker(browser, testCase) {
       await waitForSaved(() => !storedSubpage()?.includes(":3C64DE"));
       await page.locator(".sp-back-btn .sp-back-hit").click();
       await card(1).click({ button: "right" });
-      await menu.getByText("Change Colour", { exact: true }).click();
+      await menu.getByText("Card Colour", { exact: true }).click();
       await page.keyboard.press("Escape");
       assert.strictEqual(await menu.count(), 0, `${label}: Escape dismisses the picker`);
       await openPicker(card(1));
@@ -3150,7 +3150,7 @@ async function assertContextColourPicker(browser, testCase) {
           { id: "text-button_1_config", state: `camera.garden;Fixed Background;Auto;Auto;;;${type}` },
         ]), type);
         await card(1).click({ button: "right" });
-        assert.strictEqual(await menu.getByText("Change Colour", { exact: true }).count(), 0,
+        assert.strictEqual(await menu.getByText("Card Colour", { exact: true }).count(), 0,
           `${label}: ${type} keeps its fixed background`);
         await page.keyboard.press("Escape");
       }
