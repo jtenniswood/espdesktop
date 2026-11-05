@@ -23,4 +23,26 @@ final class CompanionFocusScriptTests: XCTestCase {
         XCTAssertNil(result)
         XCTAssertLessThan(start.duration(to: .now), .seconds(3))
     }
+
+    @MainActor
+    func testAppSwitchDuringQueryRetriesInsteadOfPublishingEmptyFocus() async {
+        var currentApplication: pid_t? = 1
+        var queries = 0
+        let result = await CompanionFocusQuery.readStable(
+            currentApplication: { currentApplication },
+            query: {
+                queries += 1
+                if queries == 1 {
+                    await Task.yield()
+                    currentApplication = 2
+                    // The browser/Finder reader rejects its obsolete result.
+                    return []
+                }
+                return ["com.apple.TextEdit"]
+            }
+        )
+        XCTAssertEqual(queries, 2)
+        XCTAssertEqual(result, ["com.apple.TextEdit"])
+    }
+
 }

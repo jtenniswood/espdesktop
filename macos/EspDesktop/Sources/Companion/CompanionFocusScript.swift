@@ -30,3 +30,21 @@ enum CompanionFocusScript {
         }.value
     }
 }
+
+/// A foreground-app change invalidates a pending query, not the Mac's focus.
+/// Retry immediately rather than publishing an empty state that would close the
+/// newly activated application's shortcut page on the display.
+@MainActor
+enum CompanionFocusQuery {
+    static func readStable(
+        currentApplication: () -> pid_t?,
+        query: () async -> [String]
+    ) async -> [String] {
+        while !Task.isCancelled {
+            let application = currentApplication()
+            let result = await query()
+            if application == currentApplication() { return result }
+        }
+        return []
+    }
+}

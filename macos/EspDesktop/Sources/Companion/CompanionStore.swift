@@ -434,6 +434,13 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func focusedCompanionActionIdentifiers() async -> [String] {
+        await CompanionFocusQuery.readStable(
+            currentApplication: { NSWorkspace.shared.frontmostApplication?.processIdentifier },
+            query: { await self.queryFocusedCompanionActionIdentifiers() }
+        )
+    }
+
+    private func queryFocusedCompanionActionIdentifiers() async -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
@@ -442,7 +449,6 @@ final class CompanionStore: NSObject, ObservableObject {
                 return browser.isEmpty ? [] : [browser]
             }
             let activeURL = await activeBrowserTabURL(bundleIdentifier: bundleIdentifier)
-            guard NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier else { return [] }
             guard let url = activeURL else {
                 return browser.isEmpty ? [] : [browser]
             }
@@ -457,7 +463,6 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if bundleIdentifier == "com.apple.finder" {
             let folder = await focusedFinderFolderActionIdentifier()
-            guard NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier else { return [] }
             let result = folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
             return result.isEmpty ? [] : [result]
         }
