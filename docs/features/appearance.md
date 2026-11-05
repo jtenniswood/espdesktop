@@ -7,7 +7,7 @@ description:
 # Appearance
 
 The **Appearance** section is at the top of **Screen**. Its panels are
-**Active Colour**, **Card Style** (curve), **Theme**, [Idle](/features/idle) and [Clock Bar](/features/clock-bar).
+**Active Colour**, **Card Style** (curve), **Icon Size**, **Theme**, [Idle](/features/idle) and [Clock Bar](/features/clock-bar).
 
 Cards use continuous corners, with the same proportions on the panel and
 setup-page preview. Choose **Card curve → Small, Medium or Large** in
@@ -52,7 +52,7 @@ area and hides the label. This also applies to Mac application artwork. The
 choice is saved per card on the home screen and subpages; choosing Small or
 Medium restores the label unless you have explicitly hidden it.
 
-Set **Screen → Appearance → Card Style → Default icon size** to choose the
+Set **Screen → Appearance → Icon Size → Default icon size** to choose the
 starting size for all cards. Cards without a manual size follow this setting,
 including cards inside subpages. Any explicit Small, Medium, or Large choice
 stays unchanged when the default changes. Choose **Use Default** in a card's

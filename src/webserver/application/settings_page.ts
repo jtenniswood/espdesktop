@@ -95,6 +95,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         deviceConfig.className = "sp-config fade-in";
         var activeColourBody: any = document.createElement("div");
         var cardStyleBody: any = document.createElement("div");
+        var iconSizeBody: any = document.createElement("div");
         var themeBody: any = document.createElement("div");
         var onColor = createColorSwatches(state.onColor || WEB_UI_COLORS.primary, function (hex) {
             state.onColor = hex;
@@ -130,8 +131,8 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         defaultIconSize.segment.id = "sp-set-default-icon-size";
         defaultIconSize.segment.setAttribute("role", "group");
         defaultIconSize.segment.setAttribute("aria-label", "Default icon size");
-        cardStyleBody.appendChild(fieldLabel("Default icon size"));
-        cardStyleBody.appendChild(defaultIconSize.segment);
+        iconSizeBody.appendChild(fieldLabel("Default icon size"));
+        iconSizeBody.appendChild(defaultIconSize.segment);
         els.setDefaultIconSizeButtons = defaultIconSize.buttons;
         syncDefaultIconSizeUi(state, runtime);
         var themeModes: any = segmentControl([
@@ -189,6 +190,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         });
         var activeColourCard: any = makeCollapsibleCard("Active Colour", activeColourBody, true, null, appearanceResetButton);
         var cardStyleCard: any = makeCollapsibleCard("Card Style", cardStyleBody, true);
+        var iconSizeCard: any = makeCollapsibleCard("Icon Size", iconSizeBody, true);
         var themeCard: any = makeCollapsibleCard("Theme", themeBody, true);
         var languageBody: any = document.createElement("div");
         var languageField: any = document.createElement("div");
@@ -703,6 +705,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         appendSettingsSection(config, "Appearance", [
             activeColourCard,
             cardStyleCard,
+            iconSizeCard,
             themeCard,
             idleCard,
             clockBarCard,
