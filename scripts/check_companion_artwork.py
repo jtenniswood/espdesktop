@@ -42,8 +42,24 @@ def check_sources(artwork: str, device: str) -> list[str]:
     return errors
 
 
+def retired_settings_errors(display: str, backup: str) -> list[str]:
+    failures = []
+    for name in ("cover_art_hide_external_input_enabled", "cover_art_media_player_entity",
+                 "cover_art_secondary_media_player_entity", "cover_art_attribute_conditions"):
+        if re.search(rf"(?m)^    id: {name}$", display):
+            failures.append(f"retired artwork setting must not remain exposed: {name}")
+    for name in ("postCoverArtMediaPlayerEntity", "postCoverArtSecondaryMediaPlayerEntity",
+                 "postCoverArtConditions", "postCoverArtHideExternalInput"):
+        if re.search(rf"\b{name}\s*\(", backup):
+            failures.append(f"old backups must not post retired artwork settings: {name}")
+    return failures
+
+
 def errors(root: Path = ROOT) -> list[str]:
-    return check_sources(
+    return retired_settings_errors(
+        (root / "common/config/display.yaml").read_text(),
+        (root / "src/webserver/application/app_backup.ts").read_text(),
+    ) + check_sources(
         (root / "common/device/screen_cover_art.yaml").read_text(),
         (root / "devices/guition-esp32-s3-4848s040/device/device.yaml").read_text(),
     )
@@ -52,6 +68,9 @@ def errors(root: Path = ROOT) -> list[str]:
 def self_test() -> None:
     art = (ROOT / "common/device/screen_cover_art.yaml").read_text()
     device = (ROOT / "devices/guition-esp32-s3-4848s040/device/device.yaml").read_text()
+    assert not retired_settings_errors("", "")
+    assert retired_settings_errors("    id: cover_art_attribute_conditions", "")
+    assert retired_settings_errors("", "postCoverArtConditions(legacy.value)")
     assert not check_sources(art, device)
     assert check_sources(art + "\nha_subscribe_state(entity);\n", device)
     assert check_sources(art.replace("source_generation) != id(cover_art_content_fingerprint)", "source_generation) != 0"), device)

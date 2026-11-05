@@ -12,11 +12,6 @@ export interface ArtworkPostApiFeature {
     postCoverArtSource(value?: any): any;
     postClockOverlay(on?: any): any;
     postMetadataOverlay(on?: any): any;
-    postCoverArtMediaPlayerEntity(value?: any): any;
-    postCoverArtSecondaryMediaPlayerEntity(value?: any): any;
-    postCoverArtConditions(value?: any): any;
-    coverArtHideExternalInputPostUrls(on?: any): any;
-    postCoverArtHideExternalInput(on?: any): any;
     coverArtDelayPostUrls(value?: any): any;
     postCoverArtDelay(value?: any): any;
     coverArtTrackOverlayDurationPostUrls(value?: any): any;
@@ -66,21 +61,6 @@ export function createArtworkPostApiFeature(
     function postMetadataOverlay(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_metadata_overlay"), entityObjectIds("screen_saver_metadata_overlay"), on);
     }
-    function postCoverArtMediaPlayerEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_saver_cover_art_entity"), entityObjectIds("screen_saver_cover_art_entity"), value);
-    }
-    function postCoverArtSecondaryMediaPlayerEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_saver_cover_art_secondary_entity"), entityObjectIds("screen_saver_cover_art_secondary_entity"), value);
-    }
-    function postCoverArtConditions(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_saver_cover_art_conditions"), entityObjectIds("screen_saver_cover_art_conditions"), value);
-    }
-    function coverArtHideExternalInputPostUrls(this: any, on?: any) {
-        return entityPostUrls("switch", entityName("screen_saver_hide_cover_art_external_input"), entityObjectIds("screen_saver_hide_cover_art_external_input"), on ? "turn_on" : "turn_off");
-    }
-    function postCoverArtHideExternalInput(this: any, on?: any) {
-        return post(coverArtHideExternalInputPostUrls(on));
-    }
     function coverArtDelayPostUrls(this: any, value?: any) {
         return entityPostUrls("number", entityName("screen_saver_cover_art_delay"), entityObjectIds("screen_saver_cover_art_delay"), "set?value=" + encodeURIComponent(normalizeCoverArtDelay(value)));
     }
@@ -119,11 +99,6 @@ export function createArtworkPostApiFeature(
         postCoverArtSource,
         postClockOverlay,
         postMetadataOverlay,
-        postCoverArtMediaPlayerEntity,
-        postCoverArtSecondaryMediaPlayerEntity,
-        postCoverArtConditions,
-        coverArtHideExternalInputPostUrls,
-        postCoverArtHideExternalInput,
         coverArtDelayPostUrls,
         postCoverArtDelay,
         coverArtTrackOverlayDurationPostUrls,

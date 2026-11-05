@@ -1319,8 +1319,8 @@ def firmware_media_sleep_prevention_errors(
             ):
                 errors.append(f"{rel}: keep the normal screensaver idle during cover art stop grace")
             cover_art_sleep_match = re.search(
-                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,360}"
-                r"id\(cover_art_media_playing\)[\s\S]{0,360}"
+                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,360}?"
+                r"id\(cover_art_media_playing\)[\s\S]{0,360}?"
                 r"then:\s*\n\s*-\s*script\.execute:\s*([a-zA-Z0-9_]+)",
                 sleep_body,
             )
