@@ -2390,6 +2390,19 @@ inline void grid_phase2(
     configure_button_label_wrap(back_slot.text_lbl);
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
 
+    // App shortcut folders use their app artwork as the Back tile's icon.
+    // Keep the chevron as a fallback until artwork is available.
+    if (!is_special_page && companion_app_shortcuts_enabled(p)) {
+      if (p.entity.rfind("webapp.", 0) == 0) {
+        image_card_bind_companion_webapp_icon(back_slot, p, cfg);
+      } else {
+#ifdef USE_COMPANION
+        companion_set_card_icon_image(back_slot, p.entity, "small");
+        esphome::companion::request_app_icon(p.entity);
+#endif
+      }
+    }
+
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
       if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
         navigation_return_from_special_page();
