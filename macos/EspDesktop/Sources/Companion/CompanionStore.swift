@@ -429,11 +429,11 @@ final class CompanionStore: NSObject, ObservableObject {
         return identifier
     }
 
-    func focusedCompanionActionIdentifier() -> String {
-        focusedCompanionActionIdentifiers().first ?? ""
+    func focusedCompanionActionIdentifier() async -> String {
+        await focusedCompanionActionIdentifiers().first ?? ""
     }
 
-    func focusedCompanionActionIdentifiers() -> [String] {
+    func focusedCompanionActionIdentifiers() async -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
@@ -441,7 +441,9 @@ final class CompanionStore: NSObject, ObservableObject {
             guard !companionWebAppFocusIDs.isEmpty || !companionURLFocusTargets.isEmpty else {
                 return browser.isEmpty ? [] : [browser]
             }
-            guard let url = activeBrowserTabURL(bundleIdentifier: bundleIdentifier) else {
+            let activeURL = await activeBrowserTabURL(bundleIdentifier: bundleIdentifier)
+            guard NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier else { return [] }
+            guard let url = activeURL else {
                 return browser.isEmpty ? [] : [browser]
             }
             let catalogues = remoteCatalogueStore.value
@@ -454,7 +456,8 @@ final class CompanionStore: NSObject, ObservableObject {
             return matches
         }
         if bundleIdentifier == "com.apple.finder" {
-            let folder = focusedFinderFolderActionIdentifier()
+            let folder = await focusedFinderFolderActionIdentifier()
+            guard NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier else { return [] }
             let result = folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
             return result.isEmpty ? [] : [result]
         }
@@ -469,7 +472,7 @@ final class CompanionStore: NSObject, ObservableObject {
         if isConnected { connection.publishFocusedAction() }
     }
 
-    private func activeBrowserTabURL(bundleIdentifier: String) -> URL? {
+    private func activeBrowserTabURL(bundleIdentifier: String) async -> URL? {
         let application = bundleIdentifier == "com.apple.Safari" ? "Safari" : "Google Chrome"
         let source = """
         tell application "\(application)"
@@ -481,21 +484,20 @@ final class CompanionStore: NSObject, ObservableObject {
             end try
         end tell
         """
-        var error: NSDictionary?
-        guard let descriptor = NSAppleScript(source: source)?.executeAndReturnError(&error),
-              let rawURL = descriptor.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+        guard let rawURL = await CompanionFocusScript.read(source),
+              NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier,
               let url = URL(string: rawURL),
               (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
         return url
     }
 
-    private func focusedFinderFolderActionIdentifier() -> String {
+    private func focusedFinderFolderActionIdentifier() async -> String {
         guard !approvedFolders.isEmpty else { return "" }
-        guard let path = focusedFinderFolderPath() else { return "" }
+        guard let path = await focusedFinderFolderPath() else { return "" }
         return ApprovedFolder.actionIdentifier(forFocusedPath: path, in: approvedFolders)
     }
 
-    private func focusedFinderFolderPath() -> String? {
+    private func focusedFinderFolderPath() async -> String? {
         let source = """
         tell application "Finder"
             try
@@ -506,9 +508,8 @@ final class CompanionStore: NSObject, ObservableObject {
             end try
         end tell
         """
-        var error: NSDictionary?
-        guard let descriptor = NSAppleScript(source: source)?.executeAndReturnError(&error),
-              let path = descriptor.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+        guard let path = await CompanionFocusScript.read(source),
+              NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder",
               !path.isEmpty else { return nil }
         return path
     }
@@ -740,6 +741,19 @@ final class CompanionStore: NSObject, ObservableObject {
     }
     func launch(bundleIdentifier: String) async -> Bool {
         guard let app = launchableApps().first(where: { $0.bundleIdentifier == bundleIdentifier }) else { return false }
+        // Approval still applies when the app is already open. Avoid reopening
+        // the current app (which can also create an unwanted extra window).
+        if let frontmost = NSWorkspace.shared.frontmostApplication,
+           frontmost.bundleIdentifier == bundleIdentifier,
+           CompanionWindowDetector.hasVisibleWindow(for: frontmost) {
+            return true
+        }
+        if let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier)
+            .first(where: { !$0.isTerminated && !$0.isHidden }),
+           CompanionWindowDetector.hasVisibleWindow(for: running),
+           running.activate(options: [.activateIgnoringOtherApps]) {
+            return await waitForApplicationActivation(bundleIdentifier, name: app.name)
+        }
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         let runningApplication: NSRunningApplication? = await withCheckedContinuation { continuation in
@@ -749,13 +763,18 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         guard let runningApplication else { return false }
         _ = runningApplication.activate(options: [.activateIgnoringOtherApps])
-        for _ in 0..<30 {
+        return await waitForApplicationActivation(bundleIdentifier, name: app.name)
+    }
+
+    private func waitForApplicationActivation(_ bundleIdentifier: String, name: String) async -> Bool {
+        for _ in 0..<150 {
+            guard !Task.isCancelled else { return false }
             if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier {
                 return true
             }
-            try? await Task.sleep(nanoseconds: 100_000_000)
+            try? await Task.sleep(nanoseconds: 20_000_000)
         }
-        updateStatus("\(app.name) did not become active")
+        updateStatus("\(name) did not become active")
         return false
     }
 
@@ -774,8 +793,10 @@ final class CompanionStore: NSObject, ObservableObject {
               companionWebAppFocusIDs.contains(String(actionIdentifier.dropFirst("webapp.".count))) else {
             return false
         }
-        for _ in 0..<40 {
-            let focusedActionIdentifiers = focusedCompanionActionIdentifiers()
+        let deadline = ContinuousClock.now + .seconds(6)
+        while ContinuousClock.now < deadline {
+            guard !Task.isCancelled else { return false }
+            let focusedActionIdentifiers = await focusedCompanionActionIdentifiers()
             if Self.webAppActivationObserved(
                 actionIdentifier: actionIdentifier,
                 focusedActionIdentifiers: focusedActionIdentifiers

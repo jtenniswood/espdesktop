@@ -79,6 +79,7 @@ final class CompanionConnection: NSObject {
     private var pendingAppIconRequests: [CompanionWireAppIconRequest] = []
     private var lastArtworkGeneration: UInt32 = 0
     private var lastArtworkSHA256: String?
+    private var focusPublicationTask: Task<Void, Never>?
     private var lastFocusedActionIdentifiers: [String]?
     private var catalogueGeneration: UInt32 = 0
     private var definitionGeneration: UInt32 = 0
@@ -188,6 +189,8 @@ final class CompanionConnection: NSObject {
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
         heartbeatTask = nil
+        focusPublicationTask?.cancel()
+        focusPublicationTask = nil
         receiveTask?.cancel()
         receiveTask = nil
         task?.cancel(with: .goingAway, reason: nil)
@@ -350,6 +353,8 @@ final class CompanionConnection: NSObject {
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
         heartbeatTask = nil
+        focusPublicationTask?.cancel()
+        focusPublicationTask = nil
         receiveTask?.cancel()
         receiveTask = nil
         task = nil
@@ -882,14 +887,22 @@ final class CompanionConnection: NSObject {
     }
 
     func publishFocusedAction() {
-        var identifiers: [String] = []
-        for identifier in resources.focusedCompanionActionIdentifiers() where identifiers.count < 64 {
-            if !identifier.isEmpty && !identifiers.contains(identifier) { identifiers.append(identifier) }
+        guard sessionAuthenticated, focusPublicationTask == nil, let requestingTask = task else { return }
+        focusPublicationTask = Task { [weak self, weak requestingTask] in
+            guard let self else { return }
+            let focused = await self.resources.focusedCompanionActionIdentifiers()
+            guard !Task.isCancelled, let requestingTask, self.task === requestingTask,
+                  self.sessionAuthenticated else { return }
+            self.focusPublicationTask = nil
+            var identifiers: [String] = []
+            for identifier in focused where identifiers.count < 64 {
+                if !identifier.isEmpty && !identifiers.contains(identifier) { identifiers.append(identifier) }
+            }
+            guard identifiers.allSatisfy(Self.validCatalogueIdentifier) else { return }
+            guard identifiers != self.lastFocusedActionIdentifiers else { return }
+            self.lastFocusedActionIdentifiers = identifiers
+            self.sendJSON(["type": "focus.changed", "actionId": identifiers.first ?? "", "actionIds": identifiers])
         }
-        guard identifiers.allSatisfy(Self.validCatalogueIdentifier) else { return }
-        guard identifiers != lastFocusedActionIdentifiers else { return }
-        lastFocusedActionIdentifiers = identifiers
-        sendJSON(["type": "focus.changed", "actionId": identifiers.first ?? "", "actionIds": identifiers])
     }
 
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {
