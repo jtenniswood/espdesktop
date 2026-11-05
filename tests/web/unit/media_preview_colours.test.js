@@ -72,7 +72,7 @@ function mediaPreviewFixtures(homeAssistantSupported = true) {
         fixtures.push({
           name: `${theme}/${subpage ? "secondary" : "main"}/${mode}/${precision}/${extra}/${colour}`,
           html: card.innerHTML, className: card.className,
-          warning: card.title || "", warningBadge: card.children.some(child => child.className.includes("mdi-alert-circle-outline")),
+          warning: card.title || "", warningBadge: card.children.some(child => child.className.includes("mdi-alert")),
           style: Object.fromEntries(Object.entries(card.style).filter(([, value]) => typeof value === "string")),
           expectedBackground: "#" + (base || (mode === "cover_art" ? neutral.surfaceCard : neutral.surfacePrimary)),
           expectedFill: mode === "position" || precision === "progress" ? "#" + (base ? progressColours[base] : neutral.trackBackground) : null,
@@ -104,10 +104,11 @@ test("media overlays and cover placeholders reflect the validated card colour on
 });
 
 test("unsupported saved cards show a warning on main and folder previews without replacing their label", () => {
-  for (const fixture of mediaPreviewFixtures(false).fixtures) {
+  const supported = mediaPreviewFixtures(true).fixtures;
+  for (const [index, fixture] of mediaPreviewFixtures(false).fixtures.entries()) {
     assert.match(fixture.warning, /Home Assistant unavailable/);
     assert.equal(fixture.warningBadge, true, fixture.name);
-    assert.match(fixture.html, /Living room/);
+    assert.equal(fixture.html, supported[index].html, "warning preserves the original card preview");
   }
   for (const fixture of mediaPreviewFixtures(true).fixtures) {
     assert.equal(fixture.warning, "");

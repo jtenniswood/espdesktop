@@ -404,7 +404,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const warning = "Home Assistant unavailable. Saved configuration kept; replace or remove this card.";
                     btn.title = warning;
                     const badge = document.createElement("span");
-                    badge.className = "sp-sensor-badge mdi mdi-alert-circle-outline";
+                    badge.className = "sp-sensor-badge mdi mdi-alert";
                     badge.setAttribute("role", "img");
                     badge.setAttribute("aria-label", warning);
                     btn.appendChild(badge);
