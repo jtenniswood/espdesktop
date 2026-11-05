@@ -39,6 +39,6 @@ Click the page title in the preview to rename it, then choose **Save**. Use the
 reset icon and save to restore the default. The custom title is saved with the
 page and appears on the display with updated firmware.
 It starts empty, supports ordinary cards, and cannot contain nested subpages.
-Its Back button returns to the screen you came from. Screen Lock blocks the
-swipe, and the gesture is unavailable on setup screens, screensavers and modals.
+Its **Close** button, marked with a cross icon, returns to the screen you came
+from. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
 The page is saved on the display and included in backups.

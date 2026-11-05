@@ -139,7 +139,8 @@ export function createPreviewInteractionsFeature(
         input.className = "sp-card-name-input";
         input.setAttribute("aria-label", "Card name");
         input.dataset.homeSlot = String(homeSlot || "");
-        input.value = back ? back.backLabel || "Back" : button.label || "";
+        const defaultBackLabel = homeSlot === -1 ? "Close" : "Back";
+        input.value = back ? back.backLabel || defaultBackLabel : button.label || "";
         input.placeholder = title.textContent || "Card name";
         let finished = false;
         function finish(save: boolean) {
@@ -150,7 +151,7 @@ export function createPreviewInteractionsFeature(
                 state.editingSubpage === homeSlot && current.grid.includes(slot)) {
                 const label = input.value.trim();
                 if (back) {
-                    getSubpage(homeSlot).backLabel = label || "Back";
+                    getSubpage(homeSlot).backLabel = label || defaultBackLabel;
                     saveSubpageConfig(homeSlot);
                 } else {
                     const live = current.buttons[slot - 1];
