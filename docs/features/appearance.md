@@ -48,7 +48,8 @@ Find these controls in **Screen → Appearance** on the [Setup](/features/setup)
 Right-click a card in the layout preview and choose **Icon Size → Small, Medium
 or Large**, or use **Icon size** in **Card Settings**. Small keeps the normal icon
 size; Medium enlarges it to 1.5× above the label; Large fills the available card
-area and hides the label. This also applies to Mac application artwork. The
+area and hides the label. Large icons have no button background or inside
+padding; an outline marks the selected or active icon. This also applies to Mac application artwork. The
 choice is saved per card on the home screen and subpages; choosing Small or
 Medium restores the label unless you have explicitly hidden it.
 

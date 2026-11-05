@@ -1053,6 +1053,11 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
+  const bool large_icon = espdesktop::resolved_card_icon_size(
+      cfg_option_value(p.options, "icon_size")) == "large" &&
+      ((s.icon_lbl && !lv_obj_has_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN)) ||
+       (companion_app_launch_card(p) && companion_app_icon_enabled(p)));
+  espdesktop::card_icons::apply_large_style(s.btn, large_icon, current_button_primary_color());
   display_apply_main_width(s.icon_lbl, display);
   espdesktop::card_icons::attach(s.btn, s.icon_lbl, s.text_lbl,
       cfg_option_value(p.options, "icon_size"), display_main_width_percent(display),

@@ -8531,9 +8531,24 @@ async function assertStandardIconSizes(browser, testCase) {
         await geometryHandle.dispose();
         widths[size] = geometry.width;
         measurements[size] = geometry;
-        if (size === "Large") assert(!(await card.locator(".sp-btn-label").isVisible()), "Large hides the title");
+        if (size === "Large") {
+          assert(!(await card.locator(".sp-btn-label").isVisible()), "Large hides the title");
+          const appearance = await card.evaluate(el => {
+            const style = getComputedStyle(el);
+            const icon = el.querySelector(".sp-btn-icon").getBoundingClientRect();
+            const bounds = el.getBoundingClientRect();
+            return { background: style.backgroundColor, padding: style.padding,
+              left: icon.left - bounds.left, top: icon.top - bounds.top };
+          });
+          assert.strictEqual(appearance.background, "rgba(0, 0, 0, 0)", "Large has no button background");
+          assert.strictEqual(appearance.padding, "0px", "Large has no inside padding");
+          assert(Math.abs(appearance.left) < 1 && Math.abs(appearance.top) < 1,
+            "Large icon starts at the card edge");
+
+        }
         else assert(geometry.iconBottom <= geometry.titleTop + 1, `${testCase.name}/${size}: icon stays above title`);
         await card.click();
+        if (size === "Large") assert(await card.locator(":scope > .sp-card-outline").isVisible(), "Selected icon has an outline");
         await page.getByRole("button", { name: "Edit", exact: true }).click();
         await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
           .first().locator(".sp-disclosure-button").click();

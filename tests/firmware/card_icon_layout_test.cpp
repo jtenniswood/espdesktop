@@ -6,6 +6,19 @@
 constexpr int LV_PART_MAIN = 0, LV_EVENT_ALL = 0, LV_EVENT_DELETE = 1;
 constexpr int LV_EVENT_SIZE_CHANGED = 2, LV_EVENT_LAYOUT_CHANGED = 3, LV_EVENT_STYLE_CHANGED = 4;
 constexpr int LV_OBJ_FLAG_HIDDEN = 1, LV_COORD_MAX = 32767, LV_TEXT_FLAG_NONE = 0;
+constexpr int LV_STATE_CHECKED = 2, LV_STATE_PRESSED = 4;
+constexpr int LV_OPA_TRANSP = 0, LV_OPA_COVER = 255, LV_ALIGN_TOP_LEFT = 0;
+struct lv_style_t { int pad = 10; };
+void lv_style_init(lv_style_t *) {}
+void lv_style_set_bg_opa(lv_style_t *, int) {}
+void lv_style_set_pad_all(lv_style_t *s, int p) { s->pad = p; }
+void lv_style_set_border_width(lv_style_t *, int) {}
+void lv_style_set_shadow_width(lv_style_t *, int) {}
+void lv_style_set_outline_width(lv_style_t *, int) {}
+void lv_style_set_outline_pad(lv_style_t *, int) {}
+void lv_style_set_outline_opa(lv_style_t *, int) {}
+void lv_style_set_outline_color(lv_style_t *, uint32_t) {}
+uint32_t lv_color_hex(uint32_t c) { return c; }
 struct lv_point_t { int x = 0, y = 0; };
 struct lv_area_t { int x1 = 0, y1 = 0, x2 = 199, y2 = 199; };
 struct lv_font_t {};
@@ -20,6 +33,9 @@ struct lv_obj_t {
   bool hidden = false;
   std::vector<Event> events;
 };
+void lv_obj_remove_style(lv_obj_t *o, lv_style_t *, int state) { if (!state) o->pad = 10; }
+void lv_obj_add_style(lv_obj_t *o, lv_style_t *s, int state) { if (!state) o->pad = s->pad; }
+void lv_obj_align(lv_obj_t *o, int, int x, int y) { o->bounds.x1 = x; o->bounds.y1 = y; }
 void lv_obj_update_layout(lv_obj_t *) {}
 const char *lv_label_get_text(lv_obj_t *) { return "icon"; }
 lv_font_t *lv_obj_get_style_text_font(lv_obj_t *o, int) { return &o->font; }
@@ -57,13 +73,17 @@ int main() {
   lv_obj_t card, icon, label;
   icon.bounds = {10,10,189,57}; // Full-width label still contains a 48px glyph.
   label.bounds = {10,160,189,189};
+  espdesktop::card_icons::apply_large_style(&card, true, 0xff8c00);
   espdesktop::card_icons::attach(&card,&icon,&label,"large",100,false);
   assert(label.hidden);
-  assert(icon.zoom_x == 960 && icon.zoom_y == 960); // Fill the 180px content box.
+  assert(icon.zoom_x == 1066 && icon.zoom_y == 1066); // Fill the entire 200px card without inside padding.
   // Wrapped label changes cannot reduce Large, which intentionally hides it.
   label.bounds.y1 = 62;
   emit(label,LV_EVENT_SIZE_CHANGED);
-  assert(icon.zoom_y == 960);
+  assert(icon.zoom_y == 1066);
+  espdesktop::card_icons::apply_large_style(&card, false, 0xff8c00);
+  assert(card.pad == 10); // Smaller sizes recover the theme padding.
+  icon.bounds = {10,10,189,57};
   // The card driver restores label visibility before applying another size.
   label.hidden = false;
   label.bounds.y1 = 160;
@@ -73,8 +93,9 @@ int main() {
   espdesktop::card_icons::attach(&card,&icon,&label,"small",100,false);
   assert(icon.zoom_x == 256 && icon.zoom_y == 256);
   espdesktop::set_card_icon_default_size("Large");
+  espdesktop::card_icons::apply_large_style(&card, true, 0xff8c00);
   espdesktop::card_icons::attach(&card,&icon,&label,"",100,false);
-  assert(label.hidden && icon.zoom_x == 960);
+  assert(label.hidden && icon.zoom_x == 1066);
   label.hidden = false; // Card drivers restore normal visibility on refresh.
   emit(label, LV_EVENT_STYLE_CHANGED);
   assert(!label.hidden); // A stale Large binding must not undo the driver reset.

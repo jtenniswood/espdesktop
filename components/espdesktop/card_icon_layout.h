@@ -1,9 +1,43 @@
 #pragma once
 
 #include <new>
+#include <cstdint>
 #include "card_icon_size.h"
 
 namespace espdesktop::card_icons {
+// Keep these as removable styles so Small/Medium recover the card theme,
+// including state colours and padding, without overwriting driver styles.
+inline void apply_large_style(lv_obj_t *card, bool large, uint32_t accent) {
+  if (!card) return;
+  static lv_style_t plain, selected;
+  static bool ready = false;
+  if (!ready) {
+    lv_style_init(&plain);
+    lv_style_set_bg_opa(&plain, LV_OPA_TRANSP);
+    lv_style_set_pad_all(&plain, 0);
+    lv_style_set_border_width(&plain, 0);
+    lv_style_set_shadow_width(&plain, 0);
+    lv_style_init(&selected);
+    lv_style_set_outline_width(&selected, 3);
+    lv_style_set_outline_pad(&selected, -3);
+    lv_style_set_outline_opa(&selected, LV_OPA_COVER);
+    ready = true;
+  }
+  lv_style_set_outline_color(&selected, lv_color_hex(accent));
+  lv_obj_remove_style(card, &plain, LV_PART_MAIN);
+  lv_obj_remove_style(card, &plain, LV_PART_MAIN | LV_STATE_CHECKED);
+  lv_obj_remove_style(card, &plain, LV_PART_MAIN | LV_STATE_PRESSED);
+  lv_obj_remove_style(card, &selected, LV_PART_MAIN | LV_STATE_CHECKED);
+  lv_obj_remove_style(card, &selected, LV_PART_MAIN | LV_STATE_PRESSED);
+  if (large) {
+    lv_obj_add_style(card, &plain, LV_PART_MAIN);
+    lv_obj_add_style(card, &plain, LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_add_style(card, &plain, LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_add_style(card, &selected, LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_add_style(card, &selected, LV_PART_MAIN | LV_STATE_PRESSED);
+  }
+}
+
 struct Binding {
   lv_obj_t *card;
   lv_obj_t *icon;
@@ -89,6 +123,8 @@ inline void attach(lv_obj_t *card, lv_obj_t *icon, lv_obj_t *label,
   b->vertical = vertical;
   if (label && effective == "large" && !lv_obj_has_flag(icon, LV_OBJ_FLAG_HIDDEN))
     lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
+  if (effective == "large" && !lv_obj_has_flag(icon, LV_OBJ_FLAG_HIDDEN))
+    lv_obj_align(icon, LV_ALIGN_TOP_LEFT, 0, 0);
   update(*b);
 }
 }  // namespace espdesktop::card_icons
