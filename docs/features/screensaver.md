@@ -98,6 +98,12 @@ actions:
 
 Replace the example entity IDs with your own door sensor and the panel's **Screen: Wake** entity. Home Assistant assigns the final button entity ID, so select the entity from the automation editor rather than relying on the example name.
 
+## Mac Cover Art
+
+After pairing Mac Companion, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and enable **Show Cover Art**. The paired Mac supplies artwork, title, artist and progress. **Show After** controls the delay before artwork appears and its return after touching the display. **Show Track Details For** controls the text overlay on supported square displays.
+
+Fullscreen cover art no longer uses Home Assistant media players, artwork URLs, external-input routing or entity filters. Existing backup source choices migrate to Mac Companion. Touch the artwork to wake the panel; with PIN protection enabled, unlock before using your controls.
+
 ## Screen Schedule
 
 The [screen schedule](/features/screen-schedule) is separate from the screensaver. Use it when you want the panel to be fully dark, dimmed, or showing a clock overnight.
@@ -118,7 +124,7 @@ Use the same field and **Save** button to change the PIN. **Clear** removes it a
 
 The [Screen Lock card](/card-types/screen-lock) manages the same PIN and keypad preference in its card editor. It works with **Require PIN after wake** turned off. Its **Screensaver on lock** option can start the screensaver immediately; with the option off, the current screen remains visible and touching it opens the PIN keypad. Unlocking after a screensaver also releases a preceding card lock. To clear the shared PIN, use **Clear** in **Screen > Sleep & Schedule > Pin Protection**; this releases the lock and disables automatic PIN protection.
 
-After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake, presence wake, scheduled wake, and the local Screensaver card all use the same protection. With protection disabled or no PIN saved, wake works as before. When protection is active, tapping a Cover Art playback button wakes the PIN keypad without changing playback; use your media controls after unlocking.
+After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake, presence wake, scheduled wake, and the local Screensaver card all use the same protection. With protection disabled or no PIN saved, wake works as before. When protection is active, touching Cover Art wakes the PIN keypad; use your media controls after unlocking.
 
 This protects local touchscreen controls, including status buttons and alarm modals. It does not protect network, Home Assistant, OTA, or web administration access. Someone with web setup access can change or clear the PIN; configure [web authentication](/getting-started/manual-esphome-setup#advanced-password-protect-the-web-page) separately if needed. The PIN is never returned by the settings API or included in backup JSON. Importing a backup clears the destination panel's PIN, so set a new PIN on its web setup page afterward.
 

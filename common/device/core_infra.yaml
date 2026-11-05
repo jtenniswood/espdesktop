@@ -96,7 +96,6 @@ script:
                 if (!client_address.empty()) {
                   id(cover_art_home_assistant_client_address) = client_address;
                 }
-                id(cover_art_api_wait_logged) = false;
                 id(cover_art_resolve_home_assistant_base_url).execute();
                 if (ha_api_state_connected()) {
                   refresh_weather_forecast_cards();
@@ -109,7 +108,7 @@ script:
                 if (ha_api_state_connected()) {
                   ha_flush_deferred_state_requests();
                 }
-            - script.execute: cover_art_resubscribe
+            - script.execute: cover_art_refresh_source
             - script.execute: timezone_refresh
             - script.execute: backlight_recalc_sunrise_sunset
             - script.execute: screen_schedule_check

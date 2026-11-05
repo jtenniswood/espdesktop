@@ -48,7 +48,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     screensaverMetadataEntity: "",
     metadataOverlayOn: false,
     mediaPlayerSleepPreventionOn: true, mediaPlayerSleepPreventionEntity: "",
-    coverArtScreensaverOn: false, clockOverlayOn: false, coverArtSource: "Home Assistant", coverArtMediaPlayerEntity: "", coverArtSecondaryMediaPlayerEntity: "", coverArtAttributeConditions: "",
+    coverArtScreensaverOn: false, clockOverlayOn: false, coverArtSource: "Mac Companion", coverArtMediaPlayerEntity: "", coverArtSecondaryMediaPlayerEntity: "", coverArtAttributeConditions: "",
     coverArtPlaybackControlOn: true, coverArtFilteringEnabled: false, coverArtDelay: 10, coverArtTrackOverlayDuration: 5,
     homeAssistantArtworkEndpointMode: "Automatic", homeAssistantArtworkEndpointStatus: "Discovering", homeAssistantArtworkEndpointHealth: "",
     coverArtHideExternalInputOn: true, homeAssistantArtworkProtocol: "http", homeAssistantArtworkHost: "", coverArtHomeAssistantPort: 8123,

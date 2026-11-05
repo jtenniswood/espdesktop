@@ -1241,7 +1241,8 @@ def firmware_cover_art_lifecycle_controller_errors(
     if (
         "transition_is_current(" not in hide_effect
         or "artwork_image.release: cover_art_downloaded_image" not in hide_effect
-        or 'std::string("${device_slug}") == "guition-esp32-s3-4848s040"' not in hide_effect
+        or ("cover_art_refresh_source" not in cover_art_text and
+            'std::string("${device_slug}") == "guition-esp32-s3-4848s040"' not in hide_effect)
     ):
         errors.append(f"{cover_art_rel}: preserve guarded S3 image release when cover art is hidden")
 
@@ -1253,6 +1254,13 @@ def firmware_cover_art_lifecycle_controller_errors(
         "cover_art_refresh_progress": "transition_is_current(",
         "cover_art_delayed_playback_stopped": "generation_is_current(",
     }
+    if "cover_art_refresh_source" in cover_art_text:
+        guarded_scripts = {
+            "cover_art_delay_timer": "generation_is_current(",
+            "cover_art_prepare_activation": "source_generation",
+            "cover_art_request_artwork": "transition_is_current(",
+            "cover_art_refresh_progress": "transition_is_current(",
+        }
     for script_id, marker in guarded_scripts.items():
         body = yaml_script_body(cover_art_text, script_id) or ""
         if marker not in body:
@@ -3947,10 +3955,8 @@ def run_scan() -> int:
     errors.extend(firmware_weather_reconnect_errors(CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_unavailable_retry_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_cover_request_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_cover_art_external_input_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_stale_image_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_refresh_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_playback_grace_errors(COVER_ART_PATH, ROOT))
+    from check_companion_artwork import errors as companion_artwork_errors
+    errors.extend(companion_artwork_errors(ROOT))
     errors.extend(firmware_cover_art_disable_errors(COVER_ART_PATH, ROOT))
     errors.extend(
         firmware_camera_screensaver_retained_token_errors(
@@ -3965,8 +3971,6 @@ def run_scan() -> int:
     errors.extend(firmware_media_group_lifecycle_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_power_binding_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_playback_mode_binding_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_cover_art_low_heap_progress_errors(FIRMWARE_DIR, COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_progress_visibility_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_image_card_entity_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_base_url_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_quality_errors(FIRMWARE_DIR, ROOT))

@@ -109,16 +109,8 @@ int main() {
   assert(media_control_artist_text(&ctx) == "Living room");
   ctx.label = "Fallback";
   assert(media_control_artist_text(&ctx) == "Living room");
-  cover_art_external_input_active = true;
-  cover_art_media_source = u8"ＨＤＭＩ １ &#x1F4FA;";
-  assert(cover_title() == "HDMI 1");
-  assert(cover_artist() == "Source");
-  assert(cover_art_media_source == u8"ＨＤＭＩ １ &#x1F4FA;");
   cover_art_artist = u8"Ｂeyoncé 👩🏽‍💻";
   assert(cover_artist() == u8"Beyoncé");
-  cover_art_media_source = u8"📺";
-  assert(cover_title() == u8"—");
-  cover_art_external_input_active = false;
   MediaPlaybackState state;
   state.title = title;
   state.artist = artist;

@@ -69,3 +69,9 @@ test("restoring the former automatic timezone selects Mac timezone without alter
   assert.equal(normalizeTimezoneOption("Europe/London", "UTC (GMT+0)"), "Europe/London");
   assert.equal(normalizeTimezoneOption(undefined, "Europe/London"), "Europe/London");
 });
+
+test("old artwork source choices migrate to Mac Companion", () => {
+  const { normalizeCoverArtSource } = loadTypescriptTest("src/webserver/model/settings.ts");
+  for (const previous of ["Home Assistant", "Mac Companion", "", undefined])
+    assert.equal(normalizeCoverArtSource(previous), "Mac Companion");
+});

@@ -52,7 +52,7 @@ export function runStateContractTests(): void {
   equal(first.alarmDelayAudioOn, false, "alarm delay audio defaults off");
   equal(first.alarmDelayTtsOn, true, "alarm delay TTS defaults on");
   equal(first.alarmDelayFinalCountdown, 10, "alarm delay final countdown defaults to ten seconds");
-  equal(first.coverArtSource, "Home Assistant", "cover art defaults to the Home Assistant source");
+  equal(first.coverArtSource, "Mac Companion", "cover art uses the paired Mac source");
   const restoredCompanionSettings = normalizeBackupPanelSettings({
     screensaver_mode: "companion",
     cover_art_source: "Mac Companion",

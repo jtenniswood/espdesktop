@@ -8,7 +8,6 @@ export interface ArtworkPostApiFeature {
     postScreensaverCameraDimming(value?: any): any;
     postMediaPlayerSleepPrevention(on?: any): any;
     postMediaPlayerSleepPreventionEntity(value?: any): any;
-    postCoverArtPlaybackControl(on?: any): any;
     postCoverArtScreensaver(on?: any): any;
     postCoverArtSource(value?: any): any;
     postClockOverlay(on?: any): any;
@@ -54,14 +53,11 @@ export function createArtworkPostApiFeature(
     function postMediaPlayerSleepPreventionEntity(this: any, value?: any) {
         return postTextWithObjectIds(entityName("media_player_sleep_prevention_entity"), entityObjectIds("media_player_sleep_prevention_entity"), value);
     }
-    function postCoverArtPlaybackControl(this: any, on?: any) {
-        return postSwitchWithObjectIds(entityName("screen_saver_cover_art_playback_control"), entityObjectIds("screen_saver_cover_art_playback_control"), on);
-    }
     function postCoverArtScreensaver(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_cover_art"), entityObjectIds("screen_saver_cover_art"), on);
     }
     function postCoverArtSource(this: any, value?: any) {
-        const source = value === "Mac Companion" ? "Mac Companion" : "Home Assistant";
+        const source = "Mac Companion";
         return postSelectWithObjectIds(entityName("cover_art_source"), entityObjectIds("cover_art_source"), source);
     }
     function postClockOverlay(this: any, on?: any) {
@@ -119,7 +115,6 @@ export function createArtworkPostApiFeature(
         postScreensaverCameraDimming,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
-        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
         postClockOverlay,

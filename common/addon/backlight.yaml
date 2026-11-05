@@ -488,8 +488,7 @@ script:
               auto &display = id(espdesktop_app).display();
               return id(cover_art_screensaver_enabled).state &&
                      id(cover_art_media_playing) &&
-                     (id(cover_art_companion_source_active) ||
-                      !id(cover_art_media_player_entity).state.empty()) &&
+                     id(cover_art_companion_source_active) &&
                      (id(cover_art_manual_pause_until_ms) != 0 ||
                       id(media_player_sleep_prevention_enabled).state ||
                       (id(screensaver_mode).state != "timer" &&
@@ -629,14 +628,6 @@ script:
             id(cover_art_playback_started).execute();
           }
 
-          // A retained pause is valid only while this presentation remains
-          // visible. Schedule, manual sleep, and modal takeovers end the session.
-          if (!controller.target_mode_is(espdesktop::DisplayMode::COVER_ART)) {
-            if (id(cover_art_playback_control).retains_pause(id(cover_art_active_media_player_entity))) {
-              controller.clear(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK);
-            }
-            id(cover_art_playback_control).reset();
-          }
           auto transition = controller.resolve();
           const bool migrated_target =
               transition.target_mode == espdesktop::DisplayMode::ACTIVE ||
@@ -914,11 +905,7 @@ script:
                     return id(screensaver_mode).state != "companion" &&
                            id(cover_art_screensaver_enabled).state &&
                            id(cover_art_media_playing) &&
-                           id(cover_art_attribute_conditions_match) &&
-                           !(id(cover_art_hide_external_input_enabled).state &&
-                             id(cover_art_external_input_active)) &&
-                           (id(cover_art_companion_source_active) ||
-                            !id(cover_art_media_player_entity).state.empty());
+                           id(cover_art_companion_source_active);
                 then:
                   - script.execute: show_cover_art_view
                 else:

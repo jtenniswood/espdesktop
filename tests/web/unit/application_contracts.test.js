@@ -274,7 +274,7 @@ describe("browserless application contracts", () => {
 
   test("injects status preview into settings and backup consumers", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    for (const relativePath of ["settings_page.ts", "settings_page_helpers.ts", "settings_cover_art_section.ts", "app_backup.ts"]) {
+    for (const relativePath of ["settings_page.ts", "settings_page_helpers.ts", "app_backup.ts"]) {
       const source = fs.readFileSync(path.join(ROOT, "src/webserver/application", relativePath), "utf8");
       assert.match(source, /AppStatusPreviewFeature/, `${relativePath} should declare its status-preview dependency`);
     }
@@ -1112,7 +1112,6 @@ describe("browserless application contracts", () => {
       "src/webserver/application/settings_page.ts",
       "src/webserver/application/settings_page_helpers.ts",
       "src/webserver/application/settings_schedule_section.ts",
-      "src/webserver/application/settings_cover_art_section.ts",
     ];
     for (const relativePath of consumers) {
       const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");

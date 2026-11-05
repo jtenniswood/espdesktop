@@ -443,8 +443,8 @@ function normalizeScreensaverMode(value: unknown): string {
   return mode === "sensor" || mode === "timer" || mode === "companion" || mode === "disabled" ? mode : "disabled";
 }
 
-export function normalizeCoverArtSource(value: unknown): string {
-  return String(value || "") === "Mac Companion" ? "Mac Companion" : "Home Assistant";
+export function normalizeCoverArtSource(_value: unknown): string {
+  return "Mac Companion";
 }
 
 function normalizeScreenRotationValue(value: unknown, options: readonly string[]): string {
