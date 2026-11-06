@@ -61,8 +61,8 @@ inline void apply_app_card_closed_style(lv_obj_t *button, bool closed,
     // rounded alpha mask do not move or clip an outside outline.
     const std::pair<lv_style_prop_t, int32_t> numbers[] = {
         {LV_STYLE_BG_OPA, idle_closed ? LV_OPA_TRANSP : LV_OPA_COVER},
-        {LV_STYLE_OUTLINE_WIDTH, idle_closed ? 2 : 0},
-        {LV_STYLE_OUTLINE_PAD, -2},
+        {LV_STYLE_OUTLINE_WIDTH, idle_closed ? 4 : 0},
+        {LV_STYLE_OUTLINE_PAD, -4},
         {LV_STYLE_OUTLINE_OPA, LV_OPA_COVER}};
     for (const auto &entry : numbers) {
       if (lv_obj_get_local_style_prop(button, entry.first, &value, selector) != LV_STYLE_RES_FOUND ||

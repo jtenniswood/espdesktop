@@ -120,8 +120,8 @@ int main() {
     const auto page_pixel = frame[0];
     assert(same_rgb565_colour(shaded, page_pixel));
     assert(lv_obj_get_style_bg_opa(button, LV_PART_MAIN) == LV_OPA_TRANSP);
-    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 2);
-    assert(lv_obj_get_style_outline_pad(button, LV_PART_MAIN) == -2);
+    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 4);
+    assert(lv_obj_get_style_outline_pad(button, LV_PART_MAIN) == -4);
     assert((lv_color_to_u32(lv_obj_get_style_outline_color(button, LV_PART_MAIN)) & 0xFFFFFF) == app_card_closed_colour(neutral));
     assert(same_rgb565_colour(frame[90 * SIDE + 20], lv_color_to_u16(lv_color_hex(app_card_closed_colour(neutral)))));
     assert(shaded != lv_color_to_u16(lv_color_hex(neutral)));
@@ -138,7 +138,7 @@ int main() {
     assert(!same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(neutral))));
     lv_obj_remove_state(button, LV_STATE_PRESSED);
     lv_refr_now(display);
-    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 2);
+    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 4);
     assert(same_rgb565_colour(frame[60 * SIDE + 60], page_pixel));
     const auto flushes = flush_count;
     for (int repeat = 0; repeat < 100; ++repeat) {
