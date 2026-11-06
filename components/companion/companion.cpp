@@ -791,10 +791,11 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       if (action_ids.size() > 64 || std::any_of(action_ids.begin(), action_ids.end(),
           [](const std::string &value) { return !safe_field(value, 96); })) return false;
       const bool application_only = payload->applicationOnly.value_or(false);
-      this->defer_session_([action_id, application_only, action_ids = std::move(action_ids)]() mutable {
+      const uint32_t received_at = millis();
+      this->defer_session_([action_id, application_only, received_at, action_ids = std::move(action_ids)]() mutable {
         if (application_only) {
           companion_runtime_service().set_application_highlight(action_id);
-          ESP_LOGD(TAG, "Application focus received: %s", action_id.c_str());
+          ESP_LOGD(TAG, "Application focus received: %s at=%u", action_id.c_str(), received_at);
         }
         else companion_set_focused_actions(std::move(action_ids));
       });

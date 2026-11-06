@@ -704,7 +704,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   // action. Avoid resyncing descendants/redrawing cards on unchanged snapshots.
   if (lv_obj_has_state(button, LV_STATE_CHECKED) != active) {
     set_card_checked_state(button, active);
-    ESP_LOGD("companion_focus", "Card %s highlight=%d", action_id.c_str(), active);
+    ESP_LOGD("companion_focus", "Card %s highlight=%d at=%u", action_id.c_str(), active, esphome::millis());
   }
 }
 
@@ -746,7 +746,7 @@ inline void companion_card_focus_drawn(lv_event_t *event) {
     if (!ref.focus_draw_seen || ref.last_drawn_focus != active) {
       ref.focus_draw_seen = true;
       ref.last_drawn_focus = active;
-      ESP_LOGD("companion_focus", "Card %s drawn=%d", ref.action_id.c_str(), active);
+      ESP_LOGD("companion_focus", "Card %s drawn=%d at=%u", ref.action_id.c_str(), active, esphome::millis());
     }
     return;
   }
