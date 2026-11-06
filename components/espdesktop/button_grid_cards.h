@@ -492,6 +492,21 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
 
+inline void apply_instant_button_feedback(lv_obj_t *btn) {
+  if (!btn) return;
+  // LVGL reads transition->props on every state change. An empty list disables
+  // animation safely; a null descriptor crashes when the card is pressed.
+  static const lv_style_prop_t props[] = {LV_STYLE_PROP_INV};
+  static lv_style_transition_dsc_t transition;
+  static bool initialized = false;
+  if (!initialized) {
+    lv_style_transition_dsc_init(&transition, props, lv_anim_path_ease_out, 0, 0, nullptr);
+    initialized = true;
+  }
+  lv_obj_set_style_transition(btn, &transition,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
+}
+
 inline void clear_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
   lv_obj_remove_local_style_prop(btn, LV_STYLE_TRANSITION,
@@ -611,11 +626,12 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
 #endif
   }
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
-  if (available) {
-    set_card_disabled_state(s.btn, false);
+  set_card_disabled_state(s.btn, !available);
+  if (companion_app_launch_card(p)) {
+    apply_instant_button_feedback(s.btn);
+  } else if (available) {
     apply_push_button_transition(s.btn);
   } else {
-    set_card_disabled_state(s.btn, true);
     clear_push_button_transition(s.btn);
   }
   companion_apply_card_focus(s.btn, p.entity, p.sensor);
