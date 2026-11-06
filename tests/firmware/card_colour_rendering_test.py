@@ -208,10 +208,13 @@ grid = (headers / "button_grid_grid.h").read_text()
 layout = (headers / "button_grid_layout.h").read_text()
 source += "\n" + "\n".join(re.findall(r"^constexpr char CARD_SIZE_.*?;$", layout, re.MULTILINE))
 
+source += "\nstruct lv_indev_t {}; lv_indev_t *lv_indev_get_act() { return nullptr; } void lv_indev_wait_release(lv_indev_t *) {}\n"
+
 groups = (
     ("button_grid_slider_contrast.h", "", ("slider_text_contrast_event_cb", "slider_bind_text_contrast")),
     ("button_grid_display.h", "", ("display_correct_color",)),
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
+    ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("grid_token_has_span_suffix", "parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
@@ -387,6 +390,19 @@ int main() {
   set_espdesktop_language("en");
   for (const ThemePalette *theme : {&DARK_THEME, &LIGHT_THEME}) {
     set_active_theme_palette(*theme);
+    // Consuming a trigger press must restore contrast without a release event.
+    for (bool checked : {false, true}) {
+      lv_obj_t trigger, label, icon;
+      trigger.children = {&label, &icon};
+      apply_button_colors(&trigger, true, 0xFFFFFF, true, 0x212121);
+      trigger.state = LV_STATE_PRESSED | (checked ? LV_STATE_CHECKED : 0);
+      send_event(&trigger, LV_EVENT_PRESSED);
+      assert(label.text[0] == display_text_color_for_bg(0xFFFFFF));
+      consume_button_touch_press(&trigger);
+      assert(trigger.state == (checked ? LV_STATE_CHECKED : 0));
+      assert(label.text[0] == lv_obj_get_style_text_color(&trigger, LV_PART_MAIN));
+      assert(icon.text[0] == label.text[0]);
+    }
     // Forecast temperatures retain muted grey through card contrast updates.
     lv_obj_t forecast_card, forecast_day, forecast_icon, forecast_temperature;
     forecast_card.children={&forecast_day,&forecast_icon,&forecast_temperature};

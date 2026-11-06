@@ -1,10 +1,16 @@
 #pragma once
 
+#include "card_text_contrast.h"
+
 // Discrete buttons act on touch-down. Consume the pointer before an action can
 // replace/delete the control, so release cannot repeat it or hit the next UI.
 inline void consume_button_touch_press(lv_obj_t *button) {
   if (auto *indev = lv_indev_get_act()) lv_indev_wait_release(indev);
-  if (button) lv_obj_clear_state(button, LV_STATE_PRESSED);
+  if (button) {
+    lv_obj_clear_state(button, LV_STATE_PRESSED);
+    // The consumed release will not run the usual contrast callback.
+    sync_card_checked_text_color(button);
+  }
 }
 
 inline void bind_immediate_button_action(lv_obj_t *button, lv_event_cb_t action,

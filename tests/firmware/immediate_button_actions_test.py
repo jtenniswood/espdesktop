@@ -32,7 +32,10 @@ void dispatch(lv_obj_t *o, int event) {
     lv_event_t e{o,b.data}; b.action(&e);
   }
 }
-#include "button_grid_touch.h"
+int contrast_syncs = 0;
+void sync_card_checked_text_color(lv_obj_t *o) { assert(!(o->state & LV_STATE_PRESSED)); ++contrast_syncs; }
+// Exercise the production touch helper; colour propagation is tested separately.
+TOUCH_HELPER
 bool locked = false;
 namespace espdesktop {
 struct Pin { bool locked() { return ::locked; } };
@@ -48,6 +51,7 @@ void handle_button_click(const std::string &, int, lv_obj_t *) {
   assert(pointer.waiting); ++calls;
 }
 '''
+code = code.replace('TOUCH_HELPER', (HEADERS / 'button_grid_touch.h').read_text().replace('#pragma once', '').replace('#include "card_text_contrast.h"', ''))
 actions = (HEADERS / "button_grid_actions.h").read_text()
 start = actions.index("inline void handle_button_press(")
 code += actions[start:actions.index("\n}", start) + 2]
@@ -65,6 +69,7 @@ int main() {
     const auto before = calls;
     dispatch(&button, LV_EVENT_PRESSED);
     assert(calls == before + 1 && button.state == 0);
+    assert(contrast_syncs == i + 1);
     // Neither a hold nor release has an action callback: one command per touch.
     dispatch(&button, LV_EVENT_LONG_PRESSED);
     dispatch(&button, LV_EVENT_CLICKED);
