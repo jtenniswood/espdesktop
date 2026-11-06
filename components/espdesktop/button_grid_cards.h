@@ -353,7 +353,7 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   if (source) {
     static const lv_state_t states[] = {
         LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
-        LV_STATE_CHECKED | LV_STATE_PRESSED};
+        static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
     for (const auto state : states) {
       const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
           static_cast<lv_style_selector_t>(state);
@@ -494,7 +494,7 @@ inline void apply_instant_button_feedback(lv_obj_t *btn) {
   }
   static const lv_state_t states[] = {
       LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
-      LV_STATE_CHECKED | LV_STATE_PRESSED};
+      static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
   for (const auto state : states) {
     const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
         static_cast<lv_style_selector_t>(state);

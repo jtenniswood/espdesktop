@@ -16,9 +16,9 @@ source = r'''
 #include <vector>
 using lv_style_prop_t = int;
 using lv_style_selector_t = int;
-using lv_state_t = int;
+enum lv_state_t { LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2 };
 constexpr int LV_STYLE_PROP_INV = 0, LV_STYLE_BG_COLOR = 1, LV_STYLE_BG_OPA = 2;
-constexpr int LV_PART_MAIN = 0, LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2;
+constexpr int LV_PART_MAIN = 0;
 struct lv_style_transition_dsc_t {
   const lv_style_prop_t *props = nullptr;
   unsigned time = 0, delay = 0;
