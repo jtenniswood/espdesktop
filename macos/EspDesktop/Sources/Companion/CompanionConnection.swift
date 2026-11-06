@@ -514,6 +514,10 @@ final class CompanionConnection: NSObject {
                     )
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
+                    if status == "activated" {
+                        // Activation is confirmed now; do not wait for the next focus poll.
+                        self.publishFocusedAction(invalidatePendingQuery: true)
+                    }
                 }
             } else if kind == "url", let appIdentifier = payload.appId,
                       let encodedURL = payload.encodedUrl {

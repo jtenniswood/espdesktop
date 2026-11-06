@@ -95,9 +95,11 @@ inline void companion_apply_app_icon_card_palette(
   // refreshes must not restore fallback colours captured before a theme change.
   if (!button || !source.card_palette_ready) return;
   if (source.app_icon_mode) {
-    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    lv_obj_set_style_outline_color(button, lv_color_hex(source.fallback_active_rgb), checked);
+    for (const auto state : {LV_STATE_CHECKED, LV_STATE_PRESSED}) {
+      const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(state);
+      lv_obj_set_style_outline_color(button, lv_color_hex(source.fallback_active_rgb), selector);
+    }
   }
   if (!source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
@@ -334,12 +336,15 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->icon_size = icon_size;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
-  const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-      static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-  lv_obj_set_style_outline_width(slot.btn, 3, checked);
-  lv_obj_set_style_outline_pad(slot.btn, -3, checked);
-  lv_obj_set_style_outline_color(slot.btn, lv_color_hex(source->fallback_active_rgb), checked);
-  lv_obj_set_style_outline_opa(slot.btn, LV_OPA_COVER, checked);
+  // Show touch feedback immediately without changing confirmed Mac focus.
+  for (const auto state : {LV_STATE_CHECKED, LV_STATE_PRESSED}) {
+    const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(state);
+    lv_obj_set_style_outline_width(slot.btn, 3, selector);
+    lv_obj_set_style_outline_pad(slot.btn, -3, selector);
+    lv_obj_set_style_outline_color(slot.btn, lv_color_hex(source->fallback_active_rgb), selector);
+    lv_obj_set_style_outline_opa(slot.btn, LV_OPA_COVER, selector);
+  }
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
 }
 
@@ -362,12 +367,14 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   auto *source = static_cast<CompanionAppIconImageData *>(
       lv_obj_get_user_data(slot.app_icon_img));
   if (source) {
-    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_PAD, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_COLOR, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_OPA, checked);
+    for (const auto state : {LV_STATE_CHECKED, LV_STATE_PRESSED}) {
+      const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(state);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_PAD, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_COLOR, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_OPA, selector);
+    }
     source->app_icon_mode = false;
   }
   if (!source || !source->palette_applied) return;

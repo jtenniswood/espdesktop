@@ -19,7 +19,7 @@ Use **Default app icon size** in Screen appearance settings to size Mac app artw
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
-Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac. Focus changes update the card as soon as they reach the display. An app that is still opening may take longer, because EspDesktop waits for a visible window before showing it as active.
+Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac. Pressing an app icon shows its coloured outline immediately as touch feedback. After release, the outline reflects confirmed Mac focus. Focus changes update the card as soon as they reach the display. An app that is still opening may take longer, because EspDesktop waits for a visible window before showing it as active.
 
 ## Open a Website
 
