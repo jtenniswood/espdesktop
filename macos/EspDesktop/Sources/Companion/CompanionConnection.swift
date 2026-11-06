@@ -805,11 +805,14 @@ final class CompanionConnection: NSObject {
     }
 
     func publishCatalogue() {
+        guard sessionAuthenticated || task != nil else { return }
+        // A reconnect must paint the active app before catalogue preparation or
+        // its queued pages. Even a provisional app scan must not delay colour.
+        applicationFocusPublisher.reset()
+        publishFocusedAction()
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
-        guard sessionAuthenticated || task != nil else { return }
-        applicationFocusPublisher.reset()
         let supportedWindowActions = Self.supportedWindowActionIDs(
             for: ProcessInfo.processInfo.operatingSystemVersion
         )
@@ -873,7 +876,6 @@ final class CompanionConnection: NSObject {
                           "page": page, "complete": page == definitionPages - 1, "items": items])
             }
         }
-        publishFocusedAction()
     }
 
     static func supportedWindowActionIDs(for version: OperatingSystemVersion) -> [String] {
