@@ -73,6 +73,25 @@ bool basic_action_driver_handle_main_click(const Context &, const ParsedCfg &con
 '''
 code += function("button_grid_navigation.h", "inline void navigation_consume_touch_press(")
 code += function("button_grid_navigation_driver.h", "inline bool navigation_handle_button_press(")
+grid = (HEADERS / "button_grid_grid.h").read_text()
+back = grid[grid.index("lv_obj_add_event_cb(back_btn,"):grid.index("navigation_register_subpage_back_button(navigation_slot")]
+code += r'''
+constexpr int LV_EVENT_PRESSED = 7;
+struct lv_event_t { void *target; void *data; };
+void *lv_event_get_target(lv_event_t *e) { return e->target; }
+void *lv_event_get_user_data(lv_event_t *e) { return e->data; }
+void (*back_callback)(lv_event_t *) = nullptr;
+void *back_data = nullptr;
+bool &navigation_special_page_back_button_marker() { static bool marker; return marker; }
+lv_obj_t *previous = nullptr;
+void navigation_return_from_special_page() {
+  lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+}
+void lv_obj_add_event_cb(lv_obj_t *, void (*cb)(lv_event_t *), int filter, void *data) {
+  assert(filter == LV_EVENT_PRESSED); back_callback = cb; back_data = data;
+}
+void bind_back(lv_obj_t *back_btn, bool is_special_page, lv_obj_t *main_page_obj) {
+''' + back + "\n}\n"
 code += r'''
 int main() {
   lv_obj_t home, page, button{&page};
@@ -81,6 +100,14 @@ int main() {
   assert(navigation_handle_button_press(config, 1, &button));
   assert(active == &page && button.state == 0);
   assert((order == std::vector<int>{1, 2, 3}));
+  // Execute the real Back/Close callback with LVGL's void* target signature.
+  for (bool special : {false, true}) {
+    order.clear(); previous = &page;
+    bind_back(&button, special, &home);
+    lv_event_t event{&button, back_data}; back_callback(&event);
+    assert(active == (special ? &page : &home));
+    assert((order == std::vector<int>{1, 2, 3}));
+  }
   // Invalid/missing targets must not swallow unrelated interactions.
   order.clear(); page.valid = false;
   assert(!navigation_handle_button_press(config, 1, &button) && order.empty());
@@ -109,9 +136,7 @@ int main() {
 '''
 
 # Guard the actual event hookups, not just the routing helpers.
-grid = (HEADERS / "button_grid_grid.h").read_text()
-back = grid[grid.index("lv_obj_add_event_cb(back_btn,"):grid.index("navigation_register_subpage_back_button(navigation_slot")]
-assert "navigation_consume_touch_press(lv_event_get_target(e))" in back
+assert "navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)))" in back
 assert "LV_EVENT_PRESSED" in back and "LV_EVENT_CLICKED" not in back
 assert "navigation_return_from_special_page();" in back
 press = function("button_grid_actions.h", "inline void handle_button_press(")
