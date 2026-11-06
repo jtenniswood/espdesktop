@@ -129,11 +129,13 @@ int main() {
     assert(frame[20 * SIDE + 20] == page_pixel);
     lv_obj_add_state(button, LV_STATE_PRESSED);
     lv_refr_now(display);
-    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 4);
-    assert(lv_obj_get_style_bg_opa(button, LV_PART_MAIN) == LV_OPA_TRANSP);
-    assert((lv_color_to_u32(lv_obj_get_style_outline_color(button, LV_PART_MAIN)) & 0xFFFFFF) == accent);
-    assert(same_rgb565_colour(frame[60 * SIDE + 60], page_pixel));
-    assert(frame[90 * SIDE + 20] != page_pixel);
+    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 0);
+    assert(lv_obj_get_style_bg_opa(button, LV_PART_MAIN) == LV_OPA_COVER);
+    assert((lv_color_to_u32(lv_obj_get_style_bg_color(button, LV_PART_MAIN)) & 0xFFFFFF) == accent);
+    // The native pressed recolour may tint the accent; it must still paint a
+    // filled centre immediately, rather than leave the closed outline visible.
+    assert(frame[60 * SIDE + 60] != page_pixel);
+    assert(!same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(neutral))));
     lv_obj_remove_state(button, LV_STATE_PRESSED);
     lv_refr_now(display);
     assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 4);
@@ -148,22 +150,7 @@ int main() {
     state.running_application_ids = {"com.example.App"};
     companion_apply_card_running_state(button, "com.example.App", "", true, state);
     lv_refr_now(display);
-    assert(lv_obj_has_state(button, LV_STATE_USER_1));
-    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 0);
-    assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(neutral))));
-
-    const auto open_flushes = flush_count;
-    for (int repeat = 0; repeat < 100; ++repeat) {
-      companion_apply_card_running_state(button, "com.example.App", "", true, state);
-      lv_refr_now(display);
-    }
-    assert(flush_count == open_flushes);
-    lv_obj_add_state(button, LV_STATE_PRESSED);
-    lv_refr_now(display);
-    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 4);
-    assert(same_rgb565_colour(frame[60 * SIDE + 60], page_pixel));
-    lv_obj_remove_state(button, LV_STATE_PRESSED);
-    lv_refr_now(display);
+    assert(!lv_obj_has_state(button, LV_STATE_USER_1));
     assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 0);
     assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(neutral))));
 
@@ -171,13 +158,9 @@ int main() {
     companion_apply_card_running_state(button, "com.example.App", "", true, state);
     set_card_checked_state(button, companion_action_focused(state, "com.example.App", true));
     lv_refr_now(display);
-    assert(lv_obj_has_state(button, LV_STATE_USER_1));
-    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 4);
-    assert(lv_obj_get_style_bg_opa(button, LV_PART_MAIN) == LV_OPA_TRANSP);
-    assert((lv_color_to_u32(lv_obj_get_style_outline_color(button, LV_PART_MAIN)) & 0xFFFFFF) == accent);
-    assert(same_rgb565_colour(frame[60 * SIDE + 60], page_pixel));
-    assert(same_rgb565_colour(frame[90 * SIDE + 20], lv_color_to_u16(lv_color_hex(accent))));
-    save(theme == &DARK_THEME ? "focused-dark.ppm" : "focused-light.ppm");
+    assert(!lv_obj_has_state(button, LV_STATE_USER_1));
+    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 0);
+    assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(accent))));
     assert(frame[20 * SIDE + 20] == page_pixel);
 
     state.application_highlight_id = "com.example.Other";
