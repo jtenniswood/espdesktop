@@ -9,7 +9,7 @@ inline void consume_button_touch_press(lv_obj_t *button) {
   if (button) {
     lv_obj_clear_state(button, LV_STATE_PRESSED);
     // The consumed release will not run the usual contrast callback.
-    sync_card_checked_text_color(button);
+    sync_bound_card_text_color(button);
   }
 }
 

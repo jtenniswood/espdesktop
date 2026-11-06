@@ -86,6 +86,10 @@ constexpr int LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS = 1 << 20;
 constexpr int LV_EVENT_DRAW_TASK_ADDED = 20;
 void lv_obj_remove_event_cb(lv_obj_t *obj, lv_event_cb_t callback) { lv_obj_remove_event_cb_with_user_data(obj, callback, nullptr); }
 void lv_obj_add_event_cb(lv_obj_t *obj, lv_event_cb_t callback, int, void *) { obj->events.push_back(callback); }
+using lv_event_dsc_t = lv_event_cb_t;
+uint32_t lv_obj_get_event_count(lv_obj_t *obj) { return obj->events.size(); }
+lv_event_dsc_t *lv_obj_get_event_dsc(lv_obj_t *obj, uint32_t i) { return &obj->events[i]; }
+lv_event_cb_t lv_event_dsc_get_cb(lv_event_dsc_t *dsc) { return *dsc; }
 void send_event(lv_obj_t *obj, int code) {
   lv_event_t event{obj, code};
   for (auto callback : obj->events) callback(&event);
@@ -213,7 +217,7 @@ source += "\nstruct lv_indev_t {}; lv_indev_t *lv_indev_get_act() { return nullp
 groups = (
     ("button_grid_slider_contrast.h", "", ("slider_text_contrast_event_cb", "slider_bind_text_contrast")),
     ("button_grid_display.h", "", ("display_correct_color",)),
-    ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
+    ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("grid_token_has_span_suffix", "parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
@@ -390,6 +394,14 @@ int main() {
   set_espdesktop_language("en");
   for (const ThemePalette *theme : {&DARK_THEME, &LIGHT_THEME}) {
     set_active_theme_palette(*theme);
+    // A modal/PIN label has its own theme colour, independent of the button.
+    lv_obj_t pin_key, pin_label;
+    pin_key.children = {&pin_label};
+    pin_key.text[0] = 0xFFFFFF;
+    pin_label.text[0] = theme->text_primary;
+    pin_key.state = LV_STATE_PRESSED;
+    consume_button_touch_press(&pin_key);
+    assert(pin_label.text[0] == theme->text_primary);
     // Consuming a trigger press must restore contrast without a release event.
     for (bool checked : {false, true}) {
       lv_obj_t trigger, label, icon;

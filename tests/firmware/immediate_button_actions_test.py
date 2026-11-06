@@ -33,7 +33,7 @@ void dispatch(lv_obj_t *o, int event) {
   }
 }
 int contrast_syncs = 0;
-void sync_card_checked_text_color(lv_obj_t *o) { assert(!(o->state & LV_STATE_PRESSED)); ++contrast_syncs; }
+void sync_bound_card_text_color(lv_obj_t *o) { assert(!(o->state & LV_STATE_PRESSED)); ++contrast_syncs; }
 // Exercise the production touch helper; colour propagation is tested separately.
 TOUCH_HELPER
 bool locked = false;
