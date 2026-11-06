@@ -256,6 +256,11 @@ class CompanionRuntimeService {
             url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
   }
 
+  std::string highlighted_application() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return application_highlight_id_;
+  }
+
   CompanionFocusTargetsState focus_targets_state() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return {connected_, url_focus_targets_generation_};
@@ -436,6 +441,7 @@ class CompanionRuntimeService {
   void request_refresh() { request_refresh_(); }
   bool consume_refresh_request() { return refresh_requested_.exchange(false); }
   bool consume_focus_refresh_request() { return focus_refresh_requested_.exchange(false); }
+  bool focus_refresh_pending() const { return focus_refresh_requested_.load(); }
   std::atomic<bool> &refresh_flag() { return refresh_requested_; }
 
  private:

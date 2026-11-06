@@ -583,9 +583,8 @@ inline std::string companion_window_action_label(const std::string &action_id) {
   return capability ? espdesktop_i18n(capability->label) : "";
 }
 
-inline bool companion_action_available(const std::string &action_id) {
+inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty()) return false;
-  const auto snapshot = companion_runtime_snapshot();
   if (!snapshot.connected) return false;
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   if (companion_window_action_valid(action_id)) {
@@ -595,6 +594,10 @@ inline bool companion_action_available(const std::string &action_id) {
   return std::any_of(snapshot.actions.begin(), snapshot.actions.end(), [&action_id](const CompanionAction &action) {
     return action.id == action_id;
   });
+}
+
+inline bool companion_action_available(const std::string &action_id) {
+  return companion_action_available(companion_runtime_snapshot(), action_id);
 }
 
 inline std::string companion_encoded_url(const std::string &url_config) {
@@ -610,13 +613,15 @@ inline std::string companion_encoded_url(const std::string &url_config) {
 }
 
 inline std::string companion_default_action_label(const std::string &action_id,
-                                                  const std::string &url_config = "") {
+                                                  const std::string &url_config = "",
+                                                  const CompanionRuntimeSnapshot *state = nullptr) {
   const std::string shortcut_label = companion_shortcut_label(action_id);
   if (!shortcut_label.empty()) return shortcut_label;
   const std::string window_label = companion_window_action_label(action_id);
   if (!window_label.empty()) return window_label;
   if (!companion_encoded_url(url_config).empty()) return espdesktop_i18n("Open URL");
-  const auto snapshot = companion_runtime_snapshot();
+  const auto owned = state ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
+  const auto &snapshot = state ? *state : owned;
   const auto action = std::find_if(snapshot.actions.begin(), snapshot.actions.end(),
     [&action_id](const CompanionAction &candidate) { return candidate.id == action_id; });
   if (action != snapshot.actions.end() && !action->label.empty()) return action->label;
@@ -625,8 +630,8 @@ inline std::string companion_default_action_label(const std::string &action_id,
 
 inline std::string companion_default_action_label_with_fallback(
     const std::string &action_id, const std::string &url_config,
-    std::string &resolved_label) {
-  std::string label = companion_default_action_label(action_id, url_config);
+    std::string &resolved_label, const CompanionRuntimeSnapshot *snapshot = nullptr) {
+  std::string label = companion_default_action_label(action_id, url_config, snapshot);
   if (label == action_id && !resolved_label.empty()) return resolved_label;
   resolved_label = label;
   return label;
@@ -705,13 +710,14 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   // action. Avoid resyncing descendants/redrawing cards on unchanged snapshots.
   if (lv_obj_has_state(button, LV_STATE_CHECKED) != active) {
     set_card_checked_state(button, active);
-    ESP_LOGD("companion_focus", "Card %s highlight=%d at=%u", action_id.c_str(), active, esphome::millis());
+    ESP_LOGD("companion_focus", "Card %s highlight=%d at=%u", action_id.c_str(), active, unsigned(esphome::millis()));
   }
 }
 
 struct CompanionViewRegistry {
   std::vector<CompanionCardRef> cards;
   std::vector<CompanionSliderRef> sliders;
+  std::string pending_focus_frame;
 };
 
 inline CompanionViewRegistry &companion_view_registry() {
@@ -747,10 +753,20 @@ inline void companion_card_focus_drawn(lv_event_t *event) {
     if (!ref.focus_draw_seen || ref.last_drawn_focus != active) {
       ref.focus_draw_seen = true;
       ref.last_drawn_focus = active;
-      ESP_LOGD("companion_focus", "Card %s drawn=%d at=%u", ref.action_id.c_str(), active, esphome::millis());
+      ESP_LOGD("companion_focus", "Card %s drawn=%d at=%u", ref.action_id.c_str(), active, unsigned(esphome::millis()));
+      if (active && ref.action_id == companion_runtime_service().highlighted_application())
+        companion_view_registry().pending_focus_frame = ref.action_id;
     }
     return;
   }
+}
+
+// Called after the display driver confirms its completed frame is on scanout.
+inline void companion_focus_frame_presented() {
+  auto &pending = companion_view_registry().pending_focus_frame;
+  if (pending.empty()) return;
+  ESP_LOGD("companion_focus", "Frame %s presented at=%u", pending.c_str(), unsigned(esphome::millis()));
+  pending.clear();
 }
 
 inline void companion_slider_deleted(lv_event_t *event) {
@@ -857,8 +873,9 @@ inline void companion_require_card_focus(lv_obj_t *button, const std::string &re
   for (auto &ref : companion_card_refs()) {
     if (ref.button != button) continue;
     ref.required_focus_id = required;
-    const bool available = companion_action_available(ref.action_id) &&
-      companion_required_focus_ready(required, companion_runtime_snapshot());
+    const auto snapshot = companion_runtime_snapshot();
+    const bool available = companion_action_available(snapshot, ref.action_id) &&
+      companion_required_focus_ready(required, snapshot);
     if (lv_obj_has_state(button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(button, !available);
     return;
@@ -869,7 +886,7 @@ inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapsho
   for (auto &ref : companion_card_refs()) {
     if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty()) continue;
     if (!ref.required_focus_id.empty()) {
-      const bool available = companion_action_available(ref.action_id) &&
+      const bool available = companion_action_available(snapshot, ref.action_id) &&
         companion_required_focus_ready(ref.required_focus_id, snapshot);
       if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
         set_card_disabled_state(ref.button, !available);
@@ -930,12 +947,12 @@ inline void companion_refresh_cards_if_requested() {
       // A disconnected Companion temporarily has no action catalogue. Keep
       // the friendly name seen before the outage instead of showing its ID.
       const std::string label = companion_default_action_label_with_fallback(
-        it->action_id, it->url_config, it->resolved_default_label);
+        it->action_id, it->url_config, it->resolved_default_label, &snapshot);
       if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
     const bool action_available = it->url_config.empty()
-      ? companion_action_available(it->action_id)
+      ? companion_action_available(snapshot, it->action_id)
       : companion_url_available(it->action_id, it->url_config);
     const bool available = action_available && companion_required_focus_ready(it->required_focus_id, snapshot);
 

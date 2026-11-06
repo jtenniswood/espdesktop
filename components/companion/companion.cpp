@@ -802,7 +802,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->defer_session_([action_id, application_only, received_at, action_ids = std::move(action_ids)]() mutable {
         if (application_only) {
           companion_runtime_service().set_application_highlight(action_id);
-          ESP_LOGD(TAG, "Application focus received: %s at=%u", action_id.c_str(), received_at);
+          ESP_LOGD(TAG, "Application focus received: %s at=%u", action_id.c_str(), unsigned(received_at));
         }
         else companion_set_focused_actions(std::move(action_ids));
       });

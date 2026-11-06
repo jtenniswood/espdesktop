@@ -583,8 +583,17 @@ void EspDesktopApp::loop() {
   trace_phase("app core");
   // Transport callbacks only request a refresh; apply it on the UI loop.
   // The atomic flag keeps this cheap when no Companion state has changed.
+#ifdef USE_COMPANION
+  const bool focus_pending = companion_runtime_service().focus_refresh_pending();
+#endif
   companion_refresh_cards_if_requested();
   trace_phase("card refresh");
+#ifdef USE_COMPANION
+  // Let the next LVGL pass paint a focus change before starting background
+  // icon work, which otherwise adds its processing time to input latency.
+  if (!focus_pending) companion_process_pending_app_icon_refresh();
+  trace_phase("icon refresh");
+#endif
   sync_finder_folders();
   trace_phase("Finder sync");
   // The app core starts before WiFi so Home Assistant boot automations are

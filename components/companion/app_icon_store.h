@@ -34,7 +34,7 @@ class AppIconStore {
                 std::array<uint8_t, 32> *hash) const;
   bool is_referenced(const std::string &application_id) const;
   bool copy_pixels(const std::string &application_id, uint8_t *output,
-                   size_t capacity);
+                   size_t capacity, std::array<uint8_t, 32> *copied_hash = nullptr);
   bool save(const std::string &application_id,
             const std::array<uint8_t, 32> &hash, const uint8_t *pixels,
             size_t size, std::string *evicted_application_id = nullptr);

@@ -199,6 +199,7 @@ struct CompanionCardRef {
   std::string required_focus_id{};
 };
 bool companion_action_available(const std::string &) { return true; }
+bool companion_action_available(const CompanionRuntimeSnapshot &, const std::string &) { return true; }
 std::vector<CompanionCardRef> focus_cards;
 auto &companion_card_refs() { return focus_cards; }
 bool lv_obj_is_valid(lv_obj_t *obj) { return obj != nullptr; }

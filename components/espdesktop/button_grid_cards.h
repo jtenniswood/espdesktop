@@ -33,6 +33,10 @@ struct CompanionAppIconImageData {
   size_t display_bytes = 0;
   espdesktop::app_icon::Insets artwork_insets{};
   bool artwork_insets_ready = false;
+  std::array<uint8_t, 32> loaded_hash{};
+  bool loaded_hash_valid = false;
+  bool rendered_online = false;
+  bool refresh_pending = false;
 
   bool prepare_pixels(const std::string &id) {
     std::array<uint8_t, 32> hash{};
@@ -77,6 +81,7 @@ struct CompanionAppIconImageData {
     release_source_pixels();
     descriptor.data = nullptr;
     image_loaded = false;
+    loaded_hash_valid = false;
   }
 
   ~CompanionAppIconImageData() {
@@ -238,8 +243,9 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   }
   if (!image || source.application_id.empty() || !source.prepare_pixels(source.application_id) ||
       !esphome::companion::app_icon_store().copy_pixels(
-          source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES)) {
-    source.image_loaded = false;
+          source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES,
+          &source.loaded_hash)) {
+    source.release_pixels();
     source.accent_palette = {};
     if (image) lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
     if (source.fallback_icon) lv_obj_clear_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
@@ -247,6 +253,8 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     return false;
   }
   source.image_loaded = true;
+  source.loaded_hash_valid = true;
+  source.rendered_online = source.companion_online;
   source.artwork_insets_ready = false;
   source.release_display_pixels();
   constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
