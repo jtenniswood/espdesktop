@@ -17,7 +17,7 @@ The card uses the app's friendly name by default. Enter a custom title in its se
 
 Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting.
 
-App cards distinguish the whole app’s state: the normal background means it is closed, a lighter grey shade means it is open in the background, and the strong active fill means it is in focus. Closing an app’s windows does not mark it as closed; quit the app to return to the normal background. Update both the Mac app and display firmware for all three states; older combinations keep the focus highlight.
+App cards distinguish the whole app’s state: a darker background means it is closed, the standard card grey means it is open in the background, and the strong active fill means it is in focus. Closing an app’s windows does not mark it as closed; quit the app to return to the darker background. Update both the Mac app and display firmware for all three states; older combinations keep the focus highlight.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 

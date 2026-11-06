@@ -5,22 +5,21 @@
 #include "card_text_contrast.h"
 #include "display_color.h"
 
-// Background apps use neutral grey; focused/pressed cards retain their accent.
-// Lift dark cards and shade light cards so running and closed stay distinct.
-constexpr uint32_t app_card_running_colour(uint32_t neutral) {
-  const auto luminance = (((neutral >> 16) & 255) * 299 +
-                          ((neutral >> 8) & 255) * 587 + (neutral & 255) * 114) / 1000;
-  const auto grey = luminance < 128 ? luminance + (255 - luminance) / 4
-                                    : luminance * 7 / 8;
-  return (grey << 16) | (grey << 8) | grey;
+// Running background apps retain the normal card surface. Only closed apps
+// are dimmed; focused and pressed cards keep their configured active fill.
+constexpr uint32_t app_card_closed_colour(uint32_t neutral) {
+  uint32_t result = 0;
+  for (unsigned shift : {0u, 8u, 16u})
+    result |= (((neutral >> shift) & 255) * 2 / 3) << shift;
+  return result;
 }
 
-inline void apply_app_card_running_style(lv_obj_t *button, bool running,
+inline void apply_app_card_closed_style(lv_obj_t *button, bool closed,
                                          uint32_t neutral, uint32_t active) {
   if (!button) return;
-  const bool was_running = lv_obj_has_state(button, LV_STATE_USER_1);
-  if (!running) {
-    if (was_running) {
+  const bool was_closed = lv_obj_has_state(button, LV_STATE_USER_1);
+  if (!closed) {
+    if (was_closed) {
       lv_obj_remove_state(button, LV_STATE_USER_1);
       sync_card_checked_text_color(button);
     }
@@ -33,7 +32,7 @@ inline void apply_app_card_running_style(lv_obj_t *button, bool running,
   if (lv_obj_get_local_style_prop(button, LV_STYLE_BG_COLOR, &value,
           static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_CHECKED) == LV_STYLE_RES_FOUND)
     active = lv_color_to_u32(value.color) & 0xFFFFFF;
-  const auto shade = app_card_running_colour(neutral);
+  const auto shade = app_card_closed_colour(neutral);
   for (const auto state : {LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
         static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)}) {
     const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
@@ -51,6 +50,6 @@ inline void apply_app_card_running_style(lv_obj_t *button, bool running,
       }
     }
   }
-  if (!was_running) lv_obj_add_state(button, LV_STATE_USER_1);
-  if (!was_running || style_changed) sync_card_checked_text_color(button);
+  if (!was_closed) lv_obj_add_state(button, LV_STATE_USER_1);
+  if (!was_closed || style_changed) sync_card_checked_text_color(button);
 }

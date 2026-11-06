@@ -893,10 +893,10 @@ inline void companion_apply_card_running_state(lv_obj_t *button, const std::stri
       action_id.rfind("urlcard.", 0) != 0 && action_id.rfind("window.", 0) != 0 &&
       action_id.rfind("shortcut.", 0) != 0 && action_id.rfind("media.", 0) != 0 &&
       action_id.rfind("stat.", 0) != 0;
-  const bool running = application_card && snapshot.connected && snapshot.running_applications_known &&
+  const bool closed = application_card && snapshot.connected && snapshot.running_applications_known &&
       !companion_action_focused(snapshot, action_id, true) &&
-      std::binary_search(snapshot.running_application_ids.begin(), snapshot.running_application_ids.end(), action_id);
-  apply_app_card_running_style(button, running,
+      !std::binary_search(snapshot.running_application_ids.begin(), snapshot.running_application_ids.end(), action_id);
+  apply_app_card_closed_style(button, closed,
       theme_display_color(current_theme().surface_card), current_button_primary_color());
 }
 

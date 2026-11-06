@@ -104,7 +104,7 @@ int main() {
   state.application_highlight_known = true;
   state.application_highlight_id = "com.example.Other";
   state.running_applications_known = true;
-  state.running_application_ids = {"com.example.App"};
+  state.running_application_ids.clear();
   for (const auto *theme : {&DARK_THEME, &LIGHT_THEME}) {
     set_active_theme_palette(*theme);
     const auto neutral = theme_display_color(theme->surface_card);
@@ -115,8 +115,8 @@ int main() {
     lv_refr_now(display);
     assert(lv_obj_has_state(button, LV_STATE_USER_1));
     const auto shaded = frame[60 * SIDE + 60];
-    assert((lv_color_to_u32(lv_obj_get_style_bg_color(button, LV_PART_MAIN)) & 0xFFFFFF) == app_card_running_colour(neutral));
-    assert(same_rgb565_colour(shaded, lv_color_to_u16(lv_color_hex(app_card_running_colour(neutral)))));
+    assert((lv_color_to_u32(lv_obj_get_style_bg_color(button, LV_PART_MAIN)) & 0xFFFFFF) == app_card_closed_colour(neutral));
+    assert(same_rgb565_colour(shaded, lv_color_to_u16(lv_color_hex(app_card_closed_colour(neutral)))));
     assert(shaded != lv_color_to_u16(lv_color_hex(neutral)));
     assert(shaded != lv_color_to_u16(lv_color_hex(accent)));
     assert(frame[20 * SIDE + 20] == background);
@@ -126,6 +126,12 @@ int main() {
       lv_refr_now(display);
     }
     assert(flush_count == flushes); // Repeated snapshots do not redraw cards.
+
+    state.running_application_ids = {"com.example.App"};
+    companion_apply_card_running_state(button, "com.example.App", "", true, state);
+    lv_refr_now(display);
+    assert(!lv_obj_has_state(button, LV_STATE_USER_1));
+    assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(neutral))));
 
     state.application_highlight_id = "com.example.App";
     companion_apply_card_running_state(button, "com.example.App", "", true, state);
@@ -140,7 +146,8 @@ int main() {
     companion_apply_card_running_state(button, "com.example.App", "", true, state);
     set_card_checked_state(button, false);
     lv_refr_now(display);
-    assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(neutral))));
+    assert(lv_obj_has_state(button, LV_STATE_USER_1));
+    assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(app_card_closed_colour(neutral)))));
     state.running_application_ids = {"com.example.App"};
     // URL cards represent pages, not whole applications.
     companion_apply_card_running_state(button, "com.example.App", "url.page", true, state);
@@ -149,6 +156,7 @@ int main() {
     companion_apply_card_running_state(button, "com.example.App", "", true, state);
     assert(!lv_obj_has_state(button, LV_STATE_USER_1));
     state.connected = true;
+    state.running_application_ids.clear();
   }
   std::puts("Running/background/focused/closed app fills, both themes and unchanged-refresh performance passed.");
   lv_obj_delete(button);
