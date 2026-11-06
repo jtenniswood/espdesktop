@@ -25,9 +25,11 @@ int main() {
     assert(state.application_highlight_known && state.application_highlight_id == "com.apple.finder");
     assert(state.focused_action_ids.empty());
     assert(runtime.pending_auto_subpage_action().empty());
+    assert(runtime.consume_focus_refresh_request());
     runtime.consume_refresh_request();
     runtime.set_application_highlight("com.apple.finder");
     assert(!runtime.consume_refresh_request());
+    assert(!runtime.consume_focus_refresh_request());
     runtime.set_focused_actions({"folder.one"});
     assert(runtime.snapshot().application_highlight_id == "com.apple.finder");
     assert(runtime.pending_auto_subpage_action() == "com.apple.finder");

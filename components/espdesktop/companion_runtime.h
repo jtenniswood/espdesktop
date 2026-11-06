@@ -363,7 +363,7 @@ class CompanionRuntimeService {
       focused_action_ids_.clear();
       pending_auto_subpage_action_id_.clear();
     }
-    request_refresh_();
+    focus_refresh_requested_.store(true);
   }
 
   bool set_focused_actions(std::vector<std::string> identifiers) {
@@ -388,6 +388,7 @@ class CompanionRuntimeService {
       return application_id;
     }();
     const std::string previous_auto_subpage_id = focused_auto_subpage_id_;
+    if (focused_action_ids_ == accepted && previous_auto_subpage_id == auto_subpage_id) return false;
     const bool should_return = auto_open_app_subpages_ && connected_ && !previous_auto_subpage_id.empty() &&
       auto_subpage_id != previous_auto_subpage_id;
     if (!auto_open_app_subpages_ || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
@@ -395,7 +396,7 @@ class CompanionRuntimeService {
     focused_action_ids_ = std::move(accepted);
     focused_action_id_ = parent_id(focused_action_ids_);
     focused_auto_subpage_id_ = auto_subpage_id;
-    request_refresh_();
+    focus_refresh_requested_.store(true);
     return should_return;
   }
 
@@ -434,6 +435,7 @@ class CompanionRuntimeService {
 
   void request_refresh() { request_refresh_(); }
   bool consume_refresh_request() { return refresh_requested_.exchange(false); }
+  bool consume_focus_refresh_request() { return focus_refresh_requested_.exchange(false); }
   std::atomic<bool> &refresh_flag() { return refresh_requested_; }
 
  private:
@@ -459,4 +461,5 @@ class CompanionRuntimeService {
   CompanionNowPlayingSnapshot now_playing_;
   CompanionSystemMetricsSnapshot system_metrics_;
   std::atomic<bool> refresh_requested_{false};
+  std::atomic<bool> focus_refresh_requested_{false};
 };
