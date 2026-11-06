@@ -433,6 +433,14 @@ final class CompanionStore: NSObject, ObservableObject {
         await focusedCompanionActionIdentifiers().first ?? ""
     }
 
+    func immediateFocusedApplicationIdentifier() -> String? {
+        // NSWorkspace has already confirmed foreground activation. Do not put
+        // window enumeration or browser/Finder AppleScript on the colour path.
+        guard let identifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+              approvedApplicationIdentifiers.contains(identifier) else { return "" }
+        return identifier
+    }
+
     func focusedCompanionActionIdentifiers() async -> [String] {
         await CompanionFocusQuery.readStable(
             currentApplication: { NSWorkspace.shared.frontmostApplication?.processIdentifier },

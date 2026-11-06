@@ -790,8 +790,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       if (action_ids.empty() && !action_id.empty()) action_ids.push_back(action_id);
       if (action_ids.size() > 64 || std::any_of(action_ids.begin(), action_ids.end(),
           [](const std::string &value) { return !safe_field(value, 96); })) return false;
-      this->defer_session_([action_ids = std::move(action_ids)]() mutable {
-        companion_set_focused_actions(std::move(action_ids));
+      const bool application_only = payload->applicationOnly.value_or(false);
+      this->defer_session_([action_id, application_only, action_ids = std::move(action_ids)]() mutable {
+        if (application_only) {
+          companion_runtime_service().set_application_highlight(action_id);
+          ESP_LOGD(TAG, "Application focus received: %s", action_id.c_str());
+        }
+        else companion_set_focused_actions(std::move(action_ids));
       });
       return true;
     }

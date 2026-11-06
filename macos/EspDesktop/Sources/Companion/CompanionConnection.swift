@@ -65,6 +65,7 @@ final class CompanionConnection: NSObject {
     private var sessionAuthenticated = false
     private var supportsAlphaAppIcons = false
     private var supportsHighResolutionAppIcons = false
+    private var supportsImmediateApplicationFocus = false
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
     private var artworkData: Data?
@@ -81,6 +82,7 @@ final class CompanionConnection: NSObject {
     private var lastArtworkSHA256: String?
     private var focusPublicationTask: Task<Void, Never>?
     private var lastFocusedActionIdentifiers: [String]?
+    private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
@@ -459,6 +461,7 @@ final class CompanionConnection: NSObject {
             sessionAuthenticated = true
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
+            supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -808,6 +811,7 @@ final class CompanionConnection: NSObject {
         guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
         lastFocusedActionIdentifiers = nil
+        applicationFocusPublisher.reset()
         let supportedWindowActions = Self.supportedWindowActionIDs(
             for: ProcessInfo.processInfo.operatingSystemVersion
         )
@@ -881,7 +885,7 @@ final class CompanionConnection: NSObject {
     }
 
     nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: UInt32) -> Bool {
-        capabilityVersion >= UInt32(CompanionCapabilities.version)
+        capabilityVersion >= 5
     }
 
     func publishTimezone() {
@@ -891,6 +895,17 @@ final class CompanionConnection: NSObject {
     }
 
     func publishFocusedAction(invalidatePendingQuery: Bool = false) {
+        // App-card colour is independent of the slower folder/tab lookup.
+        // This message is visual-only: it cannot authorize a shortcut or open
+        // an app subpage before the existing detailed query confirms its target.
+        if sessionAuthenticated, supportsImmediateApplicationFocus,
+           let application = resources.immediateFocusedApplicationIdentifier(),
+           Self.validCatalogueIdentifier(application) || application.isEmpty {
+            applicationFocusPublisher.publish(application) { identifier in
+                self.sendJSON(["type": "focus.changed", "actionId": identifier,
+                               "actionIds": identifier.isEmpty ? [] : [identifier], "applicationOnly": true])
+            }
+        }
         if invalidatePendingQuery {
             // A new foreground app must not wait for an obsolete browser/Finder query.
             focusPublicationTask?.cancel()

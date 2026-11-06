@@ -1,5 +1,18 @@
 import Foundation
 
+@MainActor
+struct CompanionApplicationFocusPublisher {
+    private var previous: String?
+
+    mutating func publish(_ application: String?, send: (String) -> Void) {
+        guard let application, application != previous else { return }
+        previous = application
+        send(application)
+    }
+
+    mutating func reset() { previous = nil }
+}
+
 /// Focus discovery must not hold up incoming keyboard shortcuts on the main actor.
 /// Run the read-only script in a child process so an unresponsive browser or
 /// Automation prompt can be stopped without blocking the app or its connection.

@@ -408,11 +408,16 @@ inline bool companion_consume_auto_subpage_action(const std::string &action_id) 
   return companion_runtime_service().consume_auto_subpage_action(action_id);
 }
 
-inline bool companion_action_focused(const std::string &action_id) {
+inline bool companion_action_focused(const std::string &action_id, bool visual_only = false) {
   if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
       action_id.rfind("media.", 0) == 0) return false;
   const auto snapshot = companion_runtime_snapshot();
   if (!snapshot.connected) return false;
+  if (visual_only && snapshot.application_highlight_known &&
+      action_id.rfind("folder.", 0) != 0 && action_id.rfind("webapp.", 0) != 0 &&
+      action_id.rfind("urlcard.", 0) != 0 && action_id.rfind("window.", 0) != 0 &&
+      action_id.rfind("stat.", 0) != 0)
+    return snapshot.application_highlight_id == action_id;
   if (std::find(snapshot.focused_action_ids.begin(), snapshot.focused_action_ids.end(), action_id) !=
       snapshot.focused_action_ids.end()) return true;
   return action_id == "com.apple.finder" &&
@@ -445,8 +450,8 @@ inline bool companion_application_focused(const std::string &application_id) {
   return companion_action_focused(application_id);
 }
 
-inline bool companion_action_active(const std::string &action_id) {
-  return companion_action_focused(action_id);
+inline bool companion_action_active(const std::string &action_id, bool visual_only = false) {
+  return companion_action_focused(action_id, visual_only);
 }
 
 inline uint32_t companion_next_request_number() {
@@ -665,6 +670,8 @@ struct CompanionCardRef {
   bool dynamic_default_label{false};
   std::string resolved_default_label;
   bool show_focus = true;
+  bool focus_draw_seen = false;
+  bool last_drawn_focus = false;
 };
 
 struct CompanionSliderRef {
@@ -685,12 +692,14 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   bool active = false;
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-    active = companion_action_active(focus_id);
+    active = companion_action_active(focus_id, true);
   }
   // Focus is a background visual update, never a prerequisite for a touch
   // action. Avoid resyncing descendants/redrawing cards on unchanged snapshots.
-  if (lv_obj_has_state(button, LV_STATE_CHECKED) != active)
+  if (lv_obj_has_state(button, LV_STATE_CHECKED) != active) {
     set_card_checked_state(button, active);
+    ESP_LOGD("companion_focus", "Card %s highlight=%d", action_id.c_str(), active);
+  }
 }
 
 struct CompanionViewRegistry {
@@ -721,6 +730,20 @@ inline void companion_forget_card(lv_obj_t *button) {
 
 inline void companion_card_deleted(lv_event_t *event) {
   companion_forget_card(static_cast<lv_obj_t *>(lv_event_get_target(event)));
+}
+
+inline void companion_card_focus_drawn(lv_event_t *event) {
+  auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
+  for (auto &ref : companion_card_refs()) {
+    if (ref.button != button || !ref.metric_key.empty()) continue;
+    const bool active = lv_obj_has_state(button, LV_STATE_CHECKED);
+    if (!ref.focus_draw_seen || ref.last_drawn_focus != active) {
+      ref.focus_draw_seen = true;
+      ref.last_drawn_focus = active;
+      ESP_LOGD("companion_focus", "Card %s drawn=%d", ref.action_id.c_str(), active);
+    }
+    return;
+  }
 }
 
 inline void companion_slider_deleted(lv_event_t *event) {
@@ -793,6 +816,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
                   false, dynamic_default_label, resolved_default_label, show_focus});
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
+  lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
 
 inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,

@@ -19,6 +19,7 @@ source = r'''
 #include <map>
 #include <string>
 #include <vector>
+#define ESP_LOGD(...) ((void)0)
 struct lv_obj_t;
 void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "i18n_generated.h"
@@ -186,7 +187,7 @@ bool focus_allowed = true;
 bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
 std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
 unsigned focus_reads = 0;
-bool companion_action_active(const std::string &id) { ++focus_reads; return id == focused_app; }
+bool companion_action_active(const std::string &id, bool = false) { ++focus_reads; return id == focused_app; }
 '''
 grid = (headers / "button_grid_grid.h").read_text()
 layout = (headers / "button_grid_layout.h").read_text()

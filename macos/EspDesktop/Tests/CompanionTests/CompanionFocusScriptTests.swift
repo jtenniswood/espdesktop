@@ -2,6 +2,30 @@ import XCTest
 @testable import Companion
 
 final class CompanionFocusScriptTests: XCTestCase {
+    @MainActor
+    func testApplicationHighlightPublishesWithoutWaitingForSlowDetails() async {
+        let slowDetails = Task {
+            await CompanionFocusScript.read("delay 10\nreturn \"old-folder\"", timeout: 0.5)
+        }
+        await Task.yield()
+        var publisher = CompanionApplicationFocusPublisher()
+        var sent: [String] = []
+        let start = ContinuousClock.now
+        publisher.publish("com.apple.finder") { sent.append($0) }
+        publisher.publish("com.apple.TextEdit") { sent.append($0) }
+        XCTAssertEqual(sent, ["com.apple.finder", "com.apple.TextEdit"])
+        XCTAssertLessThan(start.duration(to: .now), .milliseconds(20))
+        publisher.publish("com.apple.TextEdit") { sent.append($0) }
+        XCTAssertEqual(sent.count, 2)
+        publisher.publish("") { sent.append($0) }
+        XCTAssertEqual(sent.last, "")
+        publisher.reset()
+        publisher.publish("") { sent.append($0) }
+        XCTAssertEqual(sent.count, 4)
+        let details = await slowDetails.value
+        XCTAssertNil(details)
+    }
+
     func testReadsScriptResult() async {
         let result = await CompanionFocusScript.read("return \"https://example.com/a?b=c\"")
         XCTAssertEqual(result, "https://example.com/a?b=c")

@@ -126,6 +126,8 @@ struct CompanionRuntimeSnapshot {
   std::vector<CompanionURLFocusTarget> url_focus_targets;
   std::vector<std::string> web_app_focus_ids;
   uint32_t url_focus_targets_generation{0};
+  bool application_highlight_known{false};
+  std::string application_highlight_id;
 };
 
 inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
@@ -251,7 +253,7 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
             connected_, now_playing_, system_metrics_, url_focus_targets_, web_app_focus_ids_,
-            url_focus_targets_generation_};
+            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
   }
 
   CompanionFocusTargetsState focus_targets_state() const {
@@ -349,6 +351,21 @@ class CompanionRuntimeService {
     return set_focused_actions(std::move(identifiers));
   }
 
+  void set_application_highlight(std::string application_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (application_highlight_known_ && application_highlight_id_ == application_id) return;
+    application_highlight_known_ = true;
+    application_highlight_id_ = std::move(application_id);
+    // A fast visual report cannot leave the previous app's shortcuts enabled
+    // while its replacement's detailed focus query is still pending.
+    if (focused_action_id_ != application_highlight_id_) {
+      focused_action_id_.clear();
+      focused_action_ids_.clear();
+      pending_auto_subpage_action_id_.clear();
+    }
+    request_refresh_();
+  }
+
   bool set_focused_actions(std::vector<std::string> identifiers) {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<std::string> accepted;
@@ -403,6 +420,8 @@ class CompanionRuntimeService {
       values_.clear();
       focused_action_id_.clear();
       focused_action_ids_.clear();
+      application_highlight_known_ = false;
+      application_highlight_id_.clear();
       focused_auto_subpage_id_.clear();
       pending_auto_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
@@ -422,6 +441,8 @@ class CompanionRuntimeService {
 
   mutable std::mutex mutex_;
   std::vector<CompanionAction> actions_;
+  bool application_highlight_known_{false};
+  std::string application_highlight_id_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
   std::vector<std::string> web_app_focus_ids_;

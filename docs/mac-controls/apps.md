@@ -19,7 +19,7 @@ Use **Default app icon size** in Screen appearance settings to size Mac app artw
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
-Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. Its active colour updates separately when the Mac reports focus, without an outline or fade. Touch actions and page changes do not wait for that colour update. Focus tracking also controls app subpages and keyboard shortcuts.
+Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. With a matching current Mac app and firmware, macOS activation updates the active colour directly, without waiting for window, Finder-folder or browser-tab checks. The fill has no outline or fade. Detailed focus checks still control app subpages and keyboard shortcuts separately; touch actions and page changes do not wait for either update.
 
 ## Open a Website
 
