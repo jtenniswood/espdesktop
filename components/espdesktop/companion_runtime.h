@@ -199,6 +199,18 @@ class CompanionRuntimeService {
     return connected_;
   }
 
+  bool action_focused(const std::string &action_id) const {
+    if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
+        action_id.rfind("media.", 0) == 0) return false;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!connected_) return false;
+    if (std::find(focused_action_ids_.begin(), focused_action_ids_.end(), action_id) !=
+        focused_action_ids_.end()) return true;
+    // Folder cards report their own ID while Finder's app card remains active.
+    return action_id == "com.apple.finder" &&
+        (focused_action_id_ == action_id || focused_action_id_.rfind("folder.", 0) == 0);
+  }
+
   std::vector<CompanionAction> actions() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return actions_;
