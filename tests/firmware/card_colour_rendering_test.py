@@ -72,8 +72,9 @@ uint32_t lv_obj_get_style_text_color(lv_obj_t *obj, int) {
     : ((obj->state & LV_STATE_CHECKED) ? LV_STATE_CHECKED : LV_STATE_DEFAULT)];
 }
 bool lv_obj_has_state(lv_obj_t *obj, int state) { return (obj->state & state) != 0; }
-void lv_obj_add_state(lv_obj_t *obj, int state) { obj->state |= state; }
-void lv_obj_clear_state(lv_obj_t *obj, int state) { obj->state &= ~state; }
+unsigned state_writes = 0;
+void lv_obj_add_state(lv_obj_t *obj, int state) { ++state_writes; obj->state |= state; }
+void lv_obj_clear_state(lv_obj_t *obj, int state) { ++state_writes; obj->state &= ~state; }
 int lv_event_get_code(lv_event_t *event) { return event->code; }
 lv_obj_t *lv_event_get_target(lv_event_t *event) { return event->target; }
 void lv_obj_remove_event_cb_with_user_data(lv_obj_t *obj, lv_event_cb_t callback, void *) {
@@ -604,6 +605,11 @@ int main() {
           focused_app = "app"; focus_allowed = true;
           companion_apply_card_focus(&button, "app");
           assert(value.text[0] == display_text_color_for_bg(colour.active));
+          assert(lv_obj_has_state(&button, LV_STATE_CHECKED));
+          const auto writes_before_repeat_focus = state_writes;
+          for (int update = 0; update < 100; ++update)
+            companion_apply_card_focus(&button, "app");
+          assert(state_writes == writes_before_repeat_focus);
           const auto reads_before_hidden_focus = focus_reads;
           companion_apply_card_focus(&button, "app", "", false);
           assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
@@ -621,6 +627,10 @@ int main() {
           assert(focus_reads == reads_before_hidden_focus);
           focused_app.clear(); companion_apply_card_focus(&button, "app");
           assert(value.text[0] == colour.text);
+          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
+          const auto writes_before_repeat_inactive = state_writes;
+          companion_apply_card_focus(&button, "app");
+          assert(state_writes == writes_before_repeat_inactive);
           focused_app = "browser"; companion_apply_card_focus(&button, "app", "url.page");
           assert(value.text[0] == display_text_color_for_bg(colour.active));
           focus_allowed = false; companion_apply_card_focus(&button, "app", "url.page");

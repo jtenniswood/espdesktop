@@ -680,20 +680,17 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
                                        const std::string &url_config = "",
                                        bool show_focus = true) {
   if (!button) return;
-  if (!show_focus) {
-    // App launch cards have momentary press feedback, not a focus indicator.
-    // Keep the Mac focus model intact for shortcuts and app-page navigation.
-    if (lv_obj_has_state(button, LV_STATE_CHECKED)) set_card_checked_state(button, false);
-    return;
-  }
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
-  if (!companion_card_focus_allowed(url_config)) {
-    set_card_checked_state(button, false);
-    return;
+  bool active = false;
+  if (show_focus && companion_card_focus_allowed(url_config)) {
+    const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
+    active = companion_action_active(focus_id);
   }
-  const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-  set_card_checked_state(button, companion_action_active(focus_id));
+  // Focus is a background visual update, never a prerequisite for a touch
+  // action. Avoid resyncing descendants/redrawing cards on unchanged snapshots.
+  if (lv_obj_has_state(button, LV_STATE_CHECKED) != active)
+    set_card_checked_state(button, active);
 }
 
 struct CompanionViewRegistry {

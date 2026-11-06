@@ -15,11 +15,11 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
-Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. App cards use a coloured fill only while pressed; they do not show a persistent active-app state.
+Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. The app card uses its active fill colour while the Mac reports that app is in front; background apps use the normal fill.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
-Approve **Finder** in the Mac app to use its launch card. Pressing an app card changes its fill immediately, without an outline or fade. The fill returns to normal when you release it, even when the app is active on the Mac. Focus tracking still controls app subpages and keyboard shortcuts.
+Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. Its active colour updates separately when the Mac reports focus, without an outline or fade. Touch actions and page changes do not wait for that colour update. Focus tracking also controls app subpages and keyboard shortcuts.
 
 ## Open a Website
 

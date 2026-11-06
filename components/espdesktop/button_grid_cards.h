@@ -621,8 +621,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     companion_disable_card_app_icon_palette(s);
 #endif
   }
-  const bool show_focus = !companion_app_launch_card(p);
-  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty(), show_focus);
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
   set_card_disabled_state(s.btn, !available);
   if (companion_app_launch_card(p)) {
     apply_instant_button_feedback(s.btn);
@@ -631,7 +630,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   } else {
     clear_push_button_transition(s.btn);
   }
-  companion_apply_card_focus(s.btn, p.entity, p.sensor, show_focus);
+  companion_apply_card_focus(s.btn, p.entity, p.sensor);
 }
 
 inline void setup_action_card(BtnSlot &s, const ParsedCfg &p) {
