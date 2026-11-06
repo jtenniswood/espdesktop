@@ -611,15 +611,11 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
 #endif
   }
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
-  set_card_disabled_state(s.btn, !available);
-  if (companion_app_launch_card(p)) {
-    // Keep outline and fill in the same frame, including after a reconnect.
-    // Explicitly override any inherited theme transition as well.
-    lv_obj_set_style_transition(s.btn, nullptr,
-        static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
-  } else if (available) {
+  if (available) {
+    set_card_disabled_state(s.btn, false);
     apply_push_button_transition(s.btn);
   } else {
+    set_card_disabled_state(s.btn, true);
     clear_push_button_transition(s.btn);
   }
   companion_apply_card_focus(s.btn, p.entity, p.sensor);
