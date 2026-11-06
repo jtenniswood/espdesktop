@@ -15,11 +15,11 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
-Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. The active app keeps a coloured outline.
+Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. The active app uses a coloured fill.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
-Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac. Pressing an app icon shows its coloured outline and background together, without a fade, as immediate touch feedback. After release, the outline reflects confirmed Mac focus. Focus changes update the card as soon as they reach the display. An app that is still opening may take longer, because EspDesktop waits for a visible window before showing it as active.
+Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac. Pressing an app card changes its fill immediately, without an outline or fade. After release, the fill reflects confirmed Mac focus. Focus changes update the card as soon as they reach the display. An app that is still opening may take longer, because EspDesktop waits for a visible window before showing it as active.
 
 ## Open a Website
 

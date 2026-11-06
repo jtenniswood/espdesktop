@@ -242,10 +242,12 @@ int main() {
     assert(!app_icon.palette_applied);
   }
   companion_apply_app_icon_card_palette(app_icon, &app_card);
-  assert(app_card.outline[LV_STATE_CHECKED] == app_icon.fallback_active_rgb);
+  assert(app_card.outline[LV_STATE_CHECKED] == 0);
+  assert(app_card.outline[LV_STATE_PRESSED] == 0);
   app_icon.fallback_active_rgb = 0xFF8C00;
   companion_apply_app_icon_card_palette(app_icon, &app_card);
-  assert(app_card.outline[LV_STATE_CHECKED] == 0xFF8C00); // Theme changes update the active outline.
+  assert(app_card.outline[LV_STATE_CHECKED] == 0); // Theme changes do not restore an outline.
+  assert(app_card.outline[LV_STATE_PRESSED] == 0);
   ParsedCfg filled_app;
   filled_app.type = "companion";
   filled_app.entity = "com.apple.Safari";

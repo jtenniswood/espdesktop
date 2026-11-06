@@ -94,13 +94,6 @@ inline void companion_apply_app_icon_card_palette(
   // Default-colour cards are owned by the live theme. Reconnects and icon
   // refreshes must not restore fallback colours captured before a theme change.
   if (!button || !source.card_palette_ready) return;
-  if (source.app_icon_mode) {
-    for (const auto state : {LV_STATE_CHECKED, LV_STATE_PRESSED}) {
-      const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-          static_cast<lv_style_selector_t>(state);
-      lv_obj_set_style_outline_color(button, lv_color_hex(source.fallback_active_rgb), selector);
-    }
-  }
   if (!source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
                           source.accent_palette.valid;
@@ -336,15 +329,6 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->icon_size = icon_size;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
-  // Show touch feedback immediately without changing confirmed Mac focus.
-  for (const auto state : {LV_STATE_CHECKED, LV_STATE_PRESSED}) {
-    const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(state);
-    lv_obj_set_style_outline_width(slot.btn, 3, selector);
-    lv_obj_set_style_outline_pad(slot.btn, -3, selector);
-    lv_obj_set_style_outline_color(slot.btn, lv_color_hex(source->fallback_active_rgb), selector);
-    lv_obj_set_style_outline_opa(slot.btn, LV_OPA_COVER, selector);
-  }
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
 }
 
@@ -367,7 +351,10 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   auto *source = static_cast<CompanionAppIconImageData *>(
       lv_obj_get_user_data(slot.app_icon_img));
   if (source) {
-    for (const auto state : {LV_STATE_CHECKED, LV_STATE_PRESSED}) {
+    static const lv_state_t states[] = {
+        LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
+        LV_STATE_CHECKED | LV_STATE_PRESSED};
+    for (const auto state : states) {
       const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
           static_cast<lv_style_selector_t>(state);
       lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, selector);
@@ -494,17 +481,26 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
 
 inline void apply_instant_button_feedback(lv_obj_t *btn) {
   if (!btn) return;
-  // LVGL reads transition->props on every state change. An empty list disables
-  // animation safely; a null descriptor crashes when the card is pressed.
-  static const lv_style_prop_t props[] = {LV_STYLE_PROP_INV};
+  // LVGL also collects transitions from inherited theme styles. Explicitly
+  // override fill properties in every state; an empty list leaves those fades
+  // active, while a null descriptor crashes when LVGL reads transition->props.
+  static const lv_style_prop_t props[] = {
+      LV_STYLE_BG_COLOR, LV_STYLE_BG_OPA, LV_STYLE_PROP_INV};
   static lv_style_transition_dsc_t transition;
   static bool initialized = false;
   if (!initialized) {
     lv_style_transition_dsc_init(&transition, props, lv_anim_path_ease_out, 0, 0, nullptr);
     initialized = true;
   }
-  lv_obj_set_style_transition(btn, &transition,
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
+  static const lv_state_t states[] = {
+      LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
+      LV_STATE_CHECKED | LV_STATE_PRESSED};
+  for (const auto state : states) {
+    const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(state);
+    lv_obj_set_style_transition(btn, &transition, selector);
+    lv_obj_set_style_outline_width(btn, 0, selector);
+  }
 }
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
