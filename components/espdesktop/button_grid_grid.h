@@ -399,6 +399,7 @@ inline bool card_slot_static_child(const BtnSlot &s, lv_obj_t *child) {
 
 inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   if (!s.btn) return;
+  companion_reset_app_focus_indicator(s.btn);
   // Persistent slot labels must lose the previous card owner before contrast sync.
   if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_USER_2);
   if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_USER_2);

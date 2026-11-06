@@ -30,6 +30,7 @@ void lv_label_set_text(lv_obj_t *, const char *) {}
 using lv_color_t = uint32_t;
 using lv_style_selector_t = int;
 constexpr int LV_PART_MAIN = 0, LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2;
+constexpr int LV_STATE_USER_1 = 1 << 12, LV_EVENT_DRAW_POST = 30, LV_RADIUS_CIRCLE = 32767;
 constexpr int LV_EVENT_ALL = 0, LV_EVENT_PRESSED = 3, LV_EVENT_RELEASED = 4, LV_EVENT_PRESS_LOST = 5;
 constexpr int LV_OPA_COVER = 255, LV_OPA_TRANSP = 0;
 struct lv_event_t { lv_obj_t *target; int code; void *user_data = nullptr; void *param = nullptr; };
@@ -178,7 +179,20 @@ void lv_draw_label(lv_layer_t *layer, lv_draw_label_dsc_t *descriptor, lv_area_t
 }
 '''
 source += r'''
+struct lv_draw_rect_dsc_t { uint32_t bg_color = 0; int bg_opa = 0, radius = 0; };
+struct DrawnRect { lv_area_t area; uint32_t color; int radius; };
+std::vector<DrawnRect> drawn_rectangles;
+void lv_draw_rect_dsc_init(lv_draw_rect_dsc_t *descriptor) { *descriptor = {}; }
+lv_layer_t *lv_event_get_layer(lv_event_t *) { return nullptr; }
+lv_layer_t *lv_event_get_draw_ctx(lv_event_t *) { return nullptr; }
+void lv_draw_rect(lv_layer_t *, const lv_draw_rect_dsc_t *descriptor, const lv_area_t *area) {
+  assert(descriptor->bg_opa == LV_OPA_COVER);
+  drawn_rectangles.push_back({*area, descriptor->bg_color, descriptor->radius});
+}
+#include "companion_focus_indicator.h"
 std::string focused_app;
+bool companion_online = true;
+bool companion_action_focused(const std::string &id) { return companion_online && id == focused_app; }
 bool focus_allowed = true;
 bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
 std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
@@ -229,6 +243,51 @@ source += f'\n#line {line} "button_grid_cards.h"\n{code}\n'
 source += r'''
 #line 1 "card_colour_rendering_cases"
 int main() {
+  {
+    lv_obj_t app, icon, label;
+    app.area = {10, 20, 209, 169};
+    icon.area = {25, 35, 194, 154};
+    app.children = {&icon, &label};
+    app.text[0] = 0xFFFFFF;
+    companion_bind_app_focus_indicator(&app);
+    companion_bind_app_focus_indicator(&app);
+    assert(app.events.size() == 1); // repeated setup must not duplicate drawing
+    focused_app = "app";
+    companion_apply_card_focus(&app, "app", "", false);
+    assert(lv_obj_has_state(&app, LV_STATE_USER_1));
+    assert(!lv_obj_has_state(&app, LV_STATE_CHECKED));
+    send_event(&app, LV_EVENT_DRAW_POST);
+    assert(drawn_rectangles.size() == 1);
+    const auto &bar = drawn_rectangles.back();
+    assert(bar.area.x1 == 85 && bar.area.x2 == 134);
+    assert(bar.area.y1 == 162 && bar.area.y2 == 164);
+    assert(bar.color == 0xFFFFFF && bar.radius == LV_RADIUS_CIRCLE);
+    assert(app.area.x1 == 10 && app.area.y2 == 169);
+    assert(icon.area.x1 == 25 && icon.area.y2 == 154 && app.children.size() == 2);
+    app.text[0] = 0x111111; // contrast follows the current theme
+    send_event(&app, LV_EVENT_DRAW_POST);
+    assert(drawn_rectangles.back().color == 0x111111);
+    drawn_rectangles.clear();
+    focused_app = "other";
+    companion_apply_card_focus(&app, "app", "", false);
+    send_event(&app, LV_EVENT_DRAW_POST);
+    assert(drawn_rectangles.empty());
+    focused_app = "app"; companion_online = false;
+    companion_apply_card_focus(&app, "app", "", false);
+    assert(!lv_obj_has_state(&app, LV_STATE_USER_1));
+    companion_online = true;
+    companion_apply_card_focus(&app, "app", "", false);
+    lv_obj_add_state(&app, LV_STATE_DISABLED);
+    send_event(&app, LV_EVENT_DRAW_POST);
+    assert(drawn_rectangles.empty());
+    lv_obj_clear_state(&app, LV_STATE_DISABLED);
+    BtnSlot reused{&app, &icon, &label};
+    reset_card_slot_dynamic_children(reused);
+    assert(app.events.empty() && !lv_obj_has_state(&app, LV_STATE_USER_1));
+    send_event(&app, LV_EVENT_DRAW_POST);
+    assert(drawn_rectangles.empty());
+    focused_app.clear();
+  }
   // An icon reload/reconnect after a light-theme change must not restore
   // the dark fallback captured when the card was first created.
   lv_obj_t app_card;
@@ -734,7 +793,10 @@ with tempfile.TemporaryDirectory(prefix="card-colour-rendering-") as directory:
     cpp = Path(directory) / "test.cpp"
     binary = Path(directory) / "test"
     cpp.write_text(source)
-    subprocess.run([sys.argv[1] if len(sys.argv) > 1 else "c++", "-std=c++17", "-Wall", "-Wextra", "-Werror",
-                    "-I" + str(root / "tests/firmware/stubs"), "-I" + str(headers), str(cpp), "-o", str(binary)], check=True)
-    subprocess.run([str(binary)], check=True)
+    (Path(directory) / "lvgl.h").write_text("// LVGL APIs are supplied by the harness.\n")
+    for lvgl_major in (8, 9):
+        subprocess.run([sys.argv[1] if len(sys.argv) > 1 else "c++", "-std=c++17", "-Wall", "-Wextra", "-Werror",
+                        f"-DLVGL_VERSION_MAJOR={lvgl_major}", "-I" + str(Path(directory)),
+                        "-I" + str(root / "tests/firmware/stubs"), "-I" + str(headers), str(cpp), "-o", str(binary)], check=True)
+        subprocess.run([str(binary)], check=True)
 print("Card colour rendering checks passed: main/subpage sensor backgrounds, state updates, contrast, defaults and display correction.")

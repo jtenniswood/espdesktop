@@ -622,6 +622,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
 #endif
   }
   const bool show_focus = !companion_app_launch_card(p);
+  if (!show_focus) companion_bind_app_focus_indicator(s.btn);
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty(), show_focus);
   set_card_disabled_state(s.btn, !available);
   if (companion_app_launch_card(p)) {

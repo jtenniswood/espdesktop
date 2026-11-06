@@ -35,6 +35,7 @@
 #include "display_text.h"
 #include "card_availability.h"
 #include "card_text_contrast.h"
+#include "companion_focus_indicator.h"
 #endif
 
 inline CompanionPendingActions &companion_pending_actions() {
@@ -681,8 +682,10 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
                                        bool show_focus = true) {
   if (!button) return;
   if (!show_focus) {
-    // App launch cards have momentary press feedback, not a focus indicator.
-    // Keep the Mac focus model intact for shortcuts and app-page navigation.
+    // App launch cards keep momentary press feedback. Track focus separately
+    // for the small bar without applying the checked background or text style.
+    if (companion_action_focused(action_id)) lv_obj_add_state(button, LV_STATE_USER_1);
+    else lv_obj_clear_state(button, LV_STATE_USER_1);
     if (lv_obj_has_state(button, LV_STATE_CHECKED)) set_card_checked_state(button, false);
     return;
   }
