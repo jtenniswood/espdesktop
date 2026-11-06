@@ -39,6 +39,7 @@ struct lv_obj_t {
   uint32_t background[3] = {}, text[3] = {}, gradient[3] = {}, border[3] = {}, outline[3] = {};
   int gradient_direction[3] = {};
   int state = 0;
+  bool instant_feedback = false;
   int flags = 0;
   std::vector<lv_event_cb_t> events;
   std::vector<lv_obj_t *> children;
@@ -63,6 +64,7 @@ void lv_obj_set_style_bg_grad_dir(lv_obj_t *obj, int direction, int selector) { 
 void lv_obj_set_style_bg_opa(lv_obj_t *, int, int) {}
 void lv_obj_set_style_border_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->border[selector] = rgb; }
 void lv_obj_set_style_outline_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->outline[selector] = rgb; }
+void apply_instant_button_feedback(lv_obj_t *obj) { obj->instant_feedback = true; }
 void lv_obj_set_style_border_width(lv_obj_t *, int, int) {}
 void lv_obj_set_style_shadow_width(lv_obj_t *, int, int) {}
 uint32_t lv_obj_get_style_text_color(lv_obj_t *obj, int) {
@@ -294,6 +296,8 @@ int main() {
         assert(matches == 1);
       }
     }
+  const auto saved_accent = current_button_primary_color();
+  set_current_button_primary_color(0x14B8A6); // A non-default configured highlight colour.
   for (const std::string token : {"B", "Bd", "Bw", "Bb", "Bt", "Bx"}) {
     for (const std::string prefix : {"", "~"}) {
       const auto order = get_subpage_order(prefix + "1," + token + "=Return%3AHome%2C50%25:#ffec16,2|ignored");
@@ -303,6 +307,7 @@ int main() {
       back.children = {&icon, &label};
       assert(!apply_subpage_back_colors(&back, order, DisplayProfile{}));
       assert(back.background[0] == 0xFFEC16);
+      assert(back.instant_feedback);
       assert(icon.text[0] == 0x212121 && label.text[0] == 0x212121);
       back.state = LV_STATE_PRESSED;
       send_event(&back, LV_EVENT_PRESSED);
@@ -311,10 +316,19 @@ int main() {
       back.state = 0;
       assert(apply_subpage_back_colors(&back, "B", DisplayProfile{}));
       assert(back.background[0] == current_theme().surface_card);
-      assert(back.background[LV_STATE_PRESSED] == current_theme().surface_card);
+      assert(back.background[LV_STATE_PRESSED] == current_button_primary_color());
+      assert(back.instant_feedback);
+      assert(label.text[0] == display_text_color_for_bg(current_theme().surface_card));
+      back.state = LV_STATE_PRESSED;
+      send_event(&back, LV_EVENT_PRESSED);
+      assert(icon.text[0] == display_text_color_for_bg(current_button_primary_color()));
+      assert(label.text[0] == display_text_color_for_bg(current_button_primary_color()));
+      back.state = 0;
+      send_event(&back, LV_EVENT_RELEASED);
       assert(label.text[0] == display_text_color_for_bg(current_theme().surface_card));
     }
   }
+  set_current_button_primary_color(saved_accent);
   for (const std::string order : {"", "B", "B=Return%3AHome", "B=Back:invalid", "B=Back:12345", "1=Back:FFEC16"})
     assert(get_subpage_back_color(order).empty());
   assert(get_subpage_back_label("B=Back:invalid") == "Back");

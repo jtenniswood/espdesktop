@@ -222,9 +222,10 @@ inline bool apply_subpage_back_colors(lv_obj_t *button, const std::string &order
   CardPalette defaults;
   defaults.has_on = defaults.has_off = true;
   defaults.off_val = display_correct_color(current_theme().surface_card, display);
-  defaults.on_val = defaults.off_val;
+  defaults.on_val = current_button_primary_color();
   const CardPalette palette = card_palette_for_config(defaults, config, display);
   apply_button_colors(button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
+  apply_instant_button_feedback(button);
   sync_card_checked_text_color(button);
   return !palette.custom_background;
 }

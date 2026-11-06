@@ -28,7 +28,7 @@ Drag cards to change their order. To move or copy a card between the home screen
 
 Choose **Apply Configuration** to save your changes to the display.
 
-To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups.
+To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Back and Close cards highlight immediately while pressed. A Back card without a custom background uses your configured button highlight colour.
 
 ## Swipe-up page
 
