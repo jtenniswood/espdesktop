@@ -290,7 +290,7 @@ struct BasicActionSubpageEnvironment {
 inline void basic_action_driver_attach_subpage_toggle(
     BtnSlot &slot, const ParsedCfg &config) {
   ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-  lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+  bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
     ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
     lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(event));
     if (!card || card->entity.empty()) return;
@@ -301,7 +301,7 @@ inline void basic_action_driver_attach_subpage_toggle(
     } else {
       send_toggle_action(card->entity);
     }
-  }, LV_EVENT_CLICKED, click);
+  }, click);
 }
 
 inline bool basic_action_driver_bind_subpage(
@@ -313,7 +313,7 @@ inline bool basic_action_driver_bind_subpage(
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity)) break;
       ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
         if (!card) return;
         char request_id[24];
@@ -326,20 +326,20 @@ inline bool basic_action_driver_bind_subpage(
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
-      }, LV_EVENT_CLICKED, click);
+      }, click);
       break;
     }
     case Driver::SCREENSAVER:
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *) {
         if (force_screensaver_action()) force_screensaver_action()();
-      }, LV_EVENT_CLICKED, nullptr);
+      }, nullptr);
       break;
     case Driver::SCREEN_LOCK: {
       auto *screensaver_on_lock = grid_delete_with_owner(slot.btn,
           new bool(cfg_option_enabled(config.options, "screensaver_on_lock")));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         screen_lock_activate(*static_cast<const bool *>(lv_event_get_user_data(event)));
-      }, LV_EVENT_CLICKED, screensaver_on_lock);
+      }, screensaver_on_lock);
       break;
     }
     case Driver::PUSH: {
@@ -347,7 +347,7 @@ inline bool basic_action_driver_bind_subpage(
         ? espdesktop_i18n(std::string("Push")) : config.label;
       std::string *stored_label = grid_delete_with_owner(
         slot.btn, new std::string(label));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         std::string *value = static_cast<std::string *>(
           lv_event_get_user_data(event));
         esphome::api::HomeassistantActionRequest request;
@@ -355,15 +355,15 @@ inline bool basic_action_driver_bind_subpage(
               request, "esphome.push_button_pressed", true, 1)) return;
         ha_action_add_data(request, "label", value->c_str());
         ha_action_send(request);
-      }, LV_EVENT_CLICKED, stored_label);
+      }, stored_label);
       break;
     }
     case Driver::WEBHOOK: {
       ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
         if (card) send_webhook_action(*card);
-      }, LV_EVENT_CLICKED, click);
+      }, click);
       break;
     }
     case Driver::ACTION: {
@@ -371,7 +371,7 @@ inline bool basic_action_driver_bind_subpage(
       if (!config.entity.empty() &&
           (config.type == "local" || !config.sensor.empty())) {
         ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-        lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
           ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
           lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(event));
           if (!card) return;
@@ -382,7 +382,7 @@ inline bool basic_action_driver_bind_subpage(
           } else {
             send_action_card_action(*card);
           }
-        }, LV_EVENT_CLICKED, click);
+        }, click);
       }
       break;
     }
@@ -402,11 +402,11 @@ inline bool basic_action_driver_bind_subpage(
           *environment.grid_config, environment.palette,
           environment.display, environment.grid_cols);
         if (action) {
-          lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+          bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
             AlarmActionCtx *value = static_cast<AlarmActionCtx *>(
               lv_event_get_user_data(event));
             alarm_action_activate(value);
-          }, LV_EVENT_CLICKED, action);
+          }, action);
         }
       }
       break;
@@ -418,11 +418,11 @@ inline bool basic_action_driver_bind_subpage(
         if (environment.add_parent_indicator) {
           environment.add_parent_indicator(config.entity);
         }
-        lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
           FanCardCtx *value = static_cast<FanCardCtx *>(
             lv_event_get_user_data(event));
           if (value) fan_card_handle_click(value);
-        }, LV_EVENT_CLICKED, fan);
+        }, fan);
       }
       break;
     }
@@ -461,13 +461,13 @@ inline bool basic_action_driver_bind_subpage(
           slot.btn, new InternalRelayClickCtx());
         click->key = config.entity;
         click->push_mode = push_mode;
-        lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
           InternalRelayClickCtx *value = static_cast<InternalRelayClickCtx *>(
             lv_event_get_user_data(event));
           if (value && !value->key.empty()) {
             send_internal_relay_action(value->key, value->push_mode);
           }
-        }, LV_EVENT_CLICKED, click);
+        }, click);
       }
       break;
     }

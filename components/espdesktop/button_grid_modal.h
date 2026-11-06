@@ -840,11 +840,11 @@ inline void control_modal_setup_binary_toggle(
   lv_obj_clear_flag(group, LV_OBJ_FLAG_SCROLLABLE);
   if (first_option) lv_obj_clear_flag(first_option, LV_OBJ_FLAG_CLICKABLE);
   if (second_option) lv_obj_clear_flag(second_option, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_add_event_cb(group, [](lv_event_t *e) {
+  bind_immediate_button_action(group, [](lv_event_t *e) {
     ControlModalBinaryToggle *toggle = static_cast<ControlModalBinaryToggle *>(
       lv_event_get_user_data(e));
     if (toggle && toggle->callback) toggle->callback();
-  }, LV_EVENT_CLICKED, toggle);
+  }, toggle);
 }
 
 inline void control_modal_apply_pressed_fill_color(lv_obj_t *btn,
@@ -1027,9 +1027,9 @@ inline ControlModalShell control_modal_open_shell(ControlModalKind kind,
       return shell;
     }
     control_modal_style_chrome_button(shell.close_btn, shell.layout, button_top_right);
-    lv_obj_add_event_cb(shell.close_btn, [](lv_event_t *) {
+    bind_immediate_button_action(shell.close_btn, [](lv_event_t *) {
       control_modal_force_close_active();
-    }, LV_EVENT_CLICKED, nullptr);
+    }, nullptr);
   }
 
   control_modal_set_active(kind, shell.overlay, close_callback, definition.dismiss_policy);

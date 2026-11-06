@@ -2426,17 +2426,17 @@ inline void grid_phase2(
       }
       sp_entity_ids[eid_idx] = entity_id;
       if (set_checked) {
-        lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+        bind_immediate_button_action(btn, [](lv_event_t *e) {
           lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(e));
           set_card_checked_state(target, true);
           std::string *en = (std::string *)lv_event_get_user_data(e);
           if (en && !en->empty()) send_toggle_action(*en);
-        }, LV_EVENT_CLICKED, &sp_entity_ids[eid_idx]);
+        }, &sp_entity_ids[eid_idx]);
       } else {
-        lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+        bind_immediate_button_action(btn, [](lv_event_t *e) {
           std::string *en = (std::string *)lv_event_get_user_data(e);
           if (en && !en->empty()) send_toggle_action(*en);
-        }, LV_EVENT_CLICKED, &sp_entity_ids[eid_idx]);
+        }, &sp_entity_ids[eid_idx]);
       }
     };
 

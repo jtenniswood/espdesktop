@@ -6,7 +6,7 @@ description:
 
 # Trigger
 
-A trigger card is a momentary card with no on/off state. When tapped, it flashes the highlight colour and fires an event to Home Assistant that you can use as an automation trigger.
+A trigger card is a momentary card with no on/off state. Touching it immediately fires an event to Home Assistant that you can use as an automation trigger.
 
 Trigger cards are useful for things like starting scenes, sending notifications, activating scripts, or anything else you'd start with a single tap.
 
@@ -28,9 +28,8 @@ Trigger cards don't need an entity ID — they don't control a device directly.
 
 When you tap a trigger card:
 
-- The card instantly flashes the **on colour** (orange by default).
-- The colour fades smoothly back to the **off colour** over 400 ms.
-- An event is fired to Home Assistant with the card's label.
+- An event is fired to Home Assistant with the card's label as soon as you touch it.
+- Holding or releasing the same touch does not send the event again.
 
 ## Setting Up an Automation in Home Assistant
 

@@ -140,7 +140,7 @@ assert "navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_targ
 assert "LV_EVENT_PRESSED" in back and "LV_EVENT_CLICKED" not in back
 assert "navigation_return_from_special_page();" in back
 press = function("button_grid_actions.h", "inline void handle_button_press(")
-assert press.index("navigation_handle_button_press(p, slot_num, btn_obj)") < press.index("button_press_opens_modal(p, btn_obj)")
+assert press.index("navigation_handle_button_press(p, slot_num, btn_obj)") < press.index("handle_button_click(cfg, slot_num, btn_obj)")
 assert press.index("screensaver_pin().locked()") < press.index("navigation_handle_button_press(p, slot_num, btn_obj)")
 
 with tempfile.TemporaryDirectory(prefix="espdesktop-navigation-press-") as temp:
