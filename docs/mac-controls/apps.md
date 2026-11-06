@@ -17,11 +17,11 @@ The card uses the app's friendly name by default. Enter a custom title in its se
 
 Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting.
 
-App cards distinguish the whole app’s state: a page-coloured background with a grey outline means it is closed, the standard card grey means it is open in the background, and the strong active fill means it is in focus. Closing an app’s windows does not mark it as closed; quit the app to return to the outlined state. Update both the Mac app and display firmware for all three states; older combinations keep the focus highlight.
+App cards distinguish the whole app’s state: a page-coloured background with a grey outline means it is closed, the standard card grey means it is open in the background, and an outline in the ON colour means it is in focus. Closing an app’s windows does not mark it as closed; quit the app to return to the outlined state. Update both the Mac app and display firmware for all three states; older combinations keep the focus highlight.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
-Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. With a matching current Mac app and firmware, macOS activation updates the active colour directly, without waiting for window, Finder-folder or browser-tab checks. The fill has no outline or fade. Detailed focus checks still control app subpages and keyboard shortcuts separately; touch actions and page changes do not wait for either update.
+Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. With a matching current Mac app and firmware, macOS activation updates the active colour directly, without waiting for window, Finder-folder or browser-tab checks. Focused and pressed app cards use a thick ON-coloured outline over the page background, without a fade. Detailed focus checks still control app subpages and keyboard shortcuts separately; touch actions and page changes do not wait for either update.
 
 ## Open a Website
 

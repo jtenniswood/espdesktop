@@ -6,8 +6,8 @@
 #include "card_text_contrast.h"
 #include "display_color.h"
 
-// Running background apps retain the normal card surface. Only closed apps
-// show the page through a grey outline; focus/press keep the active fill.
+// Background apps retain the normal surface. Closed apps use a grey outline;
+// focused and pressed apps use the same outline in their configured ON colour.
 constexpr uint32_t app_card_closed_colour(uint32_t neutral) {
   uint32_t result = 0;
   for (unsigned shift : {0u, 8u, 16u})
@@ -15,12 +15,12 @@ constexpr uint32_t app_card_closed_colour(uint32_t neutral) {
   return result;
 }
 
-inline void apply_app_card_closed_style(lv_obj_t *button, bool closed,
+inline void apply_app_card_state_style(lv_obj_t *button, bool enabled, bool closed,
                                          uint32_t neutral, uint32_t active) {
   if (!button) return;
-  const bool was_closed = lv_obj_has_state(button, LV_STATE_USER_1);
-  if (!closed) {
-    if (was_closed) {
+  const bool was_enabled = lv_obj_has_state(button, LV_STATE_USER_1);
+  if (!enabled) {
+    if (was_enabled) {
       lv_obj_remove_state(button, LV_STATE_USER_1);
       sync_card_checked_text_color(button);
     }
@@ -42,12 +42,13 @@ inline void apply_app_card_closed_style(lv_obj_t *button, bool closed,
         static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)}) {
     const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
         LV_STATE_USER_1 | static_cast<lv_style_selector_t>(state);
-    const bool idle_closed = state == LV_STATE_DEFAULT;
-    const auto background = idle_closed ? page_background : active;
+    const bool on = state != LV_STATE_DEFAULT;
+    const bool outlined = closed || on;
+    const auto background = outlined ? page_background : neutral;
     const auto foreground = display_text_color_for_bg(background);
     for (const auto property : {LV_STYLE_BG_COLOR, LV_STYLE_TEXT_COLOR, LV_STYLE_OUTLINE_COLOR}) {
       const auto rgb = property == LV_STYLE_BG_COLOR ? background :
-          (property == LV_STYLE_TEXT_COLOR ? foreground : outline);
+          (property == LV_STYLE_TEXT_COLOR ? foreground : (on ? active : outline));
       const auto colour = lv_color_hex(rgb);
       if (lv_obj_get_local_style_prop(button, property, &value, selector) != LV_STYLE_RES_FOUND ||
           !lv_color_eq(value.color, colour)) {
@@ -60,8 +61,8 @@ inline void apply_app_card_closed_style(lv_obj_t *button, bool closed,
     // Draw the outline inside the existing footprint so card content and the
     // rounded alpha mask do not move or clip an outside outline.
     const std::pair<lv_style_prop_t, int32_t> numbers[] = {
-        {LV_STYLE_BG_OPA, idle_closed ? LV_OPA_TRANSP : LV_OPA_COVER},
-        {LV_STYLE_OUTLINE_WIDTH, idle_closed ? 4 : 0},
+        {LV_STYLE_BG_OPA, outlined ? LV_OPA_TRANSP : LV_OPA_COVER},
+        {LV_STYLE_OUTLINE_WIDTH, outlined ? 4 : 0},
         {LV_STYLE_OUTLINE_PAD, -4},
         {LV_STYLE_OUTLINE_OPA, LV_OPA_COVER}};
     for (const auto &entry : numbers) {
@@ -74,6 +75,6 @@ inline void apply_app_card_closed_style(lv_obj_t *button, bool closed,
       }
     }
   }
-  if (!was_closed) lv_obj_add_state(button, LV_STATE_USER_1);
-  if (!was_closed || style_changed) sync_card_checked_text_color(button);
+  if (!was_enabled) lv_obj_add_state(button, LV_STATE_USER_1);
+  if (!was_enabled || style_changed) sync_card_checked_text_color(button);
 }
