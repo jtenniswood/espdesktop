@@ -304,6 +304,11 @@ inline void basic_action_driver_attach_subpage_toggle(
   }, click);
 }
 
+struct CompanionSubpageActionContext {
+  ParsedCfg card;
+  std::string required_focus_id;
+};
+
 inline bool basic_action_driver_bind_subpage(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const BasicActionSubpageEnvironment &environment) {
@@ -312,15 +317,22 @@ inline bool basic_action_driver_bind_subpage(
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity)) break;
-      ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
+      std::string required_focus_id;
+      if (environment.parent_config && companion_app_shortcuts_enabled(*environment.parent_config) &&
+          (config.entity.rfind("shortcut.", 0) == 0 || config.entity.rfind("window.", 0) == 0))
+        required_focus_id = environment.parent_config->entity;
+      auto *click = grid_delete_with_owner(slot.btn,
+        new CompanionSubpageActionContext{config, required_focus_id});
+      companion_require_card_focus(slot.btn, required_focus_id);
       bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-        ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
-        if (!card) return;
+        auto *context = static_cast<CompanionSubpageActionContext *>(lv_event_get_user_data(event));
+        if (!context) return;
+        const auto *card = &context->card;
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
         const bool invoked = companion_encoded_url(card->sensor).empty()
-          ? invoke_companion_action(card->entity, request_id,
+          ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
                                     companion_folder_open_behavior(*card))
           : invoke_companion_url(card->entity, card->sensor, request_id);
         if (!invoked) {

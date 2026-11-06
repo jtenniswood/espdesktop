@@ -81,7 +81,6 @@ final class CompanionConnection: NSObject {
     private var lastArtworkGeneration: UInt32 = 0
     private var lastArtworkSHA256: String?
     private var focusPublicationTask: Task<Void, Never>?
-    private var lastFocusedActionIdentifiers: [String]?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var definitionGeneration: UInt32 = 0
@@ -810,7 +809,6 @@ final class CompanionConnection: NSObject {
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
-        lastFocusedActionIdentifiers = nil
         applicationFocusPublisher.reset()
         let supportedWindowActions = Self.supportedWindowActionIDs(
             for: ProcessInfo.processInfo.operatingSystemVersion
@@ -894,12 +892,13 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "timezone.changed", "identifier": identifier])
     }
 
-    func publishFocusedAction(invalidatePendingQuery: Bool = false) {
+    func publishFocusedAction(invalidatePendingQuery: Bool = false,
+                              activatedApplicationIdentifier: String? = nil) {
         // App-card colour is independent of the slower folder/tab lookup.
         // This message is visual-only: it cannot authorize a shortcut or open
         // an app subpage before the existing detailed query confirms its target.
         if sessionAuthenticated, supportsImmediateApplicationFocus,
-           let application = resources.immediateFocusedApplicationIdentifier(),
+           let application = activatedApplicationIdentifier ?? resources.immediateFocusedApplicationIdentifier(),
            Self.validCatalogueIdentifier(application) || application.isEmpty {
             applicationFocusPublisher.publish(application) { identifier in
                 self.sendJSON(["type": "focus.changed", "actionId": identifier,
@@ -923,9 +922,9 @@ final class CompanionConnection: NSObject {
                 if !identifier.isEmpty && !identifiers.contains(identifier) { identifiers.append(identifier) }
             }
             guard identifiers.allSatisfy(Self.validCatalogueIdentifier) else { return }
-            guard identifiers != self.lastFocusedActionIdentifiers else { return }
-            self.lastFocusedActionIdentifiers = identifiers
-            self.sendJSON(["type": "focus.changed", "actionId": identifiers.first ?? "", "actionIds": identifiers])
+            self.applicationFocusPublisher.publishDetails(identifiers) { confirmed in
+                self.sendJSON(["type": "focus.changed", "actionId": confirmed.first ?? "", "actionIds": confirmed])
+            }
         }
     }
 

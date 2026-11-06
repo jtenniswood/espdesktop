@@ -330,6 +330,21 @@ int main() {
   companion_set_focused_actions({"folder.one"});
   assert(companion_action_active("com.apple.finder", true));
   assert(companion_action_active("folder.one"));
+  int guarded_invocations = 0;
+  companion_set_keyboard_actions_supported(true);
+  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &) {
+    ++guarded_invocations; return true;
+  });
+  companion_set_focused_actions({"A"});
+  companion_runtime_service().set_application_highlight("B");
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-B", "B"));
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-A", "A"));
+  assert(guarded_invocations == 0);
+  companion_set_focused_actions({"B"});
+  assert(invoke_companion_action_for_app("shortcut.control+w", "confirmed-B", "B"));
+  assert(guarded_invocations == 1);
+  assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", ""));
+  assert(guarded_invocations == 2);
   companion_set_value("media.output_volume", 72);
   bool volume_invoked = false;
   register_companion_value_sender([&volume_invoked](const std::string &control, int value,

@@ -533,8 +533,14 @@ final class CompanionStore: NSObject, ObservableObject {
         return path
     }
 
-    @objc private func frontmostApplicationDidChange(_: Notification) {
-        if isConnected { connection.publishFocusedAction(invalidatePendingQuery: true) }
+    @objc private func frontmostApplicationDidChange(_ notification: Notification) {
+        guard isConnected else { return }
+        let activated = (notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+        let approved = activated.map { approvedApplicationIdentifiers.contains($0) ? $0 : "" }
+        // Use the activation event itself rather than a possibly older cached
+        // frontmostApplication value while this notification is being delivered.
+        connection.publishFocusedAction(invalidatePendingQuery: true,
+                                        activatedApplicationIdentifier: approved)
     }
 
     @objc private func systemTimeZoneDidChange(_: Notification) {

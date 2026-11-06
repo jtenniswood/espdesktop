@@ -406,10 +406,17 @@ CompanionService::AuthenticationResult CompanionService::authenticate_(
   return AuthenticationResult::AUTHENTICATED;
 }
 
-void CompanionService::defer_session_(std::function<void()> callback) {
+void CompanionService::defer_session_(std::function<void()> callback, const char *label) {
   const uint32_t generation = this->session_.generation();
-  this->defer([this, generation, callback = std::move(callback)]() {
-    if (this->session_.current(generation)) callback();
+  const uint32_t queued_at = millis();
+  this->defer([this, generation, queued_at, label, callback = std::move(callback)]() {
+    if (!this->session_.current(generation)) return;
+    const uint32_t started = millis();
+    callback();
+    const uint32_t finished = millis();
+    if (started - queued_at > 100 || finished - started > 40)
+      ESP_LOGD(TAG, "Deferred %s waited=%u ran=%u ms at=%u", label,
+               unsigned(started - queued_at), unsigned(finished - started), unsigned(finished));
   });
 }
 
@@ -610,7 +617,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         std::vector<CompanionAction> actions;
         actions.reserve(this->catalogue_actions_.size());
         for (const auto &item : this->catalogue_actions_) actions.push_back({item.first, item.second});
-        this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); });
+        this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
         std::vector<std::string> configured_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
@@ -625,7 +632,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           requested_app_icons.clear();
         }
         app_icon_store().set_enabled_applications(enabled_icons);
-        this->defer_session_([] { companion_app_icon_ready(""); });
+        this->defer_session_([] { companion_app_icon_ready(""); }, "icons");
         for (const auto &id : configured_icons) {
           if (std::find(enabled_icons.begin(), enabled_icons.end(), id) == enabled_icons.end()) continue;
           this->request_app_icon(id);
@@ -699,7 +706,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
               requested_app_icons.end());
         }
         const std::string application_id = payload->appId;
-        this->defer_session_([application_id] { companion_app_icon_ready(application_id); });
+        this->defer_session_([application_id] { companion_app_icon_ready(application_id); }, "icon");
       } else {
         this->send_(socket_fd, "{\"type\":\"app_icon.abort\",\"protocol\":" +
             std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"appId\":\"" + payload->appId +
@@ -757,7 +764,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         this->remote_definitions_.clear();
         this->defer_session_([definitions = std::move(definitions)]() mutable {
           companion_set_remote_definitions(std::move(definitions));
-        });
+        }, "definitions");
       }
       return true;
     }
@@ -1154,7 +1161,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
       companion_set_actions({});
       companion_set_timezone_id("");
     }
-  });
+  }, "connection");
 }
 
 void CompanionService::publish_catalogue_() {

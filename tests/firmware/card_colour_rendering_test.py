@@ -189,14 +189,16 @@ std::string companion_url_card_focus_id(const std::string &) { return "browser";
 unsigned focus_reads = 0;
 bool companion_action_active(const std::string &id, bool = false) { ++focus_reads; return id == focused_app; }
 struct CompanionRuntimeSnapshot {};
-bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &id, bool) {
+bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &id, bool = false) {
   return companion_action_active(id);
 }
 struct CompanionCardRef {
   lv_obj_t *button;
   std::string action_id, url_config, metric_key;
   bool show_focus = true;
+  std::string required_focus_id{};
 };
+bool companion_action_available(const std::string &) { return true; }
 std::vector<CompanionCardRef> focus_cards;
 auto &companion_card_refs() { return focus_cards; }
 bool lv_obj_is_valid(lv_obj_t *obj) { return obj != nullptr; }
@@ -210,7 +212,7 @@ groups = (
     ("button_grid_display.h", "", ("display_correct_color",)),
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_layout.h", "", ("grid_token_has_span_suffix", "parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
-    ("companion_controls.h", "", ("companion_apply_card_focus", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_subpages.h", "", ("get_subpage_order", "subpage_back_token_span", "get_subpage_back_label", "get_subpage_back_color", "get_subpage_title")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
@@ -262,6 +264,13 @@ int main() {
     for (int refresh = 0; refresh < 100; ++refresh)
       companion_refresh_card_focus(CompanionRuntimeSnapshot{});
     assert(state_writes == before);
+    lv_obj_t shortcut;
+    focus_cards = {{&shortcut, "shortcut.control+w", "", "", true, "target"}};
+    companion_refresh_card_focus(CompanionRuntimeSnapshot{});
+    assert(lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
+    focused_app = "target";
+    companion_refresh_card_focus(CompanionRuntimeSnapshot{});
+    assert(!lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
     focus_cards.clear(); focused_app.clear();
   }
   // An icon reload/reconnect after a light-theme change must not restore

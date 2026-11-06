@@ -3,6 +3,19 @@ import XCTest
 
 final class CompanionFocusScriptTests: XCTestCase {
     @MainActor
+    func testRapidReturnToAppRepublishesDetailedFocus() {
+        var publisher = CompanionApplicationFocusPublisher()
+        var details: [[String]] = []
+        publisher.publish("A") { _ in }
+        publisher.publishDetails(["A"]) { details.append($0) }
+        publisher.publish("B") { _ in }
+        publisher.publish("A") { _ in }
+        publisher.publishDetails(["A"]) { details.append($0) }
+        publisher.publishDetails(["A"]) { details.append($0) }
+        XCTAssertEqual(details, [["A"], ["A"]])
+    }
+
+    @MainActor
     func testApplicationHighlightPublishesWithoutWaitingForSlowDetails() async {
         let slowDetails = Task {
             await CompanionFocusScript.read("delay 10\nreturn \"old-folder\"", timeout: 0.5)
