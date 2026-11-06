@@ -158,9 +158,11 @@ inline bool card_uses_continuous_corners(lv_obj_t *) { return false; }
 inline void apply_grid_card_corners(lv_obj_t *obj, int radius, bool continuous) {
   if (!obj) return;
   if (radius >= 0) {
-    lv_obj_set_style_radius(obj, radius, LV_PART_MAIN);
-    lv_obj_set_style_radius(obj, radius,
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+    for (const auto state : {LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
+          static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)}) {
+      lv_obj_set_style_radius(obj, radius,
+        static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(state));
+    }
   }
   // LVGL's radius property has no layout-update flag, so setting it does not
   // emit STYLE_CHANGED. Refresh an existing mask explicitly after the change.

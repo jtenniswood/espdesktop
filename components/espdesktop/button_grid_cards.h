@@ -4,6 +4,7 @@
 
 #include "button_grid_datetime_cards.h"
 #include "card_icon_size.h"
+#include "instant_button_style.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
@@ -487,29 +488,6 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
 
-inline void apply_instant_button_feedback(lv_obj_t *btn) {
-  if (!btn) return;
-  // LVGL also collects transitions from inherited theme styles. Explicitly
-  // override fill properties in every state; an empty list leaves those fades
-  // active, while a null descriptor crashes when LVGL reads transition->props.
-  static const lv_style_prop_t props[] = {
-      LV_STYLE_BG_COLOR, LV_STYLE_BG_OPA, LV_STYLE_PROP_INV};
-  static lv_style_transition_dsc_t transition;
-  static bool initialized = false;
-  if (!initialized) {
-    lv_style_transition_dsc_init(&transition, props, lv_anim_path_ease_out, 0, 0, nullptr);
-    initialized = true;
-  }
-  static const lv_state_t states[] = {
-      LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
-      static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
-  for (const auto state : states) {
-    const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(state);
-    lv_obj_set_style_transition(btn, &transition, selector);
-    lv_obj_set_style_outline_width(btn, 0, selector);
-  }
-}
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
