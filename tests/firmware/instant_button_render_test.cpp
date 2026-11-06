@@ -115,8 +115,8 @@ int main() {
     lv_refr_now(display);
     assert(lv_obj_has_state(button, LV_STATE_USER_1));
     const auto shaded = frame[60 * SIDE + 60];
-    assert((lv_color_to_u32(lv_obj_get_style_bg_color(button, LV_PART_MAIN)) & 0xFFFFFF) == app_card_running_colour(neutral, accent));
-    assert(same_rgb565_colour(shaded, lv_color_to_u16(lv_color_hex(app_card_running_colour(neutral, accent)))));
+    assert((lv_color_to_u32(lv_obj_get_style_bg_color(button, LV_PART_MAIN)) & 0xFFFFFF) == app_card_running_colour(neutral));
+    assert(same_rgb565_colour(shaded, lv_color_to_u16(lv_color_hex(app_card_running_colour(neutral)))));
     assert(shaded != lv_color_to_u16(lv_color_hex(neutral)));
     assert(shaded != lv_color_to_u16(lv_color_hex(accent)));
     assert(frame[20 * SIDE + 20] == background);

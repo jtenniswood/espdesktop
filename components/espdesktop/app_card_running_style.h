@@ -5,15 +5,14 @@
 #include "card_text_contrast.h"
 #include "display_color.h"
 
-// Keep the background-app fill closer to the neutral surface than the focus
-// accent. The same rule works with both themes and custom card colours.
-constexpr uint32_t app_card_running_colour(uint32_t neutral, uint32_t active) {
-  uint32_t result = 0;
-  for (unsigned shift : {0u, 8u, 16u}) {
-    const auto channel = (((neutral >> shift) & 255) * 3 + ((active >> shift) & 255)) / 4;
-    result |= channel << shift;
-  }
-  return result;
+// Background apps use neutral grey; focused/pressed cards retain their accent.
+// Lift dark cards and shade light cards so running and closed stay distinct.
+constexpr uint32_t app_card_running_colour(uint32_t neutral) {
+  const auto luminance = (((neutral >> 16) & 255) * 299 +
+                          ((neutral >> 8) & 255) * 587 + (neutral & 255) * 114) / 1000;
+  const auto grey = luminance < 128 ? luminance + (255 - luminance) / 4
+                                    : luminance * 7 / 8;
+  return (grey << 16) | (grey << 8) | grey;
 }
 
 inline void apply_app_card_running_style(lv_obj_t *button, bool running,
@@ -34,7 +33,7 @@ inline void apply_app_card_running_style(lv_obj_t *button, bool running,
   if (lv_obj_get_local_style_prop(button, LV_STYLE_BG_COLOR, &value,
           static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_CHECKED) == LV_STYLE_RES_FOUND)
     active = lv_color_to_u32(value.color) & 0xFFFFFF;
-  const auto shade = app_card_running_colour(neutral, active);
+  const auto shade = app_card_running_colour(neutral);
   for (const auto state : {LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
         static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)}) {
     const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
