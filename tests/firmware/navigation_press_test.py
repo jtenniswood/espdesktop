@@ -27,6 +27,8 @@ std::vector<int> order;
 lv_indev_t *lv_indev_get_act() { return input; }
 void lv_indev_wait_release(lv_indev_t *) { order.push_back(1); }
 void lv_obj_clear_state(lv_obj_t *b, int s) { b->state &= ~s; order.push_back(2); }
+int contrast_syncs = 0;
+void sync_bound_card_text_color(lv_obj_t *b) { assert(!(b->state & LV_STATE_PRESSED)); ++contrast_syncs; }
 void *lv_obj_get_user_data(lv_obj_t *b) { return b->data; }
 bool lv_obj_is_valid(lv_obj_t *b) { return b && b->valid; }
 lv_obj_t *active = nullptr;
@@ -71,6 +73,7 @@ bool basic_action_driver_handle_main_click(const Context &, const ParsedCfg &con
 }
 }
 '''
+code += function("button_grid_touch.h", "inline void consume_button_touch_press(")
 code += function("button_grid_navigation.h", "inline void navigation_consume_touch_press(")
 code += function("button_grid_navigation_driver.h", "inline bool navigation_handle_button_press(")
 grid = (HEADERS / "button_grid_grid.h").read_text()
@@ -131,6 +134,7 @@ int main() {
   assert(!navigation_handle_button_press(config, 1, &button) && order.empty());
   // No active pointer (e.g. keyboard activation) is safe.
   input = nullptr; navigation_consume_touch_press(&button);
+  assert(contrast_syncs > 0);
   assert((order == std::vector<int>{2}));
 }
 '''
