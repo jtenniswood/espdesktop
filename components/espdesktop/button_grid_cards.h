@@ -616,6 +616,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   } else {
     clear_push_button_transition(s.btn);
   }
+  companion_apply_card_running_state(s.btn, p.entity, p.sensor, true, companion_runtime_snapshot());
   companion_apply_card_focus(s.btn, p.entity, p.sensor);
 }
 

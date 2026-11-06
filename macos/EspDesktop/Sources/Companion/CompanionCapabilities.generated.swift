@@ -11,7 +11,7 @@ struct CompanionWindowActionCapability {
 }
 
 enum CompanionCapabilities {
-    static let version = 6
+    static let version = 7
     static let protocolVersion = 4
     static let protocolPath = "/companion/v4"
     static let maximumTextFrameBytes = 16384
@@ -39,6 +39,7 @@ enum CompanionCapabilities {
         "value.set",
         "value.state",
         "focus.changed",
+        "applications.running",
         "timezone.changed",
         "now_playing",
         "system_metrics",

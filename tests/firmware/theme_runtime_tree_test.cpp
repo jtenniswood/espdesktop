@@ -178,6 +178,7 @@ void lv_obj_add_state(lv_obj_t *obj, int state) { obj->state |= state; }
 void lv_obj_clear_state(lv_obj_t *obj, int state) { obj->state &= ~state; }
 std::vector<uint32_t> image_theme_colors;
 inline void image_card_refresh_theme(uint32_t color) { image_theme_colors.push_back(color); }
+inline void companion_request_card_refresh() {}
 #include "theme_runtime_ui.h"
 
 void register_theme_grid(lv_obj_t *page, BtnSlot *slots, const bool *neutral, int count,

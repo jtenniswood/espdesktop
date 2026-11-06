@@ -30,7 +30,8 @@ void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "button_grid_style.h"
 using lv_color_t = uint32_t;
 using lv_style_selector_t = int;
-constexpr int LV_PART_MAIN = 0, LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2;
+using lv_state_t = int;
+constexpr int LV_PART_MAIN = 0, LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2, LV_STATE_USER_1 = 8;
 constexpr int LV_EVENT_ALL = 0, LV_EVENT_PRESSED = 3, LV_EVENT_RELEASED = 4, LV_EVENT_PRESS_LOST = 5;
 constexpr int LV_OPA_COVER = 255, LV_OPA_TRANSP = 0;
 struct lv_event_t { lv_obj_t *target; int code; void *user_data = nullptr; void *param = nullptr; };
@@ -193,6 +194,7 @@ std::string companion_url_card_focus_id(const std::string &) { return "browser";
 unsigned focus_reads = 0;
 bool companion_action_active(const std::string &id, bool = false) { ++focus_reads; return id == focused_app; }
 struct CompanionRuntimeSnapshot {};
+void companion_apply_card_running_state(lv_obj_t *, const std::string &, const std::string &, bool, const CompanionRuntimeSnapshot &) {}
 bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &id, bool = false) {
   return companion_action_active(id);
 }

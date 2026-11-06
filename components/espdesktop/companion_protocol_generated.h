@@ -90,6 +90,9 @@ struct FocusChanged {
   std::string actionId{};
   std::optional<std::vector<std::string>> actionIds{};
 };
+struct ApplicationsRunning {
+  std::vector<std::string> actionIds{};
+};
 struct TimezoneChanged {
   std::string identifier{};
 };
@@ -295,6 +298,14 @@ inline void encode(JsonObject root, const FocusChanged &message) {
   }
   }
 }
+inline void encode(JsonObject root, const ApplicationsRunning &message) {
+  root["type"] = "applications.running";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  auto values_actionIds = root["actionIds"].to<JsonArray>();
+  for (const auto &item : message.actionIds) {
+    values_actionIds.add(item);
+  }
+}
 inline void encode(JsonObject root, const TimezoneChanged &message) {
   root["type"] = "timezone.changed";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -454,7 +465,7 @@ inline void encode(JsonObject root, const FocusTargets &message) {
   }
   }
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, ApplicationsRunning, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -680,6 +691,21 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     for (JsonVariantConst item : root["actionIds"].as<JsonArrayConst>()) {
       result.actionIds->push_back(item.as<std::string>());
     }
+    }
+    return result;
+  }
+  if (type == "applications.running") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(root["actionIds"].is<JsonArrayConst>() && root["actionIds"].size() <= 128)) return std::nullopt;
+      for (JsonVariantConst item : root["actionIds"].as<JsonArrayConst>()) {
+        if (!(string_valid(item, 1, 96))) return std::nullopt;
+      }
+    }
+    ApplicationsRunning result;
+    for (JsonVariantConst item : root["actionIds"].as<JsonArrayConst>()) {
+      result.actionIds.push_back(item.as<std::string>());
     }
     return result;
   }
