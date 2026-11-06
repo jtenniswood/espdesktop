@@ -676,6 +676,10 @@ target_compile_definitions(panel_identity_runtime_beta_test PRIVATE TEST_ESPHOME
 target_include_directories(panel_identity_runtime_beta_test PRIVATE panel_identity_stubs ../../components/espdesktop)
 add_test(NAME panel_identity_runtime_beta_test COMMAND panel_identity_runtime_beta_test)
 
+add_test(NAME clock_bar_grid_layout_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/clock_bar_grid_layout_test.py)
+
 set(CLOCK_BAR_TITLE_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/clock_bar_title_test.cpp)
 add_custom_command(
   OUTPUT ${CLOCK_BAR_TITLE_TEST_SOURCE}

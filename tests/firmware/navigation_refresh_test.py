@@ -18,21 +18,24 @@ code = r'''
 #include <cstdint>
 #include <functional>
 #include <vector>
-struct lv_obj_t { lv_obj_t *screen; };
+struct lv_obj_t { lv_obj_t *screen = nullptr; std::vector<lv_obj_t *> children{}; void *data = nullptr; };
 struct lv_event_t {};
 struct CompanionAppIconImageData { bool app_icon_mode = true, image_loaded = false; uint8_t *pixels = nullptr, *display_pixels = nullptr; size_t display_bytes = 0; void release_source_pixels() { pixels = nullptr; } };
 namespace esphome::companion { constexpr size_t APP_ICON_PIXEL_BYTES = 172800; }
 struct GridRuntimeAllocation { lv_obj_t *owner; void *ptr; void (*deleter)(void *); };
 template<class T> void grid_delete_runtime_ptr(void *) {}
 std::vector<GridRuntimeAllocation> allocations;
-auto &grid_runtime_allocations() { return allocations; }
+unsigned registry_reads = 0;
+auto &grid_runtime_allocations() { ++registry_reads; return allocations; }
 lv_obj_t home{}, subpage{}, home_image{&home}, subpage_image{&subpage};
 std::vector<lv_obj_t *> screens{&home, &subpage};
 auto &navigation_grid_screens() { return screens; }
 lv_obj_t *active = &home;
 lv_obj_t *lv_scr_act() { return active; }
 lv_obj_t *lv_obj_get_screen(lv_obj_t *o) { return o->screen; }
-lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *o) { return o; }
+size_t lv_obj_get_child_cnt(lv_obj_t *o) { return o->children.size(); }
+lv_obj_t *lv_obj_get_child(lv_obj_t *o, int32_t i) { return o->children[i]; }
+void *lv_obj_get_user_data(lv_obj_t *o) { return o->data; }
 unsigned applies = 0, title_refreshes = 0;
 void companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
   ++applies;
@@ -47,14 +50,19 @@ void navigation_refresh_subpage_label() {
 '''
 # Forward declaration needed by the title callback double.
 code = code.replace("void navigation_refresh_subpage_label()", "void companion_refresh_app_icon_visibility();\nvoid navigation_refresh_subpage_label()")
+code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *grid_find_companion_app_icon_image_for_data(")
+code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {")
 code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline std::function<void()> &navigation_subpage_clock_bar_refresh() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_subpage_screen_changed(lv_event_t *) {")
 code += r'''
 int main() {
   CompanionAppIconImageData main_icon, child_icon;
-  allocations = {{&home_image, &main_icon, grid_delete_runtime_ptr<CompanionAppIconImageData>},
-                 {&subpage_image, &child_icon, grid_delete_runtime_ptr<CompanionAppIconImageData>}};
+  lv_obj_t home_owner{&home, {&home_image}}, subpage_owner{&subpage, {&subpage_image}};
+  home_image.data = &main_icon;
+  subpage_image.data = &child_icon;
+  allocations = {{&home_owner, &main_icon, grid_delete_runtime_ptr<CompanionAppIconImageData>},
+                 {&subpage_owner, &child_icon, grid_delete_runtime_ptr<CompanionAppIconImageData>}};
   navigation_subpage_clock_bar_refresh() = [] { navigation_refresh_subpage_label(); };
   navigation_subpage_screen_changed(nullptr);
   assert(title_refreshes == 1 && applies == 1 && main_icon.image_loaded);
@@ -95,14 +103,16 @@ int main() {
   assert(applies == 8);
   // Several individually small entries must share the same total budget.
   CompanionAppIconImageData icons[7];
-  lv_obj_t images[7];
+  lv_obj_t images[7], owners[7];
   allocations.clear();
   active = &subpage;
   for (int i = 0; i < 7; ++i) {
     images[i].screen = &home;
     icons[i].image_loaded = true;
     icons[i].pixels = reinterpret_cast<uint8_t *>(1);
-    allocations.push_back({&images[i], &icons[i], grid_delete_runtime_ptr<CompanionAppIconImageData>});
+    images[i].data = &icons[i];
+    owners[i].children = {&images[i]};
+    allocations.push_back({&owners[i], &icons[i], grid_delete_runtime_ptr<CompanionAppIconImageData>});
   }
   companion_refresh_app_icon_visibility();
   size_t retained = 0;
@@ -113,14 +123,16 @@ int main() {
   assert(applies == 9);
   // All nine home icons fit when only the ready-to-draw images are retained.
   CompanionAppIconImageData ready_icons[9];
-  lv_obj_t ready_images[9];
+  lv_obj_t ready_images[9], ready_owners[9];
   allocations.clear();
   for (int i = 0; i < 9; ++i) {
     ready_images[i].screen = &home;
     ready_icons[i].image_loaded = true;
     ready_icons[i].pixels = ready_icons[i].display_pixels = reinterpret_cast<uint8_t *>(1);
     ready_icons[i].display_bytes = 160 * 160 * 3;
-    allocations.push_back({&ready_images[i], &ready_icons[i], grid_delete_runtime_ptr<CompanionAppIconImageData>});
+    ready_images[i].data = &ready_icons[i];
+    ready_owners[i].children = {&ready_images[i]};
+    allocations.push_back({&ready_owners[i], &ready_icons[i], grid_delete_runtime_ptr<CompanionAppIconImageData>});
   }
   companion_refresh_app_icon_visibility();
   for (const auto &icon : ready_icons) assert(!icon.pixels && icon.display_pixels && icon.image_loaded);
@@ -132,6 +144,20 @@ int main() {
   companion_refresh_app_icon_visibility();
   for (const auto &icon : ready_icons) assert(!icon.pixels && !icon.display_pixels && !icon.image_loaded);
   assert(applies == 18);
+  // Mixed registries must not be rescanned once per icon on a screen change.
+  for (int i = 0; i < 200; ++i) allocations.push_back({nullptr, nullptr, nullptr});
+  registry_reads = 0;
+  companion_refresh_app_icon_visibility();
+  assert(registry_reads == 2); // Exactly the two visibility passes.
+  // Owner-only callers still find the correct child, ignoring other widgets.
+  lv_obj_t unrelated;
+  ready_owners[0].children.insert(ready_owners[0].children.begin(), &unrelated);
+  assert(grid_find_companion_app_icon_image(&ready_owners[0]) == &ready_images[0]);
+  assert(!grid_find_companion_app_icon_image(nullptr));
+  assert(!grid_find_companion_app_icon_image(&unrelated));
+  assert(!grid_find_companion_app_icon_image_for_data(nullptr, &ready_icons[0]));
+  assert(!grid_find_companion_app_icon_image_for_data(&ready_owners[0], nullptr));
+  assert(!grid_find_companion_app_icon_image_for_data(&ready_owners[0], &main_icon));
 }
 '''
 with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:

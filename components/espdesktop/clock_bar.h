@@ -247,19 +247,22 @@ inline void clock_bar_unregister_button_grid_page(lv_obj_t *page) {
   pages.erase(std::remove(pages.begin(), pages.end(), page), pages.end());
 }
 
+// Screen changes refresh the clock bar even when its reserved height is
+// unchanged. Avoid forcing layout work across every hidden subpage on each tap.
+inline void clock_bar_set_grid_page_pad_top(lv_obj_t *page, lv_coord_t pad_top) {
+  if (!page || lv_obj_get_style_pad_top(page, LV_PART_MAIN) == pad_top) return;
+  lv_obj_set_style_pad_top(page, pad_top, LV_PART_MAIN);
+  lv_obj_update_layout(page);
+  clock_bar_refresh_responsive_grid_cards(page);
+}
+
 inline void clock_bar_set_button_grid_pages_pad_top(lv_obj_t *main_page_obj,
                                                     lv_coord_t pad_top) {
-  if (main_page_obj) {
-    lv_obj_set_style_pad_top(main_page_obj, pad_top, LV_PART_MAIN);
-    lv_obj_update_layout(main_page_obj);
+  clock_bar_set_grid_page_pad_top(main_page_obj, pad_top);
+  for (lv_obj_t *page : clock_bar_button_grid_pages()) {
+    if (page == main_page_obj) continue;
+    clock_bar_set_grid_page_pad_top(page, pad_top);
   }
-  std::vector<lv_obj_t *> &pages = clock_bar_button_grid_pages();
-  for (lv_obj_t *page : pages) {
-    if (!page || page == main_page_obj) continue;
-    lv_obj_set_style_pad_top(page, pad_top, LV_PART_MAIN);
-    lv_obj_update_layout(page);
-  }
-  clock_bar_refresh_responsive_grid_cards();
 }
 
 inline bool clock_bar_active_on_button_grid_page(lv_obj_t *main_page_obj = nullptr) {
