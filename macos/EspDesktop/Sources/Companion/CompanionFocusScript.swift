@@ -36,6 +36,23 @@ enum CompanionFocusScript {
 /// newly activated application's shortcut page on the display.
 @MainActor
 enum CompanionFocusQuery {
+    // Activation can be reported before the app's first window is visible.
+    // Retry locally instead of waiting for the one-second background poll.
+    static func waitForVisibleWindow(
+        isCurrentApplication: () -> Bool,
+        hasVisibleWindow: () -> Bool
+    ) async -> Bool {
+        for attempt in 0..<6 {
+            guard !Task.isCancelled, isCurrentApplication() else { return false }
+            if hasVisibleWindow() { return true }
+            if attempt < 5 {
+                do { try await Task.sleep(for: .milliseconds(50)) }
+                catch { return false }
+            }
+        }
+        return false
+    }
+
     static func readStable(
         currentApplication: () -> pid_t?,
         query: () async -> [String]

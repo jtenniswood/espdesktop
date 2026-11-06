@@ -94,11 +94,6 @@ inline void companion_apply_app_icon_card_palette(
   // Default-colour cards are owned by the live theme. Reconnects and icon
   // refreshes must not restore fallback colours captured before a theme change.
   if (!button || !source.card_palette_ready) return;
-  if (source.app_icon_mode) {
-    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    lv_obj_set_style_outline_color(button, lv_color_hex(source.fallback_active_rgb), checked);
-  }
   if (!source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
                           source.accent_palette.valid;
@@ -334,12 +329,6 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->icon_size = icon_size;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
-  const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-      static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-  lv_obj_set_style_outline_width(slot.btn, 3, checked);
-  lv_obj_set_style_outline_pad(slot.btn, -3, checked);
-  lv_obj_set_style_outline_color(slot.btn, lv_color_hex(source->fallback_active_rgb), checked);
-  lv_obj_set_style_outline_opa(slot.btn, LV_OPA_COVER, checked);
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
 }
 
@@ -362,12 +351,17 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   auto *source = static_cast<CompanionAppIconImageData *>(
       lv_obj_get_user_data(slot.app_icon_img));
   if (source) {
-    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_PAD, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_COLOR, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_OPA, checked);
+    static const lv_state_t states[] = {
+        LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
+        static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
+    for (const auto state : states) {
+      const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(state);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_PAD, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_COLOR, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_OPA, selector);
+    }
     source->app_icon_mode = false;
   }
   if (!source || !source->palette_applied) return;
@@ -478,11 +472,35 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
   static lv_style_transition_dsc_t push_trans;
   static bool push_trans_inited = false;
   if (!push_trans_inited) {
-    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 400, 0, NULL);
+    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 120, 0, NULL);
     push_trans_inited = true;
   }
   lv_obj_set_style_transition(btn, &push_trans,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
+}
+
+inline void apply_instant_button_feedback(lv_obj_t *btn) {
+  if (!btn) return;
+  // LVGL also collects transitions from inherited theme styles. Explicitly
+  // override fill properties in every state; an empty list leaves those fades
+  // active, while a null descriptor crashes when LVGL reads transition->props.
+  static const lv_style_prop_t props[] = {
+      LV_STYLE_BG_COLOR, LV_STYLE_BG_OPA, LV_STYLE_PROP_INV};
+  static lv_style_transition_dsc_t transition;
+  static bool initialized = false;
+  if (!initialized) {
+    lv_style_transition_dsc_init(&transition, props, lv_anim_path_ease_out, 0, 0, nullptr);
+    initialized = true;
+  }
+  static const lv_state_t states[] = {
+      LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
+      static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
+  for (const auto state : states) {
+    const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(state);
+    lv_obj_set_style_transition(btn, &transition, selector);
+    lv_obj_set_style_outline_width(btn, 0, selector);
+  }
 }
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
@@ -603,15 +621,17 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     companion_disable_card_app_icon_palette(s);
 #endif
   }
-  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
-  if (available) {
-    set_card_disabled_state(s.btn, false);
+  const bool show_focus = !companion_app_launch_card(p);
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty(), show_focus);
+  set_card_disabled_state(s.btn, !available);
+  if (companion_app_launch_card(p)) {
+    apply_instant_button_feedback(s.btn);
+  } else if (available) {
     apply_push_button_transition(s.btn);
   } else {
-    set_card_disabled_state(s.btn, true);
     clear_push_button_transition(s.btn);
   }
-  companion_apply_card_focus(s.btn, p.entity, p.sensor);
+  companion_apply_card_focus(s.btn, p.entity, p.sensor, show_focus);
 }
 
 inline void setup_action_card(BtnSlot &s, const ParsedCfg &p) {

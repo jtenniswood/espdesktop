@@ -45,4 +45,61 @@ final class CompanionFocusScriptTests: XCTestCase {
         XCTAssertEqual(result, ["com.apple.TextEdit"])
     }
 
+    @MainActor
+    func testNewWindowIsRecognizedBeforeBackgroundPoll() async {
+        var checks = 0
+        let start = ContinuousClock.now
+        let result = await CompanionFocusQuery.waitForVisibleWindow(
+            isCurrentApplication: { true },
+            hasVisibleWindow: {
+                checks += 1
+                return checks == 3
+            }
+        )
+        XCTAssertTrue(result)
+        XCTAssertEqual(checks, 3)
+        XCTAssertLessThan(start.duration(to: .now), .seconds(1))
+    }
+
+    @MainActor
+    func testWindowRetryStopsWhenAnotherAppBecomesCurrent() async {
+        var current = true
+        var checks = 0
+        let result = await CompanionFocusQuery.waitForVisibleWindow(
+            isCurrentApplication: { current },
+            hasVisibleWindow: {
+                checks += 1
+                current = false
+                return false
+            }
+        )
+        XCTAssertFalse(result)
+        XCTAssertEqual(checks, 1)
+    }
+
+    @MainActor
+    func testWindowRetryIsBoundedForAppsWithoutWindows() async {
+        var checks = 0
+        let result = await CompanionFocusQuery.waitForVisibleWindow(
+            isCurrentApplication: { true },
+            hasVisibleWindow: { checks += 1; return false }
+        )
+        XCTAssertFalse(result)
+        XCTAssertEqual(checks, 6)
+    }
+
+    @MainActor
+    func testCancelledWindowQueryCannotReportFocus() async {
+        let query = Task {
+            await CompanionFocusQuery.waitForVisibleWindow(
+                isCurrentApplication: { true },
+                hasVisibleWindow: { false }
+            )
+        }
+        await Task.yield()
+        query.cancel()
+        let result = await query.value
+        XCTAssertFalse(result)
+    }
+
 }

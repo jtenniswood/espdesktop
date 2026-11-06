@@ -182,7 +182,8 @@ std::string focused_app;
 bool focus_allowed = true;
 bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
 std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
-bool companion_action_active(const std::string &id) { return id == focused_app; }
+unsigned focus_reads = 0;
+bool companion_action_active(const std::string &id) { ++focus_reads; return id == focused_app; }
 '''
 grid = (headers / "button_grid_grid.h").read_text()
 layout = (headers / "button_grid_layout.h").read_text()
@@ -242,10 +243,12 @@ int main() {
     assert(!app_icon.palette_applied);
   }
   companion_apply_app_icon_card_palette(app_icon, &app_card);
-  assert(app_card.outline[LV_STATE_CHECKED] == app_icon.fallback_active_rgb);
+  assert(app_card.outline[LV_STATE_CHECKED] == 0);
+  assert(app_card.outline[LV_STATE_PRESSED] == 0);
   app_icon.fallback_active_rgb = 0xFF8C00;
   companion_apply_app_icon_card_palette(app_icon, &app_card);
-  assert(app_card.outline[LV_STATE_CHECKED] == 0xFF8C00); // Theme changes update the active outline.
+  assert(app_card.outline[LV_STATE_CHECKED] == 0); // Theme changes do not restore an outline.
+  assert(app_card.outline[LV_STATE_PRESSED] == 0);
   ParsedCfg filled_app;
   filled_app.type = "companion";
   filled_app.entity = "com.apple.Safari";
@@ -587,6 +590,21 @@ int main() {
           focused_app = "app"; focus_allowed = true;
           companion_apply_card_focus(&button, "app");
           assert(value.text[0] == display_text_color_for_bg(colour.active));
+          const auto reads_before_hidden_focus = focus_reads;
+          companion_apply_card_focus(&button, "app", "", false);
+          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
+          assert(value.text[0] == colour.text);
+          button.state = LV_STATE_PRESSED;
+          send_event(&button, LV_EVENT_PRESSED);
+          companion_apply_card_focus(&button, "app", "", false);
+          assert(lv_obj_has_state(&button, LV_STATE_PRESSED));
+          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
+          assert(value.text[0] == display_text_color_for_bg(colour.active));
+          button.state = 0;
+          send_event(&button, LV_EVENT_RELEASED);
+          companion_apply_card_focus(&button, "app", "", false);
+          assert(value.text[0] == colour.text);
+          assert(focus_reads == reads_before_hidden_focus);
           focused_app.clear(); companion_apply_card_focus(&button, "app");
           assert(value.text[0] == colour.text);
           focused_app = "browser"; companion_apply_card_focus(&button, "app", "url.page");
