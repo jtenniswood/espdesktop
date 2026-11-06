@@ -664,6 +664,7 @@ struct CompanionCardRef {
   bool preserve_navigation{false};
   bool dynamic_default_label{false};
   std::string resolved_default_label;
+  bool show_focus = true;
 };
 
 struct CompanionSliderRef {
@@ -676,8 +677,15 @@ struct CompanionSliderRef {
 };
 
 inline void companion_apply_card_focus(lv_obj_t *button, const std::string &action_id,
-                                       const std::string &url_config = "") {
+                                       const std::string &url_config = "",
+                                       bool show_focus = true) {
   if (!button) return;
+  if (!show_focus) {
+    // App launch cards have momentary press feedback, not a focus indicator.
+    // Keep the Mac focus model intact for shortcuts and app-page navigation.
+    if (lv_obj_has_state(button, LV_STATE_CHECKED)) set_card_checked_state(button, false);
+    return;
+  }
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   if (!companion_card_focus_allowed(url_config)) {
@@ -750,7 +758,8 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
 inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                                  const std::string &url_config = "",
                                  lv_obj_t *text_label = nullptr,
-                                 bool dynamic_default_label = false) {
+                                 bool dynamic_default_label = false,
+                                 bool show_focus = true) {
   if (!button) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
@@ -764,6 +773,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->action_id = action_id;
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
+    existing->show_focus = show_focus;
     if (dynamic_default_label) {
       (void) companion_default_action_label_with_fallback(
         action_id, url_config, existing->resolved_default_label);
@@ -784,7 +794,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
       action_id, url_config, resolved_default_label);
   }
   refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
-                  false, dynamic_default_label, resolved_default_label});
+                  false, dynamic_default_label, resolved_default_label, show_focus});
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
 }
 
@@ -866,7 +876,7 @@ inline void companion_refresh_cards_if_requested() {
     } else {
       set_card_disabled_state(it->button, true);
     }
-    companion_apply_card_focus(it->button, it->action_id, it->url_config);
+    companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus);
     ++it;
   }
   auto &sliders = companion_slider_refs();
@@ -894,10 +904,10 @@ inline void companion_refresh_cards_if_requested() {
 }
 #else
 inline void companion_track_card(void *, const std::string &, const std::string & = "",
-                                 void * = nullptr, bool = false) {}
+                                 void * = nullptr, bool = false, bool = true) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
-inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "") {}
+inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *) {}
 inline void companion_refresh_cards_if_requested() {}

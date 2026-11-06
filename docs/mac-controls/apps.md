@@ -15,11 +15,11 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
-Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. The active app uses a coloured fill.
+Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. App cards use a coloured fill only while pressed; they do not show a persistent active-app state.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
-Approve **Finder** in the Mac app to use its launch card. An app card lights up when that app is active on the Mac. Pressing an app card changes its fill immediately, without an outline or fade. After release, the fill reflects confirmed Mac focus. Focus changes update the card as soon as they reach the display. An app that is still opening may take longer, because EspDesktop waits for a visible window before showing it as active.
+Approve **Finder** in the Mac app to use its launch card. Pressing an app card changes its fill immediately, without an outline or fade. The fill returns to normal when you release it, even when the app is active on the Mac. Focus tracking still controls app subpages and keyboard shortcuts.
 
 ## Open a Website
 
@@ -42,4 +42,4 @@ To contribute templates for another app, see [Run Mac Keyboard Shortcuts](/mac-c
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
 
-App subpages open automatically when their app gains focus by default. To require a press instead, turn off **Screen → App Subpages → Open app subpages on focus**. Press an off app card to focus it, then press its on card to open the subpage. This setting applies to every app subpage on the display.
+App subpages open automatically when their app gains focus by default. To require a press instead, turn off **Screen → App Subpages → Open app subpages on focus**. Press an app card to focus its app, then press it again once the app is active on the Mac to open the subpage. This setting applies to every app subpage on the display.
