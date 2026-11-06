@@ -539,11 +539,10 @@ inline bool basic_action_driver_handle_main_click(
           }
         }
         if (screen && companion_auto_open_app_subpages()) {
-          companion_expect_action_result(request_id, config.entity, [screen]() {
-            if (companion_auto_open_app_subpages() && lv_obj_is_valid(screen)) {
-              lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-            }
-          }, esphome::millis() + 10000);
+          // Navigation is local; do not wait for Mac focus/acknowledgement.
+          if (lv_obj_is_valid(screen)) {
+            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+          }
         }
       }
       const bool invoked = companion_encoded_url(config.sensor).empty()

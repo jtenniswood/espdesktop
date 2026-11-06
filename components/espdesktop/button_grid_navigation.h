@@ -154,6 +154,12 @@ inline bool navigation_return_home(lv_obj_t *main_page_obj) {
   return true;
 }
 
+inline void navigation_consume_touch_press(lv_obj_t *button) {
+  // Keep this touch from clicking or holding a control on the destination page.
+  if (auto *indev = lv_indev_get_act()) lv_indev_wait_release(indev);
+  if (button) lv_obj_clear_state(button, LV_STATE_PRESSED);
+}
+
 inline bool navigation_return_from_special_page() {
   navigation_hide_modals();
   lv_obj_t *previous = navigation_special_page_previous_screen();

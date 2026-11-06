@@ -861,11 +861,15 @@ inline bool button_press_opens_modal(const ParsedCfg &config, lv_obj_t *button) 
   return false;
 }
 
+inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num,
+                                          lv_obj_t *button);
+
 inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (espdesktop::screensaver_pin().locked()) return;
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
   ParsedCfg p = parse_cfg(cfg);
+  if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
   if (btn_obj && button_press_opens_modal(p, btn_obj)) {
     // The modal replaces this card on release. Clearing the state inside the
     // press event avoids scheduling a pointless pressed-card repaint first.

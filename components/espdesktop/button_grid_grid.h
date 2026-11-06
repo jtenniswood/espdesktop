@@ -2397,13 +2397,14 @@ inline void grid_phase2(
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
+      navigation_consume_touch_press(lv_event_get_target(e));
       if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
         navigation_return_from_special_page();
       } else {
         lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         refresh_visible_image_cards();
       }
-    }, LV_EVENT_CLICKED, is_special_page
+    }, LV_EVENT_PRESSED, is_special_page
       ? static_cast<void *>(&navigation_special_page_back_button_marker())
       : static_cast<void *>(main_page_obj));
     navigation_register_subpage_back_button(navigation_slot, back_slot, back_neutral_background);
