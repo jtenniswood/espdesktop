@@ -664,6 +664,7 @@ inline bool companion_card_focus_allowed(const std::string &url_config) {
 }
 
 #ifdef USE_LVGL
+#include "button_grid_style.h"
 #include "app_card_running_style.h"
 
 struct CompanionCardRef {
