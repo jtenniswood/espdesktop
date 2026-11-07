@@ -727,6 +727,7 @@ struct CompanionSettings: View {
                     Text("Customize").tag(true)
                 }
                 .pickerStyle(.radioGroup)
+                .disabled(!store.applicationCatalogueReady)
             } header: {
                 Text("Apps")
             } footer: {
