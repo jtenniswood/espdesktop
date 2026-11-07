@@ -15,8 +15,8 @@ inline void companion_app_focus_indicator_draw(lv_event_t *event) {
   const int width = area.x2 - area.x1 + 1;
   const int height = area.y2 - area.y1 + 1;
   if (width < 12 || height < 12) return;
-  const int bar_width = width / 4;
-  const int bar_height = std::max(2, std::min(4, height / 50));
+  const int bar_width = width / 6;
+  const int bar_height = std::max(3, std::min(5, height / 50 + 1));
   const int inset = std::max(3, std::min(6, height / 30));
   area.x1 += (width - bar_width) / 2;
   area.x2 = area.x1 + bar_width - 1;
@@ -24,7 +24,7 @@ inline void companion_app_focus_indicator_draw(lv_event_t *event) {
   area.y1 = area.y2 - bar_height + 1;
   lv_draw_rect_dsc_t descriptor;
   lv_draw_rect_dsc_init(&descriptor);
-  descriptor.bg_color = lv_obj_get_style_text_color(button, LV_PART_MAIN);
+  descriptor.bg_color = lv_color_hex(0xC0C0C0);
   descriptor.bg_opa = LV_OPA_COVER;
   descriptor.radius = LV_RADIUS_CIRCLE;
 #if LVGL_VERSION_MAJOR >= 9

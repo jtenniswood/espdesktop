@@ -259,14 +259,14 @@ int main() {
     send_event(&app, LV_EVENT_DRAW_POST);
     assert(drawn_rectangles.size() == 1);
     const auto &bar = drawn_rectangles.back();
-    assert(bar.area.x1 == 85 && bar.area.x2 == 134);
-    assert(bar.area.y1 == 162 && bar.area.y2 == 164);
-    assert(bar.color == 0xFFFFFF && bar.radius == LV_RADIUS_CIRCLE);
+    assert(bar.area.x1 == 93 && bar.area.x2 == 125);
+    assert(bar.area.y1 == 161 && bar.area.y2 == 164);
+    assert(bar.color == 0xC0C0C0 && bar.radius == LV_RADIUS_CIRCLE);
     assert(app.area.x1 == 10 && app.area.y2 == 169);
     assert(icon.area.x1 == 25 && icon.area.y2 == 154 && app.children.size() == 2);
-    app.text[0] = 0x111111; // contrast follows the current theme
+    app.text[0] = 0x111111; // the requested light grey stays the same across themes
     send_event(&app, LV_EVENT_DRAW_POST);
-    assert(drawn_rectangles.back().color == 0x111111);
+    assert(drawn_rectangles.back().color == 0xC0C0C0);
     drawn_rectangles.clear();
     focused_app = "other";
     companion_apply_card_focus(&app, "app", "", false);

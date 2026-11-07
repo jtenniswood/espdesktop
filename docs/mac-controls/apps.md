@@ -15,7 +15,7 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
-Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. App cards use a coloured fill only while pressed. A small rounded bar at the bottom marks the app currently in focus on the Mac, without changing card sizes, icon sizes or padding. The bar disappears when the app loses focus or Companion disconnects.
+Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. App cards use a coloured fill only while pressed. A small light-grey rounded bar at the bottom marks the app currently in focus on the Mac, without changing card sizes, icon sizes or padding. The bar disappears when the app loses focus or Companion disconnects.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 
