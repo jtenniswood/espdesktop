@@ -2,6 +2,7 @@
 
 
 #include "card_curve.h"
+#include "card_icon_layout.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
@@ -2434,10 +2435,14 @@ inline void grid_phase2(
       cfg.subpage_chevron_font);
     display_apply_main_width(back_slot.icon_lbl, display);
     display_apply_slot_text_width(back_slot, display);
-    lv_label_set_display_text(back_slot.icon_lbl, is_special_page ? "\U000F0156" : "\U000F0141");
+    lv_label_set_display_text(back_slot.icon_lbl, is_special_page ? "\U000F0156" : "\U000F02DC");
     lv_label_set_display_text(back_slot.text_lbl, sp_back_label.c_str());
     apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
     configure_button_label_wrap(back_slot.text_lbl);
+    if (!is_special_page) {
+      espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
+          "large", display_main_width_percent(display), cfg.width_compensation_vertical);
+    }
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {

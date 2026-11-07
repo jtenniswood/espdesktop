@@ -142,8 +142,25 @@ async function assertSubpageTitleTypography(page, label, nativeState) {
     typography.card,
     `${label}: subpage title uses the device card-label typography`,
   );
+  const homeLayout = await page.locator(".sp-back-btn").evaluate(card => {
+    const icon = card.querySelector(".sp-home-icon");
+    const bounds = card.getBoundingClientRect();
+    const glyph = icon?.getBoundingClientRect();
+    return {
+      home: !!icon?.classList.contains("mdi-home"),
+      labelHidden: getComputedStyle(card.querySelector(".sp-btn-label")).display === "none",
+      fits: !!glyph && glyph.left >= bounds.left && glyph.top >= bounds.top &&
+        glyph.right <= bounds.right + 1 && glyph.bottom <= bounds.bottom + 1,
+      enlarged: !!glyph && glyph.height > parseFloat(getComputedStyle(icon).fontSize),
+    };
+  });
+  assert.deepStrictEqual(homeLayout, { home: true, labelHidden: true, fits: true, enlarged: true },
+    `${label}: Back uses a large Home icon fitted inside the card`);
+  if (process.env.ESPDESKTOP_HOME_ICON_SCREENSHOT) {
+    await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_HOME_ICON_SCREENSHOT });
+  }
   const initialColor = await page.locator(".sp-back-btn").evaluate(el => getComputedStyle(el).backgroundColor);
-  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 12, y: 12 } });
+  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 2, y: (await page.locator(".sp-back-btn").boundingBox()).height / 2 } });
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
   await page.getByRole("button", { name: "Set colour to yellow", exact: true }).click();
@@ -160,7 +177,7 @@ async function assertSubpageTitleTypography(page, label, nativeState) {
   await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
   assert.strictEqual(await page.locator(".sp-back-btn").evaluate(el => getComputedStyle(el).backgroundColor),
     "rgb(238, 209, 70)", `${label}: reopening subpage preserves its back colour`);
-  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 12, y: 12 } });
+  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 2, y: (await page.locator(".sp-back-btn").boundingBox()).height / 2 } });
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
   const custom = page.locator(".sp-settings-modal").getByLabel("Choose custom colour", { exact: true });

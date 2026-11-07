@@ -268,7 +268,8 @@ export function createPreviewInteractionsFeature(
             if (!icon)
                 return false;
             var rect: any = icon.getBoundingClientRect();
-            var pad: any = 12;
+            // A large Home icon already fills the card; keep its outer edge selectable.
+            var pad: any = icon.classList.contains("sp-home-icon") ? 0 : 12;
             return e.clientX >= rect.left - pad &&
                 e.clientX <= rect.right + pad &&
                 e.clientY >= rect.top - pad &&

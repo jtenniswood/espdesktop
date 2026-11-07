@@ -156,6 +156,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
     // Use a single measured side for square images at every card aspect ratio.
     function resizeAppIcon(button: Element): void {
+        const home = button.querySelector<HTMLElement>(".sp-home-icon");
+        if (home && document.defaultView) {
+            const style = document.defaultView.getComputedStyle(button);
+            const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+            const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+            const scale = Math.max(0.01, Math.min(width / Math.max(1, home.offsetWidth), height / Math.max(1, home.offsetHeight)));
+            home.style.transformOrigin = "top left";
+            home.style.transform = "scale(" + scale + ")";
+            return;
+        }
         const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon");
         const view = document.defaultView;
         if (!icon || !view) return;
@@ -285,7 +295,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : 'chevron-left') + '"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : 'home sp-home-icon') + '"></span>' +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor
@@ -297,6 +307,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
+                if (!isSpecialPage) {
+                    backBtn.setAttribute("data-icon-size", "large");
+                    backBtn.setAttribute("aria-label", backLabel + " — Home");
+                    resizeAppIcon(backBtn);
+                    appIconResizeObserver?.observe(backBtn);
+                }
             }
             else if (slot > 0) {
                 if (slot > (c.isSub ? c.buttons.length : c.maxSlots)) {
