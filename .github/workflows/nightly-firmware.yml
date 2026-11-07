@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: nightly-firmware
+  group: nightly-firmware-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -195,10 +195,15 @@ jobs:
             mkdir -p "${build_cache}" "${build_input_dir}" || return 1
             cp builds/*.yaml "${build_input_dir}/" || return 1
 
+            # Limit compiler parallelism and container resources to reduce
+            # pressure on the shared self-hosted runner host.
             container=$(${DOCKER} create \
+              --cpus 2 --memory 4g --memory-swap 4g \
               --user "$(id -u):$(id -g)" \
               -e HOME=/config \
               -e PLATFORMIO_CORE_DIR=/config/.esphome/platformio \
+              -e UV_CACHE_DIR=/config/.esphome/uv-cache \
+              -e ESPHOME_DEFAULT_COMPILE_PROCESS_LIMIT=2 \
               -e PLATFORMIO_SETTING_ENABLE_TELEMETRY=false \
               -v "${shared_platformio_cache}:/config/.esphome" \
               -v "${build_cache}:/config/${build_input_dir}/.esphome" \
@@ -235,6 +240,11 @@ jobs:
 
             ${DOCKER} start -a "${container}"
             compile_status=$?
+            if [ "${compile_status}" -ne 0 ]; then
+              ${DOCKER} inspect --format \
+                'Build container: OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}} Error={{.State.Error}}' \
+                "${container}" || true
+            fi
             # A containerized self-hosted runner cannot read the Docker host's
             # bind-mount paths. Measure inside the build container, then copy
             # only the report back before removing the container.
