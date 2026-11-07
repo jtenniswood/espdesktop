@@ -47,6 +47,7 @@ class AppIconStore {
     std::array<uint8_t, 32> hash{};
     uint16_t slot{UINT16_MAX};
     bool valid{false};
+    uint64_t last_used{0};
     // Flash records are immutable until erased/replaced. Verify their payload
     // on the first read after boot or a write, rather than on every page visit.
     bool pixels_verified{false};
@@ -69,6 +70,7 @@ class AppIconStore {
   std::array<Entry, APP_ICON_MAX_RECORDS> entries_{};
   std::vector<std::string> references_;
   std::vector<std::string> enabled_applications_;
+  uint64_t access_sequence_{0};
   size_t slot_count_{0};
   size_t partition_offset_{0};
   bool available_{false};

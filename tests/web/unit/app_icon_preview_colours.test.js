@@ -60,7 +60,7 @@ test("icon cache shares requests, survives reloads, and respects catalogue/manua
   const fetchMock = t.mock.method(globalThis, "fetch", async () => iconResponse(side));
   let ui = loadTypeScriptModule("src/webserver/application/preview_render.ts");
   const document = iconDocument(side);
-  const context = { name: "catalogue", value: "first-hash" };
+  const context = { name: "catalogue", value: JSON.stringify([["app", "first-hash"]]) };
   ui.clearCompanionAppIconPreviewCache(context);
   const first = ui.companionAppIconPreviewData("app", "", document);
   const second = ui.companionAppIconPreviewData("app", "", document);
@@ -71,7 +71,7 @@ test("icon cache shares requests, survives reloads, and respects catalogue/manua
   assert.equal(ui.clearCompanionAppIconPreviewCache(context), false);
   assert.ok(await ui.companionAppIconPreviewData("app", "", document));
   assert.equal(fetchMock.mock.callCount(), 1, "page reload reuses browser storage");
-  ui.clearCompanionAppIconPreviewCache({ name: "catalogue", value: "new-hash" });
+  ui.clearCompanionAppIconPreviewCache({ name: "catalogue", value: JSON.stringify([["app", "new-hash"]]) });
   await ui.companionAppIconPreviewData("app", "", document);
   assert.equal(fetchMock.mock.callCount(), 2);
   ui.clearCompanionAppIconPreviewCache();
@@ -133,4 +133,25 @@ test("stored icon previews expire after a day and stay within the 64-entry limit
   now += 24 * 60 * 60 * 1000 + 1;
   await ui.companionAppIconPreviewData("app64", "", iconDocument(side));
   assert.equal(fetchMock.mock.callCount(), 66);
+});
+
+
+test("panel cache eviction preserves browser icons and changed hashes refresh only that app", async t => {
+  const ui = loadTypeScriptModule("src/webserver/application/preview_render.ts");
+  const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
+  const fetchMock = t.mock.method(globalThis, "fetch", async () => iconResponse(side));
+  const catalogue = entries => ui.clearCompanionAppIconPreviewCache({ name: "catalogue", value: JSON.stringify(entries) });
+  catalogue([["athena", "hash-a"], ["finalcut", "hash-f"]]);
+  await ui.companionAppIconPreviewData("athena", "", iconDocument(side));
+  await ui.companionAppIconPreviewData("finalcut", "", iconDocument(side));
+  assert.equal(fetchMock.mock.callCount(), 2);
+  assert.equal(catalogue([["athena", ""], ["finalcut", "hash-f"]]), false);
+  await ui.companionAppIconPreviewData("athena", "", iconDocument(side));
+  assert.equal(fetchMock.mock.callCount(), 2, "eviction from device flash keeps browser artwork");
+  assert.equal(catalogue([["athena", "hash-a"], ["finalcut", "hash-f"]]), false);
+  catalogue([["athena", "new-a"], ["finalcut", "hash-f"]]);
+  await ui.companionAppIconPreviewData("finalcut", "", iconDocument(side));
+  assert.equal(fetchMock.mock.callCount(), 2, "unrelated browser icons remain cached");
+  await ui.companionAppIconPreviewData("athena", "", iconDocument(side));
+  assert.equal(fetchMock.mock.callCount(), 3, "changed artwork is fetched again");
 });

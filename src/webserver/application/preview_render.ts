@@ -110,6 +110,31 @@ function saveAppIconCache(): void {
 export function clearCompanionAppIconPreviewCache(context?: { name: string; value: string }): boolean {
     loadAppIconCache();
     if (context && appIconContexts[context.name] === context.value) return false;
+    if (context?.name === "catalogue") {
+        try {
+            const previous = new Map<string, string>(JSON.parse(appIconContexts.catalogue || "[]"));
+            const incoming = new Map<string, string>(JSON.parse(context.value));
+            const changed = new Set<string>();
+            for (const [id, hash] of incoming) {
+                // Missing hashes mean an icon fell out of the panel's small flash
+                // cache, not that its artwork changed. Keep the browser's copy.
+                if (hash && hash !== previous.get(id)) changed.add(id);
+                if (!hash) incoming.set(id, previous.get(id) || "");
+            }
+            for (const id of previous.keys()) if (!incoming.has(id)) changed.add(id);
+            appIconContexts.catalogue = JSON.stringify(Array.from(incoming).sort());
+            if (changed.size > 0) {
+                appIconCacheGeneration++;
+                companionAppIconRequests.clear();
+                for (const key of companionAppIconCache.keys()) {
+                    const [id] = JSON.parse(key) as [string, string];
+                    if (changed.has(id)) companionAppIconCache.delete(key);
+                }
+            }
+            saveAppIconCache();
+            return changed.size > 0;
+        } catch { /* A malformed older snapshot falls back to a full clear. */ }
+    }
     appIconContexts = context ? { ...appIconContexts, [context.name]: context.value } : {};
     appIconCacheGeneration++;
     companionAppIconCache.clear();

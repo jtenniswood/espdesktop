@@ -131,6 +131,7 @@ bool AppIconStore::scan_locked() {
     target->hash = hash;
     target->slot = static_cast<uint16_t>(slot);
     target->valid = true;
+    target->last_used = ++access_sequence_;
   }
   (void)partition;
   return true;
@@ -160,18 +161,18 @@ int AppIconStore::free_slot_locked() const {
 }
 
 int AppIconStore::unreferenced_slot_locked() const {
-  int first_valid = -1;
+  const Entry *oldest = nullptr;
   for (const auto &entry : entries_) {
     if (!entry.valid) continue;
-    if (first_valid < 0) first_valid = entry.slot;
+    if (!oldest || entry.last_used < oldest->last_used) oldest = &entry;
     std::string application_id;
     if (!read_header_locked(entry.slot, &application_id, nullptr)) return entry.slot;
     if (std::find(references_.begin(), references_.end(), application_id) == references_.end())
       return entry.slot;
   }
-  // All records are cache entries: even an icon used by a card can be fetched
-  // again, so never let active references make the image cache non-evictable.
-  return first_valid;
+  // Prefer the least recently read icon once all records are referenced.
+  // Always replacing the first slot leaves newer apps fighting over one record.
+  return oldest ? oldest->slot : -1;
 }
 
 bool AppIconStore::erase_slot_locked(uint16_t slot) {
@@ -273,6 +274,7 @@ bool AppIconStore::copy_pixels(const std::string &application_id,
     }
     entry->pixels_verified = true;
   }
+  entry->last_used = ++access_sequence_;
   if (copied_hash) *copied_hash = entry->hash;
   return true;
 #else
@@ -315,6 +317,7 @@ bool AppIconStore::write_slot_locked(uint16_t slot, const std::string &applicati
   entry.hash = hash;
   entry.slot = slot;
   entry.valid = true;
+  entry.last_used = ++access_sequence_;
   entry.pixels_verified = false;
   return true;
 #else

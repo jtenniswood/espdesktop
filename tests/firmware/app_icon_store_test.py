@@ -123,6 +123,29 @@ int main() {
   assert(store.clear_cache());
   assert(store.save("app.one", digest(pixels), pixels.data(), pixels.size()));
   assert(store.copy_pixels("app.one", output.data(), output.size()));
+  // The deployed 2 MB partition holds 11 high-resolution icons. A setup with
+  // 13 apps must rotate cold icons rather than overwriting one slot forever.
+  assert(store.clear_cache());
+  std::vector<std::string> apps;
+  for (int index = 0; index < 13; ++index) apps.push_back("app." + std::to_string(index));
+  store.set_references(apps);
+  store.set_enabled_applications(apps);
+  for (int index = 0; index < 11; ++index)
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
+  assert(store.copy_pixels(apps[0], output.data(), output.size())); // Keep a visible icon hot.
+  std::string evicted;
+  assert(store.save(apps[11], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(evicted == apps[1]);
+  assert(store.copy_pixels(apps[11], output.data(), output.size()));
+  assert(store.save(apps[12], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(evicted == apps[2]);
+  assert(store.copy_pixels(apps[0], output.data(), output.size()));
+  assert(store.copy_pixels(apps[11], output.data(), output.size()));
+  assert(store.copy_pixels(apps[12], output.data(), output.size()));
+  // An evicted icon can be fetched and stored again without a cache clear.
+  assert(!store.copy_pixels(apps[1], output.data(), output.size()));
+  assert(store.save(apps[1], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(store.copy_pixels(apps[1], output.data(), output.size()));
 }
 '''
 with tempfile.TemporaryDirectory(prefix="app-icon-store-") as directory:
