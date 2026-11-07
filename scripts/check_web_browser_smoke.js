@@ -8390,6 +8390,63 @@ async function assertCameraScreensaverDimming(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertInitialGlobalIconSize(browser) {
+  const slug = "guition-esp32-s3-4848s040";
+  for (const preset of ["Large", "Medium", "Small", null]) {
+    const context = await browser.newContext({ viewport: { width: 1000, height: 900 } });
+    await installRoutes(context, slug);
+    let releaseSize;
+    let sizeRequested;
+    const requested = new Promise(resolve => { sizeRequested = resolve; });
+    const released = new Promise(resolve => { releaseSize = resolve; });
+    await context.route("**/select/**", async route => {
+      if (!decodeURIComponent(new URL(route.request().url()).pathname).includes("Default Icon Size")) return route.fallback();
+      sizeRequested();
+      await released;
+      await route.fulfill({ status: preset ? 200 : 404, contentType: "application/json",
+        body: JSON.stringify(preset ? { id: "select-screen__default_icon_size", state: preset, value: preset } : {}) });
+    });
+    await context.route("**/text/**", async route => {
+      const name = decodeURIComponent(new URL(route.request().url()).pathname.split("/")[2]).toLowerCase().replace(/ /g, "_");
+      const slot = name.match(/^button_(\d+)_config$/);
+      const value = name === "button_order" ? "1,2" : slot ? (slot[1] === "1"
+        ? "com.apple.finder;Finder;Monitor;Auto;;;companion;;"
+        : slot[1] === "2" ? "com.apple.Safari;Safari;Monitor;Auto;;;companion;;icon_size=small" : "") : "";
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "text-" + name, value, state: value }) });
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.addInitScript(() => {
+      window.__initialAppLayouts = [];
+      function record() {
+        const card = document.querySelector('.sp-main [data-slot="1"]:has(.sp-companion-app-icon-fallback)');
+        if (card && card.getBoundingClientRect().width) window.__initialAppLayouts.push({
+          size: card.getAttribute("data-icon-size"),
+          labelVisible: getComputedStyle(card.querySelector(".sp-btn-label")).display !== "none",
+        });
+        requestAnimationFrame(record);
+      }
+      requestAnimationFrame(record);
+    });
+    try {
+      await page.goto(`http://espdesktop.test/${slug}`, { waitUntil: "domcontentloaded" });
+      await requested;
+      await page.waitForTimeout(150);
+      assert.deepStrictEqual(await page.evaluate(() => window.__initialAppLayouts), [], "pending default cannot show app cards in a provisional layout");
+      releaseSize();
+      await page.waitForFunction(() => window.__initialAppLayouts.length >= 3);
+      const expected = preset ? preset.toLowerCase() : "small";
+      const frames = await page.evaluate(() => window.__initialAppLayouts);
+      assert(frames.every(frame => frame.size === expected && frame.labelVisible === (expected !== "large")),
+        `${preset || "unsupported"}: every visible frame starts in the saved layout`);
+      assert.strictEqual(await page.locator('.sp-main [data-slot="2"]').getAttribute("data-icon-size"), "small", "per-card override still wins");
+      assert.deepStrictEqual(errors, []);
+      console.log(`Initial app icon layout passed: ${preset || "unsupported setting"}`);
+    } finally { releaseSize(); await context.close(); }
+  }
+}
+
 async function assertGlobalIconSize(browser, testCase) {
   for (const native of [false, true]) {
     console.log(`Checking global icon size: ${testCase.slug}/${native ? "native" : "legacy"}`);
@@ -8819,6 +8876,10 @@ async function assertSpecialPageRename(browser, testCase) {
       console.log("System connector layout and pairing link browser checks passed.");
       return;
     }
+    if (process.env.ESPDESKTOP_INITIAL_ICON_SIZE_ONLY === "1") {
+      await assertInitialGlobalIconSize(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_GLOBAL_ICON_SIZE_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertGlobalIconSize(browser, testCase);
       console.log("Global icon size inheritance, overrides, reload and backup checks passed.");
@@ -8953,6 +9014,7 @@ async function assertSpecialPageRename(browser, testCase) {
     if (!acceptanceOnly) {
       await assertPageTitleEvents(browser);
       await assertRotationStartupOrdering(browser);
+      await assertInitialGlobalIconSize(browser);
     }
     await assertHostedCompatibility(browser);
     await assertFirmwareRetryFeedback(browser);
