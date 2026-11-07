@@ -22,6 +22,7 @@ export interface ClockBarPostApiFeature {
     postTemperatureDegreeSymbol(on?: any): void;
     postSubpageChevron(on?: any): void;
     postAutoOpenAppSubpages(on?: any): void;
+    postSubpageTitleBar(on?: any): void;
 }
 
 export function createClockBarPostApiFeature(
@@ -101,6 +102,10 @@ export function createClockBarPostApiFeature(
     function postSubpageChevron(this: any, on?: any) {
         postSwitchWithObjectIds(entityName("screen_subpage_chevron"), entityObjectIds("screen_subpage_chevron"), on, SUBPAGE_CHEVRON_UNAVAILABLE);
     }
+    function postSubpageTitleBar(on?: any) {
+        postSwitchWithObjectIds(entityName("screen_subpage_title_bar"), entityObjectIds("screen_subpage_title_bar"), on,
+            "App title bar setting is not available on this firmware. Update the device firmware, then reload this page.");
+    }
     function postAutoOpenAppSubpages(on?: any) {
         postSwitchWithObjectIds(entityName("companion_auto_open_app_subpages"), entityObjectIds("companion_auto_open_app_subpages"), on,
             "App subpage setting is not available on this firmware. Update the device firmware, then reload this page.");
@@ -127,5 +132,6 @@ export function createClockBarPostApiFeature(
         postTemperatureDegreeSymbol,
         postSubpageChevron,
         postAutoOpenAppSubpages,
+        postSubpageTitleBar,
     };
 }

@@ -9,7 +9,7 @@ description: Create extra pages on your EspDesktop display to organise cards int
 
 A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards.
 
-Subpages show the standard clock bar with the page name and, for app shortcut pages, the app icon. The clock stays hidden on subpages. The bar is shown even when it is turned off for the home screen.
+Subpages show the standard clock bar with the page name and, for app shortcut pages, the app icon. The clock stays hidden on subpages. When Clock Bar is off, use **Show app title bar** under **Device settings → App Subpages** to show or hide it globally. When Clock Bar is on, the title bar is always shown and this control is hidden. The preference is remembered for when Clock Bar is turned off again.
 
 ## Create a Subpage
 

@@ -62,6 +62,7 @@ esphome:
         - lambda: |-
             clock_bar_enable_settings_access(id(network_status_button));
             clock_bar_time_widget() = id(display_time);
+            clock_bar_subpage_title_bar_enabled() = id(subpage_title_bar_enabled).state;
             clock_bar_companion_subpage_title_font() =
                 lv_obj_get_style_text_font(id(display_time), LV_PART_MAIN);
             navigation_subpage_clock_bar_refresh() = []() {
@@ -480,6 +481,21 @@ switch:
             id(indoor_temp_enable).state,
             id(outdoor_temp_enable).state,
             id(indoor_temp), id(outdoor_temp));
+
+  - platform: template
+    name: "${entity_screen_subpage_title_bar}"
+    internal: true
+    id: subpage_title_bar_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    icon: "mdi:page-layout-header"
+    web_server:
+      sorting_group_id: sg_display
+    on_state:
+      - lambda: |-
+          clock_bar_subpage_title_bar_enabled() = x;
+          if (clock_bar_time_widget() != nullptr) id(clock_bar_apply).execute();
 
   - platform: template
     name: "${entity_companion_auto_open_app_subpages}"
