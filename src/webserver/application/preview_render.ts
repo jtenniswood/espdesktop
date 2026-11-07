@@ -5,7 +5,6 @@ import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
-import { companionShortcutFolderAppLabel } from "./companion_shortcut_folder";
 import { escHtml } from "./ui_primitives";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
@@ -262,7 +261,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const selectionStart = editor?.selectionStart ?? null;
         const selectionEnd = editor?.selectionEnd ?? null;
         const editorSlot = editor?.closest("[data-slot]")?.getAttribute("data-slot");
-        main.parentElement?.querySelector(".sp-subpage-header")?.remove();
         main.innerHTML = "";
         main.className = "sp-main" + (state.subpageChevronsOn ? "" : " sp-hide-subpage-chevrons");
         if (gridPreviewBlockedByRotationStartup()) {
@@ -273,54 +271,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         main.removeAttribute("aria-busy");
         var c: any = ctx();
         updatePreviewHint(c);
-        if (c.isSub) {
-            const special = state.editingSubpage === -1;
-            const parent = special ? null : state.buttons[Number(state.editingSubpage) - 1];
-            const header = document.createElement("div");
-            header.className = "sp-subpage-header";
-            const icon = document.createElement("span");
-            icon.className = "sp-subpage-header-icon mdi mdi-" + (parent ? resolveIcon(parent) : "folder");
-            icon.setAttribute("aria-hidden", "true");
-            const name = document.createElement("span");
-            name.className = "sp-subpage-header-name";
-            name.textContent = special ? getSubpage(-1).title || "Special Page" :
-                parent?.label || companionShortcutFolderAppLabel(parent?.entity) || "Subpage";
-            if (special && !state.configLocked) {
-                name.dataset.renameSpecialPage = "";
-                name.tabIndex = 0;
-                name.setAttribute("role", "button");
-                name.setAttribute("aria-label", "Rename Special Page");
-                name.title = "Click to rename";
-                name.style.pointerEvents = "auto";
-                name.style.cursor = "pointer";
-            }
-            header.append(icon, name);
-            main.parentElement?.appendChild(header);
-            main.classList.add("sp-has-subpage-header");
-            if (parent?.type === "companion" && parent.entity && !parent.entity.startsWith("webapp.")) {
-                const loadHeaderIcon = (attempt: number): void => {
-                  void companionAppIconPreviewData(parent.entity, "", document).then(artwork => {
-                    if (!header.isConnected) return;
-                    if (!artwork) {
-                        if (attempt < 12) document.defaultView?.setTimeout(() => loadHeaderIcon(attempt + 1),
-                            Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
-                        return;
-                    }
-                    const image = document.createElement("img");
-                    image.src = artwork.dataUrl;
-                    image.alt = "";
-                    const side = 100 / Math.max(artwork.artworkWidthFraction, artwork.artworkHeightFraction);
-                    image.style.width = side + "%";
-                    image.style.height = side + "%";
-                    image.style.left = -side * artwork.insetLeftPercent / 100 + "%";
-                    image.style.top = -side * artwork.insetTopPercent / 100 + "%";
-                    icon.className = "sp-subpage-header-icon";
-                    icon.appendChild(image);
-                  });
-                };
-                loadHeaderIcon(0);
-            }
-        }
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             if (slot === -1)

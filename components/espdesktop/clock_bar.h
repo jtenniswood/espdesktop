@@ -225,30 +225,11 @@ inline std::vector<lv_obj_t *> &clock_bar_button_grid_pages() {
   return pages;
 }
 
-// Subpage headings reserve space in addition to the optional clock bar.
-struct ClockBarGridPageInset {
-  lv_obj_t *page;
-  lv_coord_t top;
-};
-
-inline std::vector<ClockBarGridPageInset> &clock_bar_grid_page_insets() {
-  static std::vector<ClockBarGridPageInset> insets;
-  return insets;
-}
-
-inline lv_coord_t clock_bar_grid_page_inset(lv_obj_t *page) {
-  for (const auto &entry : clock_bar_grid_page_insets()) {
-    if (entry.page == page) return entry.top;
-  }
-  return 0;
-}
-
 inline void clock_bar_clear_button_grid_pages() {
   for (lv_obj_t *page : clock_bar_button_grid_pages()) {
     clock_bar_clear_responsive_grid_cards(page);
   }
   clock_bar_button_grid_pages().clear();
-  clock_bar_grid_page_insets().clear();
 }
 
 inline void clock_bar_register_button_grid_page(lv_obj_t *page) {
@@ -262,9 +243,6 @@ inline void clock_bar_register_button_grid_page(lv_obj_t *page) {
 inline void clock_bar_unregister_button_grid_page(lv_obj_t *page) {
   if (!page) return;
   clock_bar_clear_responsive_grid_cards(page);
-  auto &insets = clock_bar_grid_page_insets();
-  insets.erase(std::remove_if(insets.begin(), insets.end(),
-      [page](const ClockBarGridPageInset &entry) { return entry.page == page; }), insets.end());
   std::vector<lv_obj_t *> &pages = clock_bar_button_grid_pages();
   pages.erase(std::remove(pages.begin(), pages.end(), page), pages.end());
 }
@@ -283,7 +261,7 @@ inline void clock_bar_set_button_grid_pages_pad_top(lv_obj_t *main_page_obj,
   clock_bar_set_grid_page_pad_top(main_page_obj, pad_top);
   for (lv_obj_t *page : clock_bar_button_grid_pages()) {
     if (page == main_page_obj) continue;
-    clock_bar_set_grid_page_pad_top(page, pad_top + clock_bar_grid_page_inset(page));
+    clock_bar_set_grid_page_pad_top(page, pad_top);
   }
 }
 
@@ -305,7 +283,11 @@ inline ClockBarVisibility clock_bar_resolve_visibility(
   // keeps the normal UI visible and should preserve its complete clock bar.
   // Keep the same top padding in hidden modes so waking does not briefly
   // resize the cards.
-  result.reserve_space = enabled && !schedule_inactive;
+  // Subpages always use the standard bar for their page/app title. The home
+  // screen still follows its Clock Bar setting.
+  const bool subpage_active = main_page_obj && lv_scr_act() != main_page_obj &&
+      clock_bar_active_on_button_grid_page(main_page_obj);
+  result.reserve_space = (enabled || subpage_active) && !schedule_inactive;
   result.visible = result.reserve_space &&
       (display_mode == espdesktop::DisplayMode::ACTIVE ||
        display_mode == espdesktop::DisplayMode::DIMMED) &&

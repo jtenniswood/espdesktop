@@ -108,8 +108,6 @@ inline void theme_apply_grid(void *context, const ThemePalette &theme) {
   for (auto &entry : navigation_subpages()) {
     if (!entry.screen) continue;
     lv_obj_set_style_bg_color(entry.screen, lv_color_hex(theme.background), LV_PART_MAIN);
-    if (entry.header) lv_obj_set_style_text_color(entry.header,
-        lv_color_hex(theme.text_primary), LV_PART_MAIN);
     if (entry.back_neutral_background && entry.back_button) {
       theme_restyle_tree(entry.back_button, theme_refresh_previous(), theme, false, correction);
       // Neutral Back cards use the same fill while pressed; custom cards own theirs.

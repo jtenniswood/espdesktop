@@ -9,9 +9,7 @@ root = Path(__file__).resolve().parents[2]
 source = (root / "components/espdesktop/clock_bar.h").read_text()
 start = source.index("inline void clock_bar_set_grid_page_pad_top(")
 end = source.index("inline bool clock_bar_active_on_button_grid_page(", start)
-inset_start = source.index("struct ClockBarGridPageInset {")
-inset_end = source.index("inline void clock_bar_clear_button_grid_pages()", inset_start)
-production = source[inset_start:inset_end] + source[start:end]
+production = source[start:end]
 harness = r"""
 #include <cassert>
 #include <vector>

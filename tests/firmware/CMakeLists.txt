@@ -893,5 +893,5 @@ add_test(NAME weather_wind_test COMMAND weather_wind_test)
 
 add_test(NAME rainfall_card_test COMMAND rainfall_card_test)
 
-add_test(NAME subpage_header_spacing_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/subpage_header_spacing_test.py)
+add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)

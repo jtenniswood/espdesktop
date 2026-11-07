@@ -116,9 +116,9 @@ function nativeConfigState(slug) {
 
 async function assertSubpageTitleTypography(page, label, nativeState) {
   await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-  await page.waitForSelector(".sp-subpage-header-name");
+  await page.waitForSelector(".sp-clockbar-subpage-title");
   const typography = await page.evaluate(() => {
-    const title = document.querySelector(".sp-subpage-header-name");
+    const title = document.querySelector(".sp-clockbar-subpage-title");
     const cardLabel = document.querySelector(".sp-main .sp-btn-label");
     const titleStyle = getComputedStyle(title);
     const cardStyle = getComputedStyle(cardLabel);
@@ -178,7 +178,7 @@ async function assertSubpageTitleTypography(page, label, nativeState) {
     initialColor, `${label}: reset restores the theme colour`);
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.locator(".sp-back-btn .sp-back-hit").click();
-  await page.waitForSelector(".sp-subpage-header-name", { state: "detached" });
+  await page.waitForSelector(".sp-clockbar-subpage-title", { state: "detached" });
 }
 
 function htmlFor(slug, embeddedFallback = false) {
@@ -6553,7 +6553,6 @@ async function assertAppSubpageCapacity(browser, testCase) {
       // Four managed shortcuts, one custom card and Back leave three cells.
       await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
       assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
-      assert.strictEqual(await page.locator(".sp-subpage-header-name").innerText(), "Codex");
       await page.locator(".sp-back-btn .sp-back-hit").click();
       let app = await openAppSettings();
       for (const id of ["1", "2", "4"]) {
@@ -8772,7 +8771,7 @@ async function assertAppSubpageOpeningPreference(browser) {
   } finally { await context.close(); }
 }
 
-async function assertSubpageHeaders(browser, testCase) {
+async function assertSubpageClockBar(browser, testCase) {
   const fixture = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture, homeAssistantSupport: true });
@@ -8782,27 +8781,28 @@ async function assertSubpageHeaders(browser, testCase) {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
     await page.waitForSelector("#sp-app");
     await seedNativeDocument(page, fixture);
-    assert.strictEqual(await page.locator(".sp-subpage-header").count(), 0, "home keeps its full grid");
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-screen__clock_bar", state: "OFF", value: false },
+      { id: "switch-screen__clock_bar_time", state: "ON", value: true },
+    ]));
+    await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
     await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-    assert.strictEqual(await page.locator(".sp-subpage-header-name").innerText(), "Rooms");
-    const geometry = await page.evaluate(() => {
-      const header = document.querySelector(".sp-subpage-header").getBoundingClientRect();
+    await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
+    assert.strictEqual(await page.locator(".sp-clockbar-subpage-label").innerText(), "Rooms");
+    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "subpage has no clock even when time is enabled");
+    assert.strictEqual(await page.locator(".sp-subpage-header").count(), 0, "no separate title area");
+    const fits = await page.evaluate(() => {
+      const bar = document.querySelector(".sp-topbar").getBoundingClientRect();
       const grid = document.querySelector(".sp-main").getBoundingClientRect();
-      const screen = document.querySelector(".sp-screen").getBoundingClientRect();
-      const cards = [...document.querySelectorAll(".sp-main > *")].map(card => card.getBoundingClientRect());
-      return { header: { top: header.top, bottom: header.bottom, height: header.height },
-        grid: { top: grid.top, bottom: grid.bottom }, screen: { top: screen.top, bottom: screen.bottom },
-        inside: cards.every(card => card.top >= grid.top - 1 && card.bottom <= grid.bottom + 1) };
+      return bar.bottom <= grid.top + 1;
     });
-    assert(geometry.header.height > 10, "header has visible icon space");
-    assert(geometry.header.top >= geometry.screen.top, "header stays within the screen");
-    assert(geometry.header.bottom < geometry.grid.top, "header has a gap above the cards");
-    assert(geometry.inside && geometry.grid.bottom <= geometry.screen.bottom, "all grid cells stay on screen");
-    if (process.env.ESPDESKTOP_SUBPAGE_HEADER_SCREENSHOT)
-      await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_SUBPAGE_HEADER_SCREENSHOT });
+    assert(fits, "standard clock bar fits above the grid");
     await page.locator(".sp-back-btn .sp-back-hit").click();
-    assert.strictEqual(await page.locator(".sp-subpage-header").count(), 0, "returning home removes the header");
-    console.log(`${testCase.name}: subpage header and grid bounds passed.`);
+    await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
+    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+    await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
+    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "Special Page also has no clock");
+    console.log(`${testCase.name}: subpage clock bar visible, time hidden, home setting preserved.`);
   } finally { await context.close(); }
 }
 
@@ -8898,8 +8898,8 @@ async function assertSpecialPageRename(browser, testCase) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
-    if (process.env.ESPDESKTOP_SUBPAGE_HEADERS_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertSubpageHeaders(browser, testCase);
+    if (process.env.ESPDESKTOP_SUBPAGE_CLOCK_BAR_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSubpageClockBar(browser, testCase);
       return;
     }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {

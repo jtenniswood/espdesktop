@@ -134,10 +134,6 @@ export function createCoreFeature(
             r.removeProperty("--btn-border");
         r.setProperty("--btn-icon", scaledCqw(btn.iconSize, scale));
         r.setProperty("--btn-label", scaledCqw(btn.labelSize, scale));
-        const screen = layoutSection(layout, "screen");
-        const aspect = String(screen.aspect || "1/1").split("/").map(Number);
-        const shortSide = Math.min(1, (aspect[1] || 1) / (aspect[0] || 1));
-        r.setProperty("--subpage-header-side", scaledCqw(Math.max(btn.labelSize * 1.2, shortSide * 9), scale));
         r.setProperty("--btn-small-text", scaledCqw(btn.smallTextSize || btn.labelSize, scale));
         r.setProperty("--media-title", scaledCqw(btn.mediaTitleSize || btn.labelSize * 1.75, scale));
         r.setProperty("--media-cover-title", scaledCqw(btn.coverArtTitleSize, scale));

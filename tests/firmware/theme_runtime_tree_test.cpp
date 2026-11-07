@@ -164,7 +164,6 @@ struct TestSubpage {
   struct Card { bool neutral_background; lv_obj_t *button; bool sensor_surface = false; bool secondary_surface = false; bool image_card = false; };
   std::vector<Card> cards;
   bool back_neutral_background = true;
-  lv_obj_t *header = nullptr;
 };
 std::vector<TestSubpage> &navigation_subpages() {
   static std::vector<TestSubpage> pages;
@@ -255,14 +254,11 @@ static void test_independent_dark_light_surfaces() {
   navigation_subpages().push_back({&subpage, nullptr,
       {{true, &sub_card}, {true, &sub_information, false, true}, {true, &sub_sensor, true},
        {false, &sub_image, true}}});
-  lv_obj_t subpage_header;
-  navigation_subpages().back().header = &subpage_header;
   for (const auto *theme : {&LIGHT_THEME, &DARK_THEME, &LIGHT_THEME, &DARK_THEME}) {
     set_active_theme_palette(*theme);
     apply_current_theme();
     assert(page.background.full == theme->background);
     assert(subpage.background.full == theme->background);
-    assert(subpage_header.text.full == theme->text_primary);
     assert(card.background.full == theme->surface_card);
     assert(sub_card.background.full == theme->surface_card);
     assert(information.background.full == theme->surface_secondary);

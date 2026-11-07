@@ -96,7 +96,7 @@ export function createPreviewInteractionsFeature(
             document,
             title: getSubpage(-1).title || "",
             locked: isConfigLocked,
-            restoreFocus: () => (els.previewScreen?.querySelector("[data-rename-special-page]") as HTMLElement | null)?.focus(),
+            restoreFocus: () => (els.topbar?.querySelector("[data-rename-special-page]") as HTMLElement | null)?.focus(),
             save: async title => {
                 const subpage = getSubpage(-1);
                 const previous = subpage.title;
@@ -215,8 +215,8 @@ export function createPreviewInteractionsFeature(
                 enterSubpage(-1);
             });
         }
-        if (els.previewScreen) {
-            els.previewScreen.addEventListener("click", function (this: any, e?: any) {
+        if (els.topbar) {
+            els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -235,7 +235,7 @@ export function createPreviewInteractionsFeature(
                 e.stopPropagation();
                 selectClockBarItem(target.getAttribute("data-clockbar-item"));
             });
-            els.previewScreen.addEventListener("keydown", function (this: any, e?: any) {
+            els.topbar.addEventListener("keydown", function (this: any, e?: any) {
                 if (e.key !== "Enter" && e.key !== " ")
                     return;
                 if (e.target.closest("[data-rename-special-page]") && state.editingSubpage === -1) {

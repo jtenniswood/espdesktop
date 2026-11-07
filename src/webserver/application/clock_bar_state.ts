@@ -89,7 +89,7 @@ export function createClockBarFeature(
         applyClockBarControllerState(clockBarControllerInstance.setNightModeEnabled(clockBarControllerState(), enabled));
     }
     function clockBarVisibleInPreview(this: any) {
-        return clockBarUiState().previewVisible;
+        return state.editingSubpage != null || clockBarUiState().previewVisible;
     }
     function timezonePrefersFahrenheit(this: any, timezone?: any) {
         var tz: any = dependencies.timezoneId(effectiveTimezoneOptionForWeb(timezone || state.timezone));
@@ -259,7 +259,7 @@ export function createClockBarFeature(
         var before: any = clockBarControllerState();
         applyClockBarControllerState(clockBarControllerInstance.reconcile(before));
         var uiState: any = clockBarUiState();
-        var visible: any = uiState.previewVisible;
+        var visible: any = clockBarVisibleInPreview();
         if (!visible && before.selectedItem) {
             dependencies.hideSettingsOverlay();
         }
