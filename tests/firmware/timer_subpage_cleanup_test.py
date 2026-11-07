@@ -28,6 +28,8 @@ bool navigation_return_home(lv_obj_t *screen) {
   return true;
 }
 int deleted = 0;
+int cleared_grid_pages = 0;
+void clock_bar_clear_responsive_grid_cards(lv_obj_t *) { ++cleared_grid_pages; }
 void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   delete entry.timer;
   entry.timer = nullptr;
@@ -36,6 +38,7 @@ void lv_obj_del(lv_obj_t *screen) {
   // LVGL must never delete labels while a timer can still refresh them.
   assert(timers == 0 && callbacks.empty());
   assert(screen != active_screen);
+  assert(cleared_grid_pages == deleted + 1);
   ++deleted;
   delete screen;
 }

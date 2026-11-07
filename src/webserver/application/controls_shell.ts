@@ -167,13 +167,13 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
-        const specialPageRename = document.createElement("button");
-        specialPageRename.type = "button";
-        specialPageRename.className = "sp-special-page-entry";
-        specialPageRename.setAttribute("aria-label", "Rename Special Page");
-        specialPageRename.hidden = true;
-        els.specialPageRename = specialPageRename;
-        page.appendChild(specialPageRename);
+        var specialPageName: any = document.createElement("button");
+        specialPageName.type = "button";
+        specialPageName.className = "sp-special-page-name";
+        specialPageName.setAttribute("aria-label", "Rename Special Page");
+        specialPageName.hidden = true;
+        els.specialPageName = specialPageName;
+        page.appendChild(specialPageName);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =
@@ -184,6 +184,7 @@ export function createControlsShellFeature(
                 '<div class="sp-clockbar-section sp-clockbar-right" data-clockbar-section="right"></div>' +
                 "</div>" +
                 '<div class="sp-main"></div>' +
+                '<span class="sp-display-swipe-handle" aria-hidden="true"></span>' +
                 "</div>";
         page.appendChild(wrap);
         els.previewScreen = wrap.querySelector(".sp-screen");

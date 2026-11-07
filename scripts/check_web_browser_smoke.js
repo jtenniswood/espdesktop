@@ -8939,6 +8939,9 @@ async function assertSpecialPageRename(browser, testCase) {
     assert(entryBounds.y - screenBounds.y - screenBounds.height <= 11, "swipe-up entry stays close to the display");
     assert(Math.abs(entryBounds.width - screenBounds.width) < 1, "swipe-up entry matches the display width");
     assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
+    const homeHandle = await page.locator(".sp-display-swipe-handle").boundingBox();
+    const homeGrid = await page.locator(".sp-main").boundingBox();
+    assert(homeHandle.y >= homeGrid.y + homeGrid.height, "bottom handle stays clear of cards");
     assert(await entry.getByText("Swipe up from the bottom edge.", { exact: true }).isVisible());
     assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
     if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
@@ -8946,6 +8949,13 @@ async function assertSpecialPageRename(browser, testCase) {
     await entry.press("Enter");
     await title.waitFor();
     assert.strictEqual(await entry.count(), 0, "entry is hidden while editing the swipe-up page");
+    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "swipe-up page has no clock bar");
+    assert.strictEqual(await page.locator(".sp-topbar .sp-clockbar-subpage-title").count(), 0, "swipe-up page has no title inside the display");
+    const handle = await page.locator(".sp-display-swipe-handle").boundingBox();
+    const grid = await page.locator(".sp-main").boundingBox();
+    assert(handle.y + handle.height < grid.y, "top swipe handle stays clear of cards");
+    assert(!(await title.evaluate(el => !!el.closest(".sp-screen"))), "page name is editable outside the display");
+    if (process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT, fullPage: true });
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);

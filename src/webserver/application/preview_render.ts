@@ -409,6 +409,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.title = "Click to rename; Enter to save";
     }
     function renderPreview(this: any) {
+        const specialPage = state.editingSubpage === -1;
+        els.previewScreen?.classList.toggle("sp-swipe-page", specialPage);
+        els.previewScreen?.classList.toggle("sp-no-swipe-page", !!dependencies.layout.config.infoOnly);
+        if (els.specialPageName) {
+            els.specialPageName.hidden = !specialPage;
+            els.specialPageName.disabled = state.configLocked;
+            els.specialPageName.textContent = state.subpages[-1]?.title || "Special Page";
+        }
         if (els.specialPageEntry) {
             els.specialPageEntry.hidden = state.editingSubpage === -1;
             els.specialPageEntry.disabled = state.configLocked;

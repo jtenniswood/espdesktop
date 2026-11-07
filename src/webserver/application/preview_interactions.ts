@@ -96,7 +96,7 @@ export function createPreviewInteractionsFeature(
             document,
             title: getSubpage(-1).title || "",
             locked: isConfigLocked,
-            restoreFocus: () => els.specialPageRename?.focus(),
+            restoreFocus: () => els.specialPageName?.focus(),
             save: async title => {
                 const subpage = getSubpage(-1);
                 const previous = subpage.title;
@@ -206,6 +206,9 @@ export function createPreviewInteractionsFeature(
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
         state.clockBarDragItem = "";
+        els.specialPageName?.addEventListener("click", () => {
+            if (!isConfigLocked() && state.editingSubpage === -1) renameSpecialPage();
+        });
         if (els.specialPageEntry) {
             els.specialPageEntry.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
