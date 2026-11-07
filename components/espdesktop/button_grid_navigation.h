@@ -124,8 +124,10 @@ inline lv_obj_t *navigation_create_swipe_handle(lv_obj_t *screen, bool top) {
   const int width = lv_obj_get_width(screen);
   lv_obj_t *handle = lv_obj_create(screen);
   lv_obj_remove_style_all(handle);
-  lv_obj_add_flag(handle, LV_OBJ_FLAG_IGNORE_LAYOUT | LV_OBJ_FLAG_FLOATING);
-  lv_obj_clear_flag(handle, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_add_flag(handle, LV_OBJ_FLAG_IGNORE_LAYOUT);
+  lv_obj_add_flag(handle, LV_OBJ_FLAG_FLOATING);
+  lv_obj_clear_flag(handle, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(handle, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_size(handle, std::max(24, width / 12), std::max(2, width / 160));
   lv_obj_set_style_radius(handle, LV_RADIUS_CIRCLE, LV_PART_MAIN);
   lv_obj_set_style_bg_color(handle, lv_color_hex(theme_display_color(current_theme().text_muted)), LV_PART_MAIN);
