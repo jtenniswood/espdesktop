@@ -89,7 +89,8 @@ export function createClockBarFeature(
         applyClockBarControllerState(clockBarControllerInstance.setNightModeEnabled(clockBarControllerState(), enabled));
     }
     function clockBarVisibleInPreview(this: any) {
-        return (state.editingSubpage != null && state.subpageTitleBarOn) || clockBarUiState().previewVisible;
+        return state.editingSubpage !== -1 &&
+            ((state.editingSubpage != null && state.subpageTitleBarOn) || clockBarUiState().previewVisible);
     }
     function timezonePrefersFahrenheit(this: any, timezone?: any) {
         var tz: any = dependencies.timezoneId(effectiveTimezoneOptionForWeb(timezone || state.timezone));

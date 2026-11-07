@@ -38,9 +38,11 @@ Swipe up from the bottom edge of the home screen or a card subpage to open a
 separate page. A short upward swipe from the bottom edge opens it; a long drag
 is not needed. Choose **Configure** in the **Swipe-up page** tray below the display
 preview in the web layout editor to add cards.
-Click the page title in the preview to rename it, then choose **Save**. Use the
+A small handle at the bottom of grid screens marks the swipe-up gesture.
+The swipe-up page has the same handle at the top and no clock bar or on-screen title.
+Click the page name above its preview to rename it, then choose **Save**. Use the
 reset icon and save to restore the default. The custom title is saved with the
-page and appears on the display with updated firmware.
+page and included in backups.
 It starts empty, supports ordinary cards, and cannot contain nested subpages.
 Its **Close** button, marked with a cross icon, returns to the screen you came
 from. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.

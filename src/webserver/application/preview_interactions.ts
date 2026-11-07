@@ -96,7 +96,7 @@ export function createPreviewInteractionsFeature(
             document,
             title: getSubpage(-1).title || "",
             locked: isConfigLocked,
-            restoreFocus: () => (els.topbar?.querySelector("[data-rename-special-page]") as HTMLElement | null)?.focus(),
+            restoreFocus: () => els.specialPageName?.focus(),
             save: async title => {
                 const subpage = getSubpage(-1);
                 const previous = subpage.title;
@@ -206,6 +206,9 @@ export function createPreviewInteractionsFeature(
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
         state.clockBarDragItem = "";
+        els.specialPageName?.addEventListener("click", () => {
+            if (!isConfigLocked() && state.editingSubpage === -1) renameSpecialPage();
+        });
         if (els.specialPageEntry) {
             els.specialPageEntry.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
@@ -222,12 +225,6 @@ export function createPreviewInteractionsFeature(
                     e.stopPropagation();
                     return;
                 }
-                if (e.target.closest("[data-rename-special-page]") && state.editingSubpage === -1) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    renameSpecialPage();
-                    return;
-                }
                 var target: any = e.target.closest("[data-clockbar-item]");
                 if (!target)
                     return;
@@ -238,12 +235,6 @@ export function createPreviewInteractionsFeature(
             els.topbar.addEventListener("keydown", function (this: any, e?: any) {
                 if (e.key !== "Enter" && e.key !== " ")
                     return;
-                if (e.target.closest("[data-rename-special-page]") && state.editingSubpage === -1) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    renameSpecialPage();
-                    return;
-                }
                 var target: any = e.target.closest("[data-clockbar-item]");
                 if (!target)
                     return;
