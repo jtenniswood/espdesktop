@@ -13,13 +13,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: nightly-firmware
+  group: nightly-firmware-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   device-matrix:
     name: Prepare Device Matrix
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
@@ -78,15 +78,12 @@ jobs:
   compile:
     name: Compile Firmware
     needs: device-matrix
-    runs-on: self-hosted
+    # Use a fresh hosted runner, as PR firmware builds do. A disconnected
+    # self-hosted runner cannot finish cleanup or record failed targets.
+    runs-on: ubuntu-latest
     outputs:
       failed_targets: ${{ steps.firmware.outputs.failed_targets }}
     steps:
-      - name: Prepare self-hosted workspace
-        run: |
-          rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?* 2>/dev/null ||
-            sudo rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?*
-
       - uses: actions/checkout@v7.0.1
         with:
           path: espdesktop-nightly
@@ -133,7 +130,7 @@ jobs:
           elif sudo -n docker info >/dev/null 2>&1; then
             echo "DOCKER=sudo docker" >> "$GITHUB_ENV"
           else
-            echo "::error::Docker is not available to the self-hosted runner user"
+            echo "::error::Docker is not available to the runner user"
             exit 1
           fi
 
