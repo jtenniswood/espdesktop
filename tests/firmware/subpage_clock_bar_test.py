@@ -7,17 +7,57 @@ root = Path(__file__).resolve().parents[2]
 source = (root / "components/espdesktop/clock_bar.h").read_text()
 start = source.index("inline ClockBarVisibility clock_bar_resolve_visibility(")
 end = source.index("inline bool clock_bar_should_reserve_space(", start)
+display = (root / "common/config/display.yaml").read_text()
+refresh_start = display.index("navigation_subpage_clock_bar_refresh() = []() {")
+refresh = display[refresh_start:].split("navigation_refresh_subpage_label();", 1)[0].split("{", 1)[1]
+refresh = refresh.replace("${main_page_pad_top}", "40").replace("${main_page_compact_pad_top}", "4")
+padding_start = source.index("inline void clock_bar_set_grid_page_pad_top(")
+padding_end = source.index("inline bool clock_bar_active_on_button_grid_page(", padding_start)
 code = r'''#include <cassert>
+#include <vector>
 #include "display_mode_controller.h"
-struct lv_obj_t {};
+using lv_coord_t = int;
+constexpr int LV_PART_MAIN = 0;
+struct lv_obj_t { int top = 4; };
 lv_obj_t home, subpage, screensaver;
 lv_obj_t *active = &home;
 lv_obj_t *lv_scr_act() { return active; }
 bool clock_bar_active_on_button_grid_page(lv_obj_t *) { return active == &home || active == &subpage; }
 struct ClockBarVisibility { bool reserve_space = false, visible = false; };
 ''' + source[start:end] + r'''
+std::vector<lv_obj_t *> &clock_bar_button_grid_pages() {
+  static std::vector<lv_obj_t *> pages{&subpage};
+  return pages;
+}
+int updates = 0;
+int lv_obj_get_style_pad_top(lv_obj_t *page, int) { return page->top; }
+void lv_obj_set_style_pad_top(lv_obj_t *page, int top, int) { page->top = top; }
+void lv_obj_update_layout(lv_obj_t *) { ++updates; }
+void clock_bar_refresh_responsive_grid_cards(lv_obj_t *) {}
+struct Page { lv_obj_t *obj; } home_page{&home};
+auto *main_page = &home_page;
+struct Switch { bool state = false; } clock_bar_enabled;
+struct App {
+  App &display() { return *this; }
+  auto current_mode() { return espdesktop::DisplayMode::ACTIVE; }
+  bool target_schedule_inactive() { return false; }
+} espdesktop_app;
+#define id(x) x
+''' + source[padding_start:padding_end] + '\nvoid refresh() {\n' + refresh + '\n}\n' + r'''
 int main() {
   using espdesktop::DisplayMode;
+  // Execute the production page-change wiring with the home bar turned off.
+  refresh();
+  assert(home.top == 4 && subpage.top == 4);
+  active = &subpage;
+  refresh();
+  assert(subpage.top == 40); // Full clock-bar height is reserved before the title.
+  const int before = updates;
+  refresh();
+  assert(updates == before); // Periodic refreshes still avoid unnecessary layout.
+  active = &home;
+  refresh();
+  assert(home.top == 4 && subpage.top == 4);
   for (bool enabled : {false, true}) {
     for (bool scheduled_off : {false, true}) {
       for (auto *screen : {&home, &subpage, &screensaver}) {

@@ -65,6 +65,15 @@ esphome:
             clock_bar_companion_subpage_title_font() =
                 lv_obj_get_style_text_font(id(display_time), LV_PART_MAIN);
             navigation_subpage_clock_bar_refresh() = []() {
+              // Page changes can show the bar even when it is disabled on home.
+              // Reserve its space before displaying the subpage title.
+              const ClockBarVisibility visibility = clock_bar_resolve_visibility(
+                  id(clock_bar_enabled).state, id(main_page)->obj,
+                  id(espdesktop_app).display().current_mode(),
+                  id(espdesktop_app).display().target_schedule_inactive());
+              clock_bar_set_button_grid_pages_pad_top(
+                  id(main_page)->obj,
+                  visibility.reserve_space ? ${main_page_pad_top} : ${main_page_compact_pad_top});
               navigation_refresh_subpage_label();
               clock_bar_set_widget_hidden(id(display_time),
                   !(clock_bar_should_show(id(clock_bar_enabled).state, id(main_page)->obj,
