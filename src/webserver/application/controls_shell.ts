@@ -167,12 +167,6 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
-        var specialPageEntry: any = document.createElement("button");
-        specialPageEntry.className = "sp-special-page-entry";
-        specialPageEntry.type = "button";
-        specialPageEntry.textContent = "Configure Special Page";
-        els.specialPageEntry = specialPageEntry;
-        page.appendChild(specialPageEntry);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =
@@ -201,6 +195,19 @@ export function createControlsShellFeature(
         hint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
         els.previewHint = hint;
         page.appendChild(hint);
+        var specialPageEntry: any = document.createElement("button");
+        specialPageEntry.className = "sp-special-page-entry";
+        specialPageEntry.type = "button";
+        specialPageEntry.setAttribute("aria-label", "Configure swipe-up page");
+        specialPageEntry.innerHTML =
+            '<span class="sp-swipe-gesture" aria-hidden="true">' +
+                '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<path d="M16 23V7m-6 6 6-6 6 6M7 27h18"/></svg></span>' +
+            '<span class="sp-swipe-copy"><span class="sp-swipe-title">Swipe-up page</span>' +
+                '<span class="sp-swipe-description">Swipe up from the bottom edge of your display.</span></span>' +
+            '<span class="sp-swipe-action">Configure page <span aria-hidden="true">&#8594;</span></span>';
+        els.specialPageEntry = specialPageEntry;
+        page.appendChild(specialPageEntry);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";
         var modal: any = document.createElement("div");

@@ -36,7 +36,8 @@ To customise a Back card, edit its name and colours in the editor. Its default a
 
 Swipe up from the bottom edge of the home screen or a card subpage to open a
 separate page. A short upward swipe from the bottom edge opens it; a long drag
-is not needed. Configure it with **Special Page** in the web layout editor.
+is not needed. Choose **Configure page** in the **Swipe-up page** tray below the display
+preview in the web layout editor to add cards.
 Click the page title in the preview to rename it, then choose **Save**. Use the
 reset icon and save to restore the default. The custom title is saved with the
 page and appears on the display with updated firmware.
