@@ -167,12 +167,13 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
-        var specialPageEntry: any = document.createElement("button");
-        specialPageEntry.className = "sp-special-page-entry";
-        specialPageEntry.type = "button";
-        specialPageEntry.textContent = "Configure Special Page";
-        els.specialPageEntry = specialPageEntry;
-        page.appendChild(specialPageEntry);
+        var specialPageName: any = document.createElement("button");
+        specialPageName.type = "button";
+        specialPageName.className = "sp-special-page-name";
+        specialPageName.setAttribute("aria-label", "Rename Special Page");
+        specialPageName.hidden = true;
+        els.specialPageName = specialPageName;
+        page.appendChild(specialPageName);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =
@@ -183,6 +184,7 @@ export function createControlsShellFeature(
                 '<div class="sp-clockbar-section sp-clockbar-right" data-clockbar-section="right"></div>' +
                 "</div>" +
                 '<div class="sp-main"></div>' +
+                '<span class="sp-display-swipe-handle" aria-hidden="true"></span>' +
                 "</div>";
         page.appendChild(wrap);
         els.previewScreen = wrap.querySelector(".sp-screen");
@@ -200,6 +202,22 @@ export function createControlsShellFeature(
         hint.className = "sp-hint";
         hint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
         els.previewHint = hint;
+        var specialPageEntry: any = document.createElement("button");
+        specialPageEntry.className = "sp-special-page-entry";
+        specialPageEntry.type = "button";
+        specialPageEntry.setAttribute("aria-label", "Configure swipe-up page");
+        specialPageEntry.innerHTML =
+            '<span class="sp-swipe-gesture" aria-hidden="true">' +
+                '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<path d="M16 23V7m-6 6 6-6 6 6M7 27h18"/></svg></span>' +
+            '<span class="sp-swipe-copy"><span class="sp-swipe-title">Swipe-up page</span>' +
+                '<span class="sp-swipe-description">Swipe up from the bottom edge.</span></span>' +
+            '<span class="sp-swipe-action">Configure <span aria-hidden="true">&#8594;</span></span>';
+        els.specialPageEntry = specialPageEntry;
+        var swipeWrap: any = document.createElement("div");
+        swipeWrap.className = "sp-swipe-wrap";
+        swipeWrap.appendChild(specialPageEntry);
+        page.appendChild(swipeWrap);
         page.appendChild(hint);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";

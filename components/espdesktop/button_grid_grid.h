@@ -2328,10 +2328,13 @@ inline void grid_phase2(
   }
 
   if (cfg.info_only) {
+    navigation_update_home_swipe_handle(main_page_obj, false);
     grid_phase2_complete_state() = true;
     refresh_theme_grid_after_rebuild();
     return;
   }
+
+  navigation_update_home_swipe_handle(main_page_obj, true);
 
   // --- Subpage creation ---
   static lv_coord_t sp_col_dsc[MAX_GRID_SLOTS + 1];
@@ -2413,13 +2416,17 @@ inline void grid_phase2(
     lv_obj_set_style_bg_opa(sub_scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_layout(sub_scr, LV_LAYOUT_GRID);
     lv_obj_set_grid_dsc_array(sub_scr, sp_col_dsc, sp_row_dsc);
-    lv_obj_set_style_pad_top(sub_scr, mp_pad_top, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(sub_scr, is_special_page
+        ? navigation_swipe_handle_padding(sub_scr) : mp_pad_top, LV_PART_MAIN);
     lv_obj_set_style_pad_bottom(sub_scr, mp_pad_bottom, LV_PART_MAIN);
     lv_obj_set_style_pad_left(sub_scr, mp_pad_left, LV_PART_MAIN);
     lv_obj_set_style_pad_right(sub_scr, mp_pad_right, LV_PART_MAIN);
     lv_obj_set_style_pad_row(sub_scr, mp_pad_row, LV_PART_MAIN);
     lv_obj_set_style_pad_column(sub_scr, mp_pad_col, LV_PART_MAIN);
     lv_obj_clear_flag(sub_scr, LV_OBJ_FLAG_SCROLLABLE);
+    if (auto *entry = navigation_find_slot(navigation_slot)) {
+      entry->swipe_handle = navigation_create_swipe_handle(sub_scr, is_special_page);
+    }
     clock_bar_clear_responsive_grid_cards(sub_scr);
 
     lv_obj_t *back_btn = create_grid_card_button(

@@ -39,6 +39,7 @@ struct NavigationSubpageEntry {
   std::string title;
   lv_obj_t *screen = nullptr;
   lv_obj_t *back_button = nullptr;
+  lv_obj_t *swipe_handle = nullptr;
   bool back_neutral_background = true;
   BtnSlot back_slot{};
   struct Card {
@@ -109,6 +110,59 @@ inline std::vector<lv_obj_t *> &navigation_grid_screens() {
 inline bool &navigation_special_page_back_button_marker() {
   static bool marker = false;
   return marker;
+}
+
+// Handles belong to their screen, never the top layer, so setup screens,
+// screensavers and modals do not inherit the swipe cue.
+inline lv_coord_t navigation_swipe_handle_padding(lv_obj_t *screen) {
+  const int width = lv_obj_get_width(screen);
+  return std::max(2, width / 160) + 2 * std::max(3, width / 100);
+}
+
+inline lv_obj_t *navigation_create_swipe_handle(lv_obj_t *screen, bool top) {
+  lv_obj_update_layout(screen);
+  const int width = lv_obj_get_width(screen);
+  lv_obj_t *handle = lv_obj_create(screen);
+  lv_obj_remove_style_all(handle);
+  lv_obj_add_flag(handle, LV_OBJ_FLAG_IGNORE_LAYOUT);
+  lv_obj_add_flag(handle, LV_OBJ_FLAG_FLOATING);
+  lv_obj_clear_flag(handle, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(handle, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_size(handle, std::max(24, width / 12), std::max(2, width / 160));
+  lv_obj_set_style_radius(handle, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+  lv_obj_set_style_bg_color(handle, lv_color_hex(theme_display_color(current_theme().text_muted)), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(handle, LV_OPA_COVER, LV_PART_MAIN);
+  const int inset = std::max(3, width / 100);
+  lv_obj_align(handle, top ? LV_ALIGN_TOP_MID : LV_ALIGN_BOTTOM_MID, 0,
+               top ? inset - lv_obj_get_style_pad_top(screen, LV_PART_MAIN)
+                   : lv_obj_get_style_pad_bottom(screen, LV_PART_MAIN) - inset);
+  return handle;
+}
+
+inline lv_obj_t *&navigation_home_swipe_handle() {
+  static lv_obj_t *handle = nullptr;
+  return handle;
+}
+
+inline void navigation_update_home_swipe_handle(lv_obj_t *screen, bool enabled) {
+  auto &handle = navigation_home_swipe_handle();
+  static lv_coord_t original_bottom = 0;
+  if (handle) {
+    lv_obj_set_style_pad_bottom(lv_obj_get_parent(handle), original_bottom, LV_PART_MAIN);
+    lv_obj_del(handle);
+  }
+  handle = nullptr;
+  if (!screen || !enabled) return;
+  lv_obj_update_layout(screen);
+  original_bottom = lv_obj_get_style_pad_bottom(screen, LV_PART_MAIN);
+  lv_obj_set_style_pad_bottom(screen, std::max<lv_coord_t>(
+      lv_obj_get_style_pad_bottom(screen, LV_PART_MAIN),
+      navigation_swipe_handle_padding(screen)), LV_PART_MAIN);
+  handle = navigation_create_swipe_handle(screen, false);
+  clock_bar_refresh_responsive_grid_cards(screen);
+  lv_obj_add_event_cb(handle, [](lv_event_t *) {
+    navigation_home_swipe_handle() = nullptr;
+  }, LV_EVENT_DELETE, nullptr);
 }
 
 inline std::string navigation_trim(const std::string &value) {
@@ -264,6 +318,7 @@ inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   for (auto &entry : navigation_subpages()) {
     if (entry.screen != nullptr) {
       navigation_release_subpage_runtime(entry);
+      clock_bar_clear_responsive_grid_cards(entry.screen);
       lv_obj_del(entry.screen);
     }
   }
@@ -312,7 +367,8 @@ inline void navigation_register_subpage(int slot, int display_order,
   entry.kind = navigation_lower(navigation_trim(kind));
   entry.screen = screen;
   navigation_subpages().push_back(entry);
-  clock_bar_register_button_grid_page(screen);
+  // The swipe-up page reserves only its handle, independent of clock-bar settings.
+  if (entry.kind != "special") clock_bar_register_button_grid_page(screen);
   // Both events run after LVGL has changed the active screen. Unloading also
   // restores temperatures immediately when returning home or opening another UI.
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,
@@ -406,7 +462,7 @@ inline std::string navigation_active_subpage_label() {
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
-  if (entry && entry->kind == "special") return entry->title;
+  if (entry && entry->kind == "special") return "";
   if (entry == nullptr || parent == nullptr) return "";
   if (!parent->label.empty()) return parent->label;
   // Unlabelled app folders retain their familiar application-name fallback.

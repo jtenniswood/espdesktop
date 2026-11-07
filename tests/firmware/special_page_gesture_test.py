@@ -68,7 +68,7 @@ int main() {
   assert(callbacks==1 && screens.size()==1);
   assert(navigation_active_subpage_label().empty());
   selected_slot = -1; entry.kind = "special"; entry.title = "Office: Tools";
-  assert(navigation_active_subpage_label() == "Office: Tools");
+  assert(navigation_active_subpage_label().empty());
   entry.title.clear();
   assert(navigation_active_subpage_label().empty());
   selected_slot = 1; entry.kind = "subpage"; has_parent = true; parent.label = "Rooms";

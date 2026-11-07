@@ -8902,9 +8902,10 @@ async function assertSubpageClockBar(browser, testCase) {
     assert(fits, "standard clock bar fits above the grid");
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
-    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
-    await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
-    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "Special Page also has no clock");
+    await page.getByRole("button", { name: "Configure swipe-up page", exact: true }).click();
+    await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
+    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "Special Page has no clock bar");
+    assert.strictEqual(await page.locator(".sp-topbar .sp-clockbar-subpage-title").count(), 0, "Special Page has no on-screen title");
     console.log(`${testCase.name}: subpage clock bar visible, time hidden, home setting preserved.`);
   } finally { await context.close(); }
 }
@@ -8921,8 +8922,31 @@ async function assertSpecialPageRename(browser, testCase) {
   const input = page.getByLabel("Page name", { exact: true });
   const custom = "Office: Tools, 50% | 日本語 <test>";
   async function openPage() {
-    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
+    await entry.waitFor();
+    const screenBounds = await page.locator(".sp-screen").boundingBox();
+    const entryBounds = await entry.boundingBox();
+    assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
+    assert(entryBounds.y - screenBounds.y - screenBounds.height <= 11, "swipe-up entry stays close to the display");
+    assert(Math.abs(entryBounds.width - screenBounds.width) < 1, "swipe-up entry matches the display width");
+    assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
+    const homeHandle = await page.locator(".sp-display-swipe-handle").boundingBox();
+    const homeGrid = await page.locator(".sp-main").boundingBox();
+    assert(homeHandle.y >= homeGrid.y + homeGrid.height, "bottom handle stays clear of cards");
+    assert(await entry.getByText("Swipe up from the bottom edge.", { exact: true }).isVisible());
+    assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
+    if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
+    await entry.focus();
+    await entry.press("Enter");
     await title.waitFor();
+    assert.strictEqual(await entry.count(), 0, "entry is hidden while editing the swipe-up page");
+    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "swipe-up page has no clock bar");
+    assert.strictEqual(await page.locator(".sp-topbar .sp-clockbar-subpage-title").count(), 0, "swipe-up page has no title inside the display");
+    const handle = await page.locator(".sp-display-swipe-handle").boundingBox();
+    const grid = await page.locator(".sp-main").boundingBox();
+    assert(handle.y + handle.height < grid.y, "top swipe handle stays clear of cards");
+    assert(!(await title.evaluate(el => !!el.closest(".sp-screen"))), "page name is editable outside the display");
+    if (process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT, fullPage: true });
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
