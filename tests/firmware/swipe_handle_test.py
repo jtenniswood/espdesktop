@@ -19,8 +19,8 @@ stubs = r'''
 #include <vector>
 using lv_coord_t = int;
 constexpr int LV_PART_MAIN=0, LV_RADIUS_CIRCLE=999, LV_OPA_COVER=255;
-constexpr int LV_OBJ_FLAG_IGNORE_LAYOUT=1, LV_OBJ_FLAG_FLOATING=2;
-constexpr int LV_OBJ_FLAG_CLICKABLE=4, LV_OBJ_FLAG_SCROLLABLE=8;
+enum lv_obj_flag_t { LV_OBJ_FLAG_IGNORE_LAYOUT=1, LV_OBJ_FLAG_FLOATING=2,
+                     LV_OBJ_FLAG_CLICKABLE=4, LV_OBJ_FLAG_SCROLLABLE=8 };
 constexpr int LV_ALIGN_TOP_MID=1, LV_ALIGN_BOTTOM_MID=2;
 constexpr int LV_EVENT_DELETE=1, LV_EVENT_SCREEN_LOADED=2, LV_EVENT_SCREEN_UNLOADED=3;
 struct lv_event_t {};
@@ -36,8 +36,8 @@ lv_obj_t *lv_obj_create(lv_obj_t *p) {
   auto *o=new lv_obj_t; o->parent=p; ++p->children; ++created; return o;
 }
 void lv_obj_remove_style_all(lv_obj_t *) {}
-void lv_obj_add_flag(lv_obj_t *o,int f) { o->flags|=f; }
-void lv_obj_clear_flag(lv_obj_t *o,int f) { o->flags&=~f; }
+void lv_obj_add_flag(lv_obj_t *o,lv_obj_flag_t f) { o->flags|=f; }
+void lv_obj_clear_flag(lv_obj_t *o,lv_obj_flag_t f) { o->flags&=~f; }
 void lv_obj_set_size(lv_obj_t *o,int w,int h) { o->width=w; o->height=h; }
 void lv_obj_set_style_radius(lv_obj_t *,int,int) {}
 void lv_obj_set_style_bg_color(lv_obj_t *,int,int) {}
