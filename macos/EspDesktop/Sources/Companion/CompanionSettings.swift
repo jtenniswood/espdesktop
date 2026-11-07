@@ -716,22 +716,17 @@ struct CompanionSettings: View {
     private var applicationsPage: some View {
         Form {
             Section {
-                Picker("Available apps", selection: Binding(
-                    get: { showingApplicationCustomization },
-                    set: { customize in
-                        customizingApplications = customize
-                        if !customize { store.setAllApplications(approved: true) }
+                Toggle("All available apps", isOn: Binding(
+                    get: { !showingApplicationCustomization },
+                    set: { allApps in
+                        customizingApplications = !allApps
+                        if allApps { store.setAllApplications(approved: true) }
                     }
-                )) {
-                    Text("All apps").tag(false)
-                    Text("Customize").tag(true)
-                }
-                .pickerStyle(.radioGroup)
+                ))
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .disabled(!store.applicationCatalogueReady)
             } header: {
                 Text("Apps")
-            } footer: {
-                Text("All apps are available on your display by default. Choose Customize to hide individual apps. Newly installed apps are included automatically.")
             }
 
             if store.availableApps.isEmpty {
