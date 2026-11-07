@@ -90,7 +90,7 @@
       "items": [
         {
           "id": "com.example.App",
-          "label": "Café"
+          "label": "Caf\u00e9"
         }
       ]
     },
@@ -192,7 +192,10 @@
       "protocol": 4,
       "type": "focus.changed",
       "actionId": "com.apple.Safari",
-      "actionIds": ["com.apple.Safari", "com.apple.finder"]
+      "actionIds": [
+        "com.apple.Safari",
+        "com.apple.finder"
+      ]
     },
     "direction": "mac_to_panel",
     "state": "connected",
@@ -861,7 +864,7 @@
       "items": [
         {
           "id": "com.example.App",
-          "label": "Café"
+          "label": "Caf\u00e9"
         }
       ]
     },
@@ -878,7 +881,7 @@
       "applicationIdentifier": "app",
       "applicationName": "App",
       "contentIdentifier": "song",
-      "title": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+      "title": "\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9",
       "artist": "Artist",
       "album": "Album",
       "state": "playing",
@@ -1148,5 +1151,50 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "immediate native focus",
+    "message": {
+      "protocol": 4,
+      "type": "focus.changed",
+      "actionId": "com.apple.finder",
+      "actionIds": [
+        "com.apple.finder"
+      ],
+      "applicationOnly": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "confirmed focus",
+    "message": {
+      "protocol": 4,
+      "type": "focus.changed",
+      "actionId": "com.apple.finder",
+      "actionIds": [
+        "com.apple.finder"
+      ],
+      "applicationOnly": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "invalid native focus flag",
+    "message": {
+      "protocol": 4,
+      "type": "focus.changed",
+      "actionId": "com.apple.finder",
+      "actionIds": [
+        "com.apple.finder"
+      ],
+      "applicationOnly": "yes"
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
   }
 ]

@@ -155,12 +155,12 @@ inline void switch_confirmation_open_modal(const ParsedCfg &p, lv_obj_t *btn_obj
   lv_obj_align(ui.no_btn, LV_ALIGN_CENTER, no_x, action_y);
   lv_obj_align(ui.confirm_btn, LV_ALIGN_CENTER, confirm_x, action_y);
 
-  lv_obj_add_event_cb(ui.no_btn, [](lv_event_t *) {
+  bind_immediate_button_action(ui.no_btn, [](lv_event_t *) {
     switch_confirmation_hide_modal();
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.confirm_btn, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.confirm_btn, [](lv_event_t *) {
     switch_confirmation_confirm();
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   lv_obj_move_foreground(ui.overlay);
 }

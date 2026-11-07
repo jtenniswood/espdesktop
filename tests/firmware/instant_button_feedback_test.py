@@ -7,7 +7,7 @@ import tempfile
 from generate_media_lifecycle_integration import definition
 
 root = Path(__file__).resolve().parents[2]
-header = (root / 'components/espdesktop/button_grid_cards.h').read_text()
+header = (root / 'components/espdesktop/instant_button_style.h').read_text()
 line, helper = definition(header, 'apply_instant_button_feedback')
 source = r'''
 #include <cassert>
@@ -16,69 +16,55 @@ source = r'''
 #include <vector>
 using lv_style_prop_t = int;
 using lv_style_selector_t = int;
-enum lv_state_t { LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2 };
-constexpr int LV_STYLE_PROP_INV = 0, LV_STYLE_BG_COLOR = 1, LV_STYLE_BG_OPA = 2;
-constexpr int LV_PART_MAIN = 0;
-struct lv_style_transition_dsc_t {
-  const lv_style_prop_t *props = nullptr;
-  unsigned time = 0, delay = 0;
-};
+enum lv_state_t { LV_STATE_DEFAULT=0, LV_STATE_CHECKED=1, LV_STATE_PRESSED=2 };
+constexpr int LV_STYLE_TRANSITION=1, LV_STYLE_BG_COLOR=2, LV_STYLE_OUTLINE_WIDTH=3;
+constexpr int LV_STYLE_RES_FOUND=1, LV_PART_MAIN=0;
+struct lv_style_value_t { int num=0; };
+struct lv_style_t { std::map<int,int> props; uint32_t prop_cnt; };
+struct Entry { lv_style_t *style; unsigned selector; bool is_trans=false,is_local=false; };
 struct lv_obj_t {
-  std::map<int, const lv_style_transition_dsc_t *> transitions;
-  std::map<int, int> outline_width;
+ std::vector<Entry> entries; Entry *styles=nullptr; uint32_t style_cnt=0;
+ std::map<int,int> outline_width;
+ void sync() { styles=entries.data();style_cnt=entries.size(); }
 };
-void lv_anim_path_ease_out() {}
-void lv_style_transition_dsc_init(lv_style_transition_dsc_t *d, const lv_style_prop_t *props,
-                                void (*)(), unsigned time, unsigned delay, void *) {
-  d->props = props; d->time = time; d->delay = delay;
+int lv_style_get_prop(const lv_style_t *s,int p,lv_style_value_t*) { return s->props.count(p); }
+void lv_obj_remove_local_style_prop(lv_obj_t *o,int p,unsigned selector) {
+ for(auto &e:o->entries) if(e.is_local&&e.selector==selector) { e.style->props.erase(p);e.style->prop_cnt=e.style->props.size(); }
 }
-void lv_obj_set_style_transition(lv_obj_t *obj, const lv_style_transition_dsc_t *d, int selector) {
-  assert(d && d->props); // LVGL reads tr->props without checking for a null descriptor.
-  obj->transitions[selector] = d;
+void lv_obj_remove_style(lv_obj_t *o,const lv_style_t *s,unsigned selector) {
+ for(auto i=o->entries.begin();i!=o->entries.end();) {
+  if(i->style==s&&i->selector==selector)i=o->entries.erase(i);else ++i;
+ }o->sync();
 }
-void lv_obj_set_style_outline_width(lv_obj_t *obj, int width, int selector) {
-  obj->outline_width[selector] = width;
-}
+void lv_obj_set_style_outline_width(lv_obj_t *o,int width,int selector) { o->outline_width[selector]=width; }
 '''
-source += f'\n#line {line} "button_grid_cards.h"\n{helper}\n'
+_, removal = definition((root / 'components/espdesktop/instant_button_style.h').read_text(), 'remove_button_state_transitions')
+source += removal + '\n' + helper
 source += r'''
 int main() {
-  apply_instant_button_feedback(nullptr);
-  lv_obj_t first, second;
+ remove_button_state_transitions(nullptr);apply_instant_button_feedback(nullptr);
+ lv_style_t base{{{LV_STYLE_BG_COLOR,42}},1};
+ lv_style_t normal{{{LV_STYLE_TRANSITION,200}},1},pressed{{{LV_STYLE_TRANSITION,100}},1};
+ lv_style_t local{{{LV_STYLE_TRANSITION,0},{LV_STYLE_OUTLINE_WIDTH,0}},2};
+ lv_obj_t first,second;
+ first.entries={{&base,0},{&normal,0},{&pressed,LV_STATE_PRESSED},{&local,0,false,true}};first.sync();
+ second.entries={{&base,0},{&normal,0},{&pressed,LV_STATE_PRESSED}};second.sync();
+ apply_instant_button_feedback(&first);
+ assert(normal.props.count(LV_STYLE_TRANSITION)); // Shared theme is unchanged.
+ assert(second.style_cnt==3);
+ assert(first.style_cnt==2&&local.props.count(LV_STYLE_OUTLINE_WIDTH));
+ assert(!local.props.count(LV_STYLE_TRANSITION));
+ assert(first.entries[0].style==&base&&base.props.at(LV_STYLE_BG_COLOR)==42);
+ for(unsigned i=0;i<2000;++i) {
   apply_instant_button_feedback(&first);
-  apply_instant_button_feedback(&second);
-  const lv_style_prop_t theme_props[] = {LV_STYLE_BG_COLOR, LV_STYLE_BG_OPA, 0};
-  const lv_style_transition_dsc_t theme_default{theme_props, 200, 70};
-  const lv_style_transition_dsc_t theme_pressed{theme_props, 200, 0};
-  for (unsigned change = 0; change < 2000; ++change) {
-    const int state = change % 4; // Off/on, released/pressed, including pressed+checked.
-    std::vector<std::pair<int, const lv_style_transition_dsc_t *>> styles;
-    for (auto entry : first.transitions) styles.push_back(entry);
-    styles.push_back({LV_STATE_PRESSED, &theme_pressed});
-    styles.push_back({LV_STATE_DEFAULT, &theme_default});
-    struct Selected { int state; unsigned time, delay; };
-    std::map<int, Selected> selected;
-    // LVGL gathers properties from every matching style, not just the local
-    // transition. An empty descriptor leaves inherited theme fades in place.
-    for (const auto &style : styles) {
-      if (style.first & ~state) continue;
-      const auto *transition = style.second;
-      assert(transition && transition->props);
-      for (unsigned j = 0; transition->props[j] != 0; ++j) {
-        const int prop = transition->props[j];
-        auto existing = selected.find(prop);
-        if (existing != selected.end() && existing->second.state >= style.first) continue;
-        selected[prop] = {style.first, transition->time, transition->delay};
-      }
-    }
-    for (int prop : {LV_STYLE_BG_COLOR, LV_STYLE_BG_OPA}) {
-      assert(selected.count(prop));
-      assert(selected.at(prop).time == 0 && selected.at(prop).delay == 0);
-    }
-    assert(first.outline_width.at(state) == 0);
-    assert(first.transitions.at(state) == second.transitions.at(state));
-    apply_instant_button_feedback(&first); // Reconnect/theme setup remains safe.
+  const unsigned state=i%4;
+  for(const auto&e:first.entries) {
+   if(e.selector&~state)continue;
+   assert(!e.style->props.count(LV_STYLE_TRANSITION));
   }
+  assert(first.outline_width.at(state)==0);
+ }
+ apply_instant_button_feedback(&second);assert(second.style_cnt==1);
 }
 '''
 with tempfile.TemporaryDirectory(prefix='instant-button-feedback-') as directory:
@@ -88,4 +74,4 @@ with tempfile.TemporaryDirectory(prefix='instant-button-feedback-') as directory
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else 'c++', '-std=c++17', '-Wall',
                     '-Wextra', '-Werror', '-fsanitize=address,undefined', str(cpp), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print('Fill overrides inherited fades with zero duration/delay and no outline across 2000 state changes.')
+print("Instant feedback removes native animation styles, preserves shared colours and disables outlines across 2000 state changes.")

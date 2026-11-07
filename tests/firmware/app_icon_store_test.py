@@ -76,9 +76,12 @@ int main() {
   store.set_references({"app.one"});
   store.set_enabled_applications({"app.one"});
   std::vector<uint8_t> pixels(APP_ICON_PIXEL_BYTES, 42), output(APP_ICON_PIXEL_BYTES);
-  assert(store.save("app.one", digest(pixels), pixels.data(), pixels.size()));
+  const auto expected_hash = digest(pixels);
+  assert(store.save("app.one", expected_hash, pixels.data(), pixels.size()));
   payload_hashes = 0;
-  assert(store.copy_pixels("app.one", output.data(), output.size()) && output == pixels);
+  std::array<uint8_t, 32> copied_hash{};
+  assert(store.copy_pixels("app.one", output.data(), output.size(), &copied_hash) && output == pixels);
+  assert(copied_hash == expected_hash);
   assert(payload_hashes == 1);
   for (int visit = 0; visit < 20; ++visit) {
     std::fill(output.begin(), output.end(), 0);

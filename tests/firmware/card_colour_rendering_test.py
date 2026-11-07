@@ -19,6 +19,7 @@ source = r'''
 #include <map>
 #include <string>
 #include <vector>
+#define ESP_LOGD(...) ((void)0)
 struct lv_obj_t;
 void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "i18n_generated.h"
@@ -39,6 +40,7 @@ struct lv_obj_t {
   uint32_t background[3] = {}, text[3] = {}, gradient[3] = {}, border[3] = {}, outline[3] = {};
   int gradient_direction[3] = {};
   int state = 0;
+  bool instant_feedback = false;
   int flags = 0;
   std::vector<lv_event_cb_t> events;
   std::vector<lv_obj_t *> children;
@@ -63,6 +65,7 @@ void lv_obj_set_style_bg_grad_dir(lv_obj_t *obj, int direction, int selector) { 
 void lv_obj_set_style_bg_opa(lv_obj_t *, int, int) {}
 void lv_obj_set_style_border_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->border[selector] = rgb; }
 void lv_obj_set_style_outline_color(lv_obj_t *obj, uint32_t rgb, int selector) { obj->outline[selector] = rgb; }
+void apply_instant_button_feedback(lv_obj_t *obj) { obj->instant_feedback = true; }
 void lv_obj_set_style_border_width(lv_obj_t *, int, int) {}
 void lv_obj_set_style_shadow_width(lv_obj_t *, int, int) {}
 uint32_t lv_obj_get_style_text_color(lv_obj_t *obj, int) {
@@ -70,8 +73,9 @@ uint32_t lv_obj_get_style_text_color(lv_obj_t *obj, int) {
     : ((obj->state & LV_STATE_CHECKED) ? LV_STATE_CHECKED : LV_STATE_DEFAULT)];
 }
 bool lv_obj_has_state(lv_obj_t *obj, int state) { return (obj->state & state) != 0; }
-void lv_obj_add_state(lv_obj_t *obj, int state) { obj->state |= state; }
-void lv_obj_clear_state(lv_obj_t *obj, int state) { obj->state &= ~state; }
+unsigned state_writes = 0;
+void lv_obj_add_state(lv_obj_t *obj, int state) { ++state_writes; obj->state |= state; }
+void lv_obj_clear_state(lv_obj_t *obj, int state) { ++state_writes; obj->state &= ~state; }
 int lv_event_get_code(lv_event_t *event) { return event->code; }
 lv_obj_t *lv_event_get_target(lv_event_t *event) { return event->target; }
 void lv_obj_remove_event_cb_with_user_data(lv_obj_t *obj, lv_event_cb_t callback, void *) {
@@ -82,6 +86,10 @@ constexpr int LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS = 1 << 20;
 constexpr int LV_EVENT_DRAW_TASK_ADDED = 20;
 void lv_obj_remove_event_cb(lv_obj_t *obj, lv_event_cb_t callback) { lv_obj_remove_event_cb_with_user_data(obj, callback, nullptr); }
 void lv_obj_add_event_cb(lv_obj_t *obj, lv_event_cb_t callback, int, void *) { obj->events.push_back(callback); }
+using lv_event_dsc_t = lv_event_cb_t;
+uint32_t lv_obj_get_event_count(lv_obj_t *obj) { return obj->events.size(); }
+lv_event_dsc_t *lv_obj_get_event_dsc(lv_obj_t *obj, uint32_t i) { return &obj->events[i]; }
+lv_event_cb_t lv_event_dsc_get_cb(lv_event_dsc_t *dsc) { return *dsc; }
 void send_event(lv_obj_t *obj, int code) {
   lv_event_t event{obj, code};
   for (auto callback : obj->events) callback(&event);
@@ -183,18 +191,36 @@ bool focus_allowed = true;
 bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
 std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
 unsigned focus_reads = 0;
-bool companion_action_active(const std::string &id) { ++focus_reads; return id == focused_app; }
+bool companion_action_active(const std::string &id, bool = false) { ++focus_reads; return id == focused_app; }
+struct CompanionRuntimeSnapshot {};
+bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &id, bool = false) {
+  return companion_action_active(id);
+}
+struct CompanionCardRef {
+  lv_obj_t *button;
+  std::string action_id, url_config, metric_key;
+  bool show_focus = true;
+  std::string required_focus_id{};
+};
+bool companion_action_available(const std::string &) { return true; }
+bool companion_action_available(const CompanionRuntimeSnapshot &, const std::string &) { return true; }
+std::vector<CompanionCardRef> focus_cards;
+auto &companion_card_refs() { return focus_cards; }
+bool lv_obj_is_valid(lv_obj_t *obj) { return obj != nullptr; }
 '''
 grid = (headers / "button_grid_grid.h").read_text()
 layout = (headers / "button_grid_layout.h").read_text()
 source += "\n" + "\n".join(re.findall(r"^constexpr char CARD_SIZE_.*?;$", layout, re.MULTILINE))
 
+source += "\nstruct lv_indev_t {}; lv_indev_t *lv_indev_get_act() { return nullptr; } void lv_indev_wait_release(lv_indev_t *) {}\n"
+
 groups = (
     ("button_grid_slider_contrast.h", "", ("slider_text_contrast_event_cb", "slider_bind_text_contrast")),
     ("button_grid_display.h", "", ("display_correct_color",)),
-    ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "bind_card_text_contrast_events", "set_card_checked_state")),
+    ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
+    ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("grid_token_has_span_suffix", "parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
-    ("companion_controls.h", "", ("companion_apply_card_focus",)),
+    ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_subpages.h", "", ("get_subpage_order", "subpage_back_token_span", "get_subpage_back_label", "get_subpage_back_color", "get_subpage_title")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
@@ -229,6 +255,32 @@ source += f'\n#line {line} "button_grid_cards.h"\n{code}\n'
 source += r'''
 #line 1 "card_colour_rendering_cases"
 int main() {
+  {
+    lv_obj_t old_app, new_app, unrelated_app, metric;
+    old_app.state = metric.state = LV_STATE_CHECKED;
+    focus_cards = {{&old_app, "old", "", ""}, {&new_app, "new", "", ""},
+                   {&unrelated_app, "other", "", ""}, {&metric, "", "", "stat.cpu"}};
+    focused_app = "new";
+    auto before = state_writes;
+    companion_refresh_card_focus(CompanionRuntimeSnapshot{});
+    assert(state_writes == before + 2);
+    assert(!lv_obj_has_state(&old_app, LV_STATE_CHECKED));
+    assert(lv_obj_has_state(&new_app, LV_STATE_CHECKED));
+    assert(!lv_obj_has_state(&unrelated_app, LV_STATE_CHECKED));
+    assert(lv_obj_has_state(&metric, LV_STATE_CHECKED));
+    before = state_writes;
+    for (int refresh = 0; refresh < 100; ++refresh)
+      companion_refresh_card_focus(CompanionRuntimeSnapshot{});
+    assert(state_writes == before);
+    lv_obj_t shortcut;
+    focus_cards = {{&shortcut, "shortcut.control+w", "", "", true, "target"}};
+    companion_refresh_card_focus(CompanionRuntimeSnapshot{});
+    assert(lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
+    focused_app = "target";
+    companion_refresh_card_focus(CompanionRuntimeSnapshot{});
+    assert(!lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
+    focus_cards.clear(); focused_app.clear();
+  }
   // An icon reload/reconnect after a light-theme change must not restore
   // the dark fallback captured when the card was first created.
   lv_obj_t app_card;
@@ -294,6 +346,8 @@ int main() {
         assert(matches == 1);
       }
     }
+  const auto saved_accent = current_button_primary_color();
+  set_current_button_primary_color(0x14B8A6); // A non-default configured highlight colour.
   for (const std::string token : {"B", "Bd", "Bw", "Bb", "Bt", "Bx"}) {
     for (const std::string prefix : {"", "~"}) {
       const auto order = get_subpage_order(prefix + "1," + token + "=Return%3AHome%2C50%25:#ffec16,2|ignored");
@@ -303,6 +357,7 @@ int main() {
       back.children = {&icon, &label};
       assert(!apply_subpage_back_colors(&back, order, DisplayProfile{}));
       assert(back.background[0] == 0xFFEC16);
+      assert(back.instant_feedback);
       assert(icon.text[0] == 0x212121 && label.text[0] == 0x212121);
       back.state = LV_STATE_PRESSED;
       send_event(&back, LV_EVENT_PRESSED);
@@ -311,10 +366,19 @@ int main() {
       back.state = 0;
       assert(apply_subpage_back_colors(&back, "B", DisplayProfile{}));
       assert(back.background[0] == current_theme().surface_card);
-      assert(back.background[LV_STATE_PRESSED] == current_theme().surface_card);
+      assert(back.background[LV_STATE_PRESSED] == current_button_primary_color());
+      assert(back.instant_feedback);
+      assert(label.text[0] == display_text_color_for_bg(current_theme().surface_card));
+      back.state = LV_STATE_PRESSED;
+      send_event(&back, LV_EVENT_PRESSED);
+      assert(icon.text[0] == display_text_color_for_bg(current_button_primary_color()));
+      assert(label.text[0] == display_text_color_for_bg(current_button_primary_color()));
+      back.state = 0;
+      send_event(&back, LV_EVENT_RELEASED);
       assert(label.text[0] == display_text_color_for_bg(current_theme().surface_card));
     }
   }
+  set_current_button_primary_color(saved_accent);
   for (const std::string order : {"", "B", "B=Return%3AHome", "B=Back:invalid", "B=Back:12345", "1=Back:FFEC16"})
     assert(get_subpage_back_color(order).empty());
   assert(get_subpage_back_label("B=Back:invalid") == "Back");
@@ -330,6 +394,27 @@ int main() {
   set_espdesktop_language("en");
   for (const ThemePalette *theme : {&DARK_THEME, &LIGHT_THEME}) {
     set_active_theme_palette(*theme);
+    // A modal/PIN label has its own theme colour, independent of the button.
+    lv_obj_t pin_key, pin_label;
+    pin_key.children = {&pin_label};
+    pin_key.text[0] = 0xFFFFFF;
+    pin_label.text[0] = theme->text_primary;
+    pin_key.state = LV_STATE_PRESSED;
+    consume_button_touch_press(&pin_key);
+    assert(pin_label.text[0] == theme->text_primary);
+    // Consuming a trigger press must restore contrast without a release event.
+    for (bool checked : {false, true}) {
+      lv_obj_t trigger, label, icon;
+      trigger.children = {&label, &icon};
+      apply_button_colors(&trigger, true, 0xFFFFFF, true, 0x212121);
+      trigger.state = LV_STATE_PRESSED | (checked ? LV_STATE_CHECKED : 0);
+      send_event(&trigger, LV_EVENT_PRESSED);
+      assert(label.text[0] == display_text_color_for_bg(0xFFFFFF));
+      consume_button_touch_press(&trigger);
+      assert(trigger.state == (checked ? LV_STATE_CHECKED : 0));
+      assert(label.text[0] == lv_obj_get_style_text_color(&trigger, LV_PART_MAIN));
+      assert(icon.text[0] == label.text[0]);
+    }
     // Forecast temperatures retain muted grey through card contrast updates.
     lv_obj_t forecast_card, forecast_day, forecast_icon, forecast_temperature;
     forecast_card.children={&forecast_day,&forecast_icon,&forecast_temperature};
@@ -590,6 +675,11 @@ int main() {
           focused_app = "app"; focus_allowed = true;
           companion_apply_card_focus(&button, "app");
           assert(value.text[0] == display_text_color_for_bg(colour.active));
+          assert(lv_obj_has_state(&button, LV_STATE_CHECKED));
+          const auto writes_before_repeat_focus = state_writes;
+          for (int update = 0; update < 100; ++update)
+            companion_apply_card_focus(&button, "app");
+          assert(state_writes == writes_before_repeat_focus);
           const auto reads_before_hidden_focus = focus_reads;
           companion_apply_card_focus(&button, "app", "", false);
           assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
@@ -607,6 +697,10 @@ int main() {
           assert(focus_reads == reads_before_hidden_focus);
           focused_app.clear(); companion_apply_card_focus(&button, "app");
           assert(value.text[0] == colour.text);
+          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
+          const auto writes_before_repeat_inactive = state_writes;
+          companion_apply_card_focus(&button, "app");
+          assert(state_writes == writes_before_repeat_inactive);
           focused_app = "browser"; companion_apply_card_focus(&button, "app", "url.page");
           assert(value.text[0] == display_text_color_for_bg(colour.active));
           focus_allowed = false; companion_apply_card_focus(&button, "app", "url.page");

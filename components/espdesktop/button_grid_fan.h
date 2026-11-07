@@ -579,7 +579,7 @@ inline lv_obj_t *fan_control_create_tab_button(lv_obj_t *parent, const char *ico
     lv_obj_set_style_transform_zoom(label, 180, LV_PART_MAIN);
     light_control_center_icon_label(label);
   }
-  lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+  bind_immediate_button_action(btn, [](lv_event_t *e) {
     FanControlTab tab = static_cast<FanControlTab>(
       reinterpret_cast<uintptr_t>(lv_event_get_user_data(e)));
     FanControlModalUi &ui = fan_control_modal_ui();
@@ -587,7 +587,7 @@ inline lv_obj_t *fan_control_create_tab_button(lv_obj_t *parent, const char *ico
     fan_control_ensure_visible_tab(ui.active);
     fan_control_apply_tab_visibility();
     fan_control_layout_modal(ui.active);
-  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
+  }, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
   return btn;
 }
 
@@ -1083,16 +1083,16 @@ inline void fan_control_open_modal(FanCardCtx *ctx) {
     FanControlModalUi &ui = fan_control_modal_ui();
     if (ui.active) ui.active->dragging_speed = false;
   }, LV_EVENT_PRESS_LOST, nullptr);
-  if (ui.speed_minus_btn) lv_obj_add_event_cb(ui.speed_minus_btn, [](lv_event_t *e) {
+  if (ui.speed_minus_btn) bind_immediate_button_action(ui.speed_minus_btn, [](lv_event_t *e) {
     (void) e;
     FanControlModalUi &ui = fan_control_modal_ui();
     if (ui.active && ui.active->available) send_fan_step_action(ui.active, false);
-  }, LV_EVENT_CLICKED, nullptr);
-  if (ui.speed_plus_btn) lv_obj_add_event_cb(ui.speed_plus_btn, [](lv_event_t *e) {
+  }, nullptr);
+  if (ui.speed_plus_btn) bind_immediate_button_action(ui.speed_plus_btn, [](lv_event_t *e) {
     (void) e;
     FanControlModalUi &ui = fan_control_modal_ui();
     if (ui.active && ui.active->available) send_fan_step_action(ui.active, true);
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   ui.preset_list = control_modal_create_scroll_list(
     ui.panel, shell.content_w, shell.layout.panel_h - shell.layout.inset * 2,

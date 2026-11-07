@@ -4,6 +4,7 @@
 
 #include "button_grid_datetime_cards.h"
 #include "card_icon_size.h"
+#include "instant_button_style.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
@@ -33,6 +34,10 @@ struct CompanionAppIconImageData {
   size_t display_bytes = 0;
   espdesktop::app_icon::Insets artwork_insets{};
   bool artwork_insets_ready = false;
+  std::array<uint8_t, 32> loaded_hash{};
+  bool loaded_hash_valid = false;
+  bool rendered_online = false;
+  bool refresh_pending = false;
 
   bool prepare_pixels(const std::string &id) {
     std::array<uint8_t, 32> hash{};
@@ -77,6 +82,7 @@ struct CompanionAppIconImageData {
     release_source_pixels();
     descriptor.data = nullptr;
     image_loaded = false;
+    loaded_hash_valid = false;
   }
 
   ~CompanionAppIconImageData() {
@@ -238,8 +244,9 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   }
   if (!image || source.application_id.empty() || !source.prepare_pixels(source.application_id) ||
       !esphome::companion::app_icon_store().copy_pixels(
-          source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES)) {
-    source.image_loaded = false;
+          source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES,
+          &source.loaded_hash)) {
+    source.release_pixels();
     source.accent_palette = {};
     if (image) lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
     if (source.fallback_icon) lv_obj_clear_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
@@ -247,6 +254,8 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     return false;
   }
   source.image_loaded = true;
+  source.loaded_hash_valid = true;
+  source.rendered_online = source.companion_online;
   source.artwork_insets_ready = false;
   source.release_display_pixels();
   constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
@@ -479,29 +488,6 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
 
-inline void apply_instant_button_feedback(lv_obj_t *btn) {
-  if (!btn) return;
-  // LVGL also collects transitions from inherited theme styles. Explicitly
-  // override fill properties in every state; an empty list leaves those fades
-  // active, while a null descriptor crashes when LVGL reads transition->props.
-  static const lv_style_prop_t props[] = {
-      LV_STYLE_BG_COLOR, LV_STYLE_BG_OPA, LV_STYLE_PROP_INV};
-  static lv_style_transition_dsc_t transition;
-  static bool initialized = false;
-  if (!initialized) {
-    lv_style_transition_dsc_init(&transition, props, lv_anim_path_ease_out, 0, 0, nullptr);
-    initialized = true;
-  }
-  static const lv_state_t states[] = {
-      LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
-      static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
-  for (const auto state : states) {
-    const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(state);
-    lv_obj_set_style_transition(btn, &transition, selector);
-    lv_obj_set_style_outline_width(btn, 0, selector);
-  }
-}
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
@@ -621,8 +607,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     companion_disable_card_app_icon_palette(s);
 #endif
   }
-  const bool show_focus = !companion_app_launch_card(p);
-  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty(), show_focus);
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
   set_card_disabled_state(s.btn, !available);
   if (companion_app_launch_card(p)) {
     apply_instant_button_feedback(s.btn);
@@ -631,7 +616,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   } else {
     clear_push_button_transition(s.btn);
   }
-  companion_apply_card_focus(s.btn, p.entity, p.sensor, show_focus);
+  companion_apply_card_focus(s.btn, p.entity, p.sensor);
 }
 
 inline void setup_action_card(BtnSlot &s, const ParsedCfg &p) {

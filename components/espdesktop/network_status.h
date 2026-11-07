@@ -229,7 +229,7 @@ inline void network_status_open_pairing() {
   auto *close = control_modal_create_round_button(shell.panel, 32, "\U000F0156",
       ui.modal_icon_font, theme_display_color(current_theme().border), theme_display_color(current_theme().control_neutral), icon_width_compensation_percent());
   control_modal_style_chrome_button(close, layout, true);
-  lv_obj_add_event_cb(close, [](lv_event_t *) { control_modal_close_nested_menu(); }, LV_EVENT_CLICKED, nullptr);
+  bind_immediate_button_action(close, [](lv_event_t *) { control_modal_close_nested_menu(); }, nullptr);
   auto *close_label = lv_obj_get_child(close, 0);
   if (close_label) lv_obj_set_style_text_color(close_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
 
@@ -407,21 +407,18 @@ inline void network_status_open_modal(const std::string &device_name,
     lv_label_set_display_text(slot.icon_lbl, icons[i]);
     if (i == NETWORK_STATUS_BACK_CARD_INDEX) {
       lv_label_set_display_text(slot.icon_lbl, "\U000F0141");
-      lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_hide_modal(); },
-                          LV_EVENT_CLICKED, nullptr);
+      bind_immediate_button_action(button, [](lv_event_t *) { network_status_hide_modal(); }, nullptr);
       continue;
     }
     if (i == NETWORK_STATUS_PAIRING_CARD_INDEX) {
       ui.pairing_button = button;
       ui.pairing_label = slot.text_lbl;
-      lv_obj_add_event_cb(button, [](lv_event_t *) { network_status_open_pairing(); },
-                          LV_EVENT_CLICKED, nullptr);
+      bind_immediate_button_action(button, [](lv_event_t *) { network_status_open_pairing(); }, nullptr);
       continue;
     }
     if (i == NETWORK_STATUS_LOCK_CARD_INDEX) {
       ui.lock_button = button;
-      lv_obj_add_event_cb(button, network_status_lock_cb,
-                          LV_EVENT_CLICKED, nullptr);
+      bind_immediate_button_action(button, network_status_lock_cb, nullptr);
       continue;
     }
     lv_obj_clear_flag(button, LV_OBJ_FLAG_CLICKABLE);

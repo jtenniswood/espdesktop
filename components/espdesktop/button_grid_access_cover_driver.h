@@ -217,13 +217,13 @@ inline void access_cover_driver_add_config_click(
     lv_obj_t *button, const ParsedCfg &config, bool lock_action) {
   ParsedCfg *saved = grid_delete_with_owner(button, new ParsedCfg(config));
   if (lock_action) {
-    lv_obj_add_event_cb(button, [](lv_event_t *event) {
+    bind_immediate_button_action(button, [](lv_event_t *event) {
       ParsedCfg *value = static_cast<ParsedCfg *>(
         lv_event_get_user_data(event));
       if (value) send_lock_command_action(*value);
-    }, LV_EVENT_CLICKED, saved);
+    }, saved);
   } else {
-    lv_obj_add_event_cb(button, [](lv_event_t *event) {
+    bind_immediate_button_action(button, [](lv_event_t *event) {
       ParsedCfg *value = static_cast<ParsedCfg *>(
         lv_event_get_user_data(event));
       if (!value) return;
@@ -234,14 +234,14 @@ inline void access_cover_driver_add_config_click(
       } else {
         send_cover_command_action(*value);
       }
-    }, LV_EVENT_CLICKED, saved);
+    }, saved);
   }
 }
 
 inline void access_cover_driver_add_confirmable_toggle_click(
     lv_obj_t *button, const ParsedCfg &config) {
   ParsedCfg *saved = grid_delete_with_owner(button, new ParsedCfg(config));
-  lv_obj_add_event_cb(button, [](lv_event_t *event) {
+  bind_immediate_button_action(button, [](lv_event_t *event) {
     ParsedCfg *value = static_cast<ParsedCfg *>(
       lv_event_get_user_data(event));
     if (!value || value->entity.empty()) return;
@@ -253,7 +253,7 @@ inline void access_cover_driver_add_confirmable_toggle_click(
       set_card_checked_state(target, true);
       send_toggle_action(value->entity);
     }
-  }, LV_EVENT_CLICKED, saved);
+  }, saved);
 }
 
 inline bool access_cover_driver_bind_subpage(
@@ -294,20 +294,20 @@ inline bool access_cover_driver_bind_subpage(
         if (environment.add_parent_indicator) {
           environment.add_parent_indicator(config.entity);
         }
-        lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
           LockCardCtx *lock = static_cast<LockCardCtx *>(
             lv_event_get_user_data(event));
           if (lock) send_lock_action(lock);
-        }, LV_EVENT_CLICKED, bindings.lock);
+        }, bindings.lock);
       }
     }
   } else if (context.runtime.driver == Driver::COVER_COMMAND) {
     if (bindings.cover_command) {
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         CoverCommandCtx *command = static_cast<CoverCommandCtx *>(
           lv_event_get_user_data(event));
         if (command) send_cover_command_action(*command);
-      }, LV_EVENT_CLICKED, bindings.cover_command);
+      }, bindings.cover_command);
     }
   } else if (context.runtime.driver == Driver::COVER_TOGGLE) {
     if (environment.add_parent_indicator) {
@@ -325,13 +325,13 @@ inline bool access_cover_driver_bind_subpage(
         config.entity,
         context.runtime.driver == Driver::COVER_TILT,
       });
-    lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+    bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
       auto *payload = static_cast<AccessCoverDriverSliderClick *>(
         lv_event_get_user_data(event));
       if (payload && !payload->entity.empty()) {
         send_slider_action(payload->entity, -1, payload->tilt);
       }
-    }, LV_EVENT_CLICKED, payload);
+    }, payload);
   }
   return true;
 }

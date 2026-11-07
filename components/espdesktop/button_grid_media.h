@@ -3138,7 +3138,7 @@ inline lv_obj_t *media_control_create_tab_button(lv_obj_t *parent, const char *i
     parent, icon, font, theme_display_color(current_theme().surface_primary), LV_OPA_TRANSP, 100, 180);
   if (!btn) return nullptr;
   light_control_center_icon_label(control_modal_icon_label(btn));
-  lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+  bind_immediate_button_action(btn, [](lv_event_t *e) {
     MediaControlTab tab = static_cast<MediaControlTab>(
       reinterpret_cast<uintptr_t>(lv_event_get_user_data(e)));
     MediaControlModalUi &ui = media_control_modal_ui();
@@ -3152,7 +3152,7 @@ inline lv_obj_t *media_control_create_tab_button(lv_obj_t *parent, const char *i
     media_control_ensure_tab_content(ui.active);
     media_control_apply_tab_visibility();
     media_control_layout_modal(ui.active);
-  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
+  }, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
   return btn;
 }
 
@@ -3302,32 +3302,32 @@ inline void media_control_create_controls_tab_content(MediaControlCtx *ctx) {
       ctx->width_compensation_percent);
     ui.repeat_icon_lbl = ui.repeat_btn ? lv_obj_get_child(ui.repeat_btn, 0) : nullptr;
   }
-  if (ui.shuffle_btn) lv_obj_add_event_cb(ui.shuffle_btn, [](lv_event_t *) {
+  if (ui.shuffle_btn) bind_immediate_button_action(ui.shuffle_btn, [](lv_event_t *) {
     MediaControlModalUi &ui = media_control_modal_ui();
     if (!ui.active || !ui.active->available || !ui.active->shuffle_known ||
         !media_control_shuffle_supported(ui.active)) return;
     send_media_shuffle_action(
       ui.active->entity_id, !ui.active->shuffle_enabled);
-  }, LV_EVENT_CLICKED, nullptr);
-  if (ui.previous_btn) lv_obj_add_event_cb(ui.previous_btn, [](lv_event_t *) {
+  }, nullptr);
+  if (ui.previous_btn) bind_immediate_button_action(ui.previous_btn, [](lv_event_t *) {
     MediaControlModalUi &ui = media_control_modal_ui();
     if (ui.active && ui.active->available) {
       media_control_reset_track_position(ui.active);
       send_media_playback_action(ui.active->entity_id, "previous");
     }
-  }, LV_EVENT_CLICKED, nullptr);
-  if (ui.play_btn) lv_obj_add_event_cb(ui.play_btn, [](lv_event_t *) {
+  }, nullptr);
+  if (ui.play_btn) bind_immediate_button_action(ui.play_btn, [](lv_event_t *) {
     MediaControlModalUi &ui = media_control_modal_ui();
     if (ui.active && ui.active->available) send_media_playback_action(ui.active->entity_id, "play_pause");
-  }, LV_EVENT_CLICKED, nullptr);
-  if (ui.next_btn) lv_obj_add_event_cb(ui.next_btn, [](lv_event_t *) {
+  }, nullptr);
+  if (ui.next_btn) bind_immediate_button_action(ui.next_btn, [](lv_event_t *) {
     MediaControlModalUi &ui = media_control_modal_ui();
     if (ui.active && ui.active->available) {
       media_control_reset_track_position(ui.active);
       send_media_playback_action(ui.active->entity_id, "next");
     }
-  }, LV_EVENT_CLICKED, nullptr);
-  if (ui.repeat_btn) lv_obj_add_event_cb(ui.repeat_btn, [](lv_event_t *) {
+  }, nullptr);
+  if (ui.repeat_btn) bind_immediate_button_action(ui.repeat_btn, [](lv_event_t *) {
     MediaControlModalUi &ui = media_control_modal_ui();
     if (!ui.active || !ui.active->available ||
         !media_control_repeat_supported(ui.active)) return;
@@ -3335,7 +3335,7 @@ inline void media_control_create_controls_tab_content(MediaControlCtx *ctx) {
       ui.active->repeat_mode);
     if (next == espdesktop::media::RepeatMode::UNKNOWN) return;
     send_media_repeat_action(ui.active->entity_id, next);
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 }
 
 inline void media_control_create_progress_tab_content(MediaControlCtx *ctx) {
@@ -3502,22 +3502,22 @@ inline void media_control_create_volume_tab_content(MediaControlCtx *ctx) {
   control_modal_apply_pressed_fill_color(ui.volume_minus_btn, ctx->accent_color);
   control_modal_apply_pressed_fill_color(ui.volume_plus_btn, ctx->accent_color);
   if (ui.volume_minus_btn) {
-    lv_obj_add_event_cb(ui.volume_minus_btn, [](lv_event_t *) {
+    bind_immediate_button_action(ui.volume_minus_btn, [](lv_event_t *) {
       MediaControlModalUi &ui = media_control_modal_ui();
       if (!ui.active) return;
       int pct = ui.active->current_pct;
       media_control_group_volume_percent(ui.active, &pct);
       media_control_apply_volume_percent(ui.active, pct - 1, true, true);
-    }, LV_EVENT_CLICKED, nullptr);
+    }, nullptr);
   }
   if (ui.volume_plus_btn) {
-    lv_obj_add_event_cb(ui.volume_plus_btn, [](lv_event_t *) {
+    bind_immediate_button_action(ui.volume_plus_btn, [](lv_event_t *) {
       MediaControlModalUi &ui = media_control_modal_ui();
       if (!ui.active) return;
       int pct = ui.active->current_pct;
       media_control_group_volume_percent(ui.active, &pct);
       media_control_apply_volume_percent(ui.active, pct + 1, true, true);
-    }, LV_EVENT_CLICKED, nullptr);
+    }, nullptr);
   }
   media_control_refresh_volume_controls(ctx);
 }
@@ -4308,10 +4308,10 @@ inline void media_control_create_power_tab_content(MediaControlCtx *ctx) {
     ctx->width_compensation_percent);
   ui.power_icon_lbl = ui.power_btn ? control_modal_icon_label(ui.power_btn) : nullptr;
   if (ui.power_btn) {
-    lv_obj_add_event_cb(ui.power_btn, [](lv_event_t *) {
+    bind_immediate_button_action(ui.power_btn, [](lv_event_t *) {
       MediaControlModalUi &ui = media_control_modal_ui();
       media_control_send_power_action(ui.active);
-    }, LV_EVENT_CLICKED, nullptr);
+    }, nullptr);
   }
 
   ui.power_status_lbl = lv_label_create(ui.content_box);

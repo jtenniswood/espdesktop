@@ -1,5 +1,7 @@
 #pragma once
 
+#include "button_grid_touch.h"
+
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 #include <functional>
@@ -152,6 +154,11 @@ inline bool navigation_return_home(lv_obj_t *main_page_obj) {
   }
   navigation_refresh_subpage_label();
   return true;
+}
+
+inline void navigation_consume_touch_press(lv_obj_t *button) {
+  // Share pointer consumption and contrast restoration with other buttons.
+  consume_button_touch_press(button);
 }
 
 inline bool navigation_return_from_special_page() {
