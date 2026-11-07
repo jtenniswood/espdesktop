@@ -719,10 +719,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             state.returnHomeOnAppSwitch = this.checked;
             postReturnHomeOnAppSwitch(this.checked);
         });
-        appSubpageBody.appendChild(infoPanel(
-            "sp-app-switch-return-info",
-            "When enabled, switching away from an app leaves its subpage. If the new app has a subpage and automatic opening is enabled, that page opens; otherwise the display returns home. Turn off to keep the current app subpage open until you leave it.",
-        ));
         const titleBar = toggleRow("Show app title bar", "sp-set-subpage-title-bar", state.subpageTitleBarOn);
         appSubpageBody.appendChild(titleBar.row);
         els.setSubpageTitleBar = titleBar.input;
