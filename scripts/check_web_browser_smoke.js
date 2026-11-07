@@ -8791,6 +8791,108 @@ async function assertNestedCompanionPages(browser) {
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 
+async function assertFirstRunSetup(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
+  const status = {
+    onboarding_complete: true,
+    home_assistant: { available: false, configured: false, connected: false, actions_confirmed: false },
+    mac_companion: { available: true, configured: true, paired: true, connected: true },
+  };
+  const context = await browser.newContext({ viewport: { width: 900, height: 800 } });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus: status });
+  const actions = [
+    { id: "com.apple.Safari", label: "Safari" },
+    { id: "com.apple.Notes", label: "Notes" },
+    ...Array.from({ length: testCase.slots + 1 }, (_, i) => ({ id: `org.example.app${i}`, label: `App ${i}` })),
+  ];
+  await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: actions }));
+  const switches = [];
+  let failSwitch = false;
+  await context.route("**/switch/**", route => {
+    if (!/auto.*open.*app.*subpages/i.test(decodeURIComponent(route.request().url()))) return route.fallback();
+    switches.push(new URL(route.request().url()).pathname.split("/").pop());
+    return route.fulfill({ status: failSwitch ? 500 : 200, body: "" });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  const open = async (search = "") => {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1${search}`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(() => window.__seedEspState([{ id: "text-button_order", state: "" }]));
+  };
+  try {
+    await open();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Safari", { exact: true }).check();
+    // The selection cap disables remaining apps while allowing deselection.
+    for (let i = 0; i < testCase.slots - 1; i++) await dialog.getByLabel(`App ${i}`, { exact: true }).check();
+    assert(await dialog.getByLabel("Notes", { exact: true }).isDisabled());
+    await dialog.getByLabel("App 0", { exact: true }).uncheck();
+    assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
+    await dialog.getByLabel("Notes", { exact: true }).check();
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByLabel("Safari", { exact: true }).check();
+    await dialog.getByRole("button", { name: "Back", exact: true }).click();
+    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps selected apps");
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps shortcut choices");
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByLabel("Open shortcut pages when apps are in focus").uncheck();
+    await page.setViewportSize({ width: 375, height: 650 });
+    fs.mkdirSync(FAILURE_DIR, { recursive: true });
+    await page.screenshot({ path: path.join(FAILURE_DIR, "first-run-mobile.png") });
+    const bounds = await dialog.boundingBox();
+    assert(bounds.x >= 0 && bounds.x + bounds.width <= 375, "setup fits a phone viewport");
+    const saveBounds = await dialog.getByRole("button", { name: "Save setup", exact: true }).boundingBox();
+    assert(saveBounds.y + saveBounds.height <= 650, "save remains visible without scrolling the dialog");
+    failSwitch = true;
+    await dialog.getByRole("button", { name: "Save setup", exact: true }).click();
+    await dialog.getByRole("alert").waitFor({ timeout: 10000 }).catch(async error => {
+      console.log("Setup diagnostic", await page.locator("body").innerText(), switches, fixture.puts);
+      fs.mkdirSync(FAILURE_DIR, { recursive: true });
+      await page.screenshot({ path: path.join(FAILURE_DIR, "first-run-failure.png") });
+      throw error;
+    });
+    assert.equal(fixture.puts.length, 0, "failed switch save must not complete setup");
+    failSwitch = false;
+    await dialog.getByRole("button", { name: "Save setup", exact: true }).click();
+    await dialog.waitFor({ state: "detached" });
+    assert.equal(Object.keys(fixture.document.buttons).length, testCase.slots);
+    assert.equal(fixture.document.settings.web_onboarding_complete, "1");
+    const safariSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Safari;"));
+    assert(fixture.document.buttons[safariSlot].includes("app_shortcuts"));
+    assert(fixture.document.subpages[safariSlot].includes("shortcut."));
+    assert(switches.every(action => action === "turn_off"), "manual page opening was chosen");
+    await open();
+    await page.waitForTimeout(200);
+    assert.equal(await dialog.count(), 0, "completion survives page reload");
+    // A second browser sees the same completion marker on the display.
+    const second = await context.newPage();
+    await second.goto(`http://espdesktop.test/${testCase.slug}`);
+    await second.waitForTimeout(200);
+    assert.equal(await second.getByRole("dialog").count(), 0);
+    await second.close();
+    // Pairing links remain usable before connecting; connection offers setup.
+    fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
+    status.mac_companion.connected = false;
+    await open("&connector=mac_companion");
+    await page.waitForTimeout(200);
+    assert.equal(await dialog.count(), 0, "pairing page must remain accessible");
+    status.mac_companion.connected = true;
+    await dialog.waitFor();
+    await dialog.getByRole("button", { name: "Skip setup", exact: true }).click();
+    await dialog.waitFor({ state: "detached" });
+    assert.equal(Object.keys(fixture.document.buttons).length, 0);
+    assert.equal(fixture.document.settings.web_onboarding_complete, "1");
+    assert.deepEqual(errors, []);
+    console.log("First-run app selection, capacity, shortcuts, mobile layout, failed save, retry, reload, pairing and skip passed.");
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
@@ -8829,6 +8931,10 @@ async function assertNestedCompanionPages(browser) {
     }
     if (process.env.ESPDESKTOP_SUBPAGE_CLOCK_BAR_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageClockBar(browser, testCase);
+      return;
+    }
+    if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
+      await assertFirstRunSetup(browser);
       return;
     }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
@@ -8971,6 +9077,7 @@ async function assertNestedCompanionPages(browser) {
       return;
     }
     await assertNestedCompanionPages(browser);
+    await assertFirstRunSetup(browser);
     await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }

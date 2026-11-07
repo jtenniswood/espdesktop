@@ -36,6 +36,20 @@ Configure WiFi through the display’s setup hotspot:
 
 Open that address in a browser to reach the display's setup page. Choose **System → Mac Companion** when pairing, then follow [Install and Pair the Mac App](/getting-started/mac-app).
 
+## Choose Your First Cards
+
+On an empty display, the web page offers a three-step setup:
+
+1. Connect the Mac app, then select apps for the home screen, up to your display’s card limit.
+2. Choose which supported apps should have shortcut subpages. Each page reserves one card for **Back**.
+3. Choose whether shortcut pages open automatically when their app is in focus on your Mac.
+
+Choose **Save setup**, then **Apply Configuration** in Layout to restart the display and show your cards. Keyboard shortcuts need Accessibility access in the Mac app.
+
+**Skip setup** opens the normal editor for a custom layout. Setup completion is saved on the display, so reopening the page or using another browser does not restart it. Existing layouts are left intact. Resetting the display’s customization makes setup available again.
+
+You can change apps and shortcut pages later in **Layout**, and automatic switching in **Screen → App Subpages**.
+
 ## Next
 
 - [Install and pair the Mac app](/getting-started/mac-app)

@@ -1,3 +1,4 @@
+import { createFirstRunSetup } from "./application/first_run_setup";
 import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
 import * as DeviceConfig from "./device_config";
@@ -929,15 +930,27 @@ function composeApplicationContext(): ApplicationContext {
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
     systemSection, preview, connectorsPage,
   );
+  const firstRunSetup = createFirstRunSetup({
+    ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
+    native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, shell,
+    saveAutoSwitch: async (enabled) => {
+      await requestApi.postQueueIdle();
+      requestApi.resetPostQueueError();
+      clockBarPostApi.postAutoOpenAppSubpages(enabled);
+      await requestApi.postQueueIdle();
+      return !requestApi.postQueueHadError();
+    },
+    onSaved: () => {
+      shell.switchTab("screen");
+      // Load the saved cards through the normal state loader before editing.
+      appEvents.connect();
+      shell.showBanner("Setup saved. Choose Apply Configuration to show your new cards on the display.", "success");
+    },
+  });
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
-  );
-  app = createAppFeature(
-    pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
-    clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
+    interactions, preview, buttonSettings, connectorsPage, firstRunSetup,
   );
   requestApi.connectReconnect(appEvents.connect);
   dom.schedule(() => { void identity.load().catch(() => {}); }, 0);
