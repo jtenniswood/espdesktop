@@ -8904,6 +8904,7 @@ async function assertSpecialPageRename(browser, testCase) {
     const screenBounds = await page.locator(".sp-screen").boundingBox();
     const entryBounds = await entry.boundingBox();
     assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
+    assert(entryBounds.y - screenBounds.y - screenBounds.height <= 11, "swipe-up entry stays close to the display");
     assert(Math.abs(entryBounds.width - screenBounds.width) < 1, "swipe-up entry matches the display width");
     assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
     assert(await entry.getByText("Swipe up from the bottom edge.", { exact: true }).isVisible());
