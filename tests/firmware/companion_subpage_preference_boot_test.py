@@ -34,7 +34,9 @@ inline bool ready = false;
 inline int core;
 inline int *active_espdesktop_app_core() { return ready ? &core : nullptr; }
 }
-struct { bool state = true; } companion_auto_open_app_subpages_enabled;
+struct { bool state = true; } companion_auto_open_app_subpages_enabled, companion_return_home_on_app_switch_enabled;
+bool return_home = true;
+void companion_set_return_home_on_app_switch(bool enabled) { return_home = enabled; }
 #define id(value) value
 bool applied_value = true;
 int writes = 0;
@@ -52,12 +54,14 @@ int main() {
   for (bool saved : {true, false}) {
     espdesktop::ready = false;
     writes = 0;
+    companion_return_home_on_app_switch_enabled.state = saved;
     companion_auto_open_app_subpages_enabled.state = saved;
     if (saved) turn_on(); else turn_off();
     assert(writes == 0); // Early template-switch restore must not touch the core.
     espdesktop::ready = true;
     restore();
     assert(writes == 1 && applied_value == saved);
+    assert(return_home == saved);
     turn_off();
     assert(writes == 2 && !applied_value);
     turn_on();

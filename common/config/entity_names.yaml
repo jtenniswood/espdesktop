@@ -45,6 +45,7 @@ substitutions:
   entity_battery_percent: "Battery"
   entity_screen_temperature_degree_symbol: "Screen: Temperature Degree Symbol"
   entity_companion_auto_open_app_subpages: "Companion: Auto Open App Subpages"
+  entity_companion_return_home_on_app_switch: "Companion: Return Home On App Switch"
   entity_screen_subpage_title_bar: "Screen: Subpage Title Bar"
   entity_screen_subpage_chevron: "Screen: Subpage Chevron"
   entity_screen_temperature_unit: "Screen: Temperature Unit"

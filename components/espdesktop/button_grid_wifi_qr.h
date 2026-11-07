@@ -273,13 +273,13 @@ inline lv_obj_t *wifi_qr_create_tab_button(lv_obj_t *parent, const char *icon,
       lv_obj_set_style_text_font(label, wifi_qr_icon_font_ref(), LV_PART_MAIN);
     control_modal_center_tab_icon(label);
   }
-  lv_obj_add_event_cb(btn, [](lv_event_t *event) {
+  bind_immediate_button_action(btn, [](lv_event_t *event) {
     WifiQrModalUi &ui = wifi_qr_modal_ui();
     ui.tab = static_cast<WifiQrTab>(
       reinterpret_cast<uintptr_t>(lv_event_get_user_data(event)));
     wifi_qr_apply_tab_visibility();
     wifi_qr_layout_modal();
-  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
+  }, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
   return btn;
 }
 

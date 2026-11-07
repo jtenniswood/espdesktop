@@ -109,22 +109,22 @@ inline bool cleaning_driver_bind_subpage(
       environment.add_parent_indicator(config.entity);
     }
     if (!vacuum_card_read_only(config)) {
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         VacuumCardCtx *vacuum = static_cast<VacuumCardCtx *>(
           lv_event_get_user_data(event));
         send_vacuum_card_action(vacuum);
-      }, LV_EVENT_CLICKED, bindings.vacuum);
+      }, bindings.vacuum);
     }
   } else if (bindings.mower) {
     if (environment.add_mower_parent_indicator) {
       environment.add_mower_parent_indicator(config.entity);
     }
     if (!lawn_mower_card_read_only(config)) {
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         LawnMowerCardCtx *mower = static_cast<LawnMowerCardCtx *>(
           lv_event_get_user_data(event));
         send_lawn_mower_card_action(mower);
-      }, LV_EVENT_CLICKED, bindings.mower);
+      }, bindings.mower);
     }
   }
   return true;

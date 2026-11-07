@@ -391,6 +391,7 @@ export interface BackupPanelSettingsState {
   temperatureDegreeSymbol: boolean;
   subpageChevron: boolean;
   autoOpenAppSubpages: boolean;
+  returnHomeOnAppSwitch: boolean;
   subpageTitleBar: boolean;
   timezone: string;
   temperatureUnit: string;
@@ -546,6 +547,9 @@ export function normalizeBackupPanelSettings(
     subpageTitleBar: objectValue(settings, "subpage_title_bar") != null ? !!settings.subpage_title_bar : true,
     autoOpenAppSubpages: objectValue(settings, "auto_open_app_subpages") != null
       ? !!settings.auto_open_app_subpages
+      : true,
+    returnHomeOnAppSwitch: objectValue(settings, "return_home_on_app_switch") != null
+      ? !!settings.return_home_on_app_switch
       : true,
     subpageChevron: objectValue(settings, "subpage_chevron") != null
       ? !!settings.subpage_chevron

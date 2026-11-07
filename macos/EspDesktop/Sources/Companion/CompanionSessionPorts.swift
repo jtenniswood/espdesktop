@@ -21,6 +21,7 @@ protocol CompanionSessionResources: AnyObject {
     func launchableApps() -> [LaunchableApp]
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
+    func immediateFocusedApplicationIdentifier() -> String?
     func focusedCompanionActionIdentifiers() async -> [String]
     func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String])
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
@@ -55,6 +56,7 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func configuredWebAppIDs() -> [String] { [] }

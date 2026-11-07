@@ -222,9 +222,10 @@ inline bool apply_subpage_back_colors(lv_obj_t *button, const std::string &order
   CardPalette defaults;
   defaults.has_on = defaults.has_off = true;
   defaults.off_val = display_correct_color(current_theme().surface_card, display);
-  defaults.on_val = defaults.off_val;
+  defaults.on_val = current_button_primary_color();
   const CardPalette palette = card_palette_for_config(defaults, config, display);
   apply_button_colors(button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
+  apply_instant_button_feedback(button);
   sync_card_checked_text_color(button);
   return !palette.custom_background;
 }
@@ -1604,6 +1605,19 @@ inline void companion_app_icon_screen_changed(lv_event_t *) {
   companion_refresh_app_icon_visibility();
 }
 
+inline bool &companion_app_icon_work_pending() {
+  static bool pending = false;
+  return pending;
+}
+
+inline bool companion_app_icon_pixels_current(const CompanionAppIconImageData &source) {
+  std::array<uint8_t, 32> hash{};
+  return source.image_loaded && source.loaded_hash_valid &&
+    source.rendered_online == source.companion_online &&
+    esphome::companion::app_icon_store().hash_for(source.application_id, &hash) &&
+    hash == source.loaded_hash;
+}
+
 inline void companion_refresh_cached_app_icon(const std::string &application_id) {
   esphome::companion::app_icon_store().begin();
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
@@ -1611,10 +1625,13 @@ inline void companion_refresh_cached_app_icon(const std::string &application_id)
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode ||
         (!application_id.empty() && source->application_id != application_id)) continue;
-    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
-    if (image) companion_apply_cached_app_icon(*source, image);
+    if (companion_app_icon_pixels_current(*source)) {
+      source->refresh_pending = false;
+      continue;
+    }
+    source->refresh_pending = true;
+    companion_app_icon_work_pending() = true;
   }
-  navigation_refresh_subpage_label();
 }
 
 inline void companion_refresh_app_icon_connection_state(bool online) {
@@ -1622,17 +1639,45 @@ inline void companion_refresh_app_icon_connection_state(bool online) {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
+    if (source->companion_online == online) continue;
     source->companion_online = online;
-    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
-    if (image && source->image_loaded) {
-      // Reload the unmodified cached pixels before switching between the
-      // monochrome offline icon and the original-color online icon.
-      companion_apply_cached_app_icon(*source, image);
+    if (source->image_loaded) {
+      source->refresh_pending = !companion_app_icon_pixels_current(*source);
+      companion_app_icon_work_pending() |= source->refresh_pending;
     } else {
       source->accent_palette = {};
       companion_apply_app_icon_card_palette(*source, allocation.owner);
     }
   }
+}
+
+inline void companion_process_pending_app_icon_refresh() {
+  if (!companion_app_icon_work_pending()) return;
+  CompanionAppIconImageData *selected = nullptr;
+  lv_obj_t *selected_image = nullptr;
+  int best_priority = 3;
+  unsigned pending_count = 0;
+  for (const auto &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->refresh_pending) continue;
+    if (!source->app_icon_mode) { source->refresh_pending = false; continue; }
+    auto *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
+    if (!image) { source->refresh_pending = false; continue; }
+    ++pending_count;
+    const bool visible = lv_obj_get_screen(image) == lv_scr_act();
+    const int priority = visible ? (lv_obj_has_state(allocation.owner, LV_STATE_CHECKED) ? 0 : 1) : 2;
+    if (priority < best_priority) {
+      selected = source; selected_image = image; best_priority = priority;
+    }
+  }
+  companion_app_icon_work_pending() = pending_count > 1;
+  if (!selected) return;
+  // Never retain an owner pointer across loop turns: a grid rebuild can delete
+  // it. Select from the live registry and rebuild at most one icon per turn.
+  selected->refresh_pending = false;
+  companion_apply_cached_app_icon(*selected, selected_image);
+  navigation_refresh_subpage_label();
 }
 #endif
 
@@ -2396,13 +2441,14 @@ inline void grid_phase2(
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
+      navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)));
       if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
         navigation_return_from_special_page();
       } else {
         lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         refresh_visible_image_cards();
       }
-    }, LV_EVENT_CLICKED, is_special_page
+    }, LV_EVENT_PRESSED, is_special_page
       ? static_cast<void *>(&navigation_special_page_back_button_marker())
       : static_cast<void *>(main_page_obj));
     navigation_register_subpage_back_button(navigation_slot, back_slot, back_neutral_background);
@@ -2424,17 +2470,17 @@ inline void grid_phase2(
       }
       sp_entity_ids[eid_idx] = entity_id;
       if (set_checked) {
-        lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+        bind_immediate_button_action(btn, [](lv_event_t *e) {
           lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(e));
           set_card_checked_state(target, true);
           std::string *en = (std::string *)lv_event_get_user_data(e);
           if (en && !en->empty()) send_toggle_action(*en);
-        }, LV_EVENT_CLICKED, &sp_entity_ids[eid_idx]);
+        }, &sp_entity_ids[eid_idx]);
       } else {
-        lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+        bind_immediate_button_action(btn, [](lv_event_t *e) {
           std::string *en = (std::string *)lv_event_get_user_data(e);
           if (en && !en->empty()) send_toggle_action(*en);
-        }, LV_EVENT_CLICKED, &sp_entity_ids[eid_idx]);
+        }, &sp_entity_ids[eid_idx]);
       }
     };
 
