@@ -26,7 +26,7 @@ struct CompanionApplicationFocusPublisher {
 /// Automation prompt can be stopped without blocking the app or its connection.
 enum CompanionFocusScript {
     static func read(_ source: String, timeout: TimeInterval = 2) async -> String? {
-        await Task.detached(priority: .utility) {
+        await Task.detached(priority: .userInitiated) {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
             process.arguments = ["-e", source]
@@ -57,6 +57,18 @@ enum CompanionFocusScript {
 /// newly activated application's shortcut page on the display.
 @MainActor
 enum CompanionFocusQuery {
+    static func waitForApplication(isExpectedApplication: () -> Bool) async -> Bool {
+        for attempt in 0..<11 {
+            guard !Task.isCancelled else { return false }
+            if isExpectedApplication() { return true }
+            if attempt < 10 {
+                do { try await Task.sleep(for: .milliseconds(25)) }
+                catch { return false }
+            }
+        }
+        return false
+    }
+
     // Activation can be reported before the app's first window is visible.
     // Retry locally instead of waiting for the one-second background poll.
     static func waitForVisibleWindow(

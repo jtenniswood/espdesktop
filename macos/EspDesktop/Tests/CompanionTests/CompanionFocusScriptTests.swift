@@ -3,6 +3,32 @@ import XCTest
 
 final class CompanionFocusScriptTests: XCTestCase {
     @MainActor
+    func testActivationWaitsForNewFrontmostApplicationBeforeQuerying() async {
+        var checks = 0
+        var confirmed: [String] = []
+        let ready = await CompanionFocusQuery.waitForApplication {
+            checks += 1
+            return checks >= 3
+        }
+        if ready { confirmed = ["new.app"] }
+        XCTAssertEqual(checks, 3)
+        XCTAssertEqual(confirmed, ["new.app"])
+    }
+
+    @MainActor
+    func testActivationWaitIsBoundedAndCancellationStopsIt() async {
+        let start = ContinuousClock.now
+        let ready = await CompanionFocusQuery.waitForApplication { false }
+        XCTAssertFalse(ready)
+        XCTAssertLessThan(start.duration(to: .now), .seconds(1))
+        let pending = Task { await CompanionFocusQuery.waitForApplication { false } }
+        await Task.yield()
+        pending.cancel()
+        let cancelled = await pending.value
+        XCTAssertFalse(cancelled)
+    }
+
+    @MainActor
     func testRapidReturnToAppRepublishesDetailedFocus() {
         var publisher = CompanionApplicationFocusPublisher()
         var details: [[String]] = []
