@@ -720,7 +720,7 @@ struct CompanionSettings: View {
                     get: { !showingApplicationCustomization },
                     set: { allApps in
                         customizingApplications = !allApps
-                        if allApps { store.setAllApplications(approved: true) }
+                        store.setAllApplications(approved: allApps)
                     }
                 ))
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
@@ -756,20 +756,8 @@ struct CompanionSettings: View {
                         Text("Choose apps")
                         CompanionInfoButton(
                             title: "Choose apps",
-                            information: "Enabled apps are available for app shortcuts. Switch an app off to hide it from the display, or use Select all to select or deselect every listed app."
+                            information: "Switch on the apps you want to make available for app shortcuts on your display."
                         )
-                        Spacer()
-                        Toggle("Select all apps", isOn: Binding(
-                            get: { store.allApplicationsApproved },
-                            set: {
-                                customizingApplications = true
-                                store.setAllApplications(approved: $0)
-                            }
-                        ))
-                        .labelsHidden()
-                        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                        .controlSize(.mini)
-                        .help("Select or deselect all apps")
                     }
                 }
             }
