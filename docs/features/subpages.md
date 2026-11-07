@@ -9,6 +9,8 @@ description: Create extra pages on your EspDesktop display to organise cards int
 
 A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards.
 
+Cards on the home screen and subpages act as soon as you touch them. Fixed control buttons, tabs, PIN keys and panel close buttons also respond on touch-down. Confirmation prompts still require an explicit choice. Sliders and scrollable choices keep their drag and release behavior so scrolling does not accidentally select an item.
+
 Subpages show the standard clock bar with the page name and, for app shortcut pages, the app icon. The clock stays hidden on subpages. When Clock Bar is off, use **Show app title bar** under **Device settings → App Subpages** to show or hide it globally. When Clock Bar is on, the title bar is always shown and this control is hidden. The preference is remembered for when Clock Bar is turned off again.
 
 ## Create a Subpage
@@ -30,7 +32,7 @@ Drag cards to change their order. To move or copy a card between the home screen
 
 Choose **Apply Configuration** to save your changes to the display.
 
-To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups.
+To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage, Back and Close buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
 
 ## Swipe-up page
 

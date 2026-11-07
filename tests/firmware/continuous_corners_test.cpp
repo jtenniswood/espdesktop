@@ -6,7 +6,7 @@
 
 #define LVGL_VERSION_MAJOR 9
 constexpr int LV_PART_MAIN = 0;
-constexpr int LV_STATE_PRESSED = 1;
+enum lv_state_t { LV_STATE_DEFAULT = 0, LV_STATE_PRESSED = 1, LV_STATE_CHECKED = 2 };
 using lv_style_selector_t = unsigned;
 constexpr int LV_IMAGE_HEADER_MAGIC = 0x19;
 constexpr int LV_COLOR_FORMAT_A8 = 1;

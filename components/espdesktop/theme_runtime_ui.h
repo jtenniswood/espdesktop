@@ -110,8 +110,9 @@ inline void theme_apply_grid(void *context, const ThemePalette &theme) {
     lv_obj_set_style_bg_color(entry.screen, lv_color_hex(theme.background), LV_PART_MAIN);
     if (entry.back_neutral_background && entry.back_button) {
       theme_restyle_tree(entry.back_button, theme_refresh_previous(), theme, false, correction);
-      // Neutral Back cards use the same fill while pressed; custom cards own theirs.
-      lv_obj_set_style_bg_color(entry.back_button, lv_color_hex(neutral),
+      // Refresh the neutral surface without losing the configured press highlight.
+      // Custom Back cards own both of their fills and skip this refresh path.
+      lv_obj_set_style_bg_color(entry.back_button, lv_color_hex(current_button_primary_color()),
           static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_PRESSED);
       theme_apply_grid_button(entry.back_button, neutral, theme);
     }

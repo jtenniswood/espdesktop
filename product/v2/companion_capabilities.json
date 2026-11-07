@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -332,6 +332,10 @@
         "direction": "mac_to_panel",
         "authorization": "session",
         "fields": {
+          "applicationOnly": {
+            "type": "boolean",
+            "optional": true
+          },
           "actionId": {
             "type": "string",
             "minLength": 0,

@@ -250,7 +250,8 @@ bool AppIconStore::is_referenced(const std::string &application_id) const {
 }
 
 bool AppIconStore::copy_pixels(const std::string &application_id,
-                               uint8_t *output, size_t capacity) {
+                               uint8_t *output, size_t capacity,
+                               std::array<uint8_t, 32> *copied_hash) {
 #ifdef USE_ESP32
   if (!output || capacity < APP_ICON_PIXEL_BYTES) return false;
   std::lock_guard<std::mutex> lock(mutex_);
@@ -272,11 +273,13 @@ bool AppIconStore::copy_pixels(const std::string &application_id,
     }
     entry->pixels_verified = true;
   }
+  if (copied_hash) *copied_hash = entry->hash;
   return true;
 #else
   (void)application_id;
   (void)output;
   (void)capacity;
+  (void)copied_hash;
   return false;
 #endif
 }

@@ -1706,14 +1706,14 @@ inline lv_obj_t *climate_control_create_tab_button(lv_obj_t *parent, const char 
     if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
     climate_center_tab_icon(label);
   }
-  lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+  bind_immediate_button_action(btn, [](lv_event_t *e) {
     ClimateControlTab tab = static_cast<ClimateControlTab>(
       reinterpret_cast<uintptr_t>(lv_event_get_user_data(e)));
     ClimateControlModalUi &ui = climate_control_modal_ui();
     ui.tab = tab;
     climate_control_apply_tab_visibility();
     climate_control_layout_modal(ui.active);
-  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
+  }, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
   return btn;
 }
 
@@ -2397,24 +2397,24 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
   lv_obj_set_style_bg_opa(ui.menu_close_btn, LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_set_style_border_width(ui.menu_close_btn, 0, LV_PART_MAIN);
   lv_obj_add_flag(ui.menu_close_btn, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_add_event_cb(ui.menu_close_btn, [](lv_event_t *) {
+  bind_immediate_button_action(ui.menu_close_btn, [](lv_event_t *) {
     climate_hide_action_menu();
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   ui.menu_mode_btn = climate_create_menu_tile(ui.menu_view, find_icon("Fire"), "Mode",
     ctx->icon_font, ctx->option_title_font, ctx->option_value_font,
     ctx->width_compensation_percent);
-  lv_obj_add_event_cb(ui.menu_mode_btn, [](lv_event_t *) {
+  bind_immediate_button_action(ui.menu_mode_btn, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "hvac");
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
   ui.menu_preset_btn = climate_create_menu_tile(ui.menu_view, find_icon("Air Filter"), "Preset",
     ctx->icon_font, ctx->option_title_font, ctx->option_value_font,
     ctx->width_compensation_percent);
-  lv_obj_add_event_cb(ui.menu_preset_btn, [](lv_event_t *) {
+  bind_immediate_button_action(ui.menu_preset_btn, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "preset");
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   ui.arc = lv_arc_create(ui.panel);
   lv_arc_set_bg_angles(ui.arc, 135, 45);
@@ -2543,16 +2543,16 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
     theme_display_color(current_theme().control_neutral), theme_display_color(current_theme().surface_primary), ctx->width_compensation_percent);
   climate_apply_step_button_icon_size(ui.minus_btn);
   climate_apply_step_button_icon_size(ui.plus_btn);
-  lv_obj_add_event_cb(ui.minus_btn, [](lv_event_t *) {
+  bind_immediate_button_action(ui.minus_btn, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_apply_selected_target(ui.active,
       climate_selected_target(ui.active) - climate_effective_step_tenths(ui.active), false, true);
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.plus_btn, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.plus_btn, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_apply_selected_target(ui.active,
       climate_selected_target(ui.active) + climate_effective_step_tenths(ui.active), false, true);
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   ui.range_toggle = lv_obj_create(ui.panel);
   lv_obj_set_style_bg_color(ui.range_toggle, lv_color_hex(theme_display_color(current_theme().track_background)), LV_PART_MAIN);
@@ -2589,18 +2589,18 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
   };
   ui.heat_target_btn = create_range_target_button(find_icon("Fire"));
   ui.cool_target_btn = create_range_target_button(find_icon("Snowflake"));
-  lv_obj_add_event_cb(ui.heat_target_btn, [](lv_event_t *) {
+  bind_immediate_button_action(ui.heat_target_btn, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (!ui.active || !climate_dual_target(ui.active)) return;
     ui.active->edit_high = false;
     climate_control_set_modal_value(ui.active);
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.cool_target_btn, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.cool_target_btn, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (!ui.active || !climate_dual_target(ui.active)) return;
     ui.active->edit_high = true;
     climate_control_set_modal_value(ui.active);
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   ui.chips = lv_obj_create(ui.panel);
   lv_obj_set_width(ui.chips, lv_pct(CLIMATE_OPTION_ROW_WIDTH_PERCENT));
@@ -2641,30 +2641,30 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
   lv_obj_add_flag(ui.fan_chip, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(ui.swing_chip, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(ui.horizontal_swing_chip, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_add_event_cb(ui.target_chip, [](lv_event_t *) {
+  bind_immediate_button_action(ui.target_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "target");
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.mode_chip, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.mode_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "hvac");
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.preset_chip, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.preset_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "preset");
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.fan_chip, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.fan_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "fan");
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.swing_chip, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.swing_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "swing");
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.horizontal_swing_chip, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.horizontal_swing_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "horizontal_swing");
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   climate_control_set_modal_value(ctx);
   climate_control_layout_modal(ctx);

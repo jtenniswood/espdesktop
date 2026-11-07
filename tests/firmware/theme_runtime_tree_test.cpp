@@ -912,6 +912,7 @@ static void test_custom_back_button_theme_preservation() {
   lv_obj_t page, subpage, back, label;
   // Even a custom colour matching a theme surface must remain explicitly owned.
   back.background = lv_color_hex(0x313131);
+  lv_obj_set_style_bg_color(&back, lv_color_hex(0x123456), LV_STATE_PRESSED);
   back.text = label.text = lv_color_hex(0xFFFFFF);
   back.children = {&label};
   label.parent = &back;
@@ -924,12 +925,28 @@ static void test_custom_back_button_theme_preservation() {
     set_active_theme_palette(*theme);
     apply_current_theme();
     assert(back.background.full == 0x313131 && label.text.full == 0xFFFFFF);
+    assert(back.pressed_background.full == 0x123456);
   }
   navigation_subpages()[0].back_neutral_background = true;
-  set_active_theme_palette(LIGHT_THEME);
-  apply_current_theme();
-  assert(back.background.full == LIGHT_THEME.surface_card);
-  assert(label.text.full == LIGHT_THEME.text_primary);
+  const auto saved_accent = current_button_primary_color();
+  for (const auto accent : {0x14B8A6U, 0xFFEC16U}) {
+    set_current_button_primary_color(accent);
+    for (const auto *theme : {&LIGHT_THEME, &DARK_THEME, &LIGHT_THEME}) {
+      set_active_theme_palette(*theme);
+      apply_current_theme();
+      refresh_theme_grid_after_rebuild();
+      assert(back.background.full == theme->surface_card);
+      assert(back.pressed_background.full == accent);
+      assert(label.text.full == theme->text_primary);
+      back.state = LV_STATE_PRESSED;
+      theme_apply_grid(&theme_grid_targets(), *theme);
+      assert(back.pressed_background.full == accent);
+      assert(label.text.full == readable_text_color_for_bg(accent));
+      back.state = 0;
+      sync_card_checked_text_color(&back);
+    }
+  }
+  set_current_button_primary_color(saved_accent);
   navigation_subpages().clear();
   lv_event_t deleted{&page};
   page.delete_callback(&deleted);

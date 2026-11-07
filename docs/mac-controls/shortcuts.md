@@ -15,7 +15,9 @@ A **Companion → Keyboard shortcut** card sends a chosen key combination to whi
    - **Shortcut Catalog**: choose an app and one of its named shortcuts. The card starts with the template's label and icon; you can customise them in Card Settings.
 3. Give the card a label and icon if needed, then save the display configuration.
 
-A shortcut card replays keys in the active Mac app. Choosing an app in **Shortcut Catalog** does not launch it. Bring that app to the front before using the card. If the app has an enabled subpage, EspDesktop opens it when the Mac confirms that app is active by default. In **Screen → App Subpages**, turn off **Open app subpages on focus** to open subpages only by pressing an app card that is already on. Pressing an off card focuses the app; press it again to open its subpage. This preference applies to all app subpages and is saved on the display.
+A shortcut card replays keys in the active Mac app. Choosing an app in **Shortcut Catalog** does not launch it. Bring that app to the front before using the card. If the app has an enabled subpage, touching its app card opens that page immediately while asking the Mac to focus the app. The page also follows app focus changes reported by the Mac by default. In **Screen → App Subpages**, turn off **Open app subpages on focus** to open subpages only by pressing an app card whose app is already active. Pressing an inactive app card focuses the app; press it again to open its subpage. This preference applies to all app subpages and is saved on the display.
+
+An app subpage can open before its app finishes activating. Its app-specific keyboard shortcuts remain disabled until activation is confirmed, so they cannot act on the previous app.
 
 Shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Shift is optional. Modifier-only combinations and unsupported system keys are rejected.
 

@@ -258,20 +258,20 @@ inline bool numeric_selectable_driver_bind_subpage(
     slot, config, context, environment.palette, environment.display);
 
   if (bindings.select) {
-    lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+    bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
       OptionSelectCtx *select = static_cast<OptionSelectCtx *>(
         lv_event_get_user_data(event));
       if (select) option_select_open_modal(select);
-    }, LV_EVENT_CLICKED, bindings.select);
+    }, bindings.select);
   } else if (bindings.fan) {
     if (environment.add_parent_indicator) {
       environment.add_parent_indicator(config.entity);
     }
-    lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+    bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
       FanCardCtx *fan = static_cast<FanCardCtx *>(
         lv_event_get_user_data(event));
       if (fan) fan_card_handle_click(fan);
-    }, LV_EVENT_CLICKED, bindings.fan);
+    }, bindings.fan);
   } else if (context.runtime.driver == Driver::LIGHT_TEMPERATURE) {
     if (!config.entity.empty() && environment.add_parent_indicator) {
       environment.add_parent_indicator(config.entity);
@@ -282,11 +282,11 @@ inline bool numeric_selectable_driver_bind_subpage(
     }
     std::string *entity = grid_delete_with_owner(
       slot.btn, new std::string(config.entity));
-    lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+    bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
       std::string *value = static_cast<std::string *>(
         lv_event_get_user_data(event));
       if (value && !value->empty()) send_slider_action(*value, -1);
-    }, LV_EVENT_CLICKED, entity);
+    }, entity);
   }
   return true;
 }

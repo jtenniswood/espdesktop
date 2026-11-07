@@ -86,6 +86,7 @@ struct ValueState {
   std::optional<uint32_t> value{};
 };
 struct FocusChanged {
+  std::optional<bool> applicationOnly{};
   std::string actionId{};
   std::optional<std::vector<std::string>> actionIds{};
 };
@@ -285,6 +286,7 @@ inline void encode(JsonObject root, const ValueState &message) {
 inline void encode(JsonObject root, const FocusChanged &message) {
   root["type"] = "focus.changed";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  if (message.applicationOnly) root["applicationOnly"] = *message.applicationOnly;
   root["actionId"] = message.actionId;
   if (message.actionIds) {
   auto values_actionIds = root["actionIds"].to<JsonArray>();
@@ -658,6 +660,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
   if (type == "focus.changed") {
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    if (!root["applicationOnly"].isUnbound()) {
+      if (!(root["applicationOnly"].is<bool>())) return std::nullopt;
+    }
     {
       if (!(string_valid(root["actionId"], 0, 96))) return std::nullopt;
     }
@@ -668,6 +673,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       }
     }
     FocusChanged result;
+    if (!root["applicationOnly"].isUnbound()) result.applicationOnly = root["applicationOnly"].as<bool>();
     result.actionId = root["actionId"].as<std::string>();
     if (!root["actionIds"].isUnbound()) {
     result.actionIds.emplace();
