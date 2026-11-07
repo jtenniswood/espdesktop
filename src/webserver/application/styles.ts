@@ -255,6 +255,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-selection-bar.sp-visible{display:flex}" +
         ".sp-swipe-wrap{display:flex;justify-content:center;padding:0 var(--gap);margin:6px 0 0}.sp-swipe-wrap:has([hidden]){display:none}" +
         ".sp-special-page-entry{box-sizing:border-box;justify-content:center;width:calc(var(--screen-w) + 4px);max-width:100%}" +
+        ".sp-special-page-entry.sp-selection-btn{min-height:48px}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
         ".sp-selection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}" +

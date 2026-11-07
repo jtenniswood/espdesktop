@@ -6060,7 +6060,7 @@ async function assertInlineCardNames(page, nativeState, label) {
   assert.strictEqual(nativeState.document.buttons[1], renamed, `${label}: Escape cancels`);
   await title.click();
   await input.fill("Also cancelled");
-  await page.locator(".sp-preview-hint, .sp-hint").first().click();
+  await page.locator(".sp-brand").click();
   await page.waitForFunction(() => !document.querySelector(".sp-card-name-input"));
   assert.strictEqual(nativeState.document.buttons[1], renamed, `${label}: clicking away cancels`);
   await title.click();
@@ -6139,7 +6139,7 @@ async function assertInlineCardNames(page, nativeState, label) {
     const generatedLabel = card.locator(".sp-btn-label");
     if (await generatedLabel.count()) {
       assert.strictEqual(await generatedLabel.getAttribute("tabindex"), null);
-      await page.locator(".sp-preview-hint, .sp-hint").first().click();
+      await page.locator(".sp-brand").click();
       await generatedLabel.click();
       assert(await card.evaluate(el => el.classList.contains("sp-selected")),
         `${label}: clicking ${type} text still selects its card`);
@@ -8943,6 +8943,8 @@ async function assertSpecialPageRename(browser, testCase) {
     assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
     assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "home preview has no grab handle");
     assert.strictEqual(await entry.innerText(), "Configure swipe-up page");
+    assert(entryBounds.height >= 48, "Configure swipe-up page has a taller click target");
+    assert(!(await page.locator("#sp-screen .sp-hint").isVisible()), "idle editing instructions are hidden without blank spacing");
     assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
     if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
     await entry.focus();

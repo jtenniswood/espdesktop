@@ -199,7 +199,7 @@ export function createControlsShellFeature(
         els.previewMain.setAttribute("aria-label", "Button grid");
         var hint: any = document.createElement("div");
         hint.className = "sp-hint";
-        hint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
+        hint.style.display = "none";
         els.previewHint = hint;
         var specialPageEntry: any = document.createElement("button");
         specialPageEntry.className = "sp-selection-btn sp-special-page-entry";

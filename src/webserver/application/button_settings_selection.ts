@@ -68,7 +68,8 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             els.previewHint.textContent = c.selected.length + " buttons selected \u2022 right click to copy, cut, or delete";
         }
         else {
-            els.previewHint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
+            els.previewHint.textContent = "";
+            els.previewHint.style.display = "none";
         }
     }
     function renderClockBarSelectionBar(this: any) {
