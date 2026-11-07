@@ -34,6 +34,7 @@
     { "key": "battery_percent", "domain": "sensor", "name": "Battery", "groups": ["settings_battery"] },
     { "key": "screen_temperature_degree_symbol", "domain": "switch", "name": "Screen: Temperature Degree Symbol", "objectIds": ["screen__temperature_degree_symbol", "screen_temperature_degree_symbol", "temperature_degree_symbol_enabled"], "groups": ["settings"] },
     { "key": "companion_auto_open_app_subpages", "domain": "switch", "name": "Companion: Auto Open App Subpages", "objectIds": ["companion__auto_open_app_subpages", "companion_auto_open_app_subpages", "companion_auto_open_app_subpages_enabled"], "groups": ["settings"] },
+    { "key": "screen_subpage_title_bar", "domain": "switch", "name": "Screen: Subpage Title Bar", "objectIds": ["screen__subpage_title_bar", "screen_subpage_title_bar", "subpage_title_bar_enabled"], "groups": ["settings"] },
     { "key": "screen_subpage_chevron", "domain": "switch", "name": "Screen: Subpage Chevron", "objectIds": ["screen__subpage_chevron", "screen_subpage_chevron", "subpage_chevrons_enabled"], "groups": ["settings"] },
     { "key": "screen_temperature_unit", "domain": "select", "name": "Screen: Temperature Unit", "groups": ["settings"] },
     { "key": "indoor_temp_entity", "domain": "text", "name": "Indoor Temp Entity", "groups": ["settings"] },

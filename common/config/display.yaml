@@ -62,10 +62,28 @@ esphome:
         - lambda: |-
             clock_bar_enable_settings_access(id(network_status_button));
             clock_bar_time_widget() = id(display_time);
+            clock_bar_subpage_title_bar_enabled() = id(subpage_title_bar_enabled).state;
             clock_bar_companion_subpage_title_font() =
                 lv_obj_get_style_text_font(id(display_time), LV_PART_MAIN);
             navigation_subpage_clock_bar_refresh() = []() {
+              // Page changes can show the bar even when it is disabled on home.
+              // Reserve its space before displaying the subpage title.
+              const ClockBarVisibility visibility = clock_bar_resolve_visibility(
+                  id(clock_bar_enabled).state, id(main_page)->obj,
+                  id(espdesktop_app).display().current_mode(),
+                  id(espdesktop_app).display().target_schedule_inactive());
+              clock_bar_set_button_grid_pages_pad_top(
+                  id(main_page)->obj,
+                  visibility.reserve_space ? ${main_page_pad_top} : ${main_page_compact_pad_top});
               navigation_refresh_subpage_label();
+              // Status widgets share the page-dependent visibility policy too.
+              // Apply the complete bar once per page change, not every timer tick.
+              static lv_obj_t *last_clock_bar_page = nullptr;
+              if (last_clock_bar_page != lv_scr_act()) {
+                last_clock_bar_page = lv_scr_act();
+                id(clock_bar_apply).execute();
+                return;
+              }
               clock_bar_set_widget_hidden(id(display_time),
                   !(clock_bar_should_show(id(clock_bar_enabled).state, id(main_page)->obj,
                       id(espdesktop_app).display().current_mode(),
@@ -471,6 +489,21 @@ switch:
             id(indoor_temp_enable).state,
             id(outdoor_temp_enable).state,
             id(indoor_temp), id(outdoor_temp));
+
+  - platform: template
+    name: "${entity_screen_subpage_title_bar}"
+    internal: true
+    id: subpage_title_bar_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    icon: "mdi:page-layout-header"
+    web_server:
+      sorting_group_id: sg_display
+    on_state:
+      - lambda: |-
+          clock_bar_subpage_title_bar_enabled() = x;
+          if (clock_bar_time_widget() != nullptr) id(clock_bar_apply).execute();
 
   - platform: template
     name: "${entity_companion_auto_open_app_subpages}"
