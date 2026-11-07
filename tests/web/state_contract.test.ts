@@ -76,12 +76,15 @@ export function runStateContractTests(): void {
   const restoredCompanionSettings = normalizeBackupPanelSettings({
     auto_open_app_subpages: false,
     show_running_apps: false,
+    subpage_title_bar: false,
     screensaver_mode: "companion",
     cover_art_source: "Mac Companion",
   }, backupCurrent);
   equal(restoredCompanionSettings.showRunningApps, false, "backup preserves disabled running styling");
   equal(normalizeBackupPanelSettings({}, backupCurrent).showRunningApps, true, "older backups retain running styling");
   equal(restoredCompanionSettings.autoOpenAppSubpages, false, "backup restore preserves manual app subpages");
+  equal(restoredCompanionSettings.subpageTitleBar, false, "backup restore preserves hidden subpage title bars");
+  equal(normalizeBackupPanelSettings({}, backupCurrent).subpageTitleBar, true, "older backups show subpage title bars by default");
   equal(normalizeBackupPanelSettings({}, backupCurrent).autoOpenAppSubpages, true, "older backups retain automatic app subpages");
   equal(restoredCompanionSettings.screensaverMode, "companion",
     "backup restore preserves Companion screensaver mode");
@@ -143,6 +146,7 @@ export function runStateContractTests(): void {
     subpageChevron: "switch-screen__subpage_chevron",
     autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
     showRunningApps: "switch-companion__show_running_apps",
+    subpageTitleBar: "switch-screen__subpage_title_bar",
     screensaverTimeout: "number-screensaver_timeout",
     clockScreensaver: "switch-screen_saver__clock",
     mediaPlayerSleepPrevention: "switch-screen_saver__media_player_sleep_prevention",

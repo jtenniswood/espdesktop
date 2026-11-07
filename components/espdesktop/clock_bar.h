@@ -273,6 +273,11 @@ inline bool clock_bar_active_on_button_grid_page(lv_obj_t *main_page_obj = nullp
   return std::find(pages.begin(), pages.end(), active) != pages.end();
 }
 
+inline bool &clock_bar_subpage_title_bar_enabled() {
+  static bool enabled = true;
+  return enabled;
+}
+
 inline ClockBarVisibility clock_bar_resolve_visibility(
     bool enabled,
     lv_obj_t *main_page_obj,
@@ -283,7 +288,11 @@ inline ClockBarVisibility clock_bar_resolve_visibility(
   // keeps the normal UI visible and should preserve its complete clock bar.
   // Keep the same top padding in hidden modes so waking does not briefly
   // resize the cards.
-  result.reserve_space = enabled && !schedule_inactive;
+  // Subpages can show their title independently. Enabling the full Clock Bar
+  // always shows it; the home screen follows only that full-bar setting.
+  const bool subpage_active = main_page_obj && lv_scr_act() != main_page_obj &&
+      clock_bar_active_on_button_grid_page(main_page_obj);
+  result.reserve_space = (enabled || (subpage_active && clock_bar_subpage_title_bar_enabled())) && !schedule_inactive;
   result.visible = result.reserve_space &&
       (display_mode == espdesktop::DisplayMode::ACTIVE ||
        display_mode == espdesktop::DisplayMode::DIMMED) &&
@@ -428,7 +437,7 @@ inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   const auto &widths = clock_bar_left_text_widths();
   const bool showing_title = !clock_bar_left_title().empty();
   const int icon_space = clock_bar_companion_icon_should_show()
-      ? CLOCK_BAR_COMPANION_ICON_SIZE + 8 : 0;
+      ? CLOCK_BAR_COMPANION_ICON_SIZE + 4 : 0;
   const int width = !showing_title
       ? widths.temperature : std::max(1, widths.title - icon_space);
   lv_obj_set_width(label, width);

@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 45,
-    "entityNames": 124,
+    "entityNames": 125,
     "icons": 401,
     "structuralIcons": 37,
     "compatibilityFixtureGroups": 2
@@ -7337,6 +7337,19 @@
           "companion__show_running_apps",
           "companion_show_running_apps",
           "companion_show_running_apps_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_subpage_title_bar",
+        "domain": "switch",
+        "name": "Screen: Subpage Title Bar",
+        "objectIds": [
+          "screen__subpage_title_bar",
+          "screen_subpage_title_bar",
+          "subpage_title_bar_enabled"
         ],
         "groups": [
           "settings"

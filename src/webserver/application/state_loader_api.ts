@@ -113,25 +113,32 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
         });
     }
     function loadInitialState(this: any, handleState?: any, onLoaded?: any) {
-        loadStateItems(cardStateEntities(), handleState, 4).then(function (this: any, loadedCount?: any) {
-            if (loadedCount === 0) {
-                setConfigLocked(true, "Reconnecting to device\u2026");
-                showBanner("Reconnecting to device\u2026", "offline");
-                setTimeout(dependencies.connectEvents, 5000);
-                return;
-            }
-            if (onLoaded)
-                onLoaded();
-            clearTimeout(runtime.migrationTimer as any);
-            runtime.migrationTimer = setTimeout(gridMigration.schedule, 5000);
-            clearTimeout(runtime.sliderMigrationTimer as any);
-            runtime.pendingSliderSubpageMigrations = {};
-            loadStateItems(settingsStateEntities(), handleState, 2).then(function (this: any) {
-                loadStateItems(subpageStateEntities(), handleState, 2).then(function (this: any) {
-                    dependencies.publishCompanionURLTargets?.();
+        // Card events render immediately. Resolve the saved default before any app
+        // cards arrive, so Large icons never paint using the provisional Small layout.
+        const previewSettings: [string, string][] = entityStateItems(["screen_default_icon_size"]);
+        const remainingSettings = settingsStateEntities().filter((item: [string, string]) =>
+            !previewSettings.some(preview => preview[0] === item[0] && preview[1] === item[1]));
+        loadStateItems(previewSettings, handleState, 1)
+            .then(() => loadStateItems(cardStateEntities(), handleState, 4))
+            .then(function (this: any, loadedCount?: any) {
+                if (loadedCount === 0) {
+                    setConfigLocked(true, "Reconnecting to device\u2026");
+                    showBanner("Reconnecting to device\u2026", "offline");
+                    setTimeout(dependencies.connectEvents, 5000);
+                    return;
+                }
+                if (onLoaded)
+                    onLoaded();
+                clearTimeout(runtime.migrationTimer as any);
+                runtime.migrationTimer = setTimeout(gridMigration.schedule, 5000);
+                clearTimeout(runtime.sliderMigrationTimer as any);
+                runtime.pendingSliderSubpageMigrations = {};
+                loadStateItems(remainingSettings, handleState, 2).then(function (this: any) {
+                    loadStateItems(subpageStateEntities(), handleState, 2).then(function (this: any) {
+                        dependencies.publishCompanionURLTargets?.();
+                    });
                 });
             });
-        });
     }
     function refreshFirmwareVersion(this: any): Promise<void> {
         var pending: any = 13;

@@ -392,6 +392,7 @@ export interface BackupPanelSettingsState {
   subpageChevron: boolean;
   autoOpenAppSubpages: boolean;
   showRunningApps: boolean;
+  subpageTitleBar: boolean;
   timezone: string;
   temperatureUnit: string;
   language: string;
@@ -546,6 +547,7 @@ export function normalizeBackupPanelSettings(
     showRunningApps: objectValue(settings, "show_running_apps") != null
       ? !!settings.show_running_apps
       : true,
+    subpageTitleBar: objectValue(settings, "subpage_title_bar") != null ? !!settings.subpage_title_bar : true,
     autoOpenAppSubpages: objectValue(settings, "auto_open_app_subpages") != null
       ? !!settings.auto_open_app_subpages
       : true,

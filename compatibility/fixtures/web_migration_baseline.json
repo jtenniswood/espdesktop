@@ -61,6 +61,7 @@
       "subpageChevron": true,
       "autoOpenAppSubpages": true,
       "showRunningApps": true,
+      "subpageTitleBar": true,
       "timezone": "Europe/London (GMT+0)",
       "temperatureUnit": "°F",
       "language": "en",

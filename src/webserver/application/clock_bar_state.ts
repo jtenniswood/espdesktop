@@ -89,7 +89,7 @@ export function createClockBarFeature(
         applyClockBarControllerState(clockBarControllerInstance.setNightModeEnabled(clockBarControllerState(), enabled));
     }
     function clockBarVisibleInPreview(this: any) {
-        return clockBarUiState().previewVisible;
+        return (state.editingSubpage != null && state.subpageTitleBarOn) || clockBarUiState().previewVisible;
     }
     function timezonePrefersFahrenheit(this: any, timezone?: any) {
         var tz: any = dependencies.timezoneId(effectiveTimezoneOptionForWeb(timezone || state.timezone));
@@ -259,13 +259,18 @@ export function createClockBarFeature(
         var before: any = clockBarControllerState();
         applyClockBarControllerState(clockBarControllerInstance.reconcile(before));
         var uiState: any = clockBarUiState();
-        var visible: any = uiState.previewVisible;
+        var visible: any = clockBarVisibleInPreview();
         if (!visible && before.selectedItem) {
             dependencies.hideSettingsOverlay();
         }
         syncPreviewGridTop();
         if (els.topbar)
             els.topbar.className = "sp-topbar" + (visible ? "" : " sp-hidden");
+        if (els.setSubpageTitleBar) els.setSubpageTitleBar.checked = state.subpageTitleBarOn;
+        if (els.setSubpageTitleBarRow) {
+            els.setSubpageTitleBarRow.hidden = !!state.clockBarOn;
+            els.setSubpageTitleBarRow.classList.toggle("sp-hidden", !!state.clockBarOn);
+        }
         if (els.setClockBarToggle)
             els.setClockBarToggle.checked = uiState.previewVisible;
         if (els.setClockBarTimeToggle)

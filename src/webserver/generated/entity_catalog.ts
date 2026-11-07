@@ -183,6 +183,15 @@ export const ENTITY_CATALOG = {
         "companion_show_running_apps_enabled"
       ]
     },
+    "screen_subpage_title_bar": {
+      "domain": "switch",
+      "name": "Screen: Subpage Title Bar",
+      "objectIds": [
+        "screen__subpage_title_bar",
+        "screen_subpage_title_bar",
+        "subpage_title_bar_enabled"
+      ]
+    },
     "screen_subpage_chevron": {
       "domain": "switch",
       "name": "Screen: Subpage Chevron",
@@ -878,6 +887,7 @@ export const ENTITY_CATALOG = {
       "screen_temperature_degree_symbol",
       "companion_auto_open_app_subpages",
       "companion_show_running_apps",
+      "screen_subpage_title_bar",
       "screen_subpage_chevron",
       "screen_temperature_unit",
       "indoor_temp_entity",

@@ -152,6 +152,7 @@ export interface AppState {
   subpageChevronsOn: boolean;
   autoOpenAppSubpages: boolean;
   showRunningApps: boolean;
+  subpageTitleBarOn: boolean;
   presenceEntity: string;
   screensaverCameraEntity: string;
   screensaverCameraSupported: boolean;

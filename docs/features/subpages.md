@@ -11,6 +11,8 @@ A subpage is an extra screen opened from a **Subpage** card. Use it to group rel
 
 Cards on the home screen and subpages act as soon as you touch them. Fixed control buttons, tabs, PIN keys and panel close buttons also respond on touch-down. Confirmation prompts still require an explicit choice. Sliders and scrollable choices keep their drag and release behavior so scrolling does not accidentally select an item.
 
+Subpages show the standard clock bar with the page name and, for app shortcut pages, the app icon. The clock stays hidden on subpages. When Clock Bar is off, use **Show app title bar** under **Device settings → App Subpages** to show or hide it globally. When Clock Bar is on, the title bar is always shown and this control is hidden. The preference is remembered for when Clock Bar is turned off again.
+
 ## Create a Subpage
 
 1. Open the display's setup page in a browser and choose the **Layout** tab.

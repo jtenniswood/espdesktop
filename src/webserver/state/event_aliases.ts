@@ -18,6 +18,7 @@ export const SSE_ALIAS_GROUPS = {
   alarmDelayBeepVolume: ["number-alarm_delay__beep_volume", "number-alarm_delay_beep_volume"],
   alarmDelayFinalCountdown: ["number-alarm_delay__final_countdown", "number-alarm_delay_final_countdown", "number-alarm_delay_final_countdown_seconds"],
   temperatureDegreeSymbol: ["switch-screen__temperature_degree_symbol", "switch-screen_temperature_degree_symbol", "switch-temperature_degree_symbol_enabled"],
+  subpageTitleBar: ["switch-screen__subpage_title_bar", "switch-screen_subpage_title_bar", "switch-subpage_title_bar_enabled"],
   autoOpenAppSubpages: ["switch-companion__auto_open_app_subpages", "switch-companion_auto_open_app_subpages", "switch-companion_auto_open_app_subpages_enabled"],
   showRunningApps: ["switch-companion__show_running_apps", "switch-companion_show_running_apps", "switch-companion_show_running_apps_enabled"],
   subpageChevron: ["switch-screen__subpage_chevron", "switch-screen_subpage_chevron", "switch-subpage_chevrons_enabled"],
@@ -83,6 +84,7 @@ export function applySseHandlerAliases(handlers: SseHandlers): void {
   addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayBeepVolume, "number-alarm_delay__beep_volume");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayFinalCountdown, "number-alarm_delay__final_countdown");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.temperatureDegreeSymbol, "switch-screen__temperature_degree_symbol");
+  addSseAliases(handlers, SSE_ALIAS_GROUPS.subpageTitleBar, "switch-screen__subpage_title_bar");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.autoOpenAppSubpages, "switch-companion__auto_open_app_subpages");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.showRunningApps, "switch-companion__show_running_apps");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.subpageChevron, "switch-screen__subpage_chevron");
