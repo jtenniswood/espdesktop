@@ -8808,9 +8808,14 @@ async function assertFirstRunSetup(browser) {
     ...Array.from({ length: testCase.slots + 1 }, (_, i) => ({ id: `org.example.app${i}`, label: `App ${i}` })),
   ];
   await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: actions }));
+  // Model readable firmware metadata instead of the generic empty HTTP response.
+  await context.route("**/text_sensor/**", route => route.fulfill({ status: 200, json: { state: "" } }));
+  await context.route("**/button/**", route => route.request().method() === "GET"
+    ? route.fulfill({ status: 200, json: {} }) : route.fallback());
   const switches = [];
   let failSwitch = false;
   await context.route("**/switch/**", route => {
+    if (route.request().method() === "GET") return route.fulfill({ status: 200, json: { state: "ON", value: true } });
     if (!/auto.*open.*app.*subpages/i.test(decodeURIComponent(route.request().url()))) return route.fallback();
     switches.push(new URL(route.request().url()).pathname.split("/").pop());
     return route.fulfill({ status: failSwitch ? 500 : 200, body: "" });
@@ -8820,6 +8825,7 @@ async function assertFirstRunSetup(browser) {
   page.on("pageerror", error => errors.push(error.message));
   await installFakeEventSource(page);
   const open = async (search = "") => {
+    await page.waitForLoadState("networkidle");
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1${search}`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(() => window.__seedEspState([{ id: "text-button_order", state: "" }]));
