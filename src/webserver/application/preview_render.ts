@@ -67,15 +67,71 @@ interface CompanionAppIconPreview {
     artworkHeightFraction: number;
 }
 
-const companionAppIconCache = new Map<string, {
+const APP_ICON_STORAGE_KEY = "espdesktop:app-icon-previews:v1";
+const APP_ICON_CACHE_LIMIT = 64;
+interface CachedAppIcon {
     expiresAt: number;
-    result: Promise<CompanionAppIconPreview | null>;
-}>();
+    value: CompanionAppIconPreview | null;
+}
+const companionAppIconCache = new Map<string, CachedAppIcon>();
+const companionAppIconRequests = new Map<string, Promise<CompanionAppIconPreview | null>>();
+let appIconContexts: Record<string, string> = {};
+let appIconCacheLoaded = false;
+let appIconCacheGeneration = 0;
+
+function loadAppIconCache(): void {
+    if (appIconCacheLoaded) return;
+    appIconCacheLoaded = true;
+    try {
+        const stored = JSON.parse(localStorage.getItem(APP_ICON_STORAGE_KEY) || "{}");
+        if (!stored || !Array.isArray(stored.entries)) return;
+        appIconContexts = stored.contexts || {};
+        for (const [key, entry] of stored.entries.slice(-APP_ICON_CACHE_LIMIT)) {
+            if (typeof key === "string" && entry?.expiresAt > Date.now() &&
+                entry.value?.dataUrl?.startsWith("data:image/png;base64,"))
+                companionAppIconCache.set(key, entry);
+        }
+    } catch { /* Storage can be unavailable or contain an older/corrupt entry. */ }
+}
+
+function saveAppIconCache(): void {
+    try {
+        localStorage.setItem(APP_ICON_STORAGE_KEY, JSON.stringify({
+            contexts: appIconContexts,
+            entries: Array.from(companionAppIconCache).filter(([, entry]) =>
+                entry.value && entry.expiresAt > Date.now()),
+        }));
+    } catch { /* Memory caching still works when browser storage is full/disabled. */ }
+}
+
+// Catalogue and connection snapshots let a page reload reuse unchanged artwork.
+// A manual clear has no context and always removes browser copies too.
+export function clearCompanionAppIconPreviewCache(context?: { name: string; value: string }): boolean {
+    loadAppIconCache();
+    if (context && appIconContexts[context.name] === context.value) return false;
+    appIconContexts = context ? { ...appIconContexts, [context.name]: context.value } : {};
+    appIconCacheGeneration++;
+    companionAppIconCache.clear();
+    companionAppIconRequests.clear();
+    saveAppIconCache();
+    return true;
+}
+
+function cachedAppIcon(cacheKey: string): CachedAppIcon | undefined {
+    loadAppIconCache();
+    const cached = companionAppIconCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached;
+    companionAppIconCache.delete(cacheKey);
+    return undefined;
+}
 
 export function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document): Promise<CompanionAppIconPreview | null> {
-    const cacheKey = applicationId + ":" + backgroundColor;
-    const cached = companionAppIconCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.result;
+    const cacheKey = JSON.stringify([applicationId, backgroundColor]);
+    const cached = cachedAppIcon(cacheKey);
+    if (cached) return Promise.resolve(cached.value);
+    const pending = companionAppIconRequests.get(cacheKey);
+    if (pending) return pending;
+    const generation = appIconCacheGeneration;
     if (typeof fetch !== "function") return Promise.resolve(null);
     const query = "appId=" + encodeURIComponent(applicationId) +
         (backgroundColor ? "&background=" + encodeURIComponent(backgroundColor) : "");
@@ -137,10 +193,20 @@ export function companionAppIconPreviewData(applicationId: string, backgroundCol
             artworkHeightFraction: (COMPANION_APP_ICON_SIDE - insets.top - insets.bottom) / COMPANION_APP_ICON_SIDE,
         };
     }).catch(function () { return null; }).then(function (value) {
-        if (!value || !value.online) companionAppIconCache.delete(cacheKey);
+        if (generation === appIconCacheGeneration) {
+            companionAppIconRequests.delete(cacheKey);
+            companionAppIconCache.delete(cacheKey);
+            companionAppIconCache.set(cacheKey, {
+                expiresAt: Date.now() + (value ? (value.online ? 24 * 60 * 60 * 1000 : 30000) : 5000),
+                value,
+            });
+            while (companionAppIconCache.size > APP_ICON_CACHE_LIMIT)
+                companionAppIconCache.delete(companionAppIconCache.keys().next().value!);
+            saveAppIconCache();
+        }
         return value;
     });
-    companionAppIconCache.set(cacheKey, { expiresAt: Date.now() + 5 * 60 * 1000, result });
+    companionAppIconRequests.set(cacheKey, result);
     return result;
 }
 
@@ -397,35 +463,38 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
                     const loadAppIcon = function (attempt: number): void {
-                        void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
+                        const applyAppIcon = function (previewIcon: CompanionAppIconPreview | null) {
                             if (!btn.isConnected) return;
                             if (!previewIcon) {
                                 if (attempt < 12) window.setTimeout(function () {
-                                    loadAppIcon(attempt + 1);
+                                    if (btn.isConnected) loadAppIcon(attempt + 1);
                                 }, Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
                                 return;
                             }
-                        const appIcon = document.createElement("img");
-                        appIcon.className = "sp-btn-icon sp-companion-app-icon";
-                        btn.classList.add("sp-companion-app-icon-fit-card");
-                        appIcon.alt = "";
-                        appIcon.setAttribute("aria-hidden", "true");
-                        appIcon.src = previewIcon.dataUrl;
-                        appIconArtwork.set(appIcon, previewIcon);
-                        btn.appendChild(appIcon);
-                        resizeAppIcon(btn);
-                        appIconResizeObserver?.observe(btn);
-                        const label = btn.querySelector(".sp-btn-label");
-                        if (label) appIconResizeObserver?.observe(label);
-                        if (fallbackIcon) fallbackIcon.hidden = true;
-                        if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
-                            btn.style.backgroundColor = "#" + previewIcon.defaultColor;
-                            btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
-                            btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
-                            btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
-                            btn.classList.add("sp-companion-app-icon-card");
-                        }
-                        });
+                            const appIcon = document.createElement("img");
+                            appIcon.className = "sp-btn-icon sp-companion-app-icon";
+                            btn.classList.add("sp-companion-app-icon-fit-card");
+                            appIcon.alt = "";
+                            appIcon.setAttribute("aria-hidden", "true");
+                            appIcon.src = previewIcon.dataUrl;
+                            appIconArtwork.set(appIcon, previewIcon);
+                            btn.appendChild(appIcon);
+                            resizeAppIcon(btn);
+                            appIconResizeObserver?.observe(btn);
+                            const label = btn.querySelector(".sp-btn-label");
+                            if (label) appIconResizeObserver?.observe(label);
+                            if (fallbackIcon) fallbackIcon.hidden = true;
+                            if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
+                                btn.style.backgroundColor = "#" + previewIcon.defaultColor;
+                                btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
+                                btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
+                                btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
+                                btn.classList.add("sp-companion-app-icon-card");
+                            }
+                        };
+                        const cached = cachedAppIcon(JSON.stringify([applicationId, backgroundColor]));
+                        if (cached?.value) applyAppIcon(cached.value);
+                        else void companionAppIconPreviewData(applicationId, backgroundColor, document).then(applyAppIcon);
                     };
                     loadAppIcon(0);
                 }
@@ -453,9 +522,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         renderSelectionBar(c);
     }
-    document.addEventListener("espdesktop:app-icon-cache-cleared", function () {
-        companionAppIconCache.clear();
-        renderPreview();
+    document.addEventListener("espdesktop:app-icon-cache-cleared", function (event) {
+        const context = (event as CustomEvent<{ name: string; value: string }>).detail;
+        if (clearCompanionAppIconPreviewCache(context)) renderPreview();
     });
     return {
         render: renderPreview,
