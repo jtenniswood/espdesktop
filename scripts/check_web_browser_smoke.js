@@ -8727,6 +8727,11 @@ async function assertAppSubpageOpeningPreference(browser) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture });
   const posts = [];
+  const returnPosts = [];
+  await context.route("**/switch/*return_home_on_app_switch*/**", async route => {
+    returnPosts.push(new URL(route.request().url()).pathname.split("/").pop());
+    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
+  });
   await context.route("**/switch/*auto_open_app_subpages*/**", async route => {
     posts.push(new URL(route.request().url()).pathname.split("/").pop());
     await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
@@ -8766,6 +8771,23 @@ async function assertAppSubpageOpeningPreference(browser) {
       toggle.locator("..").locator(".sp-toggle-track").click(),
     ]);
     assert.deepStrictEqual(posts, ["turn_off", "turn_on"]);
+    const returnToggle = page.locator("#sp-set-return-home-on-app-switch");
+    assert(await returnToggle.isChecked(), "returning home remains the default");
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_off")),
+      returnToggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(returnPosts, ["turn_off"], "staying on the page is saved to the device");
+    await open();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-companion_return_home_on_app_switch_enabled", state: "OFF", value: false },
+    ]));
+    await page.waitForFunction(() => !document.querySelector("#sp-set-return-home-on-app-switch").checked);
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_on")),
+      returnToggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(returnPosts, ["turn_off", "turn_on"]);
     assert.deepStrictEqual(errors, [], "the setting and device events cause no browser errors");
     console.log("Global app subpage preference browser checks passed.");
   } finally { await context.close(); }

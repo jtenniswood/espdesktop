@@ -465,6 +465,14 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
     companion_consume_subpage_return_request();
     return false;
   }
+  if (!companion_return_home_on_app_switch()) {
+    // Discard the matching automatic open too, so another app's page cannot
+    // replace the page the user chose to keep on screen.
+    const std::string requested = companion_pending_auto_subpage_action();
+    if (!requested.empty()) companion_consume_auto_subpage_action(requested);
+    companion_consume_subpage_return_request();
+    return false;
+  }
   // A panel tap on the app's home card can focus Finder while its action-result
   // callback is loading this very subpage. That focus change also raises the
   // usual "leave the current app subpage" request; consume it without returning
@@ -483,6 +491,11 @@ inline bool navigation_open_companion_subpage_if_requested(
   if (alarm_display_takeover_active()) return false;
   const std::string requested = companion_pending_auto_subpage_action();
   if (requested.empty()) return false;
+  NavigationSubpageEntry *active = navigation_find_slot(navigation_active_subpage_slot());
+  if (!companion_return_home_on_app_switch() && active && active->kind == "app_shortcuts") {
+    companion_consume_auto_subpage_action(requested);
+    return false;
+  }
   for (const auto &parent : navigation_home_targets()) {
     const ParsedCfg parent_config = parse_cfg(parent.config);
     if (!companion_app_shortcuts_enabled(parent_config) ||

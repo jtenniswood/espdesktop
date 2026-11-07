@@ -245,6 +245,11 @@ int main() {
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.network_throughput", metric_value));
   assert(metric_value == 512.5f / 1024.0f);
   assert(!companion_metric_value(companion_runtime_snapshot(), "stat.battery", metric_value));
+  assert(companion_return_home_on_app_switch());
+  companion_set_return_home_on_app_switch(false);
+  assert(!companion_return_home_on_app_switch());
+  companion_set_return_home_on_app_switch(true);
+  assert(companion_return_home_on_app_switch());
   companion_set_focused_action("com.apple.Safari");
   assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
   assert(companion_consume_auto_subpage_action("com.apple.Safari"));

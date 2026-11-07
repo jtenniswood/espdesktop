@@ -174,6 +174,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postTemperatureDegreeSymbol,
         postSubpageChevron,
         postAutoOpenAppSubpages,
+        postReturnHomeOnAppSwitch,
         postSubpageTitleBar,
     } = controllers.clockBarPostApi;
     const {
@@ -286,6 +287,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 temperature_degree_symbol: state.temperatureDegreeSymbolOn,
                 subpage_chevron: state.subpageChevronsOn,
                 auto_open_app_subpages: state.autoOpenAppSubpages,
+                return_home_on_app_switch: state.returnHomeOnAppSwitch,
                 subpage_title_bar: state.subpageTitleBarOn,
                 timezone: state.timezone,
                 language: normalizeLanguage(state.language),
@@ -567,6 +569,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postTemperatureDegreeSymbol(importedSettings.temperatureDegreeSymbol);
                     postSubpageChevron(importedSettings.subpageChevron);
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
+                    postReturnHomeOnAppSwitch(importedSettings.returnHomeOnAppSwitch);
                     postSubpageTitleBar(importedSettings.subpageTitleBar);
                     var importedTimezone: any = importedSettings.timezone;
                     var importedTemperatureUnit: any = importedSettings.temperatureUnit;
@@ -671,8 +674,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.temperatureDegreeSymbolOn = importedSettings.temperatureDegreeSymbol;
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
+                    state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
                     state.subpageTitleBarOn = importedSettings.subpageTitleBar;
                     if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
+                    if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
                     state.timezone = importedTimezone;
                     state.language = importedLanguage;
                     state.clockFormat = importedClockFormat;
