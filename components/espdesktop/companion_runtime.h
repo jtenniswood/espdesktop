@@ -128,6 +128,9 @@ struct CompanionRuntimeSnapshot {
   uint32_t url_focus_targets_generation{0};
   bool application_highlight_known{false};
   std::string application_highlight_id;
+  bool running_applications_known{false};
+  std::vector<std::string> running_application_ids;
+  bool show_running_apps{true};
 };
 
 inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
@@ -253,7 +256,8 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
             connected_, now_playing_, system_metrics_, url_focus_targets_, web_app_focus_ids_,
-            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
+            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_,
+            running_applications_known_, running_application_ids_, show_running_apps_};
   }
 
   std::string highlighted_application() const {
@@ -338,6 +342,13 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  void set_show_running_apps(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (show_running_apps_ == enabled) return;
+    show_running_apps_ = enabled;
+    focus_refresh_requested_.store(true);
+  }
+
   void set_auto_open_app_subpages(bool enabled) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto_open_app_subpages_ = enabled;
@@ -354,6 +365,18 @@ class CompanionRuntimeService {
     std::vector<std::string> identifiers;
     if (!action_id.empty()) identifiers.push_back(std::move(action_id));
     return set_focused_actions(std::move(identifiers));
+  }
+
+  void set_running_applications(std::vector<std::string> identifiers) {
+    std::sort(identifiers.begin(), identifiers.end());
+    identifiers.erase(std::unique(identifiers.begin(), identifiers.end()), identifiers.end());
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (running_applications_known_ && running_application_ids_ == identifiers) return;
+    running_applications_known_ = true;
+    running_application_ids_ = std::move(identifiers);
+    // Process lifecycle is visual state only; it never authorizes shortcuts or
+    // changes confirmed/native focus or page navigation.
+    focus_refresh_requested_.store(true);
   }
 
   void set_application_highlight(std::string application_id) {
@@ -426,6 +449,8 @@ class CompanionRuntimeService {
       values_.clear();
       focused_action_id_.clear();
       focused_action_ids_.clear();
+      running_applications_known_ = false;
+      running_application_ids_.clear();
       application_highlight_known_ = false;
       application_highlight_id_.clear();
       focused_auto_subpage_id_.clear();
@@ -449,6 +474,8 @@ class CompanionRuntimeService {
 
   mutable std::mutex mutex_;
   std::vector<CompanionAction> actions_;
+  bool running_applications_known_{false};
+  std::vector<std::string> running_application_ids_;
   bool application_highlight_known_{false};
   std::string application_highlight_id_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
@@ -459,6 +486,7 @@ class CompanionRuntimeService {
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
   bool auto_open_app_subpages_ = true;
+  bool show_running_apps_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
   bool keyboard_actions_supported_{false};

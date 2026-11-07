@@ -392,6 +392,10 @@ inline bool companion_consume_subpage_return_request() {
   return companion_subpage_return_requested().exchange(false);
 }
 
+inline void companion_set_show_running_apps(bool enabled) {
+  companion_runtime_service().set_show_running_apps(enabled);
+}
+
 inline void companion_set_auto_open_app_subpages(bool enabled) {
   companion_runtime_service().set_auto_open_app_subpages(enabled);
 }
@@ -664,6 +668,9 @@ inline bool companion_card_focus_allowed(const std::string &url_config) {
 }
 
 #ifdef USE_LVGL
+#include "button_grid_style.h"
+#include "app_card_running_style.h"
+
 struct CompanionCardRef {
   lv_obj_t *button = nullptr;
   lv_obj_t *text_label = nullptr;
@@ -882,6 +889,21 @@ inline void companion_require_card_focus(lv_obj_t *button, const std::string &re
   }
 }
 
+inline void companion_apply_card_running_state(lv_obj_t *button, const std::string &action_id,
+                                                const std::string &url_config, bool show_focus,
+                                                const CompanionRuntimeSnapshot &snapshot) {
+  const bool application_card = show_focus && url_config.empty() && !action_id.empty() &&
+      action_id.rfind("folder.", 0) != 0 && action_id.rfind("webapp.", 0) != 0 &&
+      action_id.rfind("urlcard.", 0) != 0 && action_id.rfind("window.", 0) != 0 &&
+      action_id.rfind("shortcut.", 0) != 0 && action_id.rfind("media.", 0) != 0 &&
+      action_id.rfind("stat.", 0) != 0;
+  const bool closed = snapshot.show_running_apps && application_card && snapshot.connected && snapshot.running_applications_known &&
+      !companion_action_focused(snapshot, action_id, true) &&
+      !std::binary_search(snapshot.running_application_ids.begin(), snapshot.running_application_ids.end(), action_id);
+  apply_app_card_closed_style(button, closed,
+      theme_display_color(current_theme().surface_card), current_button_primary_color());
+}
+
 inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapshot) {
   for (auto &ref : companion_card_refs()) {
     if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty()) continue;
@@ -891,6 +913,7 @@ inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapsho
       if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
         set_card_disabled_state(ref.button, !available);
     }
+    companion_apply_card_running_state(ref.button, ref.action_id, ref.url_config, ref.show_focus, snapshot);
     companion_apply_card_focus(ref.button, ref.action_id, ref.url_config, ref.show_focus, &snapshot);
   }
 }
@@ -958,6 +981,7 @@ inline void companion_refresh_cards_if_requested() {
 
     if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(it->button, !available);
+    companion_apply_card_running_state(it->button, it->action_id, it->url_config, it->show_focus, snapshot);
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
     ++it;
   }

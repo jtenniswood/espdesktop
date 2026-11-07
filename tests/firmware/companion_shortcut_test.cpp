@@ -323,6 +323,32 @@ int main() {
   assert(!companion_value("media.output_volume", output_volume));
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   companion_runtime_service().set_application_highlight("com.apple.finder");
+  companion_runtime_service().set_running_applications({"com.apple.finder", "com.apple.Safari", "com.apple.finder"});
+  auto running = companion_runtime_snapshot();
+  assert(running.running_applications_known);
+  assert(running.show_running_apps);
+  companion_runtime_service().consume_focus_refresh_request();
+  companion_set_show_running_apps(false);
+  auto without_running_style = companion_runtime_snapshot();
+  assert(!without_running_style.show_running_apps);
+  assert(without_running_style.running_application_ids == running.running_application_ids);
+  assert(without_running_style.application_highlight_id == running.application_highlight_id);
+  assert(companion_runtime_service().consume_focus_refresh_request());
+  companion_set_show_running_apps(false);
+  assert(!companion_runtime_service().consume_focus_refresh_request());
+  companion_set_show_running_apps(true);
+  assert(companion_runtime_snapshot().show_running_apps);
+  assert(companion_runtime_service().consume_focus_refresh_request());
+  assert(running.running_application_ids == std::vector<std::string>({"com.apple.Safari", "com.apple.finder"}));
+  assert(running.application_highlight_id == "com.apple.finder");
+  assert(running.focused_action_ids.empty()); // Lifecycle cannot authorize a shortcut.
+  companion_runtime_service().consume_focus_refresh_request();
+  companion_runtime_service().set_running_applications({"com.apple.Safari", "com.apple.finder"});
+  assert(!companion_runtime_service().consume_focus_refresh_request());
+  companion_runtime_service().set_running_applications({});
+  assert(companion_runtime_snapshot().application_highlight_id == "com.apple.finder");
+  assert(companion_runtime_snapshot().running_application_ids.empty());
+
   assert(companion_action_active("com.apple.finder", true));
   assert(!companion_action_active("com.apple.Safari", true));
   assert(!companion_action_active("com.apple.finder"));
@@ -427,7 +453,10 @@ int main() {
   assert(companion_timezone_changed());
   assert(companion_take_timezone_changed());
   assert(!companion_timezone_changed());
+  companion_runtime_service().set_running_applications({"com.example.App"});
   companion_set_connected(false);
+  assert(!companion_runtime_snapshot().running_applications_known);
+  assert(companion_runtime_snapshot().running_application_ids.empty());
   assert(!companion_url_available("system.default_browser", url_config));
   assert(!invoke_companion_url("system.default_browser", url_config, "offline-url"));
   assert(companion_consume_subpage_return_request());

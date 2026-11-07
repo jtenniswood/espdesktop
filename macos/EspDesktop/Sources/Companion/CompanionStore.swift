@@ -192,6 +192,13 @@ final class CompanionStore: NSObject, ObservableObject {
             name: NSWorkspace.didActivateApplicationNotification,
             object: nil
         )
+        for notification in [NSWorkspace.didLaunchApplicationNotification,
+                             NSWorkspace.didTerminateApplicationNotification] {
+            NSWorkspace.shared.notificationCenter.addObserver(
+                self, selector: #selector(applicationRunningStateDidChange(_:)),
+                name: notification, object: nil
+            )
+        }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(systemTimeZoneDidChange(_:)),
@@ -433,6 +440,14 @@ final class CompanionStore: NSObject, ObservableObject {
         await focusedCompanionActionIdentifiers().first ?? ""
     }
 
+    func runningCompanionApplicationIdentifiers() -> [String] {
+        CompanionRunningApplications.identifiers(
+            in: NSWorkspace.shared.runningApplications.map {
+                (identifier: $0.bundleIdentifier, terminated: $0.isTerminated)
+            }, approved: approvedApplicationIdentifiers
+        )
+    }
+
     func immediateFocusedApplicationIdentifier() -> String? {
         // NSWorkspace has already confirmed foreground activation. Do not put
         // window enumeration or browser/Finder AppleScript on the colour path.
@@ -531,6 +546,10 @@ final class CompanionStore: NSObject, ObservableObject {
               NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder",
               !path.isEmpty else { return nil }
         return path
+    }
+
+    @objc private func applicationRunningStateDidChange(_ notification: Notification) {
+        if isConnected { connection.publishRunningApplications() }
     }
 
     @objc private func frontmostApplicationDidChange(_ notification: Notification) {

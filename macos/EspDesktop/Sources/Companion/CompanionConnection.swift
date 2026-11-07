@@ -65,6 +65,8 @@ final class CompanionConnection: NSObject {
     private var sessionAuthenticated = false
     private var supportsAlphaAppIcons = false
     private var supportsHighResolutionAppIcons = false
+    private var supportsRunningApplicationState = false
+    private var runningApplicationsPublisher = CompanionRunningApplicationsPublisher()
     private var supportsImmediateApplicationFocus = false
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
@@ -181,6 +183,8 @@ final class CompanionConnection: NSObject {
         sessionAuthenticated = false
         supportsAlphaAppIcons = false
         supportsHighResolutionAppIcons = false
+        supportsRunningApplicationState = false
+        runningApplicationsPublisher.reset()
         remoteCatalogueDefinitionsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
@@ -461,6 +465,7 @@ final class CompanionConnection: NSObject {
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
+            supportsRunningApplicationState = payload.capabilityVersion >= 7
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -486,6 +491,7 @@ final class CompanionConnection: NSObject {
             if let task { startHeartbeat(for: task) }
             publishTimezone()
             publishCatalogue()
+            publishRunningApplications()
             onEvent?(.publishCurrentState)
         case .catalogueRequest:
             guard sessionAuthenticated else { return false }
@@ -874,6 +880,7 @@ final class CompanionConnection: NSObject {
             }
         }
         publishFocusedAction()
+        publishRunningApplications()
     }
 
     static func supportedWindowActionIDs(for version: OperatingSystemVersion) -> [String] {
@@ -890,6 +897,15 @@ final class CompanionConnection: NSObject {
         let identifier = TimeZone.current.identifier
         guard !identifier.isEmpty, identifier.utf8.count <= 96 else { return }
         sendJSON(["type": "timezone.changed", "identifier": identifier])
+    }
+
+    func publishRunningApplications() {
+        guard sessionAuthenticated, supportsRunningApplicationState else { return }
+        let identifiers = resources.runningCompanionApplicationIdentifiers()
+            .filter(Self.validCatalogueIdentifier)
+        runningApplicationsPublisher.publish(identifiers) { identifiers in
+            self.sendJSON(["type": "applications.running", "actionIds": identifiers])
+        }
     }
 
     func publishFocusedAction(invalidatePendingQuery: Bool = false,

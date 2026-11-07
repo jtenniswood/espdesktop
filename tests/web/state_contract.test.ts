@@ -52,6 +52,7 @@ export function runStateContractTests(): void {
   equal(first.alarmDelayAudioOn, false, "alarm delay audio defaults off");
   equal(first.alarmDelayTtsOn, true, "alarm delay TTS defaults on");
   equal(first.alarmDelayFinalCountdown, 10, "alarm delay final countdown defaults to ten seconds");
+  equal(first.showRunningApps, true, "running app styling defaults on");
   equal(first.autoOpenAppSubpages, true, "app subpages open on focus by default");
   equal(first.coverArtSource, "Home Assistant", "cover art defaults to the Home Assistant source");
   const backupCurrent = {
@@ -74,10 +75,13 @@ export function runStateContractTests(): void {
   };
   const restoredCompanionSettings = normalizeBackupPanelSettings({
     auto_open_app_subpages: false,
+    show_running_apps: false,
     subpage_title_bar: false,
     screensaver_mode: "companion",
     cover_art_source: "Mac Companion",
   }, backupCurrent);
+  equal(restoredCompanionSettings.showRunningApps, false, "backup preserves disabled running styling");
+  equal(normalizeBackupPanelSettings({}, backupCurrent).showRunningApps, true, "older backups retain running styling");
   equal(restoredCompanionSettings.autoOpenAppSubpages, false, "backup restore preserves manual app subpages");
   equal(restoredCompanionSettings.subpageTitleBar, false, "backup restore preserves hidden subpage title bars");
   equal(normalizeBackupPanelSettings({}, backupCurrent).subpageTitleBar, true, "older backups show subpage title bars by default");
@@ -141,6 +145,7 @@ export function runStateContractTests(): void {
     temperatureDegreeSymbol: "switch-screen__temperature_degree_symbol",
     subpageChevron: "switch-screen__subpage_chevron",
     autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
+    showRunningApps: "switch-companion__show_running_apps",
     subpageTitleBar: "switch-screen__subpage_title_bar",
     screensaverTimeout: "number-screensaver_timeout",
     clockScreensaver: "switch-screen_saver__clock",

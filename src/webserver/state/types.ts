@@ -151,6 +151,7 @@ export interface AppState {
   temperatureDegreeSymbolOn: boolean;
   subpageChevronsOn: boolean;
   autoOpenAppSubpages: boolean;
+  showRunningApps: boolean;
   subpageTitleBarOn: boolean;
   presenceEntity: string;
   screensaverCameraEntity: string;

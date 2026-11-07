@@ -35,6 +35,8 @@ inline int core;
 inline int *active_espdesktop_app_core() { return ready ? &core : nullptr; }
 }
 struct { bool state = true; } companion_auto_open_app_subpages_enabled;
+struct { bool state = true; } companion_show_running_apps_enabled;
+void companion_set_show_running_apps(bool) {}
 #define id(value) value
 bool applied_value = true;
 int writes = 0;

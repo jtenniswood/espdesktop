@@ -790,6 +790,16 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::ApplicationsRunning>(&*decoded)) {
+      auto identifiers = payload->actionIds;
+      if (identifiers.size() > 128 || std::any_of(identifiers.begin(), identifiers.end(),
+          [](const std::string &value) { return !safe_field(value, 96); })) return false;
+      this->defer_session_([identifiers = std::move(identifiers)]() mutable {
+        companion_runtime_service().set_running_applications(std::move(identifiers));
+      }, "running apps");
+      return true;
+    }
+
     if (const auto *payload = std::get_if<companion_protocol::FocusChanged>(&*decoded)) {
       const std::string action_id = payload->actionId;
       if (!action_id.empty() && !safe_field(action_id, 96)) return false;

@@ -57,6 +57,8 @@ esphome:
         - lambda: |-
             if (espdesktop::active_espdesktop_app_core() != nullptr)
               companion_set_auto_open_app_subpages(id(companion_auto_open_app_subpages_enabled).state);
+            if (espdesktop::active_espdesktop_app_core() != nullptr)
+              companion_set_show_running_apps(id(companion_show_running_apps_enabled).state);
     - priority: -100
       then:
         - lambda: |-
@@ -523,6 +525,25 @@ switch:
       - lambda: |-
           if (espdesktop::active_espdesktop_app_core() != nullptr)
             companion_set_auto_open_app_subpages(false);
+
+  - platform: template
+    name: "${entity_companion_show_running_apps}"
+    internal: true
+    id: companion_show_running_apps_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    icon: "mdi:application"
+    web_server:
+      sorting_group_id: sg_display
+    on_turn_on:
+      - lambda: |-
+          if (espdesktop::active_espdesktop_app_core() != nullptr)
+            companion_set_show_running_apps(true);
+    on_turn_off:
+      - lambda: |-
+          if (espdesktop::active_espdesktop_app_core() != nullptr)
+            companion_set_show_running_apps(false);
 
   - platform: template
     name: "${entity_screen_subpage_chevron}"

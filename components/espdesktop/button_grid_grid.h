@@ -407,7 +407,7 @@ inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   slider_bind_text_contrast(s.text_lbl, nullptr);
   slider_bind_text_contrast(s.sensor_container, nullptr);
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_state(s.btn, LV_STATE_CHECKED);
+  lv_obj_clear_state(s.btn, static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_USER_1));
   sync_card_checked_text_color(s.btn);
   set_card_disabled_state(s.btn, false);
   lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);

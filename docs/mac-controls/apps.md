@@ -15,7 +15,11 @@ Companion cards can bring an approved application to the front or open a website
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
-Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. The app card uses its active fill colour while the Mac reports that app is in front; background apps use the normal fill.
+Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting.
+
+In **Screen → Appearance → App Appearance**, **Show running apps** controls all app cards on the display. It is on by default and saved across restarts. Turn it off to give closed and background apps the same normal card fill while keeping the focused app highlighted.
+
+When enabled, app cards distinguish the whole app’s state: a page-coloured background with a grey outline means it is closed, the standard card grey means it is open in the background, and the strong active fill means it is in focus. Closing an app’s windows does not mark it as closed; quit the app to return to the outlined state. Update both the Mac app and display firmware for all three states; older combinations keep the focus highlight.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 

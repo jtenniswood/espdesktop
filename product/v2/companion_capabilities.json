@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -345,6 +345,25 @@
             "type": "array",
             "optional": true,
             "maxItems": 64,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96
+            }
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "applications.running",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "actionIds": {
+            "type": "array",
+            "maxItems": 128,
             "items": {
               "type": "string",
               "minLength": 1,

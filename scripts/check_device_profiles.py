@@ -823,7 +823,7 @@ def test_weather_card_visual_matches_preview() -> None:
         "inline void reset_card_slot_dynamic_children" in grid
         and "lv_obj_del(child);" in grid
         and "lv_obj_set_user_data(s.sensor_container, nullptr);" in grid
-        and "lv_obj_clear_state(s.btn, LV_STATE_CHECKED);" in grid
+        and "lv_obj_clear_state(s.btn, static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_USER_1));" in grid
         and "set_card_disabled_state(s.btn, false);" in grid
         and "lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);" in grid
         and "reset_card_slot_dynamic_children(s);" in setup_visual

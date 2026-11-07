@@ -221,6 +221,10 @@ export function createAppStateEventHandlersFeature(
                 state.autoOpenAppSubpages = d.value === true || val === "ON";
                 if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
             },
+            "switch-companion__show_running_apps": function (this: any, val?: any, d?: any) {
+                state.showRunningApps = d.value === true || val === "ON";
+                if (els.setShowRunningApps) els.setShowRunningApps.checked = state.showRunningApps;
+            },
             "switch-screen__subpage_chevron": function (this: any, val?: any, d?: any) {
                 state.subpageChevronsOn = d.value === true || val === "ON";
                 syncClockBarUi();
