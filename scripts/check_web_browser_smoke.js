@@ -8931,8 +8931,18 @@ async function assertSpecialPageRename(browser, testCase) {
   const input = page.getByLabel("Page name", { exact: true });
   const custom = "Office: Tools, 50% | 日本語 <test>";
   async function openPage() {
-    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
+    await entry.waitFor();
+    const screenBounds = await page.locator(".sp-screen").boundingBox();
+    const entryBounds = await entry.boundingBox();
+    assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
+    assert(await entry.getByText("Swipe up from the bottom edge of your display.", { exact: true }).isVisible());
+    assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
+    if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
+    await entry.focus();
+    await entry.press("Enter");
     await title.waitFor();
+    assert.strictEqual(await entry.count(), 0, "entry is hidden while editing the swipe-up page");
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);

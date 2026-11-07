@@ -250,11 +250,21 @@ export function createWebStyles(dragAnimation: boolean): string {
         "padding:14px var(--gap);background:var(--surface);" +
         "color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;user-select:none}" +
         ".sp-selection-bar.sp-visible{display:flex}" +
-        ".sp-special-page-entry{display:block;width:min(1080px,calc(100% - 2*var(--gap)));margin:0 auto 10px;" +
-        "border:1px solid var(--border);border-radius:var(--action-r);background:var(--surface2);" +
-        "color:var(--text);padding:8px 12px;font:500 var(--text-sm) -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer}" +
-        ".sp-special-page-entry[hidden]{display:none}" +
-        ".sp-special-page-entry:hover{background:var(--border)}" +
+        ".sp-special-page-entry{position:relative;display:flex;align-items:center;gap:14px;box-sizing:border-box;" +
+        "width:min(600px,calc(100% - 2*var(--gap)));margin:6px auto 20px;padding:24px 20px 18px;text-align:left;" +
+        "border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--border));border-radius:20px 20px 12px 12px;" +
+        "background:linear-gradient(var(--accent-soft),transparent),var(--surface);color:var(--text);" +
+        "font:inherit;cursor:pointer;transition:border-color .2s,background-color .2s}" +
+        ".sp-special-page-entry::before{content:'';position:absolute;top:8px;left:calc(50% - 18px);" +
+        "width:36px;height:3px;border-radius:999px;background:var(--text3)}" +
+        ".sp-special-page-entry:hover{border-color:var(--accent);background-color:var(--surface2)}" +
+        ".sp-special-page-entry:focus-visible{outline:2px solid var(--accent);outline-offset:4px}" +
+        ".sp-special-page-entry:disabled{opacity:.45;cursor:not-allowed}" +
+        ".sp-swipe-gesture{display:flex;align-items:center;justify-content:center;flex:none;width:42px;height:42px;" +
+        "border-radius:12px;background:var(--accent-soft);color:var(--accent)}.sp-swipe-gesture svg{width:30px;height:30px}" +
+        ".sp-swipe-copy{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}" +
+        ".sp-swipe-title{font-size:var(--text-md);font-weight:600}.sp-swipe-description{font-size:var(--text-xs);line-height:1.45;color:var(--text2)}" +
+        ".sp-swipe-action{flex:none;font-size:var(--text-sm);font-weight:600;color:var(--text)}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
         ".sp-selection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}" +
@@ -269,7 +279,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-selection-btn:disabled,.sp-selection-btn:disabled:hover{opacity:.45;cursor:not-allowed;background:var(--surface2);border-color:var(--border);color:var(--text2)}" +
         ".sp-selection-btn .mdi{font-size:16px;line-height:1}" +
         "@media(max-width:600px){.sp-selection-bar{margin-left:0;margin-right:0;padding:12px var(--gap);gap:8px}" +
-        ".sp-special-page-entry{width:calc(100% - 2*var(--gap))}" +
+        ".sp-special-page-entry{gap:10px;padding:24px 14px 16px;flex-wrap:wrap}.sp-swipe-action{width:100%;padding-left:52px;box-sizing:border-box}" +
         ".sp-selection-actions{gap:6px}.sp-selection-btn{padding:8px 10px}" +
         ".sp-selection-btn[aria-label='Card actions']{width:36px;padding:0}.sp-selection-btn .mdi{flex-shrink:0}}" +
         ".sp-config{padding:var(--gap) var(--gap) var(--gap)}" +
