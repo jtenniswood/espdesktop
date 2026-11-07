@@ -50,7 +50,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postAutoOpenAppSubpages">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "infoPanel" | "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postAutoOpenAppSubpages" | "postShowRunningApps">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "infoPanel" | "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { infoPanel, appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -66,7 +66,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
     const { postPresenceSensorEntity, postClockOverlay } = artworkPostApi;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
-    const { postClockBar, postBatteryStatus, postAutoOpenAppSubpages } = clockBarPostApi;
+    const { postClockBar, postBatteryStatus, postAutoOpenAppSubpages, postShowRunningApps } = clockBarPostApi;
     const els = runtime.els;
     const { timezoneOptionsWithFallback } = environment;
     const { syncUi: syncScreenScheduleUi } = schedule;
@@ -700,6 +700,19 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         }
         onStatusChange(syncHomeAssistantSettingsVisibility);
         syncHomeAssistantSettingsVisibility();
+        const appStateBody = document.createElement("div");
+        const showRunningApps = toggleRow("Show running apps", "sp-set-show-running-apps", state.showRunningApps);
+        appStateBody.appendChild(showRunningApps.row);
+        els.setShowRunningApps = showRunningApps.input;
+        showRunningApps.input.addEventListener("change", function (this: HTMLInputElement) {
+            state.showRunningApps = this.checked;
+            postShowRunningApps(this.checked);
+        });
+        appStateBody.appendChild(infoPanel(
+            "sp-running-apps-info",
+            "Applies to all app cards on this display. Show closed apps with a grey outline and running apps with the normal card fill. Turn off to use the normal fill for both. The focused app stays highlighted.",
+        ));
+        const appStateCard = makeCollapsibleCard("App Appearance", appStateBody, true);
         const appSubpageBody = document.createElement("div");
         const autoOpenAppSubpages = toggleRow("Open app subpages on focus", "sp-set-auto-open-app-subpages", state.autoOpenAppSubpages);
         appSubpageBody.appendChild(autoOpenAppSubpages.row);
@@ -717,6 +730,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             activeColourCard,
             cardStyleCard,
             appSubpageCard,
+            appStateCard,
             themeCard,
             idleCard,
             clockBarCard,

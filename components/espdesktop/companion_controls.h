@@ -392,6 +392,10 @@ inline bool companion_consume_subpage_return_request() {
   return companion_subpage_return_requested().exchange(false);
 }
 
+inline void companion_set_show_running_apps(bool enabled) {
+  companion_runtime_service().set_show_running_apps(enabled);
+}
+
 inline void companion_set_auto_open_app_subpages(bool enabled) {
   companion_runtime_service().set_auto_open_app_subpages(enabled);
 }
@@ -893,7 +897,7 @@ inline void companion_apply_card_running_state(lv_obj_t *button, const std::stri
       action_id.rfind("urlcard.", 0) != 0 && action_id.rfind("window.", 0) != 0 &&
       action_id.rfind("shortcut.", 0) != 0 && action_id.rfind("media.", 0) != 0 &&
       action_id.rfind("stat.", 0) != 0;
-  const bool closed = application_card && snapshot.connected && snapshot.running_applications_known &&
+  const bool closed = snapshot.show_running_apps && application_card && snapshot.connected && snapshot.running_applications_known &&
       !companion_action_focused(snapshot, action_id, true) &&
       !std::binary_search(snapshot.running_application_ids.begin(), snapshot.running_application_ids.end(), action_id);
   apply_app_card_closed_style(button, closed,

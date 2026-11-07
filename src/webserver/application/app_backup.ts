@@ -174,6 +174,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postTemperatureDegreeSymbol,
         postSubpageChevron,
         postAutoOpenAppSubpages,
+        postShowRunningApps,
     } = controllers.clockBarPostApi;
     const {
         postText,
@@ -285,6 +286,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 temperature_degree_symbol: state.temperatureDegreeSymbolOn,
                 subpage_chevron: state.subpageChevronsOn,
                 auto_open_app_subpages: state.autoOpenAppSubpages,
+                show_running_apps: state.showRunningApps,
                 timezone: state.timezone,
                 language: normalizeLanguage(state.language),
                 clock_format: state.clockFormat,
@@ -565,6 +567,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postTemperatureDegreeSymbol(importedSettings.temperatureDegreeSymbol);
                     postSubpageChevron(importedSettings.subpageChevron);
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
+                    postShowRunningApps(importedSettings.showRunningApps);
                     var importedTimezone: any = importedSettings.timezone;
                     var importedTemperatureUnit: any = importedSettings.temperatureUnit;
                     var importedLanguage: any = importedSettings.language;
@@ -668,7 +671,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.temperatureDegreeSymbolOn = importedSettings.temperatureDegreeSymbol;
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
+                    state.showRunningApps = importedSettings.showRunningApps;
                     if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
+                    if (els.setShowRunningApps) els.setShowRunningApps.checked = state.showRunningApps;
                     state.timezone = importedTimezone;
                     state.language = importedLanguage;
                     state.clockFormat = importedClockFormat;

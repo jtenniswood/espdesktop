@@ -140,6 +140,22 @@ int main() {
     lv_refr_now(display);
     assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 4);
     assert(same_rgb565_colour(frame[60 * SIDE + 60], page_pixel));
+    // The global preference removes existing closed styling immediately.
+    state.show_running_apps = false;
+    companion_apply_card_running_state(button, "com.example.App", "", true, state);
+    lv_refr_now(display);
+    assert(!lv_obj_has_state(button, LV_STATE_USER_1));
+    assert(lv_obj_get_style_outline_width(button, LV_PART_MAIN) == 0);
+    assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(neutral))));
+    lv_obj_add_state(button, LV_STATE_CHECKED);
+    lv_refr_now(display);
+    assert(same_rgb565_colour(frame[60 * SIDE + 60], lv_color_to_u16(lv_color_hex(accent))));
+    lv_obj_remove_state(button, LV_STATE_CHECKED);
+    state.show_running_apps = true;
+    companion_apply_card_running_state(button, "com.example.App", "", true, state);
+    lv_refr_now(display);
+    assert(lv_obj_has_state(button, LV_STATE_USER_1));
+    assert(same_rgb565_colour(frame[60 * SIDE + 60], page_pixel));
     const auto flushes = flush_count;
     for (int repeat = 0; repeat < 100; ++repeat) {
       companion_apply_card_running_state(button, "com.example.App", "", true, state);

@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 45,
-    "entityNames": 123,
+    "entityNames": 124,
     "icons": 401,
     "structuralIcons": 37,
     "compatibilityFixtureGroups": 2
@@ -7324,6 +7324,19 @@
           "companion__auto_open_app_subpages",
           "companion_auto_open_app_subpages",
           "companion_auto_open_app_subpages_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "companion_show_running_apps",
+        "domain": "switch",
+        "name": "Companion: Show Running Apps",
+        "objectIds": [
+          "companion__show_running_apps",
+          "companion_show_running_apps",
+          "companion_show_running_apps_enabled"
         ],
         "groups": [
           "settings"

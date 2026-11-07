@@ -22,6 +22,7 @@ export interface ClockBarPostApiFeature {
     postTemperatureDegreeSymbol(on?: any): void;
     postSubpageChevron(on?: any): void;
     postAutoOpenAppSubpages(on?: any): void;
+    postShowRunningApps(on?: any): void;
 }
 
 export function createClockBarPostApiFeature(
@@ -105,6 +106,10 @@ export function createClockBarPostApiFeature(
         postSwitchWithObjectIds(entityName("companion_auto_open_app_subpages"), entityObjectIds("companion_auto_open_app_subpages"), on,
             "App subpage setting is not available on this firmware. Update the device firmware, then reload this page.");
     }
+    function postShowRunningApps(on?: any) {
+        postSwitchWithObjectIds(entityName("companion_show_running_apps"), entityObjectIds("companion_show_running_apps"), on,
+            "Running app appearance setting is not available on this firmware. Update the device firmware, then reload this page.");
+    }
     return {
         postClockBrightnessDay,
         postClockBrightnessNight,
@@ -127,5 +132,6 @@ export function createClockBarPostApiFeature(
         postTemperatureDegreeSymbol,
         postSubpageChevron,
         postAutoOpenAppSubpages,
+        postShowRunningApps,
     };
 }

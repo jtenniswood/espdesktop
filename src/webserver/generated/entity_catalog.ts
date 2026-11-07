@@ -174,6 +174,15 @@ export const ENTITY_CATALOG = {
         "companion_auto_open_app_subpages_enabled"
       ]
     },
+    "companion_show_running_apps": {
+      "domain": "switch",
+      "name": "Companion: Show Running Apps",
+      "objectIds": [
+        "companion__show_running_apps",
+        "companion_show_running_apps",
+        "companion_show_running_apps_enabled"
+      ]
+    },
     "screen_subpage_chevron": {
       "domain": "switch",
       "name": "Screen: Subpage Chevron",
@@ -868,6 +877,7 @@ export const ENTITY_CATALOG = {
       "screen_clock_bar_night_mode",
       "screen_temperature_degree_symbol",
       "companion_auto_open_app_subpages",
+      "companion_show_running_apps",
       "screen_subpage_chevron",
       "screen_temperature_unit",
       "indoor_temp_entity",

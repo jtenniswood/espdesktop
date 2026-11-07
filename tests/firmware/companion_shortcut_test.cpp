@@ -326,6 +326,19 @@ int main() {
   companion_runtime_service().set_running_applications({"com.apple.finder", "com.apple.Safari", "com.apple.finder"});
   auto running = companion_runtime_snapshot();
   assert(running.running_applications_known);
+  assert(running.show_running_apps);
+  companion_runtime_service().consume_focus_refresh_request();
+  companion_set_show_running_apps(false);
+  auto without_running_style = companion_runtime_snapshot();
+  assert(!without_running_style.show_running_apps);
+  assert(without_running_style.running_application_ids == running.running_application_ids);
+  assert(without_running_style.application_highlight_id == running.application_highlight_id);
+  assert(companion_runtime_service().consume_focus_refresh_request());
+  companion_set_show_running_apps(false);
+  assert(!companion_runtime_service().consume_focus_refresh_request());
+  companion_set_show_running_apps(true);
+  assert(companion_runtime_snapshot().show_running_apps);
+  assert(companion_runtime_service().consume_focus_refresh_request());
   assert(running.running_application_ids == std::vector<std::string>({"com.apple.Safari", "com.apple.finder"}));
   assert(running.application_highlight_id == "com.apple.finder");
   assert(running.focused_action_ids.empty()); // Lifecycle cannot authorize a shortcut.
