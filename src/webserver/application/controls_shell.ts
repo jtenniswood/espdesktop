@@ -184,7 +184,6 @@ export function createControlsShellFeature(
                 '<div class="sp-clockbar-section sp-clockbar-right" data-clockbar-section="right"></div>' +
                 "</div>" +
                 '<div class="sp-main"></div>' +
-                '<span class="sp-display-swipe-handle" aria-hidden="true"></span>' +
                 "</div>";
         page.appendChild(wrap);
         els.previewScreen = wrap.querySelector(".sp-screen");

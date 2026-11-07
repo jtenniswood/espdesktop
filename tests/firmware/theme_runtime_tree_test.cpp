@@ -164,12 +164,7 @@ struct TestSubpage {
   struct Card { bool neutral_background; lv_obj_t *button; bool sensor_surface = false; bool secondary_surface = false; bool image_card = false; };
   std::vector<Card> cards;
   bool back_neutral_background = true;
-  lv_obj_t *swipe_handle = nullptr;
 };
-lv_obj_t *&navigation_home_swipe_handle() {
-  static lv_obj_t *handle = nullptr;
-  return handle;
-}
 std::vector<TestSubpage> &navigation_subpages() {
   static std::vector<TestSubpage> pages;
   return pages;
@@ -959,23 +954,6 @@ static void test_custom_back_button_theme_preservation() {
 }
 
 int main() {
-  {
-    lv_obj_t home, subpage, home_handle, top_handle;
-    ThemeGridTargets targets{};
-    targets.main_page = &home;
-    navigation_home_swipe_handle() = &home_handle;
-    TestSubpage entry{};
-    entry.screen = &subpage;
-    entry.swipe_handle = &top_handle;
-    navigation_subpages().push_back(entry);
-    for (const auto *theme : {&DARK_THEME, &LIGHT_THEME}) {
-      theme_apply_grid(&targets, *theme);
-      assert(home_handle.background.full == theme->text_muted);
-      assert(top_handle.background.full == theme->text_muted);
-    }
-    navigation_subpages().clear();
-    navigation_home_swipe_handle() = nullptr;
-  }
   test_custom_back_button_theme_preservation();
   test_custom_default_contrast_after_active_theme_refresh();
   test_alarm_state_contrast_during_theme_refresh();

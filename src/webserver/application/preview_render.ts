@@ -410,8 +410,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     }
     function renderPreview(this: any) {
         const specialPage = state.editingSubpage === -1;
-        els.previewScreen?.classList.toggle("sp-swipe-page", specialPage);
-        els.previewScreen?.classList.toggle("sp-no-swipe-page", !!dependencies.layout.config.infoOnly);
         if (els.specialPageName) {
             els.specialPageName.hidden = !specialPage;
             els.specialPageName.disabled = state.configLocked;

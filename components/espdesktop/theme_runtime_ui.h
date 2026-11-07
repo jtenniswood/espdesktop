@@ -89,9 +89,6 @@ inline void theme_apply_grid(void *context, const ThemePalette &theme) {
   auto &targets = *static_cast<ThemeGridTargets *>(context);
   if (!targets.main_page) return;
   lv_obj_set_style_bg_color(targets.main_page, lv_color_hex(theme.background), LV_PART_MAIN);
-  if (auto *handle = navigation_home_swipe_handle()) {
-    lv_obj_set_style_bg_color(handle, lv_color_hex(theme_grid_correct_color(theme.text_muted, targets)), LV_PART_MAIN);
-  }
   const uint32_t neutral = theme_grid_correct_color(theme.surface_card, targets);
   const ThemeTreeCorrection correction = {targets.red_percent, targets.green_percent,
                                           targets.blue_percent};
@@ -110,9 +107,6 @@ inline void theme_apply_grid(void *context, const ThemePalette &theme) {
   }
   for (auto &entry : navigation_subpages()) {
     if (!entry.screen) continue;
-    if (entry.swipe_handle) {
-      lv_obj_set_style_bg_color(entry.swipe_handle, lv_color_hex(theme_grid_correct_color(theme.text_muted, targets)), LV_PART_MAIN);
-    }
     lv_obj_set_style_bg_color(entry.screen, lv_color_hex(theme.background), LV_PART_MAIN);
     if (entry.back_neutral_background && entry.back_button) {
       theme_restyle_tree(entry.back_button, theme_refresh_previous(), theme, false, correction);
