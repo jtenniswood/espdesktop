@@ -259,21 +259,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;user-select:none}" +
         ".sp-selection-bar.sp-visible{display:flex}" +
         ".sp-swipe-wrap{display:flex;justify-content:center;padding:0 var(--gap);margin:6px 0 0}.sp-swipe-wrap:has([hidden]){display:none}" +
-        ".sp-special-page-entry{position:relative;display:flex;align-items:center;gap:16px;box-sizing:border-box;" +
-        "width:calc(var(--screen-w) + 4px);max-width:100%;padding:18px 14px 10px;text-align:left;" +
-        "border:1px solid var(--border);border-radius:12px;" +
-        "background:var(--surface);color:var(--text);" +
-        "font:inherit;cursor:pointer;transition:border-color .2s,background-color .2s}" +
-        ".sp-special-page-entry::before{content:'';position:absolute;top:6px;left:calc(50% - 18px);" +
-        "width:36px;height:2px;border-radius:999px;background:var(--text3)}" +
-        ".sp-special-page-entry:hover{border-color:var(--text3);background-color:var(--surface2)}" +
-        ".sp-special-page-entry:focus-visible{outline:2px solid var(--accent);outline-offset:4px}" +
-        ".sp-special-page-entry:disabled{opacity:.45;cursor:not-allowed}" +
-        ".sp-swipe-gesture{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:32px;" +
-        "color:var(--text2)}.sp-swipe-gesture svg{width:24px;height:24px}" +
-        ".sp-swipe-copy{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}" +
-        ".sp-swipe-title{font-size:var(--text-md);font-weight:500}.sp-swipe-description{font-size:var(--text-xs);line-height:1.45;color:var(--text2)}" +
-        ".sp-swipe-action{flex:none;font-size:var(--text-sm);font-weight:400;color:var(--text2)}" +
+        ".sp-special-page-entry{box-sizing:border-box;justify-content:center;width:calc(var(--screen-w) + 4px);max-width:100%}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
         ".sp-selection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}" +
@@ -288,7 +274,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-selection-btn:disabled,.sp-selection-btn:disabled:hover{opacity:.45;cursor:not-allowed;background:var(--surface2);border-color:var(--border);color:var(--text2)}" +
         ".sp-selection-btn .mdi{font-size:16px;line-height:1}" +
         "@media(max-width:600px){.sp-selection-bar{margin-left:0;margin-right:0;padding:12px var(--gap);gap:8px}" +
-        ".sp-special-page-entry{gap:10px}" +
         ".sp-selection-actions{gap:6px}.sp-selection-btn{padding:8px 10px}" +
         ".sp-selection-btn[aria-label='Card actions']{width:36px;padding:0}.sp-selection-btn .mdi{flex-shrink:0}}" +
         ".sp-config{padding:var(--gap) var(--gap) var(--gap)}" +

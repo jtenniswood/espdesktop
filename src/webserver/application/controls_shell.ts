@@ -203,16 +203,9 @@ export function createControlsShellFeature(
         hint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
         els.previewHint = hint;
         var specialPageEntry: any = document.createElement("button");
-        specialPageEntry.className = "sp-special-page-entry";
+        specialPageEntry.className = "sp-selection-btn sp-special-page-entry";
         specialPageEntry.type = "button";
-        specialPageEntry.setAttribute("aria-label", "Configure swipe-up page");
-        specialPageEntry.innerHTML =
-            '<span class="sp-swipe-gesture" aria-hidden="true">' +
-                '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-                    '<path d="M16 23V7m-6 6 6-6 6 6M7 27h18"/></svg></span>' +
-            '<span class="sp-swipe-copy"><span class="sp-swipe-title">Swipe-up page</span>' +
-                '<span class="sp-swipe-description">Swipe up from the bottom edge.</span></span>' +
-            '<span class="sp-swipe-action">Configure <span aria-hidden="true">&#8594;</span></span>';
+        specialPageEntry.textContent = "Configure swipe-up page";
         els.specialPageEntry = specialPageEntry;
         var swipeWrap: any = document.createElement("div");
         swipeWrap.className = "sp-swipe-wrap";

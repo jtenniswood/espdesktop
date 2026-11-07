@@ -8942,7 +8942,7 @@ async function assertSpecialPageRename(browser, testCase) {
     const homeHandle = await page.locator(".sp-display-swipe-handle").boundingBox();
     const homeGrid = await page.locator(".sp-main").boundingBox();
     assert(homeHandle.y >= homeGrid.y + homeGrid.height, "bottom handle stays clear of cards");
-    assert(await entry.getByText("Swipe up from the bottom edge.", { exact: true }).isVisible());
+    assert.strictEqual(await entry.innerText(), "Configure swipe-up page");
     assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
     if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
     await entry.focus();
