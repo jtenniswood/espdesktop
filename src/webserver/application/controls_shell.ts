@@ -201,7 +201,6 @@ export function createControlsShellFeature(
         hint.className = "sp-hint";
         hint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
         els.previewHint = hint;
-        page.appendChild(hint);
         var specialPageEntry: any = document.createElement("button");
         specialPageEntry.className = "sp-special-page-entry";
         specialPageEntry.type = "button";
@@ -218,6 +217,7 @@ export function createControlsShellFeature(
         swipeWrap.className = "sp-swipe-wrap";
         swipeWrap.appendChild(specialPageEntry);
         page.appendChild(swipeWrap);
+        page.appendChild(hint);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";
         var modal: any = document.createElement("div");

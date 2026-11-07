@@ -250,7 +250,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "padding:14px var(--gap);background:var(--surface);" +
         "color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;user-select:none}" +
         ".sp-selection-bar.sp-visible{display:flex}" +
-        ".sp-swipe-wrap{display:flex;justify-content:center;padding:0 var(--gap);margin:6px 0 20px}.sp-swipe-wrap:has([hidden]){display:none}" +
+        ".sp-swipe-wrap{display:flex;justify-content:center;padding:0 var(--gap);margin:6px 0 0}.sp-swipe-wrap:has([hidden]){display:none}" +
         ".sp-special-page-entry{position:relative;display:flex;align-items:center;gap:16px;box-sizing:border-box;" +
         "width:calc(var(--screen-w) + 4px);max-width:100%;padding:18px 14px 10px;text-align:left;" +
         "border:1px solid var(--border);border-radius:12px;" +
