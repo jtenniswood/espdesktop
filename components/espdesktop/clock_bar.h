@@ -432,7 +432,7 @@ inline void clock_bar_update_left_text_width(lv_obj_t *label) {
   const auto &widths = clock_bar_left_text_widths();
   const bool showing_title = !clock_bar_left_title().empty();
   const int icon_space = clock_bar_companion_icon_should_show()
-      ? CLOCK_BAR_COMPANION_ICON_SIZE + 8 : 0;
+      ? CLOCK_BAR_COMPANION_ICON_SIZE + 4 : 0;
   const int width = !showing_title
       ? widths.temperature : std::max(1, widths.title - icon_space);
   lv_obj_set_width(label, width);
