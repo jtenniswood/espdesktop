@@ -101,6 +101,9 @@ add_test(NAME companion_shortcut_test COMMAND companion_shortcut_test)
 add_test(NAME companion_subpage_preference_boot_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py ${CMAKE_CXX_COMPILER})
 
+add_test(NAME companion_navigation_preference_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_navigation_preference_test.py)
+
 add_executable(companion_now_playing_protocol_test companion_now_playing_protocol_test.cpp)
 target_compile_features(companion_now_playing_protocol_test PRIVATE cxx_std_17)
 target_compile_options(companion_now_playing_protocol_test PRIVATE -Wall -Wextra -Werror)

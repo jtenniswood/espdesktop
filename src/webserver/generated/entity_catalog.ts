@@ -174,6 +174,15 @@ export const ENTITY_CATALOG = {
         "companion_auto_open_app_subpages_enabled"
       ]
     },
+    "companion_return_home_on_app_switch": {
+      "domain": "switch",
+      "name": "Companion: Return Home On App Switch",
+      "objectIds": [
+        "companion__return_home_on_app_switch",
+        "companion_return_home_on_app_switch",
+        "companion_return_home_on_app_switch_enabled"
+      ]
+    },
     "screen_subpage_title_bar": {
       "domain": "switch",
       "name": "Screen: Subpage Title Bar",
@@ -877,6 +886,7 @@ export const ENTITY_CATALOG = {
       "screen_clock_bar_night_mode",
       "screen_temperature_degree_symbol",
       "companion_auto_open_app_subpages",
+      "companion_return_home_on_app_switch",
       "screen_subpage_title_bar",
       "screen_subpage_chevron",
       "screen_temperature_unit",

@@ -11,6 +11,8 @@ A subpage is an extra screen opened from a **Subpage** card. Use it to group rel
 
 Subpages show the standard clock bar with the page name and, for app shortcut pages, the app icon. The clock stays hidden on subpages. When Clock Bar is off, use **Show app title bar** under **Device settings → App Subpages** to show or hide it globally. When Clock Bar is on, the title bar is always shown and this control is hidden. The preference is remembered for when Clock Bar is turned off again.
 
+Under **Device settings → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app subpage open when you switch apps on your Mac. With it on, the display leaves that page: it opens the new app’s subpage when **Open app subpages on focus** is enabled and a matching page exists, or returns home otherwise. The setting is saved on the display and included in backups.
+
 ## Create a Subpage
 
 1. Open the display's setup page in a browser and choose the **Layout** tab.

@@ -338,6 +338,16 @@ class CompanionRuntimeService {
     subpage_return_requested.store(false);
   }
 
+  void set_return_home_on_app_switch(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return_home_on_app_switch_ = enabled;
+  }
+
+  bool return_home_on_app_switch() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return return_home_on_app_switch_;
+  }
+
   bool auto_open_app_subpages() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return auto_open_app_subpages_;
@@ -430,6 +440,7 @@ class CompanionRuntimeService {
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
   bool auto_open_app_subpages_ = true;
+  bool return_home_on_app_switch_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
   bool keyboard_actions_supported_{false};

@@ -396,6 +396,14 @@ inline void companion_set_auto_open_app_subpages(bool enabled) {
   companion_runtime_service().set_auto_open_app_subpages(enabled);
 }
 
+inline void companion_set_return_home_on_app_switch(bool enabled) {
+  companion_runtime_service().set_return_home_on_app_switch(enabled);
+}
+
+inline bool companion_return_home_on_app_switch() {
+  return companion_runtime_service().return_home_on_app_switch();
+}
+
 inline bool companion_auto_open_app_subpages() {
   return companion_runtime_service().auto_open_app_subpages();
 }
