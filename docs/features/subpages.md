@@ -32,7 +32,7 @@ Home Assistant type presets are available after a Home Assistant connection is c
 
 Drag cards to change their order. To move or copy a card between the home screen and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty space on the destination page and choose **Paste**.
 
-Choose **Apply Configuration** to save your changes to the display.
+Open **Screen** or **System** and choose **Apply Configuration** to apply your changes to the display.
 
 To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage, Back and Close buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
 

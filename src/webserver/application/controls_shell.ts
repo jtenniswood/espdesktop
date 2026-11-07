@@ -231,7 +231,6 @@ export function createControlsShellFeature(
         overlay.appendChild(modal);
         page.appendChild(overlay);
         els.settingsOverlay = overlay;
-        page.appendChild(buildApplyBar());
         parent.appendChild(page);
         els.screenPage = page;
     }

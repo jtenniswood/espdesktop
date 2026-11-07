@@ -5074,7 +5074,8 @@ async function assertEditSmoke(page, posts, errors) {
 
 async function assertApplySmoke(page, posts, errors) {
   const before = posts.length;
-  await page.getByRole("button", { name: "Apply Configuration" }).click();
+  await page.getByRole("tab", { name: "System", exact: true }).click();
+  await page.locator("#sp-device").getByRole("button", { name: "Apply Configuration" }).click();
   await waitForPost(
     posts,
     {
@@ -8933,6 +8934,7 @@ async function assertSpecialPageRename(browser, testCase) {
   async function openPage() {
     const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
     await entry.waitFor();
+    assert.strictEqual(await page.locator("#sp-screen .sp-apply-bar").count(), 0, "Layout has no Apply button or restart note");
     const screenBounds = await page.locator(".sp-screen").boundingBox();
     const entryBounds = await entry.boundingBox();
     assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
