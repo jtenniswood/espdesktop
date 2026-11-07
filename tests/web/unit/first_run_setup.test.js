@@ -56,3 +56,21 @@ test("skip saves completion without creating cards and launch-only creates no su
   assert.deepEqual(launchOnly.subpages, {});
   assert.equal(JSON.parse(launchOnly.buttons[1]).options, "");
 });
+
+test("settings can replace a reviewed layout while preserving other settings and rejecting concurrent edits", () => {
+  const saved = firstRunDocument(empty(), [safari, custom], new Set([safari.id]), 4, codec);
+  saved.settings.special_page = "existing special page";
+  const original = JSON.stringify(saved);
+  const replacement = firstRunDocument(saved, [custom], new Set(), 4, codec, saved);
+  assert.equal(JSON.stringify(saved), original);
+  assert.equal(Object.keys(replacement.buttons).length, 1);
+  assert.equal(JSON.parse(replacement.buttons[1]).entity, custom.id);
+  assert.deepEqual(replacement.subpages, {});
+  assert.equal(replacement.settings.special_page, saved.settings.special_page);
+  assert.equal(replacement.settings.button_on_color, "FF0000");
+  for (const changed of [
+    { ...saved, buttons: { ...saved.buttons, 3: "new card" } },
+    { ...saved, subpages: { 1: "changed shortcuts" } },
+    { ...saved, settings: { ...saved.settings, button_order: "2,1" } },
+  ]) assert.throws(() => firstRunDocument(changed, [custom], new Set(), 4, codec, saved), /layout changed/);
+});

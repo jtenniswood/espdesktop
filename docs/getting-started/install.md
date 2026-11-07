@@ -48,6 +48,8 @@ Choose **Save setup**, then **Apply Configuration** in Layout to restart the dis
 
 **Skip setup** opens the normal editor for a custom layout. Setup completion is saved on the display, so reopening the page or using another browser does not restart it. Existing layouts are left intact. Resetting the display’s customization makes setup available again.
 
+To run the wizard again, open **Screen → App Subpages → Set up home-screen apps**. It selects your current apps and shortcut-page choices. **Cancel** leaves the layout untouched; **Replace layout** replaces the home-screen cards and their shortcut pages, keeping other display settings and the Special Page.
+
 You can change apps and shortcut pages later in **Layout**, and automatic switching in **Screen → App Subpages**.
 
 ## Next

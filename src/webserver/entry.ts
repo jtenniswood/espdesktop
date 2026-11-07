@@ -928,11 +928,12 @@ function composeApplicationContext(): ApplicationContext {
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
-    systemSection, preview, connectorsPage,
+    systemSection, preview, connectorsPage, () => firstRunSetup.open(),
   );
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
     native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, shell,
+    autoSwitchEnabled: () => state.autoOpenAppSubpages,
     saveAutoSwitch: async (enabled) => {
       await requestApi.postQueueIdle();
       requestApi.resetPostQueueError();
