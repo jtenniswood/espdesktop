@@ -47,6 +47,7 @@ lv_obj_t *lv_scr_act() { return screen; }
 constexpr int LV_SCR_LOAD_ANIM_NONE = 0;
 void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { screen = s; }
 '''
+code += function('inline NavigationSubpageEntry *navigation_companion_subpage_for_action(')
 code += function('inline bool navigation_return_from_companion_shortcuts_if_needed(')
 code += function('inline bool navigation_open_companion_subpage_if_requested(')
 code += r'''
@@ -72,9 +73,20 @@ int main() {
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &home);
   screen = &app; pending_return = true; pending_open = "second.app";
-  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &app && !pending_return); // No intermediate Home load.
   assert(navigation_open_companion_subpage_if_requested(&home));
   assert(screen == &other);
+  // Missing or unbuilt destinations still return Home.
+  screen = &app; pending_return = true; pending_open = "missing.app";
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &home);
+  screen = &app; pending_return = true; pending_open = "second.app";
+  pages[1].screen = nullptr;
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &home);
+  assert(!navigation_open_companion_subpage_if_requested(&home));
+  pages[1].screen = &other;
   // Focusing the app already displayed must not close its page.
   screen = &app; pending_return = true; pending_open = "first.app";
   assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
