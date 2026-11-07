@@ -12,7 +12,8 @@ import {
     replaceCompanionDefinitions,
     setCompanionAppShortcutFolderEnabled,
 } from "./companion_shortcut_folder";
-import { setConfigOptionValue } from "../model/config_primitives";
+import { parseRawButtonConfig } from "../model";
+import { configOptionEnabled, setConfigOptionValue } from "../model/config_primitives";
 
 export const FIRST_RUN_COMPLETE = "web_onboarding_complete";
 
@@ -38,6 +39,13 @@ export function supportsSetupShortcuts(id: string): boolean {
     return companionShortcutPresetCards(id).length > 0;
 }
 
+function layoutSignature(document: PanelConfigDocument): string {
+    return JSON.stringify([document.deviceProfile,
+        Object.entries(document.buttons).sort(([a], [b]) => Number(a) - Number(b)),
+        Object.entries(document.subpages).sort(([a], [b]) => Number(a) - Number(b)),
+        document.settings.button_order || "", document.settings.special_page || ""]);
+}
+
 /** Build one atomic layout update, rechecking the live document before saving. */
 export function firstRunDocument(
     current: PanelConfigDocument,
@@ -45,8 +53,12 @@ export function firstRunDocument(
     shortcutIDs: ReadonlySet<string>,
     capacity: number,
     codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">,
+    replacing?: PanelConfigDocument,
 ): PanelConfigDocument {
-    if (!needsFirstRunSetup(current)) throw new Error("This display already has a layout. Reload to keep its changes.");
+    if (replacing && layoutSignature(current) !== layoutSignature(replacing)) {
+        throw new Error("The layout changed while setup was open. Cancel and reopen setup to keep those changes.");
+    }
+    if (!replacing && !needsFirstRunSetup(current)) throw new Error("This display already has a layout. Reload to keep its changes.");
     if (!Number.isInteger(capacity) || capacity < 1 || apps.length > capacity ||
         new Set(apps.map(app => app.id)).size !== apps.length) throw new Error("Choose apps within the display’s card limit.");
     const buttons: Record<number, string> = {};
@@ -79,13 +91,16 @@ interface FirstRunSetupDependencies {
     shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner">;
     saveAutoSwitch: (enabled: boolean) => Promise<boolean>;
     onSaved: () => void;
+    autoSwitchEnabled: () => boolean;
 }
 
-export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start(): void } {
+export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start(): void; open(): void } {
     const { document, window } = deps;
     const catalogue = createCompanionCatalogue(deps.fetch);
     let dialog: HTMLDialogElement | null = null;
     let eligible = false;
+    let replacing: PanelConfigDocument | undefined;
+    let opening = false;
     let connected = false;
     let step = 1;
     let apps: CompanionAction[] = [];
@@ -126,7 +141,10 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         dialog = element("dialog", "", "sp-first-run");
         dialog.setAttribute("aria-labelledby", "sp-setup-title");
-        dialog.addEventListener("cancel", event => { event.preventDefault(); });
+        dialog.addEventListener("cancel", event => {
+            event.preventDefault();
+            if (replacing && !busy) { eligible = false; close(); }
+        });
         document.body.appendChild(dialog);
         render();
         dialog.showModal();
@@ -155,6 +173,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
     }
     async function finish(skip = false): Promise<void> {
+        if (skip && replacing && !busy) { eligible = false; close(); return; }
         if (busy || (loading && !skip)) return;
         if (deps.shell.isConfigLocked()) {
             error = "The display is reconnecting. Wait for it to reconnect, then try again.";
@@ -172,7 +191,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             }
             const chosen = skip ? [] : selectedApps();
             const result = await deps.native.schedule(current =>
-                firstRunDocument(current, chosen, shortcuts, deps.capacity, deps.codec));
+                firstRunDocument(current, chosen, shortcuts, deps.capacity, deps.codec, replacing));
             if (result !== "saved") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
             eligible = false;
             close();
@@ -265,6 +284,10 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             content.appendChild(element("p", `${selected.size} ${selected.size === 1 ? "home-screen app" : "home-screen apps"} · ${shortcuts.size} shortcut ${shortcuts.size === 1 ? "page" : "pages"}`));
             content.appendChild(element("p", "After saving, choose Apply Configuration in Layout to restart the display and show your new cards."));
         }
+        if (replacing) {
+            const notice = element("p", "Saving replaces your home-screen cards and their shortcut pages. Other display settings and your Special Page are kept.", "sp-setup-replace-notice");
+            content.prepend(notice);
+        }
         dialog.appendChild(content);
         if (step > 1 && !connected) {
             const status = element("p", "Your Mac disconnected. Reconnect EspDesktop on your Mac to continue.");
@@ -277,9 +300,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             dialog.appendChild(message);
         }
         const footer = element("div", "", "sp-setup-footer");
-        footer.appendChild(button("Skip setup", () => { void finish(true); }));
+        footer.appendChild(button(replacing ? "Cancel" : "Skip setup", () => { void finish(true); }));
         if (step > 1) footer.appendChild(button("Back", () => { --step; render(); }));
-        const next = button(busy ? "Saving…" : step === 3 ? "Save setup" : "Continue", () => {
+        const next = button(busy ? "Saving…" : step === 3 ? (replacing ? "Replace layout" : "Save setup") : "Continue", () => {
             if (step === 3) void finish(); else { ++step; render(); }
         }, true);
         next.disabled = busy || loading || !connected || selected.size === 0;
@@ -304,6 +327,31 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
     });
     return {
+        open(): void {
+            if (!deps.supported || dialog || opening) return;
+            opening = true;
+            void (async () => {
+                if (await deps.native.waitForDiscovery() !== true) throw new Error("Update the display firmware to use app setup.");
+                const saved = await deps.native.client?.load();
+                if (!saved) throw new Error("Could not load the display’s layout. Check the connection and try again.");
+                replacing = saved;
+                selected.clear();
+                shortcuts.clear();
+                for (const value of Object.values(saved.buttons)) {
+                    const card = parseRawButtonConfig(value);
+                    if (card.type !== "companion" || !card.entity || card.sensor || selected.size >= deps.capacity) continue;
+                    selected.add(card.entity);
+                    if (configOptionEnabled(card.options, "app_shortcuts")) shortcuts.add(card.entity);
+                }
+                autoSwitch = deps.autoSwitchEnabled();
+                query = "";
+                error = "";
+                step = 1;
+                eligible = true;
+                show();
+            })().catch(failure => deps.shell.showBanner(failure.message, "error"))
+                .finally(() => { opening = false; });
+        },
         start(): void {
             if (!deps.supported || started) return;
             started = true;

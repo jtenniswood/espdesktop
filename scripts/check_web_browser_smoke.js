@@ -8944,6 +8944,28 @@ async function assertFirstRunSetup(browser) {
     await second.waitForTimeout(200);
     assert.equal(await second.getByRole("dialog").count(), 0);
     await second.close();
+    await seedNativeDocument(page, fixture);
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
+    ]));
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
+    await dialog.getByLabel("Safari", { exact: true }).waitFor();
+    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores home apps");
+    const beforeCancel = JSON.stringify(fixture.document);
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.equal(JSON.stringify(fixture.document), beforeCancel, "cancel preserves the layout");
+    await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
+    await dialog.getByLabel("Safari", { exact: true }).waitFor();
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores shortcut pages");
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    assert.equal(await dialog.getByLabel("Open shortcut pages when apps are in focus").isChecked(), false);
+    await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();
+    await dialog.waitFor({ state: "detached" });
+    assert(fixture.puts.length >= 2, "explicit replacement saves through the same wizard");
     // Pairing links remain usable before connecting; connection offers setup.
     fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
     status.mac_companion.connected = false;
