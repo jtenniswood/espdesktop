@@ -726,7 +726,13 @@ struct CompanionSettings: View {
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .disabled(!store.applicationCatalogueReady)
             } header: {
-                Text("Apps")
+                HStack(spacing: 6) {
+                    Text("Apps")
+                    CompanionInfoButton(
+                        title: "Apps",
+                        information: "All available apps includes every installed app. Switch it off to start with no apps selected, then switch on the apps you want to make available for app shortcuts on your display."
+                    )
+                }
             }
 
             if store.availableApps.isEmpty {
@@ -750,14 +756,6 @@ struct CompanionSettings: View {
                         }
                         .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                         .padding(.vertical, 2)
-                    }
-                } header: {
-                    HStack(spacing: 6) {
-                        Text("Choose apps")
-                        CompanionInfoButton(
-                            title: "Choose apps",
-                            information: "Switch on the apps you want to make available for app shortcuts on your display."
-                        )
                     }
                 }
             }
