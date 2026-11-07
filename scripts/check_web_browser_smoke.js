@@ -8771,6 +8771,122 @@ async function assertAppSubpageOpeningPreference(browser) {
   } finally { await context.close(); }
 }
 
+async function assertSubpageTitleBarSetting(browser, testCase) {
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
+  fixture.document.subpages[1] = "~B,1|companion,shortcut.command+r,Reload,Refresh,Auto";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  let savedTitle = true;
+  const posts = [];
+  await context.route("**/switch/*subpage_title_bar*/**", async route => {
+    const action = new URL(route.request().url()).pathname.split("/").pop();
+    savedTitle = action === "turn_on";
+    posts.push(action);
+    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  const toggle = page.locator("#sp-set-subpage-title-bar");
+  const row = toggle.locator("..").locator("..");
+  async function seed(clockOn) {
+    await page.evaluate(({ clockOn, savedTitle }) => window.__seedEspState([
+      { id: "switch-screen__clock_bar", state: clockOn ? "ON" : "OFF", value: clockOn },
+      { id: "switch-subpage_title_bar_enabled", state: savedTitle ? "ON" : "OFF", value: savedTitle },
+    ]), { clockOn, savedTitle });
+  }
+  async function settings() {
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    const card = page.locator("#sp-settings .card").filter({ has: toggle });
+    if (await card.evaluate(el => el.classList.contains("collapsed"))) await card.locator(".card-header").click();
+  }
+  async function subpage(slot, visible) {
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.locator(`.sp-main [data-slot="${slot}"] .sp-subpage-badge`).click();
+    if (visible) await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
+    else await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
+    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "clock remains hidden on subpages");
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, fixture);
+    await seed(true);
+    await settings();
+    assert(!(await row.isVisible()), "Clock Bar on hides the title-bar control");
+    await seed(false);
+    await row.waitFor({ state: "visible" });
+    assert(await row.isVisible(), "Clock Bar off reveals the title-bar control");
+    assert(await toggle.isChecked(), "title bar defaults on");
+    await Promise.all([
+      page.waitForResponse(r => r.url().includes("subpage_title_bar") && r.url().endsWith("/turn_off")),
+      toggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    await subpage(1, false);
+    await subpage(3, false);
+    // The regular clock-bar setting always overrides a saved hidden title bar.
+    await seed(true);
+    await settings();
+    assert(!(await row.isVisible()));
+    await subpage(1, true);
+    await seed(false);
+    await settings();
+    assert(!(await toggle.isChecked()), "turning Clock Bar off restores the saved choice");
+    await page.reload();
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, fixture);
+    await seed(false);
+    await settings();
+    assert(!(await toggle.isChecked()), "saved preference survives reconnect/reload");
+    await Promise.all([
+      page.waitForResponse(r => r.url().includes("subpage_title_bar") && r.url().endsWith("/turn_on")),
+      toggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    await subpage(1, true);
+    assert.deepStrictEqual(posts, ["turn_off", "turn_on"]);
+    assert.deepStrictEqual(errors, []);
+    console.log(`${testCase.name}: global title-bar toggle, clock-bar override and reload passed.`);
+  } finally { await context.close(); }
+}
+
+async function assertSubpageClockBar(browser, testCase) {
+  const fixture = nativeConfigState(testCase.slug);
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, homeAssistantSupport: true });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, fixture);
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-screen__clock_bar", state: "OFF", value: false },
+      { id: "switch-screen__clock_bar_time", state: "ON", value: true },
+    ]));
+    await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
+    assert.strictEqual(await page.locator(".sp-clockbar-subpage-label").innerText(), "Rooms");
+    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "subpage has no clock even when time is enabled");
+    assert.strictEqual(await page.locator(".sp-subpage-header").count(), 0, "no separate title area");
+    const fits = await page.evaluate(() => {
+      const bar = document.querySelector(".sp-topbar").getBoundingClientRect();
+      const grid = document.querySelector(".sp-main").getBoundingClientRect();
+      return bar.bottom <= grid.top + 1;
+    });
+    assert(fits, "standard clock bar fits above the grid");
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
+    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+    await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
+    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "Special Page also has no clock");
+    console.log(`${testCase.name}: subpage clock bar visible, time hidden, home setting preserved.`);
+  } finally { await context.close(); }
+}
+
 async function assertSpecialPageRename(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
@@ -8863,6 +8979,14 @@ async function assertSpecialPageRename(browser, testCase) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
+      return;
+    }
+    if (process.env.ESPDESKTOP_SUBPAGE_CLOCK_BAR_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSubpageClockBar(browser, testCase);
+      return;
+    }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
       await assertAppSubpageOpeningPreference(browser);
       return;

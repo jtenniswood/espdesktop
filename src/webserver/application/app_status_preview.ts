@@ -331,6 +331,8 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         el.setAttribute("aria-pressed", state.clockBarSelectedItem === item ? "true" : "false");
     }
     function updateClockBarItemUi(this: any) {
+        core.syncPreviewGridTop();
+        els.topbar?.classList.toggle("sp-hidden", !clockBarVisibleInPreview());
         renderClockBarLayout();
         clockBarItems().forEach(syncClockBarItemElement);
     }

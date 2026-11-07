@@ -79,7 +79,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-clockbar-section{height:100%;min-width:0;flex:1;display:flex;align-items:center;gap:.4cqw;position:relative}" +
         ".sp-clockbar-left{justify-content:flex-start}.sp-clockbar-middle{justify-content:center}.sp-clockbar-right{justify-content:flex-end}" +
         ".sp-clockbar-subpage-title,.sp-clockbar-subpage-label,.sp-temp,.sp-clock{font-size:var(--btn-label);line-height:1.2;color:var(--preview-clockbar-text);font-weight:var(--btn-label-weight,400)}" +
-        ".sp-clockbar-subpage-title{display:flex;align-items:center;gap:.5rem;white-space:nowrap;overflow:hidden;min-width:0}" +
+        ".sp-clockbar-subpage-title{display:flex;align-items:center;gap:.25rem;white-space:nowrap;overflow:hidden;min-width:0}" +
         ".sp-clockbar-subpage-icon{font-size:.92rem;width:1.8em;height:1.8em;flex:none;object-fit:contain;border-radius:22%;" +
         "margin-left:calc(var(--grid-left) - var(--topbar-pad-x))}" +
         ".sp-clockbar-subpage-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}" +

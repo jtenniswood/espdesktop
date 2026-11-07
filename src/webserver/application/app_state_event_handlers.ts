@@ -212,6 +212,11 @@ export function createAppStateEventHandlersFeature(
                 state.temperatureDegreeSymbolOn = d.value === true || val === "ON";
                 syncClockBarUi();
             },
+            "switch-screen__subpage_title_bar": function (this: any, val?: any, d?: any) {
+                state.subpageTitleBarOn = d.value === true || val === "ON";
+                syncClockBarUi();
+                renderPreview();
+            },
             "switch-companion__auto_open_app_subpages": function (this: any, val?: any, d?: any) {
                 state.autoOpenAppSubpages = d.value === true || val === "ON";
                 if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
