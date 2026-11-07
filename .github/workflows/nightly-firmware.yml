@@ -19,7 +19,7 @@ concurrency:
 jobs:
   device-matrix:
     name: Prepare Device Matrix
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
@@ -78,12 +78,15 @@ jobs:
   compile:
     name: Compile Firmware
     needs: device-matrix
-    # Use a fresh hosted runner, as PR firmware builds do. A disconnected
-    # self-hosted runner cannot finish cleanup or record failed targets.
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       failed_targets: ${{ steps.firmware.outputs.failed_targets }}
     steps:
+      - name: Prepare self-hosted workspace
+        run: |
+          rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?* 2>/dev/null ||
+            sudo rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?*
+
       - uses: actions/checkout@v7.0.1
         with:
           path: espdesktop-nightly
@@ -130,7 +133,7 @@ jobs:
           elif sudo -n docker info >/dev/null 2>&1; then
             echo "DOCKER=sudo docker" >> "$GITHUB_ENV"
           else
-            echo "::error::Docker is not available to the runner user"
+            echo "::error::Docker is not available to the self-hosted runner user"
             exit 1
           fi
 
@@ -192,10 +195,15 @@ jobs:
             mkdir -p "${build_cache}" "${build_input_dir}" || return 1
             cp builds/*.yaml "${build_input_dir}/" || return 1
 
+            # Limit compiler parallelism and container resources to reduce
+            # pressure on the shared self-hosted runner host.
             container=$(${DOCKER} create \
+              --cpus 2 --memory 4g --memory-swap 4g \
               --user "$(id -u):$(id -g)" \
               -e HOME=/config \
               -e PLATFORMIO_CORE_DIR=/config/.esphome/platformio \
+              -e UV_CACHE_DIR=/config/.esphome/uv-cache \
+              -e ESPHOME_DEFAULT_COMPILE_PROCESS_LIMIT=2 \
               -e PLATFORMIO_SETTING_ENABLE_TELEMETRY=false \
               -v "${shared_platformio_cache}:/config/.esphome" \
               -v "${build_cache}:/config/${build_input_dir}/.esphome" \
@@ -232,6 +240,11 @@ jobs:
 
             ${DOCKER} start -a "${container}"
             compile_status=$?
+            if [ "${compile_status}" -ne 0 ]; then
+              ${DOCKER} inspect --format \
+                'Build container: OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}} Error={{.State.Error}}' \
+                "${container}" || true
+            fi
             # A containerized self-hosted runner cannot read the Docker host's
             # bind-mount paths. Measure inside the build container, then copy
             # only the report back before removing the container.
