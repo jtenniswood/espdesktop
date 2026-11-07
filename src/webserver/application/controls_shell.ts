@@ -36,7 +36,7 @@ export interface ControlsShellFeature {
     readonly buildUI: () => void;
     readonly buildHeader: (parent?: any) => void;
     readonly buildScreenPage: (parent?: any) => void;
-    readonly buildApplyBar: () => HTMLElement;
+    readonly buildRestartControl: () => HTMLElement;
     readonly switchTab: (tab?: any) => void;
     readonly syncTabChrome: () => void;
     readonly isConfigLocked: () => boolean;
@@ -220,17 +220,16 @@ export function createControlsShellFeature(
         overlay.appendChild(modal);
         page.appendChild(overlay);
         els.settingsOverlay = overlay;
-        page.appendChild(buildApplyBar());
         parent.appendChild(page);
         els.screenPage = page;
     }
     // ── Shell controls ───────────────────────────────────────────────────
-    function buildApplyBar(this: any) {
+    function buildRestartControl(this: any) {
         var bar: any = document.createElement("div");
         bar.className = "sp-apply-bar";
         var btn: any = document.createElement("button");
         btn.className = "sp-apply-btn";
-        btn.textContent = "Apply Configuration";
+        btn.textContent = "Restart Device";
         btn.addEventListener("click", function (this: any) {
             if (isConfigLocked())
                 return;
@@ -252,7 +251,7 @@ export function createControlsShellFeature(
         bar.appendChild(btn);
         var note: any = document.createElement("div");
         note.className = "sp-apply-note";
-        note.textContent = "Restarts the device to apply changes";
+        note.textContent = "Restarts the device. It will reconnect automatically.";
         bar.appendChild(note);
         return bar;
     }
@@ -306,7 +305,7 @@ export function createControlsShellFeature(
                 text = "Restarting\u2026";
             els.root.querySelectorAll(".sp-apply-btn").forEach(function (this: any, btn?: any) {
                 btn.disabled = isConfigLocked();
-                btn.textContent = isConfigLocked() ? text : "Apply Configuration";
+                btn.textContent = isConfigLocked() ? text : "Restart Device";
             });
         }
         dependencies.updatePreviewHint();
@@ -343,7 +342,7 @@ export function createControlsShellFeature(
         buildUI,
         buildHeader,
         buildScreenPage,
-        buildApplyBar,
+        buildRestartControl,
         switchTab,
         syncTabChrome,
         isConfigLocked,

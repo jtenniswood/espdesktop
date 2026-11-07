@@ -736,7 +736,7 @@ function assertNoLayoutBreaks(result, label, options = {}) {
   assert(result.appVisible, `${label}: #sp-app should be visible`);
   assert(result.screenVisible, `${label}: .sp-screen should be visible`);
   assert(result.mainVisible, `${label}: .sp-main should be visible`);
-  assert(result.applyVisible, `${label}: apply controls should be visible`);
+  assert(!result.applyVisible, `${label}: restart controls stay off Layout`);
   assert(result.gridChildren > 0, `${label}: grid should render cells`);
   assert(
     result.visibleGridChildren > 0,
@@ -1365,7 +1365,14 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   assert(!devicePlacement.Backlight && !devicePlacement.Rotation, `${label}: System does not duplicate display controls`);
   assert.strictEqual(devicePlacement.Language, "Preferences", `${label}: Language is under System > Preferences`);
   assert.strictEqual(devicePlacement.Firmware, "System", `${label}: Firmware is under System > System`);
-  assert(await page.locator("#sp-device .sp-apply-btn").isVisible(), `${label}: System has Apply Configuration`);
+  assert.strictEqual(await page.locator("#sp-device .sp-apply-btn").count(), 1, `${label}: System has a restart control`);
+  assert.strictEqual(devicePlacement.Restart, "System", `${label}: restart is a System setting`);
+  assert.strictEqual(await page.locator("#sp-device .sp-config > .card:last-child .card-header h3").textContent(), "Restart",
+    `${label}: restart is the last System setting`);
+  assert.strictEqual(await page.locator("#sp-screen .sp-apply-btn, #sp-settings .sp-apply-btn").count(), 0,
+    `${label}: Layout and Screen have no restart control`);
+  assert.strictEqual(await page.getByRole("button", { name: "Restart Device", exact: true, includeHidden: true }).count(), 1,
+    `${label}: there is one restart control`);
   if (options.slug === "guition-esp32-p4-jc8012p4a1") {
     assert.strictEqual(
       devicePlacement.Battery,
@@ -5018,7 +5025,10 @@ async function assertEditSmoke(page, posts, errors) {
 
 async function assertApplySmoke(page, posts, errors) {
   const before = posts.length;
-  await page.getByRole("button", { name: "Apply Configuration" }).click();
+  await page.getByRole("tab", { name: "System", exact: true }).click();
+  const restartCard = page.locator("#sp-device .card").filter({ has: page.locator(".card-header h3", { hasText: /^Restart$/ }) });
+  await restartCard.locator(".card-header").click();
+  await page.getByRole("button", { name: "Restart Device", exact: true }).click();
   await waitForPost(
     posts,
     {
@@ -7076,6 +7086,10 @@ async function runCase(browser, testCase) {
     }
     await assertConnectorsManagement(page, testCase);
     await assertSettingsPage(page, testCase.name, testCase, posts);
+    if (process.env.ESPDESKTOP_RESTART_ONLY === "1") {
+      await assertApplySmoke(page, posts, errors);
+      return;
+    }
     if (testCase.exerciseInteractions) {
       await assertNightScheduleSensorControls(page, posts, testCase.name);
     }
@@ -8979,6 +8993,11 @@ async function assertSpecialPageRename(browser, testCase) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_RESTART_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
+      console.log("System restart browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;

@@ -12,7 +12,7 @@ After pairing the Mac app, open the display's address in a browser and use its b
 1. Open the **Layout** tab in the display's web page.
 2. Select an empty tile and choose **Companion**.
 3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, **Open URL**, **Window control**, or **Stats**.
-4. Set the options and choose **Apply Configuration** to save the layout.
+4. Set the options and choose **Save** to save the card.
 
 Apps and folders must first be approved in the Mac app. Keyboard shortcuts and window controls need Accessibility permission. See [Mac Controls](/card-types/companion) for the available actions and requirements.
 
@@ -25,7 +25,7 @@ Apps and folders must first be approved in the Mac app. Keyboard shortcuts and w
 - Create [subpages](/features/subpages) to group related Mac controls or keep an app's shortcuts together.
 - Right-click a card and use **Copy Code** and **Paste Code** to reuse a layout on another display.
 
-The display preview shows the saved arrangement. Choose **Apply Configuration** after editing to send it to the touchscreen.
+The display preview shows the saved arrangement. Changes are sent to the touchscreen as you save or rearrange cards. To restart the display, use **System → Restart → Restart Device**.
 
 ## Screen and System Settings
 

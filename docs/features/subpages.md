@@ -28,7 +28,7 @@ Home Assistant type presets are available after a Home Assistant connection is c
 
 Drag cards to change their order. To move or copy a card between the home screen and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty space on the destination page and choose **Paste**.
 
-Choose **Apply Configuration** to save your changes to the display.
+Changes are saved to the display as you edit. To restart the display, use **System → Restart → Restart Device**.
 
 To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups.
 

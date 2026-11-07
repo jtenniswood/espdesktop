@@ -70,7 +70,7 @@ export function createAppEventsFeature(
                 els.banner.className = "sp-banner";
             els.root.querySelectorAll(".sp-apply-btn").forEach(function (this: any, btn?: any) {
                 btn.disabled = false;
-                btn.textContent = "Apply Configuration";
+                btn.textContent = "Restart Device";
             });
             clearTimeout(runtime.migrationTimer as any);
             runtime.migrationTimer = setTimeout(gridMigration.schedule, 5000);
