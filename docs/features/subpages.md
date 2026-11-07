@@ -45,6 +45,6 @@ Use the page-name button above the device preview to rename it, then choose **Sa
 reset icon and save to restore the default. The custom name is saved with the
 page for use in the editor and backups.
 It starts empty, supports ordinary cards, and cannot contain nested subpages.
-Its **Close** button, marked with a cross icon, returns to the screen you came
-from. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
+Swipe down from the top edge to close it and return to the screen you came
+from. Its **Close** button, marked with a cross icon, does the same. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
 The page is saved on the display and included in backups.

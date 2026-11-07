@@ -257,7 +257,7 @@ inline bool navigation_display_mode_allows_grid_gesture() {
 inline void navigation_grid_screen_gesture(lv_event_t *event) {
   if (event == nullptr || lv_event_get_code(event) != LV_EVENT_GESTURE) return;
   lv_indev_t *indev = lv_indev_active();
-  if (indev == nullptr || lv_indev_get_gesture_dir(indev) != LV_DIR_TOP ||
+  if (indev == nullptr ||
       !navigation_display_mode_allows_grid_gesture() ||
       screen_lock_enabled() || control_modal_active().overlay != nullptr ||
       control_modal_nested_active().overlay != nullptr) return;
@@ -273,8 +273,19 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
   lv_indev_get_vect(indev, &vector);
   const lv_coord_t screen_height = lv_obj_get_height(screen);
   const lv_coord_t swipe_start_y = point.y - vector.y;
-  if (screen_height <= 0 || swipe_start_y < screen_height * 5 / 6) return;
+  if (screen_height <= 0) return;
 
+  const auto direction = lv_indev_get_gesture_dir(indev);
+  const auto *special_page = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+  if (special_page && special_page->screen == screen) {
+    // Mirror the bottom-edge opening gesture at the top of the swipe-up page.
+    if (direction != LV_DIR_BOTTOM || swipe_start_y < 0 ||
+        swipe_start_y > screen_height / 6) return;
+    if (navigation_return_from_special_page()) lv_indev_wait_release(indev);
+    return;
+  }
+
+  if (direction != LV_DIR_TOP || swipe_start_y < screen_height * 5 / 6) return;
   if (navigation_open_special_page()) lv_indev_wait_release(indev);
 }
 
