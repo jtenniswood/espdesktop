@@ -9,7 +9,7 @@ start = source.index("inline bool &clock_bar_subpage_title_bar_enabled()")
 end = source.index("inline bool clock_bar_should_reserve_space(", start)
 display = (root / "common/config/display.yaml").read_text()
 refresh_start = display.index("navigation_subpage_clock_bar_refresh() = []() {")
-refresh = display[refresh_start:].split("navigation_refresh_subpage_label();", 1)[0].split("{", 1)[1]
+refresh = display[refresh_start:].split("clock_bar_set_widget_hidden(id(display_time),", 1)[0].split("{", 1)[1]
 refresh = refresh.replace("${main_page_pad_top}", "40").replace("${main_page_compact_pad_top}", "4")
 padding_start = source.index("inline void clock_bar_set_grid_page_pad_top(")
 padding_end = source.index("inline bool clock_bar_active_on_button_grid_page(", padding_start)
@@ -43,21 +43,31 @@ struct App {
   bool target_schedule_inactive() { return false; }
 } espdesktop_app;
 #define id(x) x
+void navigation_refresh_subpage_label() {}
+int full_refreshes = 0;
+bool settings_visible = false;
+struct ApplyClockBar {
+  void execute() {
+    ++full_refreshes;
+    settings_visible = clock_bar_resolve_visibility(
+        clock_bar_enabled.state, &home, espdesktop::DisplayMode::ACTIVE, false).visible;
+  }
+} clock_bar_apply;
 ''' + source[padding_start:padding_end] + '\nvoid refresh() {\n' + refresh + '\n}\n' + r'''
 int main() {
   using espdesktop::DisplayMode;
   // Execute the production page-change wiring with the home bar turned off.
   refresh();
-  assert(home.top == 4 && subpage.top == 4);
+  assert(home.top == 4 && subpage.top == 4 && !settings_visible);
   active = &subpage;
   refresh();
-  assert(subpage.top == 40); // Full clock-bar height is reserved before the title.
+  assert(subpage.top == 40 && settings_visible && full_refreshes == 2); // Full clock-bar height is reserved before the title.
   const int before = updates;
   refresh();
-  assert(updates == before); // Periodic refreshes still avoid unnecessary layout.
+  assert(updates == before && full_refreshes == 2); // Periodic refreshes still avoid unnecessary layout.
   active = &home;
   refresh();
-  assert(home.top == 4 && subpage.top == 4);
+  assert(home.top == 4 && subpage.top == 4 && !settings_visible && full_refreshes == 3);
   for (bool title_bar : {false, true}) {
     clock_bar_subpage_title_bar_enabled() = title_bar;
   for (bool enabled : {false, true}) {

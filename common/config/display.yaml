@@ -76,6 +76,14 @@ esphome:
                   id(main_page)->obj,
                   visibility.reserve_space ? ${main_page_pad_top} : ${main_page_compact_pad_top});
               navigation_refresh_subpage_label();
+              // Status widgets share the page-dependent visibility policy too.
+              // Apply the complete bar once per page change, not every timer tick.
+              static lv_obj_t *last_clock_bar_page = nullptr;
+              if (last_clock_bar_page != lv_scr_act()) {
+                last_clock_bar_page = lv_scr_act();
+                id(clock_bar_apply).execute();
+                return;
+              }
               clock_bar_set_widget_hidden(id(display_time),
                   !(clock_bar_should_show(id(clock_bar_enabled).state, id(main_page)->obj,
                       id(espdesktop_app).display().current_mode(),
