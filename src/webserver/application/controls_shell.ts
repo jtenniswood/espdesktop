@@ -211,10 +211,13 @@ export function createControlsShellFeature(
                 '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
                     '<path d="M16 23V7m-6 6 6-6 6 6M7 27h18"/></svg></span>' +
             '<span class="sp-swipe-copy"><span class="sp-swipe-title">Swipe-up page</span>' +
-                '<span class="sp-swipe-description">Swipe up from the bottom edge of your display.</span></span>' +
-            '<span class="sp-swipe-action">Configure page <span aria-hidden="true">&#8594;</span></span>';
+                '<span class="sp-swipe-description">Swipe up from the bottom edge.</span></span>' +
+            '<span class="sp-swipe-action">Configure <span aria-hidden="true">&#8594;</span></span>';
         els.specialPageEntry = specialPageEntry;
-        page.appendChild(specialPageEntry);
+        var swipeWrap: any = document.createElement("div");
+        swipeWrap.className = "sp-swipe-wrap";
+        swipeWrap.appendChild(specialPageEntry);
+        page.appendChild(swipeWrap);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";
         var modal: any = document.createElement("div");
