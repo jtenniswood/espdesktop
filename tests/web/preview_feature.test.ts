@@ -65,6 +65,13 @@ export function runPreviewFeatureTests(): void {
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
   }
+  for (const entity of ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]) {
+    equal(cardRequiresHomeAssistant("slider", { entity }), false, `${entity} is a native Mac control`);
+    equal(cardRequiresHomeAssistant("", { entity }), true, "the native exception applies only to slider cards");
+  }
+  for (const entity of ["light.office", "fan.office", "number.level", "input_number.level", "media.output_other", "media.output_volume.extra", ""]) {
+    equal(cardRequiresHomeAssistant("slider", { entity }), true, `${entity} cannot bypass Home Assistant transfer checks`);
+  }
   equal(cardRequiresHomeAssistant("climate", {}), true, "Home Assistant-only cards require Home Assistant");
   equal(cardRequiresHomeAssistant("", {}), true, "the canonical empty-string Switch type requires Home Assistant");
   equal(cardRequiresHomeAssistant("push", {}), true, "Trigger cards require the Home Assistant event bus");

@@ -157,6 +157,12 @@ export function cardRequiresHomeAssistant(
     readonly sensor?: string | null;
   } | null | undefined,
 ): boolean {
+  // Slider is shared with Home Assistant, but these exact control IDs belong
+  // to the native Mac Companion and remain transferable without HA enabled.
+  if (key === "slider") {
+    return !["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]
+      .includes(card?.entity || "");
+  }
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
     const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);
