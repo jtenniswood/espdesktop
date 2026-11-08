@@ -432,8 +432,9 @@ bool AppIconStore::save(const std::string &application_id,
   std::lock_guard<std::mutex> lock(mutex_);
   if (!available_ || std::find(references_.begin(), references_.end(), application_id) == references_.end() ||
       std::find(enabled_applications_.begin(), enabled_applications_.end(), application_id) == enabled_applications_.end()) return false;
-  if (find_memory_locked(application_id) >= 0)
-    return save_memory_locked(application_id, hash, pixels, evicted_application_id);
+  const int memory_slot = find_memory_locked(application_id);
+  if (memory_slot >= 0 && save_memory_locked(application_id, hash, pixels, evicted_application_id))
+    return true;
   const int old_slot = find_locked(application_id);
   if (old_slot >= 0) {
     const auto old = std::find_if(entries_.begin(), entries_.end(), [old_slot](const Entry &entry) {
@@ -444,7 +445,8 @@ bool AppIconStore::save(const std::string &application_id,
   int slot = free_slot_locked();
   // Keep flash records across reboot; use external RAM for additional apps
   // rather than repeatedly overwriting those records when a setup grows.
-  if (slot < 0 && old_slot < 0 && save_memory_locked(application_id, hash, pixels, evicted_application_id))
+  if (slot < 0 && old_slot < 0 && memory_slot < 0 &&
+      save_memory_locked(application_id, hash, pixels, evicted_application_id))
     return true;
   if (slot < 0) slot = unreferenced_slot_locked();
   if (slot < 0) slot = old_slot;
@@ -456,6 +458,9 @@ bool AppIconStore::save(const std::string &application_id,
   }
   if (slot < 0 || !write_slot_locked(static_cast<uint16_t>(slot), application_id, hash, pixels)) return false;
   if (old_slot >= 0 && old_slot != slot) erase_slot_locked(static_cast<uint16_t>(old_slot));
+  // Keep the old RAM copy authoritative until flash persistence succeeds.
+  // Once persisted, remove it so hash/pixel reads cannot shadow the new artwork.
+  if (memory_slot >= 0) memory_entries_[memory_slot] = {};
   if (evicted_application_id) *evicted_application_id = std::move(evicted_id);
   return true;
 #else

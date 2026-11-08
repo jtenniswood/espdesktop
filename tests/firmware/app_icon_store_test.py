@@ -300,6 +300,46 @@ int main() {
   for (size_t index = 0; index < 23; ++index)
     assert(store.copy_pixels(apps[index], output.data(), output.size()) && output == pixels);
   assert(store.clear_cache() && memory_bytes == 0);
+  // An existing compressed RAM icon can need a larger buffer after an update.
+  // Under memory pressure, preserve it on a failed flash write, then migrate
+  // to flash when persistence succeeds so stale RAM bytes cannot hide the update.
+  free_psram = 8 * 1024 * 1024;
+  std::fill(pixels.begin(), pixels.end(), 42);
+  for (size_t index = 0; index < 12; ++index)
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
+  assert(memory_bytes > 0);
+  const auto old_pixels = pixels;
+  const auto old_hash = digest(pixels);
+  pixels[0] = 91;
+  const auto updated_hash = digest(pixels);
+  free_psram = APP_ICON_MEMORY_HEADROOM_BYTES;
+  fail_write = true;
+  assert(!store.save(apps[11], updated_hash, pixels.data(), pixels.size(), &evicted));
+  assert(store.copy_pixels(apps[11], output.data(), output.size()) && output == old_pixels);
+  assert(store.hash_for(apps[11], &copied_hash) && copied_hash == old_hash);
+  fail_write = false;
+  assert(store.save(apps[11], updated_hash, pixels.data(), pixels.size(), &evicted));
+  assert(evicted != apps[11]); // The earlier failed write already erased its flash victim.
+  assert(memory_bytes == 0);
+  assert(store.hash_for(apps[11], &copied_hash) && copied_hash == updated_hash);
+  assert(store.copy_pixels(apps[11], output.data(), output.size()) && output == pixels);
+  AppIconStore persisted_update;
+  assert(persisted_update.begin());
+  assert(persisted_update.copy_pixels(apps[11], output.data(), output.size()) && output == pixels);
+  assert(store.clear_cache() && memory_bytes == 0);
+  // The normal low-memory fallback reports the displaced flash icon, allowing
+  // Companion's request deduplication to fetch that victim again later.
+  free_psram = 8 * 1024 * 1024;
+  std::fill(pixels.begin(), pixels.end(), 42);
+  for (size_t index = 0; index < 12; ++index)
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
+  pixels[0] = 91;
+  free_psram = APP_ICON_MEMORY_HEADROOM_BYTES;
+  assert(store.save(apps[11], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(!evicted.empty() && evicted != apps[11] && memory_bytes == 0);
+  assert(store.hash_for(apps[11], &copied_hash) && copied_hash == digest(pixels));
+  assert(store.copy_pixels(apps[11], output.data(), output.size()) && output == pixels);
+  assert(store.clear_cache() && memory_bytes == 0);
 }
 '''
 with tempfile.TemporaryDirectory(prefix="app-icon-store-") as directory:
