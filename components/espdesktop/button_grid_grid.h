@@ -1014,8 +1014,6 @@ inline void grid_refresh_layout(
 
 inline bool grid_card_uses_secondary_surface(
     const espdesktop::cards::Context &context, const ParsedCfg &config) {
-  if (espdesktop::cards::numeric_selectable_driver_option_select(context, config))
-    return true;
   if (context.family != espdesktop::cards::Family::MEDIA) return false;
   const std::string mode = media_card_mode(config.sensor);
   return mode == "position" ||
