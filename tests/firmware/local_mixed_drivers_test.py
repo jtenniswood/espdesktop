@@ -14,6 +14,7 @@ sensors = (firmware/'button_grid_sensor_driver.h').read_text()
 basic = (firmware/'button_grid_basic_action_driver.h').read_text()
 prelude = r'''
 #include <cassert>
+#include <cstdint>
 #include <cstdio>
 #include <functional>
 #include <string>
