@@ -23,3 +23,9 @@ Action cards are unavailable when the Mac is disconnected or the selected app, f
 Companion cards are currently offered only on the 4848S040 profile. For Home Assistant controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
 For protocol details and matching release versions, see [Companion Compatibility](/reference/companion-compatibility).
+
+## Mac Screen Buttons
+
+Choose **Companion → Mac screen**, then select **Screen Brighter**, **Screen Dimmer**, or **Mac Lock**. Brightness buttons change the main Mac display by 10 percentage points per press, bounded at 0–100%. Brightness controls appear unavailable if the screen does not support them. For a draggable control, choose **Slider → Control → Mac display brightness**. Drag to set a level from 0–100%; the slider also follows changes made on the Mac. External monitor DDC control is not included.
+
+**Mac Lock** sends the standard Control–Command–Q shortcut. Allow EspDesktop under **System Settings → Privacy & Security → Accessibility**. These controls require updated display firmware and the updated Mac app.

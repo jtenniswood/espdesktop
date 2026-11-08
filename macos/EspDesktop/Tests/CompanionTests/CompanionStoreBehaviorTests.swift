@@ -21,6 +21,13 @@ final class CompanionStoreBehaviorTests: XCTestCase {
         )
     }
 
+    func testSystemControlsDoNotReportApplicationActivation() {
+        for identifier in CompanionCapabilities.systemActions.keys {
+            XCTAssertEqual(CompanionStore.actionResultStatus(actionIdentifier: identifier, performed: true), "performed")
+            XCTAssertEqual(CompanionStore.actionResultStatus(actionIdentifier: identifier, performed: false), "not_allowed")
+        }
+    }
+
     func testWebAppActivationRequiresTheRequestedTabToBeFocused() {
         XCTAssertTrue(CompanionStore.webAppActivationObserved(
             actionIdentifier: "webapp.google-docs",

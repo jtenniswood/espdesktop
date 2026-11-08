@@ -1316,6 +1316,7 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
          p.entity.rfind("folder.", 0) != 0 &&
          p.entity.rfind("shortcut.", 0) != 0 &&
          p.entity.rfind("window.", 0) != 0 &&
+         p.entity.rfind("system.", 0) != 0 &&
          p.entity.rfind("stat.", 0) != 0;
 }
 

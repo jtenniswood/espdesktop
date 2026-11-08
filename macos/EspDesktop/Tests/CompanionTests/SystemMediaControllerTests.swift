@@ -10,7 +10,7 @@ final class SystemMediaControllerTests: XCTestCase {
             force: true
         )
 
-        XCTAssertEqual(unavailable, [SystemMediaController.inputVolumeID])
+        XCTAssertEqual(unavailable, [SystemMediaController.inputVolumeID, SystemMediaController.brightnessID])
     }
 
     func testIncrementalSnapshotOnlyRemovesPreviouslyPublishedControls() {

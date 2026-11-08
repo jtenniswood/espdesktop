@@ -163,10 +163,22 @@ export function runCompanionShortcutFeatureTests(): void {
   const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
   if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
+  if (companionModes.length !== 8 || new Set(companionModes.map(([mode]) => mode)).size !== 8 ||
       !companionCardModeValid("window") || !companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
+  }
+  for (const entity of ["system.brightness_up", "system.brightness_down", "system.lock"]) {
+    const card = { ...emptyCardConfig("companion"), entity };
+    normalizeCompanionCard(card);
+    if (decodeCompanionCard(card).mode !== "system" || companionAppIconEnabled(card)) {
+      throw new Error("Mac screen buttons must survive normalization without application artwork");
+    }
+  }
+  if (companionSliderMode({ entity: "display.brightness" }) !== "mac_brightness" ||
+      companionSliderIcon("Microphone", "mac_input", "mac_brightness") !== "Weather Sunny" ||
+      companionSliderIcon("Palette", "mac_brightness", "mac_input") !== "Palette") {
+    throw new Error("Mac brightness sliders must use the correct mode and preserve custom icons");
   }
   const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
   normalizeCompanionCard(storageCard);

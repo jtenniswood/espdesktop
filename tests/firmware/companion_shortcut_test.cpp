@@ -36,6 +36,22 @@ int main() {
     runtime.set_connected(false);
     assert(!runtime.snapshot().application_highlight_known);
   }
+  {
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{"system.brightness_up", "Screen Brighter"}, {"system.lock", "Mac Lock"}};
+    assert(!companion_action_available(snapshot, "system.brightness_up"));
+    assert(companion_action_available(snapshot, "system.lock"));
+    snapshot.values.push_back({"display.brightness", 50});
+    assert(companion_action_available(snapshot, "system.brightness_up"));
+    snapshot.connected = false;
+    assert(!companion_action_available(snapshot, "system.lock"));
+    ParsedCfg system_card;
+    system_card.type = "companion";
+    system_card.entity = "system.lock";
+    assert(!companion_app_icon_enabled(system_card));
+    assert(companion_volume_control_valid("display.brightness"));
+  }
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));

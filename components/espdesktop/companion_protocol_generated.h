@@ -625,7 +625,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "display.brightness"))) return std::nullopt;
     }
     {
       if (!(number_valid(root["value"], 0, 100, true))) return std::nullopt;
@@ -640,7 +640,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "display.brightness"))) return std::nullopt;
     }
     {
       if (!(root["available"].is<bool>())) return std::nullopt;

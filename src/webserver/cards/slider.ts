@@ -23,16 +23,19 @@ import type { SettingsUiFeature } from "../features/settings";
 
 export const COMPANION_OUTPUT_VOLUME_ID = "media.output_volume";
 export const COMPANION_INPUT_VOLUME_ID = "media.input_volume";
+export const COMPANION_BRIGHTNESS_ID = "display.brightness";
 
 export function companionSliderMode(card: any): string {
     if (card?.entity === COMPANION_OUTPUT_VOLUME_ID) return "mac_output";
     if (card?.entity === COMPANION_INPUT_VOLUME_ID) return "mac_input";
+    if (card?.entity === COMPANION_BRIGHTNESS_ID) return "mac_brightness";
     return "home_assistant";
 }
 
 function companionSliderDefaultIcon(mode: string): string {
     if (mode === "mac_output") return "Volume High";
     if (mode === "mac_input") return "Microphone";
+    if (mode === "mac_brightness") return "Weather Sunny";
     return "Auto";
 }
 
@@ -127,6 +130,7 @@ export function registerSliderCardTypes(
                         ["home_assistant", "Home Assistant light or fan"],
                         ["mac_output", "Mac output volume"],
                         ["mac_input", "Mac input volume"],
+                        ["mac_brightness", "Mac display brightness"],
                     ],
                     value: companionSliderMode,
                 },
@@ -172,17 +176,21 @@ export function registerSliderCardTypes(
                                 var previousMode: any = companionSliderMode(b);
                                 b.icon = companionSliderIcon(b.icon, previousMode, sliderMode);
                                 b.icon_on = companionSliderIcon(b.icon_on, previousMode, sliderMode);
-                                if (sliderMode === "mac_output") {
+                                if (sliderMode === "mac_brightness") {
+                                    b.entity = COMPANION_BRIGHTNESS_ID;
+                                    if (!b.label || ["Output Volume", "Input Volume"].includes(b.label)) b.label = "Display Brightness";
+                                }
+                                else if (sliderMode === "mac_output") {
                                     b.entity = COMPANION_OUTPUT_VOLUME_ID;
-                                    if (!b.label || b.label === "Input Volume") b.label = "Output Volume";
+                                    if (!b.label || b.label === "Input Volume" || b.label === "Display Brightness") b.label = "Output Volume";
                                 }
                                 else if (sliderMode === "mac_input") {
                                     b.entity = COMPANION_INPUT_VOLUME_ID;
-                                    if (!b.label || b.label === "Output Volume") b.label = "Input Volume";
+                                    if (!b.label || b.label === "Output Volume" || b.label === "Display Brightness") b.label = "Input Volume";
                                 }
                                 else if (previousMode !== "home_assistant") {
                                     b.entity = "";
-                                    if (b.label === "Output Volume" || b.label === "Input Volume") b.label = "";
+                                    if (["Output Volume", "Input Volume", "Display Brightness"].includes(b.label)) b.label = "";
                                 }
                                 helpers.saveField("entity", b.entity);
                                 helpers.saveField("label", b.label);
@@ -441,9 +449,9 @@ export function registerSliderCardTypes(
             renderPreview: function (this: any, b?: any, helpers?: any) {
                 var sliderMode: any = companionSliderMode(b);
                 var defaultLabel: any = sliderMode === "mac_output" ? "Output Volume"
-                    : sliderMode === "mac_input" ? "Input Volume" : b.entity || opts.fallbackLabel;
+                    : sliderMode === "mac_input" ? "Input Volume" : sliderMode === "mac_brightness" ? "Display Brightness" : b.entity || opts.fallbackLabel;
                 var defaultIcon: any = sliderMode === "mac_output" ? "volume-high"
-                    : sliderMode === "mac_input" ? "microphone" : opts.fallbackIcon;
+                    : sliderMode === "mac_input" ? "microphone" : sliderMode === "mac_brightness" ? "weather-sunny" : opts.fallbackIcon;
                 var label: any = b.label || defaultLabel;
                 var iconName: any = b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;
                 if (opts.interactionMode && (b.sensor === "toggle" || coverCommandMode(b.sensor))) {

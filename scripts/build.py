@@ -354,7 +354,7 @@ def load_card_contract_data():
 
 def load_companion_capabilities_data():
     data = load_json(COMPANION_CAPABILITIES_JSON)
-    required_lists = ("windowActions", "systemMetrics")
+    required_lists = ("windowActions", "systemMetrics", "systemActions")
     if not isinstance(data.get("version"), int) or data["version"] < 1:
         raise BuildError("Companion capability version must be a positive integer")
     for key in required_lists:
@@ -399,6 +399,14 @@ def load_companion_capabilities_data():
     for mode in card_modes:
         if not all(isinstance(mode.get(key), str) and mode[key] for key in ("label", "capability", "defaultIcon")):
             raise BuildError(f"Invalid Companion card mode: {mode.get('id')}")
+
+    system_ids = []
+    for action in data["systemActions"]:
+        if not all(isinstance(action.get(key), str) and action[key] for key in ("id", "label", "icon")) or not action["id"].startswith("system."):
+            raise BuildError("Each Companion system action requires a system.* id, label, and icon")
+        system_ids.append(action["id"])
+    if len(system_ids) != len(set(system_ids)):
+        raise BuildError("Companion system action ids must be unique")
 
     identifiers = []
     for action in data["windowActions"]:
@@ -824,6 +832,7 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_APP_ICON_SIDE = {protocol['appIconSide']} as const;\n"
         f"export const COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])} as const;\n"
         f"export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])} as const;\n"
+        f"export const COMPANION_SYSTEM_ACTIONS = {companion_ts_literal(data['systemActions'])} as const;\n"
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
         f"export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = {companion_ts_literal([{key: item[key] for key in ('id', 'label', 'group')} for item in data['windowActions']])};\n"
@@ -927,6 +936,7 @@ def gen_companion_capabilities_swift(data):
         f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
         f"    static let appIconsHighResolutionCapability = {json.dumps(data['protocol']['appIconsHighResolutionCapability'])}\n",
         f"    static let pairingWindowSeconds = {data['security']['pairingWindowSeconds']}\n",
+        "    static let systemActions: [String: String] = [" + ", ".join(json.dumps(item["id"]) + ": " + json.dumps(item["label"]) for item in data["systemActions"]) + "]\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]
     lines.extend(f"        {json.dumps(item['id'])},\n" for item in data["protocol"]["messages"])

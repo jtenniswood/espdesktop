@@ -834,7 +834,8 @@ final class CompanionConnection: NSObject {
                 return ["id": identifier, "label": Self.catalogueLabel(app.label, fallback: app.id)]
             }
         }
-        let entries: [[String: String]] = webAppEntries(configuredWebApps) + resources.folderActions().compactMap { folder -> [String: String]? in
+        let systemEntries = CompanionCapabilities.systemActions.sorted { $0.key < $1.key }.map { ["id": $0.key, "label": $0.value] }
+        let entries: [[String: String]] = systemEntries + webAppEntries(configuredWebApps) + resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + resources.launchableApps().compactMap { app -> [String: String]? in
@@ -1007,7 +1008,7 @@ final class CompanionConnection: NSObject {
     }
 
     private static func validMediaControlIdentifier(_ value: String) -> Bool {
-        value == SystemMediaController.outputVolumeID || value == SystemMediaController.inputVolumeID
+        SystemMediaController.volumeControlIDs.contains(value)
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

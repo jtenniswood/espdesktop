@@ -17,6 +17,7 @@ import {
     COMPANION_CARD_MODES,
     COMPANION_SYSTEM_METRICS,
     COMPANION_WINDOW_ACTIONS,
+    COMPANION_SYSTEM_ACTIONS,
 } from "../generated/companion_capabilities";
 import {
     companionCardDefaultIcon,
@@ -26,6 +27,7 @@ import {
 export {
     COMPANION_SYSTEM_METRICS,
     COMPANION_WINDOW_ACTIONS,
+    COMPANION_SYSTEM_ACTIONS,
 } from "../generated/companion_capabilities";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
@@ -233,6 +235,7 @@ export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
         return companionCardDefaultIcon("stats");
     }
     if (mode === "webapp") return "Web";
+    if (mode === "system") return COMPANION_SYSTEM_ACTIONS.find((action) => action.id === entity)?.icon || "Weather Sunny";
     if (mode === "window") {
         return COMPANION_WINDOW_ACTION_ICONS[entity] || companionCardDefaultIcon("window");
     }
@@ -359,12 +362,14 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
+    if (mode === "system") return COMPANION_SYSTEM_ACTIONS[0]?.id || "";
     if (mode === "window") return COMPANION_WINDOW_ACTIONS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
+        !action.id.startsWith("system.") &&
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
@@ -546,7 +551,7 @@ export function registerCompanionCardTypes(
         card.precision = "";
         card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
-        card.label = "";
+        card.label = mode === "system" ? COMPANION_SYSTEM_ACTIONS.find((action) => action.id === card.entity)?.label || "" : "";
 
         const metric = mode === "stats" ? COMPANION_SYSTEM_METRICS[0] : undefined;
         if (metric) {
@@ -989,6 +994,36 @@ export function registerCompanionCardTypes(
                         modifier !== "shift" && selectedModifiers.has(modifier));
             });
 
+            const systemField = document.createElement("div");
+            systemField.className = "sp-field";
+            systemField.appendChild(fieldLabel("Mac screen action", helpers.idPrefix + "companion-system-action"));
+            const systemSelect = document.createElement("select");
+            systemSelect.className = "sp-select";
+            systemSelect.id = helpers.idPrefix + "companion-system-action";
+            for (const action of COMPANION_SYSTEM_ACTIONS) {
+                const option = document.createElement("option");
+                option.value = action.id;
+                option.textContent = action.label;
+                option.selected = action.id === card.entity;
+                systemSelect.appendChild(option);
+            }
+            systemSelect.addEventListener("change", () => {
+                const previous = COMPANION_SYSTEM_ACTIONS.find((action) => action.id === card.entity);
+                const next = COMPANION_SYSTEM_ACTIONS.find((action) => action.id === systemSelect.value);
+                if (!next) return;
+                card.icon = companionGeneratedIcon(card.icon || "", previous?.icon || "Weather Sunny", next.icon);
+                card.label = companionAppLabel(card.label || "", previous?.label || "", next.label);
+                card.entity = next.id;
+                for (const field of ["entity", "icon", "label"]) helpers.saveField(field, card[field]);
+                renderButtonSettings();
+            });
+            const systemNote = document.createElement("div");
+            systemNote.className = "sp-field-info-text sp-visible";
+            systemNote.textContent = "Brightness adjusts the main Mac display in 10% steps where supported. Mac Lock requires Accessibility access.";
+            systemField.append(systemSelect, systemNote);
+            panel?.appendChild(systemField);
+            helpers.markCardPrimaryField(systemField, "system");
+
             const windowField = document.createElement("div");
             windowField.className = "sp-field";
             windowField.appendChild(fieldLabel("Window action", helpers.idPrefix + "companion-window-action"));
@@ -1232,6 +1267,7 @@ export function registerCompanionCardTypes(
                 webAppIconTitle.row.style.display = mode === "webapp" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
+                systemField.style.display = mode === "system" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
                 appSubpageDisclosure.panel.style.display = canAddSubpage && (mode === "app" || mode === "webapp") &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
@@ -1495,7 +1531,7 @@ export function registerCompanionCardTypes(
                 });
             }
             const shortcutLabel = formatCompanionShortcutActionId(card.entity);
-            const windowLabel = companionWindowActionLabel(card.entity);
+            const windowLabel = companionWindowActionLabel(card.entity) || COMPANION_SYSTEM_ACTIONS.find((action) => action.id === card.entity)?.label || "";
             const appLabel = mode === "app" || mode === "url"
                 ? companionApplicationLabel(card.entity) : "";
             let urlLabel = "";

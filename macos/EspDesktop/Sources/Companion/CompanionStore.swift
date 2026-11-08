@@ -865,6 +865,7 @@ final class CompanionStore: NSObject, ObservableObject {
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
             && !actionIdentifier.hasPrefix("webapp.")
+            && !actionIdentifier.hasPrefix("system.")
         return isApplicationLaunch ? "activated" : "performed"
     }
 
@@ -909,6 +910,24 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window") async -> Bool {
+        if actionIdentifier.hasPrefix("system.") {
+            switch actionIdentifier {
+            case "system.brightness_up", "system.brightness_down":
+                guard let current = mediaController.values()[SystemMediaController.brightnessID] else {
+                    updateStatus("The main Mac display does not support brightness control")
+                    return false
+                }
+                let step = actionIdentifier == "system.brightness_up" ? 10 : -10
+                return setMediaControlValue(min(100, max(0, current + step)), controlIdentifier: SystemMediaController.brightnessID)
+            case "system.lock":
+                guard CompanionKeyboardShortcut(actionIdentifier: "shortcut.control+command+q")?.replay() == true else {
+                    updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
+                    return false
+                }
+                return true
+            default: return false
+            }
+        }
         if actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix) {
             return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }

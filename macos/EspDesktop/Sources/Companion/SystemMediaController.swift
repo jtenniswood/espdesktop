@@ -5,7 +5,9 @@ import Foundation
 final class SystemMediaController {
     static let outputVolumeID = "media.output_volume"
     static let inputVolumeID = "media.input_volume"
-    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID])
+    static let brightnessID = "display.brightness"
+    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID, brightnessID])
+    private let displayBrightness = SystemDisplayBrightness()
     static func unavailableVolumeIDs(
         values: [String: Int],
         previousValues: [String: Int],
@@ -23,10 +25,16 @@ final class SystemMediaController {
         if let input = volume(scope: kAudioDevicePropertyScopeInput) {
             result[Self.inputVolumeID] = Int((input * 100).rounded()).clampedPercentage
         }
+        if let brightness = displayBrightness.value() {
+            result[Self.brightnessID] = brightness
+        }
         return result
     }
 
     func setValue(_ value: Int, controlIdentifier: String) -> Bool {
+        if controlIdentifier == Self.brightnessID {
+            return displayBrightness.setValue(value.clampedPercentage)
+        }
         let scope: AudioObjectPropertyScope
         switch controlIdentifier {
         case Self.outputVolumeID: scope = kAudioDevicePropertyScopeOutput
