@@ -26,7 +26,7 @@ for (const profile of [{ slots: 6, columns: 2 }, layout, { slots: 15, columns: 3
     const tokens = Array(slot).fill("");
     tokens[0] = ",light.hidden,Inactive";
     tokens[slot - 1] = "subpage,,Retained";
-    document.subpages[1] = [`~B=Return:ABCDEF,${slot}`, ...tokens].join("|");
+    document.subpages[1] = [`~B=Return:ABCDEF:Owner%20Page,${slot}`, ...tokens].join("|");
     const leaf = "~B=Parent:123456,1|,light.retained_leaf,Leaf";
     document.subpages[child(1, slot)] = leaf;
     const before = JSON.stringify(document);
@@ -47,6 +47,7 @@ for (const profile of [{ slots: 6, columns: 2 }, layout, { slots: 15, columns: 3
       assert.equal(result.subpages[1].split("|")[1], tokens[0], "inactive saved sibling is untouched");
       assert.equal(parsed(result.subpages[1]).backLabel, "Return");
       assert.equal(parsed(result.subpages[1]).backColor, "ABCDEF");
+      assert.equal(parsed(result.subpages[1]).title, "Owner Page");
       valid(result);
     }
     assert.equal(JSON.stringify(document), before);

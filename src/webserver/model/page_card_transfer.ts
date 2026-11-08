@@ -53,7 +53,7 @@ function pageExists(document: PanelConfigDocument, page: number): void {
 }
 function readPage(document: PanelConfigDocument, page: number) {
   if (!page) return { buttons: Array.from({ length: 32 }, (_, i) => parseRawButtonConfig(document.buttons[i + 1])),
-    order: document.settings.button_order ?? "", backLabel: "Back", backColor: "" };
+    order: document.settings.button_order ?? "", backLabel: "Back", backColor: "", title: "" };
   const raw = document.subpages[page] ?? "";
   const parsed = parseRawSubpageConfig(raw, typeFromCode);
   return { ...parsed, order: (raw.startsWith("~") ? raw.slice(1) : raw).split("|")[0] ?? "", backColor: parsed.backColor ?? "" };
@@ -142,7 +142,7 @@ function writeCards(document: PanelConfigDocument, page: number, edits: Readonly
 function updatedOrder(document: PanelConfigDocument, page: number, grid: readonly number[], sizes: SlotSizeMap, layout: PageTransferLayout): string {
   if (!page) return serializeGridOrder(grid, sizes);
   const previous = readPage(document, page);
-  const next = serializeSubpageGrid(grid, sizes, previous.backLabel, previous.backColor);
+  const next = serializeSubpageGrid(grid, sizes, previous.backLabel, previous.backColor, previous.title);
   // Inactive records belong to the saved document, independently of this grid.
   const tokens = previous.order.split(",");
   const hasBack = tokens.some(token => isBackOrderToken(parseBackOrderToken(token).token));

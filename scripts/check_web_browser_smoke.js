@@ -9039,6 +9039,25 @@ async function assertNestedCompanionPages(browser) {
       await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
       await page.getByText("Address", { exact: true }).first().waitFor();
     };
+    // Create a new app shortcut page while its app is already inside a folder.
+    const existing = structuredClone(fixture.document);
+    delete fixture.document.subpages[33];
+    fixture.document.subpages[1] = fixture.document.subpages[1].replace("app_shortcuts", "");
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+    if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
+    await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length === 1 && !!fixture.document.subpages[33], "create a nested app page atomically");
+    assert(fixture.document.subpages[1].includes("app_shortcuts"));
+    assert(fixture.document.subpages[33].includes("shortcut."));
+    // Start the independent edit/reload scenario with a custom existing card.
+    fixture.document = existing; fixture.generation++; fixture.puts = [];
     await open();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await page.getByText("Safari", { exact: true }).first().waitFor();
@@ -9053,7 +9072,7 @@ async function assertNestedCompanionPages(browser) {
     assert(fixture.document.subpages[33].includes("shortcut."), "app shortcuts persist under nested key");
     await open();
     assert.deepStrictEqual(errors, []);
-    console.log("Nested Companion shortcut edit, atomic save, reload and parent Back passed.");
+    console.log("Nested Companion shortcut creation, edit, atomic save, reload and parent Back passed.");
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 

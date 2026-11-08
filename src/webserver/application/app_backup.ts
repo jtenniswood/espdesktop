@@ -525,7 +525,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 if ((nativeBackupHasInactiveRecords(nativeDocument, controllers.layout.numSlots) &&
                      nativeController?.client?.preservesInactiveRecords() !== true) ||
                     (nativeAvailability === "legacy-fallback" && Object.keys(nativeDocument.settings)
-                      .some(key => key !== "button_order" && key !== "button_on_color"))) {
+                      .some(key => key !== "button_order" && key !== "button_on_color" && key !== "special_page"))) {
                     rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                 }
                 var layoutRestoreResult: any;
