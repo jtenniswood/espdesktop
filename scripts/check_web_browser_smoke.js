@@ -142,23 +142,8 @@ async function assertSubpageTitleTypography(page, label, nativeState) {
     typography.card,
     `${label}: subpage title uses the device card-label typography`,
   );
-  const homeLayout = await page.locator(".sp-back-btn").evaluate(card => {
-    const icon = card.querySelector(".sp-home-icon");
-    const bounds = card.getBoundingClientRect();
-    const glyph = icon?.getBoundingClientRect();
-    return {
-      home: !!icon?.classList.contains("mdi-home"),
-      labelHidden: getComputedStyle(card.querySelector(".sp-btn-label")).display === "none",
-      fits: !!glyph && glyph.left >= bounds.left && glyph.top >= bounds.top &&
-        glyph.right <= bounds.right + 1 && glyph.bottom <= bounds.bottom + 1,
-      enlarged: !!glyph && glyph.height > parseFloat(getComputedStyle(icon).fontSize),
-    };
-  });
-  assert.deepStrictEqual(homeLayout, { home: true, labelHidden: true, fits: true, enlarged: true },
-    `${label}: Back uses a large Home icon fitted inside the card`);
-  if (process.env.ESPDESKTOP_HOME_ICON_SCREENSHOT) {
-    await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_HOME_ICON_SCREENSHOT });
-  }
+  assert.strictEqual(await page.locator(".sp-back-btn .mdi-chevron-left").count(), 1,
+    `${label}: regular subpages retain their Back arrow`);
   const initialColor = await page.locator(".sp-back-btn").evaluate(el => getComputedStyle(el).backgroundColor);
   await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 2, y: (await page.locator(".sp-back-btn").boundingBox()).height / 2 } });
   await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -2904,6 +2889,18 @@ async function assertAutomaticAppIcons(browser, testCase) {
       // Use the same menu inside a subpage and verify the complete subpage record.
       await card(2).locator(".sp-subpage-badge").click();
       await page.locator(".sp-back-btn").waitFor();
+      const backAppIcon = page.locator(".sp-back-btn img.sp-back-hit");
+      await backAppIcon.waitFor();
+      assert.strictEqual(await page.locator(".sp-back-btn").getAttribute("data-icon-size"), "large");
+      assert(!(await page.locator(".sp-back-btn .sp-btn-label").isVisible()), "app Back card hides its label");
+      assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0,
+        "app subpage identity moves from the clock bar to the return-home card");
+      if (process.env.ESPDESKTOP_APP_BACK_SCREENSHOT) {
+        await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_APP_BACK_SCREENSHOT });
+      }
+      await page.locator(".sp-back-btn").click();
+      await card(2).locator(".sp-subpage-badge").waitFor();
+      await card(2).locator(".sp-subpage-badge").click();
       await chooseSize(1, "Large");
       const subpageSaved = native ? fixture.document.subpages[2] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_2")).map(([,value]) => value).join("");

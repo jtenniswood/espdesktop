@@ -408,12 +408,9 @@ inline std::string navigation_active_subpage_label() {
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
   if (entry && entry->kind == "special") return entry->title;
   if (entry == nullptr || parent == nullptr) return "";
-  if (!parent->label.empty()) return parent->label;
-  // Unlabelled app folders retain their familiar application-name fallback.
-  if (entry->kind != "app_shortcuts") return "";
-  const ParsedCfg parent_config = parse_cfg(parent->config);
-  if (!companion_app_shortcuts_enabled(parent_config)) return "";
-  return companion_shortcut_catalog::app_label(parent_config.entity);
+  // The app's identity is shown on its return-home card instead of the clock bar.
+  if (entry->kind == "app_shortcuts") return "";
+  return parent->label;
 }
 
 inline void navigation_refresh_subpage_label() {
@@ -426,26 +423,7 @@ inline void navigation_refresh_subpage_label() {
     return;
   }
   set_clock_bar_companion_subpage_label(navigation_active_subpage_label());
-  const int slot = navigation_active_subpage_slot();
-  NavigationSubpageEntry *entry = navigation_find_slot(slot);
-  NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
-  if (!entry || entry->kind != "app_shortcuts" || !parent) {
-    image_card_set_clock_bar_companion_icon("", "", "");
-    return;
-  }
-  const ParsedCfg config = parse_cfg(parent->config);
-  if (!companion_app_shortcuts_enabled(config)) {
-    image_card_set_clock_bar_companion_icon("", "", "");
-    return;
-  }
-  const bool web_app = config.entity.rfind("webapp.", 0) == 0;
-  const std::string icon_name = config.icon.empty() || config.icon == "Auto"
-      ? (web_app ? "Web" : "Monitor") : config.icon;
-  const std::string icon_url = web_app
-      ? companion_web_app_icon_url(config.entity) : "";
-  image_card_set_clock_bar_companion_icon(
-      config.entity, icon_name, icon_url,
-      !web_app && companion_app_icon_enabled(config));
+  image_card_set_clock_bar_companion_icon("", "", "");
 }
 
 inline NavigationSubpageEntry *navigation_companion_subpage_for_action(

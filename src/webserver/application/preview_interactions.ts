@@ -264,12 +264,12 @@ export function createPreviewInteractionsFeature(
             });
         }
         function isBackExitTarget(this: any, e?: any, target?: any) {
-            var icon: any = target.querySelector(".sp-back-hit");
+            var icon: any = target.querySelector(".sp-back-hit:not([hidden])");
             if (!icon)
                 return false;
             var rect: any = icon.getBoundingClientRect();
-            // A large Home icon already fills the card; keep its outer edge selectable.
-            var pad: any = icon.classList.contains("sp-home-icon") ? 0 : 12;
+            // A large app icon already fills the card; keep its outer edge selectable.
+            var pad: any = target.getAttribute("data-icon-size") === "large" ? 0 : 12;
             return e.clientX >= rect.left - pad &&
                 e.clientX <= rect.right + pad &&
                 e.clientY >= rect.top - pad &&
