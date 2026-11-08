@@ -32,7 +32,7 @@ Home Assistant type presets are available after a Home Assistant connection is c
 
 Drag cards to change their order. To move or copy a card between the home screen and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty space on the destination page and choose **Paste**.
 
-Choose **Apply Configuration** to save your changes to the display.
+Open **Screen** or **System** and choose **Apply Configuration** to apply your changes to the display.
 
 To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage, Back and Close buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
 
@@ -40,11 +40,9 @@ To customise a Back card, edit its name and colours in the editor. Its default a
 
 Swipe up from the bottom edge of the home screen or a card subpage to open a
 separate page. A short upward swipe from the bottom edge opens it; a long drag
-is not needed. Configure it with **Special Page** in the web layout editor.
-Use the page-name button above the device preview to rename it, then choose **Save**. Use the
-reset icon and save to restore the default. The custom name is saved with the
-page for use in the editor and backups.
+is not needed. Choose **Configure swipe-up page** below the display preview in the web layout editor to add cards.
+The page has no title above the preview or on the display.
 It starts empty, supports ordinary cards, and cannot contain nested subpages.
-Its **Close** button, marked with a cross icon, returns to the screen you came
-from. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
+Swipe down from the top edge to close it and return to the screen you came
+from. Its **Close** button, marked with a cross icon, does the same. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
 The page is saved on the display and included in backups.
