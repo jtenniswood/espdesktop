@@ -114,7 +114,7 @@ export function runPreviewFeatureTests(): void {
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
       companion_stats: { label: "Stats", allowInSubpage: true },
-      companion_subpage: { label: "Subpage", allowInSubpage: false },
+      companion_subpage: { label: "Subpage", pickerKey: "subpage", allowInSubpage: false },
       companion_window: { label: "Window control", allowInSubpage: true },
       push: { label: "Trigger", allowInSubpage: true },
       webhook: { label: "Webhook", allowInSubpage: true },
@@ -122,7 +122,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "slider", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "companion_window"],
+    ["companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "slider", "companion_stats", "subpage", "companion_webapp", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

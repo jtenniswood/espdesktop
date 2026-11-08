@@ -235,6 +235,7 @@ export function registerSubpageCardTypes(
     const registeredSubpageDefinition = registry.register("subpage", subpageDefinition);
     registry.register("companion_subpage", {
         ...registeredSubpageDefinition,
+        pickerKey: "subpage",
         label: "Subpage",
         onSelect: function (this: any, b?: any) {
             b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");

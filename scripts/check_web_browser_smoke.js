@@ -8819,8 +8819,12 @@ async function assertRetiredCardRemoval(browser) {
       await page.waitForSelector(".sp-settings-modal");
       assert.strictEqual(await page.getByRole("button", { name: "Action card type", exact: true }).count(), 0);
       assert.strictEqual(await page.getByRole("button", { name: "Local Action card type", exact: true }).count(), 0);
+      assert.strictEqual(await page.getByRole("button", { name: "Subpage card type", exact: true }).count(), 1,
+        `${testCase.name}: the picker offers one shared Subpage choice`);
       assert(!/Home Assistant/i.test(await page.locator(".sp-settings-modal").innerText()),
         `${testCase.name}: new-card picker offers no HA integration or wording`);
+      await page.getByRole("button", { name: "Subpage card type", exact: true }).click();
+      await page.locator(".sp-settings-modal .sp-edit-subpage-btn").waitFor({ state: "visible" });
     } finally { await context.close(); }
   }
   console.log(`Action/HA picker absence passed for ${ACTIVE_CASES.length} layouts.`);
