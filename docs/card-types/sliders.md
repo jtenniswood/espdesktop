@@ -22,7 +22,7 @@ For light-only controls, you may prefer the newer [Lights](/card-types/lights) c
 
 ## How It Works on the Panel
 
-- **Drag** the slider and release it to send one new value to Home Assistant.
+- **Drag** the slider and release it to send one new value to Home Assistant. A touch that starts on a slider stays with that control until you lift your finger, so it does not trigger swipe navigation.
 - For lights, the slider uses Home Assistant's brightness control.
 - For fans, the slider uses Home Assistant's percentage speed control.
 - For `number` entities and `input_number` helpers, the slider uses the minimum, maximum, step, and unit reported by Home Assistant. While you drag, the icon changes to the exact value that will be sent.

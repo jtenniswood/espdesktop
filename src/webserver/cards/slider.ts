@@ -174,15 +174,15 @@ export function registerSliderCardTypes(
                                 b.icon_on = companionSliderIcon(b.icon_on, previousMode, sliderMode);
                                 if (sliderMode === "mac_output") {
                                     b.entity = COMPANION_OUTPUT_VOLUME_ID;
-                                    if (!b.label || b.label === "Input Volume") b.label = "Output Volume";
+                                    if (!b.label || b.label === "Input Volume") b.label = "Volume";
                                 }
                                 else if (sliderMode === "mac_input") {
                                     b.entity = COMPANION_INPUT_VOLUME_ID;
-                                    if (!b.label || b.label === "Output Volume") b.label = "Input Volume";
+                                    if (!b.label || b.label === "Volume" || b.label === "Output Volume") b.label = "Input Volume";
                                 }
                                 else if (previousMode !== "home_assistant") {
                                     b.entity = "";
-                                    if (b.label === "Output Volume" || b.label === "Input Volume") b.label = "";
+                                    if (b.label === "Volume" || b.label === "Output Volume" || b.label === "Input Volume") b.label = "";
                                 }
                                 helpers.saveField("entity", b.entity);
                                 helpers.saveField("label", b.label);
@@ -440,11 +440,12 @@ export function registerSliderCardTypes(
             },
             renderPreview: function (this: any, b?: any, helpers?: any) {
                 var sliderMode: any = companionSliderMode(b);
-                var defaultLabel: any = sliderMode === "mac_output" ? "Output Volume"
+                var defaultLabel: any = sliderMode === "mac_output" ? "Volume"
                     : sliderMode === "mac_input" ? "Input Volume" : b.entity || opts.fallbackLabel;
                 var defaultIcon: any = sliderMode === "mac_output" ? "volume-high"
                     : sliderMode === "mac_input" ? "microphone" : opts.fallbackIcon;
-                var label: any = b.label || defaultLabel;
+                var label: any = sliderMode === "mac_output" && b.label === "Output Volume"
+                    ? defaultLabel : b.label || defaultLabel;
                 var iconName: any = b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;
                 if (opts.interactionMode && (b.sensor === "toggle" || coverCommandMode(b.sensor))) {
                     return {

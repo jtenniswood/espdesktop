@@ -21,13 +21,17 @@ stubs = r'''
 using lv_coord_t = int;
 constexpr int NAVIGATION_SPECIAL_PAGE_SLOT=49, LV_SCR_LOAD_ANIM_NONE=0;
 constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1, LV_DIR_RIGHT=2, LV_DIR_LEFT=3, LV_DIR_BOTTOM=4, LV_EVENT_PRESSED=4, LV_EVENT_RELEASED=5, LV_INDEV_TYPE_POINTER=1;
-struct lv_obj_t { int height=480, width=480; bool valid=true; } grid, other, overlay, back_button, special, subgrid;
+struct lv_obj_t { int height=480, width=480; bool valid=true; bool slider=false; lv_obj_t *parent=nullptr; } grid, other, overlay, back_button, special, subgrid, slider, slider_child;
 struct lv_point_t { int x=0,y=0; };
 struct lv_indev_t { int direction=LV_DIR_TOP; lv_point_t point{0,420}, vector{0,-50}; } device;
 struct lv_event_t { int code=LV_EVENT_GESTURE; } event;
 struct Modal { lv_obj_t *overlay=nullptr; } modal, nested;
 bool allowed=true, locked=false, has_pointer=true;
-lv_obj_t *active=&grid;
+lv_obj_t *active=&grid, *pressed=&grid;
+constexpr int lv_slider_class=1;
+void *lv_event_get_param(lv_event_t *) { return pressed; }
+lv_obj_t *lv_obj_get_parent(lv_obj_t *o) { return o->parent; }
+bool lv_obj_check_type(lv_obj_t *o, const int *) { return o->slider; }
 int opened=0, waited=0, returned=0, distance=50, velocity=3, callbacks=0;
 std::vector<lv_obj_t *> screens{&grid};
 int lv_event_get_code(lv_event_t *e) { return e->code; }
@@ -151,6 +155,23 @@ int main() {
   assert(returned==5 && waited==5);
   begin(134,240); gesture(160,240,LV_DIR_RIGHT);
   assert(returned==5);
+  // Sliders and their children own the entire press, including edge drags.
+  slider.slider=true; slider.parent=&grid; slider_child.parent=&slider;
+  for (auto *target : {&slider, &slider_child}) {
+    pressed=target;
+    begin(240,440);
+    pressed=&grid; // Moving outside the slider must not enable navigation.
+    gesture(240,410,LV_DIR_TOP);
+    gesture(240,380,LV_DIR_TOP);
+    send(LV_EVENT_RELEASED);
+    pressed=target;
+    begin(40,240); gesture(70,240,LV_DIR_RIGHT);
+    send(LV_EVENT_RELEASED);
+  }
+  pressed=nullptr; begin(240,240); gesture(240,210,LV_DIR_TOP);
+  pressed=&grid;
+  assert(opened==0 && returned==5 && waited==5);
+  // A fresh touch outside a slider can still navigate normally.
   // Bottom swipes use the same touch-down rule when crossing their edge zone.
   begin(240,410);
   for (int y=408; y>=384; y-=2) { device.vector={0,-2}; device.point={240,y}; }

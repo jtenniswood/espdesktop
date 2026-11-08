@@ -164,7 +164,8 @@ inline void numeric_selectable_driver_bind_slider(
     if (slot.icon_lbl) {
       lv_label_set_display_text(slot.icon_lbl, icon_off);
     }
-    if (config.label.empty() && slot.text_lbl) {
+    if (slot.text_lbl && (config.label.empty() ||
+        (config.entity == "media.output_volume" && config.label == "Output Volume"))) {
       lv_label_set_display_text(
         slot.text_lbl, companion_volume_control_label(config.entity));
     }

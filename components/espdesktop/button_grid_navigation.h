@@ -248,6 +248,14 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
                 screen) == navigation_grid_screens().end()) return;
 
   if (code == LV_EVENT_PRESSED) {
+    // A slider owns its whole touch, even when the drag crosses a screen edge.
+    // Check ancestors too in case a slider child receives the initial press.
+    // LVGL passes the pressed widget as the input-device event parameter.
+    for (lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_param(event));
+         target != nullptr;
+         target = lv_obj_get_parent(target)) {
+      if (lv_obj_check_type(target, &lv_slider_class)) return;
+    }
     press.screen = screen;
     lv_indev_get_point(indev, &press.start);
     return;

@@ -36,6 +36,7 @@ int main() {
     runtime.set_connected(false);
     assert(!runtime.snapshot().application_highlight_known);
   }
+  assert(std::string(companion_volume_control_label("media.output_volume")) == "Volume");
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
@@ -56,7 +57,7 @@ int main() {
 
   // Exercise the real translation tables at the device-label boundary.
   set_espdesktop_language("de");
-  assert(std::string(companion_volume_control_label("media.output_volume")) == "Ausgabelautstärke");
+  assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Eingabelautstärke");
   assert(companion_default_action_label("window.minimize") == "Minimieren");
   assert(companion_default_action_label("window.arrange.left-right") == "Links und rechts");
