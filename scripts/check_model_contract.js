@@ -883,7 +883,7 @@ assert.strictEqual(legacyPanelSettings.alarmDelayFinalCountdown, 10, "legacy pan
 assert.strictEqual(model.normalizeAlarmDelayBeepVolume(5), 1, "alarm beep volume clamps high values");
 assert.strictEqual(model.normalizeAlarmDelayFinalCountdown(-4), 0, "alarm final countdown clamps low values");
 assert.strictEqual(legacyPanelSettings.coverArtHideExternalInput, true, "legacy panel settings default cover art external-input setting on");
-assert.strictEqual(legacyPanelSettings.coverArtSource, "Home Assistant", "legacy panel settings default cover art source to Home Assistant");
+assert.strictEqual(legacyPanelSettings.coverArtSource, "Mac Companion", "legacy panel settings migrate cover art source to Mac Companion");
 assert.strictEqual(
   model.normalizeBackupPanelSettings({ cover_art_source: "Mac Companion" }, {
     timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],

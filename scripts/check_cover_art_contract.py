@@ -402,27 +402,13 @@ for required in (
 image_grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
 if "image_card_schedule_media_artwork_refresh(art)" not in image_grid:
     raise SystemExit("Media artwork subscriptions must use the trigger scheduler")
-screen_cover_art = (ROOT / "common" / "device" / "screen_cover_art.yaml").read_text(encoding="utf-8")
-for required in (
-    "artwork_refresh.begin(",
-    "artwork_refresh.receive(",
-    "artwork_refresh.finish();",
-    "cover_art_request_paired_artwork",
-    "cover_art_schedule_paired_artwork",
-    "ARTWORK_TRIGGER_DEBOUNCE_MS",
-    "cover_art_artwork_trigger).schedule(force_refresh)",
-    "cover_art_artwork_trigger).consume()",
-    "Ignoring stale %s artwork response",
-):
-    if required not in screen_cover_art:
-        raise SystemExit(f"Cover-art screensaver refresh-batch contract missing: {required}")
-deferred_retry_start = screen_cover_art.index("  - id: cover_art_deferred_request_artwork")
-trigger_scheduler_start = screen_cover_art.index("  - id: cover_art_schedule_paired_artwork")
-deferred_retry = screen_cover_art[deferred_retry_start:trigger_scheduler_start]
-if "script.execute: cover_art_request_paired_artwork" not in deferred_retry:
-    raise SystemExit("Cover-art failed reads must retry the paired request immediately")
-if "id: cover_art_schedule_paired_artwork" in deferred_retry:
-    raise SystemExit("Cover-art failed reads must not use the trigger debounce")
+# Fullscreen artwork now arrives through the authenticated Companion stream.
+# Keep the transport, generation and owned-buffer checks beside the runtime tests.
+from check_companion_artwork import errors as companion_artwork_errors
+failures = companion_artwork_errors(ROOT)
+if failures:
+    raise SystemExit("Companion artwork contract failed: " + "; ".join(failures))
+
 image_decoder = (ROOT / "components" / "artwork_image" / "image_decoder.cpp").read_text(encoding="utf-8")
 for required in (
     "if (!this->buffer_ || offset > this->size_)",
@@ -514,59 +500,6 @@ if modal_open_start < 0 or modal_open_end < 0:
 modal_open = image_cards[modal_open_start:modal_open_end]
 if "ctx->next_download_retry_ms = 0;" in modal_open:
     raise SystemExit("Opening an image modal must preserve an already scheduled tile retry")
-
-cover_art = (ROOT / "common" / "device" / "screen_cover_art.yaml").read_text(encoding="utf-8")
-resubscribe_start = cover_art.find("  - id: cover_art_resubscribe")
-resubscribe_end = cover_art.find("\n  - id:", resubscribe_start + 1)
-if resubscribe_start < 0 or resubscribe_end < 0:
-    raise SystemExit("Cover art subscription lifecycle contract missing")
-resubscribe = cover_art[resubscribe_start:resubscribe_end]
-if "cover_art_request_paired_artwork" not in cover_art:
-    raise SystemExit("Cover art must retain paired artwork refresh requests")
-cover_art_subscription_order = []
-for handler, attribute in (
-    ("handle_media_content_type", "media_content_type"),
-    ("handle_media_content_id", "media_content_id"),
-    ("handle_media_title", "media_title"),
-    ("handle_media_artist", "media_artist"),
-    ("handle_media_album", "media_album_name"),
-):
-    handler_start = resubscribe.find(handler)
-    subscription_start = resubscribe.find(
-        f'std::string("{attribute}")', handler_start
-    )
-    if handler_start < 0 or subscription_start < 0:
-        raise SystemExit(f"Cover art metadata policy subscription missing: {attribute}")
-    cover_art_subscription_order.append(subscription_start)
-if cover_art_subscription_order != sorted(cover_art_subscription_order):
-    raise SystemExit(
-        "Cover art must subscribe to content kind before title, artist, and album"
-    )
-for required in (
-    "media_metadata_clear_decision(",
-    "media_content_identity_fingerprint(",
-    "should_replace_media_metadata_identity(next)",
-    "id(cover_art_content_fingerprint) = 0;",
-    "id(cover_art_content_type).clear();",
-    "id(cover_art_content_kind) = static_cast<uint8_t>(",
-):
-    if required not in resubscribe:
-        raise SystemExit(f"Cover art metadata reset contract missing: {required}")
-proxy_404_start = cover_art.find("last_error_was_ha_media_proxy_not_found()")
-proxy_404_end = cover_art.find("- script.execute: cover_art_retry_download", proxy_404_start)
-if proxy_404_start < 0 or proxy_404_end < 0:
-    raise SystemExit("Cover art proxy 404 recovery contract missing")
-proxy_404_recovery = cover_art[proxy_404_start:proxy_404_end]
-if "script.execute: cover_art_resubscribe" in proxy_404_recovery:
-    raise SystemExit("Cover art proxy 404 recovery must reuse subscriptions instead of retaining one-shot reads")
-if "id(cover_art_runtime).sources.clear()" in proxy_404_recovery:
-    raise SystemExit("Cover art proxy 404 recovery must preserve newly queued subscription candidates")
-for required in (
-    "id(cover_art_runtime).refresh_needed = true",
-    "preserving subscribed artwork candidates while waiting for an update",
-):
-    if required not in proxy_404_recovery:
-        raise SystemExit(f"Cover art proxy 404 recovery contract missing: {required}")
 
 media = (ROOT / "components" / "espdesktop" / "button_grid_media.h").read_text(encoding="utf-8")
 metadata_start = media.find("inline void media_playback_subscribe_metadata(MediaPlaybackState *state) {")
@@ -844,16 +777,8 @@ for required in (
         raise SystemExit(
             f"Stopped playback must invalidate retained metadata: {required}"
         )
-for required in (
-    "espdesktop::cover_art::media_entity_state_usable(next)",
-    'subscribe_secondary_content_probe(std::string("media_artist"), 16u)',
-):
-    if required not in resubscribe:
-        raise SystemExit(
-            f"Full-screen secondary media routing contract missing: {required}"
-        )
-
-# A visible screensaver must reach LVGL so the control consumes its own press.
+# Retain shared fullscreen touch, progress and track-overlay behavior after
+# deleting entity subscriptions and the Home Assistant playback button.
 from check_firmware_ha_bindings import yaml_script_body
 screen = (ROOT / "common/device/screen_cover_art.yaml").read_text()
 touch = yaml_script_body(screen, "cover_art_handle_touch") or ""
@@ -865,56 +790,20 @@ for required in (
     "script.execute: screensaver_wake",
 ):
     assert required in touch, f"Missing cover-art touch routing: {required}"
-control = yaml_script_body(screen, "cover_art_toggle_playback") or ""
-assert "screensaver_wake" not in control.replace("screensaver_wake_touch_guard_active", "")
-assert "cover_art_active_media_player_entity" in control
-assert "LV_OBJ_FLAG_EVENT_BUBBLE" in screen
-
-connection = yaml_script_body(screen, "cover_art_update_playback_control") or ""
-assert "update_connection(ha_api_state_connected())" in connection
-assert "script.execute: cover_art_return_home_after_playback" in connection
-
 progress = yaml_script_body(screen, "cover_art_refresh_progress") or ""
 assert "const bool time_was_hidden = lv_obj_has_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN);" in progress
 assert "if (time_was_hidden != lv_obj_has_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN))" in progress
 assert "id(cover_art_fit_artist_text).execute();" in progress
-# Both early exits (external input and missing duration) and normal playback
-# must refit after visibility changes, while steady per-second updates skip it.
-assert progress.count("refit_artist_if_needed();") == 3
-assert progress.count("refit_artist_if_needed();\n            return;") == 2
+# Missing duration and normal playback refit only when visibility changes.
+assert progress.count("refit_artist_if_needed();") == 2
+assert progress.count("refit_artist_if_needed();\n            return;") == 1
 assert progress.rfind("refit_artist_if_needed();") > progress.index("lv_label_set_text(id(cover_art_time_label), label);")
-
 overlay = yaml_script_body(screen, "cover_art_show_track_overlay") or ""
 assert "mode: restart" in overlay
 assert "track_overlay_mode(" in overlay
 assert "TrackOverlayMode::TIMED" in overlay and "TrackOverlayMode::HIDDEN" in overlay
-assert "retains_pause(id(cover_art_active_media_player_entity))" in overlay
 assert "id(cover_art_track_overlay_duration).state * 1000" in overlay
 delayed_hide = overlay[overlay.index("- delay:"):]
 assert "id(cover_art_media_playing) &&" in delayed_hide
-playback = screen[screen.index("std::function<void(esphome::StringRef)> handle_playback_state ="):
-                  screen.index("std::function<void(esphome::StringRef)> handle_media_title =")]
-assert "if (!was_playing) id(cover_art_show_track_overlay).execute();" in playback
-assert '''if (id(cover_art_playback_control).retains_pause(cover_entity)) {
-                  id(cover_art_show_track_overlay).execute();''' in playback
-fallback = yaml_script_body(screen, "cover_art_show_black_screen") or ""
-assert "retains_pause(id(cover_art_active_media_player_entity))" in fallback
-assert "lv_obj_set_style_text_color(id(cover_art_playback_icon), lv_color_hex(0xFFFFFF), LV_PART_MAIN);" in fallback
-accent_script = yaml_script_body(screen, "cover_art_extract_accent_color") or ""
-assert "espdesktop::cover_art::playback_icon_color(" in accent_script
-assert "rgb(button_color), rgb(pressed_color)" in accent_script
-assert "lv_obj_set_style_text_color(id(cover_art_playback_icon), lv_color_hex(icon_color), LV_PART_MAIN);" in accent_script
-setting = yaml_script_body(screen, "cover_art_refresh_playback_setting") or ""
-assert "${cover_art_square_overlay} && !id(cover_art_playback_control_enabled).state" in setting
-assert "script.execute: cover_art_return_home_after_playback" in setting
-assert "id(cover_art_playback_control).reset()" in setting
-assert "id(cover_art_layout_signature).clear()" in setting
-assert "script.execute: cover_art_apply_responsive_layout" in setting
-assert "!id(cover_art_playback_control_enabled).state) return;" in control
-layout_script = yaml_script_body(screen, "cover_art_apply_responsive_layout") or ""
-compensation_call = "apply_width_compensation(id(cover_art_playback_button), icon_width_compensation_percent());"
-assert compensation_call in layout_script
-assert layout_script.index(compensation_call) < layout_script.index("if (signature ==")
-assert "!${cover_art_square_overlay} || id(cover_art_playback_control_enabled).state" in layout_script
-assert "lv_obj_add_flag(id(cover_art_playback_button), LV_OBJ_FLAG_HIDDEN)" in layout_script
+assert "transition_is_current(" in delayed_hide
 print("Cover art policy, layout, and state contract checks passed.")
