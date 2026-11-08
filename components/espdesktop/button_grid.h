@@ -42,6 +42,7 @@
 #include "button_grid_continuous_corners.h"
 #include "theme_runtime_tree.h"
 #include "button_grid_card_runtime.h"
+#include "retired_home_assistant_cards.h"
 #include "button_grid_layout.h"
 #include "button_grid_display.h"
 #include "button_grid_cards.h"

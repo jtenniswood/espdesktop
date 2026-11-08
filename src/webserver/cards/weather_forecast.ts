@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import type { CardRegistry } from "../application/card_registry";
 import type { WeatherCardRegistration } from "./weather";
 import type { ClockBarFeature } from "../application/clock_bar_state";
@@ -24,17 +25,8 @@ export function registerWeatherForecastCardTypes(
         isAvailable: function (this: any) {
             return false;
         },
-        onSelect: function (this: any, b?: any) {
-            b.label = "";
-            b.icon = "Auto";
-            b.icon_on = "Auto";
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "tomorrow";
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            helpers.renderCardEntityField(panel, b, helpers, WEATHER_FORECAST_CARD_METADATA);
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             return {
                 iconHtml: cardSensorPreviewHtml(b, helpers, "18/10", temperatureUnitSymbol(), "sp-forecast-preview", "sp-forecast-value"),

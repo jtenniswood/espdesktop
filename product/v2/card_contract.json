@@ -676,6 +676,7 @@
   ],
   "cards": {
     "timer": {
+      "hidden": true,
       "label": "Timer",
       "allowInSubpage": true,
       "domains": [
@@ -695,6 +696,7 @@
       }
     },
     "": {
+      "hidden": true,
       "label": "Switch",
       "allowInSubpage": true,
       "domains": [
@@ -1066,6 +1068,7 @@
       }
     },
     "vacuum": {
+      "hidden": true,
       "label": "Vacuum",
       "allowInSubpage": true,
       "domains": [
@@ -1174,6 +1177,7 @@
       }
     },
     "lawn_mower": {
+      "hidden": true,
       "label": "Lawn Mower",
       "allowInSubpage": true,
       "domains": [
@@ -1245,6 +1249,7 @@
       }
     },
     "alarm": {
+      "hidden": true,
       "label": "Alarm",
       "allowInSubpage": true,
       "domains": [
@@ -1423,6 +1428,7 @@
       }
     },
     "alarm_action": {
+      "hidden": true,
       "label": "Alarm",
       "allowInSubpage": true,
       "pickerKey": "alarm",
@@ -1654,6 +1660,7 @@
       }
     },
     "climate": {
+      "hidden": true,
       "label": "Climate",
       "allowInSubpage": true,
       "domains": [
@@ -1906,6 +1913,7 @@
       }
     },
     "cover": {
+      "hidden": true,
       "label": "Cover",
       "allowInSubpage": true,
       "domains": [
@@ -2018,6 +2026,7 @@
       }
     },
     "door_window": {
+      "hidden": true,
       "label": "Doors & Windows",
       "allowInSubpage": true,
       "domains": [
@@ -2086,6 +2095,7 @@
       }
     },
     "presence": {
+      "hidden": true,
       "label": "Presence",
       "allowInSubpage": true,
       "domains": [
@@ -2154,6 +2164,7 @@
       }
     },
     "fan_direction": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2209,6 +2220,7 @@
       }
     },
     "fan_oscillate": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2264,6 +2276,7 @@
       }
     },
     "fan_preset": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2319,6 +2332,7 @@
       }
     },
     "fan_speed": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "domains": [
@@ -2373,6 +2387,7 @@
       }
     },
     "fan_control": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2456,6 +2471,7 @@
       }
     },
     "fan_switch": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2511,6 +2527,7 @@
       }
     },
     "garage": {
+      "hidden": true,
       "label": "Garage Door",
       "allowInSubpage": true,
       "domains": [
@@ -2643,6 +2660,7 @@
       }
     },
     "gate": {
+      "hidden": true,
       "label": "Gate",
       "allowInSubpage": true,
       "domains": [
@@ -2801,6 +2819,7 @@
       }
     },
     "light_brightness": {
+      "hidden": true,
       "label": "Lights",
       "allowInSubpage": true,
       "domains": [
@@ -2853,6 +2872,7 @@
       }
     },
     "light_switch": {
+      "hidden": true,
       "label": "Lights",
       "allowInSubpage": true,
       "pickerKey": "light_brightness",
@@ -2906,6 +2926,7 @@
       }
     },
     "light_temperature": {
+      "hidden": true,
       "label": "Lights",
       "allowInSubpage": true,
       "pickerKey": "light_brightness",
@@ -3044,6 +3065,7 @@
       }
     },
     "lock": {
+      "hidden": true,
       "label": "Lock",
       "allowInSubpage": true,
       "domains": [
@@ -3542,6 +3564,7 @@
       }
     },
     "push": {
+      "hidden": true,
       "label": "Trigger",
       "allowInSubpage": true,
       "domains": [],
@@ -4397,6 +4420,7 @@
       }
     },
     "weather": {
+      "hidden": true,
       "label": "Weather",
       "allowInSubpage": true,
       "domains": [

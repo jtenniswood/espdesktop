@@ -7,12 +7,14 @@
 #include "button_grid_limits.h"
 #include "button_grid_card_runtime.h"
 #include "card_modal_target.h"
+#include "retired_home_assistant_cards.h"
 #include "media_control_tabs.h"
 #include "../artwork_image/image_pipeline_policy.h"
 
 struct ParsedCfg {
   std::string entity, type, sensor, options;
   std::string precision = "";
+  std::string label = "";
 };
 using SubpageBtn = ParsedCfg;
 struct lv_obj_t;
@@ -187,240 +189,30 @@ bool navigation_activate_home_target(NavigationHomeTargetEntry *target, lv_obj_t
 #include "button_grid_remote_modal.h"
 
 int main() {
-  alarm = true;
-  const int closes_before_alarm_navigation = closes;
-  for (const auto *target : {"home", "Kitchen", "voice"}) invoke_remote_navigation(target);
-  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
-  assert(closes == closes_before_alarm_navigation);
-  alarm = false;
-  phase2_ready = false;
-  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen");
-  invoke_remote_navigation("1"); invoke_remote_navigation("voice");
-  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
-  phase2_ready = true;
-  locked = true;
-  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen");
-  invoke_remote_navigation("1"); invoke_remote_navigation("voice");
-  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
-  locked = false;
-  homes.clear();
-  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen"); invoke_remote_navigation("voice");
-  assert(remote_navigation_calls == 0 && remote_voice_calls == 0);
-  homes.push_back({1, 0, "Home", "configured", &home});
-  invoke_remote_navigation("home"); invoke_remote_navigation("Kitchen"); invoke_remote_navigation("voice");
-  assert(remote_navigation_calls == 3 && remote_voice_calls == 0);
-
-  struct Case { const char *type; const char *mode; const char *entity; ControlModalKind kind; };
-  const Case cases[] = {
-    {"light_control", "", "light.office", ControlModalKind::LIGHT_CONTROL},
-    {"cover", "modal", "cover.office", ControlModalKind::COVER_CONTROL},
-    {"climate_control", "", "climate.office", ControlModalKind::CLIMATE},
-    {"fan_control", "", "fan.office", ControlModalKind::FAN_CONTROL},
-    {"fan_preset", "", "fan.office", ControlModalKind::FAN_PRESET},
-    {"alarm", "", "alarm_control_panel.office", ControlModalKind::ALARM_CONTROL},
-    {"option_select", "", "select.office", ControlModalKind::OPTION_SELECT},
-    {"wifi_qr", "", "switch.guest", ControlModalKind::WIFI_QR},
-  };
-  {
-    Runtime runtime; runtime.entity_id = "weather.home";
-    lv_obj_t button{&runtime};
-    configs["daily"] = {"weather.home", "weather", "", "", "daily"};
-    homes = {{1, 0, "", "daily", &button}};
-    assert(espdesktop_open_modal("weather.home", true));
-    assert(modal.kind == ControlModalKind::WEATHER_FORECAST && commands == 0);
-    runtime.source = nullptr;
-    assert(!espdesktop_can_open_modal("weather.home", true));
-    configs["daily"].precision = "today";
-    assert(!espdesktop_can_open_modal("weather.home", true));
-    runtime.source = &forecast_source;
-    for (const auto *mode : {"today", "tomorrow"}) {
-      configs["daily"].precision = mode;
-      runtime.view = std::string(mode)=="today" ? WeatherForecastView::TODAY : WeatherForecastView::TOMORROW;
-      runtime.selected_day = forecast_source.forecast.count;
-      const int before_closes = closes, before_opens = opens;
-      assert(!espdesktop_can_open_modal("weather.home", true));
-      assert(!espdesktop_open_modal("weather.home", true));
-      assert(before_closes==closes && before_opens==opens && modal.overlay);
-      runtime.selected_day = 0;
-      assert(espdesktop_can_open_modal("weather.home", true));
-      assert(espdesktop_open_modal("weather.home", true));
-    }
+  Runtime runtime;
+  lv_obj_t button{&runtime};
+  for (auto type : {"", "light_switch", "light_control", "light_temperature", "light_brightness", "fan_control", "fan_speed", "cover", "climate", "climate_control", "alarm", "alarm_action", "vacuum", "lawn_mower", "timer", "weather", "weather_forecast", "presence", "door_window", "push", "option_select", "lock", "garage", "gate", "image", "media", "slider", "sensor", "action"}) {
+    configs["retired"]={"light.office", type, "", ""};
+    homes={{1, 0, "Office", "retired", &button}}; pages.clear();
+    assert(!espdesktop_can_prepare_modal("light.office", true));
+    assert(!espdesktop_can_open_modal("light.office", true));
+    assert(!espdesktop_open_modal("light.office", true));
+    assert(opens==0 && commands==0);
   }
-  for (const auto &test : cases) {
-    Runtime runtime; runtime.entity_id = test.entity; runtime.type = test.type;
-    lv_obj_t button{&runtime};
-    configs["test"] = {test.entity, test.type, test.mode, "valid"};
-    homes = {{1, 0, "", "test", &button}};
-    assert(espdesktop_can_open_modal(test.entity, true));
-    assert(espdesktop_open_modal(test.entity, true));
-    assert(modal.kind == test.kind && commands == 0 && current_page == &home);
-    if (test.kind == ControlModalKind::OPTION_SELECT) {
-      ha_connected = false;
-      assert(!espdesktop_can_open_modal(test.entity, true));
-      assert(!espdesktop_open_modal(test.entity, true));
-      ha_connected = true;
-    }
-    if (test.kind != ControlModalKind::WIFI_QR) {
-      const int old_opens = opens, old_closes = closes;
-      runtime.available = false; runtime.image_ready = false;
-      assert(!espdesktop_open_modal(test.entity, true));
-      assert(opens == old_opens && closes == old_closes);
-      runtime.available = true; runtime.image_ready = true;
-      button.runtime = nullptr;
-      assert(!espdesktop_open_modal(test.entity, true));
-      button.runtime = &runtime;
-    }
-    if (test.kind == ControlModalKind::MEDIA_CONTROL) {
-      runtime.entity_id = "media_player.secondary";
-      assert(espdesktop_open_modal(test.entity, true) && opened == &runtime);
-      runtime.entity_id = test.entity;
-      runtime.group_only = true; runtime.grouping_supported = false;
-      assert(!espdesktop_open_modal(test.entity, true));
-      runtime.group_only = false;
-      runtime.available = false; runtime.power_usable = true;
-      assert(espdesktop_open_modal(test.entity, true) && opened == &runtime);
-      runtime.power_usable = false;
-      assert(!espdesktop_open_modal(test.entity, true));
-      runtime.available = true;
-    }
-
-    if (test.kind == ControlModalKind::WIFI_QR) {
-      configs["test"].options = "invalid";
-      const int old_closes = closes;
-      assert(!espdesktop_open_modal(test.entity, true) && closes == old_closes);
-      configs["test"].options = "valid";
-    }
-    // Same production hook on a different, currently inactive subpage.
-    configs["parent"] = {"", "subpage", "", ""};
-    homes = {{3, 2, "", "parent", &other_page}};
-    pages = {{3, 2, &other_page, {{7, &button, configs["test"], 0}}}};
-    assert(espdesktop_open_modal(test.entity, true));
-    assert(modal.kind == test.kind && current_page == &home && commands == 0);
-    current_page = &other_page;
-    assert(espdesktop_open_modal(test.entity, true));
-    navigation_hide_modals();
-    assert(current_page == &other_page);
-    current_page = &home;
-    pages.clear();
-  }
-  Runtime first, second; first.entity_id = second.entity_id = "light.office";
-  lv_obj_t one{&first}, two{&second};
-  configs["light"] = {"light.office", "light_control", "", ""};
-  configs["command"] = {"light.office", "light_switch", "", ""};
-  homes = {{8, 7, "", "light", &two}, {2, 1, "", "light", &one},
-           {1, 0, "", "command", &two}};
-  assert(espdesktop_open_modal("  light.office \n", true) && opened == &first);
-  assert(remote_modal_find("light.office").matches == 2);
-  first.available = false;
-  const int before = opens, closed_before = closes;
-  alarm = true; espdesktop_close_modal();
-  assert(closes == closed_before); // Remote close cannot hide critical alarm controls.
-  alarm = false; espdesktop_close_modal();
-  assert(closes == closed_before + 1);
-
-  assert(!espdesktop_open_modal("light.office", true)); // No fallback to second.
-  assert(opens == before && closes == closed_before + 1);
-  first.available = true;
-  locked = true; assert(!espdesktop_open_modal("light.office", true)); locked = false;
-  alarm = true; assert(!espdesktop_open_modal("light.office", true)); alarm = false;
-  assert(!espdesktop_open_modal("light.office", false));
-  assert(!espdesktop_open_modal("  ", true));
-  assert(!espdesktop_open_modal("light.missing", true));
-  assert(!espdesktop_open_modal("LIGHT.OFFICE", true));
-  assert(opens == before && closes == closed_before + 1);
-  // Hidden cards are excluded, and display order (not slot number) wins.
-  one.hidden = true;
-  assert(espdesktop_open_modal("light.office", true) && opened == &second);
-  one.hidden = false;
-  homes = {{3, 4, "", "parent", &other_page}, {4, 0, "", "parent", &home}};
-  pages = {{3, 0, &other_page, {{1, &one, configs["light"], 0}}},
-           {4, 9, &home, {{1, &one, configs["light"], 4}, {2, &two, configs["light"], 0}}}};
-  assert(espdesktop_open_modal("light.office", true) && opened == &second);
-  pages[1].cards[0].display_order = 0; pages[1].cards[1].display_order = 3;
-  assert(espdesktop_open_modal("light.office", true) && opened == &first);
-  // An alarm subpage may inherit its entity from the bound runtime.
-  first.entity_id = "alarm_control_panel.inherited";
-  pages = {{3, 0, &other_page, {{1, &one, {"", "alarm", "", ""}, 0}}}};
-  assert(espdesktop_open_modal(first.entity_id, true) && opened == &first);
-  // Resolve before waking, then delete the target during wake. No stale pointer opens.
-  assert(espdesktop_can_open_modal(first.entity_id, true));
-  pages.clear();
-  const int count = opens;
-  assert(!espdesktop_open_modal(first.entity_id, true) && opens == count);
-  first.entity_id = "light.office";
-  homes = {{1, 0, "", "light", &one}};
-  assert(espdesktop_can_open_modal("light.office", true));
-  configs["light"].entity = first.entity_id = "light.renamed";
-  assert(!espdesktop_open_modal("light.office", true));
-  assert(espdesktop_open_modal("light.renamed", true));
-  fail_open = true;
-  assert(!espdesktop_open_modal("light.renamed", true));
-  assert(last_log.find("modal creation failed") != std::string::npos);
-  fail_open = false;
-  for (const auto &config : std::vector<ParsedCfg>{
-      {"light.office", "light_switch", "", ""}, {"light.office", "slider", "", ""},
-      {"media_player.office", "media", "play_pause", ""},
-      {"media_player.office", "media", "playlist", ""},
-      {"cover.office", "cover", "open", ""}, {"script.office", "action", "", ""},
-      {"fan.office", "fan_oscillate", "", ""}, {"switch.office", "switch", "", "confirm"}}) {
-    configs["unsupported"] = config;
-    homes = {{1, 0, "", "unsupported", &one}};
-    const int previous = opens, dismissed = closes;
-    assert(!espdesktop_open_modal(config.entity, true));
-    assert(opens == previous && closes == dismissed && commands == 0);
-  }
-  // Visible remote camera controls still qualify for the P4 refresh action,
-  // even though their source card belongs to an inactive subpage.
-  Runtime camera; lv_obj_t camera_button{&camera, false, &other_page};
-  camera.btn = &camera_button;
-  current_page = &home;
-  modal = {};
-  assert(!image_card_context_on_active_screen(&camera));
-  image_card_open_modal(&camera);
-  assert(image_card_context_on_active_screen(&camera));
-  media_control_open_modal(&first);
-  assert(!image_card_context_on_active_screen(&camera));
-  navigation_hide_modals();
-  current_page = &other_page;
-  assert(image_card_context_on_active_screen(&camera));
-  // A remote modal can sit over a non-grid page. Release must close it before
-  // freeing its runtime, without relying on navigation back to the home page.
-  current_page = &other_page;
-  light_control_open_modal(&first);
-  allocations.push_back({&one, &first, [](void *) { assert(!modal.overlay); }});
-  grid_release_runtime_allocations(&one);
-  assert(!modal.overlay && allocations.empty() && current_page == &other_page);
-  // Releasing an unrelated grid owner must not dismiss critical alarm controls.
-  alarm = true;
-  assert(!test_rebuild_ready());
-  alarm_control_open_modal(&first);
-  allocations.push_back({&two, &second, [](void *) { assert(modal.overlay); }});
-  grid_release_runtime_allocations(&two);
-  assert(modal.overlay && modal.kind == ControlModalKind::ALARM_CONTROL && allocations.empty());
-  alarm = false; assert(test_rebuild_ready()); navigation_hide_modals();
-  active_subpage_slot = 3; current_page = &other_page; locked = true;
-  assert(!espdesktop_close_subpage(&home));
-  assert(active_subpage_slot == 3 && current_page == &other_page);
-  locked = false;
-  assert(espdesktop_close_subpage(&home) && active_subpage_slot == 0 && current_page == &home);
-  // Retired media modes cannot be prepared or opened, even with a live context.
-  for (const char *mode : {"control_modal", "speaker_group", "cover_art", "volume", "now_playing", "position", "playlist", "play_pause", "previous", "next"}) {
-    configs["retired_media"] = {"media_player.office", "media", mode, ""};
-    homes = {{1, 0, "Speaker", "retired_media", &one}}; pages.clear();
-    assert(!espdesktop_can_prepare_modal("media_player.office", true));
-    assert(!espdesktop_can_open_modal("media_player.office", true));
-    assert(!espdesktop_open_modal("media_player.office", true));
-  }
-  configs["suspended_image"] = {"camera.front", "image", "", ""};
-  first.active = false; pipeline_suspended = true;
-  homes = {{1, 0, "Camera", "suspended_image", &one}}; pages.clear();
-  assert(!espdesktop_can_prepare_modal("camera.front", true));
-  assert(!espdesktop_can_open_modal("camera.front", true));
-  assert(!espdesktop_can_prepare_modal("camera.missing", true));
-  locked = true; assert(!espdesktop_can_prepare_modal("camera.front", true)); locked = false;
-  alarm = true; assert(!espdesktop_can_prepare_modal("camera.front", true)); alarm = false;
-  first.active = true; pipeline_suspended = false;
-  assert(!espdesktop_can_prepare_modal("camera.front", true));
-  assert(!espdesktop_open_modal("camera.front", true));
+  configs["qr"]={"switch.guest", "wifi_qr", "", "valid"};
+  homes={{1, 0, "Guest", "qr", &button}};
+  assert(espdesktop_can_prepare_modal("switch.guest", true));
+  assert(espdesktop_can_open_modal("switch.guest", true));
+  assert(espdesktop_open_modal("switch.guest", true));
+  assert(modal.kind==ControlModalKind::WIFI_QR && commands==0);
+  locked=true;
+  assert(!espdesktop_can_prepare_modal("switch.guest", true));
+  assert(!espdesktop_open_modal("switch.guest", true));
+  locked=false;
+  alarm=true;
+  assert(!espdesktop_can_prepare_modal("switch.guest", true));
+  alarm=false;
+  assert(!espdesktop_open_modal("switch.missing", true));
+  assert(!espdesktop_can_prepare_modal("switch.guest", false));
   return 0;
 }

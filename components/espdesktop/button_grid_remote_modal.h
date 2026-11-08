@@ -7,6 +7,7 @@ namespace espdesktop::cards {
 
 inline ModalTarget card_modal_target(const Context &context, const ParsedCfg &config,
                                       lv_obj_t *button) {
+  if (retired_home_assistant_card(config)) return {};
   using Probe = ModalTarget (*)(const Context &, const ParsedCfg &, lv_obj_t *);
   static const Probe probes[] = {
     light_control_driver_modal_target, cover_modal_driver_modal_target,

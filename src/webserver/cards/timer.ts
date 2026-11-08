@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import type { CardRegistry } from "../application/card_registry";
 import { cardContractDefaultConfig, cardContractCardLabel, cardContractAllowInSubpage } from "../generated/card_contract";
 
@@ -20,78 +21,8 @@ registry.register("timer", {
   hideLabel: true,
   cardMetadata: { preview: { badge: "timer-outline" } },
   defaultConfig: () => cardContractDefaultConfig("timer"),
-  onSelect: function (b) {
-    b.entity = "";
-    b.icon = "Auto";
-    b.icon_on = "Auto";
-    b.sensor = "";
-    b.unit = "3";
-    b.precision = "";
-  },
-  renderSettings: function (panel, b, slot, helpers) {
-    // Entity ID
-    var ef = document.createElement("div");
-    ef.className = "sp-field";
-    ef.appendChild(helpers.fieldLabel("Timer Entity", helpers.idPrefix + "entity"));
-    var entityInp = helpers.entityInput(helpers.idPrefix + "entity", b.entity, "e.g. timer.kitchen", ["timer"]);
-    ef.appendChild(entityInp);
-    panel.appendChild(ef);
-    helpers.markCardPrimaryField(ef, "entity");
-    helpers.bindField(entityInp, "entity", true);
-    helpers.requireField(entityInp, "Add a timer entity before saving.");
-    helpers.requireEntityDomain(entityInp, ["timer"], "Choose a timer entity (timer.*).");
-
-    // Label
-    var lf = document.createElement("div");
-    lf.className = "sp-field";
-    lf.appendChild(helpers.fieldLabel("Label", helpers.idPrefix + "label"));
-    var labelInp = helpers.textInput(helpers.idPrefix + "label", b.label, "e.g. Kitchen");
-    lf.appendChild(labelInp);
-    panel.appendChild(lf);
-    helpers.bindField(labelInp, "label", true);
-
-    // Confirm before cancel
-    var confirmRow = helpers.toggleRow("Confirm before cancel",
-      helpers.idPrefix + "confirm", b.sensor === "confirm");
-
-    // Confirm timeout
-    var tf = document.createElement("div");
-    tf.className = "sp-field";
-    tf.appendChild(helpers.fieldLabel("Confirmation Time Out (Seconds)", helpers.idPrefix + "confirm-timeout"));
-    var timeoutInp = document.createElement("input");
-    timeoutInp.type = "number";
-    timeoutInp.className = "sp-input";
-    timeoutInp.id = helpers.idPrefix + "confirm-timeout";
-    timeoutInp.min = "1";
-    timeoutInp.max = "30";
-    timeoutInp.step = "1";
-    timeoutInp.placeholder = "3";
-    timeoutInp.value = String(timerParseConfirmTimeout(b.unit));
-    tf.appendChild(timeoutInp);
-
-    panel.appendChild(confirmRow.row);
-    panel.appendChild(tf);
-
-    function applyConfirmVisibility() {
-      tf.style.display = (b.sensor === "confirm") ? "" : "none";
-    }
-    applyConfirmVisibility();
-
-    confirmRow.input.addEventListener("change", function () {
-      b.sensor = confirmRow.input.checked ? "confirm" : "";
-      helpers.saveField("sensor", b.sensor);
-      applyConfirmVisibility();
-    });
-
-    function saveTimeout() {
-      var n = timerParseConfirmTimeout(timeoutInp.value);
-      timeoutInp.value = String(n);
-      b.unit = String(n);
-      helpers.saveField("unit", b.unit);
-    }
-    timeoutInp.addEventListener("change", saveTimeout);
-    timeoutInp.addEventListener("blur", saveTimeout);
-  },
+  onSelect: null,
+  renderSettings: renderRetiredCardSettings,
   renderPreview: function (b, helpers) {
     var label = b.label || b.entity || "Timer";
     return {

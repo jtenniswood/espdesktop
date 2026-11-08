@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { setConfigOptionValue } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -86,96 +87,8 @@ export function registerWeatherCardTypes(
         hideLabel: true,
         defaultConfig: function (this: any) { return cardContractDefaultConfig("weather"); },
         cardMetadata: WEATHER_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            b.label = "";
-            b.icon = "Auto";
-            b.icon_on = "Auto";
-            b.sensor = "";
-            b.unit = "";
-            b.options = "";
-            b.precision = normalizeWeatherCardMode(b.precision);
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            helpers.renderCardModeSelector(panel, b, helpers, WEATHER_CARD_METADATA);
-            if (b.precision === "wind") {
-                const sourceGroup = helpers.disclosureSection("Source", helpers.idPrefix + "wind-source-settings", true);
-                helpers.markCardPrimaryField(sourceGroup.panel, "entity");
-                panel.appendChild(sourceGroup.panel);
-                const sourceFields = sourceGroup.section;
-                sourceFields.className += " sp-weather-source-fields";
-                const source = helpers.segmentControl(
-                    [["weather", "Forecast"], ["sensors", "Sensor"]],
-                    weatherWindUsesSensors(b) ? "sensors" : "weather", function (value: string) {
-                        if (value === (weatherWindUsesSensors(b) ? "sensors" : "weather")) return;
-                        b.options = setConfigOptionValue(b.options, "wind_source", value === "sensors" ? "sensors" : "");
-                        b.entity = "";
-                        b.sensor = "";
-                        helpers.saveField("entity", b.entity);
-                        helpers.saveField("sensor", b.sensor);
-                        helpers.saveField("options", b.options);
-                        renderButtonSettings();
-                    });
-                source.segment.id = helpers.idPrefix + "wind-source";
-                sourceFields.appendChild(helpers.fieldWithControl("Wind Source", source.segment.id, source.segment));
-                if (weatherWindUsesSensors(b)) {
-                    helpers.renderCardEntityField(sourceFields, b, helpers, {
-                        entity: {
-                            label: "Wind Direction Sensor", idSuffix: "wind-direction",
-                            placeholder: "e.g. sensor.wind_direction", domains: ["sensor", "input_number"],
-                            bindName: "entity", rerender: false,
-                            requiredMessage: "Add a wind direction sensor before saving.",
-                        },
-                    });
-                    helpers.renderCardEntityField(sourceFields, b, helpers, {
-                        entity: {
-                            label: "Wind Speed Sensor", idSuffix: "wind-speed",
-                            placeholder: "e.g. sensor.wind_speed", domains: ["sensor", "input_number"],
-                            bindName: "sensor", rerender: false,
-                            requiredMessage: "Add a wind speed sensor before saving.",
-                        },
-                    });
-                    return;
-                }
-                helpers.renderCardEntityField(sourceFields, b, helpers, {
-                    entity: { ...WEATHER_CARD_METADATA.entity, domains: ["weather"] },
-                });
-                return;
-            }
-            if (b.precision === "rainfall") {
-                const sourceGroup = helpers.disclosureSection("Source", helpers.idPrefix + "rainfall-source-settings", true);
-                helpers.markCardPrimaryField(sourceGroup.panel, "entity");
-                panel.appendChild(sourceGroup.panel);
-                const group = sourceGroup.section;
-                group.className += " sp-weather-source-fields";
-                const sources = [];
-                if (weatherForecastCardsSupported()) sources.push(["forecast", "Forecast"]);
-                sources.push(["sensor", "Sensor"]);
-                const source = helpers.segmentControl(
-                    sources, rainfallUsesForecast(b) ? "forecast" : "sensor", function (value: string) {
-                        if (value === (rainfallUsesForecast(b) ? "forecast" : "sensor")) return;
-                        b.options = setConfigOptionValue(b.options, "rainfall_source", value === "forecast" ? "forecast" : "");
-                        b.entity = "";
-                        helpers.saveField("entity", b.entity);
-                        helpers.saveField("options", b.options);
-                        renderButtonSettings();
-                    });
-                source.segment.id = helpers.idPrefix + "rainfall-source";
-                group.appendChild(helpers.fieldWithControl("Rainfall Source", source.segment.id, source.segment));
-                const forecast = rainfallUsesForecast(b);
-                helpers.renderCardEntityField(group, b, helpers, {
-                    entity: {
-                        ...WEATHER_CARD_METADATA.entity,
-                        label: forecast ? "Weather Entity" : "Rainfall Sensor",
-                        placeholder: forecast ? "e.g. weather.forecast_home" : "e.g. sensor.rainfall_today",
-                        domains: forecast ? ["weather"] : ["sensor", "input_number"],
-                    },
-                });
-                return;
-            }
-            helpers.renderCardEntityField(panel, b, helpers, {
-                entity: { ...WEATHER_CARD_METADATA.entity, domains: ["weather"] },
-            });
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             if (b.precision === "wind") {
                 return {

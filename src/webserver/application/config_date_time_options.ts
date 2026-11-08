@@ -69,7 +69,7 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
         }
         button.type = "calendar";
         helpers.applyCardMetadataFields(button, helpers, {
-            type: "calendar", entity: "sensor.date", label: "", icon: "Auto", icon_on: "Auto",
+            type: "calendar", entity: "", label: "", icon: "Auto", icon_on: "Auto",
             sensor: "", unit: "", precision: mode === "datetime" ? "datetime" : "", options: button.options,
         });
         if (mode !== "datetime") button.precision = "";
@@ -184,15 +184,8 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
         preview: { dateBadge: "calendar-month", timezoneBadge: "map-clock" },
     };
 
-    function metadataForHomeAssistantSupport(this: any, supported?: any) {
-        if (supported) return metadata;
-        return Object.assign({}, metadata, {
-            mode: Object.assign({}, metadata.mode, {
-                options: metadata.mode.options.filter(function (option?: any) {
-                    return option.value === "clock" || option.value === "timezone";
-                }),
-            }),
-        });
+    function metadataForHomeAssistantSupport(this: any, _supported?: any) {
+        return metadata;
     }
 
     return {

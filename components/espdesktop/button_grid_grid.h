@@ -537,6 +537,19 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   }
 
 
+  if (retired_home_assistant_card(p)) {
+    setup_toggle_visual(s, p);
+    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_display_text(s.icon_lbl, find_icon("Monitor Off"));
+    const std::string label = p.label.empty() ? espdesktop_i18n("Unavailable")
+        : p.label + "\n" + espdesktop_i18n("Unavailable");
+    lv_label_set_display_text(s.text_lbl, label.c_str());
+    set_card_disabled_state(s.btn, true);
+    lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    return;
+  }
+
   if (espdesktop::cards::timer_driver_setup_visual(s, p, context)) return;
   if (espdesktop::cards::image_driver_setup_visual(s, p, context, palette)) {
     espdesktop::cards::image_driver_attach_interaction(s, p, context);
@@ -871,6 +884,7 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
                                 const GridConfig &cfg,
                                 int row_span = 1,
                                 int col_span = 1) {
+  if (retired_home_assistant_card(p)) return;
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto context = card_runtime_context(p);
   if (s.text_lbl) {
@@ -2108,6 +2122,7 @@ inline void grid_phase2(
     int col_span = order.col_span[idx - 1] > 0 ? order.col_span[idx - 1] : 1;
     if (cfg.info_only && info_only_hidden_card_type(context)) continue;
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
+    if (retired_home_assistant_card(p)) continue;
     if (espdesktop::cards::image_driver_bind_main(
           s, p, context, cfg, palette)) continue;
     if (espdesktop::cards::wifi_qr_driver_bind_main(s, p, context)) continue;
@@ -2375,6 +2390,7 @@ inline void grid_phase2(
       // cards remove button padding so their fill can reach the edges, so run
       // the card-specific refresh after clamping to restore the captured inset.
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
+      if (retired_home_assistant_card(sb_cfg)) continue;
 
       if (espdesktop::cards::image_driver_bind_subpage(
             sub_slot, sb_cfg, context, cfg, palette)) continue;

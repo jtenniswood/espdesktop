@@ -181,6 +181,7 @@ export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = [] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
+    "hidden": true,
     "label": "Timer",
     "allowInSubpage": true,
     "domains": [
@@ -571,6 +572,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "vacuum": {
+    "hidden": true,
     "label": "Vacuum",
     "allowInSubpage": true,
     "domains": [
@@ -665,6 +667,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "lawn_mower": {
+    "hidden": true,
     "label": "Lawn Mower",
     "allowInSubpage": true,
     "domains": [
@@ -736,6 +739,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "alarm": {
+    "hidden": true,
     "label": "Alarm",
     "allowInSubpage": true,
     "domains": [
@@ -914,6 +918,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "alarm_action": {
+    "hidden": true,
     "label": "Alarm",
     "allowInSubpage": true,
     "pickerKey": "alarm",
@@ -1145,6 +1150,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "climate": {
+    "hidden": true,
     "label": "Climate",
     "allowInSubpage": true,
     "domains": [
@@ -1397,6 +1403,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "cover": {
+    "hidden": true,
     "label": "Cover",
     "allowInSubpage": true,
     "domains": [
@@ -1509,6 +1516,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "door_window": {
+    "hidden": true,
     "label": "Doors & Windows",
     "allowInSubpage": true,
     "domains": [
@@ -1577,6 +1585,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "presence": {
+    "hidden": true,
     "label": "Presence",
     "allowInSubpage": true,
     "domains": [
@@ -1645,6 +1654,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_direction": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1700,6 +1710,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_oscillate": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1755,6 +1766,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_preset": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1810,6 +1822,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_speed": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "domains": [
@@ -1864,6 +1877,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_control": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1947,6 +1961,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_switch": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -2002,6 +2017,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "garage": {
+    "hidden": true,
     "label": "Garage Door",
     "allowInSubpage": true,
     "domains": [
@@ -2134,6 +2150,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "gate": {
+    "hidden": true,
     "label": "Gate",
     "allowInSubpage": true,
     "domains": [
@@ -2292,6 +2309,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "light_brightness": {
+    "hidden": true,
     "label": "Lights",
     "allowInSubpage": true,
     "domains": [
@@ -2344,6 +2362,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "light_switch": {
+    "hidden": true,
     "label": "Lights",
     "allowInSubpage": true,
     "pickerKey": "light_brightness",
@@ -2397,6 +2416,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "light_temperature": {
+    "hidden": true,
     "label": "Lights",
     "allowInSubpage": true,
     "pickerKey": "light_brightness",
@@ -2535,6 +2555,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "lock": {
+    "hidden": true,
     "label": "Lock",
     "allowInSubpage": true,
     "domains": [
@@ -3033,6 +3054,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "push": {
+    "hidden": true,
     "label": "Trigger",
     "allowInSubpage": true,
     "domains": [],
@@ -3888,6 +3910,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "weather": {
+    "hidden": true,
     "label": "Weather",
     "allowInSubpage": true,
     "domains": [

@@ -16,11 +16,11 @@ const SUBPAGE_KIND_OPTION = "subpage_kind";
 const WIFI_QR_TABS_OPTION = "wifi_tabs";
 
 const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
-  "calendar", "push", "slider",
+  "push", "slider",
 ]);
 
 const LOCAL_CARD_TYPES = new Set([
-  "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
+  "calendar", "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
 ]);
 
 export function cardTypeConnector(key: string): SavedCardConnector {
@@ -62,6 +62,17 @@ export function cardRequiresHomeAssistant(
   if (source === "home_assistant") return true;
   if (source !== "home_assistant_or_local") return false;
   return card?.sensor !== "local";
+}
+
+
+/** Retire only the HA card itself; mixed folders/QR keep their local purpose. */
+export function cardRuntimeRetired(key: string, card?: {
+  readonly entity?: string | null; readonly sensor?: string | null;
+  readonly label?: string | null; readonly options?: string | null;
+} | null): boolean {
+  if (!key && !card?.entity && !card?.sensor && !card?.label) return false;
+  if (key === "local" || key === "subpage" || key === "wifi_qr" || key === "wifi_qr_card") return false;
+  return cardRequiresHomeAssistant(key, card);
 }
 
 

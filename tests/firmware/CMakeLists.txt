@@ -862,3 +862,6 @@ add_test(NAME retired_image_card_test COMMAND
 
 add_test(NAME retired_media_card_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_media_card_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME card_retirement_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/card_retirement_test.py ${CMAKE_CXX_COMPILER})

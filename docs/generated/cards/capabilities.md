@@ -9,37 +9,37 @@ This generated reference lists stable setup facts from the shared card contract.
 
 | Card | Type | Entity domains | Subpages | Picker grouping | Main modes and options | Status |
 |---|---|---|---|---|---|---|
-| Timer | timer | timer | Yes | Own picker item | None | Visible |
+| Timer | timer | timer | Yes | Own picker item | None | Hidden |
 | Switch | switch | light, switch, input_boolean, fan | Yes | Own picker item | Large Active Display Numbers; Confirmation Required: default, off, on, both; On State Pattern: default, stripes; Message; Confirm Button; Cancel Button | Visible |
 | Local Action | action | None | Yes | Own picker item | None | Visible |
-| Vacuum | vacuum | vacuum | Yes | Own picker item | Type: status, start_stop, start_dock, dock, pause_resume, clean_spot, locate, clean_area | Visible |
-| Lawn Mower | lawn_mower | lawn_mower | Yes | Own picker item | Type: status, start_mowing, dock, pause_resume | Visible |
-| Alarm | alarm | alarm_control_panel | Yes | Own picker item | Type: control_panel, away, home, night, vacation, disarm; PIN required for arming; PIN required for disarming; Visible Actions: away, home, night, vacation, disarm; Icon Display: static, status; Label Display: name, status | Visible |
-| Alarm | alarm_action | alarm_control_panel | Yes | Alarm (alarm) | None | Visible |
+| Vacuum | vacuum | vacuum | Yes | Own picker item | Type: status, start_stop, start_dock, dock, pause_resume, clean_spot, locate, clean_area | Hidden |
+| Lawn Mower | lawn_mower | lawn_mower | Yes | Own picker item | Type: status, start_mowing, dock, pause_resume | Hidden |
+| Alarm | alarm | alarm_control_panel | Yes | Own picker item | Type: control_panel, away, home, night, vacation, disarm; PIN required for arming; PIN required for disarming; Visible Actions: away, home, night, vacation, disarm; Icon Display: static, status; Label Display: name, status | Hidden |
+| Alarm | alarm_action | alarm_control_panel | Yes | Alarm (alarm) | None | Hidden |
 | Date & Time | calendar | sensor | Yes | Own picker item | Type: clock, datetime, default, timezone; Large Clock | Visible |
 | Date & Time | clock | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock; Center Clock | Visible |
-| Climate | climate | climate | Yes | Own picker item | Label Display: label, status, actual, target; Icon & Temperatures: icon, actual, target; Temperature Step: 1, 0.5; Large Temperature Numbers | Visible |
+| Climate | climate | climate | Yes | Own picker item | Label Display: label, status, actual, target; Icon & Temperatures: icon, actual, target; Temperature Step: 1, 0.5; Large Temperature Numbers | Hidden |
 | All Controls | climate_control | climate | Yes | Climate (climate) | Label Display: label, status, actual, target; Icon & Temperatures: icon, actual, target; Temperature Step: 1, 0.5; Large Temperature Numbers; Visible Tabs | Hidden |
-| Cover | cover | cover | Yes | Own picker item | Type: modal, default, tilt, toggle, open, close, stop, set_position; Position: 0-100; Visible Tabs: position, controls, tilt, presets | Visible |
-| Doors & Windows | door_window | binary_sensor, sensor | Yes | Own picker item | Lit When Open | Visible |
-| Presence | presence | binary_sensor, sensor, text_sensor | Yes | Own picker item | Lit When Detected | Visible |
-| Fans | fan_direction | fan | Yes | Fans (fan_speed) | None | Visible |
-| Fans | fan_oscillate | fan | Yes | Fans (fan_speed) | None | Visible |
-| Fans | fan_preset | fan | Yes | Fans (fan_speed) | None | Visible |
-| Fans | fan_speed | fan | Yes | Own picker item | None | Visible |
-| Fans | fan_control | fan | Yes | Fans (fan_speed) | Light Entity; Visible Tabs: power, speed, preset, oscillation, direction, light | Visible |
-| Fans | fan_switch | fan | Yes | Fans (fan_speed) | None | Visible |
-| Garage Door | garage | cover | Yes | Own picker item | Interaction: default, open, close; Display: label, status; Confirmation Required: default, off, on, both; Message; Confirm Button; Cancel Button | Visible |
-| Gate | gate | cover | Yes | Own picker item | Interaction: default, open, close, stop; Display: label, status | Visible |
+| Cover | cover | cover | Yes | Own picker item | Type: modal, default, tilt, toggle, open, close, stop, set_position; Position: 0-100; Visible Tabs: position, controls, tilt, presets | Hidden |
+| Doors & Windows | door_window | binary_sensor, sensor | Yes | Own picker item | Lit When Open | Hidden |
+| Presence | presence | binary_sensor, sensor, text_sensor | Yes | Own picker item | Lit When Detected | Hidden |
+| Fans | fan_direction | fan | Yes | Fans (fan_speed) | None | Hidden |
+| Fans | fan_oscillate | fan | Yes | Fans (fan_speed) | None | Hidden |
+| Fans | fan_preset | fan | Yes | Fans (fan_speed) | None | Hidden |
+| Fans | fan_speed | fan | Yes | Own picker item | None | Hidden |
+| Fans | fan_control | fan | Yes | Fans (fan_speed) | Light Entity; Visible Tabs: power, speed, preset, oscillation, direction, light | Hidden |
+| Fans | fan_switch | fan | Yes | Fans (fan_speed) | None | Hidden |
+| Garage Door | garage | cover | Yes | Own picker item | Interaction: default, open, close; Display: label, status; Confirmation Required: default, off, on, both; Message; Confirm Button; Cancel Button | Hidden |
+| Gate | gate | cover | Yes | Own picker item | Interaction: default, open, close, stop; Display: label, status | Hidden |
 | Internal Switches | internal | None | Yes | Own picker item | Mode: switch, push | Visible |
-| Lights | light_brightness | light | Yes | Own picker item | None | Visible |
-| Lights | light_switch | light | Yes | Lights (light_brightness) | None | Visible |
-| Lights | light_temperature | light | Yes | Lights (light_brightness) | None | Visible |
+| Lights | light_brightness | light | Yes | Own picker item | None | Hidden |
+| Lights | light_switch | light | Yes | Lights (light_brightness) | None | Hidden |
+| Lights | light_temperature | light | Yes | Lights (light_brightness) | None | Hidden |
 | Lights | light_control | light | Yes | Lights (light_brightness) | Visible Tabs: power, brightness, temperature, color | Hidden |
-| Lock | lock | lock | Yes | Own picker item | Type: default, lock, unlock | Visible |
+| Lock | lock | lock | Yes | Own picker item | Type: default, lock, unlock | Hidden |
 | Media | media | media_player | Yes | Own picker item | None | Hidden |
 | Option Select | option_select | select, input_select | Yes | Own picker item | None | Hidden |
-| Trigger | push | None | Yes | Own picker item | None | Visible |
+| Trigger | push | None | Yes | Own picker item | None | Hidden |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label; Large icon with title | Visible |
 | Screen Lock | screen_lock | None | Yes | Own picker item | Screensaver on lock | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
@@ -48,7 +48,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | No | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
 | Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
-| Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Visible |
+| Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Hidden |
 | Camera Card | image | camera, image | Yes | Own picker item | None | Hidden |
 | Wifi Sharing | wifi_qr | switch | Yes | Own picker item | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
 | QR Card | wifi_qr_card | switch | Yes | Wifi Sharing (wifi_qr) | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
