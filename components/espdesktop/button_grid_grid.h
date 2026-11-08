@@ -1239,7 +1239,6 @@ inline void grid_phase2(
   navigation_clear_home_targets();
   // Image-card contexts may still point at widgets inside subpage screens.
   navigation_clear_subpages(main_page_obj);
-  clear_subpage_vacuum_card_text_refs();
 
   bool has_on;
   uint32_t on_val = parse_hex_color(on_hex, has_on);
