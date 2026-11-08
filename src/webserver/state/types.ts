@@ -12,7 +12,7 @@ export interface DeviceConfigFeatures {
   subpageConfigChunks?: number;
   voiceServices?: boolean;
   battery?: boolean;
-  alarmDelayAudio?: boolean;
+
   companion?: boolean;
   cameraScreensaver?: boolean;
 }
@@ -130,12 +130,7 @@ export interface AppState {
   networkStatusOn: boolean;
   batteryStatusOn: boolean;
   voiceServicesOn: boolean;
-  alarmDelayAudioOn: boolean;
-  alarmDelayTtsOn: boolean;
-  alarmDelayEntryAnnouncement: string;
-  alarmDelayExitAnnouncement: string;
-  alarmDelayBeepVolume: number;
-  alarmDelayFinalCountdown: number;
+
   networkTransport: string;
   wifiStrengthPercent: number;
   subpageChevronsOn: boolean;

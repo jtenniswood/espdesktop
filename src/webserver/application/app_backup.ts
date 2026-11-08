@@ -91,7 +91,7 @@ export interface AppBackupControllers {
     readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
     readonly clockBarPostApi: ClockBarPostApiFeature;
-    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncAlarmDelayAudioUi" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
+    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
     readonly preview: Pick<PreviewRenderFeature, "render">;
     readonly buttonSettings: Pick<ButtonSettingsFeature, "render">;
 }
@@ -105,7 +105,7 @@ export interface AppBackupFeature {
 }
 
 export function createAppBackupFeature(controllers: AppBackupControllers): AppBackupFeature {
-    const { syncAlarmDelayAudioUi, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
+    const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
     const { render: renderPreview } = controllers.preview;
     const { render: renderButtonSettings } = controllers.buttonSettings;
     const { subpageEntityKeys, specialPageEntityKeys } = controllers.configPersistence;
@@ -147,12 +147,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postClockBarNightMode,
         postNetworkStatusIcon,
         postVoiceServices,
-        postAlarmDelayAudio,
-        postAlarmDelayTts,
-        postAlarmDelayEntryAnnouncement,
-        postAlarmDelayExitAnnouncement,
-        postAlarmDelayBeepVolume,
-        postAlarmDelayFinalCountdown,
 
         postSubpageChevron,
         postAutoOpenAppSubpages,
@@ -503,14 +497,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postNetworkStatusIcon(importedSettings.networkStatusIcon);
                     if (controllers.layout.config.features && controllers.layout.config.features.voiceServices)
                         postVoiceServices(importedSettings.voiceServices);
-                    if (controllers.layout.config.features && controllers.layout.config.features.alarmDelayAudio) {
-                        postAlarmDelayAudio(importedSettings.alarmDelayAudio);
-                        postAlarmDelayTts(importedSettings.alarmDelayTts);
-                        postAlarmDelayEntryAnnouncement(importedSettings.alarmDelayEntryAnnouncement);
-                        postAlarmDelayExitAnnouncement(importedSettings.alarmDelayExitAnnouncement);
-                        postAlarmDelayBeepVolume(importedSettings.alarmDelayBeepVolume);
-                        postAlarmDelayFinalCountdown(importedSettings.alarmDelayFinalCountdown);
-                    }
 
                     postSubpageChevron(importedSettings.subpageChevron);
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
@@ -581,12 +567,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.clockBarNightModeOn = importedSettings.clockBarNightMode;
                     state.networkStatusOn = importedSettings.networkStatusIcon;
                     state.voiceServicesOn = importedSettings.voiceServices;
-                    state.alarmDelayAudioOn = importedSettings.alarmDelayAudio;
-                    state.alarmDelayTtsOn = importedSettings.alarmDelayTts;
-                    state.alarmDelayEntryAnnouncement = importedSettings.alarmDelayEntryAnnouncement;
-                    state.alarmDelayExitAnnouncement = importedSettings.alarmDelayExitAnnouncement;
-                    state.alarmDelayBeepVolume = importedSettings.alarmDelayBeepVolume;
-                    state.alarmDelayFinalCountdown = importedSettings.alarmDelayFinalCountdown;
 
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
@@ -639,7 +619,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screenRotation = importedScreenRotation;
 
                     syncClockBarUi();
-                    syncAlarmDelayAudioUi();
 
                     syncInput(els.setPresence, state.presenceEntity);
                     syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);

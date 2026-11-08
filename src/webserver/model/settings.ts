@@ -83,30 +83,6 @@ export function normalizeCoverArtDelay(value: unknown): number {
   return Math.round(n);
 }
 
-export const DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT = "Please disarm the alarm";
-export const DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT = "Alarm arming, please leave the house";
-
-export function normalizeAlarmDelayAnnouncement(value: unknown, fallback: string): string {
-  const text = String(value == null ? "" : value).trim();
-  return (text || fallback).slice(0, 120);
-}
-
-export function normalizeAlarmDelayBeepVolume(value: unknown): number {
-  const n = parseFloat(String(value));
-  if (!Number.isFinite(n)) return 0.45;
-  if (n < 0.05) return 0.05;
-  if (n > 1) return 1;
-  return Math.round(n * 100) / 100;
-}
-
-export function normalizeAlarmDelayFinalCountdown(value: unknown): number {
-  const n = parseFloat(String(value));
-  if (!Number.isFinite(n)) return 10;
-  if (n < 0) return 0;
-  if (n > 60) return 60;
-  return Math.round(n);
-}
-
 export function normalizeScheduleWakeBrightness(value: unknown): number {
   const n = parseFloat(String(value));
   if (!Number.isFinite(n) || n <= 0) return 10;
@@ -358,12 +334,7 @@ export interface BackupPanelSettingsState {
   clockBarNightMode: boolean;
   networkStatusIcon: boolean;
   voiceServices: boolean;
-  alarmDelayAudio: boolean;
-  alarmDelayTts: boolean;
-  alarmDelayEntryAnnouncement: string;
-  alarmDelayExitAnnouncement: string;
-  alarmDelayBeepVolume: number;
-  alarmDelayFinalCountdown: number;
+
   subpageChevron: boolean;
   autoOpenAppSubpages: boolean;
   returnHomeOnAppSwitch: boolean;
@@ -489,18 +460,7 @@ export function normalizeBackupPanelSettings(
     clockBarNightMode: objectValue(settings, "clock_bar_night_mode") != null ? !!settings.clock_bar_night_mode : false,
     networkStatusIcon: objectValue(settings, "network_status_icon") != null ? !!settings.network_status_icon : true,
     voiceServices: objectValue(settings, "voice_services") != null ? !!settings.voice_services : false,
-    alarmDelayAudio: objectValue(settings, "alarm_delay_audio") != null ? !!settings.alarm_delay_audio : false,
-    alarmDelayTts: objectValue(settings, "alarm_delay_tts") != null ? !!settings.alarm_delay_tts : true,
-    alarmDelayEntryAnnouncement: normalizeAlarmDelayAnnouncement(
-      settings.alarm_delay_entry_announcement,
-      DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT,
-    ),
-    alarmDelayExitAnnouncement: normalizeAlarmDelayAnnouncement(
-      settings.alarm_delay_exit_announcement,
-      DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT,
-    ),
-    alarmDelayBeepVolume: normalizeAlarmDelayBeepVolume(settings.alarm_delay_beep_volume),
-    alarmDelayFinalCountdown: normalizeAlarmDelayFinalCountdown(settings.alarm_delay_final_countdown),
+
     subpageTitleBar: objectValue(settings, "subpage_title_bar") != null ? !!settings.subpage_title_bar : true,
     autoOpenAppSubpages: objectValue(settings, "auto_open_app_subpages") != null
       ? !!settings.auto_open_app_subpages

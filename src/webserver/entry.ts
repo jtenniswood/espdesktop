@@ -80,7 +80,7 @@ import { createClockBarController } from "./features/clock_bar_controller";
 import { createVoiceServicesController } from "./features/voice_services_controller";
 import { createScreenScheduleController } from "./features/screen_schedule_controller";
 import { createSettingsUiFeature } from "./features/settings";
-import { createAlarmDelayAudioController } from "./features/alarm_delay_audio_controller";
+
 import { createScreensaverController } from "./features/screensaver_controller";
 import { createCoverArtScreensaverController } from "./features/cover_art_screensaver_controller";
 import { createMediaPlaybackController } from "./features/media_playback_controller";
@@ -585,11 +585,7 @@ function composeApplicationContext(): ApplicationContext {
     textSpan: (text, className) => textSpan(text, className),
     createDisclosureChevron: shell.createDisclosureChevron,
   });
-  const alarmDelayAudio = createAlarmDelayAudioController({
-    announcement: (value, fallback) => Model.normalizeAlarmDelayAnnouncement(value, fallback),
-    beepVolume: (value) => Model.normalizeAlarmDelayBeepVolume(value),
-    finalCountdown: (value) => Model.normalizeAlarmDelayFinalCountdown(value),
-  });
+
   const screensaver = createScreensaverController({
     action: (value) => {
       const action = Model.normalizeScreensaverAction(value);
@@ -605,7 +601,7 @@ function composeApplicationContext(): ApplicationContext {
   const mediaPlayback = createMediaPlaybackController();
   settingsHelpers = createSettingsPageHelpersFeature({
     settingsUiFeature: settingsUi,
-    alarmDelayAudio,
+
     screensaver,
     coverArtScreensaver,
     mediaPlayback,
@@ -1012,7 +1008,7 @@ function composeApplicationContext(): ApplicationContext {
     appEvents,
     statusPreview,
     grid,
-    alarmDelayAudio,
+
     cardEditorDraft,
     cardEditorSave,
     cardEditorValidation,

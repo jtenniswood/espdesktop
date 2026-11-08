@@ -33,10 +33,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
     clockBarNightModeOn: false,
     networkStatusOn: true, batteryStatusOn: false, voiceServicesOn: false,
-    alarmDelayAudioOn: false, alarmDelayTtsOn: true,
-    alarmDelayEntryAnnouncement: "Please disarm the alarm",
-    alarmDelayExitAnnouncement: "Alarm arming, please leave the house",
-    alarmDelayBeepVolume: 0.45, alarmDelayFinalCountdown: 10,
+
     networkTransport: "wifi", wifiStrengthPercent: 100,
     subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",
     screensaverCameraEntity: "", screensaverCameraImageMode: "Fit", screensaverCameraDimming: 0, screensaverCameraDimmingSupported: false, screensaverCameraSupported: false,

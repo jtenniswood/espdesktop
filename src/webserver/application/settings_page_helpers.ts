@@ -1,14 +1,13 @@
 import { state } from "../state/app_instance";
 import {
-    DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT,
-    DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT,
+
     normalizeBrightnessMode,
     normalizeHour,
     normalizeTimeOfDay,
 } from "../model/settings";
 import { setSelectValue } from "./ui_primitives";
 import { timedSettingLabel, type SettingsUiFeature } from "../features/settings";
-import type { AlarmDelayAudioController } from "../features/alarm_delay_audio_controller";
+
 import type { ScreensaverController } from "../features/screensaver_controller";
 import type { CoverArtScreensaverController } from "../features/cover_art_screensaver_controller";
 import type { MediaPlaybackController } from "../features/media_playback_controller";
@@ -27,7 +26,7 @@ import type { ArtworkPostApiFeature } from "./artwork_post_api";
 
 export interface SettingsPageHelpersControllers {
     readonly settingsUiFeature: SettingsUiFeature;
-    readonly alarmDelayAudio: AlarmDelayAudioController;
+
     readonly screensaver: ScreensaverController;
     readonly coverArtScreensaver: CoverArtScreensaverController;
     readonly mediaPlayback: MediaPlaybackController;
@@ -40,7 +39,7 @@ export interface SettingsPageHelpersControllers {
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "switchTab">;
     readonly requestApi: Pick<ApplicationApiFeature, "postScreensaverAction" | "postScreensaverDimmedBrightness" | "postScreensaverDimmedBrightnessDay" | "postScreensaverDimmedBrightnessNight" | "postSwitch">;
     readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
-    readonly clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBrightnessDay" | "postClockBrightnessNight" | "postClockScreensaver" | "postClockDate" | "postAlarmDelayAudio" | "postAlarmDelayTts" | "postAlarmDelayEntryAnnouncement" | "postAlarmDelayExitAnnouncement" | "postAlarmDelayBeepVolume" | "postAlarmDelayFinalCountdown">;
+    readonly clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBrightnessDay" | "postClockBrightnessNight" | "postClockScreensaver" | "postClockDate">;
     readonly fields: Pick<ControlsFieldsFeature, "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "toggleRow">;
 }
 
@@ -52,8 +51,7 @@ export interface SettingsPageHelpersFeature {
     settingsStatusHeader(...args: any[]): any;
     appendSettingsSection(...args: any[]): any;
     openVoiceServicesSettings(...args: any[]): any;
-    syncAlarmDelayAudioUi(...args: any[]): any;
-    buildAlarmDelayAudioSettingsCard(...args: any[]): any;
+
     coverArtTrackOverlayDurationSupported(...args: any[]): any;
     infoPanel(...args: any[]): any;
     statusBadge(...args: any[]): any;
@@ -87,12 +85,7 @@ export function createSettingsPageHelpersFeature(
         postClockBrightnessNight,
         postClockScreensaver,
         postClockDate,
-        postAlarmDelayAudio,
-        postAlarmDelayTts,
-        postAlarmDelayEntryAnnouncement,
-        postAlarmDelayExitAnnouncement,
-        postAlarmDelayBeepVolume,
-        postAlarmDelayFinalCountdown,
+
     } = controllers.clockBarPostApi;
     const {
         postScreensaverAction,
@@ -107,28 +100,11 @@ export function createSettingsPageHelpersFeature(
     // ── Settings Page Helpers ──────────────────────────────────────────
     // ── Settings UI helpers ─────────────────────────────────────────────
     const _settingsUiFeature: SettingsUiFeature = controllers.settingsUiFeature;
-    const _alarmDelayAudioController: AlarmDelayAudioController = controllers.alarmDelayAudio;
+
     const _screensaverController: ScreensaverController = controllers.screensaver;
     const _coverArtScreensaverController: CoverArtScreensaverController = controllers.coverArtScreensaver;
     const _mediaPlaybackController: MediaPlaybackController = controllers.mediaPlayback;
-    function alarmDelayAudioState(this: any) {
-        return {
-            audioEnabled: !!state.alarmDelayAudioOn,
-            ttsEnabled: !!state.alarmDelayTtsOn,
-            entryAnnouncement: state.alarmDelayEntryAnnouncement,
-            exitAnnouncement: state.alarmDelayExitAnnouncement,
-            beepVolume: state.alarmDelayBeepVolume,
-            finalCountdown: state.alarmDelayFinalCountdown,
-        };
-    }
-    function applyAlarmDelayAudioState(this: any, next?: any) {
-        state.alarmDelayAudioOn = next.audioEnabled;
-        state.alarmDelayTtsOn = next.ttsEnabled;
-        state.alarmDelayEntryAnnouncement = next.entryAnnouncement;
-        state.alarmDelayExitAnnouncement = next.exitAnnouncement;
-        state.alarmDelayBeepVolume = next.beepVolume;
-        state.alarmDelayFinalCountdown = next.finalCountdown;
-    }
+
     function screensaverState(this: any) {
         return {
             action: state.screensaverAction,
@@ -194,143 +170,7 @@ export function createSettingsPageHelpersFeature(
             window.setTimeout(function (this: any) { els.setVoiceServicesToggle.focus(); }, 150);
         }
     }
-    function syncAlarmDelayAudioUi(this: any) {
-        var audioState: any = alarmDelayAudioState();
-        var uiState: any = _alarmDelayAudioController.uiState(audioState);
-        if (els.setAlarmDelayAudioToggle)
-            els.setAlarmDelayAudioToggle.checked = !!state.alarmDelayAudioOn;
-        if (els.setAlarmDelayAudioBadge)
-            els.setAlarmDelayAudioBadge.className = "sp-card-badge" + (state.alarmDelayAudioOn ? "" : " sp-hidden");
-        if (els.setAlarmDelayTtsToggle)
-            els.setAlarmDelayTtsToggle.checked = !!state.alarmDelayTtsOn;
-        if (els.alarmDelayAudioOptions)
-            els.alarmDelayAudioOptions.style.display = uiState.audioOptionsVisible ? "" : "none";
-        if (els.alarmDelayTtsOptions)
-            els.alarmDelayTtsOptions.style.display = uiState.ttsOptionsVisible ? "" : "none";
-        syncInput(els.setAlarmDelayEntryAnnouncement, state.alarmDelayEntryAnnouncement);
-        syncInput(els.setAlarmDelayExitAnnouncement, state.alarmDelayExitAnnouncement);
-        if (els.setAlarmDelayBeepVolume)
-            els.setAlarmDelayBeepVolume.value = String(uiState.beepVolumePercent);
-        if (els.setAlarmDelayBeepVolumeVal)
-            els.setAlarmDelayBeepVolumeVal.textContent = uiState.beepVolumePercent + "%";
-        if (els.setAlarmDelayFinalCountdown)
-            els.setAlarmDelayFinalCountdown.value = String(uiState.finalCountdown);
-    }
-    function buildAlarmDelayAudioSettingsCard(this: any) {
-        if (!(controllers.layout.config.features && controllers.layout.config.features.alarmDelayAudio))
-            return null;
-        var body: any = document.createElement("div");
-        var master: any = toggleRow("Alarm Delay Audio", "sp-set-alarm-delay-audio", state.alarmDelayAudioOn);
-        body.appendChild(master.row);
-        els.setAlarmDelayAudioToggle = master.input;
-        master.input.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setAudioEnabled(alarmDelayAudioState(), this.checked));
-            postAlarmDelayAudio(state.alarmDelayAudioOn);
-            syncAlarmDelayAudioUi();
-        });
 
-        var options: any = condField();
-        els.alarmDelayAudioOptions = options;
-        var tts: any = toggleRow("TTS Announcements", "sp-set-alarm-delay-tts", state.alarmDelayTtsOn);
-        options.appendChild(tts.row);
-        els.setAlarmDelayTtsToggle = tts.input;
-        tts.input.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setTtsEnabled(alarmDelayAudioState(), this.checked));
-            postAlarmDelayTts(state.alarmDelayTtsOn);
-            syncAlarmDelayAudioUi();
-        });
-
-        var ttsOptions: any = condField();
-        els.alarmDelayTtsOptions = ttsOptions;
-        function announcementInput(
-            label: any,
-            id: any,
-            value: any,
-            fallback: any,
-            stateKey: "alarmDelayEntryAnnouncement" | "alarmDelayExitAnnouncement",
-            controllerField: "entryAnnouncement" | "exitAnnouncement",
-            postValue: any,
-        ) {
-            var field: any = document.createElement("div");
-            field.className = "sp-field";
-            field.appendChild(fieldLabel(label, id));
-            var input: any = document.createElement("input");
-            input.type = "text";
-            input.className = "sp-input";
-            input.id = id;
-            input.maxLength = 120;
-            input.value = value;
-            input.addEventListener("change", function (this: any) {
-                var normalized: any = _alarmDelayAudioController.setAnnouncement(
-                    alarmDelayAudioState(), controllerField, this.value, fallback,
-                )[controllerField];
-                this.value = normalized;
-                state[stateKey] = normalized;
-                postValue(normalized);
-            });
-            field.appendChild(input);
-            ttsOptions.appendChild(field);
-            return input;
-        }
-        els.setAlarmDelayEntryAnnouncement = announcementInput(
-            "Entry Announcement", "sp-set-alarm-delay-entry-announcement",
-            state.alarmDelayEntryAnnouncement, DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT,
-            "alarmDelayEntryAnnouncement",
-            "entryAnnouncement",
-            postAlarmDelayEntryAnnouncement);
-        els.setAlarmDelayExitAnnouncement = announcementInput(
-            "Exit Announcement", "sp-set-alarm-delay-exit-announcement",
-            state.alarmDelayExitAnnouncement, DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT,
-            "alarmDelayExitAnnouncement",
-            "exitAnnouncement",
-            postAlarmDelayExitAnnouncement);
-        options.appendChild(ttsOptions);
-
-        var volume: any = createRangeSlider("Beep Volume", state.alarmDelayBeepVolume * 100, null);
-        volume.range.id = "sp-set-alarm-delay-beep-volume";
-        volume.range.min = "5";
-        volume.range.max = "100";
-        volume.range.step = "5";
-        volume.range.addEventListener("input", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setBeepVolume(alarmDelayAudioState(), parseFloat(this.value) / 100));
-            volume.val.textContent = Math.round(state.alarmDelayBeepVolume * 100) + "%";
-        });
-        volume.range.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setBeepVolume(alarmDelayAudioState(), parseFloat(this.value) / 100));
-            postAlarmDelayBeepVolume(state.alarmDelayBeepVolume);
-        });
-        options.appendChild(volume.wrap);
-        els.setAlarmDelayBeepVolume = volume.range;
-        els.setAlarmDelayBeepVolumeVal = volume.val;
-
-        var countdownField: any = document.createElement("div");
-        countdownField.className = "sp-field";
-        countdownField.appendChild(fieldLabel("Faster Beeps During Final Seconds", "sp-set-alarm-delay-final-countdown"));
-        var countdown: any = document.createElement("input");
-        countdown.type = "number";
-        countdown.className = "sp-input";
-        countdown.id = "sp-set-alarm-delay-final-countdown";
-        countdown.min = "0";
-        countdown.max = "60";
-        countdown.step = "1";
-        countdown.value = String(state.alarmDelayFinalCountdown);
-        countdown.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setFinalCountdown(alarmDelayAudioState(), this.value));
-            this.value = String(state.alarmDelayFinalCountdown);
-            postAlarmDelayFinalCountdown(state.alarmDelayFinalCountdown);
-        });
-        countdownField.appendChild(countdown);
-        options.appendChild(countdownField);
-        els.setAlarmDelayFinalCountdown = countdown;
-        body.appendChild(options);
-        body.appendChild(infoPanel(
-            "sp-alarm-delay-audio-info",
-            "Entry and exit beeps use the panel speaker. TTS is sent as a Home Assistant announcement event only while Voice Services are enabled."));
-        var badge: any = statusBadge("Alarm audio on");
-        els.setAlarmDelayAudioBadge = badge;
-        syncAlarmDelayAudioUi();
-        return makeCollapsibleCard("Alarm Audio", body, true, badge);
-    }
     function coverArtTrackOverlayDurationSupported(this: any) {
         return !!controllers.layout.config.coverArtSquareOverlay;
     }
@@ -665,8 +505,8 @@ export function createSettingsPageHelpersFeature(
     return {
         coverArtScreensaverState, applyCoverArtScreensaverState,
         mediaPlaybackState, applyMediaPlaybackState, settingsStatusHeader,
-        appendSettingsSection, openVoiceServicesSettings, syncAlarmDelayAudioUi,
-        buildAlarmDelayAudioSettingsCard, coverArtTrackOverlayDurationSupported,
+        appendSettingsSection, openVoiceServicesSettings,
+         coverArtTrackOverlayDurationSupported,
         infoPanel, statusBadge, disclosureBadge, inlineDisclosure,
         syncClockScreensaverControls, syncMediaPlayerSleepPreventionUi,
         syncCoverArtScreensaverUi, syncOptionalClockBrightness,

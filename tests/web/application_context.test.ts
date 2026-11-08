@@ -58,7 +58,6 @@ export function runApplicationContextTests(): void {
   const firmwareUpdate = {} as any;
   const c6Firmware = {} as any;
   const reconnect = { connect() {} } as any;
-  const alarmDelayAudio = {} as any;
   const cardEditorDraft = {} as any;
   const cardEditorSave = {} as any;
   const cardEditorValidation = {} as any;
@@ -145,7 +144,6 @@ export function runApplicationContextTests(): void {
     clockBarPostApi,
     publicFirmwareInstall,
     c6Firmware,
-    alarmDelayAudio,
     cardEditorDraft,
     cardEditorSave,
     cardEditorValidation,
@@ -254,7 +252,6 @@ export function runApplicationContextTests(): void {
   equal(context.controllers.screenScheduleState, screenScheduleState, "context retains screen schedule state ownership");
   equal(context.controllers.screenRotation, screenRotation, "context retains screen rotation ownership");
   equal(context.controllers.screensaverTimeout, screensaverTimeout, "context retains screensaver timeout ownership");
-  equal(context.controllers.alarmDelayAudio, alarmDelayAudio, "context retains alarm settings ownership");
   equal(context.controllers.cardEditorSave, cardEditorSave, "context retains editor save ownership");
   equal(context.controllers.cardEditorValidation, cardEditorValidation, "context retains editor validation ownership");
   equal(context.controllers.previewPlacement, previewPlacement, "context retains preview placement ownership");

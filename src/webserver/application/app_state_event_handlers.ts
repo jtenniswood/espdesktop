@@ -4,11 +4,7 @@ import { state } from "../state/app_instance";
 import { FALLBACK_TIMEZONE_OPTION, NTP_SERVER_DEFAULTS } from "../state/app_state";
 import { applyClockBarStateValue } from "../state/event_state";
 import {
-    DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT,
-    DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT,
-    normalizeAlarmDelayAnnouncement,
-    normalizeAlarmDelayBeepVolume,
-    normalizeAlarmDelayFinalCountdown,
+
     normalizeBrightnessMode,
     normalizeClockBrightness,
     normalizeCoverArtDelay,
@@ -77,10 +73,10 @@ export function createAppStateEventHandlersFeature(
     clockBar: ClockBarFeature,
     statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "normalizeNetworkTransport" | "normalizeWifiStrengthPercent" | "syncInput" | "updateClock" | "updateClockBarItemUi" | "updateNetworkPreview" | "updateSunInfo">,
     grid: Pick<GridFeature, "applyButtonOrderValue">,
-    settingsHelpers: Pick<SettingsPageHelpersFeature, "syncAlarmDelayAudioUi" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">,
+    settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">,
     preview: Pick<PreviewRenderFeature, "render">,
 ): AppStateEventHandlersFeature {
-    const { syncAlarmDelayAudioUi, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = settingsHelpers;
+    const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = settingsHelpers;
     const { render: renderPreview } = preview;
     const { syncPreviewOrientation } = core;
     const els = runtime.els;
@@ -164,30 +160,6 @@ export function createAppStateEventHandlersFeature(
             "switch-voice_services": function (this: any, val?: any, d?: any) {
                 state.voiceServicesOn = d.value === true || val === "ON";
                 syncClockBarUi();
-            },
-            "switch-alarm_delay__audio": function (this: any, val?: any, d?: any) {
-                state.alarmDelayAudioOn = d.value === true || val === "ON";
-                syncAlarmDelayAudioUi();
-            },
-            "switch-alarm_delay__tts": function (this: any, val?: any, d?: any) {
-                state.alarmDelayTtsOn = d.value === true || val === "ON";
-                syncAlarmDelayAudioUi();
-            },
-            "text-alarm_delay__entry_announcement": function (this: any, val?: any) {
-                state.alarmDelayEntryAnnouncement = normalizeAlarmDelayAnnouncement(val, DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT);
-                syncAlarmDelayAudioUi();
-            },
-            "text-alarm_delay__exit_announcement": function (this: any, val?: any) {
-                state.alarmDelayExitAnnouncement = normalizeAlarmDelayAnnouncement(val, DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT);
-                syncAlarmDelayAudioUi();
-            },
-            "number-alarm_delay__beep_volume": function (this: any, val?: any) {
-                state.alarmDelayBeepVolume = normalizeAlarmDelayBeepVolume(val);
-                syncAlarmDelayAudioUi();
-            },
-            "number-alarm_delay__final_countdown": function (this: any, val?: any) {
-                state.alarmDelayFinalCountdown = normalizeAlarmDelayFinalCountdown(val);
-                syncAlarmDelayAudioUi();
             },
 
             "switch-screen__subpage_title_bar": function (this: any, val?: any, d?: any) {

@@ -49,9 +49,6 @@ export function runStateContractTests(): void {
   equal(first.screenRotation, "180", "startup uses the device rotation default");
   equal(first.screenRotationInitialReady, false, "rotation-capable devices wait for the initial event");
   equal(first.timezoneOptions.length, 2, "startup copies embedded timezone options");
-  equal(first.alarmDelayAudioOn, false, "alarm delay audio defaults off");
-  equal(first.alarmDelayTtsOn, true, "alarm delay TTS defaults on");
-  equal(first.alarmDelayFinalCountdown, 10, "alarm delay final countdown defaults to ten seconds");
   equal(first.autoOpenAppSubpages, true, "app subpages open on focus by default");
   equal(first.returnHomeOnAppSwitch, true, "app switching returns home by default");
   equal(first.coverArtSource, "Mac Companion", "cover art uses the paired Mac source");
@@ -135,12 +132,6 @@ export function runStateContractTests(): void {
     networkStatus: "switch-screen__network_status_icon",
     batteryStatus: "switch-screen__battery_status",
     voiceServices: "switch-voice_services",
-    alarmDelayAudio: "switch-alarm_delay__audio",
-    alarmDelayTts: "switch-alarm_delay__tts",
-    alarmDelayEntryAnnouncement: "text-alarm_delay__entry_announcement",
-    alarmDelayExitAnnouncement: "text-alarm_delay__exit_announcement",
-    alarmDelayBeepVolume: "number-alarm_delay__beep_volume",
-    alarmDelayFinalCountdown: "number-alarm_delay__final_countdown",
     subpageChevron: "switch-screen__subpage_chevron",
     autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
     returnHomeOnAppSwitch: "switch-companion__return_home_on_app_switch",
