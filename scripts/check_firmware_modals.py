@@ -321,108 +321,6 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
     return errors
 
 
-def firmware_subpage_modal_wiring_errors(root: Path) -> list[str]:
-    grid_path = root / "components" / "espdesktop" / "button_grid_grid.h"
-    light_driver_path = (
-        root / "components" / "espdesktop" / "button_grid_light_control_driver.h"
-    )
-    fan_driver_path = (
-        root / "components" / "espdesktop" / "button_grid_fan_control_driver.h"
-    )
-    media_driver_path = (
-        root / "components" / "espdesktop" / "button_grid_media_driver.h"
-    )
-    subpages_path = root / "components" / "espdesktop" / "button_grid_subpages.h"
-    errors: list[str] = []
-
-    if not grid_path.exists():
-        errors.append("components/espdesktop/button_grid_grid.h: wire subpage modal cards")
-        return errors
-
-    text = grid_path.read_text(encoding="utf-8")
-    if (
-        "media_driver_bind_main(" not in text
-        or not media_driver_path.exists()
-    ):
-        errors.append("components/espdesktop/button_grid_grid.h: keep media control cards wired on the home grid")
-    else:
-        body = media_driver_path.read_text(encoding="utf-8")
-        if (
-            "set_card_disabled_state(slot.btn, true)" not in body
-        ):
-            errors.append("components/espdesktop/button_grid_grid.h: keep media control cards wired on the home grid")
-        if "media_driver_handle_main_click" not in body:
-            errors.append("components/espdesktop/button_grid_grid.h: open home media control cards through the shared button dispatcher")
-
-    media_refresh_block = re.search(
-        r'if\s*\(\s*mode\s*==\s*"control_modal"\s*\)\s*\{(?P<body>.*?)\n  \}\n  if\s*\(\s*mode\s*==\s*"volume"\s*\)',
-        text,
-        re.S,
-    )
-    if media_refresh_block is None:
-        errors.append("components/espdesktop/button_grid_grid.h: keep media control cards refreshed on grid layout updates")
-    else:
-        body = media_refresh_block.group("body")
-        if (
-            "grid_media_control_runtime_for_owner(s.btn)" not in body
-            or "lv_obj_set_user_data(s.btn, ctx)" not in body
-            or "media_control_refresh_parent_card(ctx)" not in body
-            or "lv_obj_set_user_data(s.btn, nullptr)" in body
-        ):
-            errors.append("components/espdesktop/button_grid_grid.h: preserve media control context during grid layout refresh")
-
-    if (
-        "light_control_driver_bind_subpage(" not in text
-        or not light_driver_path.exists()
-    ):
-        errors.append("components/espdesktop/button_grid_grid.h: keep light control cards available in subpages")
-        return errors
-
-    body = light_driver_path.read_text(encoding="utf-8")
-    if (
-        "create_light_control_context" not in body
-        or "subscribe_light_control_state(" not in body
-        or "light_control_open_modal(" not in body
-        or ("LV_EVENT_CLICKED" not in body and "bind_immediate_button_action(" not in body)
-    ):
-        errors.append("components/espdesktop/button_grid_grid.h: open light control modals from subpage cards")
-
-    if (
-        "fan_control_driver_bind_subpage(" not in text
-        or not fan_driver_path.exists()
-    ):
-        errors.append("components/espdesktop/button_grid_grid.h: keep fan control modal cards available in subpages")
-    else:
-        body = fan_driver_path.read_text(encoding="utf-8")
-        if (
-            "create_fan_card_context" not in body
-            or "subscribe_fan_card_state(" not in body
-            or "fan_control_open_modal(" not in body
-            or ("LV_EVENT_CLICKED" not in body and "bind_immediate_button_action(" not in body)
-        ):
-            errors.append("components/espdesktop/button_grid_grid.h: open fan control modals from subpage cards")
-
-    if not subpages_path.exists():
-        errors.append("components/espdesktop/button_grid_subpages.h: preserve light control tab options in subpages")
-        return errors
-
-    subpages_text = subpages_path.read_text(encoding="utf-8")
-    if (
-        'b.type == "light_control"' not in subpages_text
-        or "light_control_card_options_normalized(b.options)" not in subpages_text
-        or 'b.type == "fan_control"' not in subpages_text
-        or "fan_control_card_options_normalized(b.options)" not in subpages_text
-    ):
-        errors.append("components/espdesktop/button_grid_subpages.h: preserve light and fan control tab options in subpages")
-    unsupported_block = re.search(
-        r'if\s*\(\s*!b\.type\.empty\(\)(?P<body>.*?)\)\s*\{\s*\n\s*b\.options\.clear\(\);',
-        subpages_text,
-        re.S,
-    )
-    if unsupported_block is None or 'b.type != "light_control"' not in unsupported_block.group("body"):
-        errors.append("components/espdesktop/button_grid_subpages.h: keep light control options out of the unsupported-card cleanup")
-
-    return errors
 
 
 def firmware_light_control_brightness_errors(root: Path) -> list[str]:
@@ -1130,7 +1028,6 @@ def firmware_alarm_modal_context_lifecycle_errors(root: Path) -> list[str]:
 def run_scan() -> int:
     errors = firmware_modal_errors(FIRMWARE_DIR, ROOT)
     errors.extend(firmware_modal_sleep_takeover_errors(ROOT))
-    errors.extend(firmware_subpage_modal_wiring_errors(ROOT))
     errors.extend(firmware_climate_step_errors(ROOT))
     errors.extend(firmware_climate_option_selection_errors(ROOT))
     errors.extend(firmware_fan_modal_context_lifecycle_errors(ROOT))
@@ -1197,84 +1094,6 @@ def expect_sleep_takeover_errors(name: str, files: dict[str, str], expected: tup
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_subpage_modal_wiring_errors(
-    name: str,
-    grid_text: str,
-    expected: tuple[str, ...],
-    light_driver_text: str | None = None,
-    fan_driver_text: str | None = None,
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "components" / "espdesktop" / "button_grid_grid.h"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            grid_text +
-            "light_control_driver_bind_subpage(sub_slot, sb_cfg, context, environment);\n" +
-            "fan_control_driver_bind_subpage(sub_slot, sb_cfg, context, environment);\n" +
-            "media_driver_bind_main(s, p, context, environment);\n" +
-            '  if (mode == "control_modal") {\n'
-            "    MediaControlCtx *ctx = grid_media_control_runtime_for_owner(s.btn);\n"
-            "    setup_media_control_button(\n"
-            "      s.btn, s.icon_lbl, s.sensor_container, s.sensor_lbl, s.unit_lbl, s.text_lbl, p);\n"
-            "    if (s.btn) lv_obj_set_user_data(s.btn, ctx);\n"
-            "    if (ctx) media_control_refresh_parent_card(ctx);\n"
-            "    return;\n"
-            "  }\n"
-            "  if (mode == \"volume\") return;\n",
-            encoding="utf-8",
-        )
-        (path.parent / "button_grid_media_driver.h").write_text(
-            "set_card_disabled_state(slot.btn, true);\n"
-            "inline bool media_driver_handle_main_click() { return true; }\n",
-            encoding="utf-8",
-        )
-        light_driver = (
-            light_driver_text
-            if light_driver_text is not None
-            else (
-                "LightControlCtx *ctx = create_light_control_context();\n"
-                "subscribe_light_control_state(ctx);\n"
-                "lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {\n"
-                "  if (ctx) light_control_open_modal(ctx);\n"
-                "}, LV_EVENT_CLICKED, ctx);\n"
-            )
-        )
-        (path.parent / "button_grid_light_control_driver.h").write_text(
-            light_driver, encoding="utf-8"
-        )
-        fan_driver = (
-            fan_driver_text
-            if fan_driver_text is not None
-            else (
-                "FanCardCtx *ctx = create_fan_card_context();\n"
-                "subscribe_fan_card_state(ctx);\n"
-                "lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {\n"
-                "  if (ctx) fan_control_open_modal(ctx);\n"
-                "}, LV_EVENT_CLICKED, ctx);\n"
-            )
-        )
-        (path.parent / "button_grid_fan_control_driver.h").write_text(
-            fan_driver, encoding="utf-8"
-        )
-        (path.parent / "button_grid_subpages.h").write_text(
-            'if (b.type == "light_control") {\n'
-            "  b.options = light_control_card_options_normalized(b.options);\n"
-            "}\n"
-            'if (b.type == "fan_control") {\n'
-            "  b.options = fan_control_card_options_normalized(b.options);\n"
-            "}\n"
-            'if (!b.type.empty() && b.type != "light_control" && !fan_card_type(b.type)) {\n'
-            "  b.options.clear();\n"
-            "}\n",
-            encoding="utf-8",
-        )
-
-        errors = firmware_subpage_modal_wiring_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
 def expect_climate_step_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
@@ -2053,45 +1872,6 @@ def run_self_test() -> int:
         "manual alarm modal preservation",
         unconditional_alarm_preservation,
         ("preserve alarm controls only during an active alarm takeover",),
-    )
-    expect_subpage_modal_wiring_errors(
-        "media refresh preserves modal context",
-        (
-            '  if (mode == "control_modal") {\n'
-            "    if (s.btn) lv_obj_set_user_data(s.btn, nullptr);\n"
-            "    setup_media_control_button(\n"
-            "      s.btn, s.icon_lbl, s.sensor_container, s.sensor_lbl, s.unit_lbl, s.text_lbl, p);\n"
-            "    MediaControlCtx *ctx = (MediaControlCtx *)lv_obj_get_user_data(s.btn);\n"
-            "    if (ctx) media_control_refresh_parent_card(ctx);\n"
-            "    return;\n"
-            "  }\n"
-            "  if (mode == \"volume\") return;\n"
-        ),
-        ("preserve media control context during grid layout refresh",),
-    )
-    expect_subpage_modal_wiring_errors(
-        "subpage light modal missing click handler",
-        "",
-        ("open light control modals from subpage cards",),
-        (
-            "LightControlCtx *ctx = create_light_control_context();\n"
-            "subscribe_light_control_state(ctx);\n"
-        ),
-    )
-    expect_subpage_modal_wiring_errors(
-        "subpage light modal click handler",
-        "",
-        (),
-    )
-    expect_subpage_modal_wiring_errors(
-        "subpage fan modal missing click handler",
-        "",
-        ("open fan control modals from subpage cards",),
-        None,
-        (
-            "FanCardCtx *ctx = create_fan_card_context();\n"
-            "subscribe_fan_card_state(ctx);\n"
-        ),
     )
     expect_climate_step_errors(
         "climate modal allows 0.1C steps",

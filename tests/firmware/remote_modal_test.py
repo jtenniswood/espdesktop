@@ -62,13 +62,8 @@ for file, name in [
     helpers += function(file, name + '_can_open_modal')
 helpers += function('button_grid_fan.h', 'fan_control_supported')
 helpers += 'namespace espdesktop::cards {\n'
-for driver in ['light_control', 'cover_modal', 'climate_control', 'fan_control',
-               'alarm', 'image', 'media', 'wifi_qr', 'weather']:
-    helpers += function('button_grid_' + driver + '_driver.h', driver + '_driver_matches')
-helpers += function('button_grid_weather_driver.h', 'weather_driver_shows_forecast')
-for driver in ['light_control', 'cover_modal', 'climate_control', 'fan_control',
-               'numeric_selectable', 'media', 'image', 'alarm', 'wifi_qr', 'weather']:
-    helpers += function('button_grid_' + driver + '_driver.h', driver + '_driver_modal_target')
+helpers += function('button_grid_wifi_qr_driver.h', 'wifi_qr_driver_matches')
+helpers += function('button_grid_wifi_qr_driver.h', 'wifi_qr_driver_modal_target')
 helpers += '}\n'
 helpers += function('button_grid_navigation.h', 'navigation_close_modals_for_display_takeover')
 helpers += function('button_grid_grid.h', 'grid_release_runtime_allocations')

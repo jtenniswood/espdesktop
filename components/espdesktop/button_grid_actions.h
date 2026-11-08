@@ -608,36 +608,14 @@ struct LightControlCtx;
 inline void light_control_open_modal(LightControlCtx *ctx);
 
 namespace espdesktop::cards {
-inline bool weather_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool timer_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool basic_action_driver_handle_main_click(
     const Context &context, const ParsedCfg &config,
     int slot_number, lv_obj_t *button);
 inline bool numeric_selectable_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool cleaning_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool access_cover_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool cover_modal_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool navigation_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool image_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool wifi_qr_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool light_control_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool fan_control_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool climate_control_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool alarm_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool media_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
 }
 
@@ -653,33 +631,13 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",
            slot_num, p.type.c_str(), p.entity.c_str(), p.sensor.c_str(), p.label.c_str());
   if (card_runtime_passive(context)) return;
-  if (espdesktop::cards::weather_driver_handle_main_click(context, p, btn_obj)) return;
-  if (espdesktop::cards::timer_driver_handle_main_click(context, p, btn_obj)) return;
   if (espdesktop::cards::basic_action_driver_handle_main_click(
         context, p, slot_num, btn_obj)) return;
   if (espdesktop::cards::numeric_selectable_driver_handle_main_click(
         context, p, btn_obj)) return;
-  if (espdesktop::cards::cleaning_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::access_cover_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::cover_modal_driver_handle_main_click(
-        context, p, btn_obj)) return;
   if (espdesktop::cards::navigation_driver_handle_main_click(
         context, p, btn_obj)) return;
-  if (espdesktop::cards::image_driver_handle_main_click(
-        context, p, btn_obj)) return;
   if (espdesktop::cards::wifi_qr_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::light_control_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::fan_control_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::climate_control_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::alarm_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::media_driver_handle_main_click(
         context, p, btn_obj)) return;
   ESP_LOGE("card_runtime", "Card has no main-grid action driver: type=%s",
            p.type.c_str());

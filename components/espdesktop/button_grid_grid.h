@@ -294,7 +294,6 @@ inline TransientStatusLabel *grid_track_transient_status_label_runtime(
 inline TransientStatusLabel *grid_delete_transient_status_label_with_owner(
     lv_obj_t *owner, TransientStatusLabel *ctx);
 
-#include "button_grid_status_entity_driver.h"
 
 inline lv_coord_t large_sensor_unit_offset_px(const lv_font_t *large_font, int percent) {
   if (!large_font || large_font->line_height <= 0) return 0;
@@ -342,24 +341,13 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
 }
 
 inline void grid_prepare_timer_visual_reset(lv_obj_t *owner);
-#include "button_grid_timer_driver.h"
 #include "button_grid_date_time_driver.h"
 #include "button_grid_sensor_driver.h"
-#include "button_grid_weather_driver.h"
 #include "button_grid_basic_action_driver.h"
 #include "button_grid_numeric_selectable_driver.h"
-#include "button_grid_cleaning_driver.h"
-#include "button_grid_access_cover_driver.h"
-#include "button_grid_cover_modal_driver.h"
 #include "button_grid_navigation_driver.h"
-#include "button_grid_image_driver.h"
 #include "button_grid_wifi_qr.h"
 #include "button_grid_wifi_qr_driver.h"
-#include "button_grid_light_control_driver.h"
-#include "button_grid_fan_control_driver.h"
-#include "button_grid_climate_control_driver.h"
-#include "button_grid_alarm_driver.h"
-#include "button_grid_media_driver.h"
 
 inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
                                         int row_span = 1) {
@@ -487,23 +475,12 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   const CardPalette palette = card_palette_for_config(default_palette, p, display);
   const auto family = context.family;
   grid_prepare_timer_visual_reset(s.btn);
-  espdesktop::cards::status_entity_driver_cleanup(s, p, context);
   espdesktop::cards::date_time_driver_cleanup(s, p, context);
   espdesktop::cards::sensor_driver_cleanup(s, p, context);
-  espdesktop::cards::weather_driver_cleanup(s, p, context);
   espdesktop::cards::basic_action_driver_cleanup(s, p, context);
   espdesktop::cards::numeric_selectable_driver_cleanup(s, p, context);
-  espdesktop::cards::cleaning_driver_cleanup(s, p, context);
-  espdesktop::cards::access_cover_driver_cleanup(s, p, context);
-  espdesktop::cards::cover_modal_driver_cleanup(s, p, context);
   espdesktop::cards::navigation_driver_cleanup(s, p, context);
-  espdesktop::cards::image_driver_cleanup(s, p, context);
   espdesktop::cards::wifi_qr_driver_cleanup(s, p, context);
-  espdesktop::cards::light_control_driver_cleanup(s, p, context);
-  espdesktop::cards::fan_control_driver_cleanup(s, p, context);
-  espdesktop::cards::climate_control_driver_cleanup(s, p, context);
-  espdesktop::cards::alarm_driver_cleanup(s, p, context);
-  espdesktop::cards::media_driver_cleanup(s, p, context);
   reset_card_slot_dynamic_children(s);
 #ifdef USE_COMPANION
   companion_reset_card_app_icon_palette(s);
@@ -550,48 +527,8 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     return;
   }
 
-  if (espdesktop::cards::timer_driver_setup_visual(s, p, context)) return;
-  if (espdesktop::cards::image_driver_setup_visual(s, p, context, palette)) {
-    espdesktop::cards::image_driver_attach_interaction(s, p, context);
-    espdesktop::cards::image_driver_refresh_layout(s, p, context);
-    return;
-  }
   if (espdesktop::cards::wifi_qr_driver_setup_visual(
         s, p, context, row_span, col_span)) return;
-  if (espdesktop::cards::light_control_driver_setup_visual(s, p, context)) {
-    espdesktop::cards::light_control_driver_attach_interaction(s, p, context);
-    espdesktop::cards::light_control_driver_refresh_layout(s, p, context);
-    return;
-  }
-  if (espdesktop::cards::fan_control_driver_setup_visual(s, p, context)) {
-    espdesktop::cards::fan_control_driver_attach_interaction(s, p, context);
-    espdesktop::cards::fan_control_driver_refresh_layout(s, p, context);
-    return;
-  }
-  if (espdesktop::cards::climate_control_driver_setup_visual(
-        s, p, context, display)) {
-    espdesktop::cards::climate_control_driver_attach_interaction(s, p, context);
-    espdesktop::cards::climate_control_driver_refresh_layout(
-      s, p, context, display, row_span, col_span);
-    return;
-  }
-  if (espdesktop::cards::alarm_driver_setup_visual(s, p, context)) {
-    espdesktop::cards::alarm_driver_attach_interaction(s, p, context);
-    espdesktop::cards::alarm_driver_refresh_layout(s, p, context);
-    return;
-  }
-  if (espdesktop::cards::cover_modal_driver_setup_visual(s, p, context)) {
-    espdesktop::cards::cover_modal_driver_attach_interaction(s, p, context);
-    espdesktop::cards::cover_modal_driver_refresh_layout(s, p, context);
-    return;
-  }
-  if (espdesktop::cards::media_driver_setup_visual(
-        s, p, context, palette, display, row_span, col_span)) {
-    espdesktop::cards::media_driver_attach_interaction(s, p, context);
-    espdesktop::cards::media_driver_refresh_layout(
-      s, p, context, cfg, row_span, col_span);
-    return;
-  }
   if (espdesktop::cards::sensor_driver_setup_visual(
         s, p, context, palette)) {
     espdesktop::cards::sensor_driver_attach_interaction(s, p, context);
@@ -599,24 +536,10 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       s, p, context, display, row_span, col_span);
     return;
   }
-  if (espdesktop::cards::status_entity_driver_setup_visual(
-        s, p, context, palette)) {
-    espdesktop::cards::status_entity_driver_attach_interaction(s, p, context);
-    espdesktop::cards::status_entity_driver_refresh_layout(
-      s, p, context, row_span, col_span);
-    return;
-  }
   if (espdesktop::cards::date_time_driver_setup_visual(
         s, p, context, palette)) {
     espdesktop::cards::date_time_driver_attach_interaction(s, p, context);
     espdesktop::cards::date_time_driver_refresh_layout(
-      s, p, context, display, row_span, col_span);
-    return;
-  }
-  if (espdesktop::cards::weather_driver_setup_visual(
-        s, p, context, palette, display)) {
-    espdesktop::cards::weather_driver_attach_interaction(s, p, context);
-    espdesktop::cards::weather_driver_refresh_layout(
       s, p, context, display, row_span, col_span);
     return;
   }
@@ -640,19 +563,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       s, p, context);
     return;
   }
-  if (espdesktop::cards::cleaning_driver_setup_visual(s, p, context)) {
-    espdesktop::cards::cleaning_driver_attach_interaction(s, p, context);
-    espdesktop::cards::cleaning_driver_refresh_layout(s, p, context);
-    return;
-  }
-  if (espdesktop::cards::access_cover_driver_setup_visual(
-        s, p, context, palette)) {
-    espdesktop::cards::access_cover_driver_attach_interaction(
-      s, p, context);
-    espdesktop::cards::access_cover_driver_refresh_layout(
-      s, p, context);
-    return;
-  }
   if (espdesktop::cards::navigation_driver_setup_visual(
         s, p, context, cfg, display)) {
     espdesktop::cards::navigation_driver_attach_interaction(s, p, context);
@@ -669,12 +579,9 @@ inline bool bind_basic_sensor_card(
     BtnSlot &s, const ParsedCfg &p,
     const espdesktop::cards::Context &context, const CardPalette &palette,
     int col_span = 1) {
-  if (espdesktop::cards::status_entity_driver_bind_data(
-        s, p, context, palette)) return true;
   if (espdesktop::cards::date_time_driver_bind_data(s, p, context)) return true;
   if (espdesktop::cards::sensor_driver_bind_data(
         s, p, context, palette, col_span)) return true;
-  if (espdesktop::cards::weather_driver_bind_data(s, p, context)) return true;
   return false;
 }
 
@@ -912,39 +819,14 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     if (source) companion_layout_card_app_icon(*source, s.app_icon_img);
   }
 #endif
-  if (espdesktop::cards::weather_driver_matches(context) &&
-      (p.precision == "wind" || p.precision == "rainfall" || espdesktop::cards::weather_driver_shows_forecast(p))) {
-    espdesktop::cards::weather_driver_refresh_layout(s, p, context, display, row_span, col_span);
-    return;
-  }
   if (espdesktop::cards::navigation_driver_refresh_layout(
         s, p, context, cfg)) return;
 
   if (espdesktop::cards::numeric_selectable_driver_refresh_layout(
         s, p, context)) return;
 
-  if (espdesktop::cards::climate_control_driver_refresh_layout(
-        s, p, context, display, row_span, col_span)) return;
 
-  if (espdesktop::cards::image_driver_refresh_layout(
-        s, p, context)) {
-    return;
-  } else if (espdesktop::cards::wifi_qr_driver_refresh_layout(
-               s, p, context, row_span, col_span)) {
-    return;
-  } else if (espdesktop::cards::light_control_driver_refresh_layout(
-               s, p, context)) {
-    return;
-  } else if (espdesktop::cards::media_driver_refresh_layout(
-               s, p, context, cfg, row_span, col_span)) {
-    return;
-  } else if (espdesktop::cards::cover_modal_driver_refresh_layout(
-               s, p, context)) {
-    return;
-  } else {
-    espdesktop::cards::access_cover_driver_refresh_layout(
-      s, p, card_runtime_context(p));
-  }
+  espdesktop::cards::wifi_qr_driver_refresh_layout(s, p, context, row_span, col_span);
 }
 
 inline void grid_refresh_layout(
@@ -1003,10 +885,7 @@ inline void grid_refresh_layout(
     int row_span = order.row_span[idx - 1] > 0 ? order.row_span[idx - 1] : 1;
     int col_span = order.col_span[idx - 1] > 0 ? order.col_span[idx - 1] : 1;
     refresh_card_layout(s, p, cfg, row_span, col_span);
-    espdesktop::cards::cleaning_driver_refresh_translated_text(
-      s, p, card_runtime_context(p));
   }
-  espdesktop::cards::cleaning_driver_refresh_subpage_translated_text();
   ESP_LOGI("sensors", "Grid refresh: layout done (%lu ms)", esphome::millis());
 }
 
@@ -1050,7 +929,6 @@ inline void grid_phase1(
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   // Clear image references before visual setup removes their old LVGL widgets.
-  espdesktop::cards::image_driver_reset_pool(cfg);
   int NS = bounded_grid_slots(cfg.num_slots);
   bool neutral_buttons[MAX_GRID_SLOTS]{};
   bool sensor_surfaces[MAX_GRID_SLOTS]{};
@@ -1131,8 +1009,7 @@ inline void grid_phase1(
     ParsedCfg p = parse_cfg(scfg);
     const auto context = card_runtime_context(p);
     const bool custom_background = card_palette_for_config(palette, p, display).custom_background;
-    neutral_buttons[idx - 1] = context.family != espdesktop::cards::Family::IMAGE &&
-        espdesktop::cards::media_driver_theme_owned_surface(context, p);
+    neutral_buttons[idx - 1] = context.family != espdesktop::cards::Family::IMAGE;
     sensor_surfaces[idx - 1] = !custom_background && grid_card_uses_sensor_surface(context, p);
     secondary_surfaces[idx - 1] = grid_card_uses_secondary_surface(context, p);
     image_cards[idx - 1] = context.family == espdesktop::cards::Family::IMAGE;
@@ -1970,24 +1847,6 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
 #endif
     ParsedCfg config = parse_cfg(slots[i].config->state);
     const auto context = card_runtime_context(config);
-    if (espdesktop::cards::media_driver_matches(context) &&
-        slots[i].sensor_container != nullptr) {
-      const std::string mode = media_card_mode(config.sensor);
-      if (mode == "now_playing" || mode == "cover_art") {
-        MediaNowPlayingCtx *now_playing = static_cast<MediaNowPlayingCtx *>(
-          lv_obj_get_user_data(slots[i].sensor_container));
-        media_context = now_playing;
-        if (!visual_context) visual_context = now_playing;
-        if (now_playing != nullptr && now_playing->progress_slider != nullptr) {
-          slider_context = lv_obj_get_user_data(now_playing->progress_slider);
-        }
-      } else if (mode != "playlist" && !media_playback_button_mode(mode) &&
-                 mode != "control_modal" && mode != "volume") {
-        lv_obj_t *slider = static_cast<lv_obj_t *>(
-          lv_obj_get_user_data(slots[i].sensor_container));
-        if (slider != nullptr) slider_context = lv_obj_get_user_data(slider);
-      }
-    }
     grid_release_runtime_allocations(
       slots[i].btn, visual_context, media_context, slider_context);
   }
@@ -2036,6 +1895,7 @@ inline void grid_phase2(
   set_wifi_qr_icon_font(display_icon_font(display));
   network_status_card_icon_font() = display_icon_font(display);
   set_wifi_qr_heading_font(display_media_title_font(display));
+  reset_image_card_pool(cfg);
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   grid_navigation_service().layout_slots = NS;
@@ -2075,7 +1935,6 @@ inline void grid_phase2(
   grid_clear_navigation_targets(slots, NS);
   navigation_clear_home_targets();
   // Image-card contexts may still point at widgets inside subpage screens.
-  espdesktop::cards::image_driver_reset_pool(cfg);
   navigation_clear_subpages(main_page_obj);
   clear_subpage_vacuum_card_text_refs();
 
@@ -2121,38 +1980,7 @@ inline void grid_phase2(
     if (cfg.info_only && info_only_hidden_card_type(context)) continue;
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
     if (retired_home_assistant_card(p)) continue;
-    if (espdesktop::cards::image_driver_bind_main(
-          s, p, context, cfg, palette)) continue;
     if (espdesktop::cards::wifi_qr_driver_bind_main(s, p, context)) continue;
-    auto light_control_environment =
-      espdesktop::cards::light_control_driver_environment(
-        card_palette, display, s);
-    if (espdesktop::cards::light_control_driver_bind_main(
-          s, p, context, light_control_environment)) continue;
-    auto fan_control_environment =
-      espdesktop::cards::fan_control_driver_environment(
-        card_palette, display, s);
-    if (espdesktop::cards::fan_control_driver_bind_main(
-          s, p, context, fan_control_environment)) continue;
-    auto climate_control_environment =
-      espdesktop::cards::climate_control_driver_environment(
-        card_palette, display, s);
-    if (espdesktop::cards::climate_control_driver_bind_main(
-          s, p, context, climate_control_environment)) continue;
-    auto alarm_environment = espdesktop::cards::alarm_driver_environment(
-      card_palette, display, s, cfg, main_page_obj, NS, COLS);
-    if (espdesktop::cards::alarm_driver_bind_main(
-          s, p, context, alarm_environment)) continue;
-    auto cover_modal_environment =
-      espdesktop::cards::cover_modal_driver_environment(
-      card_palette, display, s);
-    if (espdesktop::cards::cover_modal_driver_bind_main(
-          s, p, context, cover_modal_environment)) continue;
-    auto media_environment = espdesktop::cards::media_driver_environment(
-      card_palette, display, s, cfg);
-    if (espdesktop::cards::media_driver_bind_main(
-          s, p, context, media_environment)) continue;
-    if (espdesktop::cards::timer_driver_bind_data(s, p, context)) continue;
     if (bind_basic_sensor_card(s, p, context, card_palette, col_span)) continue;
     espdesktop::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
@@ -2165,10 +1993,6 @@ inline void grid_phase2(
           toggle_state)) continue;
     if (espdesktop::cards::numeric_selectable_driver_bind_main(
           s, p, context, card_palette, display)) continue;
-    if (espdesktop::cards::cleaning_driver_bind_main(
-          s, p, context)) continue;
-    if (espdesktop::cards::access_cover_driver_bind_main(
-          s, p, context)) continue;
     espdesktop::cards::NavigationDriverParentState navigation_state;
     navigation_state.has_sensor = &has_sensor[idx - 1];
     navigation_state.sensor_text_mode = &sensor_text_mode[idx - 1];
@@ -2376,8 +2200,7 @@ inline void grid_phase2(
         cfg.subpage_chevron_font);
       navigation_register_subpage_card(
           navigation_slot, bn, sub_slot, sb,
-          context.family != espdesktop::cards::Family::IMAGE &&
-              espdesktop::cards::media_driver_theme_owned_surface(context, sb_cfg),
+          context.family != espdesktop::cards::Family::IMAGE,
           !card_palette.custom_background && grid_card_uses_sensor_surface(context, sb_cfg),
           grid_card_uses_secondary_surface(context, sb_cfg),
           context.family == espdesktop::cards::Family::IMAGE);
@@ -2390,53 +2213,8 @@ inline void grid_phase2(
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
       if (retired_home_assistant_card(sb_cfg)) continue;
 
-      if (espdesktop::cards::image_driver_bind_subpage(
-            sub_slot, sb_cfg, context, cfg, palette)) continue;
       if (espdesktop::cards::wifi_qr_driver_bind_subpage(
             sub_slot, sb_cfg, context)) continue;
-      auto light_control_environment =
-        espdesktop::cards::light_control_driver_environment(
-          card_palette, display, sub_slot);
-      light_control_environment.add_parent_indicator =
-        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
-      if (espdesktop::cards::light_control_driver_bind_subpage(
-            sub_slot, sb_cfg, context, light_control_environment)) continue;
-      auto fan_control_environment =
-        espdesktop::cards::fan_control_driver_environment(
-          card_palette, display, sub_slot);
-      fan_control_environment.add_parent_indicator =
-        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
-      if (espdesktop::cards::fan_control_driver_bind_subpage(
-            sub_slot, sb_cfg, context, fan_control_environment)) continue;
-      auto climate_control_environment =
-        espdesktop::cards::climate_control_driver_environment(
-          card_palette, display, sub_slot);
-      if (espdesktop::cards::climate_control_driver_bind_subpage(
-            sub_slot, sb_cfg, context, climate_control_environment)) continue;
-      auto alarm_environment = espdesktop::cards::alarm_driver_environment(
-        card_palette, display, sub_slot, cfg, sub_scr, NS, COLS);
-      alarm_environment.parent_config = &p;
-      alarm_environment.add_parent_indicator =
-        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
-      if (espdesktop::cards::alarm_driver_bind_subpage(
-            sub_slot, sb_cfg, context, alarm_environment)) continue;
-      auto cover_modal_environment =
-        espdesktop::cards::cover_modal_driver_environment(
-          card_palette, display, sub_slot);
-      cover_modal_environment.add_parent_indicator =
-        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
-      if (espdesktop::cards::cover_modal_driver_bind_subpage(
-            sub_slot, sb_cfg, context, cover_modal_environment)) continue;
-      auto media_environment = espdesktop::cards::media_driver_environment(
-        card_palette, display, sub_slot, cfg);
-      media_environment.add_parent_indicator =
-        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
-      if (espdesktop::cards::media_driver_bind_subpage(
-            sub_slot, sb_cfg, context, media_environment)) continue;
-      if (espdesktop::cards::timer_driver_bind_data(
-            sub_slot, sb_cfg, context, [&](const std::string &entity_id) {
-              add_parent_indicator(entity_id, timer_card_state_active_ref);
-            })) continue;
       if (bind_basic_sensor_card(sub_slot, sb_cfg, context, card_palette, cs)) continue;
       espdesktop::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
@@ -2479,26 +2257,6 @@ inline void grid_phase2(
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espdesktop::cards::numeric_selectable_driver_bind_subpage(
             sub_slot, sb_cfg, context, numeric_environment)) continue;
-      espdesktop::cards::CleaningDriverSubpageEnvironment
-        cleaning_environment;
-      cleaning_environment.add_parent_indicator =
-        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
-      cleaning_environment.add_mower_parent_indicator =
-        [&](const std::string &entity_id) {
-          add_parent_indicator(entity_id, lawn_mower_state_active_ref);
-        };
-      if (espdesktop::cards::cleaning_driver_bind_subpage(
-            sub_slot, sb_cfg, context, cleaning_environment)) continue;
-      espdesktop::cards::AccessCoverDriverSubpageEnvironment
-        access_cover_environment;
-      access_cover_environment.add_parent_indicator =
-        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
-      access_cover_environment.add_toggle_click =
-        [&](lv_obj_t *button, const std::string &entity_id, bool checked) {
-          add_subpage_toggle_click(button, entity_id, checked);
-        };
-      if (espdesktop::cards::access_cover_driver_bind_subpage(
-            sub_slot, sb_cfg, context, access_cover_environment)) continue;
       ESP_LOGE("card_runtime", "Card has no subpage data driver: type=%s",
                sb_cfg.type.c_str());
     }

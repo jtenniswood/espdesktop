@@ -414,13 +414,6 @@ def firmware_local_sensor_binding_order_errors(firmware_dir: Path, root: Path) -
     if "sensor_driver_bind_data(" not in grid_text:
         errors.append(f"{grid_rel}: bind sensor cards through the shared sensor driver")
 
-    for match in re.finditer(r"if\s*\(\s*bind_basic_sensor_card\s*\(", grid_text):
-        bind_start = match.start()
-        image_start = grid_text.rfind("image_driver_bind_main", 0, bind_start)
-        line_no = grid_text.count("\n", 0, bind_start) + 1
-        if image_start < 0:
-            errors.append(f"{grid_rel}:{line_no}: bind image cards before basic sensor cards")
-
     return errors
 
 

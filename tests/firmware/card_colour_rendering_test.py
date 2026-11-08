@@ -225,9 +225,7 @@ groups = (
     ("button_grid_subpages.h", "", ("get_subpage_order", "subpage_back_token_span", "get_subpage_back_label", "get_subpage_back_color", "get_subpage_title")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
-    ("button_grid_weather_driver.h", "espdesktop::cards", ("weather_driver_apply_background",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
-    ("button_grid_status_entity_driver.h", "espdesktop::cards", ("status_entity_driver_matches", "status_entity_driver_state_active", "status_entity_driver_active_color_enabled", "status_entity_driver_bind_data")),
     ("button_grid_alarm.h", "", ("alarm_theme_off_color", "alarm_set_card_state_colors")),
     ("button_grid_media.h", "", ("media_cover_art_apply_theme", "media_control_refresh_speaker_row")),
     ("button_grid_fan.h", "", ("fan_control_style_binary_button",)),
@@ -715,44 +713,11 @@ int main() {
           }
           apply_sensor_active_color(&button, true, esphome::StringRef("unavailable"), palette.on_val, palette.sensor_val, true, false, true);
           assert(button.background[0] == colour.base);
-          espdesktop::cards::weather_driver_apply_background(slot, palette);
           assert(button.background[0] == colour.base);
         }
       }
     }
-    for (const std::string type : {"door_window", "presence"}) {
-      const std::string options = "active_color,card_off_color=" + std::string(colour.hex);
-      const ParsedCfg configs[] = {
-        parse_cfg(";Status;Auto;Auto;binary_sensor.status;;" + type + ";;" + options),
-        parsed_cfg_from_subpage_btn(parse_subpage_config("B,1|:Status:Auto:Auto:binary_sensor.status::" + type + "::" + options).at(0)),
-        parsed_cfg_from_subpage_btn(parse_subpage_config("~B,1|" + type + ",,Status,,,binary_sensor.status,,,active_color%2Ccard_off_color=" + colour.hex).at(0)),
-      };
-      for (size_t index = 0; index < 3; ++index) {
-        const auto &config = configs[index];
-        const auto context = card_runtime_context(config, index == 0
-          ? espdesktop::cards::Surface::MAIN_GRID : espdesktop::cards::Surface::SUBPAGE);
-        const auto palette = card_palette_for_config(defaults, config, display);
-        lv_obj_t button, label, icon;
-        button.children = {&label, &icon};
-        BtnSlot slot{&button, &icon, &label};
-        apply_button_colors(&button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
-        sync_card_checked_text_color(&button);
-        subscriptions.clear();
-        assert(espdesktop::cards::status_entity_driver_bind_data(slot, config, context, palette));
-        assert(subscriptions.count(config.sensor) == 1);
-        assert(icon.content == "Minus" && (button.state & LV_STATE_DISABLED));
-        for (const char *state : {"on", "off", "unknown", "unavailable", "", "on"}) {
-          subscriptions.at(config.sensor)(esphome::StringRef(state));
-          const auto expected = std::string(state) == "on" ? colour.active : colour.base;
-          const bool unavailable = ha_state_unavailable_ref(esphome::StringRef(state));
-          assert(bool(button.state & LV_STATE_DISABLED) == unavailable);
-          assert(icon.content == (unavailable ? "Minus" : (std::string(state) == "on" ? "on" : "off")));
-          assert(button.background[0] == expected);
-          assert(label.text[0] == display_text_color_for_bg(expected));
-          assert(icon.text[0] == label.text[0]);
-        }
-      }
-    }
+
   }
   for (const char *options : {"", "card_off_color=invalid"}) {
     ParsedCfg config;

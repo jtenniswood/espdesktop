@@ -716,8 +716,6 @@ add_test(NAME cover_art_active_landing_test COMMAND
 add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/speaker_announcement_duck_test.py)
 
-add_test(NAME alarm_palette_ownership_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/alarm_palette_ownership_test.py)
 add_test(NAME alarm_pin_keypad_order_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/alarm_pin_keypad_order_test.py ${CMAKE_CXX_COMPILER})
 add_executable(screensaver_pin_test screensaver_pin_test.cpp
@@ -832,11 +830,7 @@ add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
 add_test(NAME retired_camera_migration_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_camera_migration_test.py ${CMAKE_CXX_COMPILER})
 
-add_test(NAME retired_image_card_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_image_card_test.py ${CMAKE_CXX_COMPILER})
 
-add_test(NAME retired_media_card_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_media_card_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME card_retirement_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/card_retirement_test.py ${CMAKE_CXX_COMPILER})

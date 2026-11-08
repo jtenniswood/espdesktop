@@ -146,7 +146,6 @@ TASKS = (
              "components/espdesktop/media_display_text.h",
              "components/espdesktop/media_emoji_ranges.h",
              "components/espdesktop/media_control_tabs.h",
-             "components/espdesktop/button_grid_media_driver.h",
              "components/espdesktop/button_grid_sliders.h",
              "components/espdesktop/button_grid_grid.h",
              "components/espdesktop/button_grid_layout.h",
