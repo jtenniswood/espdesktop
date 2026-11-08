@@ -61,7 +61,8 @@ inline bool basic_action_driver_setup_visual(
         setup_local_action_card(slot, config);
       } else {
         lv_label_set_display_text(slot.icon_lbl, find_icon("Alert Circle Outline"));
-        lv_label_set_display_text(slot.text_lbl, config.label.empty() ? espdesktop_i18n("Unavailable") : config.label);
+        const std::string label = config.label.empty() ? espdesktop_i18n("Unavailable") : config.label;
+        lv_label_set_display_text(slot.text_lbl, label.c_str());
         lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
       }
       break;
