@@ -333,7 +333,6 @@ export interface BackupPanelSettingsState {
   clockBarTime: boolean;
   clockBarNightMode: boolean;
   networkStatusIcon: boolean;
-  voiceServices: boolean;
 
   subpageChevron: boolean;
   autoOpenAppSubpages: boolean;
@@ -459,7 +458,6 @@ export function normalizeBackupPanelSettings(
     clockBarTime: objectValue(settings, "clock_bar_time") != null ? !!settings.clock_bar_time : true,
     clockBarNightMode: objectValue(settings, "clock_bar_night_mode") != null ? !!settings.clock_bar_night_mode : false,
     networkStatusIcon: objectValue(settings, "network_status_icon") != null ? !!settings.network_status_icon : true,
-    voiceServices: objectValue(settings, "voice_services") != null ? !!settings.voice_services : false,
 
     subpageTitleBar: objectValue(settings, "subpage_title_bar") != null ? !!settings.subpage_title_bar : true,
     autoOpenAppSubpages: objectValue(settings, "auto_open_app_subpages") != null

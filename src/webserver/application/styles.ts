@@ -91,16 +91,15 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-clockbar-item.sp-selected{border-color:var(--accent);background:var(--accent-soft)}" +
         ".sp-clockbar-item.sp-clockbar-hidden{opacity:.7;background:var(--preview-surface-secondary);border-color:var(--preview-border)}" +
         ".sp-clockbar-item.sp-clockbar-hidden.sp-selected{opacity:.65;border-color:var(--accent)}" +
-        ".sp-clockbar-network,.sp-clockbar-voice{padding:0;width:calc(var(--btn-label)*1.5);min-width:calc(var(--btn-label)*1.5)}" +
+        ".sp-clockbar-network{padding:0;width:calc(var(--btn-label)*1.5);min-width:calc(var(--btn-label)*1.5)}" +
         ".sp-temp{white-space:nowrap;opacity:0;transition:opacity .3s}" +
         ".sp-temp.sp-visible{opacity:1}" +
         ".sp-clock{white-space:nowrap;opacity:1;transition:opacity .3s}" +
-        ".sp-topbar .sp-network-preview,.sp-topbar .sp-voice-preview{color:var(--preview-clockbar-text);font-size:var(--btn-label);" +
+        ".sp-topbar .sp-network-preview{color:var(--preview-clockbar-text);font-size:var(--btn-label);" +
         "line-height:1;width:calc(var(--topbar-fs)*1.05);height:1em;display:flex;align-items:center;" +
         "justify-content:center;opacity:0;transition:opacity .3s}" +
-        ".sp-topbar .sp-network-preview::before,.sp-topbar .sp-voice-preview::before{font-size:inherit;line-height:inherit}" +
-        ".sp-network-preview.sp-visible,.sp-voice-preview.sp-visible{opacity:1}" +
-        ".sp-voice-preview:not(.sp-visible){display:none}" +
+        ".sp-topbar .sp-network-preview::before{font-size:inherit;line-height:inherit}" +
+        ".sp-network-preview.sp-visible{opacity:1}" +
         ".sp-main{position:absolute;top:var(--grid-top);left:var(--grid-left);right:var(--grid-right);bottom:var(--grid-bottom);" +
         "display:grid;grid-template-columns:var(--grid-cols);grid-template-rows:var(--grid-rows);gap:var(--grid-gap);overflow:hidden}" +
         ".sp-main.sp-grid-loading{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility .2s}" +

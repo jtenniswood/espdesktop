@@ -51,7 +51,7 @@ export interface PreviewContextMenuDependencies {
     readonly renderPreview: () => void;
     readonly renderButtonSettings: () => void;
     readonly openCardSettings: (slot: number) => void;
-    readonly openVoiceServicesSettings: () => void;
+
     readonly addSlot: (position: number) => void;
     readonly addSubpageSlot: (position: number) => void;
     readonly duplicateButton: (slot: number) => void;
@@ -80,7 +80,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     const { hideSettingsOverlay,  } = dependencies.selection;
     const { registryValue: buttonTypeRegistryValue } = dependencies.preview;
     const { copyButtons, copySlot, cutButtons, cutSlot, pasteButton, pasteSubpageButton, showCopyCode: showCopyCardCode, showPasteCode: showPasteCardCode } = dependencies.clipboard;
-    const { renderPreview, renderButtonSettings, openCardSettings, openVoiceServicesSettings, addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
+    const { renderPreview, renderButtonSettings, openCardSettings,  addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
     const {
         cardIsWifiSharing,
         cardSupportsWifiPortraitSizes,
@@ -470,10 +470,6 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("delete", "Delete", function (this: any) { deleteSlot(slot); }, true);
     }
     function addClockBarMenuItems(this: any, item?: any) {
-        if (item === "voice") {
-            addCtxItem("pencil", "Edit Voice Services", function (this: any) { openVoiceServicesSettings(); });
-            addCtxDivider();
-        }
         var visible: any = clockBarItemActive(item);
         var label: any = clockBarItemLabel(item);
         addCtxItem(visible ? "eye-off-outline" : "eye-outline", (visible ? "Hide " : "Show ") + label, function (this: any) {

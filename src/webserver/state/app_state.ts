@@ -32,7 +32,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     selectedSlots: [], lastClickedSlot: -1, clockBarSelectedItem: "", activeTab: "screen",
     clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
     clockBarNightModeOn: false,
-    networkStatusOn: true, batteryStatusOn: false, voiceServicesOn: false,
+    networkStatusOn: true, batteryStatusOn: false,
 
     networkTransport: "wifi", wifiStrengthPercent: 100,
     subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",

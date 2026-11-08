@@ -10,7 +10,7 @@ export interface DeviceConfigFeatures {
   screenRotationDisplayOffset?: number;
   screenRotationOptions?: readonly string[];
   subpageConfigChunks?: number;
-  voiceServices?: boolean;
+
   battery?: boolean;
 
   companion?: boolean;
@@ -129,7 +129,6 @@ export interface AppState {
   clockBarNightModeOn: boolean;
   networkStatusOn: boolean;
   batteryStatusOn: boolean;
-  voiceServicesOn: boolean;
 
   networkTransport: string;
   wifiStrengthPercent: number;

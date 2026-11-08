@@ -11,8 +11,6 @@ export interface ClockBarPostApiFeature {
     postClockBarNightMode(on?: any): void;
     postNetworkStatusIcon(on?: any): void;
     postBatteryStatus(on?: any): void;
-    voiceServicesPostUrls(on?: any): any;
-    postVoiceServices(on?: any): void;
 
     postSubpageChevron(on?: any): void;
     postAutoOpenAppSubpages(on?: any): void;
@@ -21,11 +19,11 @@ export interface ClockBarPostApiFeature {
 }
 
 export function createClockBarPostApiFeature(
-    entityState: Pick<EntityStateFeature, "entityName" | "entityObjectIds" | "entityPostUrls">,
-    requestApi: Pick<ApplicationApiFeature, "post" | "postOptional" | "postTextWithObjectIds" | "postNumberWithObjectIds" | "postSwitchWithObjectIds">,
+    entityState: Pick<EntityStateFeature, "entityName" | "entityObjectIds">,
+    requestApi: Pick<ApplicationApiFeature, "post" | "postOptional" | "postNumberWithObjectIds" | "postSwitchWithObjectIds">,
 ): ClockBarPostApiFeature {
-    const { entityName, entityObjectIds, entityPostUrls } = entityState;
-    const { post, postOptional, postTextWithObjectIds, postNumberWithObjectIds, postSwitchWithObjectIds } = requestApi;
+    const { entityName, entityObjectIds } = entityState;
+    const { post, postOptional, postNumberWithObjectIds, postSwitchWithObjectIds } = requestApi;
     // ── Clock Bar Post API ────────────────────────────────────────────────
     function postClockBrightnessDay(this: any, value?: any) {
         postNumberWithObjectIds(entityName("screen_saver_daytime_clock_brightness"), entityObjectIds("screen_saver_daytime_clock_brightness"), value);
@@ -60,15 +58,7 @@ export function createClockBarPostApiFeature(
     function postBatteryStatus(this: any, on?: any) {
         postSwitchWithObjectIds(entityName("screen_battery_status"), entityObjectIds("screen_battery_status"), on, BATTERY_STATUS_UNAVAILABLE);
     }
-    var VOICE_SERVICES_UNAVAILABLE: any = "Voice services setting is not available on this firmware. Update the device firmware, then reload this page.";
-    function voiceServicesPostUrls(this: any, on?: any) {
-        return entityPostUrls("switch", entityName("voice_services"), entityObjectIds("voice_services"), on ? "turn_on" : "turn_off");
-    }
-    function postVoiceServices(this: any, on?: any) {
-        post(voiceServicesPostUrls(on), null, VOICE_SERVICES_UNAVAILABLE);
-    }
 
-    var TEMPERATURE_DEGREE_SYMBOL_UNAVAILABLE: any = "Temperature degree symbol setting is not available on this firmware. Update the device firmware, then reload this page.";
 
     var SUBPAGE_CHEVRON_UNAVAILABLE: any = "Subpage chevron setting is not available on this firmware. Update the device firmware, then reload this page.";
     function postSubpageChevron(this: any, on?: any) {
@@ -97,8 +87,6 @@ export function createClockBarPostApiFeature(
         postClockBarNightMode,
         postNetworkStatusIcon,
         postBatteryStatus,
-        voiceServicesPostUrls,
-        postVoiceServices,
 
         postSubpageChevron,
         postAutoOpenAppSubpages,

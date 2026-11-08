@@ -31,12 +31,12 @@ export interface AppStatusPreviewFeature {
     normalizeWifiStrengthPercent(value?: any): any;
     networkPreviewIconSlug(transport?: any, strengthPercent?: any): any;
     updateNetworkPreview(): void;
-    updateVoicePreview(): void;
+
 }
 
 export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: CoreFeature, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, clockBar: ClockBarFeature): AppStatusPreviewFeature {
     const { now: webserverNow } = core;
-    const { isAutomaticTimezone, effectiveTimezoneOptionForWeb, voiceServicesUiState } = environment;
+    const { isAutomaticTimezone, effectiveTimezoneOptionForWeb } = environment;
     const els = runtime.els;
     const {
 
@@ -130,18 +130,12 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
     }
 
     function clockBarItems(this: any) {
-        var items: any = ["time"];
-        if (voiceServicesUiState().clockBarItemVisible)
-            items.push("voice");
-        items.push("network");
-        return items;
+        return ["time", "network"];
     }
     function clockBarDefaultSection(this: any, item?: any) {
 
         if (item === "time")
             return "left";
-        if (item === "voice")
-            return "right";
         if (item === "network")
             return "right";
         return "left";
@@ -149,8 +143,6 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
     function clockBarItemActive(this: any, item?: any) {
         if (item === "time")
             return !!state.clockBarTimeOn;
-        if (item === "voice")
-            return voiceServicesUiState().iconVisible;
         if (item === "network")
             return !!state.networkStatusOn;
         return false;
@@ -162,8 +154,6 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
 
         if (item === "time")
             return "Clock";
-        if (item === "voice")
-            return "Voice Services";
         if (item === "network")
             return "Connectivity";
         return "Clock Bar";
@@ -189,12 +179,6 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
             button.appendChild(network);
             els.networkPreview = network;
         }
-        else if (item === "voice") {
-            var voice: any = document.createElement("span");
-            voice.className = "sp-voice-preview mdi mdi-microphone";
-            button.appendChild(voice);
-            els.voicePreview = voice;
-        }
         return button;
     }
     function renderClockBarLayout(this: any) {
@@ -204,13 +188,13 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
             left: state.editingSubpage == null ? ["time"] : [],
             middle: [],
             right: state.editingSubpage != null ? [] :
-                voiceServicesUiState().clockBarItemVisible ? ["voice", "network"] : ["network"],
+                ["network"],
         };
         els.clockBarItems = {};
         els.temps = {};
         els.clock = null;
         els.networkPreview = null;
-        els.voicePreview = null;
+
         ["left", "middle", "right"].forEach(function (this: any, section?: any) {
             var container: any = els.clockBarSections[section];
             if (!container)
@@ -228,7 +212,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
 
         updateClockText();
         updateNetworkPreview();
-        updateVoicePreview();
+
     }
     function syncClockBarItemElement(this: any, item?: any) {
         var el: any = clockBarItemElement(item);
@@ -307,13 +291,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
             networkPreviewIconSlug(state.networkTransport, state.wifiStrengthPercent) +
             (show ? " sp-visible" : "");
     }
-    function updateVoicePreview(this: any) {
-        if (!els.voicePreview)
-            return;
-        var show: any = clockBarVisibleInPreview();
-        els.voicePreview.className = "sp-voice-preview mdi mdi-microphone" +
-            (show && voiceServicesUiState().iconVisible ? " sp-visible" : "");
-    }
+
     return {
         getTzId,
         formatGmtOffset,
@@ -339,6 +317,6 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         normalizeWifiStrengthPercent,
         networkPreviewIconSlug,
         updateNetworkPreview,
-        updateVoicePreview,
+
     };
 }

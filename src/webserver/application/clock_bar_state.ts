@@ -2,7 +2,6 @@ import { state } from "../state/app_instance";
 import type { ClockBarController } from "../features/clock_bar_controller";
 import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
-import type { EnvironmentStateFeature } from "./environment_state";
 
 export interface ClockBarFeature {
     controllerState(): any;
@@ -21,23 +20,21 @@ export function createClockBarFeature(
     clockBarController: ClockBarController,
     runtime: UiRuntimeState,
     core: Pick<CoreFeature, "syncPreviewGridTop">,
-    environment: EnvironmentStateFeature,
     dependencies: {
         hideSettingsOverlay(): void;
 
         updateItemUi(): void;
 
         postTime(value: boolean): void;
-        postVoiceServices(value: boolean): void;
+
         postNetworkStatus(value: boolean): void;
         renderSelectionBar(): void;
         updateNetworkPreview(): void;
-        updateVoicePreview(): void;
+
     },
 ): ClockBarFeature {
     const { syncPreviewGridTop } = core;
     const els = runtime.els;
-    const { voiceServicesUiState, setVoiceServicesEnabled } = environment;
     // ── Clock Bar State ───────────────────────────────────────────────────
     var clockBarControllerInstance: ClockBarController = clockBarController;
     function clockBarControllerState(this: any) {
@@ -80,10 +77,6 @@ export function createClockBarFeature(
             state.clockBarTimeOn = visible;
             dependencies.postTime(state.clockBarTimeOn);
         }
-        else if (item === "voice" && voiceServicesUiState().clockBarItemVisible) {
-            setVoiceServicesEnabled(visible);
-            dependencies.postVoiceServices(state.voiceServicesOn);
-        }
         else if (item === "network") {
             state.networkStatusOn = visible;
             dependencies.postNetworkStatus(state.networkStatusOn);
@@ -115,12 +108,7 @@ export function createClockBarFeature(
         if (els.setNetworkStatusToggle) {
             els.setNetworkStatusToggle.checked = !!state.networkStatusOn;
         }
-        if (els.setVoiceServicesToggle) {
-            els.setVoiceServicesToggle.checked = voiceServicesUiState().iconVisible;
-        }
-        if (els.setVoiceServicesBadge) {
-            els.setVoiceServicesBadge.className = "sp-card-badge" + (voiceServicesUiState().iconVisible ? "" : " sp-hidden");
-        }
+
         if (els.setBatteryStatusToggle) {
             els.setBatteryStatusToggle.checked = !!state.batteryStatusOn;
         }
@@ -137,7 +125,6 @@ export function createClockBarFeature(
         dependencies.updateItemUi();
         dependencies.renderSelectionBar();
         dependencies.updateNetworkPreview();
-        dependencies.updateVoicePreview();
 
     }
     return {

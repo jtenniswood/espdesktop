@@ -21,9 +21,8 @@ import type { EntityStateFeature } from "../application/entity_state";
 import type { ApplicationApiFeature } from "../application/api";
 import type { AppStatusPreviewFeature } from "../application/app_status_preview";
 import type { ArtworkPostApiFeature } from "../application/artwork_post_api";
-import type { ClockBarPostApiFeature } from "../application/clock_bar_post_api";
 import type { PublicFirmwareInstallFeature } from "../application/public_firmware_install";
-export function installAppTestHooksSettings(defaultTimezoneOptions: () => string[], environment: EnvironmentStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, firmwareVersion: FirmwareVersionFeature, firmwareUpdate: FirmwareUpdateFeature, entityState: Pick<EntityStateFeature, "entityLookupNames">, requestApi: Pick<ApplicationApiFeature, "entityDetailPath" | "entityDetailPaths" | "entityInitialDetail">, statusPreview: Pick<AppStatusPreviewFeature, "normalizeNetworkTransport">, artworkPostApi: Pick<ArtworkPostApiFeature, "coverArtDelayPostUrls" | "coverArtTrackOverlayDurationPostUrls">, clockBarPostApi: Pick<ClockBarPostApiFeature, "voiceServicesPostUrls">, publicFirmwareInstall: Pick<PublicFirmwareInstallFeature, "failPublicFirmwareUpload">, registerEspDesktopTestHookGroup: AppTestHookRegistrar): void {
+export function installAppTestHooksSettings(defaultTimezoneOptions: () => string[], environment: EnvironmentStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, firmwareVersion: FirmwareVersionFeature, firmwareUpdate: FirmwareUpdateFeature, entityState: Pick<EntityStateFeature, "entityLookupNames">, requestApi: Pick<ApplicationApiFeature, "entityDetailPath" | "entityDetailPaths" | "entityInitialDetail">, statusPreview: Pick<AppStatusPreviewFeature, "normalizeNetworkTransport">, artworkPostApi: Pick<ArtworkPostApiFeature, "coverArtDelayPostUrls" | "coverArtTrackOverlayDurationPostUrls">, publicFirmwareInstall: Pick<PublicFirmwareInstallFeature, "failPublicFirmwareUpload">, registerEspDesktopTestHookGroup: AppTestHookRegistrar): void {
     const { timezoneOptionsWithFallback, effectiveTimezoneOptionForWeb } = environment;
     const { supported: screensaverTimeoutSupported } = screensaverTimeout;
     const { set: setFirmwareVersion } = firmwareVersion;
@@ -43,7 +42,6 @@ export function installAppTestHooksSettings(defaultTimezoneOptions: () => string
     } = firmwareUpdate;
     const { entityLookupNames } = entityState;
     const { coverArtDelayPostUrls, coverArtTrackOverlayDurationPostUrls } = artworkPostApi;
-    const { voiceServicesPostUrls } = clockBarPostApi;
     const { failPublicFirmwareUpload } = publicFirmwareInstall;
     if (typeof globalThis !== "undefined" && globalThis.__ESPDESKTOP_TEST_HOOKS__) {
         registerEspDesktopTestHookGroup("settings", {
@@ -64,7 +62,7 @@ export function installAppTestHooksSettings(defaultTimezoneOptions: () => string
             entityLookupNames: entityLookupNames,
             coverArtDelayPostUrls: coverArtDelayPostUrls,
             coverArtTrackOverlayDurationPostUrls: coverArtTrackOverlayDurationPostUrls,
-            voiceServicesPostUrls: voiceServicesPostUrls,
+
             firmwareUpdateControlsVisibleFor: function (this: any, transport?: any, supported?: any) {
                 var oldTransport: any = state.networkTransport;
                 var oldSupported: any = state.firmwareUpdateControlsSupported;

@@ -77,7 +77,7 @@ import { createCardEditorValidationController } from "./features/card_editor_val
 import { createCardEditorSaveController } from "./features/card_editor_save_controller";
 import { createPreviewPlacementController } from "./features/preview_placement_controller";
 import { createClockBarController } from "./features/clock_bar_controller";
-import { createVoiceServicesController } from "./features/voice_services_controller";
+
 import { createScreenScheduleController } from "./features/screen_schedule_controller";
 import { createSettingsUiFeature } from "./features/settings";
 
@@ -272,7 +272,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.controllers.requestApi,
     context.controllers.statusPreview,
     context.controllers.artworkPostApi,
-    context.controllers.clockBarPostApi,
     context.controllers.publicFirmwareInstall,
     register,
   );
@@ -388,11 +387,9 @@ function composeApplicationContext(): ApplicationContext {
     c6UpdateKnownAvailable: () => c6Firmware.updateKnownAvailable(),
   });
   c6Firmware = createC6FirmwareFeature(runtime, firmwareUpdate);
-  const voiceServices = createVoiceServicesController();
+
   const environment = createEnvironmentStateFeature(
-    voiceServices,
     () => defaultTimezoneOptionsForDevice(layout.config),
-    layout,
   );
   dom.document.addEventListener("espdesktop-reset-stale", () => {
     shell.setConfigLocked(true, "Device reset — reload this page before editing.");
@@ -567,17 +564,17 @@ function composeApplicationContext(): ApplicationContext {
     },
   );
   const clockBar = createClockBarController();
-  clockBarState = createClockBarFeature(clockBar, runtime, core, environment, {
+  clockBarState = createClockBarFeature(clockBar, runtime, core, {
     hideSettingsOverlay: () => selection.hideSettingsOverlay(),
 
     updateItemUi: () => statusPreview.updateClockBarItemUi(),
 
     postTime: (value) => clockBarPostApi.postClockBarTime(value),
-    postVoiceServices: (value) => clockBarPostApi.postVoiceServices(value),
+
     postNetworkStatus: (value) => clockBarPostApi.postNetworkStatusIcon(value),
     renderSelectionBar: () => selection.renderSelectionBar(grid.ctx()),
     updateNetworkPreview: () => statusPreview.updateNetworkPreview(),
-    updateVoicePreview: () => statusPreview.updateVoicePreview(),
+
   });
   statusPreview = createAppStatusPreviewFeature(runtime, core, layout, environment, clockBarState);
   const settingsUi = createSettingsUiFeature({
@@ -633,7 +630,7 @@ function composeApplicationContext(): ApplicationContext {
       renderButtonSettings: (force) => buttonSettings.render(force),
       showSelectionMenu: (event) => contextMenu.showSelection(event),
       contextMenuContains: (target) => contextMenu.contains(target),
-      openVoiceServicesSettings: () => settingsHelpers.openVoiceServicesSettings(),
+
     },
   );
   preview = createPreviewRenderFeature({
@@ -686,7 +683,7 @@ function composeApplicationContext(): ApplicationContext {
     renderPreview: () => preview.render(),
     renderButtonSettings: () => buttonSettings.render(),
     openCardSettings: (slot) => buttonSettings.openCardSettings(slot),
-    openVoiceServicesSettings: () => settingsHelpers.openVoiceServicesSettings(),
+
     addSlot: (position) => interactions.addSlot(position),
     addSubpageSlot: (position) => interactions.addSubpageSlot(position),
     duplicateButton: (slot) => interactions.duplicateButton(slot),
@@ -1024,7 +1021,7 @@ function composeApplicationContext(): ApplicationContext {
     screensaverTimeout,
     screensaver,
     settingsUi,
-    voiceServices,
+
     environment,
     iconPicker,
     renderQueue,

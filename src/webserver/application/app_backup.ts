@@ -146,7 +146,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postClockBarTime,
         postClockBarNightMode,
         postNetworkStatusIcon,
-        postVoiceServices,
 
         postSubpageChevron,
         postAutoOpenAppSubpages,
@@ -495,8 +494,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postClockBarTime(importedSettings.clockBarTime);
                     postClockBarNightMode(importedSettings.clockBarNightMode);
                     postNetworkStatusIcon(importedSettings.networkStatusIcon);
-                    if (controllers.layout.config.features && controllers.layout.config.features.voiceServices)
-                        postVoiceServices(importedSettings.voiceServices);
 
                     postSubpageChevron(importedSettings.subpageChevron);
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
@@ -566,7 +563,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.clockBarTimeOn = importedSettings.clockBarTime;
                     state.clockBarNightModeOn = importedSettings.clockBarNightMode;
                     state.networkStatusOn = importedSettings.networkStatusIcon;
-                    state.voiceServicesOn = importedSettings.voiceServices;
 
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;

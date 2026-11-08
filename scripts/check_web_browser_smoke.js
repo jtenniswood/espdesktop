@@ -7424,7 +7424,9 @@ async function assertNamingOfflineBackups(browser) {
     const offlineBackup = backupFixture(testCase.slug, testCase.slots);
     offlineBackup.identity = { version: 1, name: "Other panel", hostname: "other-panel-ffffff", mac_suffix: "ffffff" };
     await importBackup(page, offlineBackup, "identity-offline-restore");
-    await page.waitForSelector(".sp-banner.sp-success");
+    await page.locator(".sp-banner.sp-warning").filter({ hasText: "Configuration imported successfully" }).waitFor();
+    assert.match(await page.locator(".sp-banner.sp-warning").innerText(), /Home Assistant, which is unavailable/,
+      "offline restore retains its unavailable-card warning in the final result");
     assert.strictEqual(identityState.posts.length, 0, "offline restore cannot rename the destination");
     assert.strictEqual(restartRequests.length, 0, "offline restore cannot restart for naming");
     assert.strictEqual(await page.locator("dialog[open]").count(), 0, "offline restore skips the optional name dialog");
@@ -8935,10 +8937,47 @@ async function assertSpecialPageEntry(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertRetiredSettingsStayUnavailable(browser, testCase) {
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  const nativeState = nativeConfigState(testCase.slug);
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-voice_services", state: "ON", value: true },
+      { id: "switch-alarm_delay__audio", state: "ON", value: true },
+      { id: "switch-indoor_temp_enable", state: "ON", value: true },
+      { id: "select-temperature_unit", state: "°F", value: "°F" },
+    ]));
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.locator("#sp-set-voice-services,#sp-set-alarm-delay-audio,#sp-set-temperature-unit,.sp-clockbar-voice").count(), 0,
+      `${testCase.name}: retired events cannot recreate HA settings or clock-bar items`);
+    const headers = await page.locator("#sp-settings .card-header h3").allTextContents();
+    for (const retired of ["Voice Services", "Alarm Audio", "Alarm Delay Audio", "Temperature"]) {
+      assert(!headers.includes(retired), `${testCase.name}: retired ${retired} settings are absent`);
+    }
+    assert(headers.includes("Clock Bar"), `${testCase.name}: local clock-bar settings remain`);
+    assert.deepStrictEqual(errors, [], `${testCase.name}: browser composition and retired events raise no errors`);
+    console.log(`${testCase.name}: retired settings remain unavailable; local Clock Bar is available.`);
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
+      await assertNamingOfflineBackups(browser);
+      console.log(`Retired HA settings and backup export checks passed for ${ACTIVE_CASES.length} layouts.`);
+      return;
+    }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;

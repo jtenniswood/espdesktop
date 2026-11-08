@@ -28,11 +28,11 @@ export interface ButtonSettingsSelectionDependencies {
     readonly renderButtonSettings: (force?: boolean) => void;
     readonly showSelectionMenu: (event?: any) => void;
     readonly contextMenuContains: (target?: any) => boolean;
-    readonly openVoiceServicesSettings: () => void;
+
 }
 
 export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityInput">, shell: Pick<ControlsShellFeature, "isConfigLocked" | "createActionButton">, statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "updateClockBarItemUi">, grid: Pick<GridFeature, "ctx">, renderQueue: ButtonSettingsRenderQueueFeature, dependencies: ButtonSettingsSelectionDependencies): ButtonSettingsSelectionFeature {
-    const { document, fields: { fieldLabel, toggleRow }, renderPreview, renderButtonSettings, showSelectionMenu, openVoiceServicesSettings } = dependencies;
+    const { document, fields: { fieldLabel, toggleRow }, renderPreview, renderButtonSettings, showSelectionMenu,  } = dependencies;
     const { entityInput } = entityState;
     const { isConfigLocked, createActionButton } = shell;
     const els = runtime.els;
@@ -70,25 +70,12 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
         if (!els.selectionBar || !state.clockBarSelectedItem)
             return false;
         els.selectionBar.className = "sp-selection-bar sp-visible";
-        var canEditClockBarItem: any = state.clockBarSelectedItem === "voice";
         var label: any = document.createElement("span");
         label.className = "sp-selection-label";
         label.textContent = clockBarItemLabel(state.clockBarSelectedItem) + " selected";
         els.selectionBar.appendChild(label);
         var actions: any = document.createElement("div");
         actions.className = "sp-selection-actions";
-        var editBtn: any = createActionButton("sp-selection-btn sp-selection-btn-primary", "Edit", "pencil");
-        editBtn.disabled = !canEditClockBarItem;
-        editBtn.addEventListener("click", function (this: any, e?: any) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (editBtn.disabled)
-                return;
-            if (state.clockBarSelectedItem === "voice") {
-                openVoiceServicesSettings();
-            }
-        });
-        actions.appendChild(editBtn);
         var visible: any = clockBarItemActive(state.clockBarSelectedItem);
         var hideBtn: any = createActionButton("sp-selection-btn", visible ? "Hide" : "Show", visible ? "eye-off-outline" : "eye-outline");
         hideBtn.addEventListener("click", function (this: any, e?: any) {
@@ -183,8 +170,6 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             return;
         if (state.clockBarSelectedItem) {
 
-            if (state.clockBarSelectedItem === "voice")
-                openVoiceServicesSettings();
             return;
         }
         var c: any = ctx();

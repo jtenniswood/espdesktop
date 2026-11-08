@@ -131,7 +131,6 @@ export function runStateContractTests(): void {
     clockBarNightMode: "switch-screen__clock_bar_night_mode_icon",
     networkStatus: "switch-screen__network_status_icon",
     batteryStatus: "switch-screen__battery_status",
-    voiceServices: "switch-voice_services",
     subpageChevron: "switch-screen__subpage_chevron",
     autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
     returnHomeOnAppSwitch: "switch-companion__return_home_on_app_switch",

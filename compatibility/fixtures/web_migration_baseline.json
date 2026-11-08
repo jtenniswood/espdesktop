@@ -45,7 +45,6 @@
       "clockBarTime": true,
       "clockBarNightMode": false,
       "networkStatusIcon": true,
-      "voiceServices": false,
       "subpageChevron": true,
       "autoOpenAppSubpages": true,
       "returnHomeOnAppSwitch": true,

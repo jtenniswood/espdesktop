@@ -1,15 +1,9 @@
 import { state } from "../state/app_instance";
 import { AUTO_TIMEZONE_OPTION, FALLBACK_TIMEZONE_OPTION } from "../state/app_state";
 import { normalizeLanguage } from "../model/settings";
-import type { VoiceServicesController } from "../features/voice_services_controller";
-import type { ApplicationLayoutState } from "./application_context";
 
 export interface EnvironmentStateFeature {
-    voiceServicesSupported(): boolean;
-    voiceServicesState(): { supported: boolean; enabled: boolean };
-    applyVoiceServicesState(next: { enabled: boolean }): void;
-    voiceServicesUiState(): ReturnType<VoiceServicesController["uiState"]>;
-    setVoiceServicesEnabled(enabled: boolean): void;
+
     isAutomaticTimezone(value?: any): boolean;
     effectiveTimezoneOptionForWeb(value?: any): any;
     timezoneOptionsWithFallback(options?: any, selected?: any, preserveSelectedAuto?: any): any[];
@@ -17,28 +11,9 @@ export interface EnvironmentStateFeature {
 }
 
 export function createEnvironmentStateFeature(
-    voiceServicesController: VoiceServicesController,
     defaultTimezoneOptions: () => string[],
-    layout: ApplicationLayoutState,
 ): EnvironmentStateFeature {
-    function voiceServicesSupported() {
-        return !!(layout.config.features && layout.config.features.voiceServices);
-    }
-    function voiceServicesState() {
-        return {
-            supported: voiceServicesSupported(),
-            enabled: !!state.voiceServicesOn,
-        };
-    }
-    function applyVoiceServicesState(next: { enabled: boolean }) {
-        state.voiceServicesOn = next.enabled;
-    }
-    function voiceServicesUiState() {
-        return voiceServicesController.uiState(voiceServicesState());
-    }
-    function setVoiceServicesEnabled(enabled: boolean) {
-        applyVoiceServicesState(voiceServicesController.setEnabled(voiceServicesState(), enabled));
-    }
+
     function isAutomaticTimezone(value?: any) {
         return String(value || "") === AUTO_TIMEZONE_OPTION || value === "Auto (Home Assistant)";
     }
@@ -71,11 +46,7 @@ export function createEnvironmentStateFeature(
         }
     }
     return {
-        voiceServicesSupported,
-        voiceServicesState,
-        applyVoiceServicesState,
-        voiceServicesUiState,
-        setVoiceServicesEnabled,
+
         isAutomaticTimezone,
         effectiveTimezoneOptionForWeb,
         timezoneOptionsWithFallback,

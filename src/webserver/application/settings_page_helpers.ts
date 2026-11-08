@@ -50,7 +50,6 @@ export interface SettingsPageHelpersFeature {
     applyMediaPlaybackState(...args: any[]): any;
     settingsStatusHeader(...args: any[]): any;
     appendSettingsSection(...args: any[]): any;
-    openVoiceServicesSettings(...args: any[]): any;
 
     coverArtTrackOverlayDurationSupported(...args: any[]): any;
     infoPanel(...args: any[]): any;
@@ -159,16 +158,6 @@ export function createSettingsPageHelpersFeature(
     }
     function appendSettingsSection(this: any, parent?: any, title?: any, cards?: any) {
         _settingsUiFeature.appendSettingsSection(parent, title, cards);
-    }
-    function openVoiceServicesSettings(this: any) {
-        if (isConfigLocked() || !els.voiceServicesCard)
-            return;
-        switchTab("settings");
-        els.voiceServicesCard.classList.remove("collapsed");
-        els.voiceServicesCard.scrollIntoView({ block: "center", behavior: "smooth" });
-        if (els.setVoiceServicesToggle) {
-            window.setTimeout(function (this: any) { els.setVoiceServicesToggle.focus(); }, 150);
-        }
     }
 
     function coverArtTrackOverlayDurationSupported(this: any) {
@@ -505,7 +494,7 @@ export function createSettingsPageHelpersFeature(
     return {
         coverArtScreensaverState, applyCoverArtScreensaverState,
         mediaPlaybackState, applyMediaPlaybackState, settingsStatusHeader,
-        appendSettingsSection, openVoiceServicesSettings,
+        appendSettingsSection,
          coverArtTrackOverlayDurationSupported,
         infoPanel, statusBadge, disclosureBadge, inlineDisclosure,
         syncClockScreensaverControls, syncMediaPlayerSleepPreventionUi,

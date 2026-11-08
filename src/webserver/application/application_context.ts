@@ -12,7 +12,7 @@ import type { MediaPlaybackController } from "../features/media_playback_control
 import type { ScreenScheduleController } from "../features/screen_schedule_controller";
 import type { ScreensaverController } from "../features/screensaver_controller";
 import type { SettingsUiFeature } from "../features/settings";
-import type { VoiceServicesController } from "../features/voice_services_controller";
+
 import type { BackupFeature } from "../features/backup";
 import type { BackupExportController } from "../features/backup_export_controller";
 import type { BackupFileController } from "../features/backup_file_controller";
@@ -168,7 +168,7 @@ export interface ApplicationContext {
     readonly screensaver: ScreensaverController;
     readonly screensaverTimeout: ScreensaverTimeoutFeature;
     readonly settingsUi: SettingsUiFeature;
-    readonly voiceServices: VoiceServicesController;
+
     readonly environment: EnvironmentStateFeature;
     readonly iconPicker: ButtonSettingsIconPickerFeature;
     readonly renderQueue: ButtonSettingsRenderQueueFeature;
@@ -251,7 +251,7 @@ export interface ApplicationContextOptions {
   readonly screensaver: ScreensaverController;
   readonly screensaverTimeout: ScreensaverTimeoutFeature;
   readonly settingsUi: SettingsUiFeature;
-  readonly voiceServices: VoiceServicesController;
+
   readonly environment: EnvironmentStateFeature;
   readonly iconPicker: ButtonSettingsIconPickerFeature;
   readonly renderQueue: ButtonSettingsRenderQueueFeature;
@@ -355,7 +355,7 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       screensaver: options.screensaver,
       screensaverTimeout: options.screensaverTimeout,
       settingsUi: options.settingsUi,
-      voiceServices: options.voiceServices,
+
       environment: options.environment,
       iconPicker: options.iconPicker,
       renderQueue: options.renderQueue,

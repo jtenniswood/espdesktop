@@ -692,7 +692,6 @@ for (const retired of ["temperatureUnit", "outdoorTempEnable", "indoorTempEnable
 assert.strictEqual(panelSettings.clockBarTime, false, "panel clock bar time imports");
 assert.strictEqual(panelSettings.clockBarNightMode, true, "panel clock bar night mode icon imports");
 assert.strictEqual(panelSettings.networkStatusIcon, false, "panel clock bar network status imports");
-assert.strictEqual(panelSettings.voiceServices, true, "panel voice services imports");
 assert.strictEqual(panelSettings.language, "it", "panel language imports");
 assert.strictEqual(panelSettings.clockFormat, "24h", "panel clock format validates against options");
 assert.strictEqual(panelSettings.ntpServer1, "pool.ntp.org", "panel NTP server imports");
@@ -866,7 +865,6 @@ const legacyPanelSettings = model.normalizeBackupPanelSettings({}, {
 });
 assert.strictEqual(legacyPanelSettings.clockBarTime, true, "legacy panel settings default clock bar time on");
 assert.strictEqual(legacyPanelSettings.clockBarNightMode, false, "legacy panel settings default clock bar night mode icon off");
-assert.strictEqual(legacyPanelSettings.voiceServices, false, "legacy panel settings default voice services off");
 assert.strictEqual(legacyPanelSettings.coverArtHideExternalInput, true, "legacy panel settings default cover art external-input setting on");
 assert.strictEqual(legacyPanelSettings.coverArtSource, "Mac Companion", "legacy panel settings migrate cover art source to Mac Companion");
 assert.strictEqual(
@@ -918,3 +916,5 @@ for (const [value, expected] of [[0, 0], [100, 100], ["25 %", 25], [-5, 0], [120
 for (const field of ["alarmDelayAudio", "alarmDelayTts", "alarmDelayEntryAnnouncement", "alarmDelayExitAnnouncement", "alarmDelayBeepVolume", "alarmDelayFinalCountdown"]) {
   assert.strictEqual(Object.hasOwn(panelSettings, field), false, `retired ${field} must not enter imported settings`);
 }
+
+assert.strictEqual(Object.hasOwn(panelSettings, "voiceServices"), false, "retired voice services do not enter imported settings");

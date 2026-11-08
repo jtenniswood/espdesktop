@@ -2,7 +2,6 @@ import { screensaverControlState, timedSettingLabel } from "../../src/webserver/
 import { createScreensaverController } from "../../src/webserver/features/screensaver_controller";
 import { createCoverArtScreensaverController } from "../../src/webserver/features/cover_art_screensaver_controller";
 import { createMediaPlaybackController } from "../../src/webserver/features/media_playback_controller";
-import { createVoiceServicesController } from "../../src/webserver/features/voice_services_controller";
 import { createClockBarController } from "../../src/webserver/features/clock_bar_controller";
 import { createScreenScheduleController } from "../../src/webserver/features/screen_schedule_controller";
 import { cardCurveRadius, normalizeCardCurve, normalizeThemeAutoMethod, normalizeThemeMode, normalizeTimeOfDay, parseThemeSunOffset } from "../../src/webserver/model/settings";
@@ -183,19 +182,8 @@ export function runSettingsFeatureTests(): void {
   equal(changedEntity.sleepPreventionEntity, "media_player.kitchen",
         "cover art entity remains mirrored to sleep prevention");
 
-  const voiceServices = createVoiceServicesController();
-  const voiceInitial = { supported: true, enabled: false };
-  equal(voiceServices.uiState(voiceInitial).settingsVisible, true,
-        "supported Voice Services appear in settings");
-  equal(voiceServices.uiState(voiceInitial).iconVisible, false,
-        "disabled Voice Services hide their preview icon");
-  equal(voiceServices.uiState(voiceServices.setEnabled(voiceInitial, true)).iconVisible, true,
-        "enabling Voice Services updates the preview icon");
-  equal(voiceServices.uiState({ supported: false, enabled: true }).clockBarItemVisible, false,
-        "unsupported Voice Services stay out of the clock bar");
-
   const clockBar = createClockBarController();
-  const clockBarInitial = { enabled: true, timeEnabled: true, nightModeEnabled: false, selectedItem: "voice" };
+  const clockBarInitial = { enabled: true, timeEnabled: true, nightModeEnabled: false, selectedItem: "network" };
   equal(clockBar.uiState(clockBarInitial).previewVisible, true, "enabled clock bar remains visible in the preview");
   equal(clockBar.setNightModeEnabled(clockBarInitial, true).nightModeEnabled, true,
         "night-mode setting updates independently");

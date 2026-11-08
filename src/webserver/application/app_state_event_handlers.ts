@@ -157,10 +157,6 @@ export function createAppStateEventHandlersFeature(
                 state.batteryStatusOn = d.value === true || val === "ON";
                 syncClockBarUi();
             },
-            "switch-voice_services": function (this: any, val?: any, d?: any) {
-                state.voiceServicesOn = d.value === true || val === "ON";
-                syncClockBarUi();
-            },
 
             "switch-screen__subpage_title_bar": function (this: any, val?: any, d?: any) {
                 state.subpageTitleBarOn = d.value === true || val === "ON";

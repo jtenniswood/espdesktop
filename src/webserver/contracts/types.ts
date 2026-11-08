@@ -177,7 +177,7 @@ export interface PanelSettings {
   clock_bar_night_mode?: boolean;
   network_status_icon: boolean;
   battery_status?: boolean;
-  voice_services?: boolean;
+
   timezone: string;
   language: string;
   clock_format: string;
