@@ -38,7 +38,7 @@ assert re.search(r"checked:\s+bg_color: \$button_on_color\s+(?:#.*\n\s+)?text_co
 
 media_driver = (ROOT / "components" / "espdesktop" / "button_grid_media_driver.h").read_text(encoding="utf-8")
 grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
-assert 'media_card_mode(config.sensor) != "cover_art"' in media_driver
+assert "media_driver_theme_owned_surface(const Context &, const ParsedCfg &) { return true; }" in media_driver
 assert "media_driver_theme_owned_surface(context, p)" in grid
 assert "media_driver_theme_owned_surface(context, sb_cfg)" in grid
 assert "theme_set_content_background(s.btn, palette.custom_background)" in grid

@@ -399,9 +399,6 @@ for required in (
 ):
     if required not in image_cards:
         raise SystemExit(f"Media artwork refresh-batch contract missing: {required}")
-image_grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
-if "image_card_schedule_media_artwork_refresh(art)" not in image_grid:
-    raise SystemExit("Media artwork subscriptions must use the trigger scheduler")
 # Fullscreen artwork now arrives through the authenticated Companion stream.
 # Keep the transport, generation and owned-buffer checks beside the runtime tests.
 from check_companion_artwork import errors as companion_artwork_errors
@@ -562,21 +559,6 @@ for subscription_helper in (
             f"{subscription_helper} must subscribe to content before metadata"
         )
 
-media_driver = (
-    ROOT / "components" / "espdesktop" / "button_grid_media_driver.h"
-).read_text(encoding="utf-8")
-route_start = media_driver.find("inline void media_driver_bind_cover_art_route(")
-route_end = media_driver.find("\ninline ", route_start + 1)
-if route_start < 0 or route_end < 0:
-    raise SystemExit("Media cover-art route subscription contract missing")
-route = media_driver[route_start:route_end]
-for state_name in ("primary", "secondary"):
-    content_call = route.find(f"media_playback_subscribe_content({state_name})")
-    metadata_call = route.find(f"media_playback_subscribe_metadata({state_name})")
-    if not 0 <= content_call < metadata_call:
-        raise SystemExit(
-            f"Media cover-art {state_name} content must be subscribed before metadata"
-        )
 for required in (
     "inline bool media_cover_art_uses_screensaver_fonts(int row_span, int col_span)",
     "return row_span >= 2 && col_span >= 2;",
@@ -624,17 +606,6 @@ for required in (
 ):
     if required not in media:
         raise SystemExit(f"Media control playing-highlight contract missing: {required}")
-
-media_driver = (ROOT / "components" / "espdesktop" / "button_grid_media_driver.h").read_text(encoding="utf-8")
-if "if (control) control->highlight_playing = false;" not in media_driver:
-    raise SystemExit("Cover art control modals must not highlight their parent card while playing")
-for required in (
-    "display.modal.layout_family == DisplayModalLayoutFamily::COMPACT_PORTRAIT",
-    "compact_portrait_cover_art\n      ? display_media_control_title_font(display)",
-    "compact_portrait_cover_art\n      ? display_media_control_artist_font(display, label_font)",
-):
-    if required not in media_driver:
-        raise SystemExit(f"2x2 cover art must reuse All Controls fonts: {required}")
 
 grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
 layout = (ROOT / "components" / "espdesktop" / "button_grid_layout.h").read_text(encoding="utf-8")
@@ -695,26 +666,6 @@ for required in (
 ):
     if required not in media:
         raise SystemExit(f"Limited cover art titles must flex to their configured line count: {required}")
-media_art_start = grid.find("inline void subscribe_media_cover_art(")
-media_art_end = grid.find("\ninline void setup_card_visual(", media_art_start)
-if media_art_start < 0 or media_art_end < 0:
-    raise SystemExit("Media card cover art subscription contract missing")
-media_art = grid[media_art_start:media_art_end]
-for required in (
-    'std::string("entity_picture")',
-    'std::string("entity_picture_local")',
-    "image_card_schedule_media_artwork_refresh(art)",
-    "media_artwork_content_current(",
-    "media_card_artwork_should_clear(",
-    "image_card_clear_media_artwork(art)",
-):
-    if required not in media_art:
-        raise SystemExit(f"Media card cover art subscription contract missing: {required}")
-if "subscribe_image_card_entity_state" in media_art:
-    raise SystemExit(
-        "Media card cover art must not add a general entity-state subscription "
-        "on top of its picture subscriptions"
-    )
 now_playing_refresh_start = media.find(
     "inline void media_playback_refresh_stable_artwork("
 )

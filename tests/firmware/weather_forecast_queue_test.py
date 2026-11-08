@@ -6,7 +6,7 @@ import re
 import subprocess
 import tempfile
 
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 root = Path(__file__).resolve().parents[2]
 header = root / "components/espdesktop/button_grid_weather_forecast.h"

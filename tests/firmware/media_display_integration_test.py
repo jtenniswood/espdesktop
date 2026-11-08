@@ -6,7 +6,7 @@ import sys
 import tempfile
 import textwrap
 
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 
 root = Path(__file__).resolve().parents[2]

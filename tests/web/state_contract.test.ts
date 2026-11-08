@@ -196,9 +196,7 @@ export function runStateContractTests(): void {
   ] as const) {
     const event = { id, state };
     const key = entityStateKeys(event).find(key => handlers[key]);
-    assert(key, "artwork display names resolve to a handler");
-    handlers[key]!(state, event, key);
-    equal(calls.at(-1), group, "artwork events dispatch to the canonical handler");
+    assert(!key, "retired artwork endpoints have no live event handler");
   }
 
   const clockState = createInitialState(deviceConfig());

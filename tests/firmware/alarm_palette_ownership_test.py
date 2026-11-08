@@ -1,7 +1,7 @@
 """Exercise actual alarm environment/binding and theme refresh on subpages."""
 from pathlib import Path
 import subprocess, tempfile
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 root=Path(__file__).resolve().parents[2];headers=root/'components/espdesktop'
 driver=(headers/'button_grid_alarm_driver.h').read_text()
 struct=driver[driver.index('struct AlarmDriverEnvironment {'):driver.index('\n};',driver.index('struct AlarmDriverEnvironment {'))+3]

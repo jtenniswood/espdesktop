@@ -19,8 +19,8 @@ class ReconnectRecoveryTest(unittest.TestCase):
 
     def test_retired_artwork_boot_setup_stays_absent_after_package_merging(self):
         # A mapping-form on_boot is replaced by later list-form device hooks.
-        # Inspect ESPHome's actual merged entry points, not the shared source:
-        # without this callback, discovery succeeds but image cards see no URL.
+        # Inspect ESPHome's actual merged entry points to keep retired artwork
+        # discovery/subscription setup absent on every device.
         from esphome.components.packages import resolve_packages
         from esphome.core import CORE
         from esphome.yaml_util import load_yaml
@@ -50,7 +50,7 @@ class ReconnectRecoveryTest(unittest.TestCase):
 
     def test_only_ha_clients_start_recovery(self):
         connect = self.core.split("  on_client_connected:\n", 1)[1].split("  on_client_disconnected:", 1)[0]
-        self.assertRegex(connect, r'(?s)if \(client_info.find\("Home Assistant"\).*?\{\s*id\(espdesktop_app\).home_assistant_endpoint\(\).invalidate_connection\(client_address\);\s*id\(ha_refresh_after_connect\).execute')
+        self.assertRegex(connect, r'(?s)if \(client_info.find\("Home Assistant"\).*?\{\s*id\(ha_refresh_after_connect\).execute')
         self.assertNotIn("delay:", connect)  # no detached old-connection timers
 
     def test_disconnect_preserves_replacement_recovery(self):
@@ -80,11 +80,6 @@ namespace esphome::api { Server *global_api_server = &server; }
 bool ha_api_available() { return esphome::api::global_api_server != nullptr; }
 bool state_connected = false;
 bool ha_api_state_connected() { return state_connected; }
-std::string cover_art_home_assistant_client_address;
-bool endpoint_resolve_called = false;
-struct EndpointResolver {
-  void execute() { endpoint_resolve_called = true; }
-} cover_art_resolve_home_assistant_base_url;
 struct Recovery {
   bool running = true;
   void stop() { running = false; }
@@ -99,22 +94,16 @@ void disconnect(const std::string &client_info) {
 void reset(std::vector<Client *> clients) {
   server.clients = clients;
   state_connected = false;
-  cover_art_home_assistant_client_address = "192.168.1.31";
-  endpoint_resolve_called = false;
   ha_refresh_after_connect.running = true;
   retained = forecast_pending = cover_pending = true;
 }
 void expect_preserved() {
   assert(ha_refresh_after_connect.running);
   assert(retained && forecast_pending && cover_pending);
-  assert(cover_art_home_assistant_client_address == "192.168.1.31");
-  assert(!endpoint_resolve_called);
 }
 void expect_cancelled() {
   assert(!ha_refresh_after_connect.running);
   assert(!retained && !forecast_pending && !cover_pending);
-  assert(cover_art_home_assistant_client_address.empty());
-  assert(endpoint_resolve_called);
 }
 int main() {
   Client replacement{"Home Assistant 2026.8"};
