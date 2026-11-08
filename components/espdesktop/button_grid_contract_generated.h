@@ -9,6 +9,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
+inline bool card_contract_type_retired(const std::string &type) { return type == "internal"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {

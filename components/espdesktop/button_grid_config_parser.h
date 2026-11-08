@@ -1540,6 +1540,12 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  if (card_runtime_type_retired(p.type)) {
+    const std::string type = p.type;
+    p = ParsedCfg{};
+    p.type = type;
+    return p;
+  }
   const std::string icon_size = cfg_option_value(p.options, "icon_size");
   // Remove legacy sizes before normalization; only app artwork retains a size override.
   std::string type_options;

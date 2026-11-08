@@ -640,3 +640,7 @@ inline const char *card_runtime_lawn_mower_default_icon_name(const std::string &
   if (normalized == "dock") return "Robot Mower Outline";
   return "Robot Mower";
 }
+
+inline bool card_runtime_type_retired(const std::string &type) {
+  return card_contract_type_retired(type);
+}

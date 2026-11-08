@@ -5091,5 +5091,8 @@
     "webhook": "WH",
     "subpage": "G",
     "screensaver": "SS"
-  }
+  },
+  "retiredCardTypes": [
+    "internal"
+  ]
 }
