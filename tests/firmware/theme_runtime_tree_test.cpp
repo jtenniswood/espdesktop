@@ -152,10 +152,7 @@ lv_obj_t *lv_event_get_target(lv_event_t *event) { return event->target; }
 #include "theme_runtime_static.h"
 
 #include "button_grid_limits.h"
-int bounded_grid_slots(int count) {
-  assert(count >= 0 && count <= MAX_GRID_SLOTS);
-  return count;
-}
+
 void *lv_obj_get_user_data(lv_obj_t *object) { return object->user_data; }
 struct BtnSlot { lv_obj_t *btn = nullptr; };
 struct TestSubpage {

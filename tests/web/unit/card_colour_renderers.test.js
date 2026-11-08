@@ -40,8 +40,6 @@ function editor() {
     registry, tabs, lightCards, fields, { inlineDisclosure: () => element() }, true, ui);
   loadTypescriptTest("src/webserver/cards/action.ts").registerActionCardTypes(
     registry, fields);
-  loadTypescriptTest("src/webserver/cards/wifi_qr.ts").registerWifiQrCardTypes(
-    registry, tabs, fields, ui, { supported: () => true, homeAssistantSupportEnabled: () => true });
   const webhook = loadTypescriptTest("src/webserver/application/config_webhook_options.ts")
     .createConfigWebhookOptionsFeature();
   loadTypescriptTest("src/webserver/cards/webhook.ts").registerWebhookCardTypes(registry, webhook, fields, ui);
@@ -95,26 +93,6 @@ test("retired robot and fan editors keep their saved mode and colour", () => {
   } finally {global.document=previous;}
 });
 
-test("Connect-card normalization and credential edits retain colour and Wi-Fi tabs", () => {
-  const e = editor();
-  const button = { type: "wifi_qr", options: "ssid64=VGVzdA,pass64=cGFzc3dvcmQ,hidden,wifi_tabs=qr,card_off_color=00BCD4" };
-  const definition = e.registry.definitions.wifi_qr;
-  definition.normalizeConfig(button);
-  assert(button.options.includes("card_off_color=00BCD4"));
-  definition.renderSettings(element(), button, 1, e.helpers);
-  const beforeTabs = button.options.split(",").filter(part => part.startsWith("wifi_tabs="));
-  assert.deepEqual(beforeTabs, ["wifi_tabs=qr"]);
-  e.inputs["test-wifi-ssid"].value = "Changed network";
-  e.inputs["test-wifi-password"].value = "newpassword";
-  e.inputs["test-wifi-ssid"].listeners.change();
-  assert(button.options.includes("card_off_color=00BCD4"));
-  assert(button.options.includes("ssid64=Q2hhbmdlZCBuZXR3b3Jr"));
-  assert(button.options.includes("pass64=bmV3cGFzc3dvcmQ"));
-  assert.deepEqual(button.options.split(",").filter(part => part.startsWith("wifi_tabs=")), beforeTabs);
-  assert.equal(e.saved.options, button.options);
-  definition.normalizeConfig(button);
-  assert.equal(button.options, e.saved.options);
-});
 
 
 test("Replacing a legacy action with a local card keeps its colour and clears service options", () => {

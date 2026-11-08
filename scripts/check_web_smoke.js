@@ -106,10 +106,7 @@ assert(
   !plain(hooks.cardSizeMenuOptions({ type: "image" })).some((option) => option.size === 10),
   "landscape 7-inch camera card size menu hides Massive portrait"
 );
-assert(
-  !plain(hooks.cardSizeMenuOptions({ type: "sensor" })).some((option) => option.size === 8 || option.size === 9 || option.size === 10 || option.size === 11),
-  "non-camera card size menus do not expose camera-only shapes"
-);
+
 assert.deepStrictEqual(
   plain(hooks.normalizeGridOrderForLayoutChange("1l", 15, 5, 3)),
   { order: "1", persistedOrder: "1", sizes: {} },
@@ -490,10 +487,13 @@ assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", true), false);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("sensor", false), false, "Sensor is absent from the main card picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("sensor", true), false, "Sensor is absent from the subpage card picker");
+assert(!hooks.buttonTypeDefaultConfig("sensor"), "retired Sensor cards have no editor definition");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("local_sensor", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("local_sensor", true), false);
 const infoOnlyPickerKeys = Array.from(hooks.buttonTypePickerKeysForInfoOnly(true));
-assert(infoOnlyPickerKeys.includes("sensor"), "info-only displays can still add sensor cards");
+assert(!infoOnlyPickerKeys.includes("sensor"), "info-only displays cannot add Sensor cards");
 assert(!infoOnlyPickerKeys.includes("weather"), "Home Assistant weather cards stay hidden");
 assert(!infoOnlyPickerKeys.includes(""), "info-only displays hide switch controls");
 assert(!infoOnlyPickerKeys.includes("subpage"), "info-only displays hide subpage cards");
@@ -527,16 +527,6 @@ assert(
 assert(
   cardStylesSource.includes(".sp-image-preview-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad)"),
   "image card icons use the same top-left placement",
-);
-const wifiSharePickerOption = pickerOptions.find((option) => option.key === "wifi_qr");
-assert.strictEqual(
-  wifiSharePickerOption,
-  undefined,
-  "Wifi Sharing stays hidden until native configuration support is confirmed",
-);
-assert(
-  !pickerOptions.some((option) => option.key === "wifi_qr_card"),
-  "QR Card is selected as a Wifi Sharing subtype rather than a top-level card",
 );
 assert(
   hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Security", type: "alarm" }).iconHtml.includes("mdi-shield-off"),
@@ -613,10 +603,7 @@ assert(
   hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Alarm", type: "alarm", options: "icon_display=static" }).iconHtml.includes("mdi-bell-ring"),
   "alarm preview uses the selected Alarm icon"
 );
-assert(
-  hooks.buttonTypePreviewFor("sensor", { type: "sensor", sensor: "local", entity: "room_temp", unit: "°C", precision: "1" }).iconHtml.includes("0.0"),
-  "sensor preview renders the local sensor subtype"
-);
+
 assert.deepStrictEqual(Array.from(hooks.alarmCardTypeOptionValues(false)), ["control_panel", "away", "home", "night", "vacation", "disarm"]);
 assert.deepStrictEqual(Array.from(hooks.alarmCardTypeOptionValues(true)), ["control_panel", "away", "home", "night", "vacation", "disarm"]);
 assert.deepStrictEqual(Array.from(hooks.alarmVisibleActions(hooks.parseButtonConfig(
@@ -913,82 +900,6 @@ const customImageIconPreview = hooks.buttonTypePreviewFor("image", {
   options: "image_icon",
 });
 assert(customImageIconPreview.iconHtml.includes("sp-image-preview-icon mdi mdi-image"), "image preview can use a selected image icon when enabled");
-
-const sensorNumericPreview = hooks.buttonTypePreviewFor("sensor", {
-  sensor: "sensor.office_temperature",
-  label: "Office",
-  unit: "\u00b0C",
-  type: "sensor",
-  precision: "1",
-  options: "",
-}, { cardSize: 4 });
-assert(sensorNumericPreview.iconHtml.includes("sp-sensor-preview-large"), "sensor numeric 2x2 preview defaults to large numbers");
-assert(!sensorNumericPreview.labelHtml.includes("sp-type-badge"), "sensor numeric preview omits the card-type badge");
-assert(sensorNumericPreview.iconHtml.includes("\u00b0C"), "sensor numeric preview includes the unit");
-
-const sensorLargeDisabledPreview = hooks.buttonTypePreviewFor("sensor", {
-  sensor: "sensor.office_temperature",
-  label: "Office",
-  unit: "\u00b0C",
-  type: "sensor",
-  precision: "1",
-  options: "large_numbers=off",
-}, { cardSize: 4 });
-assert(!sensorLargeDisabledPreview.iconHtml.includes("sp-sensor-preview-large"), "sensor numeric 2x2 preview respects disabled large numbers");
-
-const wideSensorNumericPreview = hooks.buttonTypePreviewFor("sensor", {
-  sensor: "sensor.office_temperature",
-  label: "Office",
-  unit: "\u00b0C",
-  type: "sensor",
-  precision: "1",
-  options: "large_numbers",
-}, { cardSize: 3 });
-assert(!wideSensorNumericPreview.iconHtml.includes("sp-sensor-preview-large"), "sensor wide preview keeps large numbers limited to 2x2");
-
-const sensorTextPreview = hooks.buttonTypePreviewFor("sensor", {
-  sensor: "sensor.washer_state",
-  icon: "Washing Machine",
-  type: "sensor",
-  precision: "text",
-});
-assert(sensorTextPreview.iconHtml.includes("mdi-washing-machine"), "sensor text preview uses the selected icon");
-assert(!sensorTextPreview.labelHtml.includes("sp-type-badge"), "sensor text preview omits the card-type badge");
-
-const sensorIconPreview = hooks.buttonTypePreviewFor("sensor", {
-  sensor: "binary_sensor.patio_door",
-  icon: "Door Closed",
-  icon_on: "Door Open",
-  type: "sensor",
-  precision: "icon",
-});
-assert(sensorIconPreview.iconHtml.includes("mdi-door"), "sensor icon preview uses the selected icon");
-assert(!sensorIconPreview.labelHtml.includes("sp-type-badge"), "sensor icon preview omits the card-type badge");
-
-const sensorTimeCard = {
-  sensor: "sensor.ups_runtime",
-  label: "UPS Runtime",
-  type: "sensor",
-  precision: "time",
-  options: "time_unit=hours,large_numbers",
-};
-const sensorTimePreview = hooks.buttonTypePreviewFor("sensor", sensorTimeCard, { cardSize: 4 });
-assert.strictEqual(previewSensorValue(sensorTimePreview), "1h 30m", "sensor Time preview shows two duration parts on multi-column cards");
-assert(!sensorTimePreview.iconHtml.includes("sp-sensor-preview-large"), "sensor Time preview remains on the normal responsive layout");
-for (const cardSize of [1, 2, 5]) {
-  assert.strictEqual(
-    previewSensorValue(hooks.buttonTypePreviewFor("sensor", sensorTimeCard, { cardSize })),
-    "1h",
-    `sensor Time preview shows one duration part on single-column card size ${cardSize}`,
-  );
-}
-for (const cardSize of [3, 4, 6, 7, 8, 9, 10]) {
-  assert.strictEqual(
-    previewSensorValue(hooks.buttonTypePreviewFor("sensor", sensorTimeCard, { cardSize })),
-    "1h 30m",
-    `sensor Time preview shows two duration parts on multi-column card size ${cardSize}`,
-  );
-}
 
 const legacyForecastPreview = hooks.buttonTypePreviewFor("weather_forecast", {
   entity: "weather.forecast_home",
@@ -1293,26 +1204,6 @@ const pushPreview = hooks.buttonTypePreviewFor("push", {
 assert(pushPreview.iconHtml.includes("mdi-gesture-tap"), "push preview uses the trigger icon");
 assert(!pushPreview.labelHtml.includes("sp-type-badge"), "push preview omits the card-type badge");
 
-const internalSwitchPreview = hooks.buttonTypePreviewFor("internal", {
-  entity: "relay_1",
-  label: "Relay",
-  icon: "Power Plug",
-  icon_on: "Power",
-  type: "internal",
-});
-assert(internalSwitchPreview.iconHtml.includes("mdi-power-plug"), "internal switch preview uses the configured icon");
-assert(!internalSwitchPreview.labelHtml.includes("sp-type-badge"), "internal switch preview omits the card-type badge");
-
-const internalPushPreview = hooks.buttonTypePreviewFor("internal", {
-  entity: "relay_2",
-  label: "Bell",
-  icon: "Gesture Tap",
-  icon_on: "Auto",
-  sensor: "push",
-  type: "internal",
-});
-assert(internalPushPreview.iconHtml.includes("mdi-gesture-tap"), "internal push preview uses the push icon");
-assert(!internalPushPreview.labelHtml.includes("sp-type-badge"), "internal push preview omits the card-type badge");
 
 const subpagePlainPreview = hooks.buttonTypePreviewFor("subpage", {
   label: "Lighting",
@@ -1814,4 +1705,12 @@ for (const [entity, icon, suffix] of [
   assert(preview.iconHtml.includes("mdi-" + icon), `${entity} displays its metric icon`);
   assert(preview.labelHtml.includes(suffix), `${entity} displays a reading with accurate wording`);
   assert(!preview.iconHtml.includes("sp-sensor-value"), `${entity} no longer displays a large number`);
+}
+
+for (const type of ["internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver"]) {
+  assert.strictEqual(hooks.cardContractCardKeys().includes(type), false);
+  const removed = hooks.parseButtonConfig(`sensor.old;Old;Gauge;Auto;sensor.old;C;${type};1;secret=value`);
+  assert.strictEqual(removed.entity, "", `${type} retired entity is cleared`);
+  assert.strictEqual(removed.sensor, "", `${type} retired sensor is cleared`);
+  assert.strictEqual(removed.options, "", `${type} retired options are cleared`);
 }

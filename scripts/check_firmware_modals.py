@@ -58,16 +58,6 @@ def firmware_modal_errors(firmware_dir: Path, root: Path) -> list[str]:
                 errors.append(
                     f"{rel}:{line_no}: delete modal overlays through button_grid_modal.h lifecycle helpers"
                 )
-    wifi_qr_path = firmware_dir / "button_grid_wifi_qr.h"
-    if wifi_qr_path.exists():
-        text = wifi_qr_path.read_text(encoding="utf-8")
-        if (
-            "control_modal_calc_layout(modal_width_compensation_percent);" not in text
-            or "ui.tab_row, layout, tabs_layout, modal_width_compensation_percent);" not in text
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_wifi_qr.h: apply the active display width compensation to the Wifi modal"
-            )
     return errors
 
 
@@ -340,13 +330,6 @@ def firmware_modal_tab_layout_errors(root: Path) -> list[str]:
             if needle not in text:
                 errors.append("components/espdesktop/button_grid_modal.h: keep shared modal tab layout helpers")
                 break
-
-    wifi = firmware_dir / "button_grid_wifi_qr.h"
-    if not wifi.exists() or any(needle not in wifi.read_text(encoding="utf-8") for needle in (
-        "control_modal_calc_tab_layout(layout, tab_count, show_tab_bar)",
-        "control_modal_layout_tab_button(",
-    )):
-        errors.append("components/espdesktop/button_grid_wifi_qr.h: use shared modal tab layout helpers")
 
     forbidden_tab_math = (
         "lv_coord_t selected_tab_size =",
@@ -872,15 +855,6 @@ def run_self_test() -> int:
         "modal tab layout drifts back to local sizing",
         old_tab_layout,
         ("keep modal tab sizing in button_grid_modal_layout.h",),
-    )
-    missing_shared_tab_helper = valid_modal_tab_layout_files()
-    missing_shared_tab_helper["components/espdesktop/button_grid_wifi_qr.h"] = (
-        "lv_coord_t selected_tab_size = tab_size + tab_size / 8;\n"
-    )
-    expect_modal_tab_layout_errors(
-        "climate modal stops using shared tab helper",
-        missing_shared_tab_helper,
-        ("use shared modal tab layout helpers",),
     )
     home_idle_gated = valid_sleep_takeover_files()
     home_idle_gated["common/addon/backlight.yaml"] = home_idle_gated[

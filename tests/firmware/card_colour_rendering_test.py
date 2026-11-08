@@ -218,12 +218,10 @@ groups = (
     ("button_grid_display.h", "", ("display_correct_color",)),
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
-    ("button_grid_layout.h", "", ("grid_token_has_span_suffix", "parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
+    ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
-    ("button_grid_subpages.h", "", ("get_subpage_order", "subpage_back_token_span", "get_subpage_back_label", "get_subpage_back_color", "get_subpage_title")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
-    ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
 )
 for filename, namespace, names in groups:
@@ -496,7 +494,7 @@ int main() {
   defaults.sensor_val = 0x212121;
   assert(card_slider_fill_color(defaults) == defaults.on_val);
   DisplayProfile display;
-  for (const std::string type : {"", "sensor", "presence", "door_window", "light_control", "fan_control", "media", "cover"}) {
+  for (const std::string type : {"", "presence", "door_window", "light_control", "fan_control", "media", "cover"}) {
     for (const std::string mode : {"matching", "theme", "custom"}) {
       const std::string options = "card_off_color=6633B9,card_active_color=" + mode + ",card_on_color=FFFFFF";
       const ParsedCfg configs[] = {
@@ -557,101 +555,7 @@ int main() {
     {"000000", 0x000000, 0x666666, 0xFFFFFF},
   };
   for (const auto &colour : colours) {
-    for (const std::string type : {"sensor", "local_sensor"}) {
-      for (const std::string precision : {"0", "text", "icon", "time"}) {
-        const std::string options = "card_off_color=" + std::string(colour.hex);
-        const std::string main = "sensor.temp;Temperature;Thermometer;Auto;sensor.temp;C;" + type + ";" + precision + ";" + options;
-        const std::string legacy = "B,1|sensor.temp:Temperature:Thermometer:Auto:sensor.temp:C:" + type + ":" + precision + ":" + options;
-        const std::string compact = "~B,1|" + type + ",sensor.temp,Temperature,Thermometer,,sensor.temp,C," + precision + "," + options;
-        const ParsedCfg configs[] = {
-          parse_cfg(main),
-          parsed_cfg_from_subpage_btn(parse_subpage_config(legacy).at(0)),
-          parsed_cfg_from_subpage_btn(parse_subpage_config(compact).at(0)),
-        };
-        for (const auto &config : configs) {
-          const auto palette = card_palette_for_config(defaults, config, display);
-          lv_obj_t button, label, value, unit;
-          button.children = {&label, &value, &unit};
-          BtnSlot slot{&button};
-          apply_button_colors(&button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
-          sync_card_checked_text_color(&button);
-          espdesktop::cards::sensor_driver_apply_background(slot, palette);
-          assert(palette.custom_background);
-          const auto fill = card_slider_fill_color(palette);
-          const auto foreground = readable_text_color_for_bg(palette.off_val);
-          assert(contrast(foreground, fill) >= std::min(4.5, contrast(foreground, palette.off_val)));
-          assert(fill != palette.off_val);
-          assert(palette.on_val != palette.off_val);
-          assert(palette.progress_val == card_progress_color(colour.base));
-          assert(palette.progress_val != colour.base);
-          assert(palette.surface_sensor_val == colour.base);
-          assert(button.background[LV_STATE_DEFAULT] == colour.base);
-          assert(button.background[LV_STATE_CHECKED] == colour.active);
-          assert(label.text[0] == colour.text && value.text[0] == colour.text && unit.text[0] == colour.text);
-          apply_button_colors(&button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
-          assert(button.events.size() == 1);
-          button.state = LV_STATE_PRESSED;
-          send_event(&button, LV_EVENT_PRESSED);
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          button.state = 0;
-          send_event(&button, LV_EVENT_RELEASED);
-          assert(value.text[0] == colour.text);
-          button.state = LV_STATE_PRESSED;
-          send_event(&button, LV_EVENT_PRESSED);
-          button.state = 0;
-          send_event(&button, LV_EVENT_PRESS_LOST);
-          assert(value.text[0] == colour.text);
-          set_card_checked_state(&button, true);
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          set_card_checked_state(&button, false);
-          assert(value.text[0] == colour.text);
-          focused_app = "app"; focus_allowed = true;
-          companion_apply_card_focus(&button, "app");
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          assert(lv_obj_has_state(&button, LV_STATE_CHECKED));
-          const auto writes_before_repeat_focus = state_writes;
-          for (int update = 0; update < 100; ++update)
-            companion_apply_card_focus(&button, "app");
-          assert(state_writes == writes_before_repeat_focus);
-          const auto reads_before_hidden_focus = focus_reads;
-          companion_apply_card_focus(&button, "app", "", false);
-          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
-          assert(value.text[0] == colour.text);
-          button.state = LV_STATE_PRESSED;
-          send_event(&button, LV_EVENT_PRESSED);
-          companion_apply_card_focus(&button, "app", "", false);
-          assert(lv_obj_has_state(&button, LV_STATE_PRESSED));
-          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          button.state = 0;
-          send_event(&button, LV_EVENT_RELEASED);
-          companion_apply_card_focus(&button, "app", "", false);
-          assert(value.text[0] == colour.text);
-          assert(focus_reads == reads_before_hidden_focus);
-          focused_app.clear(); companion_apply_card_focus(&button, "app");
-          assert(value.text[0] == colour.text);
-          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
-          const auto writes_before_repeat_inactive = state_writes;
-          companion_apply_card_focus(&button, "app");
-          assert(state_writes == writes_before_repeat_inactive);
-          focused_app = "browser"; companion_apply_card_focus(&button, "app", "url.page");
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          focus_allowed = false; companion_apply_card_focus(&button, "app", "url.page");
-          assert(value.text[0] == colour.text);
-          focus_allowed = true; focused_app.clear();
-          for (const char *state : {"42", "0", "42"}) {
-            apply_sensor_active_color(&button, true, esphome::StringRef(state), palette.on_val, palette.sensor_val, false, true, true);
-            const auto expected = std::string(state) == "0" ? colour.base : colour.active;
-            assert(button.background[0] == expected);
-            assert(value.text[0] == display_text_color_for_bg(expected));
-            assert(label.text[0] == value.text[0] && unit.text[0] == value.text[0]);
-          }
-          apply_sensor_active_color(&button, true, esphome::StringRef("unavailable"), palette.on_val, palette.sensor_val, true, false, true);
-          assert(button.background[0] == colour.base);
-          assert(button.background[0] == colour.base);
-        }
-      }
-    }
+
 
   }
   for (const char *options : {"", "card_off_color=invalid"}) {

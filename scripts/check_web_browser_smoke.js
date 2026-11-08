@@ -18,6 +18,7 @@ const {
   decodeConfigField,
   splitSubpageConfigChunks,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
+const { encodePanelPageDocument, decodePanelPageDocument } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = freshWebOutputDir();
 const FAILURE_DIR = path.join(ROOT, ".cache", "web-browser-smoke");
@@ -364,7 +365,10 @@ async function installRoutes(context, slug, options = {}) {
           reset: options.resetState ? { modes: ["customization", "factory"], status: "/api/v1/reset" } : undefined,
           identity: options.identityState ? { version: 1 } : undefined,
           screensaver_pin: options.screensaverPinState ? { version: 1 } : undefined,
-          configuration: { read: true, write: true, document_versions: [1],
+          configuration: { read: true, write: true, document_versions: options.nativeV2 ? [1, 2] : [1],
+            durable_document_version: options.nativeV2 ? 2 : 1,
+            max_navigation_depth: options.nativeV2 ? 2 : 1, writable_navigation_depth: options.nativeV2 ? 2 : 1,
+            max_v2_document_bytes: 524288, preserves_inactive_records: true,
             max_record_body_bytes: nativeState.maxRecordBodyBytes },
           web_assets: { versions: [1] },
         }),
@@ -406,7 +410,7 @@ async function installRoutes(context, slug, options = {}) {
         }
         const body = route.request().postDataBuffer();
         assert(body, `${slug}: native configuration PUT has a binary body`);
-        nativeState.document = decodePanelConfig(new Uint8Array(body));
+        nativeState.document = (options.nativeV2 ? decodePanelPageDocument : decodePanelConfig)(new Uint8Array(body));
         nativeState.generation += 1;
         nativeState.puts.push({
           generation: nativeState.generation,
@@ -414,15 +418,15 @@ async function installRoutes(context, slug, options = {}) {
         });
         await route.fulfill({
           status: 204,
-          headers: { ETag: `"${nativeState.generation}"` },
+          headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
         });
         return;
       }
       await route.fulfill({
         status: 200,
         contentType: "application/vnd.espdesktop.panel-config",
-        headers: { ETag: `"${nativeState.generation}"` },
-        body: Buffer.from(encodePanelConfig(nativeState.document)),
+        headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
+        body: Buffer.from((options.nativeV2 ? encodePanelPageDocument : encodePanelConfig)(nativeState.document)),
       });
       return;
     }
@@ -483,6 +487,15 @@ async function installRoutes(context, slug, options = {}) {
         contentType: "application/javascript",
         body: fs.readFileSync(immutableBundlePath, "utf8"),
       });
+      return;
+    }
+    if (requestUrl.hostname === "espdesktop.test" && route.request().method() === "GET" && /^\/(text|text_sensor|select|number|switch|sensor|binary_sensor|button|update|light)\//.test(requestUrl.pathname)) {
+      const parts = requestUrl.pathname.split("/").filter(Boolean);
+      const domain = parts[0], name = decodeURIComponent(parts[1] || "");
+      const normalized = value => String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+      const events = nativeState ? nativeDocumentEvents(nativeState.document) : seededEvents();
+      const event = events.find(event => normalized(event.id) === normalized(domain + "-" + name));
+      await route.fulfill(event ? { status: 200, contentType: "application/json", body: JSON.stringify(event) } : { status: 404, body: "Entity absent from this fixture" });
       return;
     }
     if (requestUrl.hostname === "espdesktop.test") {
@@ -3206,7 +3219,7 @@ async function assertContextColourPicker(browser, testCase) {
       assert.deepStrictEqual(await Promise.all([1, 2].map(slot => card(slot).evaluate(el => el.style.backgroundColor))), originalBackgrounds,
         `${label}: oversized bulk recolouring leaves every selected card unchanged`);
       await page.locator(".sp-brand").click();
-      for (const type of ["image", "wifi_qr_card"]) {
+      for (const type of ["image"]) {
         await page.evaluate(type => window.__seedEspState([
           { id: "text-button_1_config", state: `camera.garden;Fixed Background;Auto;Auto;;;${type}` },
         ]), type);
@@ -3221,7 +3234,7 @@ async function assertContextColourPicker(browser, testCase) {
         await seedNativeDocument(page, fixture);
         await page.locator(".sp-brand").click();
         let rejectAfter = 0;
-        await page.route("**/api/v1/config/**", async route => {
+        await page.route("**/api/v1/config{,/**}", async route => {
           if (route.request().method() !== "PUT") return route.fallback();
           if (rejectAfter-- <= 0) return route.fulfill({ status: 409, body: "generation conflict" });
           return route.fallback();
@@ -3258,7 +3271,7 @@ async function assertContextColourPicker(browser, testCase) {
         assert.strictEqual(fixture.document.subpages[3], savedSubpage);
         // A 202 has durable native data but no compatible older-firmware copy.
         // Keep the saved colour and the controller's downgrade warning.
-        await page.route("**/api/v1/config/**", async route => {
+        await page.route("**/api/v1/config{,/**}", async route => {
           if (route.request().method() !== "PUT") return route.fallback();
           fixture.document = decodePanelConfig(new Uint8Array(route.request().postDataBuffer()));
           fixture.generation++;
@@ -3587,82 +3600,6 @@ async function assertFanOptionalLightSettings(page, label) {
     const overlay = document.querySelector(".sp-settings-overlay");
     return overlay && !overlay.classList.contains("sp-visible");
   });
-}
-
-async function assertInternalControlsPanel(page, posts, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  await page.waitForSelector("#sp-screen.sp-page.active");
-  const emptyCell = page
-    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
-    .first();
-  if ((await emptyCell.count()) === 0) return;
-  const before = posts.length;
-  await emptyCell.click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  const internalOption = page.getByRole("button", { name: "Internal card type" });
-  if ((await internalOption.count()) > 0) {
-    await chooseCardType(page, "Internal");
-    const controlsButton = page.getByRole("button", {
-      name: "Controls",
-      exact: true,
-    });
-    const controlsPanel = controlsButton.locator("..");
-    assert(
-      await controlsButton.isVisible(),
-      `${label}: Internal card should show a Controls panel`,
-    );
-    assert.strictEqual(
-      await controlsButton.getAttribute("aria-expanded"),
-      "false",
-      `${label}: Internal Controls should start collapsed`,
-    );
-    assert.deepStrictEqual(
-      await page
-        .locator(".sp-settings-modal .sp-panel > .sp-disclosure > .sp-disclosure-button > span:first-child")
-        .evaluateAll((headings) => headings.map((heading) => heading.textContent)),
-      ["Controls", "Card Settings"],
-      `${label}: Internal groups should show Controls before Card Settings`,
-    );
-    assert.strictEqual(
-      await page.locator("#sp-inp-internal-relay").evaluate((element) => {
-        const disclosure = element.closest(".sp-disclosure");
-        const heading = disclosure && disclosure.querySelector(".sp-disclosure-button > span:first-child");
-        return heading && heading.textContent;
-      }),
-      "Controls",
-      `${label}: Internal Relay should be inside Controls`,
-    );
-    await controlsButton.click();
-    assert(
-      await page.locator("#sp-inp-internal-relay").isVisible(),
-      `${label}: expanding Internal Controls should reveal the relay`,
-    );
-    assert.strictEqual(
-      await controlsPanel.getByRole("button", { name: "Switch", exact: true }).count(),
-      1,
-      `${label}: Internal Type should be inside Controls`,
-    );
-    const pushButton = controlsPanel.getByRole("button", {
-      name: "Push Button",
-      exact: true,
-    });
-    await pushButton.click();
-    assert(
-      (await pushButton.getAttribute("class")).includes("active"),
-      `${label}: Internal Type should remain interactive inside Controls`,
-    );
-  }
-
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => {
-    const overlay = document.querySelector(".sp-settings-overlay");
-    return overlay && !overlay.classList.contains("sp-visible");
-  });
-  assert.strictEqual(
-    posts.length,
-    before,
-    `${label}: Internal Controls audit should not save a card`,
-  );
 }
 
 async function assertWebhookSettingsPanel(page, posts, label) {
@@ -5944,30 +5881,7 @@ async function seedNativeDocument(page, nativeState) {
     nativeDocumentEvents(nativeState.document),
   );
   await page.waitForSelector('.sp-main [data-slot="2"]');
-}
-
-async function assertWifiSharingHidesHomeAssistantControls(browser, testCase) {
-  const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, {
-    homeAssistantSupport: false,
-    nativeState: nativeConfigState(testCase.slug),
-  });
-  const page = await context.newPage();
-  await installFakeEventSource(page);
-  try {
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
-      waitUntil: "domcontentloaded",
-    });
-    await page.waitForSelector("#sp-app");
-    await page.waitForFunction(
-      () => window.__eventSources && window.__eventSources.length > 0,
-    );
-    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
-    await page.waitForSelector(".sp-main > .sp-btn");
-    await assertWifiSharingGuestControlsHidden(page, testCase.name);
-  } finally {
-    await context.close();
-  }
+  await page.waitForFunction(() => document.querySelector(".sp-main")?.getAttribute("aria-disabled") === "false");
 }
 
 async function assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase) {
@@ -6099,7 +6013,6 @@ async function assertInlineCardNames(page, nativeState, label) {
     ["calendar datetime", "sensor.date;;Auto;Auto;;;calendar;datetime"],
     ["clock", ";;Auto;Auto;;;clock"],
     ["timezone", "Europe/London;;Auto;Auto;;;timezone"],
-    ["screen_lock", ";;Lock;Lock Open;;;screen_lock"],
   ]) {
     nativeState.document.buttons[1] = config;
     await seedNativeDocument(page, nativeState);
@@ -6147,24 +6060,6 @@ async function assertInlineCardNames(page, nativeState, label) {
   await seedNativeDocument(page, nativeState);
 }
 
-async function assertWifiSharingGuestControlsHidden(page, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
-  assert(await emptyCell.count(), `${label}: guest Wi-Fi test needs an empty slot`);
-  await emptyCell.click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page.locator('[data-card-type="wifi_qr"]').click();
-  await page.waitForSelector(".sp-settings-modal");
-  assert.strictEqual(
-    await page.locator("#sp-inp-wifi-tab-guest").count(),
-    0,
-    `${label}: newly added Wifi Sharing cards do not expose Guest Wi-Fi controls`,
-  );
-  assert.strictEqual(await page.locator("#sp-inp-wifi-guest-entity").count(), 0);
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay.sp-visible"));
-}
-
 async function assertNativeProfileJourney(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -6192,7 +6087,6 @@ async function assertNativeProfileJourney(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await seedNativeDocument(page, nativeState);
-    if (testCase.exerciseInteractions) await assertWifiSharingHidesHomeAssistantControls(browser, testCase);
 
     await assertInlineCardNames(page, nativeState, testCase.name);
     await assertSubpageBackCard(page, testCase.name, nativeState);
@@ -6463,8 +6357,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await seedNativeDocument(page, nativeState);
     const commandIcon = page.locator('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
     await commandIcon.waitFor({ state: "visible" });
+    await page.waitForFunction(() => {
+      const element = document.querySelector('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
+      return element && getComputedStyle(element, "::before").content === '"' + String.fromCodePoint(0xF0633) + '"';
+    });
     assert.strictEqual(
-      await commandIcon.evaluate((element) => getComputedStyle(element, "::before").content),
+      await page.evaluate(() => getComputedStyle(document.querySelector('.sp-main [data-slot="1"] .mdi-apple-keyboard-command'), "::before").content),
       '"' + String.fromCodePoint(0xF0633) + '"',
       "saved Command cards render the bundled MDI glyph",
     );
@@ -6620,7 +6518,7 @@ async function assertCompanionStorageSettings(browser, testCase) {
     const page = await context.newPage();
     await installFakeEventSource(page);
     const openSettings = async () => {
-      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.locator('.sp-main [data-slot="1"]').click({ position: { x: 70, y: 25 } });
       await page.getByRole("button", { name: "Edit", exact: true }).click();
       await page.waitForSelector(".sp-settings-overlay.sp-visible");
       const field = page.locator('[id$="storage-device"]');
@@ -7131,7 +7029,6 @@ async function runCase(browser, testCase) {
       await assertCameraRefreshSettings(page, posts, testCase.name);
       await assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase);
     }
-    await assertInternalControlsPanel(page, posts, testCase.name);
     await assertEmptyCellSettings(page, posts, testCase.name, testCase);
     await assertNewMediaCardDefaults(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {
@@ -7734,78 +7631,6 @@ async function assertScreensaverPinSettings(browser) {
     await page.waitForFunction(() => document.querySelector("#sp-set-screensaver-pin-enabled").checked === false &&
       document.querySelector("#sp-set-screensaver-pin").disabled === false);
     assert.strictEqual(pin.pin, "");
-    // A Screen Lock card edits the same PIN and cannot be saved before the
-    // device has accepted one. Manual locking does not require wake locking.
-    pin.randomize = false;
-    await page.getByRole("tab", { name: "Layout" }).click();
-    await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
-    await page.locator('.sp-card-type-option[data-card-type="screen_lock"]').click();
-    const lockSettings = page.locator('.sp-settings-modal [data-sp-pin-settings]');
-    const lockInput = lockSettings.locator('input[type="password"]');
-    await lockInput.waitFor({ state: "visible" });
-    await page.waitForFunction(() => !document.querySelector('.sp-settings-modal input[type="password"]').disabled);
-    assert.strictEqual(await lockSettings.locator('input[id$="-randomize"]').isChecked(), false);
-    assert.strictEqual(await lockSettings.getByText('Require PIN after wake', { exact: true }).count(), 0,
-      'manual Screen Lock always requires its saved PIN');
-    assert.strictEqual(await lockSettings.getByRole('button', { name: 'Clear', exact: true }).count(), 0);
-    assert(await lockSettings.evaluate(form => {
-      const pin = form.querySelector('input[type="password"]');
-      const randomize = form.querySelector('input[id$="-randomize"]');
-      return !!(pin.compareDocumentPosition(randomize) & Node.DOCUMENT_POSITION_FOLLOWING);
-    }), 'randomize appears below the PIN field');
-    const behavior = page.locator('.sp-settings-modal .sp-disclosure').filter({ hasText: 'Screensaver on lock' });
-    await behavior.locator('> .sp-disclosure-button').click();
-    const screensaverToggle = page.locator('.sp-settings-modal input[id$="screensaver-on-lock"]');
-    assert.strictEqual(await screensaverToggle.isChecked(), false, 'screensaver on lock defaults off');
-    await page.locator(".sp-settings-modal .sp-save-btn").click();
-    await page.getByText("Save a PIN before saving this card.", { exact: true }).waitFor();
-    await lockInput.fill("12bad");
-    await lockSettings.getByRole("button", { name: "Save", exact: true }).click();
-    await lockSettings.getByRole("alert").getByText("Enter a PIN containing 1–16 digits.").waitFor();
-    await lockInput.fill("123456");
-    pin.failSave = true;
-    await lockSettings.getByRole("button", { name: "Save", exact: true }).click();
-    await lockSettings.getByRole("alert").getByText("Could not save or read PIN settings. Check the connection and try again.").waitFor();
-    await page.locator(".sp-settings-modal .sp-save-btn").click();
-    assert(await page.locator(".sp-settings-overlay.sp-visible").isVisible(), "failed PIN write cannot save the card");
-    pin.failSave = false;
-    await lockSettings.getByRole("button", { name: "Save", exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.sp-settings-modal input[type="password"]').value === "");
-    assert.strictEqual(pin.pin, "123456");
-    assert.strictEqual(pin.enabled, false, "card PIN can be saved without enabling automatic wake protection");
-    assert.strictEqual(await input.getAttribute("placeholder"), "••••••", "card save updates screensaver PIN controls");
-    await page.locator('.sp-settings-modal input[id$="screensaver-on-lock"] + .sp-toggle-track').click();
-    await page.locator(".sp-settings-modal .sp-save-btn").click();
-    await page.locator(".sp-settings-overlay.sp-visible").waitFor({ state: "hidden" });
-    await page.getByRole("tab", { name: "Screen" }).click();
-    await enable.click();
-    await input.waitFor({ state: "visible" });
-    assert.strictEqual(await input.getAttribute("placeholder"), "••••••");
-    await input.fill("9876");
-    await card.getByRole("button", { name: "Save", exact: true }).click();
-    await page.waitForFunction(() => document.querySelector("#sp-set-screensaver-pin").value === "");
-    await page.getByRole("tab", { name: "Layout" }).click();
-    await page.locator('.sp-main [data-slot]').filter({ hasText: "Screen Unlocked" }).first().click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await lockInput.waitFor({ state: "visible" });
-    await page.waitForFunction(() => !document.querySelector('.sp-settings-modal input[type="password"]').disabled);
-    assert.strictEqual(await lockInput.getAttribute("placeholder"), "••••", "screensaver PIN save is visible in the card editor");
-    assert.strictEqual(await screensaverToggle.isChecked(), true, 'screensaver preference survives saving and re-opening the card');
-    await behavior.locator('> .sp-disclosure-button').click();
-    await page.locator('.sp-settings-modal input[id$="screensaver-on-lock"] + .sp-toggle-track').click();
-    await page.locator('.sp-settings-modal .sp-save-btn').click();
-    await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
-    await page.locator('.sp-main [data-slot]').filter({ hasText: 'Screen Unlocked' }).first().click();
-    await page.getByRole('button', { name: 'Edit', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('.sp-settings-modal input[type="password"]').disabled);
-    assert.strictEqual(await screensaverToggle.isChecked(), false, 'screensaver preference can be disabled');
-    await page.locator(".sp-settings-close").click();
-    await page.getByRole("tab", { name: "Screen" }).click();
-    await card.getByRole('button', { name: 'Clear', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('#sp-set-screensaver-pin-enabled').checked &&
-      !document.querySelector('#sp-set-screensaver-pin').disabled);
-    assert.strictEqual(pin.pin, '');
-    assert.strictEqual(pin.enabled, false, 'shared PIN can still be cleared from screensaver settings');
     // A protected destination importing an ordinary backup must clear its PIN.
     pin.pin = "2468"; pin.enabled = true;
     await importBackup(page, backupFixture(testCase.slug, testCase.slots), "screensaver-pin-restore");
@@ -7926,7 +7751,6 @@ async function assertPreviewOutlinePixels(page, card, label) {
       continuous: style.clipPath.startsWith("path("), dashed: card.classList.contains("sp-empty-cell") };
   });
 
-
   const thicknesses = await page.evaluate(async ({ geometry: g, png }) => {
     const image = new Image(); image.src = png; await image.decode();
     const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
@@ -7999,7 +7823,7 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
       const hooks = window.__ESPDESKTOP_TEST_HOOKS__.config;
       const keys = exhaustive
         ? [...new Set([...hooks.cardContractCardKeys(), ...hooks.buttonTypePickerKeysFor(false), "media_cover_art"])]
-        : ["weather", "image", "media_cover_art", "light_brightness", "wifi_qr_card"];
+        : ["weather", "image", "media_cover_art", "light_brightness"];
       return keys.map(key => {
         const config = hooks.buttonTypeDefaultConfig(key);
         return config ? { key, config: hooks.serializeButtonConfig(config) } : null;
@@ -8336,7 +8160,6 @@ async function assertS3ForecastEditorLayout(browser) {
 
   } finally { await context.close(); }
 }
-
 
 async function assertCameraScreensaverDimming(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -8933,8 +8756,50 @@ async function assertSpecialPageEntry(browser, testCase) {
     await openPage();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await openPage();
+
     console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
+
   } finally { await context.close(); }
+}
+
+async function assertRetiredCardRemoval(browser) {
+  const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
+  const types = [...(contract.retiredCardTypes || []), ...contract.retiredSubpageTypeCodes];
+  const testCase = ACTIVE_CASES[0];
+  for (const type of types) {
+    const nativeState = nativeConfigState(testCase.slug);
+    nativeState.document.buttons = {
+      1: `old.entity;Retired;Gauge;Auto;sensor.old;C;${type};1;old=value`,
+      2: "light.lamp;Neighbour;Lightbulb;Auto",
+      3: ";Room;Folder;Auto;;;subpage",
+    };
+    nativeState.document.settings.button_order = "1,2,3";
+    nativeState.document.subpages = {
+      3: `~B,1w,,2|${type},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
+    };
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old main tile is removed`);
+      assert(await page.locator('.sp-main .sp-empty-cell:not(.sp-info-only-hidden)').count(), `${type}: removed space is available`);
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.waitForSelector('.sp-main [data-slot="-2"]');
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old subpage tile is removed`);
+      assert.equal(await page.locator('.sp-main [data-slot="2"]').count(), 1, `${type}: neighbouring card is preserved`);
+      await page.locator('.sp-back-btn .sp-back-hit').click();
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.waitForSelector('.sp-main [data-slot="-2"]');
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: retired span stays free after reopening`);
+      assert.equal(await page.locator('.sp-main [data-slot="2"]').count(), 1, `${type}: reopening preserves the neighbouring card`);
+
+    } finally { await context.close(); }
+  }
+  console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
 }
 
 async function assertRetiredSettingsStayUnavailable(browser, testCase) {
@@ -8968,16 +8833,104 @@ async function assertRetiredSettingsStayUnavailable(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertNestedCompanionPages(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040"), fixture = nativeConfigState(testCase.slug);
+  fixture.document = JSON.parse(fs.readFileSync(path.join(ROOT, "compatibility/fixtures/companion_nested_pages.json"))).document;
+  fixture.document.deviceProfile = testCase.slug;
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  const page = await context.newPage(), errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    const open = async () => {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+      await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+      await page.getByText("Address", { exact: true }).first().waitFor();
+    };
+    // Create a new app shortcut page while its app is already inside a folder.
+    const existing = structuredClone(fixture.document);
+    delete fixture.document.subpages[33];
+    fixture.document.subpages[1] = fixture.document.subpages[1].replace("app_shortcuts", "");
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+    if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
+    await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length === 1 && !!fixture.document.subpages[33], "create a nested app page atomically");
+    assert(fixture.document.subpages[1].includes("app_shortcuts"));
+    assert(fixture.document.subpages[33].includes("shortcut."));
+    // Start the independent edit/reload scenario with a custom existing card.
+    fixture.document = existing; fixture.generation++; fixture.puts = [];
+    await open();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.getByText("Safari", { exact: true }).first().waitFor();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+    if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await app.locator(".sp-disclosure-button").click();
+    await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
+    let rejectNext = true;
+    await page.route("**/api/v1/config", async route => {
+      if (route.request().method() === "PUT" && rejectNext) {
+        rejectNext = false; return route.fulfill({ status: 500, body: "Save failed" });
+      }
+      return route.fallback();
+    });
+    const beforeRetry = fixture.document.subpages[1];
+    const failed = page.waitForResponse(response => response.url().endsWith("/api/v1/config") && response.status() === 500);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await failed;
+    await page.waitForFunction(() => {
+      const save = [...document.querySelectorAll(".sp-settings-modal button")].find(button => button.textContent === "Save");
+      return save && !save.disabled;
+    });
+    assert.equal(fixture.puts.length, 0);
+    assert.equal(fixture.document.subpages[1], beforeRetry);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length === 1, "one atomic nested app save");
+    assert(fixture.document.subpages[33].includes("Address"), "existing shortcut survives app preset change");
+    assert(fixture.document.subpages[33].includes("shortcut."), "app shortcuts persist under nested key");
+    const parsed = loadTypeScriptModule("src/webserver/model/subpage.ts").parseRawSubpageConfig(fixture.document.subpages[33], code => code);
+    const back = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/app_shortcuts/safari.json"))).shortcuts.find(shortcut => shortcut.id === "1");
+    assert(parsed.buttons.some(card => card.entity === "shortcut." + back.shortcut), "retry in the same dialog saves the newly selected shortcut");
+    await open();
+    assert.deepStrictEqual(errors, []);
+    console.log("Nested Companion shortcut creation, edit, failed-save retry, atomic save, reload and parent Back passed.");
+  } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    await assertRetiredCardRemoval(browser);
+    if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);
       console.log(`Retired HA settings and backup export checks passed for ${ACTIVE_CASES.length} layouts.`);
       return;
     }
+    if (process.env.ESPDESKTOP_COMPANION_SHORTCUTS_ONLY === "1") {
+      const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+      await assertCompanionShortcutSettings(browser, testCase);
+      await assertAppSubpageCapacity(browser, testCase);
+      await assertShortcutCatalogSettings(browser, testCase);
+      await assertCompanionStorageSettings(browser, testCase);
+      console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") { await assertNestedCompanionPages(browser); return; }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;
@@ -9135,6 +9088,7 @@ async function assertRetiredSettingsStayUnavailable(browser, testCase) {
       console.log("Home Assistant visibility browser checks passed.");
       return;
     }
+    await assertNestedCompanionPages(browser);
     await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }

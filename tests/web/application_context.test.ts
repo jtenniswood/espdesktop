@@ -5,7 +5,6 @@ import {
 import { createCardRegistry } from "../../src/webserver/application/card_registry";
 import { createConfigWeatherOptionsFeature } from "../../src/webserver/application/config_weather_options";
 import { createConfigWebhookOptionsFeature } from "../../src/webserver/application/config_webhook_options";
-import { createConfigInternalRelayOptionsFeature } from "../../src/webserver/application/config_internal_relay_options";
 import { createConfigRobotCardOptionsFeature } from "../../src/webserver/application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "../../src/webserver/application/config_lock_options";
 import { createConfigDateTimeOptionsFeature } from "../../src/webserver/application/config_date_time_options";
@@ -39,7 +38,6 @@ export function runApplicationContextTests(): void {
   const imageConfigurationOptions = {} as any;
   const weatherConfigurationOptions = {} as any;
   const webhookConfigurationOptions = {} as any;
-  const internalRelayConfigurationOptions = {} as any;
   const robotConfigurationOptions = {} as any;
   const lockConfigurationOptions = {} as any;
   const dateTimeConfigurationOptions = {} as any;
@@ -120,7 +118,6 @@ export function runApplicationContextTests(): void {
     imageConfigurationOptions,
     weatherConfigurationOptions,
     webhookConfigurationOptions,
-    internalRelayConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,
@@ -222,7 +219,6 @@ export function runApplicationContextTests(): void {
   equal(context.configuration.imageOptions, imageConfigurationOptions, "context retains typed image options");
   equal(context.configuration.weatherOptions, weatherConfigurationOptions, "context retains typed weather options");
   equal(context.configuration.webhookOptions, webhookConfigurationOptions, "context retains typed webhook options");
-  equal(context.configuration.internalRelayOptions, internalRelayConfigurationOptions, "context retains typed internal-relay options");
   equal(context.configuration.robotOptions, robotConfigurationOptions, "context retains typed robot-card options");
   equal(context.configuration.lockOptions, lockConfigurationOptions, "context retains typed lock options");
   equal(context.configuration.dateTimeOptions, dateTimeConfigurationOptions, "context retains typed date/time options");
@@ -281,14 +277,6 @@ export function runApplicationContextTests(): void {
   equal(webhook.precision, "", "webhook normalization clears precision");
   equal(webhookOptions.webhookHeaders(webhook), "Content-Type: application/json", "webhook normalization preserves encoded headers");
 
-  const internalRelayOptions = createConfigInternalRelayOptionsFeature({
-    ...profile,
-    features: { internalRelays: [{ key: "relay_1", label: "Relay One" }] },
-  });
-  equal(internalRelayOptions.normalizeInternalRelayMode("push"), "push", "internal relay options preserve push mode");
-  equal(internalRelayOptions.normalizeInternalRelayMode("invalid"), "switch", "internal relay options reject unknown modes");
-  equal(internalRelayOptions.internalRelayLabelFor("relay_1"), "Relay One", "internal relay options use profile labels");
-  equal(internalRelayOptions.internalRelayLabelFor("porch_light"), "Porch Light", "internal relay options format unknown relay keys");
 
   const robotOptions = createConfigRobotCardOptionsFeature();
   equal(robotOptions.normalizeLawnMowerMode("dock"), "dock", "robot options preserve lawn-mower modes");
@@ -317,11 +305,11 @@ export function runApplicationContextTests(): void {
   equal(dateTimeOptions.dateTimeCardTimeParts().value, "09:05", "date/time options format the shared current time");
   equal(dateTimeOptions.defaultTimezoneCardEntity(), "Europe/London (GMT+0)", "date/time options use the active timezone");
 
-  const sensor = cards.register("sensor", { label: "Sensor", allowInSubpage: true });
+  const timer = cards.register("timer", { label: "Timer", allowInSubpage: true });
   equal(cards.typedDefinitionCount, 1, "registry counts typed card definitions");
-  equal(cards.definitions.sensor, sensor, "registry owns typed card definitions");
-  equal(sensor.key, "sensor", "registry assigns the card key");
-  equal(sensor.label, "Sensor", "registry preserves typed card metadata");
-  equal(sensor.runtimeSpec != null, true, "registry attaches the generated runtime contract");
+  equal(cards.definitions.timer, timer, "registry owns typed card definitions");
+  equal(timer.key, "timer", "registry assigns the card key");
+  equal(timer.label, "Timer", "registry preserves typed card metadata");
+  equal(timer.runtimeSpec != null, true, "registry attaches the generated runtime contract");
 
 }

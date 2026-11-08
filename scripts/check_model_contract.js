@@ -421,7 +421,7 @@ function assertTransferError(value, expected) {
 assertTransferError("not json", "could not read the JSON");
 assertTransferError({ format: "other", version: 1, source: { device: "", firmware: "" }, cards: [transferCard] },
   "unsupported format");
-assertTransferError({ format: "espdesktop.cards", version: 2, source: { device: "", firmware: "" }, cards: [transferCard] },
+assertTransferError({ format: "espdesktop.cards", version: 3, source: { device: "", firmware: "" }, cards: [transferCard] },
   "newer version");
 assertTransferError({ format: "espdesktop.cards", version: 1, source: { device: "", firmware: "" }, cards: [] },
   "no cards");

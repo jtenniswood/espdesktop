@@ -848,7 +848,9 @@ def main() -> int:
     parser.add_argument("--check", action="store_true", help="fail if generated YAML is stale")
     args = parser.parse_args()
 
+    from device_ui_limits import render_header
     changed: list[Path] = []
+    update(ROOT / "components/espdesktop/device_ui_limits_generated.h", render_header(), args.check, changed)
     for device in slot_devices():
         slug = device["slug"]
         package_path = ROOT / "devices" / slug / "packages.yaml"

@@ -892,8 +892,6 @@ def web_features(profile: dict[str, Any]) -> dict[str, Any]:
             features["screenRotationDefault"] = rotation["default"]
         if "displayOffset" in rotation:
             features["screenRotationDisplayOffset"] = rotation["displayOffset"]
-    if profile.get("internalRelays"):
-        features["internalRelays"] = copy.deepcopy(profile["internalRelays"])
     if "battery" in (package.get("extraPackages") or {}):
         features["battery"] = True
     if package.get("subpageConfigChunks"):

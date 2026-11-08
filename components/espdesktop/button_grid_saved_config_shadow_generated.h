@@ -24,18 +24,6 @@ inline const CardContractShadowFieldPolicy SAVED_CONFIG_SHADOW_ACTION_FIELDS[] =
   {"options", CardContractShadowPolicyKind::HOOK, "normalize_action_options"},
 };
 
-inline const CardContractShadowFieldPolicy SAVED_CONFIG_SHADOW_SENSOR_FIELDS[] = {
-  {"entity", CardContractShadowPolicyKind::KEEP, ""},
-  {"label", CardContractShadowPolicyKind::KEEP, ""},
-  {"icon", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"icon_on", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"sensor", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"unit", CardContractShadowPolicyKind::KEEP, ""},
-  {"type", CardContractShadowPolicyKind::DEFAULT_VALUE, "sensor"},
-  {"precision", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"options", CardContractShadowPolicyKind::HOOK, "normalize_sensor_options"},
-};
-
 inline const CardContractShadowFieldPolicy SAVED_CONFIG_SHADOW_MEDIA_FIELDS[] = {
   {"entity", CardContractShadowPolicyKind::KEEP, ""},
   {"label", CardContractShadowPolicyKind::HOOK, "normalize_media_fields"},
@@ -107,34 +95,6 @@ inline std::string saved_config_shadow_trim(const std::string &value) {
   size_t begin = 0; while (begin < value.size() && (value[begin] == ' ' || value[begin] == '\t' || value[begin] == '\r' || value[begin] == '\n')) ++begin;
   size_t end = value.size(); while (end > begin && (value[end - 1] == ' ' || value[end - 1] == '\t' || value[end - 1] == '\r' || value[end - 1] == '\n')) --end;
   return value.substr(begin, end - begin);
-}
-
-template<typename Config>
-inline bool normalize_saved_config_sensor_shadow(Config &config) {
-  if (config.type == "text_sensor") { config.type = "sensor"; config.precision = "text"; config.entity.clear(); config.label.clear(); config.unit.clear(); config.icon_on = "Auto"; if (config.icon.empty()) config.icon = "Auto"; }
-  if (config.type == "local_sensor") { config.type = "sensor"; config.sensor = "local"; config.icon_on = "Auto"; config.options.clear(); }
-  if (config.type != "sensor") return false;
-  if (config.icon.empty()) config.icon = "Auto";
-  if (config.icon_on.empty()) config.icon_on = "Auto";
-  if (config.sensor != "local" && config.precision == "time") { config.unit.clear(); config.icon = "Auto"; config.icon_on = "Auto"; }
-  if (config.sensor == "local") { config.icon_on = "Auto"; config.options.clear(); if (config.precision != "text" && config.precision != "1" && config.precision != "2") config.precision.clear(); if (config.precision != "text" && (config.icon.empty() || config.icon == "Auto")) config.icon = "Auto"; return true; }
-  const std::string source = config.options; std::string out;
-  if (config.precision != "icon" && config.precision != "text" && config.precision != "time") append_large_numbers_option(out, source);
-  if (config.precision != "time" && cfg_option_token_present(source, "active_color")) saved_config_shadow_append_option(out, "active_color");
-  if (config.precision == "text" && cfg_option_token_present(source, "state_labels")) {
-    saved_config_shadow_append_option(out, "state_labels"); std::string input = cfg_option_value(source, "state_input"); std::string output = cfg_option_value(source, "state_output");
-    if (input.empty() && !cfg_option_value(source, "state_high_label").empty()) { input = "high"; if (output.empty()) output = cfg_option_value(source, "state_high_label"); }
-    else if (input.empty() && !cfg_option_value(source, "state_low_label").empty()) { input = "low"; if (output.empty()) output = cfg_option_value(source, "state_low_label"); }
-    input = saved_config_shadow_trim(input); output = saved_config_shadow_trim(output);
-    if (!input.empty()) saved_config_shadow_append_option(out, "state_input", input);
-    if (!output.empty()) saved_config_shadow_append_option(out, "state_output", output);
-    const std::string input_2 = cfg_option_value(source, "state_input_2"); const std::string output_2 = cfg_option_value(source, "state_output_2");
-    const std::string input_2_trimmed = saved_config_shadow_trim(input_2); const std::string output_2_trimmed = saved_config_shadow_trim(output_2);
-    if (!input_2_trimmed.empty()) saved_config_shadow_append_option(out, "state_input_2", input_2_trimmed);
-    if (!output_2_trimmed.empty()) saved_config_shadow_append_option(out, "state_output_2", output_2_trimmed);
-  }
-  if (config.precision == "time") { const std::string time_unit = cfg_option_value(source, "time_unit"); if (time_unit == "seconds" || time_unit == "minutes" || time_unit == "hours" || time_unit == "days") saved_config_shadow_append_option(out, "time_unit", time_unit); }
-  config.options = out; return true;
 }
 
 template<typename Config>
@@ -256,7 +216,6 @@ inline bool normalize_saved_config_media_shadow(Config &config) {
 template<typename Config>
 inline bool normalize_saved_config_shadow(Config &config) {
   if (normalize_saved_config_vacuum_shadow(config)) return true;
-  if (normalize_saved_config_sensor_shadow(config)) return true;
   if (normalize_saved_config_action_shadow(config)) return true;
   return normalize_saved_config_media_shadow(config);
 }

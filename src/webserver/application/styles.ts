@@ -121,11 +121,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn.sp-selected>.sp-card-outline,.sp-empty-cell>.sp-card-outline{display:block}" +
         ".sp-empty-cell>.sp-card-outline{stroke-dasharray:8 6}" +
         ".sp-btn.sp-selected:hover{filter:none}" +
-        ".sp-wifi-qr-card{padding:0;background:#fff!important;align-items:center;justify-content:center}" +
-        ".sp-wifi-qr-card:hover{filter:none}" +
-        ".sp-wifi-qr-preview{display:block;width:84%;height:84%;pointer-events:none}" +
-        ".sp-wifi-qr-card.sp-btn-big .sp-wifi-qr-preview,.sp-wifi-qr-card.sp-btn-extra-large .sp-wifi-qr-preview," +
-        ".sp-wifi-qr-card.sp-btn-max-tall .sp-wifi-qr-preview,.sp-wifi-qr-card.sp-btn-portrait-large .sp-wifi-qr-preview{width:97%;height:97%}" +
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:var(--card-text-color,var(--preview-text-primary));z-index:1}" +
         ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:0;z-index:0;pointer-events:none}" +

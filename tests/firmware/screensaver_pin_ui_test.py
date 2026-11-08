@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ui = (ROOT / 'components/espdesktop/screensaver_pin_ui.h').read_text()
 ui = ui[ui.index('struct ScreensaverPinUi'):]
 lock = (ROOT / 'components/espdesktop/screen_lock_state.h').read_text()
-lock = lock[lock.index('struct ScreenLockCardRef'):]
+lock = lock[lock.index('inline bool screen_lock_enabled()'):]
 navigation = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
 navigation = definition(navigation, 'navigation_return_home')[1]
 settings = (ROOT / 'components/espdesktop/network_status.h').read_text()
@@ -164,11 +164,10 @@ int main() {
   assert(pin.save(false, nullptr));
   screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
   assert(!ui.overlay);
-  // A manual card lock preserves the page and intercepts every gesture with a
+  // A manual status-menu lock preserves the page and intercepts every gesture with a
   // transparent guard; its opening touch must not enter a keypad digit.
-  lv_obj_t card, icon, label, other_card;
+  lv_obj_t card, other_card;
   card.flags = other_card.flags = LV_OBJ_FLAG_CLICKABLE;
-  screen_lock_card_refs().push_back({&card, &icon, &label, "locked", "unlocked"});
   show_screen_lock_pin() = [] { screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false); };
   espdesktop::DisplayModeController controller;
   return_screen_lock_view() = [&] {
@@ -178,7 +177,7 @@ int main() {
     } else screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
   };
   screen_lock_activate();
-  assert(ui.overlay && !ui.label && screen_lock_enabled() && label.text == "Screen Locked");
+  assert(ui.overlay && !ui.label && screen_lock_enabled());
   assert(card.flags == LV_OBJ_FLAG_CLICKABLE && other_card.flags == LV_OBJ_FLAG_CLICKABLE);
   lv_obj_t home, subpage;
   active_page = &subpage;
@@ -214,24 +213,9 @@ int main() {
   screensaver_pin_key_cb(&zero);
   screensaver_pin_key_cb(&four);
   screensaver_pin_key_cb(&submit);
-  assert(!screen_lock_enabled() && label.text == "Screen Unlocked" && icon.text == "unlocked");
+  assert(!screen_lock_enabled());
   deferred.front()(nullptr); deferred.clear();
   assert(!ui.overlay && other_card.flags == LV_OBJ_FLAG_CLICKABLE);
-  int screensaver_calls = 0;
-  force_screensaver_action() = [&] {
-    ++screensaver_calls;
-    pin.arm();
-    screensaver_pin_refresh(false, nullptr, nullptr, nullptr, false);
-  };
-  screen_lock_activate(true);
-  assert(screensaver_calls == 1 && pin.locked() && !ui.overlay);
-  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
-  assert(ui.label); // Wake from the immediate screensaver uses the shared keypad.
-  screensaver_pin_key_cb(&zero);
-  screensaver_pin_key_cb(&four);
-  screensaver_pin_key_cb(&submit);
-  deferred.front()(nullptr); deferred.clear();
-  assert(!pin.locked() && !ui.overlay);
   // Cancel restores the actual previous mode, rather than the current
   // configured screensaver preference. Unlocking is still required on wake.
   for (auto mode : {espdesktop::DisplayMode::CLOCK, espdesktop::DisplayMode::DIMMED, espdesktop::DisplayMode::DISPLAY_OFF,
@@ -257,15 +241,11 @@ int main() {
   }
   screen_lock_activate();
   assert(pin.locked());
-  screen_lock_reset_registry();
-  assert(pin.locked()); // Rebuilding/removing cards must not bypass the shared lock.
   std::string empty;
   assert(pin.save(false, &empty));
   screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
   screen_lock_activate();
   assert(!screen_lock_enabled() && !ui.overlay);
-  screen_lock_activate(true);
-  assert(screensaver_calls == 1); // A card without a PIN cannot lock or start sleep.
 
   // Live rotation rebuilds the keypad in the new viewport without losing entry.
   assert(pin.save(false, &code) && pin.lock());
@@ -305,7 +285,7 @@ int main() {
   assert(settings_layout_updates == previous_updates); // Stable timer is a no-op.
   network_status_lock_cb(nullptr);
   assert(pin.locked() && ui.overlay && !ui.label);
-  assert(settings_ui.overlay == &settings_page && screensaver_calls == 1);
+  assert(settings_ui.overlay == &settings_page);
   ui.overlay->on_release(&released);
   deferred.front()(nullptr); deferred.clear();
   assert(ui.label && ui.entry.empty());

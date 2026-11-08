@@ -409,40 +409,10 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
 inline void apply_push_button_transition(lv_obj_t *btn);
 inline void clear_push_button_transition(lv_obj_t *btn);
 
-inline const char *screen_lock_locked_icon(const ParsedCfg &p) {
-  (void) p;
-  return find_icon("Lock");
-}
 
-inline const char *screen_lock_unlocked_icon(const ParsedCfg &p) {
-  (void) p;
-  return find_icon("Lock Open");
-}
 
-inline std::string screen_lock_card_label() {
-  return screen_lock_enabled()
-    ? espdesktop_i18n(std::string("Screen Locked"))
-    : espdesktop_i18n(std::string("Screen Unlocked"));
-}
 
-inline void screen_lock_register_card(const BtnSlot &s, const ParsedCfg &p) {
-  ScreenLockCardRef ref;
-  ref.btn = s.btn;
-  ref.icon_lbl = s.icon_lbl;
-  ref.text_lbl = s.text_lbl;
-  ref.locked_icon = screen_lock_locked_icon(p);
-  ref.unlocked_icon = screen_lock_unlocked_icon(p);
-  screen_lock_card_refs().push_back(ref);
-}
 
-inline void setup_screen_lock_card(BtnSlot &s, const ParsedCfg &p) {
-  lv_label_set_display_text(s.icon_lbl,
-    screen_lock_enabled() ? screen_lock_locked_icon(p) : screen_lock_unlocked_icon(p));
-  std::string label = screen_lock_card_label();
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  screen_lock_register_card(s, p);
-  apply_push_button_transition(s.btn);
-}
 
 inline void apply_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
@@ -463,21 +433,6 @@ inline void clear_push_button_transition(lv_obj_t *btn) {
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
 
-inline void setup_internal_relay_card(BtnSlot &s, const ParsedCfg &p) {
-  bool push_mode = internal_relay_push_mode(p);
-  std::string label = internal_relay_label(p);
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon_off = internal_relay_icon(p, push_mode);
-  lv_label_set_display_text(s.icon_lbl, icon_off);
-  if (push_mode) {
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  bool has_icon_on = !p.icon_on.empty() && p.icon_on != "Auto";
-  const char *icon_on = has_icon_on ? find_icon(p.icon_on.c_str()) : nullptr;
-  apply_internal_relay_state(s.btn, s.icon_lbl, internal_relay_state(p.entity),
-    has_icon_on, icon_off, icon_on);
-}
 
 // Set icon and label on a toggle/push button based on its config
 inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
@@ -597,17 +552,7 @@ inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p) {
   apply_push_button_transition(s.btn);
 }
 
-inline void send_local_sensor_update(const std::string &key, float value) {
-  if (!local_sensor_apply_value(key, value)) {
-    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
-  }
-}
 
-inline void send_local_sensor_update(const std::string &key, const char *value) {
-  if (!local_sensor_apply_text(key, value ? value : "--")) {
-    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
-  }
-}
 
 inline const char *door_window_closed_icon(const ParsedCfg &p) {
   if (!p.icon.empty() && p.icon != "Auto") return find_icon(p.icon.c_str());

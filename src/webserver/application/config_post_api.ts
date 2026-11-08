@@ -8,7 +8,6 @@ import type { ApplicationLayoutState } from "./application_context";
 import type { EntityStateFeature } from "./entity_state";
 import type { ControlsShellFeature } from "./controls_shell";
 import type { ApplicationApiFeature } from "./api";
-import { serializedConfigContainsWifiSharing } from "../features/wifi_sharing_config";
 
 export interface ConfigPersistenceFeature {
     connectCodec(codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">): void;
@@ -17,6 +16,8 @@ export interface ConfigPersistenceFeature {
     subpageEntityKeys(): string[];
     specialPageEntityKeys(): string[];
     buttonConfigByteLimit(): number;
+    writableNavigationDepth(): number;
+    beginAtomicEdit?(): { finish(ok: boolean): Promise<boolean>; cancel(): void } | undefined;
     subpageConfigFits(value: string, slot?: number): boolean;
     saveButtonConfig(slot: number): Promise<any>;
     saveButtonConfigAndOrder(slot: number, order: string): Promise<any>;
@@ -30,7 +31,7 @@ export function createConfigPersistenceFeature(
     runtime: UiRuntimeState,
     layout: ApplicationLayoutState,
     entityState: Pick<EntityStateFeature, "entityName" | "entityNameForSlot" | "hasRememberedPostPath">,
-    shell: Pick<ControlsShellFeature, "showBanner">,
+    shell: Pick<ControlsShellFeature, "showBanner"> & Partial<Pick<ControlsShellFeature, "syncConfigLockUi">>,
 ): ConfigPersistenceFeature {
     const { entityName, entityNameForSlot, hasRememberedPostPath } = entityState;
     const { showBanner } = shell;
@@ -73,14 +74,6 @@ export function createConfigPersistenceFeature(
             throw new Error("Configuration persistence used before the codec was connected");
         return codec.serializeSubpageConfig(subpage);
     }
-    function isWifiSharingButton(button: any) {
-        return button && (button.type === "wifi_qr" || button.type === "wifi_qr_card");
-    }
-    function rejectLegacyWifiSharingSave(api: ApplicationApiFeature) {
-        api.postQueueError = true;
-        showBanner("Wifi Sharing requires current device firmware. Update the panel before saving this card.", "error");
-        return "unsupported";
-    }
     function queueNativeSave(nativeSave: Promise<any>, legacyFallback: () => any) {
         var api: any = requests();
         api.postQueue = api.postQueue.then(function () { return nativeSave; }).then(function (result: any) {
@@ -110,26 +103,16 @@ export function createConfigPersistenceFeature(
     function saveButtonConfig(this: any, slot?: any) {
         var b: any = state.buttons[slot - 1];
         var value: any = serializeButtonConfig(b);
-        if (!isWifiSharingButton(b))
-            return publishAfter(requests().postText(entityNameForSlot("button_config", slot), value));
-        var nativeSave: any = nativePanelConfig
-            ? nativePanelConfig.writeText(entityNameForSlot("button_config", slot), value)
-            : null;
-        if (nativeSave)
-            return publishAfter(queueNativeSave(nativeSave, function () { return rejectLegacyWifiSharingSave(requests()); }));
-        return publishAfter(Promise.resolve(rejectLegacyWifiSharingSave(requests())));
+        return publishAfter(requests().postText(entityNameForSlot("button_config", slot), value));
     }
     function saveButtonConfigAndOrder(this: any, slot?: any, order?: any) {
         var b: any = state.buttons[slot - 1];
         var value: any = serializeButtonConfig(b);
-        var wifiSharing: any = isWifiSharingButton(b);
         var nativeSave: any = nativePanelConfig
             ? nativePanelConfig.writeButtonAndOrder(Number.parseInt(String(slot), 10), value, String(order || ""))
             : null;
         function saveLegacy(this: any) {
             var api: any = requests();
-            if (wifiSharing)
-                return rejectLegacyWifiSharingSave(api);
             return api.postTextLegacy(entityNameForSlot("button_config", slot), value)
                 .then(function () { return api.postTextLegacy(entityName("button_order"), order); });
         }
@@ -202,8 +185,6 @@ export function createConfigPersistenceFeature(
             state.subpageSavePending[slot] = full;
             var api: any = requests();
             api.postQueue = api.postQueue.then(function () { return nativeSave; }).then(function (result: any) {
-                if (result === "legacy-fallback" && serializedConfigContainsWifiSharing(full))
-                    return rejectLegacyWifiSharingSave(api);
                 if (result === "legacy-fallback")
                     return saveSubpageEntityLegacy(slot, full, true);
                 if (result !== "saved")
@@ -212,11 +193,10 @@ export function createConfigPersistenceFeature(
             });
             return publishAfter(api.postQueue);
         }
-        if (serializedConfigContainsWifiSharing(full))
-            return Promise.resolve(rejectLegacyWifiSharingSave(requests()));
         return publishAfter(saveSubpageEntityLegacy(slot, full, true));
     }
     function scheduleSliderSubpageMigration(this: any, slot?: any) {
+        if (state.nativeConfigLoading || state.nativeTransferActive || state.nativeHasNestedPages) return;
         runtime.pendingSliderSubpageMigrations[slot] = true;
         clearTimeout(runtime.sliderMigrationTimer as any);
         runtime.sliderMigrationTimer = setTimeout(function (this: any) {
@@ -228,13 +208,26 @@ export function createConfigPersistenceFeature(
             }
         }, 5000);
     }
+    function beginAtomicEdit() {
+        const edit = nativePanelConfig?.beginAtomicEdit();
+        if (!edit) return undefined;
+        state.nativeTransferActive = true;
+        shell.syncConfigLockUi?.();
+        const unlock = () => { state.nativeTransferActive = false; shell.syncConfigLockUi?.(); };
+        return {
+            cancel: () => { edit.cancel(); unlock(); },
+            finish: async (ok: boolean) => { try { return await edit.finish(ok); } finally { unlock(); } },
+        };
+    }
     return {
         connectCodec,
+        beginAtomicEdit,
         connectRequestApi,
         connectFocusRegistrationPublisher,
         subpageEntityKeys,
         specialPageEntityKeys,
         buttonConfigByteLimit,
+        writableNavigationDepth: () => nativePanelConfig?.writableNavigationDepth() ?? 1,
         subpageConfigFits,
         saveButtonConfig: (slot) => saveButtonConfig(slot),
         saveButtonConfigAndOrder: (slot, order) => saveButtonConfigAndOrder(slot, order),

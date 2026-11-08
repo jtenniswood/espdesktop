@@ -1,5 +1,6 @@
 export {
   BACKUP_CONFIG_VERSION,
+  BACKUP_GRAPH_VERSION,
   BACKUP_FORMAT,
   backupOrderUsedSlots,
   backupSource,
@@ -42,6 +43,7 @@ export {
   CARD_TRANSFER_MAX_CARDS,
   CARD_TRANSFER_VERSION,
   cardTransferOwnsSubpage,
+  CARD_TRANSFER_TREE_VERSION,
   createCardTransferCode,
   normalizeCardTransferEnvelope,
   parseCardTransferCode,

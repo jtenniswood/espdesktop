@@ -127,9 +127,16 @@ inline bool navigation_driver_bind_main(
   return true;
 }
 
+// Nested folders keep the same local/Mac data binding as home folders.
+inline bool navigation_driver_bind_subpage(
+    BtnSlot &slot, const ParsedCfg &config, const Context &context) {
+  if (!navigation_driver_matches(context)) return false;
+  return navigation_driver_bind_main(slot, config, context, {});
+}
+
 struct NavigationDriverChildIndicators {
   bool child_was_on[MAX_SUBPAGE_ITEMS] = {};
-  int parent_on_count[MAX_GRID_SLOTS] = {};
+  int parent_on_count[MAX_SUBPAGE_ITEMS] = {};
   int next_child = 0;
 };
 

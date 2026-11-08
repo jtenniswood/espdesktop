@@ -3,7 +3,7 @@
   "lifecycleVocabulary": {
     "subscriptions": ["none", "state", "attributes", "local", "time", "action_response", "http"],
     "actions": ["none", "home_assistant_service", "local", "http", "navigation", "modal"],
-    "modalOwners": ["none", "alarm", "climate", "cover", "image", "media", "wifi_qr", "weather"]
+    "modalOwners": ["none", "alarm", "climate", "cover", "image", "media", "weather"]
   },
   "types": {
     "timer": {
@@ -265,14 +265,6 @@
         { "name": "stop", "config": { "entity": "cover.example", "sensor": "stop" } }
       ]
     },
-    "internal": {
-      "classification": "canonical", "canonicalType": "internal", "webRegistration": "internal", "firmwareFamily": "INTERNAL",
-      "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" },
-      "modes": [
-        { "name": "switch", "config": { "entity": "relay_1", "sensor": "switch" } },
-        { "name": "push", "config": { "entity": "relay_1", "sensor": "push" } }
-      ]
-    },
     "light_brightness": {
       "classification": "canonical", "canonicalType": "light_brightness", "webRegistration": "light_brightness", "firmwareFamily": "SLIDER",
       "lifecycle": { "subscriptions": ["state", "attributes"], "actions": ["home_assistant_service"], "modalOwner": "none" },
@@ -332,16 +324,6 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "approved_app", "config": { "entity": "com.apple.Safari", "label": "Safari" } }]
     },
-    "screensaver": {
-      "classification": "canonical", "canonicalType": "screensaver", "webRegistration": "screensaver", "firmwareFamily": "SCREENSAVER",
-      "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
-      "modes": [{ "name": "force", "config": {} }]
-    },
-    "screen_lock": {
-      "classification": "canonical", "canonicalType": "screen_lock", "webRegistration": "screen_lock", "firmwareFamily": "SCREEN_LOCK",
-      "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" },
-      "modes": [{ "name": "toggle", "config": {} }]
-    },
     "webhook": {
       "classification": "canonical", "canonicalType": "webhook", "webRegistration": "webhook", "firmwareFamily": "WEBHOOK",
       "lifecycle": { "subscriptions": ["http"], "actions": ["http"], "modalOwner": "none" },
@@ -349,22 +331,6 @@
         { "name": "get", "config": { "entity": "https://example.invalid/hook", "sensor": "GET" } },
         { "name": "post", "config": { "entity": "https://example.invalid/hook", "sensor": "POST", "unit": "{}" } }
       ]
-    },
-    "sensor": {
-      "classification": "canonical", "canonicalType": "sensor", "webRegistration": "sensor", "firmwareFamily": "SENSOR",
-      "lifecycle": { "subscriptions": ["state"], "actions": ["none"], "modalOwner": "none" },
-      "modes": [
-        { "name": "numeric", "config": { "sensor": "sensor.example", "precision": "1" } },
-        { "name": "time", "config": { "sensor": "sensor.example", "precision": "time" }, "lifecycle": { "subscriptions": ["state", "attributes"], "actions": ["none"], "modalOwner": "none" } },
-        { "name": "text", "config": { "sensor": "sensor.example", "precision": "text" } },
-        { "name": "icon", "config": { "sensor": "binary_sensor.example", "precision": "icon" } },
-        { "name": "local", "config": { "entity": "room_temp", "sensor": "local", "precision": "1" }, "lifecycle": { "subscriptions": ["local"], "actions": ["none"], "modalOwner": "none" } }
-      ]
-    },
-    "local_sensor": {
-      "classification": "accepted_legacy_input", "canonicalType": "sensor", "webRegistration": "sensor", "firmwareFamily": "LOCAL_SENSOR",
-      "lifecycle": { "subscriptions": ["local"], "actions": ["none"], "modalOwner": "none" },
-      "modes": [{ "name": "legacy_local_sensor", "config": { "entity": "room_temp", "type": "local_sensor", "precision": "1" } }]
     },
     "slider": {
       "classification": "canonical", "canonicalType": "slider", "webRegistration": "slider", "firmwareFamily": "SLIDER",
@@ -396,16 +362,6 @@
       "lifecycle": { "subscriptions": ["state", "attributes"], "actions": ["modal"], "modalOwner": "image" },
       "modes": [{ "name": "image", "config": { "entity": "camera.example" } }]
     },
-    "wifi_qr": {
-      "classification": "canonical", "canonicalType": "wifi_qr", "webRegistration": "wifi_qr", "firmwareFamily": "WIFI_QR",
-      "lifecycle": { "subscriptions": ["state"], "actions": ["modal", "home_assistant_service"], "modalOwner": "wifi_qr" },
-      "modes": [{ "name": "share", "config": { "type": "wifi_qr", "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ" } }, { "name": "guest", "config": { "type": "wifi_qr", "entity": "switch.guest_wifi", "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ,wifi_tabs=guest" } }]
-    },
-    "wifi_qr_card": {
-      "classification": "canonical", "canonicalType": "wifi_qr_card", "webRegistration": "wifi_qr_card", "firmwareFamily": "WIFI_QR",
-      "lifecycle": { "subscriptions": ["state"], "actions": ["modal", "home_assistant_service"], "modalOwner": "wifi_qr" },
-      "modes": [{ "name": "tile_qr", "config": { "type": "wifi_qr_card", "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ" } }, { "name": "guest", "config": { "type": "wifi_qr_card", "entity": "switch.guest_wifi", "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ,wifi_tabs=guest" } }]
-    },
     "weather_forecast": {
       "classification": "accepted_legacy_input", "canonicalType": "weather", "webRegistration": "weather_forecast", "firmwareFamily": "WEATHER",
       "lifecycle": { "subscriptions": ["action_response"], "actions": ["modal"], "modalOwner": "weather" },
@@ -420,14 +376,6 @@
       "firmwareFamily": "ACTION",
       "config": { "entity": "zoom_mute", "type": "local", "sensor": "local" },
       "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" }
-    },
-    "text_sensor": {
-      "classification": "accepted_legacy_input",
-      "canonicalType": "sensor",
-      "surfaces": ["web_parser", "saved_config_parser"],
-      "firmwareFamily": "SENSOR",
-      "config": { "entity": "sensor.example", "type": "text_sensor" },
-      "lifecycle": { "subscriptions": ["state"], "actions": ["none"], "modalOwner": "none" }
     },
     "companion_subpage": {
       "classification": "picker_alias",

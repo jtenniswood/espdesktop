@@ -76,7 +76,7 @@ def run_self_test() -> int:
     expect_error(validate_card_contract(incomplete_runtime_capabilities), "must define every runtime capability exactly once")
 
     mismatched_subpage_capability = copy.deepcopy(card_contract)
-    mismatched_subpage_capability["runtime"]["specs"]["subpage"]["capabilities"]["subpage"] = True
+    mismatched_subpage_capability["runtime"]["specs"]["subpage"]["capabilities"]["subpage"] = not card_contract["cards"]["subpage"]["allowInSubpage"]
     expect_error(validate_card_contract(mismatched_subpage_capability), "must match allowInSubpage")
 
     incomplete_runtime_modes = copy.deepcopy(card_contract)
@@ -121,7 +121,7 @@ def run_self_test() -> int:
     expect_error(validate_card_contract(invalid_allowed_alias), "must map to an allowed value")
 
     invalid_condition = copy.deepcopy(card_contract)
-    invalid_condition["cards"]["sensor"]["options"][0]["applicability"][0]["operator"] = "matches"
+    invalid_condition["cards"]["action"]["options"][2]["applicability"][0]["operator"] = "matches"
     expect_error(validate_card_contract(invalid_condition), "must be equals, in, or present")
 
     invalid_subpage_codes = copy.deepcopy(card_contract)

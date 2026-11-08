@@ -153,8 +153,6 @@ inline bool numeric_selectable_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool navigation_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
-inline bool wifi_qr_driver_handle_main_click(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 }
 
 // Dispatch supported local and Mac card actions.
@@ -173,8 +171,6 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
   if (espdesktop::cards::numeric_selectable_driver_handle_main_click(
         context, p, btn_obj)) return;
   if (espdesktop::cards::navigation_driver_handle_main_click(
-        context, p, btn_obj)) return;
-  if (espdesktop::cards::wifi_qr_driver_handle_main_click(
         context, p, btn_obj)) return;
   ESP_LOGE("card_runtime", "Card has no main-grid action driver: type=%s",
            p.type.c_str());

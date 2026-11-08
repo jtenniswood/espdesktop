@@ -25,6 +25,7 @@ harness = r'''
 #include <string>
 #include <utility>
 #include <vector>
+static bool (*espdesktop_native_configuration_generation)(uint32_t *) = nullptr;
 #define VERSION_CODE(major, minor, patch) (major * 10000 + minor * 100 + patch)
 template<typename... T> void log_message(T &&...) {}
 #define ESP_LOGD(...) log_message(__VA_ARGS__)

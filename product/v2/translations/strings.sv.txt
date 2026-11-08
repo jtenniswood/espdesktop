@@ -213,7 +213,6 @@ connect_to_wifi=Anslut till WiFi
 scan_to_connect=Skanna för att ansluta
 network=Nätverk
 password=Lösenord
-unable_to_create_qr_code=Det gick inte att skapa QR-koden
 connected=Ansluten
 connecting_to_ethernet=Ansluter till Ethernet
 connecting_to_wifi=Ansluter till WiFi
@@ -311,8 +310,6 @@ stat_remaining=kvar
 
 timer=Timer
 timer_confirm=Bekräfta
-guest_wifi=Gäst-Wi-Fi
-wifi_did_not_change=Wi-Fi ändrades inte
 connect_to_the_wifi_hotspot=Anslut till WiFi-hotspotten
 to_configure_your_network=för att konfigurera ditt nätverk.
 then_visit_address_in_your_browser=Öppna sedan {address} i din webbläsare
@@ -336,7 +333,6 @@ weekday_fri=fre
 weekday_sat=lör
 
 # Default card labels (label_ keys use key-based lookup only)
-label_connect=Anslut
 label_local_action=Lokal åtgärd
 label_switch=Strömbrytare
 label_lighting=Belysning

@@ -13,6 +13,9 @@
 #include "button_grid_card_runtime.h"
 #include "media_control_tabs.h"
 #include "button_grid_string.h"
+#include "config_field_decode.h"
+#include "display_utf8_case.h"
+#include "ha_state_limits.h"
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
 #include "app_shortcuts_generated.h"
@@ -31,18 +34,9 @@
 #include "button_grid_saved_config_media_generated.h"
 #include "button_grid_saved_config_mower_generated.h"
 #include "button_grid_saved_config_occupancy_generated.h"
-#include "button_grid_saved_config_sensor_generated.h"
 #include "button_grid_saved_config_static_generated.h"
 #include "button_grid_saved_config_vacuum_generated.h"
 
-constexpr const char *SENSOR_STATE_LABELS_OPTION = card_runtime_option_name_state_labels();
-constexpr const char *SENSOR_STATE_INPUT_OPTION = card_runtime_option_name_state_input();
-constexpr const char *SENSOR_STATE_OUTPUT_OPTION = card_runtime_option_name_state_output();
-constexpr const char *SENSOR_STATE_INPUT_2_OPTION = card_runtime_option_name_state_input_2();
-constexpr const char *SENSOR_STATE_OUTPUT_2_OPTION = card_runtime_option_name_state_output_2();
-constexpr const char *SENSOR_STATE_LOW_LABEL_OPTION = card_runtime_option_name_state_low_label();
-constexpr const char *SENSOR_STATE_HIGH_LABEL_OPTION = card_runtime_option_name_state_high_label();
-constexpr const char *SENSOR_TIME_UNIT_OPTION = card_runtime_option_name_time_unit();
 constexpr const char *IMAGE_LABEL_OPTION = card_runtime_option_name_image_label();
 constexpr const char *IMAGE_ICON_OPTION = card_runtime_option_name_image_icon();
 constexpr const char *IMAGE_MODAL_MODE_OPTION = card_runtime_option_name_image_modal_mode();
@@ -93,72 +87,6 @@ inline std::vector<std::string> split_config_fields(const std::string &value, ch
   return out;
 }
 
-inline int hex_digit(char c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-  return -1;
-}
-
-inline bool valid_utf8_bytes(const std::string &value) {
-  size_t index = 0;
-  while (index < value.size()) {
-    const unsigned char first = static_cast<unsigned char>(value[index]);
-    if (first <= 0x7F) { ++index; continue; }
-    size_t count = 0;
-    if (first >= 0xC2 && first <= 0xDF) count = 1;
-    else if (first >= 0xE0 && first <= 0xEF) count = 2;
-    else if (first >= 0xF0 && first <= 0xF4) count = 3;
-    else return false;
-    if (index + count >= value.size()) return false;
-    const unsigned char second = static_cast<unsigned char>(value[index + 1]);
-    if ((second & 0xC0) != 0x80) return false;
-    if (first == 0xE0 && second < 0xA0) return false;
-    if (first == 0xED && second > 0x9F) return false;
-    if (first == 0xF0 && second < 0x90) return false;
-    if (first == 0xF4 && second > 0x8F) return false;
-    for (size_t offset = 2; offset <= count; ++offset) {
-      if ((static_cast<unsigned char>(value[index + offset]) & 0xC0) != 0x80) return false;
-    }
-    index += count + 1;
-  }
-  return true;
-}
-
-inline std::string decode_compact_field(const std::string &value, size_t start, size_t len) {
-  if (start > value.size()) return "";
-  size_t end = start + len;
-  if (end < start || end > value.size()) end = value.size();
-  std::string out;
-  out.reserve(end - start);
-  for (size_t i = start; i < end;) {
-    if (value[i] == '%' && i + 2 < end) {
-      size_t run_end = i;
-      std::string decoded;
-      while (run_end + 2 < end && value[run_end] == '%') {
-        int hi = hex_digit(value[run_end + 1]);
-        int lo = hex_digit(value[run_end + 2]);
-        if (hi < 0 || lo < 0) break;
-        decoded.push_back(static_cast<char>((hi << 4) | lo));
-        run_end += 3;
-      }
-      if (run_end > i) {
-        if (valid_utf8_bytes(decoded)) out += decoded;
-        else out.append(value, i, run_end - i);
-        i = run_end;
-        continue;
-      }
-    }
-    out.push_back(value[i]);
-    ++i;
-  }
-  return out;
-}
-
-inline std::string decode_compact_field(const std::string &value) {
-  return decode_compact_field(value, 0, value.size());
-}
-
 inline char compact_hex_char(uint8_t value) {
   return value < 10 ? static_cast<char>('0' + value)
                     : static_cast<char>('A' + value - 10);
@@ -181,13 +109,13 @@ inline std::string encode_compact_field(const std::string &value) {
 
 // Structured view of a button config string: entity;label;icon;icon_on;sensor;unit;type;precision;options
 struct ParsedCfg {
-  std::string entity;      // 0  HA entity_id, internal relay key, or timezone option
+  std::string entity;      // 0  HA entity_id, timezone option
   std::string label;       // 1  display name (blank = use HA friendly_name)
   std::string icon;        // 2  icon name for off/default state
   std::string icon_on;     // 3  icon name for on state (blank = no swap)
   std::string sensor;      // 4  sensor entity, cover mode, or action name for Action cards
   std::string unit;        // 5  unit suffix for sensor display
-  std::string type;        // 6  button type: "" (toggle), action, sensor, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, webhook, internal, subpage
+  std::string type;        // 6  button type: "" (toggle), action, sensor, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, webhook, subpage
   std::string precision;   // 7  decimal places for sensors; "text" = text sensor mode
   std::string options;     // 8  comma-delimited card options
 };
@@ -216,9 +144,6 @@ inline bool action_card_local_action(const ParsedCfg &p) {
   return p.type == "action" && p.sensor == "local";
 }
 
-inline bool sensor_card_local_sensor(const ParsedCfg &p) {
-  return p.type == "sensor" && p.sensor == "local";
-}
 
 inline bool cfg_option_token_present(const std::string &options, const char *name) {
   if (!name || !*name || options.empty()) return false;
@@ -756,74 +681,7 @@ inline std::string media_cover_art_secondary_entity(const ParsedCfg &p) {
   return espdesktop::media::decode_config_v1(p).secondary_entity;
 }
 
-inline std::string sensor_card_options_normalized(const std::string &options,
-                                                  const std::string &precision) {
-  std::string out;
-  if (precision != "icon" && precision != "text" && precision != "time" &&
-      (cfg_option_token_present(options, "large_numbers") ||
-       large_numbers_explicitly_disabled(options))) {
-    append_large_numbers_option(out, options);
-  }
-  if (precision != "time" && cfg_option_token_present(options, "active_color")) {
-    if (!out.empty()) out += ",";
-    out += "active_color";
-  }
-  if (precision == "text" && cfg_option_token_present(options, SENSOR_STATE_LABELS_OPTION)) {
-    if (!out.empty()) out += ",";
-    out += SENSOR_STATE_LABELS_OPTION;
-    std::string input = cfg_option_value(options, SENSOR_STATE_INPUT_OPTION);
-    std::string output = cfg_option_value(options, SENSOR_STATE_OUTPUT_OPTION);
-    if (input.empty() && !cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION).empty()) {
-      input = "high";
-      if (output.empty()) output = cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION);
-    } else if (input.empty() && !cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION).empty()) {
-      input = "low";
-      if (output.empty()) output = cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION);
-    }
-    if (!input.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_INPUT_OPTION) + "=" + encode_compact_field(input);
-    }
-    if (!output.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_OUTPUT_OPTION) + "=" + encode_compact_field(output);
-    }
-    std::string input_2 = cfg_option_value(options, SENSOR_STATE_INPUT_2_OPTION);
-    std::string output_2 = cfg_option_value(options, SENSOR_STATE_OUTPUT_2_OPTION);
-    if (!input_2.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_INPUT_2_OPTION) + "=" + encode_compact_field(input_2);
-    }
-    if (!output_2.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_OUTPUT_2_OPTION) + "=" + encode_compact_field(output_2);
-    }
-  }
-  if (precision == "time") {
-    std::string time_unit = cfg_option_value(options, SENSOR_TIME_UNIT_OPTION);
-    if (time_unit == "seconds" || time_unit == "minutes" ||
-        time_unit == "hours" || time_unit == "days") {
-      if (!out.empty()) out += ",";
-      out += std::string(SENSOR_TIME_UNIT_OPTION) + "=" + time_unit;
-    }
-  }
-  return out;
-}
 
-inline void normalize_saved_config_sensor_fields(ParsedCfg &p,
-                                                 bool was_legacy_text_sensor) {
-  if (was_legacy_text_sensor && p.icon.empty()) p.icon = "Auto";
-  if (!sensor_card_local_sensor(p) && p.precision == "time") {
-    p.unit.clear();
-    p.icon = "Auto";
-    p.icon_on = "Auto";
-  }
-  if (!sensor_card_local_sensor(p)) return;
-  p.icon_on = "Auto";
-  p.options.clear();
-  if (p.precision != "text" && p.precision != "1" && p.precision != "2") p.precision.clear();
-  if (p.precision != "text" && (p.icon.empty() || p.icon == "Auto")) p.icon = "Auto";
-}
 
 inline std::string normalize_subpage_kind(const std::string &value) {
   return value == "lights" || value == "media" ||
@@ -964,7 +822,6 @@ inline bool action_card_large_numbers_supported(const ParsedCfg &p) {
 inline bool card_large_numbers_supported(const ParsedCfg &p) {
   if (p.type.empty()) return !p.sensor.empty() && p.precision != "text";
   if (p.type == "action") return action_card_large_numbers_supported(p);
-  if (sensor_card_local_sensor(p)) return false;
   if (p.type == "media") return p.sensor == "volume" || p.sensor == "position";
   if (climate_card_type(p.type)) {
     return normalize_climate_number_display(cfg_option_value(p.options, "number_display")) != "icon";
@@ -1540,6 +1397,14 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  if (card_runtime_type_retired(p.type)) {
+    const std::string type = p.type;
+    p = ParsedCfg{};
+    p.type = type;
+    p.icon = "Auto";
+    p.icon_on = "Auto";
+    return p;
+  }
   const std::string icon_size = cfg_option_value(p.options, "icon_size");
   // Remove legacy sizes before normalization; only app artwork retains a size override.
   std::string type_options;
@@ -1561,8 +1426,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (p.type == "companion" && (p.entity == "media.play_pause" ||
       p.entity == "media.previous" || p.entity == "media.next")) return ParsedCfg{};
   migrate_saved_config_action_legacy(p);
-  const bool was_legacy_text_sensor = p.type == "text_sensor";
-  migrate_saved_config_sensor_legacy(p);
   const bool normalized_saved_fan = normalize_saved_config_fan(
       p, normalize_saved_config_fan_fields, fan_control_card_options_normalized);
   const bool was_legacy_weather_forecast = migrate_saved_config_weather_legacy(p);
@@ -1625,16 +1488,9 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);
-  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "webhook" && p.type != "sensor" && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "wifi_qr" && p.type != "wifi_qr_card" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
+  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "webhook" && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
-  if ((p.type == "wifi_qr" || p.type == "wifi_qr_card") &&
-      (p.label.empty() || p.label == "Connect")) {
-    p.label = espdesktop_i18n_key("label_connect");
-  }
-  normalize_saved_config_sensor(p, was_legacy_text_sensor,
-                                normalize_saved_config_sensor_fields,
-                                sensor_card_options_normalized);
   if (!card_colors.empty()) {
     if (!p.options.empty()) p.options += ",";
     p.options += card_colors;
@@ -1759,14 +1615,7 @@ inline bool sensor_large_numbers_enabled(const ParsedCfg &p) {
   return card_large_numbers_enabled(p);
 }
 
-inline bool sensor_active_color_enabled(const ParsedCfg &p) {
-  return p.type == "sensor" && cfg_option_enabled(p.options, "active_color");
-}
 
-inline bool sensor_state_labels_enabled(const ParsedCfg &p) {
-  return p.type == "sensor" && p.precision == "text" &&
-         cfg_option_enabled(p.options, SENSOR_STATE_LABELS_OPTION);
-}
 
 inline bool door_window_active_color_enabled(const ParsedCfg &p) {
   return p.type == "door_window" && cfg_option_enabled(p.options, "active_color");
@@ -1883,90 +1732,6 @@ inline std::string trim_display_unit(const std::string &unit) {
   return unit.substr(start, end - start);
 }
 
-inline bool duration_unit_seconds_multiplier(const std::string &raw_unit,
-                                             double &multiplier) {
-  const std::string unit = trim_display_unit(raw_unit);
-  if (unit == "seconds" || unit == "s") multiplier = 1.0;
-  else if (unit == "minutes" || unit == "min") multiplier = 60.0;
-  else if (unit == "hours" || unit == "h") multiplier = 3600.0;
-  else if (unit == "days" || unit == "d") multiplier = 86400.0;
-  else if (unit == "ms") multiplier = 0.001;
-  else if (unit == "µs") multiplier = 0.000001;
-  else return false;
-  return true;
-}
-
-inline bool format_duration_value(char *buffer, size_t buffer_size,
-                                  double value, const std::string &input_unit,
-                                  int max_components = 2) {
-  if (!buffer || buffer_size == 0) return false;
-  buffer[0] = '\0';
-  if (max_components < 1) return false;
-  if (max_components > 4) max_components = 4;
-  double multiplier = 0.0;
-  if (!std::isfinite(value) || value < 0.0 ||
-      !duration_unit_seconds_multiplier(input_unit, multiplier)) return false;
-  const double converted = value * multiplier;
-  if (!std::isfinite(converted) || converted < 0.0 ||
-      converted >= static_cast<double>(std::numeric_limits<uint64_t>::max())) return false;
-
-  const uint64_t total_seconds = static_cast<uint64_t>(std::floor(converted));
-  if (total_seconds == 0) {
-    std::snprintf(buffer, buffer_size, "0s");
-    return true;
-  }
-
-  const uint64_t values[] = {
-    total_seconds / 86400ULL,
-    (total_seconds % 86400ULL) / 3600ULL,
-    (total_seconds % 3600ULL) / 60ULL,
-    total_seconds % 60ULL,
-  };
-  const char *suffixes[] = {"d", "h", "m", "s"};
-  size_t used = 0;
-  int components = 0;
-  for (int i = 0; i < 4 && components < max_components; ++i) {
-    if (values[i] == 0) continue;
-    const int written = std::snprintf(
-      buffer + used, buffer_size - used, components == 0 ? "%llu%s" : " %llu%s",
-      static_cast<unsigned long long>(values[i]), suffixes[i]);
-    if (written < 0 || static_cast<size_t>(written) >= buffer_size - used) {
-      buffer[0] = '\0';
-      return false;
-    }
-    used += static_cast<size_t>(written);
-    ++components;
-  }
-  return components > 0;
-}
-
-inline bool format_duration_sensor_state(char *buffer, size_t buffer_size,
-                                         const std::string &state, bool has_state,
-                                         const std::string &auto_unit, bool has_auto_unit,
-                                         const std::string &manual_unit = "",
-                                         int max_components = 2) {
-  if (!buffer || buffer_size == 0) return false;
-  buffer[0] = '\0';
-  if (!has_state || (manual_unit.empty() && !has_auto_unit)) return false;
-  const std::string &input_unit = manual_unit.empty() ? auto_unit : manual_unit;
-  char *end = nullptr;
-  const char *begin = state.c_str();
-  const double value = std::strtod(begin, &end);
-  while (end && *end && std::isspace(static_cast<unsigned char>(*end))) ++end;
-  if (end == begin || !end || *end != '\0') return false;
-  return format_duration_value(
-    buffer, buffer_size, value, input_unit, max_components);
-}
-
-inline bool is_text_sensor_card(const std::string &type, const std::string &precision) {
-  return (type == "sensor" && precision == "text") || type == "text_sensor";
-}
-
-inline bool is_text_sensor_card(const ParsedCfg &p) {
-  if (sensor_card_local_sensor(p)) return false;
-  return is_text_sensor_card(p.type, p.precision);
-}
-
 #ifndef ESPDESKTOP_HA_SUBSCRIPTION_SCOPE_CONSTANTS_DEFINED
 constexpr uint32_t HA_SUBSCRIPTION_SCOPE_ALL = 0;
 constexpr uint32_t HA_SUBSCRIPTION_SCOPE_DEFAULT = 1u << 0;
@@ -1976,180 +1741,7 @@ constexpr uint32_t HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS = 1u << 3;
 #define ESPDESKTOP_HA_SUBSCRIPTION_SCOPE_CONSTANTS_DEFINED 1
 #endif
 
-constexpr size_t HA_STATE_TEXT_MAX_LEN = 96;
-constexpr size_t HA_TEXT_SENSOR_STATE_MAX_LEN = 256;
-constexpr size_t HA_SHORT_STATE_MAX_LEN = 32;
-constexpr size_t HA_FRIENDLY_NAME_MAX_LEN = 64;
 
-enum class Utf8DecodeStatus : uint8_t {
-  VALID,
-  INVALID,
-  INCOMPLETE,
-};
-
-struct Utf8CasePair {
-  uint32_t upper;
-  uint32_t lower;
-};
-
-inline Utf8DecodeStatus decode_utf8_codepoint(const std::string &text, size_t offset,
-                                               uint32_t &codepoint, size_t &length) {
-  codepoint = 0;
-  length = 0;
-  if (offset >= text.size()) return Utf8DecodeStatus::INCOMPLETE;
-
-  const unsigned char lead = static_cast<unsigned char>(text[offset]);
-  if (lead < 0x80) {
-    codepoint = lead;
-    length = 1;
-    return Utf8DecodeStatus::VALID;
-  }
-
-  size_t expected = 0;
-  uint32_t value = 0;
-  uint32_t minimum = 0;
-  if (lead >= 0xC2 && lead <= 0xDF) {
-    expected = 2;
-    value = lead & 0x1F;
-    minimum = 0x80;
-  } else if (lead >= 0xE0 && lead <= 0xEF) {
-    expected = 3;
-    value = lead & 0x0F;
-    minimum = 0x800;
-  } else if (lead >= 0xF0 && lead <= 0xF4) {
-    expected = 4;
-    value = lead & 0x07;
-    minimum = 0x10000;
-  } else {
-    length = 1;
-    return Utf8DecodeStatus::INVALID;
-  }
-
-  for (size_t i = 1; i < expected; i++) {
-    if (offset + i >= text.size()) return Utf8DecodeStatus::INCOMPLETE;
-    const unsigned char continuation = static_cast<unsigned char>(text[offset + i]);
-    if ((continuation & 0xC0) != 0x80) {
-      length = 1;
-      return Utf8DecodeStatus::INVALID;
-    }
-    value = (value << 6) | (continuation & 0x3F);
-  }
-  if (value < minimum || value > 0x10FFFF || (value >= 0xD800 && value <= 0xDFFF)) {
-    length = 1;
-    return Utf8DecodeStatus::INVALID;
-  }
-
-  codepoint = value;
-  length = expected;
-  return Utf8DecodeStatus::VALID;
-}
-
-inline void append_utf8_codepoint(std::string &out, uint32_t codepoint) {
-  if (codepoint <= 0x7F) {
-    out.push_back(static_cast<char>(codepoint));
-  } else if (codepoint <= 0x7FF) {
-    out.push_back(static_cast<char>(0xC0 | (codepoint >> 6)));
-    out.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-  } else if (codepoint <= 0xFFFF) {
-    out.push_back(static_cast<char>(0xE0 | (codepoint >> 12)));
-    out.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-    out.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-  } else {
-    out.push_back(static_cast<char>(0xF0 | (codepoint >> 18)));
-    out.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
-    out.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-    out.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-  }
-}
-
-inline const Utf8CasePair *utf8_latin_case_pairs(size_t &count) {
-  // Locale-dependent Turkish dotted/dotless I are deliberately left unchanged.
-  static const Utf8CasePair pairs[] = {
-    {0x00C0, 0x00E0}, {0x00C1, 0x00E1}, {0x00C2, 0x00E2}, {0x00C3, 0x00E3},
-    {0x00C4, 0x00E4}, {0x00C5, 0x00E5}, {0x00C6, 0x00E6}, {0x00C7, 0x00E7},
-    {0x00C8, 0x00E8}, {0x00C9, 0x00E9}, {0x00CA, 0x00EA}, {0x00CB, 0x00EB},
-    {0x00CC, 0x00EC}, {0x00CD, 0x00ED}, {0x00CE, 0x00EE}, {0x00CF, 0x00EF},
-    {0x00D0, 0x00F0}, {0x00D1, 0x00F1}, {0x00D2, 0x00F2}, {0x00D3, 0x00F3},
-    {0x00D4, 0x00F4}, {0x00D5, 0x00F5}, {0x00D6, 0x00F6}, {0x00D8, 0x00F8},
-    {0x00D9, 0x00F9}, {0x00DA, 0x00FA}, {0x00DB, 0x00FB}, {0x00DC, 0x00FC},
-    {0x00DD, 0x00FD}, {0x00DE, 0x00FE}, {0x0102, 0x0103}, {0x0104, 0x0105},
-    {0x0106, 0x0107}, {0x010C, 0x010D}, {0x010E, 0x010F}, {0x0110, 0x0111},
-    {0x0118, 0x0119}, {0x011A, 0x011B}, {0x011E, 0x011F}, {0x0139, 0x013A}, {0x013D, 0x013E}, {0x0141, 0x0142},
-    {0x0143, 0x0144}, {0x0147, 0x0148}, {0x0150, 0x0151}, {0x0154, 0x0155},
-    {0x0158, 0x0159}, {0x015A, 0x015B}, {0x015E, 0x015F}, {0x0160, 0x0161},
-    {0x0164, 0x0165}, {0x016E, 0x016F}, {0x0170, 0x0171}, {0x0179, 0x017A},
-    {0x017B, 0x017C}, {0x017D, 0x017E}, {0x0218, 0x0219}, {0x021A, 0x021B},
-    {0x1E62, 0x1E63},
-  };
-  count = sizeof(pairs) / sizeof(pairs[0]);
-  return pairs;
-}
-
-inline uint32_t utf8_latin_case(uint32_t codepoint, bool uppercase) {
-  size_t count = 0;
-  const Utf8CasePair *pairs = utf8_latin_case_pairs(count);
-  for (size_t i = 0; i < count; i++) {
-    if (codepoint == pairs[i].upper || codepoint == pairs[i].lower) {
-      return uppercase ? pairs[i].upper : pairs[i].lower;
-    }
-  }
-  return codepoint;
-}
-
-inline bool utf8_letter_like(uint32_t codepoint) {
-  if (codepoint < 0x80) {
-    return std::isalpha(static_cast<unsigned char>(codepoint));
-  }
-  // Latin ranges exclude the multiplication and division symbols.
-  if ((codepoint >= 0x00C0 && codepoint <= 0x00D6) ||
-      (codepoint >= 0x00D8 && codepoint <= 0x00F6) ||
-      (codepoint >= 0x00F8 && codepoint <= 0x02AF) ||
-      (codepoint >= 0x1E00 && codepoint <= 0x1EFF)) {
-    return true;
-  }
-  // Unicode 16.0 Letter-category ranges within the supported script blocks.
-  // Punctuation, symbols, combining marks and unassigned positions must not
-  // consume a pending capital letter (for example Greek U+037E or Hebrew U+05BE).
-  return (codepoint >= 0x0370 && codepoint <= 0x0374) ||
-         (codepoint >= 0x0376 && codepoint <= 0x0377) ||
-         (codepoint >= 0x037A && codepoint <= 0x037D) ||
-         codepoint == 0x037F || codepoint == 0x0386 ||
-         (codepoint >= 0x0388 && codepoint <= 0x038A) ||
-         codepoint == 0x038C ||
-         (codepoint >= 0x038E && codepoint <= 0x03A1) ||
-         (codepoint >= 0x03A3 && codepoint <= 0x03F5) ||
-         (codepoint >= 0x03F7 && codepoint <= 0x03FF) ||
-         (codepoint >= 0x0400 && codepoint <= 0x0481) ||
-         (codepoint >= 0x048A && codepoint <= 0x052F) ||
-         (codepoint >= 0x05D0 && codepoint <= 0x05EA) ||
-         (codepoint >= 0x05EF && codepoint <= 0x05F2);
-}
-
-inline bool append_title_case_character(const std::string &text, size_t &offset,
-                                        std::string &out, bool &cap_next) {
-  uint32_t codepoint = 0;
-  size_t length = 0;
-  const Utf8DecodeStatus status = decode_utf8_codepoint(text, offset, codepoint, length);
-  if (status == Utf8DecodeStatus::INCOMPLETE) return false;
-  if (status == Utf8DecodeStatus::INVALID) {
-    out.push_back(text[offset]);
-    offset += length;
-    return true;
-  }
-
-  if (utf8_letter_like(codepoint)) {
-    if (codepoint < 0x80) {
-      const unsigned char ascii = static_cast<unsigned char>(codepoint);
-      codepoint = static_cast<uint32_t>(cap_next ? std::toupper(ascii) : std::tolower(ascii));
-    } else {
-      codepoint = utf8_latin_case(codepoint, cap_next);
-    }
-    cap_next = false;
-  }
-  append_utf8_codepoint(out, codepoint);
-  offset += length;
-  return true;
-}
 
 inline std::string normalized_state_text(esphome::StringRef value,
                                          size_t max_len = HA_SHORT_STATE_MAX_LEN) {
@@ -2205,44 +1797,14 @@ inline std::string text_sensor_display_text(esphome::StringRef value,
   return out;
 }
 
-inline std::string sensor_state_translation_key(const std::string &value) {
-  std::string text = trim_display_unit(value);
-  for (char &ch : text) {
-    ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
-  }
-  return text;
-}
 
-inline std::string sensor_state_display_text(const ParsedCfg &p,
-                                             esphome::StringRef value,
-                                             size_t max_len = HA_TEXT_SENSOR_STATE_MAX_LEN) {
-  if (sensor_state_labels_enabled(p)) {
-    std::string state = normalized_state_text(value, max_len);
-    std::string input = cfg_option_value(p.options, SENSOR_STATE_INPUT_OPTION);
-    std::string output = cfg_option_value(p.options, SENSOR_STATE_OUTPUT_OPTION);
-    if (input.empty() && !cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION).empty()) {
-      input = "high";
-      output = cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION);
-    } else if (input.empty() && !cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION).empty()) {
-      input = "low";
-      output = cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION);
-    }
-    if (!input.empty() && state == sensor_state_translation_key(input)) {
-      return output;
-    }
-    input = cfg_option_value(p.options, SENSOR_STATE_INPUT_2_OPTION);
-    output = cfg_option_value(p.options, SENSOR_STATE_OUTPUT_2_OPTION);
-    if (!input.empty() && state == sensor_state_translation_key(input)) {
-      return output;
-    }
-  }
-  return text_sensor_display_text(value, max_len);
-}
 
+#ifndef ESPDESKTOP_CONFIG_PARSER_ONLY
 inline void lv_label_set_text_limited(lv_obj_t *label, esphome::StringRef value, size_t max_len) {
   std::string text = normalize_display_text(string_ref_limited(value, max_len));
   lv_label_set_text(label, text.c_str());
 }
+#endif
 
 inline bool parse_float_ref(esphome::StringRef value, float &out) {
   char *end;

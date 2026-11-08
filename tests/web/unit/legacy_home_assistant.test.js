@@ -102,3 +102,22 @@ test("retired camera screensaver choices fall back safely while local modes rema
   assert.equal(normalizeScreensaverAction("Screen Dimmed"), "dim");
   assert.equal(normalizeScreensaverAction("Display Off"), "off");
 });
+
+test("native v2 nested pages retain unavailable-card warnings without rewriting saved cards", () => {
+  const fs = require("node:fs"), path = require("node:path");
+  const { encodePanelPageDocument, decodePanelPageDocument } =
+    loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
+  const document = JSON.parse(fs.readFileSync(path.resolve(__dirname,
+    "../../../compatibility/fixtures/companion_nested_pages.json"))).document;
+  const light = serializeCompactSubpageConfig(["1", "B"], [[
+    cardContractSubpageTypeCode("light_switch"), "light.desk", "Desk", "Auto", "Auto", "", "", "", "",
+  ]]);
+  document.subpages[33] = light;
+  const restored = decodePanelPageDocument(encodePanelPageDocument(document));
+  const before = encodePanelPageDocument(restored);
+  const report = legacyHomeAssistantCards(restored);
+  assert.deepEqual(report.map(card => card.location), ["Folder 33, card 1"]);
+  assert.match(legacyHomeAssistantWarning(report), /1 saved card needs Home Assistant/);
+  assert.equal(restored.subpages[33], light);
+  assert.deepEqual(encodePanelPageDocument(restored), before);
+});

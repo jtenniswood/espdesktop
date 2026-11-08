@@ -1,4 +1,5 @@
 import { resetAwareFetch } from "./api/reset_session";
+import type { CardConfig } from "./contracts/types";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
 import { createDeviceApi } from "./api/device_api";
@@ -38,7 +39,6 @@ import { createConfigMediaOptionsFeature } from "./application/config_media_opti
 import { createConfigImageOptionsFeature } from "./application/config_image_options";
 import { createConfigWeatherOptionsFeature } from "./application/config_weather_options";
 import { createConfigWebhookOptionsFeature } from "./application/config_webhook_options";
-import { createConfigInternalRelayOptionsFeature } from "./application/config_internal_relay_options";
 import { createConfigRobotCardOptionsFeature } from "./application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "./application/config_lock_options";
 import { createConfigDateTimeOptionsFeature } from "./application/config_date_time_options";
@@ -71,6 +71,9 @@ import { createButtonSettingsFeature, type ButtonSettingsFeature } from "./appli
 import { createPreviewGridPlacementFeature } from "./application/preview_grid_placement";
 import { createPreviewContextMenuFeature, type PreviewContextMenuFeature } from "./application/preview_context_menu";
 import { createPreviewClipboardFeature } from "./application/preview_clipboard";
+import { createNativePageTransfersFeature, validatePageTransferCards } from "./application/native_page_transfers";
+import { pageDepth } from "./model/page_keys";
+import { panelPageDocumentDepth } from "./model/panel_config_conversion";
 import { createPreviewInteractionsFeature, type PreviewInteractionsFeature } from "./application/preview_interactions";
 import { createCardEditorDraftController } from "./features/card_editor_draft_controller";
 import { createCardEditorValidationController } from "./features/card_editor_validation_controller";
@@ -99,6 +102,7 @@ import { createAppStateEventHandlersFeature } from "./application/app_state_even
 import { createAppEventsFeature, type AppEventsFeature } from "./application/app_events";
 import { createAppFeature, type AppFeature } from "./application/app";
 import { startApp } from "./application/app_start";
+import { createNativePageEditorFeature } from "./application/native_page_editor";
 import { createReconnectController } from "./features/reconnect";
 import { registerActionCardTypes } from "./cards/action";
 import { registerTimerCardTypes } from "./cards/timer";
@@ -113,17 +117,12 @@ import { registerFanCardTypes } from "./cards/fan";
 import { registerGarageCardTypes } from "./cards/garage";
 import { registerGateCardTypes } from "./cards/gate";
 import { registerImageCardTypes } from "./cards/image";
-import { registerWifiQrCardTypes } from "./cards/wifi_qr";
-import { registerInternalCardTypes } from "./cards/internal";
 import { registerLawnMowerCardTypes } from "./cards/lawn_mower";
 import { registerLightTemperatureCardTypes } from "./cards/light_temperature";
 import { registerLockCardTypes } from "./cards/lock";
 import { registerMediaCardTypes } from "./cards/media";
 import { registerPresenceCardTypes } from "./cards/presence";
 import { registerPushCardTypes } from "./cards/push";
-import { registerScreensaverCardTypes } from "./cards/screensaver";
-import { registerScreenLockCardTypes } from "./cards/screen_lock";
-import { registerSensorCardTypes } from "./cards/sensor";
 import { registerSliderCardTypes } from "./cards/slider";
 import { registerSubpageCardTypes } from "./cards/subpage";
 import { registerSwitchCardTypes } from "./cards/switch";
@@ -197,23 +196,12 @@ function registerCards(context: ApplicationContext) {
     registry,
     context.configuration.imageOptions,
   );
-  registerWifiQrCardTypes(registry, context.configuration.modalTabs, fields, cardUi, context.configuration.native);
-  registerInternalCardTypes(
-    registry,
-    context.configuration.internalRelayOptions,
-    context.dom.document,
-    fields,
-  );
   registerLawnMowerCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const lightCards = registerLightTemperatureCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
   registerLockCardTypes(registry, context.configuration.lockOptions, fields, cardUi);
   registerMediaCardTypes(registry, context.configuration.mediaOptions, context.device.id, fields);
   registerPresenceCardTypes(registry, context.configuration.options, fields);
   registerPushCardTypes(registry, fields);
-  registerScreenLockCardTypes(registry, fields, context.dom.document, context.dom.fetch);
-  registerScreensaverCardTypes(registry, fields);
-  registerSensorCardTypes(registry, context.configuration.options, fields, cardUi,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerSliderCardTypes(
     registry,
     context.configuration.modalTabs,
@@ -243,7 +231,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.configuration.imageOptions,
     context.configuration.weatherOptions,
     context.configuration.webhookOptions,
-    context.configuration.internalRelayOptions,
     context.configuration.lockOptions,
     context.configuration.dateTimeOptions,
     context.configuration.modalTabs,
@@ -403,6 +390,10 @@ function composeApplicationContext(): ApplicationContext {
     normalizeHexColor: (value, fallback) => Model.normalizeHexColor(value, fallback),
     showBanner: shell.showBanner,
     delay: (callback, milliseconds) => dom.schedule(callback, milliseconds),
+    saved: document => {
+      state.nativeHasNestedPages = panelPageDocumentDepth(document) > 1;
+      state.nativePanelDocument = { ...document, buttons: { ...document.buttons }, subpages: { ...document.subpages }, settings: { ...document.settings } };
+    },
   }, dom.fetch);
   const configurationPersistence = createConfigPersistenceFeature(nativePanelConfig, runtime, layout, entityState, shell);
   const cards = createCardRegistry();
@@ -423,7 +414,6 @@ function composeApplicationContext(): ApplicationContext {
   });
   const weatherConfigurationOptions = createConfigWeatherOptionsFeature(layout.config);
   const webhookConfigurationOptions = createConfigWebhookOptionsFeature();
-  const internalRelayConfigurationOptions = createConfigInternalRelayOptionsFeature(layout.config);
   const robotConfigurationOptions = createConfigRobotCardOptionsFeature();
   const lockConfigurationOptions = createConfigLockOptionsFeature();
   let configurationCodec: ReturnType<typeof createConfigCodecFeature>;
@@ -522,7 +512,7 @@ function composeApplicationContext(): ApplicationContext {
   const clockBarPostApi = createClockBarPostApiFeature(entityState, requestApi);
   configurationPersistence.connectRequestApi(requestApi);
   configurationCodec.connectRequestApi(requestApi);
-  const grid = createGridFeature(configurationCodec, runtime, layout, entityState, requestApi, renderQueue);
+  const grid = createGridFeature(configurationCodec, runtime, layout, entityState, requestApi, renderQueue, () => nativePanelConfig.markLocalEdit());
   fields = createControlsFieldsFeature(cards, configurationOptions, shell, requestApi);
   const placement = createPreviewGridPlacementFeature({
     controller: previewPlacement,
@@ -647,8 +637,24 @@ function composeApplicationContext(): ApplicationContext {
     selection,
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
   });
+  const nativeTransfers = createNativePageTransfersFeature({
+    native: nativePanelConfig, editor: () => nativePages, layout, api: requestApi, grid, shell,
+    validate: (entries, target, moving) => {
+      let images = 0;
+      const checkCard = (button: CardConfig, inSubpage: boolean) => {
+        const definition = cards.definitions[button.type || ""];
+        if (!definition || preview.configDisabled(button) || (inSubpage && !preview.registryValue(definition, "allowInSubpage", false)))
+          throw new Error("A copied card is not supported on this page.");
+        if (imageConfigurationOptions.isImageCard(button)) ++images;
+      };
+      validatePageTransferCards(entries, target, configurationCodec, checkCard);
+      if (!moving && !imageConfigurationOptions.canAddImageCards(images))
+        throw new Error(imageConfigurationOptions.imageSlotCapacityMessage());
+    },
+  });
   const clipboard = createPreviewClipboardFeature({
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
+    nativeTransfers,
     configPersistence: configurationPersistence,
     document: dom.document,
     layout,
@@ -693,6 +699,7 @@ function composeApplicationContext(): ApplicationContext {
   });
   interactions = createPreviewInteractionsFeature({
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
+    nativeTransfers,
     cardEditorDraft,
     configPersistence: configurationPersistence,
     layout,
@@ -725,6 +732,12 @@ function composeApplicationContext(): ApplicationContext {
     },
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
+  const nativePages = createNativePageEditorFeature({ native: nativePanelConfig, codec: configurationCodec, layout, runtime,
+    document: dom.document, shell, closeSettings: selection.closeSettings,
+    render: () => { preview.render(); buttonSettings.render(); appearance.syncColorUi(); },
+    canApply: () => !grid.hasPendingMainGridSave(),
+  });
+  configurationCodec.connectNativePageRefresh(() => nativePages.refresh());
   const stateEventHandlers = createAppStateEventHandlersFeature(
     runtime,
     core,
@@ -850,6 +863,7 @@ function composeApplicationContext(): ApplicationContext {
   });
   const backupApplication = createAppBackupFeature({
     identity,
+    waitForInitialState: () => stateLoader.waitForInitialState(),
     layout,
     backupExport,
     backupImport,
@@ -901,6 +915,7 @@ function composeApplicationContext(): ApplicationContext {
     shell,
     stateLoader,
     gridMigration,
+    nativePages,
   );
   publicFirmwareInstall = createPublicFirmwareInstallFeature(
     deviceApi,
@@ -971,7 +986,6 @@ function composeApplicationContext(): ApplicationContext {
     imageConfigurationOptions,
     weatherConfigurationOptions,
     webhookConfigurationOptions,
-    internalRelayConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,
@@ -1055,11 +1069,13 @@ function startEspDesktop(): void {
   // Native configuration is initialized after the display on P4 devices, so
   // the first capabilities request can legitimately receive a temporary 503.
   // Retry after the UI has started and redraw an open card picker once support
-  // is confirmed. Otherwise Wifi Sharing remains hidden for the whole page
-  // session even though the API becomes available a few seconds later.
+  // is confirmed after the API becomes available.
   const discoverNativeCards = () => {
     void context.configuration.native.waitForDiscovery().then((result) => {
-      if (result === true) context.controllers.buttonSettings.render();
+      if (result === true) {
+        void context.configuration.codec.refreshNativePages();
+        context.controllers.buttonSettings.render();
+      }
     });
   };
   if (context.dom.document.readyState === "loading") {

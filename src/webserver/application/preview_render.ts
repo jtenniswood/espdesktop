@@ -1,3 +1,5 @@
+import { removeRetiredCards } from "../features/retired_cards";
+import { cardContractTypeRetired } from "../generated/card_contract";
 import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
@@ -6,6 +8,7 @@ import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
+import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml } from "./ui_primitives";
 import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
@@ -241,7 +244,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const document = dependencies.document;
     const els = dependencies.runtime.els;
     const { cardOnPattern } = dependencies.confirmationOptions;
-    const { getSubpage } = dependencies.codec;
+    const { getSubpage, serializeSubpageGrid } = dependencies.codec;
     const { gridPreviewBlocked: gridPreviewBlockedByRotationStartup } = dependencies.screenRotation;
     const { isConfigLocked } = dependencies.shell;
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
@@ -434,6 +437,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         main.removeAttribute("aria-busy");
         var c: any = ctx();
+        const removed = removeRetiredCards(c.grid, c.sizes, c.buttons, dependencies.layout.gridCols);
+        if (c.isSub && removed.length) {
+            const subpage = getSubpage(state.editingSubpage);
+            subpage.order = serializeSubpageGrid(subpage);
+        }
+        for (const slot of removed) {
+            const index = c.selected.indexOf(slot);
+            if (index !== -1) c.selected.splice(index, 1);
+        }
         updatePreviewHint(c);
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
@@ -474,7 +486,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 }
             }
             else if (slot > 0) {
-                if (slot > (c.isSub ? c.buttons.length : c.maxSlots)) {
+                if (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
+                    (!c.isSub && slot > dependencies.layout.numSlots)) {
                     var unavailable: any = document.createElement("div");
                     unavailable.className = "sp-empty-cell";
                     unavailable.setAttribute("data-pos", pos);
@@ -491,7 +504,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (!c.isSub || state.settingsDraft.homeSlot === state.editingSubpage)) {
                     b = state.settingsDraft.button;
                 }
-                if (!buttonTypeInfoOnlyVisible(b.type || "")) {
+                if (cardContractTypeRetired(b.type) || !buttonTypeInfoOnlyVisible(b.type || "")) {
                     var hidden: any = document.createElement("div");
                     hidden.className = "sp-empty-cell sp-info-only-hidden";
                     hidden.setAttribute("data-pos", pos);

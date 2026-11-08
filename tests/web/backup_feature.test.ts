@@ -1,5 +1,7 @@
 import type { CardConfig } from "../../src/webserver/contracts/types";
 import { createBackupFeature, type FeatureSubpage } from "../../src/webserver/features/backup";
+import { createNativeConfigBackupPayload } from "../../src/webserver/model/native_config_backup";
+import { encodePanelPageDocument } from "../../src/webserver/model/panel_config_conversion";
 import {
   buildSubpageGrid,
   cloneCardConfig,
@@ -238,7 +240,7 @@ export function runBackupFeatureTests(migrationFixture?: MigrationFixture): void
     version: 2,
     format: "espdesktop.backup",
     buttons: [],
-    native_config: { document_version: 2, device_profile: "future-panel", payload: "future" },
+    native_config: { document_version: 3, device_profile: "future-panel", payload: "future" },
   });
   equal(newerNativeDocument.native_config, undefined, "newer native payloads do not block readable backup import");
   equal(
@@ -251,7 +253,7 @@ export function runBackupFeatureTests(migrationFixture?: MigrationFixture): void
     format: "espdesktop.backup",
     device: "future-panel",
     buttons: [{}],
-    native_config: { document_version: 2, device_profile: "future-panel", payload: "future" },
+    native_config: { document_version: 3, device_profile: "future-panel", payload: "future" },
   }, { device: "panel-b", slots: 1 });
   equal(
     newerNativeMismatchPlan.warnings[0],
@@ -306,11 +308,21 @@ export function runBackupFeatureTests(migrationFixture?: MigrationFixture): void
 
   let failure = "";
   try {
-    feature.normalizeBackupConfig({ version: 3, format: "espdesktop.backup", buttons: [] });
+    feature.normalizeBackupConfig({ version: 4, format: "espdesktop.backup", buttons: [] });
   } catch (error) {
     failure = String((error as Error & { backupMessage?: string }).backupMessage || "");
   }
   equal(failure, "Backup was created by a newer version of EspDesktop", "future backup error remains exact");
+  const graphBackup = { version: 3, format: "espdesktop.backup", buttons: [],
+    native_config: createNativeConfigBackupPayload(encodePanelPageDocument({ deviceProfile: "panel-a",
+      buttons: { 1: ";Root;;;;;subpage" }, subpages: { 1: "~B,1|G,,Child", 33: "~B,1|,light.leaf,Leaf" }, settings: {} })) };
+  let graphFailure = "";
+  try { feature.planBackupImport(graphBackup, { device: "panel-b", slots: 3 }); }
+  catch (error) { graphFailure = (error as Error).message; }
+  equal(graphFailure, "Nested-page backups must be restored to the same device profile. No settings were changed.",
+    "cross-profile graph imports cannot skip the native section and flatten the portable layout");
+  equal(feature.planBackupImport(graphBackup, { device: "panel-a", slots: 3 }).config.native_config?.document_version, 2,
+    "matching profile retains its complete native graph for restore");
 
   if (!migrationFixture) return;
   const scenario = migrationFixture.scenarios.backup_restore;

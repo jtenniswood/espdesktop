@@ -40,12 +40,11 @@
     }
   },
   "equivalenceSamples": {
-    "cardType": "sensor",
+    "cardType": "media",
     "deviceSlug": "guition-esp32-p4-jc8012p4a1"
   },
   "pilots": {
     "cards": {
-      "sensor": "product/v2/cards/sensor.json",
       "media": "product/v2/cards/media.json",
       "image": "product/v2/cards/image.json",
       "light_switch": "product/v2/cards/light_switch.json",
@@ -63,10 +62,6 @@
       "timezone": "product/v2/cards/timezone.json",
       "weather": "product/v2/cards/weather.json",
       "weather_forecast": "product/v2/cards/weather_forecast.json",
-      "internal": "product/v2/cards/internal.json",
-      "local_sensor": "product/v2/cards/local_sensor.json",
-      "screen_lock": "product/v2/cards/screen_lock.json",
-      "screensaver": "product/v2/cards/screensaver.json",
       "cover": "product/v2/cards/cover.json",
       "door_window": "product/v2/cards/door_window.json",
       "garage": "product/v2/cards/garage.json",
@@ -85,8 +80,6 @@
       "presence": "product/v2/cards/presence.json",
       "lawn_mower": "product/v2/cards/lawn_mower.json",
       "vacuum": "product/v2/cards/vacuum.json",
-      "wifi_qr": "product/v2/cards/wifi_qr.json",
-      "wifi_qr_card": "product/v2/cards/wifi_qr_card.json",
       "webhook": "product/v2/cards/webhook.json",
       "": "product/v2/cards/default_switch.json",
       "timer": "product/v2/cards/timer.json"

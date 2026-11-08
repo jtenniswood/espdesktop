@@ -17,7 +17,7 @@ code = r'''
 #include <vector>
 struct lv_obj_t {};
 struct ParsedCfg { std::string entity; };
-struct NavigationSubpageEntry { int slot; std::string kind; lv_obj_t *screen; };
+struct NavigationSubpageEntry { int slot; std::string kind; lv_obj_t *screen; int parent_slot = 0; };
 struct NavigationHomeTargetEntry { int slot; std::string config; };
 lv_obj_t home, app, other;
 lv_obj_t *screen = &app;
@@ -40,6 +40,7 @@ NavigationHomeTargetEntry *navigation_find_slot_target(int slot) { return slot ?
 auto &navigation_home_targets() { return parents; }
 ParsedCfg parse_cfg(const std::string &s) { return {s}; }
 bool companion_app_shortcuts_enabled(const ParsedCfg &) { return true; }
+bool navigation_restore_subpage_slot(int slot) { screen = pages[slot - 1].screen; return true; }
 bool navigation_return_home(lv_obj_t *) { screen = &home; return true; }
 void navigation_hide_modals() {}
 lv_obj_t *lv_scr_act() { return screen; }
@@ -90,7 +91,10 @@ int main() {
   screen = &app; pending_return = true; pending_open = "first.app";
   assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &app);
-
+  // Leaving a nested app returns to its containing folder.
+  screen = &app; pending_return = true; pending_open.clear(); pages[0].parent_slot = 2;
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &other); pages[0].parent_slot = 0; screen = &app;
 }
 '''
 with tempfile.TemporaryDirectory() as temporary:

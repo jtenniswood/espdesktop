@@ -4,8 +4,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 #include "panel_config_document.h"
+#include "compatibility_status.h"
+#include "panel_config_text_storage.h"
 
 namespace espdesktop::configuration {
 
@@ -20,6 +23,11 @@ class PanelConfigTextValue {
   virtual const std::string &value() const = 0;
   virtual bool set_value(const char *value, size_t value_size) = 0;
   virtual bool publish_value(const char *value, size_t value_size) = 0;
+  // Pure fixed-capacity check: preference availability is an I/O outcome.
+  virtual bool can_persist_value(size_t) const { return true; }
+  // Reclaim storage for a wanted empty value when absence restores exactly
+  // that value. Custom platforms/defaults retain the ordinary write path.
+  virtual bool prepare_empty_value() { return true; }
 };
 
 class PanelConfigTextBindings {
@@ -37,36 +45,79 @@ class PanelConfigTextBindings {
       const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> &chunks) {
     special_page_chunks_ = chunks;
   }
-  void set_button(
-      uint8_t slot, PanelConfigTextValue *button,
-      const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS>
-          &subpage_chunks);
+  bool set_button(uint8_t slot, PanelConfigTextValue *button,
+                  const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS>
+                      &subpage_chunks);
 
   bool configured() const;
   bool write_document(uint8_t *output, size_t output_capacity,
                       size_t *document_size) const;
+  // Replace only fields represented by these text entities. Preserve settings
+  // and records that this compatibility projection does not own.
+  bool merge_document(const uint8_t *native, size_t native_size,
+                      uint8_t *output, size_t output_capacity,
+                      size_t *document_size) const;
   bool persist_document(const uint8_t *document, size_t document_size);
   bool publish_document(const uint8_t *document, size_t document_size);
-  bool write_value(PanelConfigTextValue *target, const char *value,
-                          size_t value_size, bool persist);
+  // Fixed profile/field/chunk admission without preference reads or writes.
+  CompatibilityStatus persistence_admission(const uint8_t *document, size_t size);
+  CompatibilityStatus persist_document_status(const uint8_t *document, size_t size);
+  CompatibilityStatus publish_document_status(const uint8_t *document, size_t size);
+  // Native graph publication needs the root order and shared accent colour.
+  // Update those live values without clearing per-card/subpage compatibility
+  // fields or claiming that a complete legacy layout has been published.
+  CompatibilityStatus publish_global_values(std::string_view profile,
+      std::string_view order, std::string_view on_color);
 
+  // Trusted, already-validated runtime values are not saved wire records.
+  // Their escaped text may exceed the saved-record byte limit.
+  bool validate_runtime_records(const PanelConfigRecord *records, size_t count) const;
+  bool publish_runtime_records(const PanelConfigRecord *records, size_t count);
+
+  bool validate_live_document(const uint8_t *document, size_t size) const {
+    return compatible_document(document, size);
+  }
+  void refresh_runtime_pages() {
+    for (const auto &button : buttons_)
+      for (auto *chunk : button.subpage_chunks)
+        if (chunk) {
+          const auto &value = chunk->value();
+          chunk->publish_value(value.data(), value.size());
+          return;
+        }
+  }
  private:
-  struct ButtonSources {
-    PanelConfigTextValue *button{nullptr};
-    std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> subpage_chunks{};
-  };
+  enum class ApplyMode { PUBLISH, CHECK_PERSIST, PREPARE_EMPTY, PERSIST };
+  bool apply_special_page_chunks(const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> &chunks,
+      const char *value, size_t value_size, ApplyMode mode);
+   struct ButtonSources {
+     PanelConfigTextValue *button{nullptr};
+     std::array<PanelConfigTextValue *, PANEL_CONFIG_TEXT_CHUNK_COUNT>
+         subpage_chunks{};
+   };
 
+  bool owns_record(const PanelConfigRecord &record) const;
+  bool compatible_document(const uint8_t *document, size_t size) const;
+  bool write_document(const uint8_t *native, size_t native_size,
+                      uint8_t *output, size_t output_capacity,
+                      size_t *document_size) const;
   bool apply_document(const uint8_t *document, size_t document_size,
-                      bool persist);
+                      ApplyMode mode);
+  bool apply_records(PanelConfigReader *reader, const PanelConfigRecord *records,
+                     size_t count, ApplyMode mode);
+  bool write_value(PanelConfigTextValue *target, const char *value,
+                   size_t value_size, ApplyMode mode);
 
   // Runtime-only overflow can leave the preference copy behind. The next
   // compatible mirror must rewrite even values that already match live state.
-  bool legacy_mirror_current_{true};
+  // Restored live fields are not proof of a complete persistent copy. The
+  // first repair after boot must verify/write every configured field.
+  bool legacy_mirror_current_{false};
   std::string device_profile_;
   PanelConfigTextValue *button_order_{nullptr};
   PanelConfigTextValue *button_on_color_{nullptr};
   std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> special_page_chunks_{};
-  std::array<ButtonSources, PANEL_CONFIG_MAX_SLOT_COUNT> buttons_{};
+  std::array<ButtonSources, PANEL_CONFIG_TEXT_SLOT_COUNT> buttons_{};
 };
 
 }  // namespace espdesktop::configuration

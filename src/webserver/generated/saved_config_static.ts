@@ -7,11 +7,6 @@ import type { CardConfig } from "../contracts/types";
 import { configOptionEnabled } from "../model/config_primitives";
 
 export function normalizeSavedConfigStatic(config: CardConfig): boolean {
-  if (config.type === "internal") {
-    config.type = "internal";
-    config.options = "";
-    return true;
-  }
   if (config.type === "light_brightness") {
     config.sensor = "";
     config.type = "light_brightness";
@@ -33,30 +28,6 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
   }
   if (config.type === "push") {
     config.type = "push";
-    config.options = "";
-    return true;
-  }
-  if (config.type === "screen_lock") {
-    config.entity = "";
-    config.label = "";
-    config.icon = "Lock";
-    config.icon_on = "Lock Open";
-    config.sensor = "";
-    config.unit = "";
-    config.type = "screen_lock";
-    config.precision = "";
-    config.options = ["screensaver_on_lock"].filter(name => configOptionEnabled(config.options, name)).join(",");
-    return true;
-  }
-  if (config.type === "screensaver") {
-    config.entity = "";
-    config.label = "";
-    config.icon = "Monitor";
-    config.icon_on = "Auto";
-    config.sensor = "";
-    config.unit = "";
-    config.type = "screensaver";
-    config.precision = "";
     config.options = "";
     return true;
   }

@@ -1,10 +1,10 @@
 #pragma once
 
-// Local actions, relays, screensaver, lock, webhook and Mac Companion controls.
+// Local actions, webhooks and Mac Companion controls.
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
 // Contract coverage markers: type == "", "action", "alarm_action",
-// "companion", "fan_switch", "internal", "light_switch", "push", "screen_lock", "screensaver", "webhook".
+// "companion", "fan_switch", "light_switch", "push", "webhook".
 
 namespace espdesktop::cards {
 
@@ -14,10 +14,7 @@ inline bool basic_action_driver_matches(const Context &context,
   switch (context.runtime.driver) {
     case Driver::ACTION:
       return config.type == "local" || action_card_local_action(config);
-    case Driver::INTERNAL:
     case Driver::COMPANION:
-    case Driver::SCREEN_LOCK:
-    case Driver::SCREENSAVER:
     case Driver::WEBHOOK:
       return true;
     default:
@@ -31,19 +28,8 @@ inline bool basic_action_driver_setup_visual(
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
-    case Driver::SCREENSAVER:
-      lv_label_set_display_text(slot.icon_lbl, find_icon("Monitor"));
-      lv_label_set_display_text(slot.text_lbl, espdesktop_i18n("Screensaver"));
-      apply_push_button_transition(slot.btn);
-      break;
-    case Driver::SCREEN_LOCK:
-      setup_screen_lock_card(slot, config);
-      break;
     case Driver::COMPANION:
       setup_companion_card(slot, config, sensor_color);
-      break;
-    case Driver::INTERNAL:
-      setup_internal_relay_card(slot, config);
       break;
     case Driver::ACTION:
       if (config.type == "local" || action_card_local_action(config)) {
@@ -123,17 +109,6 @@ inline bool basic_action_driver_bind_main(
   switch (context.runtime.driver) {
     case Driver::ACTION:
       break;
-    case Driver::INTERNAL:
-      if (!config.entity.empty() && !internal_relay_push_mode(config)) {
-        const bool has_icon_on =
-          !config.icon_on.empty() && config.icon_on != "Auto";
-        const char *icon_on = has_icon_on
-          ? find_icon(config.icon_on.c_str()) : nullptr;
-        watch_internal_relay_state(
-          config.entity, slot.btn, slot.icon_lbl, has_icon_on,
-          internal_relay_icon(config, false), icon_on);
-      }
-      break;
     default:
       break;
   }
@@ -185,6 +160,16 @@ inline bool basic_action_driver_bind_subpage(
         auto *context = static_cast<CompanionSubpageActionContext *>(lv_event_get_user_data(event));
         if (!context) return;
         const auto *card = &context->card;
+        if (companion_app_shortcuts_enabled(*card)) {
+          auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
+          auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+          const bool active = companion_action_active(card->entity);
+          if (screen && lv_obj_is_valid(screen) && (companion_auto_open_app_subpages() || active)) {
+            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            refresh_visible_image_cards();
+            if (!companion_auto_open_app_subpages()) return;
+          }
+        }
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
@@ -196,19 +181,6 @@ inline bool basic_action_driver_bind_subpage(
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
       }, click);
-      break;
-    }
-    case Driver::SCREENSAVER:
-      bind_immediate_button_action(slot.btn, [](lv_event_t *) {
-        if (force_screensaver_action()) force_screensaver_action()();
-      }, nullptr);
-      break;
-    case Driver::SCREEN_LOCK: {
-      auto *screensaver_on_lock = grid_delete_with_owner(slot.btn,
-          new bool(cfg_option_enabled(config.options, "screensaver_on_lock")));
-      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-        screen_lock_activate(*static_cast<const bool *>(lv_event_get_user_data(event)));
-      }, screensaver_on_lock);
       break;
     }
     case Driver::WEBHOOK: {
@@ -235,51 +207,6 @@ inline bool basic_action_driver_bind_subpage(
       }
       break;
     }
-    case Driver::INTERNAL: {
-      const bool push_mode = internal_relay_push_mode(config);
-      if (!push_mode && !config.entity.empty()) {
-        const bool has_icon_on =
-          !config.icon_on.empty() && config.icon_on != "Auto";
-        const char *icon_on = has_icon_on
-          ? find_icon(config.icon_on.c_str()) : nullptr;
-        bool *child_state = nullptr;
-        lv_obj_t *parent_btn = nullptr;
-        lv_obj_t *parent_icon = nullptr;
-        if (environment.parent_indicator_enabled &&
-            environment.child_allocation_index && environment.child_was_on) {
-          const int child_index = (*environment.child_allocation_index)++;
-          if (child_index >= environment.child_capacity) {
-            ESP_LOGW("sensors", "Too many subpage state indicators; skipping %s",
-              config.entity.c_str());
-          } else {
-            environment.child_was_on[child_index] = false;
-            child_state = &environment.child_was_on[child_index];
-            parent_btn = environment.parent_btn;
-            parent_icon = environment.parent_icon;
-          }
-        }
-        watch_internal_relay_state(
-          config.entity, slot.btn, slot.icon_lbl, has_icon_on,
-          internal_relay_icon(config, push_mode), icon_on,
-          child_state, parent_btn, parent_icon, environment.parent_index,
-          environment.parent_has_icon_on, environment.parent_icon_off,
-          environment.parent_icon_on, environment.parent_on_count);
-      }
-      if (!config.entity.empty()) {
-        InternalRelayClickCtx *click = grid_delete_with_owner(
-          slot.btn, new InternalRelayClickCtx());
-        click->key = config.entity;
-        click->push_mode = push_mode;
-        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-          InternalRelayClickCtx *value = static_cast<InternalRelayClickCtx *>(
-            lv_event_get_user_data(event));
-          if (value && !value->key.empty()) {
-            send_internal_relay_action(value->key, value->push_mode);
-          }
-        }, click);
-      }
-      break;
-    }
     default:
       break;
   }
@@ -292,12 +219,6 @@ inline bool basic_action_driver_handle_main_click(
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
-    case Driver::SCREENSAVER:
-      if (force_screensaver_action()) force_screensaver_action()();
-      break;
-    case Driver::SCREEN_LOCK:
-      screen_lock_activate(cfg_option_enabled(config.options, "screensaver_on_lock"));
-      break;
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity)) break;
       char request_id[24];
@@ -331,9 +252,6 @@ inline bool basic_action_driver_handle_main_click(
       }
       break;
     }
-    case Driver::INTERNAL:
-      if (!config.entity.empty()) send_internal_relay_action(config);
-      break;
     case Driver::ACTION:
       if (config.type == "local") {
         if (!config.entity.empty()) send_local_action(config.entity);
