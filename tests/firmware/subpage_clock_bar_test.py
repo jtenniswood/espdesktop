@@ -13,22 +13,21 @@ refresh = display[refresh_start:].split("clock_bar_set_widget_hidden(id(display_
 refresh = refresh.replace("${main_page_pad_top}", "40").replace("${main_page_compact_pad_top}", "4")
 padding_start = source.index("inline void clock_bar_set_grid_page_pad_top(")
 padding_end = source.index("inline bool clock_bar_active_on_button_grid_page(", padding_start)
-code = r'''#include <cassert>
+registry_start = source.index("inline std::vector<lv_obj_t *> &clock_bar_button_grid_pages()")
+code = r'''#include <algorithm>
+#include <cassert>
 #include <vector>
 #include "display_mode_controller.h"
 using lv_coord_t = int;
 constexpr int LV_PART_MAIN = 0;
 struct lv_obj_t { int top = 4; };
-lv_obj_t home, subpage, screensaver;
+lv_obj_t home, subpage, app_page, screensaver;
 lv_obj_t *active = &home;
 lv_obj_t *lv_scr_act() { return active; }
-bool clock_bar_active_on_button_grid_page(lv_obj_t *) { return active == &home || active == &subpage; }
+bool clock_bar_active_on_button_grid_page(lv_obj_t *) { return active == &home || active == &subpage || active == &app_page; }
 struct ClockBarVisibility { bool reserve_space = false, visible = false; };
-''' + source[start:end] + r'''
-std::vector<lv_obj_t *> &clock_bar_button_grid_pages() {
-  static std::vector<lv_obj_t *> pages{&subpage};
-  return pages;
-}
+void clock_bar_clear_responsive_grid_cards(lv_obj_t *) {}
+''' + source[registry_start:padding_start] + source[start:end] + r'''
 int updates = 0;
 int lv_obj_get_style_pad_top(lv_obj_t *page, int) { return page->top; }
 void lv_obj_set_style_pad_top(lv_obj_t *page, int top, int) { page->top = top; }
@@ -56,6 +55,8 @@ struct ApplyClockBar {
 ''' + source[padding_start:padding_end] + '\nvoid refresh() {\n' + refresh + '\n}\n' + r'''
 int main() {
   using espdesktop::DisplayMode;
+  clock_bar_register_button_grid_page(&subpage);
+  clock_bar_register_button_grid_page(&app_page, false);
   // Execute the production page-change wiring with the home bar turned off.
   refresh();
   assert(home.top == 4 && subpage.top == 4 && !settings_visible);
@@ -68,11 +69,14 @@ int main() {
   active = &home;
   refresh();
   assert(home.top == 4 && subpage.top == 4 && !settings_visible && full_refreshes == 3);
+  active = &app_page;
+  refresh();
+  assert(app_page.top == 4 && !settings_visible);
   for (bool title_bar : {false, true}) {
     clock_bar_subpage_title_bar_enabled() = title_bar;
   for (bool enabled : {false, true}) {
     for (bool scheduled_off : {false, true}) {
-      for (auto *screen : {&home, &subpage, &screensaver}) {
+      for (auto *screen : {&home, &subpage, &app_page, &screensaver}) {
         active = screen;
         for (auto mode : {DisplayMode::ACTIVE, DisplayMode::DIMMED, DisplayMode::CLOCK}) {
           auto result = clock_bar_resolve_visibility(enabled, &home, mode, scheduled_off);
@@ -84,6 +88,13 @@ int main() {
     }
   }
   }
+  clock_bar_register_button_grid_page(&subpage, false);
+  assert(clock_bar_subpage_title_pages().empty());
+  clock_bar_register_button_grid_page(&subpage);
+  clock_bar_unregister_button_grid_page(&subpage);
+  assert(clock_bar_subpage_title_pages().empty());
+  clock_bar_clear_button_grid_pages();
+  assert(clock_bar_button_grid_pages().empty());
 }
 '''
 # The shared rendering lambda only shows the time on the home screen.

@@ -312,7 +312,7 @@ inline void navigation_register_subpage(int slot, int display_order,
   entry.kind = navigation_lower(navigation_trim(kind));
   entry.screen = screen;
   navigation_subpages().push_back(entry);
-  clock_bar_register_button_grid_page(screen);
+  clock_bar_register_button_grid_page(screen, entry.kind != "app_shortcuts");
   // Both events run after LVGL has changed the active screen. Unloading also
   // restores temperatures immediately when returning home or opening another UI.
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,

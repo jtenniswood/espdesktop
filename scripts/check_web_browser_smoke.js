@@ -8844,7 +8844,10 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
     if (visible) await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
     else await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
     assert.strictEqual(await page.locator(".sp-clock").count(), 0, "clock remains hidden on subpages");
-    await page.locator(".sp-back-btn .sp-back-hit").click();
+    const back = page.locator(".sp-back-btn");
+    const icon = back.locator(".sp-back-hit:not([hidden])");
+    const bounds = await icon.boundingBox();
+    await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
@@ -8857,6 +8860,9 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
     await row.waitFor({ state: "visible" });
     assert(await row.isVisible(), "Clock Bar off reveals the title-bar control");
     assert(await toggle.isChecked(), "title bar defaults on");
+    await subpage(1, false); // App pages have no title, even with the saved title-bar option on.
+    await subpage(3, true); // Ordinary pages retain their optional title.
+    await settings();
     await Promise.all([
       page.waitForResponse(r => r.url().includes("subpage_title_bar") && r.url().endsWith("/turn_off")),
       toggle.locator("..").locator(".sp-toggle-track").click(),
@@ -8881,7 +8887,7 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
       page.waitForResponse(r => r.url().includes("subpage_title_bar") && r.url().endsWith("/turn_on")),
       toggle.locator("..").locator(".sp-toggle-track").click(),
     ]);
-    await subpage(1, true);
+    await subpage(1, false);
     assert.deepStrictEqual(posts, ["turn_off", "turn_on"]);
     assert.deepStrictEqual(errors, []);
     console.log(`${testCase.name}: global title-bar toggle, clock-bar override and reload passed.`);
