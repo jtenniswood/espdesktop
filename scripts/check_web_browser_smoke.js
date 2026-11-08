@@ -9071,13 +9071,33 @@ async function assertNestedCompanionPages(browser) {
     const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
     if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await app.locator(".sp-disclosure-button").click();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
+    let rejectNext = true;
+    await page.route("**/api/v1/config", async route => {
+      if (route.request().method() === "PUT" && rejectNext) {
+        rejectNext = false; return route.fulfill({ status: 500, body: "Save failed" });
+      }
+      return route.fallback();
+    });
+    const beforeRetry = fixture.document.subpages[1];
+    const failed = page.waitForResponse(response => response.url().endsWith("/api/v1/config") && response.status() === 500);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await failed;
+    await page.waitForFunction(() => {
+      const save = [...document.querySelectorAll(".sp-settings-modal button")].find(button => button.textContent === "Save");
+      return save && !save.disabled;
+    });
+    assert.equal(fixture.puts.length, 0);
+    assert.equal(fixture.document.subpages[1], beforeRetry);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.puts.length === 1, "one atomic nested app save");
     assert(fixture.document.subpages[33].includes("Address"), "existing shortcut survives app preset change");
     assert(fixture.document.subpages[33].includes("shortcut."), "app shortcuts persist under nested key");
+    const parsed = loadTypeScriptModule("src/webserver/model/subpage.ts").parseRawSubpageConfig(fixture.document.subpages[33], code => code);
+    const back = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/app_shortcuts/safari.json"))).shortcuts.find(shortcut => shortcut.id === "1");
+    assert(parsed.buttons.some(card => card.entity === "shortcut." + back.shortcut), "retry in the same dialog saves the newly selected shortcut");
     await open();
     assert.deepStrictEqual(errors, []);
-    console.log("Nested Companion shortcut creation, edit, atomic save, reload and parent Back passed.");
+    console.log("Nested Companion shortcut creation, edit, failed-save retry, atomic save, reload and parent Back passed.");
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 

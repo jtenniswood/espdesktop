@@ -498,6 +498,9 @@ export function createButtonSettingsFeature(
                 }
                 state.subpages = originalPages;
                 state.subpageSavePending = originalPending;
+                // Rollback replaces page objects; keep this open dialog bound
+                // to the restored live arrays when the user retries Save.
+                c = ctx();
                 state.settingsDraft = draft;
                 renderPreview();
             }
