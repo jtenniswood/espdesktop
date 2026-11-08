@@ -159,6 +159,18 @@ export async function runNativePageTransferTests(): Promise<void> {
   check((await feature.paste(2)).ok && Object.values(persisted.subpages).some(raw => raw.includes("light.leaf")),
     "a nested cut can be pasted onto the home page with its contents");
 
+  persisted = snapshot(); visible = persisted; native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
+  lostAck = true;
+  check(!await feature.copy([1], true), "cut reports an unconfirmed save when its acknowledgement is lost");
+  check(!persisted.subpages[1] && !persisted.subpages[33], "the server may already have deleted the cut tree");
+  check(clipboard()?.native?.entries[0]?.subtree?.children[1]?.includes("light.leaf"),
+    "an unconfirmed cut retains the entire captured tree for recovery");
+  const uncertainCutWrites = writes;
+  check(!(await feature.paste(2)).ok && writes === uncertainCutWrites, "uncertain cut requires saved-state reconciliation before pasting");
+  native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
+  check((await feature.paste(2)).ok && persisted.subpages[33]?.includes("light.leaf"),
+    "the retained clipboard restores a cut tree after reconciliation");
+
   persisted = snapshot(); persisted.buttons[2] = "light.other;Other"; persisted.settings.button_order = "1,2";
   visible = persisted; native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
   check(await feature.copy([1, 2], true), "multiple cards can be cut together");
