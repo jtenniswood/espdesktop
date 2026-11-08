@@ -1,14 +1,14 @@
 ---
 title: EspDesktop Screensaver
 description:
-  How to configure screensaver modes and presence sensor wake on your EspDesktop panel.
+  How to configure local and Mac Companion screensaver modes on your EspDesktop panel.
 ---
 
 # Screensaver
 
 The panel can use a screensaver when it's not being used. When active, it can dim the normal screen, show a dim clock, or turn the backlight off so the panel goes dark. Touch the screen to wake it up. The wake touch does not press a card; release it, then tap the control you want.
 
-There are four screensaver modes, configured in **Screen > Sleep & Schedule > Screensaver** on the [Setup](/features/setup) page:
+There are three screensaver modes, configured in **Screen > Sleep & Schedule > Screensaver** on the [Setup](/features/setup) page:
 
 ## Disabled
 
@@ -37,7 +37,7 @@ Use **Then** to choose what happens when the screensaver activates:
 
 When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brightness**. Automatic and Timed brightness modes use separate **Daytime Dimmed Screen Brightness** and **Nighttime Dimmed Screen Brightness** values, changing at the same sunrise/sunset or dawn/dusk boundary as the main screen. When Clock is selected, set separate **Daytime Clock Brightness** and **Nighttime Clock Brightness** values.
 
-**Show date** adds the local date below the Clock screensaver, centered in a smaller font. It is off by default, is saved across restarts, and moves with the clock to reduce burn-in. The month uses the panel’s selected language. Update the panel firmware if the toggle is not shown. Timer, Sensor and App Connection modes share the setting.
+**Show date** adds the local date below the Clock screensaver, centered in a smaller font. It is off by default, is saved across restarts, and moves with the clock to reduce burn-in. The month uses the panel’s selected language. Update the panel firmware if the toggle is not shown. Timer and App Connection modes share the setting.
 
 ## App Connection
 
@@ -45,41 +45,13 @@ The panel stays awake while the paired Companion app is connected and the screen
 
 Saved Camera screensaver settings from older firmware fall back to Display Off. Camera images and photo-metadata overlays are no longer available.
 
-## Sensor
+## Updating an existing panel
 
+Saved Home Assistant Sensor screensaver modes become **Disabled**. Choose **Timer** or **App Connection** to enable an automatic screensaver again. Other saved local modes and brightness settings are preserved.
 
-Instead of a timer, the screensaver is controlled by a motion or presence sensor (like a mmWave sensor mounted nearby). When someone is in the room, the screen stays on. When nobody is detected, the screen goes to sleep — and wakes up again when someone walks past.
+### Home Assistant wake {#wake-from-home-assistant}
 
-To use this, enter the name of your motion or presence sensor from Home Assistant (for example, `binary_sensor.hallway_presence`) in **Presence Entity**. This remains the Screensaver's own sensor; Night Schedule has a separate **Sensor Entity** when it uses Sensor mode.
-
-Below the presence entity, use **Then** to choose whether the panel dims the screen, shows the clock, or turns the display off when nobody is detected.
-
-Presence wakes the panel from those dimmed, clock, or display-off states. When the normal cards or media cover art are already visible, presence does not change the page or restart the cover-art timer.
-
-Switching back to Timer keeps the sensor name saved, so you can return to Sensor mode later without typing it in again.
-
-::: tip
-Touching the screen or pressing its **Screen: Wake** button in Home Assistant always wakes it up, no matter which screensaver mode you're using.
-:::
-
-## Wake from Home Assistant
-
-Every panel exposes a stateless **Screen: Wake** button in Home Assistant. Pressing it behaves like touching the sleeping panel: it wakes a dimmed, clock, display-off, cover-art, or manually sleeping screen and restarts the normal inactivity timers. If the screen is already awake, it extends the active period without changing the page or pressing a card.
-
-You can use the button in an automation, for example to wake the panel when a door opens:
-
-```yaml
-triggers:
-  - trigger: state
-    entity_id: binary_sensor.front_door
-    to: "on"
-actions:
-  - action: button.press
-    target:
-      entity_id: button.your_panel_screen_wake
-```
-
-Replace the example entity IDs with your own door sensor and the panel's **Screen: Wake** entity. Home Assistant assigns the final button entity ID, so select the entity from the automation editor rather than relying on the example name.
+Home Assistant wake automations are being retired with the integration. Use the touchscreen to wake the panel.
 
 ## Mac Cover Art
 
@@ -91,11 +63,7 @@ Fullscreen cover art no longer uses Home Assistant media players, artwork URLs, 
 
 The [screen schedule](/features/screen-schedule) is separate from the screensaver. Use it when you want the panel to be fully dark, dimmed, or showing a clock overnight.
 
-When Night Schedule is using fixed **Time** hours, it has priority over screensaver sensor wake during night time. The screensaver presence sensor still keeps the panel awake and wakes it during normal daytime operation, but it does not override scheduled night time. Touch and Home Assistant button wake still work, using the temporary wake settings from the screen schedule.
-
-If you want presence to control when the panel is in night mode, set Night Schedule to **Sensor** mode instead of **Time** mode.
-
-On the first start after updating to the separate-sensor firmware, the existing Screensaver Presence Entity is copied to the Night Schedule Sensor Entity once. You can then change either setting independently without affecting the other.
+Time-based Night Schedule has priority over the screensaver and media cover art during night time. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled; choose Time to set local hours.
 
 ## PIN protection after wake
 
@@ -107,10 +75,10 @@ Use the same field and **Save** button to change the PIN. **Clear** removes it a
 
 The [Screen Lock card](/card-types/screen-lock) manages the same PIN and keypad preference in its card editor. It works with **Require PIN after wake** turned off. Its **Screensaver on lock** option can start the screensaver immediately; with the option off, the current screen remains visible and touching it opens the PIN keypad. Unlocking after a screensaver also releases a preceding card lock. To clear the shared PIN, use **Clear** in **Screen > Sleep & Schedule > Pin Protection**; this releases the lock and disables automatic PIN protection.
 
-After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake, presence wake, scheduled wake, and the local Screensaver card all use the same protection. With protection disabled or no PIN saved, wake works as before. When protection is active, touching Cover Art wakes the PIN keypad; use your media controls after unlocking.
+After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake, scheduled wake, and the local Screensaver card all use the same protection. With protection disabled or no PIN saved, wake works as before. When protection is active, touching Cover Art wakes the PIN keypad; use your media controls after unlocking.
 
-This protects local touchscreen controls, including status buttons and alarm modals. It does not protect network, Home Assistant, OTA, or web administration access. Someone with web setup access can change or clear the PIN; configure [web authentication](/getting-started/manual-esphome-setup#advanced-password-protect-the-web-page) separately if needed. The PIN is never returned by the settings API or included in backup JSON. Importing a backup clears the destination panel's PIN, so set a new PIN on its web setup page afterward.
+This protects local touchscreen controls, including status buttons and alarm modals. It does not protect network, OTA, or web administration access. Someone with web setup access can change or clear the PIN; configure [web authentication](/getting-started/manual-esphome-setup#advanced-password-protect-the-web-page) separately if needed. The PIN is never returned by the settings API or included in backup JSON. Importing a backup clears the destination panel's PIN, so set a new PIN on its web setup page afterward.
 
 ## Start the screensaver with a card
 
-Add the **Screensaver** card to the home screen or a subpage. It needs no Home Assistant entity. Tapping it immediately starts the selected **Then** action: Display Off, Screen Dimmed, or Clock. It works even when automatic screensavers are disabled, presence is detected, or media is playing. Tap the screen to wake it, then enter the PIN if protection is enabled.
+Add the **Screensaver** card to the home screen or a subpage. It needs no Home Assistant entity. Tapping it immediately starts the selected **Then** action: Display Off, Screen Dimmed, or Clock. It works even when automatic screensavers are disabled or media is playing. Tap the screen to wake it, then enter the PIN if protection is enabled.
