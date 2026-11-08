@@ -353,6 +353,14 @@
       "webRegistration": "media_cover_art",
       "config": { "entity": "media_player.example", "icon": "Auto", "icon_on": "Auto", "type": "media", "sensor": "cover_art" },
       "lifecycle": { "subscriptions": ["state", "attributes"], "actions": ["home_assistant_service"], "modalOwner": "none" }
+    },
+    "companion_brightness": {
+      "classification": "picker_alias",
+      "canonicalType": "slider",
+      "surfaces": ["web_registry"],
+      "webRegistration": "companion_brightness",
+      "config": { "entity": "display.brightness", "label": "Display Brightness", "icon": "Weather Sunny", "icon_on": "Weather Sunny", "type": "slider" },
+      "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" }
     }
   }
 }

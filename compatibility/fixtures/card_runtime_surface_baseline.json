@@ -2613,6 +2613,37 @@
         ],
         "modalOwner": "none"
       }
+    },
+    {
+      "name": "companion_brightness: picker_alias",
+      "sourceKind": "runtime_only",
+      "sourceType": "companion_brightness",
+      "mode": "picker_alias",
+      "canonicalType": "slider",
+      "web": {
+        "registration": "companion_brightness",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "de03ec71c577240e"
+        }
+      },
+      "firmware": {
+        "family": null
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "local"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
     }
   ]
 }

@@ -1243,5 +1243,20 @@
       "precision": "",
       "options": ""
     }
+  },
+  {
+    "name": "companion_brightness: picker_alias",
+    "input": "~display.brightness,Display%20Brightness,Weather%20Sunny,Weather%20Sunny,,,slider,,",
+    "expected": {
+      "entity": "display.brightness",
+      "label": "Display Brightness",
+      "icon": "Weather Sunny",
+      "icon_on": "Weather Sunny",
+      "sensor": "",
+      "unit": "",
+      "type": "slider",
+      "precision": "",
+      "options": ""
+    }
   }
 ]
