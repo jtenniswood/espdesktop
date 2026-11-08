@@ -2435,8 +2435,8 @@
       "web": {
         "registration": "companion_subpage",
         "picker": {
-          "main": true,
-          "subpage": true,
+          "main": false,
+          "subpage": false,
           "infoOnly": false
         },
         "preview": {
