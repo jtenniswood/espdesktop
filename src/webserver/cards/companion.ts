@@ -992,7 +992,9 @@ export function registerCompanionCardTypes(
             windowSelect.className = "sp-select";
             windowSelect.id = helpers.idPrefix + "companion-window-action";
             const groups = new Map<string, HTMLOptGroupElement>();
-            [...COMPANION_WINDOW_ACTIONS].sort((first, second) =>
+            COMPANION_WINDOW_ACTIONS.filter((action) =>
+                action.id !== "window.fullscreen.enter" && action.id !== "window.fullscreen.exit"
+            ).sort((first, second) =>
                 first.group.localeCompare(second.group, undefined, { sensitivity: "base" }) ||
                 first.label.localeCompare(second.label, undefined, { sensitivity: "base" })).forEach(function (action) {
                 let group = groups.get(action.group);
