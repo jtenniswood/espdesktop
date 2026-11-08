@@ -32,7 +32,14 @@ class Device(http.server.BaseHTTPRequestHandler):
             return
         if self.path == "/espdesktop/version":
             body = json.dumps({"device_slug": "test-panel", "version": "dev"}).encode()
+        elif self.path == "/api/v1/capabilities":
+            body = json.dumps({"configuration": {"document_versions": state.get("versions", [1])}}).encode()
         elif self.path == "/api/v1/config":
+            version = self.headers.get("X-Panel-Config-Version")
+            state.setdefault("config_versions", []).append(version)
+            if version != str(max(state.get("versions", [1]))):
+                self.send_error(422)
+                return
             state["config_reads"] += 1
             body = b"private configuration"
             if state.get("config_changes") and state["config_reads"] > 1:
@@ -107,11 +114,24 @@ class DeviceWebTests(unittest.TestCase):
             self.assertGreaterEqual(report["metrics"]["event_reconnects"], 16)
             self.assertEqual(server.state["config_reads"], 2)
             self.assertEqual(set(server.state["requests"]),
-                             {"/", "/events", "/espdesktop/version", "/api/v1/config"})
+                             {"/", "/events", "/espdesktop/version", "/api/v1/capabilities", "/api/v1/config"})
             self.assertNotIn("native_api", report)
             self.assertIn("not observed", " ".join(report["coverage_limitations"]))
             self.assertEqual(report["metrics"]["uptime_start"], 101)
             self.assertGreater(report["metrics"]["uptime_end"], 101)
+
+    def test_v2_configuration_is_preserved_without_lossy_v1_export(self):
+        with device(versions=[1, 2]) as server:
+            report = self.run_device(server)
+            self.assertEqual(report["status"], "passed")
+            self.assertEqual(report["configuration_version"], 2)
+            self.assertEqual(server.state["config_versions"], ["2", "2"])
+
+    def test_unknown_configuration_version_fails_before_reading(self):
+        with device(versions=[3]) as server:
+            report = self.run_device(server)
+            self.assertEqual(report["status"], "failed")
+            self.assertEqual(server.state["config_reads"], 0)
 
     def test_configuration_change_fails(self):
         with device(config_changes=True) as server:

@@ -44,6 +44,7 @@ class DeviceHTTP:
         self.http_checks = 0
         self.reconnects = 0
         self.uptimes = []
+        self.configuration_version = None
         self.openers = []
         for slow in (False, True):
             handlers = [SmallWindowHandler()] if slow else []
@@ -58,6 +59,8 @@ class DeviceHTTP:
 
     def open(self, path, slow=False):
         headers = {"Accept": "text/event-stream"} if path == "/events" else {}
+        if path == "/api/v1/config" and self.configuration_version is not None:
+            headers["X-Panel-Config-Version"] = str(self.configuration_version)
         response = self.openers[int(slow)].open(
             urllib.request.Request(self.base + path, headers=headers), timeout=self.timeout)
         if response.status != 200:
@@ -133,6 +136,13 @@ def run_suite(args, client=None):
             raise CheckFailure("Target did not identify an EspDesktop device profile")
         report["device"] = {key: version.get(key) for key in
                             ("project_name", "project_version", "firmware_version", "device_slug")}
+        capabilities = json.loads(client.get("/api/v1/capabilities"))
+        versions = capabilities.get("configuration", {}).get("document_versions", [])
+        supported = [version for version in (1, 2) if version in versions]
+        if not supported:
+            raise CheckFailure("No supported native configuration document version")
+        client.configuration_version = max(supported)
+        report["configuration_version"] = client.configuration_version
         before = client.get("/api/v1/config")
         if not before:
             raise CheckFailure("Native configuration is empty")
