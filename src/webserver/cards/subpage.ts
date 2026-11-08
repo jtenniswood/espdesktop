@@ -222,7 +222,7 @@ export function registerSubpageCardTypes(
             }
             var label: any = b.label || (defaults && defaults.label) || b.entity || "Configure";
             return {
-                iconHtml: '<span class="sp-btn-icon mdi mdi-' + (b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : "folder-outline") + '"></span>',
+                iconHtml: '<span class="sp-btn-icon mdi mdi-' + (b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaults ? iconSlug(defaults.icon) : "folder-outline") + '"></span>',
                 labelHtml: subpageBadgeLabelHtml(helpers, label),
             };
         },

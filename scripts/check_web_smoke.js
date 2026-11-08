@@ -1467,7 +1467,7 @@ const subpageNumericPreview = hooks.buttonTypePreviewFor("subpage", {
   unit: "%",
   type: "subpage",
 });
-assert(subpageNumericPreview.iconHtml.includes("sp-sensor-preview"), "subpage numeric preview uses the shared number preview");
+assert(!subpageNumericPreview.iconHtml.includes("sp-sensor-preview"), "retired folder sensor bindings no longer preview remote readings");
 assert(subpageNumericPreview.labelHtml.includes("mdi-chevron-right"), "subpage numeric preview shows the chevron badge");
 const subpageLargePreview = hooks.buttonTypePreviewFor("subpage", {
   label: "Open Windows",
@@ -1477,7 +1477,7 @@ const subpageLargePreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "",
 }, { cardSize: 4 });
-assert(subpageLargePreview.iconHtml.includes("sp-sensor-preview-large"), "subpage numeric 2x2 preview defaults to large numbers");
+assert(!subpageLargePreview.iconHtml.includes("sp-sensor-preview-large"), "retired folder state does not show a fabricated large reading");
 
 const subpageTextPreview = hooks.buttonTypePreviewFor("subpage", {
   label: "Washer",
@@ -1487,7 +1487,7 @@ const subpageTextPreview = hooks.buttonTypePreviewFor("subpage", {
   precision: "text",
 });
 assert(subpageTextPreview.iconHtml.includes("mdi-thermometer"), "subpage text preview uses the configured icon");
-assert(subpageTextPreview.labelHtml.includes("State"), "subpage text preview keeps the State label");
+assert(!subpageTextPreview.labelHtml.includes(">State<"), "retired folder state does not replace its navigation label");
 assert(subpageTextPreview.labelHtml.includes("mdi-chevron-right"), "subpage text preview shows the chevron badge");
 
 const mediaVolumePreview = hooks.buttonTypePreviewFor("media", {

@@ -122,9 +122,9 @@ describe("browserless application contracts", () => {
     assert.match(clipboard, /typeof button\.type === "string"/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src, state\.subpages\[srcSlot\]\)/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src\)/);
-    assert.match(wifiCard, /if \(!nativePanelConfig\.homeAssistantSupportEnabled\(\) && !wifiQrTabs\(b\)\.includes\("guest"\)\)/);
+    assert.doesNotMatch(wifiCard, /nativePanelConfig\.homeAssistantSupportEnabled\(\)/);
     assert.match(clipboard, /function cutSlot[\s\S]*clipboardEntryRequiresHomeAssistant\(buildClipboardEntry\(slot\)\)[\s\S]*deleteSlot\(slot\)/);
-    assert.match(wifiCard, /return definition\.value !== "guest"/);
+    assert.match(wifiCard, /tab\.value !== "guest"/);
   });
 
   test("owns entity catalogue helpers as one explicit service", () => {
@@ -876,7 +876,7 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
     assert.match(entry, /registerSubpageCardTypes\(registry, context\.configuration\.codec, context\.core, context\.controllers\.selection, fields, cardUi\);/);
     assert.match(card, /core: Pick<CoreFeature, "subpageStateDisplayMode">/);
-    assert.match(card, /const \{ subpageStateDisplayMode \} = core;/);
+    assert.doesNotMatch(card, /const \{ subpageStateDisplayMode \} = core;/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerSubpageCardTypes/);
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_CARD_METADATA|appendEditSubpageButton|subpageBadgeLabelHtml):/);
   });
