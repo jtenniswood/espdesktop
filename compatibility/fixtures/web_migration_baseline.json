@@ -27,7 +27,7 @@
   },
   "subpage": {
     "input": "~1,B=Return%20Home,2d|A,scene.movie,Movie,Flash,Auto,scene.turn_on,,,state_entity=light.living|M,media_player.living,Living,Speaker,Auto,play_pause,,,",
-    "serialized": "~1,B=Return Home,2d|A,scene.movie,Movie,Flash,,scene.turn_on,,,state_entity=light.living|M,media_player.living,Living,Speaker,,play_pause"
+    "serialized": "~1,B=Return Home,2d|A|M,media_player.living,Living,Speaker,,play_pause"
   },
   "settings": {
     "panelInput": {

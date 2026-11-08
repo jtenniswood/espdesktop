@@ -9444,11 +9444,11 @@
         ],
         "buttons": [
           {
-            "entity": "scene.movie",
-            "label": "Movie",
-            "icon": "Flash",
+            "entity": "",
+            "label": "",
+            "icon": "Auto",
             "icon_on": "Auto",
-            "sensor": "scene.turn_on",
+            "sensor": "",
             "unit": "",
             "type": "action",
             "precision": "",
