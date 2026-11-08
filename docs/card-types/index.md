@@ -12,7 +12,7 @@ Cards show information and controls on the display. Mac controls use the paired 
 | Launch apps, shortcuts, websites and folders, arrange windows, or show Mac statistics | [Companion](./companion) |
 | Adjust Mac output or microphone volume | [Slider](./sliders) |
 | Run a registered local callback | [Action](./actions) |
-| Show the local clock, date, date and time, or another timezone | [Date & Time](./calendar) |
+| Show the local clock or another timezone | [Date & Time](./calendar) |
 | Open another page of cards | [Subpage](/features/subpages) |
 | Send an HTTP request | [Webhook](./webhooks) |
 

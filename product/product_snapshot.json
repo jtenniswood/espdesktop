@@ -3251,11 +3251,9 @@
             "kind": "choice",
             "values": [
               "clock",
-              "datetime",
-              "",
               "timezone"
             ],
-            "defaultValue": "",
+            "defaultValue": "clock",
             "storageField": "type",
             "omitDefault": false
           },
@@ -3336,8 +3334,6 @@
             "kind": "choice",
             "values": [
               "clock",
-              "datetime",
-              "",
               "timezone"
             ],
             "defaultValue": "clock",
@@ -5699,8 +5695,6 @@
             "kind": "choice",
             "values": [
               "clock",
-              "datetime",
-              "",
               "timezone"
             ],
             "defaultValue": "timezone",

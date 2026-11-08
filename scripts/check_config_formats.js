@@ -288,12 +288,12 @@ assertButtonTypeSpecBacked("alarm_action", "alarm action card");
 assertButtonTypeSpecBacked("climate", "climate card");
 assert.deepStrictEqual(
   Array.from(hooks.dateTimeModeOptionValues()),
-  ["clock", "datetime", "", "timezone"],
+  ["clock", "timezone"],
   "date/time mode options are spec-backed"
 );
 assert.strictEqual(hooks.normalizeDateTimeCardMode("clock"), "clock", "date/time clock mode is allowed by spec");
 assert.strictEqual(hooks.normalizeDateTimeCardMode("timezone"), "timezone", "date/time world clock mode is allowed by spec");
-assert.strictEqual(hooks.normalizeDateTimeCardMode("bad"), "", "date/time invalid mode falls back to date mode");
+assert.strictEqual(hooks.normalizeDateTimeCardMode("bad"), "clock", "date/time invalid mode falls back to clock mode");
 assert.deepStrictEqual(
   Array.from(hooks.weatherModeOptionValues()),
   ["", "today", "tomorrow", "daily", "wind", "rainfall"],

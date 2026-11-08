@@ -39,16 +39,11 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
 
     function normalizeDateTimeCardMode(this: any, mode?: any) {
         mode = String(mode || "");
-        return dateTimeModeOptionValues().indexOf(mode) >= 0 ? mode : "";
+        return dateTimeModeOptionValues().indexOf(mode) >= 0 ? mode : "clock";
     }
 
     function setDateTimeCardMode(this: any, button?: any, mode?: any, helpers?: any) {
         mode = normalizeDateTimeCardMode(mode);
-        if (button.type !== "timezone" && button.type !== "clock" && mode !== "timezone" && mode !== "clock") {
-            button.precision = mode === "datetime" ? "datetime" : "";
-            helpers.saveField("precision", button.precision);
-            return;
-        }
         if (mode === "clock") {
             button.type = "clock";
             helpers.applyCardMetadataFields(button, helpers, {
@@ -67,13 +62,6 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
             dependencies.renderButtonSettings();
             return;
         }
-        button.type = "calendar";
-        helpers.applyCardMetadataFields(button, helpers, {
-            type: "calendar", entity: "", label: "", icon: "Auto", icon_on: "Auto",
-            sensor: "", unit: "", precision: mode === "datetime" ? "datetime" : "", options: button.options,
-        });
-        if (mode !== "datetime") button.precision = "";
-        dependencies.renderButtonSettings();
     }
 
     function formattedTimeParts(this: any, timezoneOption: string) {
@@ -146,8 +134,6 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
             idSuffix: "calendar-mode",
             options: [
                 { value: "clock", label: "Clock" },
-                { value: "datetime", label: "Time & Date" },
-                { value: "", label: "Date" },
                 { value: "timezone", label: "World Clock" },
             ],
             value: function (button?: any) { return dateTimeCardMode(button); },
