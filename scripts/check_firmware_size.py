@@ -89,7 +89,8 @@ class FirmwareSizeTests(unittest.TestCase):
         entrypoint.write_text('#!/bin/sh\nexec sh -c \'exit "$TEST_COMPILE_STATUS"\'\n')
         entrypoint.chmod(0o755)
         script = match.group(1).replace("/entrypoint.sh", str(entrypoint)).replace(
-            "/config/scripts/report_firmware_size.py", str(repo / "scripts/report_firmware_size.py"))
+            "/config/scripts/report_firmware_size.py", str(repo / "scripts/report_firmware_size.py")).replace(
+            "/config/scripts/retry_firmware_downloads.py", str(repo / "scripts/retry_firmware_downloads.py"))
         self.app.write_bytes(b"firmware")
         result = subprocess.run(["/bin/sh", "-c", script, "sh", "test.yaml",
                                  "test.yaml", str(self.root)],
