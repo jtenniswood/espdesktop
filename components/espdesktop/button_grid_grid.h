@@ -2446,8 +2446,12 @@ inline void grid_phase2(
       espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
           "large", display_main_width_percent(display), cfg.width_compensation_vertical);
 #ifdef USE_COMPANION
-      companion_set_card_icon_image(back_slot, p.entity, "large");
-      esphome::companion::request_app_icon(p.entity);
+      if (p.entity.rfind("webapp.", 0) == 0) {
+        image_card_bind_companion_webapp_icon(back_slot, p, cfg, true);
+      } else {
+        companion_set_card_icon_image(back_slot, p.entity, "large");
+        esphome::companion::request_app_icon(p.entity);
+      }
 #endif
     }
 

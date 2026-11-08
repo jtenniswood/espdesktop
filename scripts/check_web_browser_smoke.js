@@ -2792,6 +2792,52 @@ async function assertNewMediaCardDefaults(page, posts, label) {
   );
 }
 
+async function assertWebAppReturnIcon(browser, testCase) {
+  if (!testCase.companionSupported) return;
+  const { COMPANION_WEB_APPS } = loadTypeScriptModule("src/webserver/generated/web_apps.ts");
+  const webApp = COMPANION_WEB_APPS.find(app => app.id === "google-docs");
+  const artwork = fs.readFileSync(path.join(ROOT, "product/v2/web_apps/icons/google-docs.png"));
+  for (const native of [false, true]) {
+    const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[2] = "webapp.google-docs;Google Docs;Web;Auto;;;companion;;app_shortcuts";
+    fixture.document.subpages[2] = "~B,1|companion,shortcut.command+b,Bold,Format Bold,Auto";
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState: {} });
+    let iconRequests = 0, nativeWebAppRequests = 0;
+    await context.route(webApp.icon, route => {
+      ++iconRequests;
+      return route.fulfill({ status: 200, contentType: "image/png", body: artwork });
+    });
+    await context.route("**/companion/app-icon?*", route => {
+      if (new URL(route.request().url()).searchParams.get("appId")?.startsWith("webapp.")) ++nativeWebAppRequests;
+      return route.fulfill({ status: 404, body: "" });
+    });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, fixture);
+      await page.locator('.sp-main [data-slot="2"] .sp-subpage-badge').dispatchEvent("click");
+      const back = page.locator(".sp-back-btn");
+      const image = back.locator("img.sp-back-hit");
+      await image.waitFor();
+      assert.strictEqual(await image.getAttribute("src"), webApp.icon, "Web App Back card uses its URL artwork");
+      await page.waitForFunction(() => document.querySelector(".sp-back-btn img")?.naturalWidth > 0);
+      const cardBounds = await back.boundingBox(), iconBounds = await image.boundingBox();
+      assert(iconBounds.width > 30 && iconBounds.x >= cardBounds.x - 1 && iconBounds.y >= cardBounds.y - 1 &&
+        iconBounds.x + iconBounds.width <= cardBounds.x + cardBounds.width + 1 &&
+        iconBounds.y + iconBounds.height <= cardBounds.y + cardBounds.height + 1, "Web App artwork fits its return card");
+      assert(!(await back.locator(".sp-btn-label").isVisible()), "Web App return card uses the large icon without its label");
+      assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0);
+      await back.click();
+      await page.locator('.sp-main [data-slot="2"] .sp-subpage-badge').waitFor();
+      assert(iconRequests > 0 && nativeWebAppRequests === 0, "Web Apps use the URL pipeline, never the macOS icon endpoint");
+    } finally { await context.close(); }
+  }
+  console.log(`${testCase.name}: Web App return artwork and home action passed for native and legacy configuration.`);
+}
+
 async function assertAutomaticAppIcons(browser, testCase) {
   if (!testCase.companionSupported) return;
   for (const native of [false, true]) {
@@ -7108,6 +7154,7 @@ async function runCase(browser, testCase) {
     if (testCase.exerciseInteractions) {
       await assertContextColourPicker(browser, testCase);
       await assertAutomaticAppIcons(browser, testCase);
+      await assertWebAppReturnIcon(browser, testCase);
       await assertCardActiveColourControls(page, posts, testCase.name);
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
@@ -9093,8 +9140,15 @@ async function assertSpecialPageRename(browser, testCase) {
       console.log(`Card title browser checks passed for ${ACTIVE_CASES.length} layouts.`);
       return;
     }
+    if (process.env.ESPDESKTOP_WEBAPP_BACK_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertWebAppReturnIcon(browser, testCase);
+      return;
+    }
     if (process.env.ESPDESKTOP_CONTEXT_ICON_SIZE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertAutomaticAppIcons(browser, testCase);
+      for (const testCase of ACTIVE_CASES) {
+        await assertAutomaticAppIcons(browser, testCase);
+        await assertWebAppReturnIcon(browser, testCase);
+      }
       console.log("Right-click app icon sizes and chevrons passed for native and legacy configurations.");
       return;
     }

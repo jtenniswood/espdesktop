@@ -6,7 +6,7 @@ import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { escHtml } from "./ui_primitives";
-import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
+import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -193,6 +193,41 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         ? new ResizeObserver(entries => entries.forEach(entry => resizeCardIcon(entry.target.closest(".sp-btn") || entry.target))) : null;
     function loadCardAppIcon(btn: HTMLElement, applicationId: string, backgroundColor: string,
                              fallbackIcon: HTMLElement | null, back = false): void {
+        const applyIcon = (previewIcon: CompanionAppIconPreview): void => {
+            if (!btn.isConnected) return;
+            const appIcon = document.createElement("img");
+            appIcon.className = "sp-btn-icon sp-companion-app-icon" + (back ? " sp-back-hit" : "");
+            btn.classList.add("sp-companion-app-icon-fit-card");
+            appIcon.alt = "";
+            appIcon.setAttribute("aria-hidden", "true");
+            appIcon.src = previewIcon.dataUrl;
+            appIconArtwork.set(appIcon, previewIcon);
+            btn.appendChild(appIcon);
+            if (fallbackIcon) fallbackIcon.hidden = true;
+            resizeCardIcon(btn);
+            appIconResizeObserver?.observe(btn);
+            const label = btn.querySelector(".sp-btn-label");
+            if (label) appIconResizeObserver?.observe(label);
+            if (!back && previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
+                btn.style.backgroundColor = "#" + previewIcon.defaultColor;
+                btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
+                btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
+                btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
+                btn.classList.add("sp-companion-app-icon-card");
+            }
+        };
+        if (applicationId.startsWith("webapp.")) {
+            const url = COMPANION_WEB_APPS.find(app => "webapp." + app.id === applicationId)?.icon;
+            if (!url) return;
+            const source = document.createElement("img");
+            source.onload = () => applyIcon({
+                dataUrl: url, defaultColor: "", activeColor: "", online: true,
+                insetLeftPercent: 0, insetTopPercent: 0,
+                artworkWidthFraction: 1, artworkHeightFraction: 1,
+            });
+            source.src = url;
+            return;
+        }
         const loadAppIcon = function (attempt: number): void {
             void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
                 if (!btn.isConnected) return;
@@ -202,26 +237,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     }, Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
                     return;
                 }
-                const appIcon = document.createElement("img");
-                appIcon.className = "sp-btn-icon sp-companion-app-icon" + (back ? " sp-back-hit" : "");
-                btn.classList.add("sp-companion-app-icon-fit-card");
-                appIcon.alt = "";
-                appIcon.setAttribute("aria-hidden", "true");
-                appIcon.src = previewIcon.dataUrl;
-                appIconArtwork.set(appIcon, previewIcon);
-                btn.appendChild(appIcon);
-                if (fallbackIcon) fallbackIcon.hidden = true;
-                resizeCardIcon(btn);
-                appIconResizeObserver?.observe(btn);
-                const label = btn.querySelector(".sp-btn-label");
-                if (label) appIconResizeObserver?.observe(label);
-                if (!back && previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
-                    btn.style.backgroundColor = "#" + previewIcon.defaultColor;
-                    btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
-                    btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
-                    btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
-                    btn.classList.add("sp-companion-app-icon-card");
-                }
+                applyIcon(previewIcon);
             });
         };
         loadAppIcon(0);
