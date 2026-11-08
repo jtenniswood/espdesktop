@@ -335,12 +335,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "options": [
       {
         "name": "large_numbers",
+        "hidden": true,
+        "docsHidden": true,
         "label": "Large State Numbers",
         "kind": "flag",
         "omitDefault": true,
-        "applicabilityHook": "action_large_numbers_supported",
-        "hidden": true,
-        "docsHidden": true
+        "applicabilityHook": "action_large_numbers_supported"
       },
       {
         "name": "state_entity",
@@ -401,6 +401,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "confirmation_required",
+        "hidden": true,
+        "docsHidden": true,
         "label": "Confirmation Required",
         "kind": "flag",
         "storage": [
@@ -414,12 +416,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "script.turn_on"
           }
-        ],
-        "hidden": true,
-        "docsHidden": true
+        ]
       },
       {
         "name": "script_fields",
+        "hidden": true,
+        "docsHidden": true,
         "label": "Fields",
         "kind": "text",
         "omitDefault": true,
@@ -430,12 +432,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "script.turn_on"
           }
-        ],
-        "hidden": true,
-        "docsHidden": true
+        ]
       },
       {
         "name": "confirm_message",
+        "hidden": true,
+        "docsHidden": true,
         "label": "Message",
         "kind": "text",
         "defaultValue": "Run this script?",
@@ -452,12 +454,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "name": "confirm_on",
             "operator": "present"
           }
-        ],
-        "hidden": true,
-        "docsHidden": true
+        ]
       },
       {
         "name": "confirm_yes",
+        "hidden": true,
+        "docsHidden": true,
         "label": "Confirm Button",
         "kind": "text",
         "defaultValue": "Yes",
@@ -474,12 +476,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "name": "confirm_on",
             "operator": "present"
           }
-        ],
-        "hidden": true,
-        "docsHidden": true
+        ]
       },
       {
         "name": "confirm_no",
+        "hidden": true,
+        "docsHidden": true,
         "label": "Cancel Button",
         "kind": "text",
         "defaultValue": "No",
@@ -496,9 +498,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "name": "confirm_on",
             "operator": "present"
           }
-        ],
-        "hidden": true,
-        "docsHidden": true
+        ]
       }
     ],
     "normalization": {
