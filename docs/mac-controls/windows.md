@@ -12,7 +12,7 @@ Window cards act on the currently active Mac window. Add a **Companion → Windo
 | **Window** | Close, Minimise, Hide App, Full Screen | macOS 13 or newer |
 | **Move & Resize** | Fill Desktop, Centre, Left, Right, Top, Bottom, all four corners, Return to Previous Size | macOS 15 or newer |
 | **Arrange Windows** | Left & Right, Right & Left, Top & Bottom, Bottom & Top, four side-with-quarters layouts, and Quarters | macOS 15 or newer |
-| **Full Screen** | Enter Full Screen, Exit Full Screen, Left of Screen, Right of Screen | macOS 15 or newer |
+| **Full Screen** | Left of Screen, Right of Screen | macOS 15 or newer |
 
 EspDesktop needs Accessibility access for window controls. In the Mac app, choose **Open Settings**, then enable EspDesktop in **System Settings → Privacy & Security → Accessibility**.
 
