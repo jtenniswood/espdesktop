@@ -84,6 +84,22 @@ inline std::string saved_config_shadow_trim(const std::string &value) {
   return value.substr(begin, end - begin);
 }
 
+inline std::string saved_config_shadow_media_mode(const std::string &mode) {
+  if (mode == "controls") return "play_pause";
+  if (saved_config_shadow_string_in(mode, SAVED_CONFIG_SHADOW_MEDIA_MODES, sizeof(SAVED_CONFIG_SHADOW_MEDIA_MODES) / sizeof(SAVED_CONFIG_SHADOW_MEDIA_MODES[0]))) return mode;
+  return "play_pause";
+}
+
+inline int saved_config_shadow_media_volume(const std::string &value) {
+  if (value.empty()) return SAVED_CONFIG_SHADOW_MEDIA_VOLUME_DEFAULT;
+  char *end = nullptr;
+  long parsed = std::strtol(value.c_str(), &end, 10);
+  if (end == value.c_str()) return SAVED_CONFIG_SHADOW_MEDIA_VOLUME_DEFAULT;
+  if (parsed < SAVED_CONFIG_SHADOW_MEDIA_VOLUME_MIN) return SAVED_CONFIG_SHADOW_MEDIA_VOLUME_MIN;
+  if (parsed > SAVED_CONFIG_SHADOW_MEDIA_VOLUME_MAX) return SAVED_CONFIG_SHADOW_MEDIA_VOLUME_MAX;
+  return static_cast<int>(parsed);
+}
+
 template<typename Config>
 inline bool normalize_saved_config_media_shadow(Config &config) {
   if (config.type != "media") return false;

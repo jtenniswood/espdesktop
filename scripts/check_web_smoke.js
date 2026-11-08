@@ -442,47 +442,12 @@ const confirmationOnRoundTrip = hooks.parseButtonConfig(hooks.serializeButtonCon
 }));
 assert.strictEqual(hooks.switchConfirmationMode(confirmationOnRoundTrip), "on");
 assert.strictEqual(hooks.switchConfirmationMessage(confirmationOnRoundTrip), "Turn on this device?");
-const scriptConfirmationButton = {
-  entity: "script.goodnight",
-  label: "Goodnight",
-  icon: "Script Text Play",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "confirm_on,confirm_message=Run bedtime?,confirm_yes=Run,confirm_no=Cancel",
-};
-const scriptConfirmationRoundTrip = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptConfirmationButton));
-assert.deepStrictEqual(plain(scriptConfirmationRoundTrip), scriptConfirmationButton);
-assert.strictEqual(hooks.actionScriptConfirmationEnabled(scriptConfirmationRoundTrip), true);
-assert.strictEqual(hooks.actionScriptConfirmationMessage(scriptConfirmationRoundTrip), "Run bedtime?");
-assert.strictEqual(hooks.actionScriptConfirmationYesText(scriptConfirmationRoundTrip), "Run");
-assert.strictEqual(hooks.actionScriptConfirmationNoText(scriptConfirmationRoundTrip), "Cancel");
-const scriptConfirmationDefaultRoundTrip = hooks.parseButtonConfig(hooks.serializeButtonConfig({
-  entity: "script.goodnight",
-  label: "Goodnight",
-  icon: "Script Text Play",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "confirm_on",
-}));
-assert.strictEqual(hooks.actionScriptConfirmationMessage(scriptConfirmationDefaultRoundTrip), "Run this script?");
-const sceneWithStaleConfirmation = hooks.parseButtonConfig(hooks.serializeButtonConfig({
-  entity: "scene.goodnight",
-  label: "Goodnight",
-  icon: "Movie Open",
-  icon_on: "Auto",
-  sensor: "scene.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "confirm_on,confirm_message=Run bedtime?",
-}));
-assert.strictEqual(sceneWithStaleConfirmation.options, "", "non-script action cards drop script confirmation options");
+for (const type of ["action", "local", "option_select", "A", "U"]) {
+  const raw = { entity: "script.goodnight", label: "Old action", icon: "Flash", icon_on: "Auto", sensor: "local", unit: "", type, precision: "", options: "secret=old" };
+  const retired = hooks.parseButtonConfig(hooks.serializeButtonConfig(raw));
+  assert.deepStrictEqual(plain(retired), { entity: "", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "", type, precision: "", options: "" });
+}
+assert(!hooks.buttonTypeDefaultConfig("action"), "Action has no editor definition");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", false), false);
@@ -937,8 +902,7 @@ const actionPreview = hooks.buttonTypePreviewFor("action", {
   sensor: "scene.turn_on",
   type: "action",
 });
-assert(actionPreview.iconHtml.includes("mdi-flash"), "action preview uses the selected action icon");
-assert(!actionPreview.labelHtml.includes("sp-type-badge"), "action preview omits the card-type badge");
+assert.strictEqual(actionPreview, null, "Action cards have no live preview renderer");
 const actionLargePreview = hooks.buttonTypePreviewFor("action", {
   entity: "script.kitchen_lights",
   label: "Kitchen Lights",
@@ -947,7 +911,7 @@ const actionLargePreview = hooks.buttonTypePreviewFor("action", {
   type: "action",
   options: "state_entity=sensor.kitchen_power,state_unit=W,state_precision=1",
 }, { cardSize: 4 });
-assert(!actionLargePreview.iconHtml.includes("sp-sensor-preview"), "retired actions no longer preview a Home Assistant numeric state");
+assert.strictEqual(actionLargePreview, null, "Action cards have no live preview renderer");
 
 const actionIconStatePreview = hooks.buttonTypePreviewFor("action", {
   entity: "script.goodnight",
@@ -958,7 +922,7 @@ const actionIconStatePreview = hooks.buttonTypePreviewFor("action", {
   type: "action",
   options: "state_entity=input_boolean.goodnight_ready,state_precision=icon",
 });
-assert(!actionIconStatePreview.iconHtml.includes("mdi-toggle-switch"), "retired actions no longer preview Home Assistant icon state");
+assert.strictEqual(actionIconStatePreview, null, "Action cards have no live preview renderer");
 
 const actionOptionPreview = hooks.buttonTypePreviewFor("action", {
   entity: "select.wled_preset",
@@ -966,8 +930,7 @@ const actionOptionPreview = hooks.buttonTypePreviewFor("action", {
   sensor: "input_select.select_option",
   type: "action",
 });
-assert(!actionOptionPreview.iconHtml.includes("Option"), "retired actions no longer preview a Home Assistant option selector");
-assert(!actionOptionPreview.labelHtml.includes("sp-type-badge"), "action option-select preview omits the card-type badge");
+assert.strictEqual(actionOptionPreview, null, "Action cards have no live preview renderer");
 
 const localActionPreview = hooks.buttonTypePreviewFor("action", {
   entity: "zoom_mute",
@@ -976,8 +939,7 @@ const localActionPreview = hooks.buttonTypePreviewFor("action", {
   sensor: "local",
   type: "action",
 });
-assert(localActionPreview.iconHtml.includes("mdi-gesture-tap"), "local action subtype preview uses the local action icon");
-assert(!localActionPreview.labelHtml.includes("sp-type-badge"), "local action subtype preview omits the card-type badge");
+assert.strictEqual(localActionPreview, null, "Action cards have no live preview renderer");
 
 const alarmActionPreview = hooks.buttonTypePreviewFor("alarm_action", {
   entity: "alarm_control_panel.house",

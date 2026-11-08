@@ -723,12 +723,10 @@ int main() {
   assert(media_volume_max_percent(volume_uncapped) == 100);
 
   auto action_large = parse_cfg("script.kitchen_lights;Kitchen Lights;Flash;Auto;script.turn_on;;action;;state_entity=sensor.kitchen_power,state_unit=W,state_precision=1,large_numbers");
-  assert(action_large.options == "state_entity=sensor.kitchen_power,state_unit=W,state_precision=1,large_numbers");
-  assert(card_large_numbers_enabled(action_large));
-  auto action_icon = parse_cfg("script.goodnight;Goodnight;Flash;Check Circle;script.turn_on;;action;;state_entity=input_boolean.goodnight_ready,state_precision=icon");
-  assert(action_card_state_icon_mode(action_icon));
-  assert(!action_card_state_numeric_mode(action_icon));
-  assert(!action_card_state_text_mode(action_icon));
+  assert(action_large.entity.empty());
+  assert(action_large.label.empty());
+  assert(action_large.options.empty());
+  assert(!card_large_numbers_enabled(action_large));
   assert(numeric_state_positive_ref("1"));
   assert(numeric_state_positive_ref("2"));
   assert(numeric_state_positive_ref("3.5"));
@@ -740,16 +738,10 @@ int main() {
   assert(!sensor_active_color_state_ref("42", false));
   assert(!sensor_active_color_state_ref("0", true));
   auto action_confirm = parse_cfg("script.goodnight;Goodnight;Script Text Play;Auto;script.turn_on;;action;;confirm_on,confirm_message=Run%20bedtime%3F,confirm_yes=Run,confirm_no=Cancel");
-  assert(action_script_confirmation_enabled(action_confirm));
-  assert(switch_confirmation_message(action_confirm) == "Run bedtime?");
-  assert(switch_confirmation_yes_text(action_confirm) == "Run");
-  assert(switch_confirmation_no_text(action_confirm) == "Cancel");
-  auto action_confirm_default = parse_cfg("script.goodnight;Goodnight;Script Text Play;Auto;script.turn_on;;action;;confirm_on");
-  assert(action_script_confirmation_enabled(action_confirm_default));
-  assert(switch_confirmation_message(action_confirm_default) == "Run this script?");
-  auto scene_confirm = parse_cfg("scene.goodnight;Goodnight;Movie Open;Auto;scene.turn_on;;action;;confirm_on,confirm_message=Run%20bedtime%3F");
-  assert(!action_script_confirmation_enabled(scene_confirm));
-  assert(scene_confirm.options == "");
+  assert(action_confirm.entity.empty());
+  assert(action_confirm.sensor.empty());
+  assert(action_confirm.options.empty());
+  assert(!action_script_confirmation_enabled(action_confirm));
 
   auto climate_large = parse_cfg("climate.living_room;Living;Thermostat;Auto;;;climate;1;large_numbers");
   assert(climate_large.options == "large_numbers");

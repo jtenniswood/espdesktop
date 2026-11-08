@@ -7254,7 +7254,7 @@ async function assertResetControls(browser) {
         await page.setViewportSize({ width: 320, height: 700 });
         assert(await confirmation.evaluate(el => el.scrollWidth <= el.clientWidth), "confirmation must fit a narrow phone");
         await page.setViewportSize(testCase.viewport);
-        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and the Home Assistant API key will be erased."));
+        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and Mac pairing will be erased."));
         for (const text of ["", "reset", " RESET", "RESET ", "RESE"]) {
           await confirmationInput.fill(text);
           await confirmationInput.press("Enter");

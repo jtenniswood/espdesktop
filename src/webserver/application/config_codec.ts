@@ -505,6 +505,9 @@ export function createConfigCodecFeature(
         return EspDesktopModel.trimConfigFields(fields);
     }
     function buttonConfigFields(this: any, b?: any) {
+        if (b && cardContractTypeRetired(b.type)) {
+            return trimConfigFields(["", "", "Auto", "Auto", "", "", b.type]);
+        }
         var type: any = b && b.type || "";
         if (b && type === "subpage" && subpageKind(b)) {
             b = EspDesktopModel.cloneCardConfig(b);

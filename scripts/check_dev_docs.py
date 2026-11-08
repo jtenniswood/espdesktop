@@ -160,7 +160,6 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
 
 PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "": "docs/card-types/switches.md",
-    "action": "docs/card-types/actions.md",
     "alarm": "docs/card-types/alarms.md",
     "alarm_action": "docs/card-types/alarms.md",
     "calendar": "docs/card-types/calendar.md",
@@ -185,7 +184,6 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "light_temperature": "docs/card-types/lights.md",
     "lock": "docs/card-types/locks.md",
     "media": "docs/card-types/media.md",
-    "option_select": "docs/card-types/option-select.md",
     "push": "docs/card-types/buttons.md",
     "webhook": "docs/card-types/webhooks.md",
     "slider": "docs/card-types/sliders.md",

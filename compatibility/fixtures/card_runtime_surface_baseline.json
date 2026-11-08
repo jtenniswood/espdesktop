@@ -99,68 +99,6 @@
       }
     },
     {
-      "name": "action: service",
-      "sourceKind": "contract",
-      "sourceType": "action",
-      "mode": "service",
-      "canonicalType": "action",
-      "web": {
-        "registration": "action",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "02281c90e5334063"
-        }
-      },
-      "firmware": {
-        "family": "ACTION"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "none"
-        ],
-        "actions": [
-          "none"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "action: local",
-      "sourceKind": "contract",
-      "sourceType": "action",
-      "mode": "local",
-      "canonicalType": "action",
-      "web": {
-        "registration": "action",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "16c2c1992bc175a3"
-        }
-      },
-      "firmware": {
-        "family": "ACTION"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "none"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "vacuum: status",
       "sourceKind": "contract",
       "sourceType": "vacuum",
@@ -2084,38 +2022,6 @@
       }
     },
     {
-      "name": "option_select: legacy_option_select",
-      "sourceKind": "contract",
-      "sourceType": "option_select",
-      "mode": "legacy_option_select",
-      "canonicalType": "action",
-      "web": {
-        "registration": "action",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "e8d6d1f2fe669e99"
-        }
-      },
-      "firmware": {
-        "family": "OPTION_SELECT"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "state",
-          "attributes"
-        ],
-        "actions": [
-          "home_assistant_service"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "push: event",
       "sourceKind": "contract",
       "sourceType": "push",
@@ -2248,8 +2154,8 @@
       "web": {
         "registration": "slider",
         "picker": {
-          "main": false,
-          "subpage": false,
+          "main": true,
+          "subpage": true,
           "infoOnly": false
         },
         "preview": {
@@ -2521,37 +2427,6 @@
       }
     },
     {
-      "name": "local: accepted_legacy_input",
-      "sourceKind": "runtime_only",
-      "sourceType": "local",
-      "mode": "accepted_legacy_input",
-      "canonicalType": "action",
-      "web": {
-        "registration": null,
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": false,
-          "fingerprint": ""
-        }
-      },
-      "firmware": {
-        "family": "ACTION"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "local"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "companion_subpage: picker_alias",
       "sourceKind": "runtime_only",
       "sourceType": "companion_subpage",
@@ -2560,8 +2435,8 @@
       "web": {
         "registration": "companion_subpage",
         "picker": {
-          "main": false,
-          "subpage": false,
+          "main": true,
+          "subpage": true,
           "infoOnly": false
         },
         "preview": {
