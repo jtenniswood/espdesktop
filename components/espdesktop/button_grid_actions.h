@@ -497,7 +497,6 @@ struct MediaVolumeCtx;
 inline void media_volume_open_modal(MediaVolumeCtx *ctx);
 struct MediaControlCtx;
 inline void media_control_open_modal(MediaControlCtx *ctx);
-inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner);
 struct ClimateControlCtx;
 inline void climate_control_open_modal(ClimateControlCtx *ctx);
 struct ImageCardCtx;

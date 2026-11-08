@@ -235,7 +235,6 @@ inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr);
 template<typename T>
 inline T *grid_delete_with_owner(lv_obj_t *owner, T *ptr);
 
-inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner);
 inline void refresh_slider_card_layout(BtnSlot &slot);
 
 inline lv_coord_t large_sensor_unit_offset_px(const lv_font_t *large_font, int percent) {
@@ -483,8 +482,6 @@ inline bool bind_basic_sensor_card(
         s, p, context, palette, col_span)) return true;
   return false;
 }
-
-inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner);
 
 inline void refresh_slider_card_layout(BtnSlot &s) {
   lv_obj_t *slider = (lv_obj_t *)lv_obj_get_user_data(s.sensor_container);
@@ -1069,10 +1066,6 @@ inline void companion_process_pending_app_icon_refresh() {
 }
 #endif
 
-inline void grid_delete_media_control_runtime_ptr(void *ptr) {
-  delete_media_control_context(static_cast<MediaControlCtx *>(ptr));
-}
-
 inline void grid_release_runtime_allocations(
     lv_obj_t *owner, void *preserve_primary = nullptr,
     void *preserve_secondary = nullptr,
@@ -1128,17 +1121,6 @@ inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr) {
     });
   }
   return ptr;
-}
-
-inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner) {
-  if (owner == nullptr) return nullptr;
-  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
-    if (allocation.owner == owner &&
-        allocation.deleter == grid_delete_media_control_runtime_ptr) {
-      return static_cast<MediaControlCtx *>(allocation.ptr);
-    }
-  }
-  return nullptr;
 }
 
 inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count) {

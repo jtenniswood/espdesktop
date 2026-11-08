@@ -83,10 +83,6 @@ inline std::vector<std::string> media_group_parse_entity_list(const std::string 
   return media_group_parse_entity_list(raw.data(), raw.size());
 }
 
-inline bool media_grouping_supported(uint64_t supported_features) {
-  return (supported_features & MEDIA_PLAYER_FEATURE_GROUPING) != 0;
-}
-
 inline bool media_group_speaker_tab_available(bool grouping_supported,
                                               bool discovery_available,
                                               bool live_group_available = false) {

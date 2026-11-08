@@ -289,10 +289,7 @@ inline void media_position_now_playing_artist(MediaNowPlayingCtx *ctx) {
     LV_ALIGN_OUT_BOTTOM_LEFT, 0, ctx->artist_gap);
 }
 
-inline bool media_control_seek_pending_active(MediaControlCtx *ctx);
-inline bool media_control_track_position_reset_active(MediaControlCtx *ctx);
 inline bool media_control_volume_pending_active(MediaControlCtx *ctx);
-inline void media_control_hide_modal();
 inline void media_control_layout_modal(MediaControlCtx *ctx);
 inline void media_control_refresh_modal(MediaControlCtx *ctx);
 inline void media_control_refresh_progress(MediaControlCtx *ctx);
@@ -324,24 +321,6 @@ inline espdesktop::media::ControlTabs media_control_visible_tabs(MediaControlCtx
     media_control_power_supported(ctx));
 }
 
-inline bool media_control_tab_layout_changed(MediaControlCtx *ctx) {
-  const MediaControlModalUi &ui = media_control_modal_ui();
-  return ctx && ui.active == ctx && !(ui.visible_tabs == media_control_visible_tabs(ctx));
-}
-
-inline bool media_control_can_open_modal(MediaControlCtx *ctx) {
-  if (!ctx || (ctx->group_only && !ctx->grouping_supported)) return false;
-  return ctx->available || (!ctx->group_only &&
-    media_control_visible_tabs(ctx).contains(MediaControlTab::POWER));
-}
-
-inline void media_control_refresh_open_modal(MediaControlCtx *ctx, bool layout_needed = false) {
-  if (!ctx || media_control_modal_ui().active != ctx) return;
-  if (!media_control_can_open_modal(ctx)) media_control_hide_modal();
-  else if (layout_needed || media_control_tab_layout_changed(ctx)) media_control_layout_modal(ctx);
-  else media_control_refresh_modal(ctx);
-}
-
 inline void media_control_ensure_visible_tab(MediaControlCtx *ctx) {
   MediaControlModalUi &ui = media_control_modal_ui();
   if (!ctx || ui.active != ctx) return;
@@ -359,21 +338,6 @@ inline void media_control_set_volume_value(MediaControlCtx *ctx, int pct);
 inline int media_control_volume_max_pct(MediaControlCtx *ctx);
 inline int media_control_clamp_volume(MediaControlCtx *ctx, int pct);
 inline float media_control_current_position_seconds(MediaControlCtx *ctx);
-
-inline void media_playback_detach_control(MediaControlCtx *ctx);
-inline void media_playback_refresh_progress_timer(MediaPlaybackState *state);
-inline void media_playback_apply_progress_consumers(MediaPlaybackState *state);
-
-inline void delete_media_control_context(MediaControlCtx *ctx) {
-  if (!ctx) return;
-  MediaControlModalUi &ui = media_control_modal_ui();
-  if (ui.active == ctx) media_control_hide_modal();
-  media_playback_detach_control(ctx);
-  if (ctx->btn && lv_obj_get_user_data(ctx->btn) == ctx) {
-    lv_obj_set_user_data(ctx->btn, nullptr);
-  }
-  delete ctx;
-}
 
 inline void media_control_apply_availability(lv_obj_t *visual_obj, lv_obj_t *input_obj,
                                              bool available,
@@ -418,76 +382,6 @@ inline void media_control_refresh_parent_card(MediaControlCtx *ctx) {
     }
     if (ctx->volume_unit_lbl) lv_label_set_display_text(ctx->volume_unit_lbl, "");
   }
-}
-
-inline bool media_seek_pending_active(SliderCtx *ctx) {
-  return ctx && ctx->media_seek_pending &&
-         (esphome::millis() - ctx->media_seek_pending_ms) < MEDIA_SEEK_PENDING_TIMEOUT_MS;
-}
-
-inline void media_deferred_position_refresh_cb(lv_timer_t *timer);
-inline void media_schedule_position_refresh(SliderCtx *ctx);
-
-inline void media_apply_position(SliderCtx *ctx) {
-  if (!ctx) return;
-  float seconds = ctx->media_position_seconds;
-  if (ctx->media_playing && ctx->media_position_updated_ms > 0) {
-    uint32_t elapsed_ms = esphome::millis() - ctx->media_position_updated_ms;
-    seconds += elapsed_ms / 1000.0f;
-  }
-  if (ctx->media_duration > 0.0f && seconds > ctx->media_duration) {
-    seconds = ctx->media_duration;
-  }
-
-  if (ctx->media_value_lbl) {
-    char time_buf[16];
-    media_format_time(seconds, time_buf, sizeof(time_buf));
-    lv_label_set_display_text(ctx->media_value_lbl, time_buf);
-  }
-
-  int pct = 0;
-  if (ctx->media_duration > 0.0f) {
-    pct = (int)((seconds * 100.0f / ctx->media_duration) + 0.5f);
-    if (pct < 0) pct = 0;
-    if (pct > 100) pct = 100;
-  }
-  if (ctx->media_slider) lv_slider_set_value(ctx->media_slider, pct, LV_ANIM_OFF);
-  if (ctx->media_slider && ctx->fill) {
-    lv_obj_t *btn = lv_obj_get_parent(ctx->media_slider);
-    int fill_pct = ctx->inverted ? 100 - pct : pct;
-    slider_update_ctx_fill(ctx, btn, fill_pct);
-  }
-}
-
-inline void media_deferred_position_refresh_cb(lv_timer_t *timer) {
-  if (!timer) return;
-  SliderCtx *ctx = static_cast<SliderCtx *>(lv_timer_get_user_data(timer));
-  if (!espdesktop::media_slider_lifecycle::callback_is_current(
-        ctx, timer,
-        [](lv_obj_t *obj) { return lv_obj_get_user_data(obj); })) {
-    if (ctx && ctx->media_timer == timer) {
-      ctx->media_timer = nullptr;
-      ctx->media_position_refresh_remaining = 0;
-    }
-    lv_timer_del(timer);
-    return;
-  }
-  slider_refresh_geometry(ctx->media_slider);
-  media_apply_position(ctx);
-  if (ctx->media_position_refresh_remaining > 0) {
-    ctx->media_position_refresh_remaining--;
-    return;
-  }
-  ctx->media_timer = nullptr;
-  lv_timer_del(timer);
-}
-
-inline void media_schedule_position_refresh(SliderCtx *ctx) {
-  if (!espdesktop::media_slider_lifecycle::can_schedule(
-        ctx, [](lv_obj_t *obj) { return lv_obj_get_user_data(obj); })) return;
-  ctx->media_position_refresh_remaining = 10;
-  if (ctx->media_timer) return;
-  ctx->media_timer = lv_timer_create(media_deferred_position_refresh_cb, 100, ctx);
 }
 
 // Cover Art can use distinct main, secondary artwork, and optional power entities.
@@ -581,21 +475,6 @@ inline std::vector<MediaPlaybackState *> &media_playback_states() {
 }
 
 template<typename T>
-inline void media_playback_erase_consumer(std::vector<T *> &consumers, T *consumer) {
-  consumers.erase(
-    std::remove(consumers.begin(), consumers.end(), consumer),
-    consumers.end());
-}
-
-inline void media_playback_detach_control(MediaControlCtx *ctx) {
-  if (!ctx) return;
-  for (MediaPlaybackState *state : media_playback_states()) {
-    if (!state) continue;
-    media_playback_erase_consumer(state->controls, ctx);
-    media_playback_erase_consumer(state->power_controls, ctx);
-    media_playback_refresh_progress_timer(state);
-  }
-}
 
 inline void media_playback_reset_state(MediaPlaybackState *state,
                                        const std::string &entity_id) {
@@ -691,43 +570,6 @@ inline float media_playback_current_position_seconds(MediaPlaybackState *state) 
     seconds = state->duration;
   }
   return seconds;
-}
-
-inline void media_playback_apply_state_to_slider(MediaPlaybackState *state,
-                                                 SliderCtx *ctx) {
-  if (!state || !ctx) return;
-  ctx->available = state->available;
-  ctx->media_playing = state->playing;
-  if (ctx->media_status_lbl) {
-    std::string label = media_status_text(state->available ? state->state_text : std::string("unavailable"));
-    lv_label_set_display_text(ctx->media_status_lbl, label.c_str());
-  }
-  if (!ctx->media_position) return;
-
-  ctx->media_duration = state->duration;
-  if (media_seek_pending_active(ctx)) {
-    if (!state->has_position ||
-        std::fabs(state->position_seconds - ctx->media_seek_target_seconds) >
-          MEDIA_SEEK_MATCH_TOLERANCE_SECONDS) {
-      media_apply_position(ctx);
-      media_schedule_position_refresh(ctx);
-      return;
-    }
-  }
-  ctx->media_seek_pending = false;
-  ctx->media_position_seconds = state->position_seconds;
-  ctx->media_position_updated_ms = state->position_updated_ms;
-  ctx->media_position_updated_at_known = state->position_updated_at_known;
-  ctx->media_position_updated_at_ms = state->position_updated_at_ms;
-  media_apply_position(ctx);
-  media_schedule_position_refresh(ctx);
-}
-
-inline void media_playback_apply_state_to_sliders(MediaPlaybackState *state) {
-  if (!state) return;
-  for (SliderCtx *ctx : state->sliders) {
-    media_playback_apply_state_to_slider(state, ctx);
-  }
 }
 
 inline std::string media_playback_artwork_refresh_signature(
@@ -873,201 +715,6 @@ inline void media_playback_apply_state_to_now_playing(MediaPlaybackState *state)
   }
 }
 
-inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
-                                                  MediaControlCtx *ctx) {
-  if (!state || !ctx) return;
-  const bool previous_power_supported = media_control_power_supported(ctx);
-  const bool previous_shuffle_supported = media_control_shuffle_supported(ctx);
-  const bool previous_repeat_supported = media_control_repeat_supported(ctx);
-  const bool state_text_changed = state->has_state
-    ? ctx->state_text != state->state_text
-    : ctx->state_text != "unknown";
-  bool metadata_changed = ctx->title != state->title ||
-                          ctx->artist != state->artist ||
-                          ctx->friendly_name != state->friendly_name;
-  ctx->state_text = state->has_state ? state->state_text : std::string("unknown");
-  ctx->available = state->available;
-  ctx->state_known = state->has_state;
-  ctx->playing = state->playing;
-  ctx->title = state->title;
-  ctx->artist = state->artist;
-  ctx->friendly_name = state->friendly_name;
-  MediaControlModalUi &modal_ui = media_control_modal_ui();
-  if (modal_ui.display_text_ctx == ctx &&
-      (metadata_changed || state_text_changed)) {
-    modal_ui.display_text_valid = false;
-  }
-  MediaSpeakerDiscoveryState *discovery = nullptr;
-  for (MediaSpeakerDiscoveryState &candidate : state->speaker_discoveries) {
-    if (candidate.entity_id == ctx->speaker_group_entity) {
-      discovery = &candidate;
-      break;
-    }
-  }
-  const bool discovery_changed = discovery
-    ? (ctx->speaker_helper_members != discovery->members ||
-       ctx->speaker_discovery_available != discovery->available)
-    : (!ctx->speaker_helper_members.empty() ||
-       !ctx->speaker_discovery.empty() ||
-       ctx->speaker_discovery_available);
-  bool grouping_changed = ctx->grouping_supported != media_grouping_supported(state->supported_features) ||
-                          ctx->group_members != state->group_members ||
-                          discovery_changed;
-  ctx->grouping_supported = media_grouping_supported(state->supported_features);
-  ctx->group_members = state->group_members;
-  if (discovery) {
-    ctx->speaker_helper_members = discovery->members;
-    ctx->speaker_discovery = discovery->items;
-    ctx->speaker_discovery_available = discovery->available;
-  } else {
-    ctx->speaker_helper_members.clear();
-    ctx->speaker_discovery.clear();
-    ctx->speaker_discovery_available = false;
-  }
-  ctx->duration = state->duration;
-  ctx->volume_known = state->volume_known;
-  ctx->supported_features_known = state->supported_features_known;
-  ctx->supported_features = state->supported_features;
-  const bool power_supported = media_control_power_supported(ctx);
-  const bool shuffle_supported = media_control_shuffle_supported(ctx);
-  const bool repeat_supported = media_control_repeat_supported(ctx);
-  ctx->shuffle_known = shuffle_supported && state->shuffle_known;
-  ctx->shuffle_enabled = state->shuffle_enabled;
-  ctx->repeat_mode = repeat_supported
-    ? state->repeat_mode : espdesktop::media::RepeatMode::UNKNOWN;
-  const auto previous_volume_control_mode = ctx->volume_control_mode;
-  ctx->volume_control_mode = state->volume_control_mode;
-  if (previous_volume_control_mode != ctx->volume_control_mode &&
-      ctx->volume_control_mode !=
-        espdesktop::media::VolumeControlMode::ABSOLUTE) {
-    ctx->pending_pct = -1;
-    ctx->pending_until_ms = 0;
-    ctx->dragging_volume = false;
-  }
-
-  if (state->has_position) {
-    bool copy_position = true;
-    if (media_control_track_position_reset_active(ctx)) {
-      if (state->position_seconds > MEDIA_SEEK_MATCH_TOLERANCE_SECONDS) {
-        copy_position = false;
-      } else {
-        ctx->track_position_reset_until_ms = 0;
-      }
-    }
-    if (copy_position && media_control_seek_pending_active(ctx)) {
-      if (std::fabs(state->position_seconds - ctx->seek_target_seconds) >
-          MEDIA_SEEK_MATCH_TOLERANCE_SECONDS) {
-        copy_position = false;
-      } else {
-        ctx->seek_pending = false;
-      }
-    } else if (copy_position) {
-      ctx->seek_pending = false;
-    }
-
-    if (copy_position) {
-      ctx->position_seconds = state->position_seconds;
-      ctx->position_updated_ms = state->position_updated_ms;
-      ctx->position_updated_at_known = state->position_updated_at_known;
-      ctx->position_updated_at_ms = state->position_updated_at_ms;
-    } else {
-      media_control_refresh_progress(ctx);
-    }
-  }
-
-  if (state->volume_known) {
-    int pct = ctx->volume_control_mode ==
-        espdesktop::media::VolumeControlMode::ABSOLUTE
-      ? media_control_clamp_volume(ctx, state->volume_pct)
-      : media_clamp_percent(state->volume_pct);
-    if (media_control_volume_pending_active(ctx)) {
-      if (pct != ctx->pending_pct) {
-        media_control_refresh_volume(ctx);
-      } else {
-        ctx->pending_pct = -1;
-        ctx->pending_until_ms = 0;
-        ctx->volume_known = true;
-        media_control_set_volume_value(ctx, pct);
-      }
-    } else {
-      ctx->pending_pct = -1;
-      ctx->pending_until_ms = 0;
-      ctx->volume_known = true;
-      media_control_set_volume_value(ctx, pct);
-    }
-  }
-  ctx->reported_volume_pct = state->volume_pct;
-  ctx->reported_volume_known = state->volume_known;
-  media_control_store_group_volume(
-    ctx, ctx->entity_id, state->volume_pct,
-    state->volume_known, state->available);
-  media_control_refresh_group_member_volumes(ctx);
-
-  set_card_checked_state(ctx->btn, ctx->available &&
-    (ctx->group_only ? media_control_group_size(ctx) > 1
-                     : ctx->highlight_playing && ctx->playing));
-  media_control_refresh_parent_card(ctx);
-  MediaControlModalUi &ui = media_control_modal_ui();
-  if (ui.active == ctx) {
-    const bool mode_capabilities_changed =
-      previous_shuffle_supported != shuffle_supported ||
-      previous_repeat_supported != repeat_supported;
-    bool layout_needed = metadata_changed || grouping_changed ||
-                         previous_power_supported != power_supported ||
-                         media_control_tab_layout_changed(ctx) ||
-                         mode_capabilities_changed;
-    if (mode_capabilities_changed && ui.tab == MediaControlTab::CONTROLS) {
-      media_control_clear_tab_content();
-    }
-#ifdef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL
-    if (media_control_progress_supported(ctx) && !ui.progress_tab) layout_needed = true;
-    if (!media_control_progress_supported(ctx) && ui.tab == MediaControlTab::PROGRESS) {
-      layout_needed = true;
-    }
-#endif
-    if (!power_supported && ui.tab == MediaControlTab::POWER) {
-      layout_needed = true;
-    }
-    media_control_refresh_open_modal(ctx, layout_needed);
-  }
-}
-
-inline void media_playback_apply_state_to_controls(MediaPlaybackState *state) {
-  if (!state) return;
-  for (MediaControlCtx *ctx : state->controls) {
-    media_playback_apply_state_to_control(state, ctx);
-  }
-}
-
-inline void media_playback_apply_progress_consumers(MediaPlaybackState *state) {
-  media_playback_apply_state_to_sliders(state);
-  media_playback_apply_state_to_controls(state);
-}
-
-inline void media_playback_progress_timer_cb(lv_timer_t *timer) {
-  MediaPlaybackState *state = static_cast<MediaPlaybackState *>(lv_timer_get_user_data(timer));
-  if (!state || state->generation != ha_subscription_generation() || !state->playing) {
-    if (timer) lv_timer_pause(timer);
-    return;
-  }
-  media_playback_apply_progress_consumers(state);
-}
-
-inline void media_playback_refresh_progress_timer(MediaPlaybackState *state) {
-  if (!state || !state->progress_subscribed) return;
-  const bool has_timer_consumer = !state->sliders.empty() || !state->controls.empty();
-  if (!has_timer_consumer) {
-    if (state->progress_timer) lv_timer_pause(state->progress_timer);
-    return;
-  }
-  if (!state->progress_timer) {
-    state->progress_timer = lv_timer_create(media_playback_progress_timer_cb, 1000, state);
-  }
-  if (!state->progress_timer) return;
-  if (state->playing) lv_timer_resume(state->progress_timer);
-  else lv_timer_pause(state->progress_timer);
-}
-
 inline bool media_playback_state_snapshot(const std::string &entity_id,
                                           bool &playing,
                                           float &duration,
@@ -1144,16 +791,6 @@ inline float media_control_current_position_seconds(MediaControlCtx *ctx) {
   if (ctx->duration > 0.0f && seconds > ctx->duration) seconds = ctx->duration;
   if (seconds < 0.0f || !std::isfinite(seconds)) seconds = 0.0f;
   return seconds;
-}
-
-inline bool media_control_seek_pending_active(MediaControlCtx *ctx) {
-  return ctx && ctx->seek_pending &&
-         (esphome::millis() - ctx->seek_pending_ms) < MEDIA_SEEK_PENDING_TIMEOUT_MS;
-}
-
-inline bool media_control_track_position_reset_active(MediaControlCtx *ctx) {
-  return ctx && ctx->track_position_reset_until_ms != 0 &&
-         (int32_t)(ctx->track_position_reset_until_ms - esphome::millis()) > 0;
 }
 
 inline void media_control_reset_track_position(MediaControlCtx *ctx) {
@@ -3120,12 +2757,4 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
   media_control_apply_tab_visibility();
   media_control_refresh_modal(ctx);
   lv_obj_move_foreground(ui.back_btn);
-}
-
-inline void media_control_hide_modal() {
-  MediaControlModalUi &ui = media_control_modal_ui();
-  media_control_clear_tab_content();
-  lv_obj_t *overlay = ui.overlay;
-  ui = MediaControlModalUi();
-  control_modal_delete_overlay(ControlModalKind::MEDIA_CONTROL, overlay);
 }

@@ -228,11 +228,6 @@ struct MediaVolumeModalUi {
   bool updating_arc = false;
 };
 
-inline MediaVolumeModalUi &media_volume_modal_ui() {
-  static MediaVolumeModalUi ui;
-  return ui;
-}
-
 inline int slider_clamp_pct(int pct);
 inline bool slider_parse_light_brightness_pct(esphome::StringRef val, int &pct);
 inline void slider_set_value_safe(lv_obj_t *slider, int pct);
@@ -1076,10 +1071,4 @@ inline void media_volume_set_button_enabled(lv_obj_t *btn, bool enabled) {
     lv_obj_add_state(btn, LV_STATE_DISABLED);
     lv_obj_clear_flag(btn, LV_OBJ_FLAG_CLICKABLE);
   }
-}
-
-inline void media_volume_hide_modal() {
-  MediaVolumeModalUi &ui = media_volume_modal_ui();
-  control_modal_delete_overlay(ControlModalKind::MEDIA_VOLUME, ui.overlay);
-  ui = MediaVolumeModalUi();
 }
