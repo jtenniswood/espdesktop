@@ -6,6 +6,7 @@
 
 #if defined(USE_WEBSERVER) && defined(USE_COMPANION)
 #include "../companion/app_icon_store.h"
+#include "../companion/companion.h"
 #include "companion_controls.h"
 #include "cover_art.h"
 #include "display_color.h"
@@ -52,6 +53,9 @@ class CompanionAppIconPreviewHandler final
       return;
     }
     if (!store.copy_pixels(application_id, pixels.get(), pixel_bytes)) {
+      // The fixed flash cache may hold fewer icons than the configured cards.
+      // Refill an evicted icon on demand; the browser retries this response.
+      esphome::companion::request_app_icon(application_id);
       send_not_found(request);
       return;
     }

@@ -2847,10 +2847,14 @@ async function assertAutomaticAppIcons(browser, testCase) {
         iconBytes.writeUInt16LE(0x07e0, index * 2);
         iconBytes[iconSide * iconSide * 2 + index] = 255;
       }
-    await context.route("**/companion/app-icon?*", route => route.fulfill({
-      status: 200, contentType: "application/octet-stream",
-      headers: { "X-EspDesktop-Companion-Online": "true" }, body: iconBytes,
-    }));
+    let iconRequests = 0;
+    await context.route("**/companion/app-icon?*", route => {
+      iconRequests++;
+      return route.fulfill({
+        status: 200, contentType: "application/octet-stream",
+        headers: { "X-EspDesktop-Companion-Online": "true" }, body: iconBytes,
+      });
+    });
     const page = await context.newPage();
     await installFakeEventSource(page);
     const errors = [];
@@ -2896,6 +2900,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await page.getByRole("tab", { name: "Layout" }).click();
       await card(1).locator(".sp-companion-app-icon").waitFor();
       await card(2).locator(".sp-companion-app-icon").waitFor();
+      const initialIconRequests = iconRequests;
       const widths = {};
       for (const size of ["Medium", "Large", "Small"]) {
         await chooseSize(2, size);
@@ -2923,6 +2928,11 @@ async function assertAutomaticAppIcons(browser, testCase) {
         }
       }
       assert(widths.Small < widths.Medium && widths.Medium < widths.Large, "all app icon sizes are distinct");
+      assert.strictEqual(iconRequests, initialIconRequests, "preview rebuilds reuse cached images");
+      await page.getByRole("tab", { name: "System", exact: true }).click();
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      await card(1).locator(".sp-companion-app-icon").waitFor();
+      assert.strictEqual(iconRequests, initialIconRequests, "tab navigation reuses cached images");
       // Use the same menu inside a subpage and verify the complete subpage record.
       await card(2).locator(".sp-subpage-badge").click();
       await page.locator(".sp-back-btn").waitFor();
@@ -2944,6 +2954,14 @@ async function assertAutomaticAppIcons(browser, testCase) {
       assert(subpageSaved.includes("icon_size=large"), "subpage icon size is saved");
       await chooseSize(1, "Small");
       assert(await card(1).locator(".sp-btn-label").isVisible(), "subpage label returns with Small");
+      const requestsBeforeReload = iconRequests;
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await seedNativeDocument(page, fixture);
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      await card(1).locator(".sp-companion-app-icon").waitFor();
+      await card(2).locator(".sp-companion-app-icon").waitFor();
+      assert.strictEqual(iconRequests, requestsBeforeReload, "browser reload reuses locally stored images");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
   }
@@ -3216,7 +3234,7 @@ async function assertContextColourPicker(browser, testCase) {
         await seedNativeDocument(page, fixture);
         await page.locator(".sp-brand").click();
         let rejectAfter = 0;
-        await page.route("**/api/v1/config/**", async route => {
+        await page.route("**/api/v1/config{,/**}", async route => {
           if (route.request().method() !== "PUT") return route.fallback();
           if (rejectAfter-- <= 0) return route.fulfill({ status: 409, body: "generation conflict" });
           return route.fallback();
@@ -3253,7 +3271,7 @@ async function assertContextColourPicker(browser, testCase) {
         assert.strictEqual(fixture.document.subpages[3], savedSubpage);
         // A 202 has durable native data but no compatible older-firmware copy.
         // Keep the saved colour and the controller's downgrade warning.
-        await page.route("**/api/v1/config/**", async route => {
+        await page.route("**/api/v1/config{,/**}", async route => {
           if (route.request().method() !== "PUT") return route.fallback();
           fixture.document = decodePanelConfig(new Uint8Array(route.request().postDataBuffer()));
           fixture.generation++;
@@ -8984,7 +9002,7 @@ async function assertSpecialPageRename(browser, testCase) {
     await title.click();
     await input.fill("Failed name");
     let reject = true;
-    await page.route("**/api/v1/config/**", async route => {
+    await page.route("**/api/v1/config{,/**}", async route => {
       if (reject && route.request().method() === "PUT") return route.fulfill({ status: 500, body: "Failed" });
       return route.fallback();
     });

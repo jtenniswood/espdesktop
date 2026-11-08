@@ -512,8 +512,11 @@ export function registerCompanionCardTypes(
                 action.id !== companionApplications[index]?.id ||
                 action.label !== companionApplications[index]?.label);
         companionApplications = applications;
-        if (iconHashesChanged)
-            document.dispatchEvent(new Event("espdesktop:app-icon-cache-cleared"));
+        if (iconHashesChanged || applications.length > 0)
+            document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
+                name: "catalogue",
+                value: JSON.stringify(applications.map(action => [action.id, action.iconHash || ""]).sort()),
+            } }));
         return changed;
     }
 
@@ -529,7 +532,9 @@ export function registerCompanionCardTypes(
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
             else companionCatalogueMonitor.stop();
-            document.dispatchEvent(new Event("espdesktop:app-icon-cache-cleared"));
+            document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
+                name: "companion-connection", value: String(connected),
+            } }));
         });
     }
 
