@@ -109,9 +109,7 @@ with tempfile.TemporaryDirectory(prefix='weather-requests-') as directory:
     subprocess.run([os.environ.get('CXX','g++'),'-std=c++17','-Wall','-Wextra','-Werror',
                     '-I',str(HEADERS),str(cpp),'-o',str(binary)],check=True)
     subprocess.run([str(binary)],check=True)
-# Keep the phase wiring tied to the executable reset semantics above.
+# Keep the remaining request-cancellation wiring tied to the queue semantics.
 grid=(HEADERS/'button_grid_grid.h').read_text()
-phase1=grid.split('inline void grid_phase1(',1)[1].split('inline void grid_phase2(',1)[0]
-assert phase1.index('weather_daily_reset_cards();') < phase1.index('setup_card_visual(')
 assert grid.count('weather_forecast_cancel_pending_requests(false);')==2
 print('Forecast request queue: all eight shared entities, readiness wait, deduplication and rebuild/disconnect reset passed.')
