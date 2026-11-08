@@ -5985,6 +5985,7 @@ async function seedNativeDocument(page, nativeState) {
     nativeDocumentEvents(nativeState.document),
   );
   await page.waitForSelector('.sp-main [data-slot="2"]');
+  await page.waitForFunction(() => document.querySelector(".sp-main")?.getAttribute("aria-disabled") === "false");
 }
 
 async function assertWifiSharingHidesHomeAssistantControls(browser, testCase) {
@@ -6504,8 +6505,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await seedNativeDocument(page, nativeState);
     const commandIcon = page.locator('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
     await commandIcon.waitFor({ state: "visible" });
+    await page.waitForFunction(() => {
+      const element = document.querySelector('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
+      return element && getComputedStyle(element, "::before").content === '"' + String.fromCodePoint(0xF0633) + '"';
+    });
     assert.strictEqual(
-      await commandIcon.evaluate((element) => getComputedStyle(element, "::before").content),
+      await page.evaluate(() => getComputedStyle(document.querySelector('.sp-main [data-slot="1"] .mdi-apple-keyboard-command'), "::before").content),
       '"' + String.fromCodePoint(0xF0633) + '"',
       "saved Command cards render the bundled MDI glyph",
     );
@@ -6661,7 +6666,7 @@ async function assertCompanionStorageSettings(browser, testCase) {
     const page = await context.newPage();
     await installFakeEventSource(page);
     const openSettings = async () => {
-      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.locator('.sp-main [data-slot="1"]').click({ position: { x: 70, y: 25 } });
       await page.getByRole("button", { name: "Edit", exact: true }).click();
       await page.waitForSelector(".sp-settings-overlay.sp-visible");
       const field = page.locator('[id$="storage-device"]');
@@ -9080,6 +9085,15 @@ async function assertNestedCompanionPages(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_COMPANION_SHORTCUTS_ONLY === "1") {
+      const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+      await assertCompanionShortcutSettings(browser, testCase);
+      await assertAppSubpageCapacity(browser, testCase);
+      await assertShortcutCatalogSettings(browser, testCase);
+      await assertCompanionStorageSettings(browser, testCase);
+      console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") { await assertNestedCompanionPages(browser); return; }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
