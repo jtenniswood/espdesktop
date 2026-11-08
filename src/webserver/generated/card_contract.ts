@@ -924,11 +924,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "kind": "choice",
         "values": [
           "clock",
-          "datetime",
-          "",
           "timezone"
         ],
-        "defaultValue": "",
+        "defaultValue": "clock",
         "storageField": "type",
         "omitDefault": false
       },
@@ -1009,8 +1007,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "kind": "choice",
         "values": [
           "clock",
-          "datetime",
-          "",
           "timezone"
         ],
         "defaultValue": "clock",
@@ -3326,8 +3322,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "kind": "choice",
         "values": [
           "clock",
-          "datetime",
-          "",
           "timezone"
         ],
         "defaultValue": "timezone",

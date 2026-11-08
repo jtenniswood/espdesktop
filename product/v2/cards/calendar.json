@@ -7,8 +7,8 @@
       "name": "date_time_mode",
       "label": "Type",
       "kind": "choice",
-      "values": ["clock", "datetime", "", "timezone"],
-      "defaultValue": "",
+      "values": ["clock", "timezone"],
+      "defaultValue": "clock",
       "storageField": "type",
       "omitDefault": false
     },
