@@ -991,8 +991,19 @@ export function registerCompanionCardTypes(
             const windowSelect = document.createElement("select");
             windowSelect.className = "sp-select";
             windowSelect.id = helpers.idPrefix + "companion-window-action";
+            // Keep saved legacy actions visible without offering them for new cards.
+            if (card.entity === "window.fullscreen.enter" || card.entity === "window.fullscreen.exit") {
+                const savedOption = document.createElement("option");
+                savedOption.value = card.entity;
+                savedOption.textContent = companionWindowActionLabel(card.entity) + " (existing action)";
+                savedOption.selected = true;
+                savedOption.disabled = true;
+                windowSelect.appendChild(savedOption);
+            }
             const groups = new Map<string, HTMLOptGroupElement>();
-            [...COMPANION_WINDOW_ACTIONS].sort((first, second) =>
+            COMPANION_WINDOW_ACTIONS.filter((action) =>
+                action.id !== "window.fullscreen.enter" && action.id !== "window.fullscreen.exit"
+            ).sort((first, second) =>
                 first.group.localeCompare(second.group, undefined, { sensitivity: "base" }) ||
                 first.label.localeCompare(second.label, undefined, { sensitivity: "base" })).forEach(function (action) {
                 let group = groups.get(action.group);
