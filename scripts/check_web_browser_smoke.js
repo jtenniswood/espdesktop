@@ -114,34 +114,13 @@ function nativeConfigState(slug) {
   };
 }
 
-async function assertSubpageTitleTypography(page, label, nativeState) {
+async function assertSubpageBackCard(page, label, nativeState) {
   await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-  await page.waitForSelector(".sp-clockbar-subpage-title");
-  const typography = await page.evaluate(() => {
-    const title = document.querySelector(".sp-clockbar-subpage-title");
-    const cardLabel = document.querySelector(".sp-main .sp-btn-label");
-    const titleStyle = getComputedStyle(title);
-    const cardStyle = getComputedStyle(cardLabel);
-    return {
-      title: {
-        fontFamily: titleStyle.fontFamily,
-        fontSize: titleStyle.fontSize,
-        fontWeight: titleStyle.fontWeight,
-        lineHeight: titleStyle.lineHeight,
-      },
-      card: {
-        fontFamily: cardStyle.fontFamily,
-        fontSize: cardStyle.fontSize,
-        fontWeight: cardStyle.fontWeight,
-        lineHeight: cardStyle.lineHeight,
-      },
-    };
-  });
-  assert.deepStrictEqual(
-    typography.title,
-    typography.card,
-    `${label}: subpage title uses the device card-label typography`,
-  );
+  await page.waitForSelector(".sp-back-btn");
+  assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")),
+    `${label}: subpages have no clock bar`);
+  assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0,
+    `${label}: subpages have no top label`);
   assert.strictEqual(await page.locator(".sp-back-btn .mdi-chevron-left").count(), 1,
     `${label}: regular subpages retain their Back arrow`);
   const initialColor = await page.locator(".sp-back-btn").evaluate(el => getComputedStyle(el).backgroundColor);
@@ -6227,7 +6206,7 @@ async function assertNativeProfileJourney(browser, testCase) {
     if (testCase.exerciseInteractions) await assertWifiSharingHidesHomeAssistantControls(browser, testCase);
 
     await assertInlineCardNames(page, nativeState, testCase.name);
-    await assertSubpageTitleTypography(page, testCase.name, nativeState);
+    await assertSubpageBackCard(page, testCase.name, nativeState);
 
     const card = page.locator('.sp-main [data-slot="1"]');
     assert(
@@ -8860,120 +8839,56 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
   fixture.document.subpages[1] = "~B,1|companion,shortcut.command+r,Reload,Refresh,Auto";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture });
-  let savedTitle = true;
-  const posts = [];
-  await context.route("**/switch/*subpage_title_bar*/**", async route => {
-    const action = new URL(route.request().url()).pathname.split("/").pop();
-    savedTitle = action === "turn_on";
-    posts.push(action);
-    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
-  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   await installFakeEventSource(page);
-  const toggle = page.locator("#sp-set-subpage-title-bar");
-  const row = toggle.locator("..").locator("..");
-  async function seed(clockOn) {
+  async function seed(clockOn, savedTitle) {
     await page.evaluate(({ clockOn, savedTitle }) => window.__seedEspState([
       { id: "switch-screen__clock_bar", state: clockOn ? "ON" : "OFF", value: clockOn },
       { id: "switch-subpage_title_bar_enabled", state: savedTitle ? "ON" : "OFF", value: savedTitle },
     ]), { clockOn, savedTitle });
+    await page.waitForFunction(on => document.querySelector(".sp-topbar").classList.contains("sp-hidden") === !on, clockOn);
   }
-  async function settings() {
-    await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    const card = page.locator("#sp-settings .card").filter({ has: toggle });
-    if (await card.evaluate(el => el.classList.contains("collapsed"))) await card.locator(".card-header").click();
-  }
-  async function subpage(slot, visible) {
-    await page.getByRole("tab", { name: "Layout", exact: true }).click();
-    await page.locator(`.sp-main [data-slot="${slot}"] .sp-subpage-badge`).click();
-    if (visible) await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
-    else await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
-    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "clock remains hidden on subpages");
-    const back = page.locator(".sp-back-btn");
-    const icon = back.locator(".sp-back-hit:not([hidden])");
-    const bounds = await icon.boundingBox();
+  async function checkSubpage(compactTop) {
+    await page.locator(".sp-back-btn").waitFor();
+    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "every subpage hides the entire bar");
+    assert.strictEqual(await page.locator(".sp-clockbar-subpage-title,.sp-clock").count(), 0, "subpages have no title or clock");
+    assert.strictEqual(await page.evaluate(() => document.documentElement.style.getPropertyValue("--grid-top")), compactTop,
+      "subpages reclaim all header space even when Clock Bar is enabled");
+    const bounds = await page.locator(".sp-back-btn .sp-back-hit:not([hidden])").boundingBox();
     await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    await page.locator('.sp-main [data-slot="3"]').waitFor();
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
     await page.waitForSelector("#sp-app");
     await seedNativeDocument(page, fixture);
-    await seed(true);
-    await settings();
-    assert(!(await row.isVisible()), "Clock Bar on hides the title-bar control");
-    await seed(false);
-    await row.waitFor({ state: "visible" });
-    assert(await row.isVisible(), "Clock Bar off reveals the title-bar control");
-    assert(await toggle.isChecked(), "title bar defaults on");
-    await subpage(1, false); // App pages have no title, even with the saved title-bar option on.
-    await subpage(3, true); // Ordinary pages retain their optional title.
-    await settings();
-    await Promise.all([
-      page.waitForResponse(r => r.url().includes("subpage_title_bar") && r.url().endsWith("/turn_off")),
-      toggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    await subpage(1, false);
-    await subpage(3, false);
-    // The regular clock-bar setting always overrides a saved hidden title bar.
-    await seed(true);
-    await settings();
-    assert(!(await row.isVisible()));
-    await subpage(1, true);
-    await seed(false);
-    await settings();
-    assert(!(await toggle.isChecked()), "turning Clock Bar off restores the saved choice");
-    await page.reload();
-    await page.waitForSelector("#sp-app");
-    await seedNativeDocument(page, fixture);
-    await seed(false);
-    await settings();
-    assert(!(await toggle.isChecked()), "saved preference survives reconnect/reload");
-    await Promise.all([
-      page.waitForResponse(r => r.url().includes("subpage_title_bar") && r.url().endsWith("/turn_on")),
-      toggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    await subpage(1, false);
-    assert.deepStrictEqual(posts, ["turn_off", "turn_on"]);
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.locator("#sp-set-subpage-title-bar").count(), 0, "obsolete title-bar control is removed");
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seed(false, true);
+    const compactTop = await page.evaluate(() => document.documentElement.style.getPropertyValue("--grid-top"));
+    for (const clockOn of [false, true]) {
+      for (const savedTitle of [false, true]) {
+        await seed(clockOn, savedTitle);
+        for (const slot of [3, ...(testCase.companionSupported ? [1] : [])]) {
+          await page.locator(`.sp-main [data-slot="${slot}"] .sp-subpage-badge`).dispatchEvent("click");
+          await checkSubpage(compactTop);
+          assert.strictEqual(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), !clockOn,
+            "returning home restores its own Clock Bar setting");
+        }
+        await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+        await checkSubpage(compactTop);
+      }
+    }
     assert.deepStrictEqual(errors, []);
-    console.log(`${testCase.name}: global title-bar toggle, clock-bar override and reload passed.`);
+    console.log(`${testCase.name}: all subpages hide titles and bars, use compact spacing, and preserve the home setting.`);
   } finally { await context.close(); }
 }
 
 async function assertSubpageClockBar(browser, testCase) {
-  const fixture = nativeConfigState(testCase.slug);
-  const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState: fixture, homeAssistantSupport: true });
-  const page = await context.newPage();
-  await installFakeEventSource(page);
-  try {
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
-    await page.waitForSelector("#sp-app");
-    await seedNativeDocument(page, fixture);
-    await page.evaluate(() => window.__seedEspState([
-      { id: "switch-screen__clock_bar", state: "OFF", value: false },
-      { id: "switch-screen__clock_bar_time", state: "ON", value: true },
-    ]));
-    await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
-    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-    await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
-    assert.strictEqual(await page.locator(".sp-clockbar-subpage-label").innerText(), "Rooms");
-    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "subpage has no clock even when time is enabled");
-    assert.strictEqual(await page.locator(".sp-subpage-header").count(), 0, "no separate title area");
-    const fits = await page.evaluate(() => {
-      const bar = document.querySelector(".sp-topbar").getBoundingClientRect();
-      const grid = document.querySelector(".sp-main").getBoundingClientRect();
-      return bar.bottom <= grid.top + 1;
-    });
-    assert(fits, "standard clock bar fits above the grid");
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await page.waitForSelector(".sp-topbar.sp-hidden", { state: "attached" });
-    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
-    await page.waitForSelector(".sp-topbar:not(.sp-hidden)");
-    assert.strictEqual(await page.locator(".sp-clock").count(), 0, "Special Page also has no clock");
-    console.log(`${testCase.name}: subpage clock bar visible, time hidden, home setting preserved.`);
-  } finally { await context.close(); }
+  await assertSubpageTitleBarSetting(browser, testCase);
 }
 
 async function assertSpecialPageRename(browser, testCase) {
@@ -9134,7 +9049,7 @@ async function assertSpecialPageRename(browser, testCase) {
           await page.waitForSelector("#sp-app");
           await seedNativeDocument(page, nativeState);
           if (process.env.ESPDESKTOP_CARD_NAMES_ONLY === "1") await assertInlineCardNames(page, nativeState, testCase.name);
-          else await assertSubpageTitleTypography(page, testCase.name, nativeState);
+          else await assertSubpageBackCard(page, testCase.name, nativeState);
         } finally { await context.close(); }
       }
       console.log(`Card title browser checks passed for ${ACTIVE_CASES.length} layouts.`);

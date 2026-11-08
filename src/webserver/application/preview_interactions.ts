@@ -96,7 +96,7 @@ export function createPreviewInteractionsFeature(
             document,
             title: getSubpage(-1).title || "",
             locked: isConfigLocked,
-            restoreFocus: () => (els.topbar?.querySelector("[data-rename-special-page]") as HTMLElement | null)?.focus(),
+            restoreFocus: () => els.specialPageRename?.focus(),
             save: async title => {
                 const subpage = getSubpage(-1);
                 const previous = subpage.title;
@@ -215,17 +215,14 @@ export function createPreviewInteractionsFeature(
                 enterSubpage(-1);
             });
         }
+        els.specialPageRename?.addEventListener("click", () => {
+            if (!isConfigLocked() && state.editingSubpage === -1) renameSpecialPage();
+        });
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
                     e.preventDefault();
                     e.stopPropagation();
-                    return;
-                }
-                if (e.target.closest("[data-rename-special-page]") && state.editingSubpage === -1) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    renameSpecialPage();
                     return;
                 }
                 var target: any = e.target.closest("[data-clockbar-item]");
@@ -238,12 +235,6 @@ export function createPreviewInteractionsFeature(
             els.topbar.addEventListener("keydown", function (this: any, e?: any) {
                 if (e.key !== "Enter" && e.key !== " ")
                     return;
-                if (e.target.closest("[data-rename-special-page]") && state.editingSubpage === -1) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    renameSpecialPage();
-                    return;
-                }
                 var target: any = e.target.closest("[data-clockbar-item]");
                 if (!target)
                     return;

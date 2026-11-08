@@ -66,7 +66,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
     const { postPresenceSensorEntity, postClockOverlay } = artworkPostApi;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
-    const { postClockBar, postBatteryStatus, postAutoOpenAppSubpages, postReturnHomeOnAppSwitch, postSubpageTitleBar } = clockBarPostApi;
+    const { postClockBar, postBatteryStatus, postAutoOpenAppSubpages, postReturnHomeOnAppSwitch } = clockBarPostApi;
     const els = runtime.els;
     const { timezoneOptionsWithFallback } = environment;
     const { syncUi: syncScreenScheduleUi } = schedule;
@@ -718,18 +718,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         returnHomeOnAppSwitch.input.addEventListener("change", function (this: HTMLInputElement) {
             state.returnHomeOnAppSwitch = this.checked;
             postReturnHomeOnAppSwitch(this.checked);
-        });
-        const titleBar = toggleRow("Show app title bar", "sp-set-subpage-title-bar", state.subpageTitleBarOn);
-        appSubpageBody.appendChild(titleBar.row);
-        els.setSubpageTitleBar = titleBar.input;
-        els.setSubpageTitleBarRow = titleBar.row;
-        titleBar.row.hidden = !!state.clockBarOn;
-        titleBar.row.classList.toggle("sp-hidden", !!state.clockBarOn);
-        titleBar.input.addEventListener("change", function (this: HTMLInputElement) {
-            state.subpageTitleBarOn = this.checked;
-            postSubpageTitleBar(this.checked);
-            syncClockBarUi();
-            renderPreview();
         });
         const appSubpageCard = makeCollapsibleCard("App Subpages", appSubpageBody, true);
         appendSettingsSection(config, "Appearance", [

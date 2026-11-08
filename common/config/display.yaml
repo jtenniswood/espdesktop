@@ -68,8 +68,8 @@ esphome:
             clock_bar_companion_subpage_title_font() =
                 lv_obj_get_style_text_font(id(display_time), LV_PART_MAIN);
             navigation_subpage_clock_bar_refresh() = []() {
-              // Page changes can show the bar even when it is disabled on home.
-              // Reserve its space before displaying the subpage title.
+              // Subpages use compact top spacing; returning home restores the
+              // space required by the home screen's clock-bar setting.
               const ClockBarVisibility visibility = clock_bar_resolve_visibility(
                   id(clock_bar_enabled).state, id(main_page)->obj,
                   id(espdesktop_app).display().current_mode(),

@@ -49,6 +49,11 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             els.settingsOverlay.classList.remove("sp-visible");
     }
     function updatePreviewHint(this: any, c?: any) {
+        if (els.specialPageRename) {
+            els.specialPageRename.hidden = state.editingSubpage !== -1;
+            els.specialPageRename.textContent = state.subpages[-1]?.title || "Special Page";
+            els.specialPageRename.disabled = isConfigLocked();
+        }
         if (!els.previewHint)
             return;
         c = c || ctx();
