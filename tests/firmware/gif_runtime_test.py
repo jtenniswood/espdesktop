@@ -178,7 +178,7 @@ void image_card_handle_modal_download_error(ImageCardCtx *) {}
 """
 ui_source = (ROOT / "components/espdesktop/button_grid_image.h").read_text()
 for name in ("image_card_page_visible", "image_card_context_visible_on_active_screen",
-             "image_card_bind_callbacks", "image_card_bind_modal_callbacks"):
+             "image_card_bind_callbacks"):
     match = re.search(rf"^inline [^\n]*\b{name}\([^;{{]*\) \{{\n.*?^\}}", ui_source, re.M | re.S)
     assert match, name
     source += "\n" + match[0] + "\n"
@@ -379,23 +379,8 @@ int main() {
       for (int i = 0; i < 100 && ctx->widget->invalidations == old_redraws; ++i) ctx->image->loop_animation_();
       assert(ctx->widget->invalidations > old_redraws);
     }
-    // Expanding a cached still on another subpage has its own reservation.
     active_screen = &page_a;
     load(a, file, false);
-    lv_obj_t modal_widget{&page_a};
-    modal_ui.active = &a_ctx; modal_ui.image_widget = &modal_widget;
-    active_modal.kind = ControlModalKind::IMAGE_CARD;
-    modal.p4_pipeline_priority_ = P4_PIPELINE_MODAL;
-    image_card_bind_modal_callbacks(&modal);
-    load(modal, file, false);
-    assert(!a.animation_visible_() && modal.animation_visible_());
-    assert(gif_slots[0] == &a && gif_slots[1] == &modal);
-    now_ms += 1000;
-    a.loop_animation_();
-    for (int i = 0; i < 100 && !modal_widget.invalidations; ++i) modal.loop_animation_();
-    assert(modal_widget.invalidations);
-    modal_ui.active = nullptr; active_modal.kind = ControlModalKind::NONE;
-    assert(a.animation_visible_() && !modal.animation_visible_());
     // Covering modals and screensavers pause without surrendering the page slot.
     active_modal.kind = ControlModalKind::OTHER;
     assert(!a.animation_visible_() && a.animation_screen_active_());
@@ -404,8 +389,7 @@ int main() {
     assert(!a.animation_visible_());
     a.loop_animation_();
     image_card_page_visible() = []() { return true; };
-    suspended = true; assert(!a.animation_visible_());
-    suspended = false; assert(a.animation_visible_());
+    assert(a.animation_visible_());
     const auto previous_redraws = a_widget.invalidations;
     now_ms += 1000;
     for (int i = 0; i < 100 && a_widget.invalidations == previous_redraws; ++i) a.loop_animation_();
@@ -616,4 +600,4 @@ inline void *heap_caps_realloc(void *pointer, size_t size, int caps) {
             str(temp / "gif_image.cpp"), str(temp / "test.cpp"), "-o", str(executable),
         ], check=True)
         subprocess.run([str(executable)], check=True)
-print("GIF runtime: subpage navigation, camera screensaver playback/recovery, modal/sleep recovery, still admission, source compaction, bounded frames, refresh recovery and PSRAM failures passed")
+print("GIF runtime: subpage navigation, fullscreen artwork playback/recovery, modal/sleep recovery, still admission, source compaction, bounded frames, refresh recovery and PSRAM failures passed")

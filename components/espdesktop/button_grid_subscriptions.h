@@ -2,7 +2,7 @@
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
-// ── Home Assistant subscriptions ──────────────────────────────────────
+// Shared card colour and input availability helpers.
 
 // The grid owns device colour correction; callbacks sample the live neutral
 // instead of retaining the palette that was active when they subscribed.
@@ -45,35 +45,3 @@ inline void apply_control_availability(lv_obj_t *visual_obj, lv_obj_t *input_obj
   if (available) lv_obj_add_flag(input_obj, LV_OBJ_FLAG_CLICKABLE);
   else lv_obj_clear_flag(input_obj, LV_OBJ_FLAG_CLICKABLE);
 }
-
-inline void register_ha_control_availability(lv_obj_t *visual_obj, lv_obj_t *input_obj) {
-  apply_control_availability(visual_obj, input_obj, true);
-}
-
-// Subscribe to a HA sensor entity and update an LVGL label with its numeric value.
-
-// Subscribe to an entity's friendly_name attribute and use it as the button label
-inline void subscribe_friendly_name(TransientStatusLabel *status_label,
-                                    const std::string &entity_id) {
-  ha_subscribe_attribute(
-    entity_id, std::string("friendly_name"),
-    std::function<void(esphome::StringRef)>([status_label](esphome::StringRef name) {
-      transient_status_label_set_steady(status_label, string_ref_limited(name, HA_FRIENDLY_NAME_MAX_LEN));
-    })
-  );
-}
-
-inline void subscribe_friendly_name(lv_obj_t *text_lbl, const std::string &entity_id) {
-  ha_subscribe_attribute(
-    entity_id, std::string("friendly_name"),
-    std::function<void(esphome::StringRef)>([text_lbl](esphome::StringRef name) {
-      set_wrapped_button_label_text(text_lbl, string_ref_limited(name, HA_FRIENDLY_NAME_MAX_LEN));
-    })
-  );
-}
-
-// Slider cards zero the button padding so their fill can reach the tile edges,
-// then position the label with a captured inset. Updating the friendly name
-// must not re-anchor that label at (0, 0), or it becomes flush with the tile.
-
-// Subscribe to a toggle entity's state; updates checked visual, icon swap, sensor overlay

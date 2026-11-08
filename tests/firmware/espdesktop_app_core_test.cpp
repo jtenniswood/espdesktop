@@ -109,18 +109,6 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  int callback_owner = 0;
-  {
-    auto scope = app.home_assistant_callback_owner().scope(&callback_owner);
-    if (app.home_assistant_callback_owner().callback_owner() !=
-        &callback_owner) {
-      return EXIT_FAILURE;
-    }
-  }
-  if (app.home_assistant_callback_owner().callback_owner() != nullptr) {
-    return EXIT_FAILURE;
-  }
-
   NavigationService &navigation = app.grid_navigation_service<NavigationService>();
   navigation.home_targets().push_back({1});
   navigation.subpages().push_back({2});
@@ -140,9 +128,6 @@ int main() {
   }
   if (!app.stop() || app.stop() || app.run_once() ||
       app.display_lifecycle().state() != DisplayLifecycleState::STOPPED) {
-    return EXIT_FAILURE;
-  }
-  if (home_assistant_callback_owner_service_binding() != nullptr) {
     return EXIT_FAILURE;
   }
   if (app.lifecycle_state() != AppLifecycleState::STOPPED) return EXIT_FAILURE;

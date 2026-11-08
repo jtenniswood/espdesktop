@@ -31,8 +31,6 @@ WEB_SERVER_IDF_INIT = ROOT / "components" / "web_server_idf" / "__init__.py"
 WEB_SERVER_IDF_CPP = ROOT / "components" / "web_server_idf" / "web_server_idf.cpp"
 S3_DEVICE_YAML = ROOT / "devices" / "guition-esp32-s3-4848s040" / "device" / "device.yaml"
 S3_ARTWORK_TRANSFER_CPP = ROOT / "components" / "artwork_image" / "s3_artwork_transfer.cpp"
-PUBLIC_API_ENCRYPTION_PACKAGE = ROOT / "common" / "addon" / "api_encryption_dynamic.yaml"
-PUBLIC_API_ENCRYPTION_REFERENCE = "common/addon/api_encryption_dynamic.yaml"
 LEGACY_OTA_PARTITION_LAYOUTS = {
     "esp32-p4-86": "partitions_32mb_card_images.csv",
     "guition-esp32-p4-jc1060p470": "partitions_16mb_card_images.csv",
@@ -427,33 +425,27 @@ def test_jc4880p443_v3_configuration() -> None:
         assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
-def test_public_api_encryption_policy(profile_slugs: list[str]) -> None:
-    policy = PUBLIC_API_ENCRYPTION_PACKAGE.read_text(encoding="utf-8")
-    assert policy == "api:\n  encryption: {}\n", (
-        "public API encryption package must remain keyless and dynamically provisionable"
-    )
-    assert "key:" not in policy, "public firmware must not embed a shared API encryption key"
-    assert "provisioning:" not in policy, "public firmware must not add a timed provisioning lockout"
+def test_native_home_assistant_api_is_absent(profile_slugs: list[str]) -> None:
+    from esphome.components.packages import resolve_packages
+    from esphome.core import CORE
+    from esphome.yaml_util import load_yaml
 
-    local_reference = f"api_encryption: !include ../{PUBLIC_API_ENCRYPTION_REFERENCE}"
-    remote_reference = f"file: {PUBLIC_API_ENCRYPTION_REFERENCE}"
+    # Resolve actual factory packages, including hardware test variants.
+    for path in sorted((ROOT / "builds").glob("*.factory.yaml")):
+        CORE.reset()
+        CORE.config_path = str(path)
+        try:
+            config = resolve_packages(load_yaml(path))
+            assert "api" not in config, f"{path.name}: native Home Assistant API must be absent"
+            for domain in ("sensor", "text_sensor", "binary_sensor", "time"):
+                assert all(item.get("platform") != "homeassistant" for item in config.get(domain, [])), (
+                    f"{path.name}: {domain} still imports Home Assistant state"
+                )
+        finally:
+            CORE.reset()
     for slug in profile_slugs:
-        factory = (ROOT / "builds" / f"{slug}.factory.yaml").read_text(encoding="utf-8")
-        public_config = (ROOT / "devices" / slug / "esphome.yaml").read_text(encoding="utf-8")
-        dev = (ROOT / "devices" / slug / "dev.yaml").read_text(encoding="utf-8")
-        local_build = (ROOT / "builds" / f"{slug}.yaml").read_text(encoding="utf-8")
-        assert local_reference in factory, f"{slug}: factory firmware must support dynamic API encryption"
-        assert remote_reference in public_config, f"{slug}: public config must support dynamic API encryption"
-        assert PUBLIC_API_ENCRYPTION_REFERENCE not in dev, f"{slug}: dev firmware must remain plaintext"
-        assert PUBLIC_API_ENCRYPTION_REFERENCE not in local_build, f"{slug}: local build must remain plaintext"
-
-    core = (ROOT / "common" / "device" / "core_infra.yaml").read_text(encoding="utf-8")
-    assert PUBLIC_API_ENCRYPTION_REFERENCE not in core, "shared core firmware must remain plaintext"
-
-    manual_setup = (ROOT / "docs" / "getting-started" / "manual-esphome-setup.md").read_text(encoding="utf-8")
-    assert manual_setup.count(remote_reference) == 3, (
-        "manual WiFi, authenticated web, and Ethernet examples must include dynamic API encryption"
-    )
+        public = (ROOT / "devices" / slug / "esphome.yaml").read_text()
+        assert "api_encryption" not in public, f"{slug}: remove obsolete native API encryption package"
 
 
 def test_ota_preserves_deployed_partition_layouts() -> None:
@@ -847,7 +839,7 @@ def main() -> int:
     test_generated_yaml(profiles)
     test_v3_release_configuration()
     test_jc4880p443_v3_configuration()
-    test_public_api_encryption_policy(profile_slugs)
+    test_native_home_assistant_api_is_absent(profile_slugs)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
     test_p4_crash_restart_preserves_safe_mode_counter()

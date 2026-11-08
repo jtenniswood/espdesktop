@@ -2301,30 +2301,6 @@ inline bool ha_entity_state_unavailable_ref(const std::string &entity_id,
   return false;
 }
 
-#ifndef ESPDESKTOP_HA_DEFERRED_HELPERS_DEFINED
-inline void ha_reset_deferred_state_requests() {}
-#endif
-
-#ifndef ESPDESKTOP_HA_SUBSCRIPTION_HELPERS_DEFINED
-inline void ha_reset_subscription_callbacks(uint32_t scope = 0) { (void) scope; }
-#endif
-
-#ifndef ESPDESKTOP_HA_GENERATION_HELPERS_DEFINED
-inline uint32_t &ha_subscription_generation() {
-  static uint32_t generation = 1;
-  return generation;
-}
-
-inline void bump_ha_subscription_generation() {
-  uint32_t &generation = ha_subscription_generation();
-  generation++;
-  if (generation == 0) generation = 1;
-  ha_reset_deferred_state_requests();
-  ha_reset_subscription_callbacks(
-      HA_SUBSCRIPTION_SCOPE_DEFAULT | HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS);
-}
-#endif
-
 inline std::string sentence_cap_text(const std::string &state) {
   std::string out;
   out.reserve(state.size());

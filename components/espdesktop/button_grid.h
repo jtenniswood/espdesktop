@@ -1,11 +1,11 @@
 // =============================================================================
-// BUTTON GRID - LVGL button grid layout, parsing, and HA entity binding
+// BUTTON GRID - LVGL layout, saved configuration, local and Mac controls
 // =============================================================================
 // Shared C++ utilities included by each device's sensors.yaml lambda. Handles:
 //   - Parsing semicolon-delimited button config strings into structured fields
 //   - Grid layout with double-height (d), double-wide (w), and 2×2 big (b) cells
 //   - LVGL visual setup for toggle buttons, sensor/time cards, and slider widgets
-//   - Home Assistant state subscriptions and action dispatch
+//   - Local and Mac action dispatch; unavailable legacy HA card handling
 //   - Subpage creation (nested grid screens with back button)
 // =============================================================================
 #pragma once
@@ -20,7 +20,6 @@
 #include <algorithm>
 #include <vector>
 #include <functional>
-#include "esphome/components/api/homeassistant_service.h"
 #include "esphome/components/http_request/http_request.h"
 #include "esphome/components/artwork_image/artwork_image.h"
 #include "esphome/components/lvgl/lvgl_esphome.h"
@@ -36,7 +35,6 @@
 #include "button_grid_string.h"
 #include "display_text.h"
 
-#include "button_grid_ha.h"
 #include "button_grid_config.h"
 #include "button_grid_style.h"
 #include "button_grid_continuous_corners.h"
@@ -59,5 +57,3 @@
 #include "button_grid_navigation.h"
 #include "theme_runtime_ui.h"
 #include "button_grid_grid.h"
-
-#include "button_grid_remote_modal.h"

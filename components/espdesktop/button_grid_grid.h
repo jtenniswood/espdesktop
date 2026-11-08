@@ -686,7 +686,6 @@ inline void grid_phase1(
   palette.surface_sensor_val = surface_sensor_val;
   set_current_button_primary_color(palette.on_val);
 
-  bump_ha_subscription_generation();
   reset_calendar_cards();
   reset_timezone_cards();
   screen_lock_reset_registry();
@@ -1094,7 +1093,6 @@ inline void grid_release_runtime_allocations(
 
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;
-  ha_release_callbacks_for_owner(entry.screen);
   screen_lock_unregister_tree(entry.screen);
   grid_release_runtime_allocations(entry.back_button);
   for (const auto &card : entry.cards) {
@@ -1194,7 +1192,6 @@ inline void grid_phase2(
   memset(has_sensor, 0, sizeof(has_sensor));
   memset(sensor_text_mode, 0, sizeof(sensor_text_mode));
   memset(has_icon_on, 0, sizeof(has_icon_on));
-  bump_ha_subscription_generation();
   clear_internal_relay_watchers();
   local_sensor_registry().clear();
   grid_release_main_runtime_allocations(slots, NS);
@@ -1354,7 +1351,6 @@ inline void grid_phase2(
       espdesktop::cards::navigation_driver_own_subpage(
         slots[si], p, parent_context, navigation_slot, display_order, sub_scr);
     }
-    HaCallbackOwnerScope subpage_callback_owner(sub_scr);
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(sub_scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_layout(sub_scr, LV_LAYOUT_GRID);
@@ -1508,16 +1504,7 @@ inline void grid_phase2(
 
   }
   screen_lock_apply();
-  // Phase 2 can finish after the API connection callbacks have already run
-  // during boot. Refresh newly bound artwork contexts here so the current
-  // track image loads without waiting for the next media metadata change.
-  if (ha_api_state_connected()) {
-    // A runtime configuration save can add new entity subscriptions after
-    // Home Assistant completed its initial subscription handshake.
-    ha_reannounce_state_subscriptions();
-    refresh_image_cards();
-  }
-  ha_log_subscription_diagnostics("grid-complete");
+  refresh_image_cards();
     grid_phase2_complete_state() = true;
     refresh_theme_grid_after_rebuild();
   grid_log_memory("end");

@@ -167,12 +167,6 @@ esphome:
         - lambda: 'id(screen_rotation_ready) = true;'
         - script.execute: apply_screen_rotation
 
-# The P4 panel has enough memory for additional native API clients. Allow
-# Home Assistant, ESPHome logs, and browser/configuration sessions to overlap
-# without rejecting connections at ESPHome's default five-client limit.
-api:
-  max_connections: 8
-
 # ---------------------------------------------------------------------------
 # PSRAM (video frame buffer memory)
 # ---------------------------------------------------------------------------

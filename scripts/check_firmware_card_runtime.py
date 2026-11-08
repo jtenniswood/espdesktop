@@ -343,7 +343,7 @@ def check_root(root: Path) -> list[str]:
         send_action = setup_body.rfind("send_slider_action")
         if final_map < 0 or send_action < 0 or final_map > send_action:
             failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: map the final direct slider value before sending its Home Assistant action"
+                f"components/espdesktop/{SLIDERS_HEADER}: map the final direct slider value before sending its Mac volume command"
             )
 
         light_temp_body = function_body(text, "setup_light_temp_visual") or ""
@@ -374,14 +374,6 @@ def check_root(root: Path) -> list[str]:
         if reset_body is None or "for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++)" not in reset_body:
             failures.append(
                 f"components/espdesktop/{IMAGE_HEADER}: reset every image-card context, including disabled slots"
-            )
-        if reset_body is None or "image_card_release_modal_cache" not in reset_body:
-            failures.append(
-                f"components/espdesktop/{IMAGE_HEADER}: release the constrained modal cache when resetting the image-card pool"
-            )
-        if reset_body is None or "image_card_schedule_modal_cache_expiry" not in reset_body:
-            failures.append(
-                f"components/espdesktop/{IMAGE_HEADER}: reschedule constrained modal cache expiry when retaining it during pool resets"
             )
         callback_body = function_body(text, "image_card_bind_callbacks")
         callback_guards = (
@@ -849,25 +841,6 @@ inline void setup_light_temp_visual() {
                 )
             },
             ("rebind image completion callbacks after image-card lifecycle changes",),
-        ),
-        (
-            {
-                "button_grid_image.h": (
-                    "inline void image_card_bind_callbacks(ImageCardCtx *ctx) {\n"
-                    "  auto *bound_image = ctx->image;\n"
-                    "  bool changed = ctx->callbacks_bound_image != bound_image;\n"
-                    "  if (changed || !bound_image->has_on_finished_callbacks()) {\n"
-                    "    if (ctx->image == bound_image) {}\n"
-                    "  }\n"
-                    "  if (changed || !bound_image->has_on_error_callbacks()) {}\n"
-                    "}\n"
-                    "inline void reset_image_card_pool(const GridConfig &cfg) {\n"
-                    "  image_card_release_modal_cache(cfg.image_card_modal_image);\n"
-                    "  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++) {}\n"
-                    "}\n"
-                )
-            },
-            ("reschedule constrained modal cache expiry when retaining it during pool resets",),
         ),
         (
             {

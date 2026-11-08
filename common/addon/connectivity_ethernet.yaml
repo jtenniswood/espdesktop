@@ -33,15 +33,6 @@ ethernet:
           - script.execute: setup_screen_dim
 
 script:
-  - id: ha_restore_after_api
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'
-          then:
-            - script.execute: navigate_after_api
-
   - id: navigate_after_api
     mode: restart
     then:

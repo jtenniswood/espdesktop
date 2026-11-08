@@ -50,15 +50,6 @@ wifi:
           - script.execute: wifi_reconnect_flow
 
 script:
-  - id: ha_restore_after_api
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'
-          then:
-            - script.execute: navigate_after_api
-
   - id: wifi_show_reconnecting
     mode: restart
     then:

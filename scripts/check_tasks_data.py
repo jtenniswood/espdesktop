@@ -151,7 +151,6 @@ TASKS = (
              "components/espdesktop/button_grid_subpages.h",
              "components/espdesktop/climate_subscription_policy.h",
              "components/espdesktop/climate_target_logic.h",
-             "components/espdesktop/ha_read_coordinator.h",
              "components/artwork_image/image_pipeline_policy.h",
              "components/artwork_image/artwork_image.cpp",
              "components/mipi_dsi/**",

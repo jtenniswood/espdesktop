@@ -54,19 +54,11 @@ wifi:
   password: !secret wifi_password
 
 packages:
-  api_encryption:
-    url: https://github.com/jtenniswood/espdesktop/
-    file: common/addon/api_encryption_dynamic.yaml
-    refresh: 1sec
   setup:
     url: https://github.com/jtenniswood/espdesktop/
     file: devices/guition-esp32-p4-jc1060p470/packages.yaml
     refresh: 1sec
 ```
-
-The `api_encryption` package lets Home Assistant create a unique encryption key for the display the first time it connects. Home Assistant stores that key and, with Home Assistant and ESPHome Device Builder 2026.8 or newer, passes the same key to Device Builder when you adopt or rebuild the display. You do not need to create or share a key yourself.
-
-Wireless OTA updates preserve the key stored on the display. A full USB erase can remove it, so Home Assistant may ask you to pair the display again afterward. For the underlying behavior, see the [ESPHome native API documentation](https://esphome.io/components/api/), the [Home Assistant key-handoff fix](https://github.com/home-assistant/core/pull/178039), and the [Device Builder adoption fix](https://github.com/esphome/device-builder/pull/2496).
 
 If you do not use ESPHome secrets, replace the two `!secret` lines with your WiFi details:
 
@@ -95,10 +87,6 @@ substitutions:
   espdesktop_web_password: !secret espdesktop_web_password
 
 packages:
-  api_encryption:
-    url: https://github.com/jtenniswood/espdesktop/
-    file: common/addon/api_encryption_dynamic.yaml
-    refresh: 1sec
   setup:
     url: https://github.com/jtenniswood/espdesktop/
     file: devices/guition-esp32-p4-jc1060p470/packages.yaml
@@ -145,10 +133,6 @@ substitutions:
   disable_updates: "true"
 
 packages:
-  api_encryption:
-    url: https://github.com/jtenniswood/espdesktop/
-    file: common/addon/api_encryption_dynamic.yaml
-    refresh: 1sec
   setup:
     url: https://github.com/jtenniswood/espdesktop/
     file: devices/guition-esp32-p4-jc1060p470/packages.yaml
@@ -191,13 +175,12 @@ If ESPHome cannot access the USB port directly, choose **Manual download** inste
 ## After the Display Boots
 
 1. Wait for the display to join WiFi.
-2. Add it to Home Assistant when the ESPHome integration discovers it.
-3. Open the display address in a browser, for example `http://espdesktop.local`.
-4. Configure cards, active colour, brightness, and other settings from the built-in web page.
-5. Follow [Enable Actions](/getting-started/home-assistant-actions) so the display is allowed to control your Home Assistant devices.
+2. Open the display address in a browser, for example `http://espdesktop.local`.
+3. Configure cards, active colour, brightness, and other settings from the built-in web page.
+4. Pair the EspDesktop Mac app if you want Mac controls, app icons, volume, or artwork. Local cards work without a Mac connection.
 
 ## Updating Later
 
 Because the package uses `refresh: 1sec`, ESPHome checks GitHub for EspDesktop updates each time it compiles. To update manually, open ESPHome Device Builder and run **Install** again. If the display is online, use OTA so you do not need to reconnect USB.
 
-Next: [Enable Actions](/getting-started/home-assistant-actions)
+The firmware has no native Home Assistant API. ESPHome remains the build and OTA tool; the display is configured through its own web page.

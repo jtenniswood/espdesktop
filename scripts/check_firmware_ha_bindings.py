@@ -3024,19 +3024,12 @@ def run_scan() -> int:
     errors.extend(firmware_local_sensor_binding_order_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_time_reconnect_errors(TIME_ADDON_PATH, ROOT))
     errors.extend(firmware_ntp_startup_errors(TIME_ADDON_PATH, SUN_CALC_PATH, CONNECTIVITY_PATHS, ROOT))
-    errors.extend(firmware_weather_request_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_weather_disconnect_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_weather_reconnect_errors(CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_unavailable_retry_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_cover_request_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     from check_companion_artwork import errors as companion_artwork_errors
     errors.extend(companion_artwork_errors(ROOT))
     errors.extend(firmware_cover_art_disable_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_cover_art_lifecycle_controller_errors(BACKLIGHT_PATH, COVER_ART_PATH, ROOT))
     errors.extend(firmware_media_sleep_prevention_errors(BACKLIGHT_PATH, DISPLAY_CONFIG_PATH, COVER_ART_PATH, ROOT))
     errors.extend(firmware_touch_cover_art_delay_errors(DEVICE_TOUCH_PATHS, ROOT))
-    errors.extend(firmware_image_card_base_url_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_camera_refresh_action_errors(ROOT))
     errors.extend(firmware_artwork_image_auth_errors(ARTWORK_IMAGE_PATH, ROOT))
     errors.extend(
         firmware_screensaver_wake_guard_errors(
@@ -3074,19 +3067,6 @@ def run_scan() -> int:
             ROOT,
         )
     )
-    errors.extend(
-        firmware_s3_api_errors(
-            S3_DEVICE_PATH,
-            S3_PACKAGES_PATH,
-            CORE_INFRA_PATH,
-            API_NAVIGATE_PATH,
-            DEVICE_PACKAGE_PATHS,
-            ROOT,
-        )
-    )
-    errors.extend(firmware_open_modal_api_errors(ROOT, DEVICE_PACKAGE_PATHS))
-    errors.extend(firmware_navigation_target_errors(FIRMWARE_DIR, API_NAVIGATE_PATH, DEVICE_PACKAGE_PATHS, ROOT))
-    errors.extend(firmware_connectivity_api_errors(CONNECTIVITY_PATHS, ROOT))
     errors.extend(firmware_connector_endpoint_auth_errors(CONNECTOR_STATE_PATH, ROOT))
     errors.extend(
         firmware_wifi_setup_display_text_errors(
@@ -3096,7 +3076,6 @@ def run_scan() -> int:
             ROOT,
         )
     )
-    errors.extend(firmware_ha_connection_screen_errors(CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_c6_update_status_errors(C6_FIRMWARE_UPDATE_PATH, ROOT))
     if errors:
         print("Firmware Home Assistant binding check failed:")
@@ -6336,71 +6315,6 @@ def run_self_test() -> int:
         "      - lvgl.page.show: ha_setup_page\n",
         ("keep the current display visible",),
     )
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        api = root / "common/device/api_open_modal.yaml"
-        api.parent.mkdir(parents=True)
-        original = (ROOT / "common/device/api_open_modal.yaml").read_text()
-        scripts = root / "common/device/api_remote_actions.yaml"
-        scripts.write_text((ROOT / "common/device/api_remote_actions.yaml").read_text())
-        package = root / "packages.yaml"
-        package.write_text(
-            "packages:\n"
-            "  api_remote_actions: !include common/device/api_remote_actions.yaml\n"
-            "  api_open_modal: !include common/device/api_open_modal.yaml\n"
-        )
-        api.write_text(original)
-        assert not firmware_open_modal_api_errors(root, (package,))
-        for token in ("mode: restart", "espdesktop_can_prepare_modal", "script.wait: screensaver_wake",
-                      "espdesktop_open_modal", "script.execute: home_screen_idle_check"):
-            source_path = api if token in original else scripts
-            source_text = original if source_path == api else scripts.read_text(encoding="utf-8")
-            source_path.write_text(source_text.replace(token, "removed"))
-            assert firmware_open_modal_api_errors(root, (package,)), token
-            source_path.write_text(source_text)
-        manifest = root / "devices/manifest.json"
-        manifest.parent.mkdir(parents=True)
-        manifest.write_text(
-            json.dumps({"devices": {"constrained": {"firmware": {"package": {"apiOpenModalAction": False}}}}}),
-            encoding="utf-8",
-        )
-        disabled_package = root / "devices/constrained/packages.yaml"
-        disabled_package.parent.mkdir(parents=True)
-        disabled_package.write_text("packages: {}\n", encoding="utf-8")
-        # Navigation remains independently enabled, so its package includes the
-        # shared scripts while omitting the modal API package.
-        manifest.write_text(
-            json.dumps({"devices": {"constrained": {"firmware": {"package": {
-                "apiOpenModalAction": False, "apiNavigateAction": True
-            }}}}}),
-            encoding="utf-8",
-        )
-        disabled_package.write_text(
-            "packages:\n"
-            "  api_remote_actions: !include common/device/api_remote_actions.yaml\n"
-            "  api_navigate: !include common/device/api_navigate.yaml\n",
-            encoding="utf-8",
-        )
-        assert not firmware_open_modal_api_errors(root, (disabled_package,))
-        # The inverse selection keeps the modal actions and shared scripts but
-        # omits navigation.
-        manifest.write_text(
-            json.dumps({"devices": {"constrained": {"firmware": {"package": {
-                "apiOpenModalAction": True, "apiNavigateAction": False
-            }}}}}),
-            encoding="utf-8",
-        )
-        disabled_package.write_text(
-            "packages:\n"
-            "  api_remote_actions: !include common/device/api_remote_actions.yaml\n"
-            "  api_open_modal: !include common/device/api_open_modal.yaml\n",
-            encoding="utf-8",
-        )
-        assert not firmware_open_modal_api_errors(root, (disabled_package,))
-        package.write_text("packages: {}\n")
-        assert firmware_open_modal_api_errors(root, (package,))
-        api.unlink()
-        assert firmware_open_modal_api_errors(root, (package,))
     print("Firmware Home Assistant binding self-tests passed.")
     return 0
 

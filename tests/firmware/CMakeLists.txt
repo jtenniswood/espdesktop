@@ -421,16 +421,7 @@ target_compile_options(espdesktop_app_core_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(espdesktop_app_core_test PRIVATE ../../components/espdesktop)
 add_test(NAME espdesktop_app_core_test COMMAND espdesktop_app_core_test)
 
-add_executable(ha_read_coordinator_test
-  ha_read_coordinator_test.cpp
-  ../../components/espdesktop/espdesktop_app_core.cpp
-  ../../components/espdesktop/configuration_service.cpp
-  ../../components/espdesktop/configuration_store.cpp
-)
-target_compile_features(ha_read_coordinator_test PRIVATE cxx_std_17)
-target_compile_options(ha_read_coordinator_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(ha_read_coordinator_test PRIVATE ../../components/espdesktop)
-add_test(NAME ha_read_coordinator_test COMMAND ha_read_coordinator_test)
+
 
 add_executable(artwork_controller_test artwork_controller_test.cpp)
 target_compile_features(artwork_controller_test PRIVATE cxx_std_17)
@@ -488,8 +479,6 @@ add_test(NAME display_schedule_test COMMAND
 add_test(NAME cover_art_activation_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_activation_test.py
   --compiler ${CMAKE_CXX_COMPILER})
-add_test(NAME ha_reconnect_recovery_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ha_reconnect_recovery_test.py)
 add_executable(rgb565_scaler_test rgb565_scaler_test.cpp)
 target_compile_features(rgb565_scaler_test PRIVATE cxx_std_17)
 target_compile_options(rgb565_scaler_test PRIVATE -Wall -Wextra -Werror)
@@ -507,8 +496,6 @@ add_test(NAME p4_jpeg_memory_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/p4_jpeg_memory_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME artwork_release_memory_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/artwork_release_memory_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME camera_expanded_image_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_expanded_image_test.py ${CMAKE_CXX_COMPILER})
 
 file(GLOB SAVED_CONFIG_FIXTURES
   CONFIGURE_DEPENDS
@@ -624,9 +611,6 @@ add_test(NAME wifi_setup_package_test COMMAND
 
 
 
-add_test(NAME remote_modal_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/remote_modal_test.py)
 
 
 add_test(NAME portrait_subpage_order_test COMMAND
@@ -755,3 +739,7 @@ add_test(NAME panel_diagnostics_endpoint_test COMMAND
 
 add_test(NAME local_mixed_drivers_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/local_mixed_drivers_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME mac_network_icon_runtime_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/mac_network_icon_runtime_test.py)

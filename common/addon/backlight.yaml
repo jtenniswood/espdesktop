@@ -429,8 +429,6 @@ script:
                       }
             - script.execute: clock_bar_apply
             - script.execute: backlight_apply_brightness
-      - lambda: |-
-          image_card_resume_pipeline();
       # Re-arm the cover art delay whenever the display settles back on the plain
       # active screen while media is playing. The delay timer is armed on wake and
       # playback edges, but any active transition first runs hide_cover_art_view,

@@ -16,7 +16,6 @@ import os
 CODEOWNERS = ["@jtenniswood"]
 AUTO_LOAD = ["mdns", "json", "socket"]
 
-CONF_ACTION_RESPONSES = "action_responses"
 CONF_PANEL_CONFIG = "panel_config"
 CONF_DEVICE_PROFILE = "device_profile"
 CONF_BUTTON_ORDER = "button_order"
@@ -65,7 +64,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_ID): cv.declare_id(EspDesktopApp),
         cv.GenerateID("identity_id"): cv.declare_id(PanelIdentity),
         cv.GenerateID("reset_boot_id"): cv.declare_id(ResetBoot),
-        cv.Optional(CONF_ACTION_RESPONSES, default=True): cv.boolean,
         cv.Optional(CONF_PANEL_CONFIG): PANEL_CONFIG_SCHEMA,
         cv.Optional(CONF_WEB_AUTH_USERNAME, default=""): cv.string_strict,
         cv.Optional(CONF_WEB_AUTH_PASSWORD, default=""): cv.sensitive(cv.string_strict),
@@ -150,6 +148,3 @@ async def to_code(config):
         prepend=True,
     )
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/cover_art.h"'), prepend=True)
-    if config[CONF_ACTION_RESPONSES]:
-        cg.add_define("USE_API_HOMEASSISTANT_ACTION_RESPONSES")
-        cg.add_define("USE_API_HOMEASSISTANT_ACTION_RESPONSES_JSON")

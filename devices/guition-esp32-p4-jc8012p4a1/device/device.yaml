@@ -254,10 +254,6 @@ safe_mode:
 packages:
   core_infra: !include ../../../common/device/core_infra.yaml
 
-# Keep additional native-API capacity local to this large panel.
-api:
-  max_connections: 5
-
 # The 10.1" panel's USB-C serial output is exposed through a UART0 bridge.
 # ESPHome defaults ESP32-P4 logging to USB_SERIAL_JTAG, which leaves this port
 # showing only early ROM boot text and no application logs.
