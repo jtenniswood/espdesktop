@@ -1,30 +1,27 @@
 ---
-title: "Show the Date and Time on Your Touchscreen"
+title: "Show the Time on Your Touchscreen"
 description:
-  How to show the local clock, date, or date and time on your EspDesktop panel.
+  How to show the local clock on your EspDesktop panel.
 ---
 
 # Date & Time
 
-A date and time card can show the local clock, just the date, or the local date and time. In clock mode, only the time is shown. In date-only mode, the large number shows the day and the label underneath shows the month. In date-and-time mode, the large number shows the local time and the label underneath shows the day and month.
+Use a Clock card to show the local time, or a [World Clock](/card-types/timezones) card to show the time in another city or timezone. Clock cards are read-only: tapping them does nothing.
 
-Date and clock cards are read-only — tapping them does nothing.
+## Setting Up a Clock Card
 
-## Setting Up a Date or Clock Card
-
-1. Select a card and change its type to **Date & Time**.
-2. Choose **Clock**, **Date**, or **Time & Date** from the **Type** dropdown.
-3. In **Clock** mode, **Large Clock** is available at every card size. Wide and Large cards use it by default, as do cards wider than two columns; you can turn it off. On wider clocks, **Center Clock** centers the large display. For Date and Time & Date modes, the existing Large-card option remains available.
+1. Select a card and change its type to **Date & Time**. New cards start in **Clock** mode.
+2. Choose **Clock** or **World Clock** from the **Type** dropdown.
+3. **Large Clock** is available at every card size. Wide and Large cards use it by default, as do cards wider than two columns; you can turn it off. On wider clocks, **Center Clock** centers the large display.
 4. Apply the configuration so the panel restarts with the new card.
 
 ## How It Works on the Panel
 
-- In **Clock** mode, the card uses the panel's own synced time source and shows no date label.
-- In **Date only** mode, the card reads `sensor.date`, and it also falls back to the panel's own time source.
-- In **Date & time** mode, the large time display follows the timezone and 12/24-hour setting selected in [Time Settings](/features/clock).
-- The label underneath follows the same local timezone, so it stays matched to the time shown above.
-- The panel publishes a **Screen: Date** diagnostic value, so you can check whether the device currently knows the date.
+- The card uses the panel's own synced time source and shows no date label.
+- The time follows the timezone and 12/24-hour setting selected in [Time Settings](/features/clock).
 - The card uses the fixed **tertiary** background colour, like Sensor, World Clock, and Weather cards.
 - If the panel has not synced time yet, the card shows `--` until time becomes available.
 
-The same **Date & Time** card settings also include **World Clock**. Choosing that changes the card into a [World Clock](/card-types/timezones) card for another city or timezone.
+## Existing Date Cards
+
+**Date** and **Time & Date** are no longer offered when choosing a card type. Existing cards and backups still load and display as before. To replace one with a clock, open its settings and choose **Clock** or **World Clock**.
