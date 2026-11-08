@@ -13,6 +13,6 @@
     }
   ],
   "releasePolicy": "coordinated",
-  "savedPanelConfigVersion": 1,
+  "savedPanelConfigVersion": 2,
   "wireFixturesSha256": "3e0928bc67fb060f472346d1e7976cb41b9f8cdd3d43ae87d4aaac96306641b8"
 }

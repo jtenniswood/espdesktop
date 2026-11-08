@@ -18,6 +18,7 @@ const {
   decodeConfigField,
   splitSubpageConfigChunks,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
+const { encodePanelPageDocument, decodePanelPageDocument } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = freshWebOutputDir();
 const FAILURE_DIR = path.join(ROOT, ".cache", "web-browser-smoke");
@@ -364,7 +365,10 @@ async function installRoutes(context, slug, options = {}) {
           reset: options.resetState ? { modes: ["customization", "factory"], status: "/api/v1/reset" } : undefined,
           identity: options.identityState ? { version: 1 } : undefined,
           screensaver_pin: options.screensaverPinState ? { version: 1 } : undefined,
-          configuration: { read: true, write: true, document_versions: [1],
+          configuration: { read: true, write: true, document_versions: options.nativeV2 ? [1, 2] : [1],
+            durable_document_version: options.nativeV2 ? 2 : 1,
+            max_navigation_depth: options.nativeV2 ? 2 : 1, writable_navigation_depth: options.nativeV2 ? 2 : 1,
+            max_v2_document_bytes: 524288, preserves_inactive_records: true,
             max_record_body_bytes: nativeState.maxRecordBodyBytes },
           web_assets: { versions: [1] },
         }),
@@ -406,7 +410,7 @@ async function installRoutes(context, slug, options = {}) {
         }
         const body = route.request().postDataBuffer();
         assert(body, `${slug}: native configuration PUT has a binary body`);
-        nativeState.document = decodePanelConfig(new Uint8Array(body));
+        nativeState.document = (options.nativeV2 ? decodePanelPageDocument : decodePanelConfig)(new Uint8Array(body));
         nativeState.generation += 1;
         nativeState.puts.push({
           generation: nativeState.generation,
@@ -414,15 +418,15 @@ async function installRoutes(context, slug, options = {}) {
         });
         await route.fulfill({
           status: 204,
-          headers: { ETag: `"${nativeState.generation}"` },
+          headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
         });
         return;
       }
       await route.fulfill({
         status: 200,
         contentType: "application/vnd.espdesktop.panel-config",
-        headers: { ETag: `"${nativeState.generation}"` },
-        body: Buffer.from(encodePanelConfig(nativeState.document)),
+        headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
+        body: Buffer.from((options.nativeV2 ? encodePanelPageDocument : encodePanelConfig)(nativeState.document)),
       });
       return;
     }
@@ -483,6 +487,15 @@ async function installRoutes(context, slug, options = {}) {
         contentType: "application/javascript",
         body: fs.readFileSync(immutableBundlePath, "utf8"),
       });
+      return;
+    }
+    if (requestUrl.hostname === "espdesktop.test" && route.request().method() === "GET" && /^\/(text|text_sensor|select|number|switch|sensor|binary_sensor|button|update|light)\//.test(requestUrl.pathname)) {
+      const parts = requestUrl.pathname.split("/").filter(Boolean);
+      const domain = parts[0], name = decodeURIComponent(parts[1] || "");
+      const normalized = value => String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+      const events = nativeState ? nativeDocumentEvents(nativeState.document) : seededEvents();
+      const event = events.find(event => normalized(event.id) === normalized(domain + "-" + name));
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(event || { id: domain + "-" + name, state: "" }) });
       return;
     }
     if (requestUrl.hostname === "espdesktop.test") {
@@ -8989,10 +9002,48 @@ async function assertSpecialPageRename(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertNestedCompanionPages(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040"), fixture = nativeConfigState(testCase.slug);
+  fixture.document = JSON.parse(fs.readFileSync(path.join(ROOT, "compatibility/fixtures/companion_nested_pages.json"))).document;
+  fixture.document.deviceProfile = testCase.slug;
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  const page = await context.newPage(), errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    const open = async () => {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+      await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+      await page.getByText("Address", { exact: true }).first().waitFor();
+    };
+    await open();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.getByText("Safari", { exact: true }).first().waitFor();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+    if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await app.locator(".sp-disclosure-button").click();
+    await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length === 1, "one atomic nested app save");
+    assert(fixture.document.subpages[33].includes("Address"), "existing shortcut survives app preset change");
+    assert(fixture.document.subpages[33].includes("shortcut."), "app shortcuts persist under nested key");
+    await open();
+    assert.deepStrictEqual(errors, []);
+    console.log("Nested Companion shortcut edit, atomic save, reload and parent Back passed.");
+  } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") { await assertNestedCompanionPages(browser); return; }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;
@@ -9150,6 +9201,7 @@ async function assertSpecialPageRename(browser, testCase) {
       console.log("Home Assistant visibility browser checks passed.");
       return;
     }
+    await assertNestedCompanionPages(browser);
     await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }

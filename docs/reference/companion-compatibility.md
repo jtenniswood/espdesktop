@@ -10,6 +10,6 @@ Companion and firmware currently use protocol 4 and capability version 6.
 
 Supported display: guition-esp32-s3-4848s040.
 
-Install firmware and Companion from the same release. Saved panel configuration remains version 1. Protocol compatibility is separate from saved configuration.
+Install firmware and Companion from the same release. Saved panel configuration remains version 2. Protocol compatibility is separate from saved configuration.
 
 Each release includes companion-compatibility.json with the source revision, contract digest, and SHA-256 checksums of the matching firmware and Mac artifacts. Automated tests do not assert physical device validation. Independent Mac/firmware release delivery is not yet enabled.

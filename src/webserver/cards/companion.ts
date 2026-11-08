@@ -1,3 +1,4 @@
+import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
@@ -480,7 +481,7 @@ export function registerCompanionCardTypes(
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
     modalTabs: Pick<ConfigModalTabOptionsFeature, "renderModalTabSettings">,
-    codec: Pick<ConfigCodecFeature, "buildSubpageGrid" | "enterSubpage" | "saveSubpageConfig">,
+    codec: Pick<ConfigCodecFeature, "buildSubpageGrid" | "enterSubpage" | "enterChildSubpage" | "canCreateSubpage" | "getSubpage" | "saveSubpageConfig">,
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
@@ -570,7 +571,10 @@ export function registerCompanionCardTypes(
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
-            const savedParent = !helpers.isSub && slot ? state.buttons[slot - 1] : null;
+            const parentPage = helpers.isSub ? state.editingSubpage : null;
+            const canAddSubpage = codec.canCreateSubpage(parentPage);
+            const subpageKey = canAddSubpage && slot ? childPageKey(parentPage ?? 0, Number(slot)) : null;
+            const savedParent = slot ? (helpers.isSub ? codec.getSubpage(parentPage).buttons[slot - 1] : state.buttons[slot - 1]) : null;
             let companionActions: readonly CompanionAction[] = [];
             void catalogue.loadDefinitions(true).then((definitions) => {
                 if (replaceCompanionDefinitions(definitions.applications, definitions.webApplications)) renderButtonSettings();
@@ -1047,7 +1051,7 @@ export function registerCompanionCardTypes(
                 card._modalSettingsOpen = appSubpageDisclosure.panel.classList.contains("sp-open");
             });
             panel?.appendChild(appSubpageDisclosure.panel);
-            const savedShortcutSubpage = !helpers.isSub && slot ? state.subpages[slot] : null;
+            const savedShortcutSubpage = subpageKey ? state.subpages[subpageKey] : null;
             if (savedShortcutSubpage &&
                 companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
                 card._appShortcutSelectionChanged !== true) {
@@ -1061,7 +1065,7 @@ export function registerCompanionCardTypes(
             const folderToggle = helpers.toggleRow(
                 "Add app subpage",
                 helpers.idPrefix + "companion-app-shortcuts",
-                !helpers.isSub && companionAppShortcutFolderEnabled(card),
+                canAddSubpage && companionAppShortcutFolderEnabled(card),
             );
             shortcutFolderField.appendChild(folderToggle.row);
             const shortcutFolderNote = document.createElement("div");
@@ -1213,9 +1217,9 @@ export function registerCompanionCardTypes(
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
-                appSubpageDisclosure.panel.style.display = !helpers.isSub && (mode === "app" || mode === "webapp") &&
+                appSubpageDisclosure.panel.style.display = canAddSubpage && (mode === "app" || mode === "webapp") &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
-                finderOpenBehaviorField.style.display = !helpers.isSub && mode === "app" &&
+                finderOpenBehaviorField.style.display = canAddSubpage && mode === "app" &&
                     card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
             }
@@ -1442,13 +1446,13 @@ export function registerCompanionCardTypes(
             } else {
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
             }
-            if (companionShortcutFolderEditorAvailable(card, savedParent)) {
+            if (canAddSubpage && companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";
                 editButton.textContent = "Edit Subpage";
                 editButton.addEventListener("click", function () {
                     selection.closeSettings();
-                    codec.enterSubpage(slot);
+                    codec.enterChildSubpage(parentPage, Number(slot));
                 });
                 panel?.appendChild(editButton);
             }
@@ -1512,13 +1516,16 @@ export function registerCompanionCardTypes(
             return preview;
         },
         contextMenuItems: function (slot?: any, card?: any, helpers?: any) {
-            if (helpers?.isSub || !companionAppShortcutFolderEnabled(card)) return;
+            const parent = helpers?.isSub ? state.editingSubpage : null;
+            if (!codec.canCreateSubpage(parent) || !companionAppShortcutFolderEnabled(card)) return;
             helpers.addCtxItem("cog", "Edit Subpage", function () {
-                codec.enterSubpage(slot);
+                codec.enterChildSubpage(parent, Number(slot));
             });
         },
         afterSave: async function (card?: any, slot?: any, context?: any) {
-            if (context?.isSub) return "saved";
+            const parent = context?.isSub ? context.page ?? state.editingSubpage : null;
+            if (!codec.canCreateSubpage(parent)) return "saved";
+            slot = childPageKey(parent ?? 0, Number(slot));
             const folderSelection = card._finderFolderTabs;
             delete card._finderFolderTabs;
             const selectionChanged = card._appShortcutSelectionChanged === true;

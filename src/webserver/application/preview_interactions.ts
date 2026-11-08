@@ -1,5 +1,7 @@
+import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { showSpecialPageTitleDialog } from "./special_page_title";
 import { state } from "../state/app_instance";
+import type { NativePageTransfersFeature } from "./native_page_transfers";
 import * as EspDesktopModel from "../model";
 import { coveredCells } from "../model/grid";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
@@ -18,6 +20,7 @@ import type { PreviewContextMenuFeature } from "./preview_context_menu";
 import { cardRequiresHomeAssistant } from "../features/preview";
 export interface PreviewInteractionsDependencies {
     readonly homeAssistantSupported: () => boolean;
+    readonly nativeTransfers?: NativePageTransfersFeature;
     readonly cardEditorDraft: CardEditorDraftController;
     readonly configPersistence: ConfigPersistenceFeature;
     readonly layout: ApplicationLayoutState;
@@ -86,7 +89,7 @@ export function createPreviewInteractionsFeature(
         getSubpage,
         buildSubpageGrid,
         serializeSubpageGrid,
-        enterSubpage,
+        enterChildSubpage,
         exitSubpage,
         saveSubpageConfig,
         subpageFirstFreeSlot,
@@ -212,7 +215,7 @@ export function createPreviewInteractionsFeature(
                     e.preventDefault();
                     return;
                 }
-                enterSubpage(-1);
+                dependencies.codec.enterSubpage(-1);
             });
         }
         els.specialPageRename?.addEventListener("click", () => {
@@ -287,6 +290,13 @@ export function createPreviewInteractionsFeature(
             if (isConfigLocked()) {
                 e.preventDefault();
                 e.stopPropagation();
+                if (state.nativeConfigReadOnly && state.nativePanelDocument && !state.configLocked && !state.nativeConfigLoading && !state.nativeTransferActive) {
+                    const target = e.target.closest("[data-slot]");
+                    const slot = Number(target?.getAttribute("data-slot"));
+                    if (slot === -2) exitSubpage();
+                    else if (slot > 0 && cardTransferOwnsSubpage(ctx().buttons[slot - 1]))
+                        enterChildSubpage(state.editingSubpage, slot);
+                }
                 return;
             }
             if (e.target.closest(".sp-card-name-input")) return;
@@ -301,7 +311,7 @@ export function createPreviewInteractionsFeature(
                 var btnEl: any = e.target.closest("[data-slot]");
                 if (btnEl) {
                     var badgeSlot: any = parseInt(btnEl.getAttribute("data-slot"), 10);
-                    enterSubpage(badgeSlot);
+                    enterChildSubpage(state.editingSubpage, badgeSlot);
                     return;
                 }
             }
@@ -642,6 +652,7 @@ export function createPreviewInteractionsFeature(
         renderButtonSettings(true);
     }
     function duplicateButton(this: any, srcSlot?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.duplicate(Number(srcSlot)); return; }
         if (isConfigLocked())
             return;
         var src: any = state.buttons[srcSlot - 1];
@@ -692,6 +703,7 @@ export function createPreviewInteractionsFeature(
         renderPreview();
     }
     function duplicateSubpageButton(this: any, srcSlot?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.duplicate(Number(srcSlot)); return; }
         if (isConfigLocked())
             return;
         var homeSlot: any = state.editingSubpage;
@@ -734,6 +746,7 @@ export function createPreviewInteractionsFeature(
         renderPreview();
     }
     function deleteSlot(this: any, slot?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.delete([Number(slot)]); return; }
         if (isConfigLocked())
             return;
         var c: any = ctx();
@@ -772,6 +785,7 @@ export function createPreviewInteractionsFeature(
         renderButtonSettings();
     }
     function deleteButtons(this: any, slots?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.delete(slots.filter((slot: number) => slot > 0).map(Number)); return; }
         if (isConfigLocked())
             return;
         var c: any = ctx();

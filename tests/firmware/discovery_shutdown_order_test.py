@@ -39,6 +39,12 @@ struct Component {
   virtual void on_shutdown() {}
 };
 struct EspDesktopApp : Component {
+  bool shutting_down_{false};
+  struct Transactions { void stop() {} };
+  struct Runtime { Transactions transactions; };
+  struct Scene { void stop() {} };
+  Runtime *native_configuration_runtime_{nullptr};
+  Scene *application_scene_{nullptr};
   Resolver home_assistant_endpoint_;
   Core core_;
 '''

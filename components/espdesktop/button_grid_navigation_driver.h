@@ -199,7 +199,7 @@ inline bool navigation_driver_bind_main(
 
 struct NavigationDriverChildIndicators {
   bool child_was_on[MAX_SUBPAGE_ITEMS] = {};
-  int parent_on_count[MAX_GRID_SLOTS] = {};
+  int parent_on_count[MAX_SUBPAGE_ITEMS] = {};
   int next_child = 0;
 };
 

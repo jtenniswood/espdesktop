@@ -47,7 +47,7 @@ It records the pre-migration baseline; it does not move executable behaviour int
 | sensor | canonical | sensor | informationOnly, subscriptions, runtimeAllocation, subpage | sensor | sensor | SENSOR | 5 |
 | local_sensor | accepted_legacy_input | sensor | informationOnly, subscriptions, subpage | sensor | sensor | LOCAL_SENSOR | 1 |
 | slider | canonical | numeric | subscriptions, actions, numericControl, runtimeAllocation, subpage | slider | slider | SLIDER | 1 |
-| subpage | canonical | subpage | actions, runtimeAllocation | subpage | subpage | SUBPAGE | 1 |
+| subpage | canonical | subpage | actions, runtimeAllocation, subpage | subpage | subpage | SUBPAGE | 1 |
 | timezone | canonical | date_time | informationOnly, subscriptions, subpage | timezone | timezone | DATE_TIME | 1 |
 | weather | canonical | weather | informationOnly, subscriptions, actions, modal, runtimeAllocation, subpage | weather | weather | WEATHER | 4 |
 | image | canonical | image | informationOnly, subscriptions, actions, modal, runtimeAllocation, subpage | image | image | IMAGE | 1 |
