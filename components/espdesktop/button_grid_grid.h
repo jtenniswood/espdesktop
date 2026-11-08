@@ -1609,7 +1609,9 @@ inline void companion_refresh_app_icon_visibility() {
 }
 
 inline void companion_app_icon_screen_changed(lv_event_t *) {
+  ESP_LOGD("ui_latency", "Home icons start at=%u", unsigned(esphome::millis()));
   companion_refresh_app_icon_visibility();
+  ESP_LOGD("ui_latency", "Home icons done at=%u", unsigned(esphome::millis()));
 }
 
 inline bool &companion_app_icon_work_pending() {
@@ -2462,6 +2464,7 @@ inline void grid_phase2(
     }
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
+      ESP_LOGD("ui_latency", "Back press start at=%u", unsigned(esphome::millis()));
       navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)));
       if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
         navigation_return_from_special_page();

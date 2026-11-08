@@ -16,6 +16,7 @@ code = r'''
 #include <algorithm>
 #include <array>
 #include <cassert>
+#define ESP_LOGD(...) ((void)0)
 #include <cstddef>
 #include <cstdint>
 #include <functional>

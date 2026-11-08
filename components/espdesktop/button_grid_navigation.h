@@ -166,8 +166,11 @@ inline void navigation_consume_touch_press(lv_obj_t *button) {
 inline void navigation_present_page_before_image_refresh() {
   lv_obj_t *screen = lv_scr_act();
   if (screen == nullptr) return;
+  ESP_LOGD("ui_latency", "Navigation draw start at=%u", unsigned(esphome::millis()));
   lv_refr_now(lv_obj_get_display(screen));
+  ESP_LOGD("ui_latency", "Navigation draw done at=%u", unsigned(esphome::millis()));
   refresh_visible_image_cards();
+  ESP_LOGD("ui_latency", "Navigation images done at=%u", unsigned(esphome::millis()));
 }
 
 inline bool navigation_return_from_special_page() {
@@ -239,7 +242,9 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
       // Use the page's Back/Close action so special pages return to their
       // previous screen and ordinary/app subpages keep their existing behavior.
       lv_indev_wait_release(indev);
+      ESP_LOGD("ui_latency", "Swipe back recognized at=%u", unsigned(esphome::millis()));
       lv_obj_send_event(entry.back_button, LV_EVENT_PRESSED, nullptr);
+      ESP_LOGD("ui_latency", "Swipe back finished at=%u", unsigned(esphome::millis()));
       return;
     }
   } else if (direction == LV_DIR_TOP) {
@@ -324,9 +329,11 @@ inline std::function<void()> &navigation_subpage_clock_bar_refresh() {
 inline void navigation_subpage_screen_changed(lv_event_t *) {
   // The device refresh includes the title and icon visibility pass. Do not
   // repeat it here while the new page is waiting to draw.
+  ESP_LOGD("ui_latency", "Subpage refresh start at=%u", unsigned(esphome::millis()));
   auto &refresh = navigation_subpage_clock_bar_refresh();
   if (refresh) refresh();
   else navigation_refresh_subpage_label();
+  ESP_LOGD("ui_latency", "Subpage refresh done at=%u", unsigned(esphome::millis()));
 }
 
 inline void navigation_register_subpage(int slot, int display_order,

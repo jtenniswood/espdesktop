@@ -13,6 +13,7 @@ registration = definition(header, 'navigation_register_grid_screen_gesture')[1]
 stubs = r'''
 #include <algorithm>
 #include <cassert>
+#define ESP_LOGD(...) ((void)0)
 #include <vector>
 #include <string>
 using lv_coord_t = int;

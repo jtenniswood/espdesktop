@@ -15,6 +15,7 @@ def function(file, signature):
 
 code = r'''
 #include <cassert>
+#define ESP_LOGD(...) ((void)0)
 #include <cstdio>
 #include <string>
 #include <vector>
