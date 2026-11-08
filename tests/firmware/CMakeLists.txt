@@ -866,3 +866,6 @@ add_test(NAME retired_sensor_policy_test COMMAND
 add_test(NAME panel_diagnostics_endpoint_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/panel_diagnostics_endpoint_test.py
   ${CMAKE_CXX_COMPILER} ${arduinojson_SOURCE_DIR}/src)
+
+add_test(NAME local_mixed_drivers_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/local_mixed_drivers_test.py ${CMAKE_CXX_COMPILER})

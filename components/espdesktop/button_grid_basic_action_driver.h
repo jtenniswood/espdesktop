@@ -1,6 +1,6 @@
 #pragma once
 
-// Shared lifecycle driver for the basic toggle and action-bearing card family.
+// Local actions, relays, screensaver, lock, webhook and Mac Companion controls.
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
 // Contract coverage markers: type == "", "action", "alarm_action",
@@ -9,22 +9,17 @@
 namespace espdesktop::cards {
 
 inline bool basic_action_driver_matches(const Context &context,
-                                        const ParsedCfg &) {
+                                        const ParsedCfg &config) {
   using Driver = card_runtime::CardDriverId;
-  using Type = card_runtime::CardTypeId;
   switch (context.runtime.driver) {
-    case Driver::TOGGLE:
     case Driver::ACTION:
-    case Driver::ALARM_ACTION:
+      return config.type == "local" || action_card_local_action(config);
     case Driver::INTERNAL:
-    case Driver::PUSH:
     case Driver::COMPANION:
     case Driver::SCREEN_LOCK:
     case Driver::SCREENSAVER:
     case Driver::WEBHOOK:
       return true;
-    case Driver::FAN:
-      return context.runtime.type == Type::FAN_SWITCH;
     default:
       return false;
   }
@@ -46,12 +41,6 @@ inline bool basic_action_driver_setup_visual(
       break;
     case Driver::COMPANION:
       setup_companion_card(slot, config, sensor_color);
-      break;
-    case Driver::ALARM_ACTION:
-      setup_alarm_action_card(slot, config);
-      break;
-    case Driver::FAN:
-      setup_fan_card(slot, config);
       break;
     case Driver::INTERNAL:
       setup_internal_relay_card(slot, config);
@@ -124,124 +113,15 @@ struct ToggleDriverState {
   const char **icon_on = nullptr;
 };
 
-inline void basic_action_driver_bind_toggle(
-    BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    ToggleDriverState state) {
-  if (!state.has_sensor || !state.sensor_text_mode || !state.has_icon_on ||
-      !state.icon_off || !state.icon_on || config.entity.empty()) return;
-
-  *state.has_sensor = !config.sensor.empty();
-  *state.sensor_text_mode = *state.has_sensor && config.precision == "text";
-  *state.has_icon_on = !config.icon_on.empty() && config.icon_on != "Auto";
-  *state.icon_on = *state.has_icon_on ? find_icon(config.icon_on.c_str()) : nullptr;
-  *state.icon_off = (config.icon.empty() || config.icon == "Auto")
-    ? domain_default_icon(config.entity.substr(0, config.entity.find('.')))
-    : find_icon(config.icon.c_str());
-
-  ToggleTextSensorCtx *text_context = nullptr;
-  if (*state.sensor_text_mode) {
-    text_context = basic_action_driver_track(
-      context, slot.btn, new ToggleTextSensorCtx());
-    text_context->text_lbl = slot.text_lbl;
-    text_context->steady_text = label_text_or_empty(slot.text_lbl);
-  }
-
-  if (config.label.empty()) {
-    if (text_context) subscribe_friendly_name(text_context, config.entity);
-    else subscribe_friendly_name(slot.text_lbl, config.entity);
-  }
-
-  subscribe_toggle_state(
-    slot.btn, slot.icon_lbl, slot.sensor_container, slot.text_lbl,
-    state.has_sensor, state.sensor_text_mode, state.has_icon_on,
-    state.icon_off, state.icon_on, text_context, config.entity);
-  if (*state.has_sensor) {
-    if (*state.sensor_text_mode) {
-      subscribe_toggle_text_sensor_value(text_context, config.sensor);
-    } else {
-      subscribe_sensor_value(
-        slot.sensor_lbl, config.sensor, parse_precision(config.precision),
-        slot.unit_lbl, config.unit);
-    }
-  }
-}
-
-inline AlarmActionCtx *basic_action_driver_bind_alarm_action(
-    BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    lv_obj_t *grid_page, const GridConfig &grid_config,
-    const CardPalette &palette, const DisplayProfile &display, int grid_cols) {
-  if (config.entity.empty()) return nullptr;
-  AlarmCardCtx *card = new AlarmCardCtx();
-  card->entity_id = config.entity;
-  card->label = config.label.empty()
-    ? alarm_action_label(config.sensor) : config.label;
-  card->options = config.options;
-  card->btn = slot.btn;
-  card->icon_lbl = slot.icon_lbl;
-  card->grid_page = grid_page;
-  card->label_font = lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN);
-  card->key_label_font = display_media_title_font_or(display, card->label_font);
-  card->pin_label_font = card->key_label_font;
-  card->icon_font = display_icon_font(display);
-  card->arming_title_font = card->key_label_font;
-  card->on_color = palette.has_on ? palette.on_val : DEFAULT_ACCENT_COLOR;
-  card->off_color = palette.off_val;
-  card->tertiary_color = palette.sensor_val;
-  card->width_compensation_percent = display_main_width_percent(display);
-  card->grid_cols = grid_cols;
-  card->begin_display_takeover = grid_config.begin_display_takeover;
-  card->end_display_takeover = grid_config.end_display_takeover;
-  alarm_set_card_state_colors(card, card->on_color);
-
-  AlarmActionCtx *action = context.surface == Surface::SUBPAGE
-    ? grid_delete_alarm_action_with_owner(slot.btn, new AlarmActionCtx())
-    : grid_track_alarm_action_runtime(slot.btn, new AlarmActionCtx());
-  action->card = card;
-  action->mode = alarm_action_valid(config.sensor) ? config.sensor : "away";
-  action->requires_pin = alarm_action_requires_pin(card->options, action->mode);
-  subscribe_alarm_action_state(card, action->mode);
-  lv_obj_set_user_data(slot.btn, action);
-  return action;
-}
-
-inline FanCardCtx *basic_action_driver_bind_fan_switch(
-    BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const CardPalette &palette, const DisplayProfile &display) {
-  if (config.entity.empty()) return nullptr;
-  FanCardCtx *fan = create_fan_card_context(
-    slot, config,
-    palette.has_on ? palette.on_val : DEFAULT_ACCENT_COLOR,
-    palette.off_val, palette.sensor_val,
-    lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN),
-    display_icon_font(display), display_main_width_percent(display));
-  if (context.surface == Surface::SUBPAGE) {
-    grid_delete_fan_card_with_owner(slot.btn, fan);
-  } else {
-    grid_track_fan_card_runtime(slot.btn, fan);
-  }
-  subscribe_fan_card_state(fan);
-  return fan;
-}
-
 inline bool basic_action_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const GridConfig &grid_config, const CardPalette &palette,
-    const DisplayProfile &display, lv_obj_t *grid_page, int grid_cols,
-    ToggleDriverState toggle_state) {
+    const GridConfig &, const CardPalette &,
+    const DisplayProfile &, lv_obj_t *, int,
+    ToggleDriverState) {
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
-    case Driver::TOGGLE:
-      basic_action_driver_bind_toggle(slot, config, context, toggle_state);
-      break;
     case Driver::ACTION:
-      break;
-    case Driver::ALARM_ACTION:
-      basic_action_driver_bind_alarm_action(
-        slot, config, context, grid_page, grid_config, palette, display, grid_cols);
-      break;
-    case Driver::FAN:
-      basic_action_driver_bind_fan_switch(slot, config, context, palette, display);
       break;
     case Driver::INTERNAL:
       if (!config.entity.empty() && !internal_relay_push_mode(config)) {
@@ -280,23 +160,6 @@ struct BasicActionSubpageEnvironment {
   const char *parent_icon_on = nullptr;
   int *parent_on_count = nullptr;
 };
-
-inline void basic_action_driver_attach_subpage_toggle(
-    BtnSlot &slot, const ParsedCfg &config) {
-  ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-  bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-    ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
-    lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(event));
-    if (!card || card->entity.empty()) return;
-    const bool currently_on = target && lv_obj_has_state(target, LV_STATE_CHECKED);
-    if (switch_confirmation_required(*card, currently_on) && target &&
-        !is_button_entity(card->entity)) {
-      switch_confirmation_open_modal(*card, target, !currently_on);
-    } else {
-      send_toggle_action(card->entity);
-    }
-  }, click);
-}
 
 struct CompanionSubpageActionContext {
   ParsedCfg card;
@@ -348,22 +211,6 @@ inline bool basic_action_driver_bind_subpage(
       }, screensaver_on_lock);
       break;
     }
-    case Driver::PUSH: {
-      std::string label = config.label.empty()
-        ? espdesktop_i18n(std::string("Push")) : config.label;
-      std::string *stored_label = grid_delete_with_owner(
-        slot.btn, new std::string(label));
-      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-        std::string *value = static_cast<std::string *>(
-          lv_event_get_user_data(event));
-        esphome::api::HomeassistantActionRequest request;
-        if (!value || !ha_action_begin(
-              request, "esphome.push_button_pressed", true, 1)) return;
-        ha_action_add_data(request, "label", value->c_str());
-        ha_action_send(request);
-      }, stored_label);
-      break;
-    }
     case Driver::WEBHOOK: {
       ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
       bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
@@ -385,46 +232,6 @@ inline bool basic_action_driver_bind_subpage(
             send_action_card_action(*card);
           }
         }, click);
-      }
-      break;
-    }
-    case Driver::ALARM_ACTION: {
-      if (environment.grid_config) {
-        ParsedCfg effective_config = config;
-        if (environment.parent_config) {
-          if (effective_config.entity.empty()) {
-            effective_config.entity = environment.parent_config->entity;
-          }
-          if (effective_config.options.empty()) {
-            effective_config.options = environment.parent_config->options;
-          }
-        }
-        AlarmActionCtx *action = basic_action_driver_bind_alarm_action(
-          slot, effective_config, context, environment.grid_page,
-          *environment.grid_config, environment.palette,
-          environment.display, environment.grid_cols);
-        if (action) {
-          bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-            AlarmActionCtx *value = static_cast<AlarmActionCtx *>(
-              lv_event_get_user_data(event));
-            alarm_action_activate(value);
-          }, action);
-        }
-      }
-      break;
-    }
-    case Driver::FAN: {
-      FanCardCtx *fan = basic_action_driver_bind_fan_switch(
-        slot, config, context, environment.palette, environment.display);
-      if (fan) {
-        if (environment.add_parent_indicator) {
-          environment.add_parent_indicator(config.entity);
-        }
-        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-          FanCardCtx *value = static_cast<FanCardCtx *>(
-            lv_event_get_user_data(event));
-          if (value) fan_card_handle_click(value);
-        }, fan);
       }
       break;
     }
@@ -473,22 +280,6 @@ inline bool basic_action_driver_bind_subpage(
       }
       break;
     }
-    case Driver::TOGGLE: {
-      ToggleDriverState state;
-      state.has_sensor = grid_delete_with_owner(slot.btn, new bool(false));
-      state.sensor_text_mode = grid_delete_with_owner(slot.btn, new bool(false));
-      state.has_icon_on = grid_delete_with_owner(slot.btn, new bool(false));
-      state.icon_off = grid_delete_with_owner(slot.btn, new const char *(nullptr));
-      state.icon_on = grid_delete_with_owner(slot.btn, new const char *(nullptr));
-      basic_action_driver_bind_toggle(slot, config, context, state);
-      if (!config.entity.empty()) {
-        if (environment.add_parent_indicator) {
-          environment.add_parent_indicator(config.entity);
-        }
-        basic_action_driver_attach_subpage_toggle(slot, config);
-      }
-      break;
-    }
     default:
       break;
   }
@@ -507,23 +298,6 @@ inline bool basic_action_driver_handle_main_click(
     case Driver::SCREEN_LOCK:
       screen_lock_activate(cfg_option_enabled(config.options, "screensaver_on_lock"));
       break;
-    case Driver::PUSH: {
-      std::string label = config.label;
-      if (label.empty()) {
-        char buffer[16];
-        snprintf(buffer, sizeof(buffer), "Push %d", slot_number);
-        label = buffer;
-      }
-      esphome::api::HomeassistantActionRequest request;
-      if (!ha_action_begin(
-            request, "esphome.push_button_pressed", true, 2)) break;
-      ha_action_add_data(request, "label", label.c_str());
-      char slot_buffer[8];
-      snprintf(slot_buffer, sizeof(slot_buffer), "%d", slot_number);
-      ha_action_add_data(request, "slot", slot_buffer);
-      ha_action_send(request);
-      break;
-    }
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity)) break;
       char request_id[24];
@@ -557,17 +331,6 @@ inline bool basic_action_driver_handle_main_click(
       }
       break;
     }
-    case Driver::ALARM_ACTION: {
-      AlarmActionCtx *action = static_cast<AlarmActionCtx *>(
-        lv_obj_get_user_data(button));
-      if (alarm_action_context_valid(action)) alarm_action_activate(action);
-      break;
-    }
-    case Driver::FAN: {
-      FanCardCtx *fan = static_cast<FanCardCtx *>(lv_obj_get_user_data(button));
-      if (fan) fan_card_handle_click(fan);
-      break;
-    }
     case Driver::INTERNAL:
       if (!config.entity.empty()) send_internal_relay_action(config);
       break;
@@ -582,19 +345,6 @@ inline bool basic_action_driver_handle_main_click(
       break;
     case Driver::WEBHOOK:
       send_webhook_action(config);
-      break;
-    case Driver::TOGGLE:
-      if (!config.entity.empty()) {
-        const bool currently_on =
-          button && lv_obj_has_state(button, LV_STATE_CHECKED);
-        if (switch_confirmation_required(config, currently_on) && button &&
-            !is_button_entity(config.entity)) {
-          switch_confirmation_open_modal(
-            config, button, !currently_on);
-        } else {
-          send_toggle_action(config.entity);
-        }
-      }
       break;
     default:
       break;

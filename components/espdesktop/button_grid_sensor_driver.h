@@ -174,44 +174,14 @@ inline void sensor_driver_register_local_value(
 
 inline bool sensor_driver_bind_data(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const CardPalette &palette, int col_span = 1) {
+    const CardPalette &, int = 1) {
   if (!sensor_driver_matches(context)) return false;
 
   if (sensor_driver_is_local(config, context)) {
     if (!config.entity.empty()) sensor_driver_register_local_value(slot, config);
     return true;
   }
-  if (is_text_sensor_card(config)) {
-    if (!config.sensor.empty()) {
-      subscribe_sensor_text_card_value(
-        slot.text_lbl, config, slot.btn, sensor_active_color_enabled(config),
-        palette.on_val, true, palette.custom_background ? palette.surface_sensor_val : UINT32_MAX);
-    }
-    return true;
-  }
-  if (!config.sensor.empty()) {
-    if (config.precision == "icon") {
-      subscribe_sensor_icon_state(
-        slot.btn, slot.icon_lbl, config, sensor_active_color_enabled(config));
-    } else if (config.precision == "time") {
-      TimeSensorCtx *time = slot.config == nullptr
-        ? grid_delete_with_owner(slot.btn, new TimeSensorCtx())
-        : grid_track_runtime_allocation(slot.btn, new TimeSensorCtx());
-      time->sensor_lbl = slot.sensor_lbl;
-      time->unit_lbl = slot.unit_lbl;
-      subscribe_time_sensor_value(
-        time, config.sensor,
-        cfg_option_value(config.options, SENSOR_TIME_UNIT_OPTION),
-        col_span > 1 ? 2 : 1);
-    } else {
-      subscribe_sensor_value(
-        slot.sensor_lbl, config.sensor, parse_precision(config.precision),
-        slot.unit_lbl, config.unit, slot.btn,
-        sensor_active_color_enabled(config), palette.on_val, true, palette.custom_background ? palette.surface_sensor_val : UINT32_MAX);
-    }
-    if (config.label.empty()) subscribe_friendly_name(slot.text_lbl, config.sensor);
-  }
-  return true;
+  return true; // Non-local saved sensors are retired before this driver is entered.
 }
 
 }  // namespace espdesktop::cards

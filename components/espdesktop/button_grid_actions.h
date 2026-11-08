@@ -411,61 +411,12 @@ inline bool send_numeric_slider_action(const std::string &entity_id, double valu
 }
 
 // Send HA action for a percentage slider change or its on-card toggle.
-inline bool send_slider_action(const std::string &entity_id, int value, bool cover_tilt = false) {
-  if (companion_volume_control_valid(entity_id)) {
-    char request_id[24];
-    snprintf(request_id, sizeof(request_id), "volume-%08lx",
-             static_cast<unsigned long>(companion_next_request_number()));
-    return invoke_companion_value(entity_id, value, request_id);
-  }
-  esphome::api::HomeassistantActionRequest req;
-  if (value < 0) {
-    if (espdesktop::number_slider::is_numeric_entity(entity_id)) {
-      ESP_LOGW("slider", "Numeric slider %s has no toggle action", entity_id.c_str());
-      return false;
-    }
-    if (!is_cover_entity(entity_id) && !is_fan_entity(entity_id) &&
-        !espdesktop::number_slider::has_domain(entity_id, "light")) {
-      ESP_LOGW("slider", "Ignoring slider toggle for unsupported entity %s",
-               entity_id.c_str());
-      return false;
-    }
-    if (!ha_action_begin(req, "homeassistant.toggle", false, 1)) return false;
-    ha_action_add_entity(req, entity_id);
-  } else if (is_cover_entity(entity_id)) {
-    if (!ha_action_begin(req,
-      cover_tilt ? "cover.set_cover_tilt_position" : "cover.set_cover_position",
-      false, 2)) return false;
-    ha_action_add_entity(req, entity_id);
-    char buf[12];
-    snprintf(buf, sizeof(buf), "%d", value);
-    ha_action_add_data(req, cover_tilt ? "tilt_position" : "position", buf);
-  } else if (is_fan_entity(entity_id)) {
-    if (value == 0) {
-      if (!ha_action_begin(req, "fan.turn_off", false, 1)) return false;
-      ha_action_add_entity(req, entity_id);
-    } else {
-      if (!ha_action_begin(req, "fan.turn_on", false, 2)) return false;
-      ha_action_add_entity(req, entity_id);
-      char buf[12];
-      snprintf(buf, sizeof(buf), "%d", value);
-      ha_action_add_data(req, "percentage", buf);
-    }
-  } else if (espdesktop::number_slider::has_domain(entity_id, "light") && value == 0) {
-    if (!ha_action_begin(req, "light.turn_off", false, 1)) return false;
-    ha_action_add_entity(req, entity_id);
-  } else if (espdesktop::number_slider::has_domain(entity_id, "light")) {
-    if (!ha_action_begin(req, "light.turn_on", false, 2)) return false;
-    ha_action_add_entity(req, entity_id);
-    char buf[12];
-    snprintf(buf, sizeof(buf), "%d", value);
-    ha_action_add_data(req, "brightness_pct", buf);
-  } else {
-    ESP_LOGW("slider", "Ignoring slider command for unsupported entity %s",
-             entity_id.c_str());
-    return false;
-  }
-  return ha_action_send(req);
+inline bool send_slider_action(const std::string &entity_id, int value, bool /* legacy_cover_tilt */ = false) {
+  if (!companion_volume_control_valid(entity_id)) return false;
+  char request_id[24];
+  snprintf(request_id, sizeof(request_id), "volume-%08lx",
+           static_cast<unsigned long>(companion_next_request_number()));
+  return invoke_companion_value(entity_id, value, request_id);
 }
 
 // Parse "min-max" kelvin range from the unit config field (e.g. "2000-6500").

@@ -592,10 +592,6 @@ def check_root(root: Path) -> list[str]:
             "sensor_driver_refresh_layout",
             "sensor_driver_cleanup",
             "sensor_driver_register_local_value",
-            "subscribe_sensor_text_card_value",
-            "subscribe_sensor_icon_state",
-            "subscribe_time_sensor_value",
-            "subscribe_sensor_value",
         )
         for needle in required:
             if needle not in text:
@@ -638,13 +634,9 @@ def check_root(root: Path) -> list[str]:
             "basic_action_driver_refresh_layout",
             "basic_action_driver_cleanup",
             "basic_action_driver_handle_main_click",
-            "basic_action_driver_bind_toggle",
-            "basic_action_driver_bind_alarm_action",
-            "basic_action_driver_bind_fan_switch",
             "send_webhook_action",
             "send_internal_relay_action",
             "screen_lock_activate",
-            "esphome.push_button_pressed",
         )
         for needle in required:
             if needle not in text:
@@ -667,11 +659,8 @@ def check_root(root: Path) -> list[str]:
             "numeric_selectable_driver_cleanup",
             "numeric_selectable_driver_handle_main_click",
             "numeric_selectable_driver_bind_slider",
-            "numeric_selectable_driver_bind_light_temperature",
-            "numeric_selectable_driver_bind_fan_action",
-            "numeric_selectable_driver_bind_option_select",
-            "option_select_open_modal",
-            "fan_card_handle_click",
+            "companion_volume_control_valid",
+            "companion_track_slider",
             "send_slider_action",
             '"light_brightness"',
             '"light_temperature"',
