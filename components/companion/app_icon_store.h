@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,9 @@ constexpr size_t APP_ICON_RECORD_BYTES =
     ((APP_ICON_PIXEL_BYTES + 256 + 4095) / 4096) * 4096;
 constexpr size_t APP_ICON_MAX_APPLICATION_ID_BYTES = 96;
 constexpr size_t APP_ICON_MAX_RECORDS = 256;
+constexpr size_t APP_ICON_MEMORY_CACHE_BYTES = 2 * 1024 * 1024;
+constexpr size_t APP_ICON_MEMORY_CACHE_RECORDS = APP_ICON_MEMORY_CACHE_BYTES / APP_ICON_PIXEL_BYTES;
+constexpr size_t APP_ICON_MEMORY_HEADROOM_BYTES = 2 * 1024 * 1024;
 
 // Fixed-size RGB565A8 icons share the unused middle of card_images.
 // The panel configuration slots and device identity remain outside this area.
@@ -53,6 +57,20 @@ class AppIconStore {
     bool pixels_verified{false};
   };
 
+  struct PixelDeleter {
+    void operator()(uint8_t *pixels) const;
+  };
+  struct MemoryEntry {
+    std::string application_id;
+    std::array<uint8_t, 32> hash{};
+    std::unique_ptr<uint8_t, PixelDeleter> pixels;
+    uint64_t last_used{0};
+  };
+
+  int find_memory_locked(const std::string &application_id) const;
+  bool save_memory_locked(const std::string &application_id,
+                          const std::array<uint8_t, 32> &hash, const uint8_t *pixels,
+                          std::string *evicted_application_id);
   bool scan_locked();
   bool read_header_locked(uint16_t slot, std::string *application_id,
                           std::array<uint8_t, 32> *hash) const;
@@ -68,6 +86,7 @@ class AppIconStore {
 
   mutable std::mutex mutex_;
   std::array<Entry, APP_ICON_MAX_RECORDS> entries_{};
+  std::array<MemoryEntry, APP_ICON_MEMORY_CACHE_RECORDS> memory_entries_{};
   std::vector<std::string> references_;
   std::vector<std::string> enabled_applications_;
   uint64_t access_sequence_{0};
