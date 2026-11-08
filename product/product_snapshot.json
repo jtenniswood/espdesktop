@@ -6894,7 +6894,11 @@
       "webhook": "WH",
       "internal": "I",
       "subpage": "G"
-    }
+    },
+    "retiredCardTypes": [
+      "screen_lock",
+      "screensaver"
+    ]
   },
   "entityNames": {
     "entities": [

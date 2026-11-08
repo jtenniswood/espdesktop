@@ -1843,3 +1843,11 @@ for (const [entity, icon, suffix] of [
   assert(preview.labelHtml.includes(suffix), `${entity} displays a reading with accurate wording`);
   assert(!preview.iconHtml.includes("sp-sensor-value"), `${entity} no longer displays a large number`);
 }
+
+for (const type of ["screen_lock", "screensaver"]) {
+  assert.strictEqual(hooks.cardContractCardKeys().includes(type), false);
+  const removed = hooks.parseButtonConfig(`sensor.old;Old;Gauge;Auto;sensor.old;C;${type};1;secret=value`);
+  assert.strictEqual(removed.entity, "", `${type} retired entity is cleared`);
+  assert.strictEqual(removed.sensor, "", `${type} retired sensor is cleared`);
+  assert.strictEqual(removed.options, "", `${type} retired options are cleared`);
+}
