@@ -819,19 +819,21 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
   companion_request_card_refresh();
 }
 
-inline void companion_track_mute(lv_obj_t *button, const std::string &control_id) {
-  if (!button || !companion_mute_control_valid(control_id)) return;
+inline bool companion_forget_mute(lv_obj_t *button) {
   auto &refs = companion_view_registry().mutes;
+  const auto previous_size = refs.size();
   refs.erase(std::remove_if(refs.begin(), refs.end(), [button](const auto &ref) {
     return ref.button == button;
   }), refs.end());
-  refs.push_back({button, control_id});
+  return refs.size() != previous_size;
+}
+
+inline void companion_track_mute(lv_obj_t *button, const std::string &control_id) {
+  if (!button || !companion_mute_control_valid(control_id)) return;
+  companion_forget_mute(button);
+  companion_view_registry().mutes.push_back({button, control_id});
   lv_obj_add_event_cb(button, [](lv_event_t *event) {
-    auto *deleted = static_cast<lv_obj_t *>(lv_event_get_target(event));
-    auto &refs = companion_view_registry().mutes;
-    refs.erase(std::remove_if(refs.begin(), refs.end(), [deleted](const auto &ref) {
-      return ref.button == deleted;
-    }), refs.end());
+    companion_forget_mute(static_cast<lv_obj_t *>(lv_event_get_target(event)));
   }, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
 }
@@ -1035,6 +1037,7 @@ inline void companion_track_card(void *, const std::string &, const std::string 
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
+inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *) {}

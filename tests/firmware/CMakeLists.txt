@@ -968,3 +968,6 @@ target_include_directories(panel_config_transient_storage_test PRIVATE config_st
 target_sources(panel_config_transient_storage_test PRIVATE ../../components/espdesktop/panel_config_espidf_storage.cpp)
 
 add_test(NAME nested_folder_state_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/nested_folder_state_test.py)
+
+add_test(NAME companion_mute_cleanup_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/companion_mute_cleanup_test.py ${CMAKE_CXX_COMPILER})

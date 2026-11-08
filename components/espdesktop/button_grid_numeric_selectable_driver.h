@@ -102,7 +102,13 @@ inline bool numeric_selectable_driver_refresh_layout(
 }
 
 inline bool numeric_selectable_driver_cleanup(
-    BtnSlot &, const ParsedCfg &config, const Context &context) {
+    BtnSlot &slot, const ParsedCfg &config, const Context &context) {
+  // The incoming card may use any driver, but the persistent button can still
+  // carry a previous mute binding. Remove it before applying the new visual.
+  if (companion_forget_mute(slot.btn)) {
+    set_card_checked_state(slot.btn, false);
+    set_card_disabled_state(slot.btn, false);
+  }
   // Slider state is deleted with its LVGL slider. Main-grid data allocations
   // use the runtime registry; subpage allocations are tied to their owner.
   return numeric_selectable_driver_matches(context, config);
