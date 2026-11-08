@@ -220,6 +220,7 @@ export function createPreviewInteractionsFeature(
             });
         }
         function isBackExitTarget(this: any, e?: any, target?: any) {
+            if (e.target.closest(".sp-back-badge")) return true;
             var icon: any = target.querySelector(".sp-back-hit:not([hidden])");
             if (!icon)
                 return false;
@@ -273,8 +274,10 @@ export function createPreviewInteractionsFeature(
                 var btnEl: any = e.target.closest("[data-slot]");
                 if (btnEl) {
                     var badgeSlot: any = parseInt(btnEl.getAttribute("data-slot"), 10);
-                    enterChildSubpage(state.editingSubpage, badgeSlot);
-                    return;
+                    if (badgeSlot > 0) {
+                        enterChildSubpage(state.editingSubpage, badgeSlot);
+                        return;
+                    }
                 }
             }
             var target: any = e.target.closest("[data-pos]");
