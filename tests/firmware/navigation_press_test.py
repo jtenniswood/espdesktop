@@ -15,6 +15,7 @@ def function(file, signature):
 
 code = r'''
 #include <cassert>
+#define ESP_LOGD(...) ((void)0)
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -34,6 +35,7 @@ bool lv_obj_is_valid(lv_obj_t *b) { return b && b->valid; }
 lv_obj_t *active = nullptr;
 void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { active = s; order.push_back(3); }
 void refresh_visible_image_cards() {}
+void navigation_present_page_before_image_refresh() {}
 struct ParsedCfg { std::string type, entity = "app", sensor; bool shortcuts = false; };
 struct Context { bool subpage; };
 Context card_runtime_context(const ParsedCfg &c) { return {c.type == "subpage"}; }
@@ -93,7 +95,9 @@ void navigation_return_from_special_page() {
 void lv_obj_add_event_cb(lv_obj_t *, void (*cb)(lv_event_t *), int filter, void *data) {
   assert(filter == LV_EVENT_PRESSED); back_callback = cb; back_data = data;
 }
-void bind_back(lv_obj_t *back_btn, bool is_special_page, lv_obj_t *main_page_obj) {
+void bind_back(lv_obj_t *back_btn, bool is_special_page, lv_obj_t *main_page_obj,
+               bool is_nested_page=false, lv_obj_t *parent_screen=nullptr) {
+  struct { lv_obj_t *parent_screen; } task{parent_screen};
 ''' + back + "\n}\n"
 code += r'''
 int main() {
@@ -111,6 +115,11 @@ int main() {
     assert(active == (special ? &page : &home));
     assert((order == std::vector<int>{1, 2, 3}));
   }
+  // Nested folders go to their parent instead of skipping back to Home.
+  order.clear(); active=&home;
+  bind_back(&button, false, &home, true, &page);
+  lv_event_t nested_event{&button, back_data}; back_callback(&nested_event);
+  assert(active==&page && (order==std::vector<int>{1,2,3}));
   // Invalid/missing targets must not swallow unrelated interactions.
   order.clear(); page.valid = false;
   assert(!navigation_handle_button_press(config, 1, &button) && order.empty());

@@ -1566,6 +1566,32 @@ inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
   return nullptr;
 }
 
+inline bool &companion_app_icon_work_pending() {
+  static bool pending = false;
+  return pending;
+}
+
+inline bool &companion_app_icon_waiting_for_frame() {
+  static bool waiting = false;
+  return waiting;
+}
+
+inline void companion_app_icon_frame_presented(lv_event_t *) {
+  companion_app_icon_waiting_for_frame() = false;
+}
+
+inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {
+  lv_display_t *display = lv_obj_get_display(image);
+  if (display == nullptr) return;
+  static lv_display_t *registered_display = nullptr;
+  if (registered_display != display) {
+    lv_display_add_event_cb(display, companion_app_icon_frame_presented,
+                            LV_EVENT_REFR_READY, nullptr);
+    registered_display = display;
+  }
+  companion_app_icon_waiting_for_frame() = true;
+}
+
 inline void companion_refresh_app_icon_visibility() {
   // Keep a bounded working set across home/app transitions. Reloading and
   // resampling every home icon synchronously delays the first screen redraw.
@@ -1604,18 +1630,20 @@ inline void companion_refresh_app_icon_visibility() {
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode || source->image_loaded) continue;
     lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
-    if (image && lv_obj_get_screen(image) == lv_scr_act())
-      companion_apply_cached_app_icon(*source, image);
+    if (image && lv_obj_get_screen(image) == lv_scr_act() && !source->refresh_pending) {
+      // Loading and resizing every missing icon here can block Back/swipe for
+      // seconds on the S3. Let the destination paint before rebuilding them.
+      source->refresh_pending = true;
+      companion_app_icon_work_pending() = true;
+      companion_app_icon_wait_for_frame(image);
+    }
   }
 }
 
 inline void companion_app_icon_screen_changed(lv_event_t *) {
+  ESP_LOGD("ui_latency", "Home icons start at=%u", unsigned(esphome::millis()));
   companion_refresh_app_icon_visibility();
-}
-
-inline bool &companion_app_icon_work_pending() {
-  static bool pending = false;
-  return pending;
+  ESP_LOGD("ui_latency", "Home icons done at=%u", unsigned(esphome::millis()));
 }
 
 inline bool companion_app_icon_pixels_current(const CompanionAppIconImageData &source) {
@@ -1660,7 +1688,7 @@ inline void companion_refresh_app_icon_connection_state(bool online) {
 }
 
 inline void companion_process_pending_app_icon_refresh() {
-  if (!companion_app_icon_work_pending()) return;
+  if (!companion_app_icon_work_pending() || companion_app_icon_waiting_for_frame()) return;
   CompanionAppIconImageData *selected = nullptr;
   lv_obj_t *selected_image = nullptr;
   int best_priority = 3;
@@ -1685,7 +1713,9 @@ inline void companion_process_pending_app_icon_refresh() {
   // it. Select from the live registry and rebuild at most one icon per turn.
   selected->refresh_pending = false;
   companion_apply_cached_app_icon(*selected, selected_image);
-  navigation_refresh_subpage_label();
+  // Present this icon before spending another loop turn rebuilding the next.
+  // The page title did not change, so do not repeat its visibility pass here.
+  if (companion_app_icon_work_pending()) companion_app_icon_wait_for_frame(selected_image);
 }
 #endif
 
@@ -2479,12 +2509,13 @@ inline void grid_phase2(
     }
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
+      ESP_LOGD("ui_latency", "Back press start at=%u", unsigned(esphome::millis()));
       navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)));
       if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
         navigation_return_from_special_page();
       } else {
         lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        refresh_visible_image_cards();
+        navigation_present_page_before_image_refresh();
       }
     }, LV_EVENT_PRESSED, is_special_page
       ? static_cast<void *>(&navigation_special_page_back_button_marker())
