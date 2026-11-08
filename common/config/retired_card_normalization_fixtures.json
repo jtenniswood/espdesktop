@@ -1,0 +1,62 @@
+[
+  {
+    "name": "retired screen_lock bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;screen_lock;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "screen_lock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired screensaver bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;screensaver;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "screensaver",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired SL bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;SL;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "SL",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired SS bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;SS;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "SS",
+      "precision": "",
+      "options": ""
+    }
+  }
+]

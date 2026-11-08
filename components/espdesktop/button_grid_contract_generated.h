@@ -9,7 +9,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_retired(const std::string &type) { return type == "screen_lock" || type == "screensaver"; }
+inline bool card_contract_type_retired(const std::string &type) { return type == "screen_lock" || type == "screensaver" || type == "SL" || type == "SS"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
