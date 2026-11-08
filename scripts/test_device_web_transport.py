@@ -4,16 +4,13 @@
 from __future__ import annotations
 
 import argparse
-import asyncio
 import http.client
 import json
 import math
 import os
 from pathlib import Path
-import re
 import socket
 import statistics
-import threading
 import time
 from datetime import datetime, timezone
 import urllib.request
@@ -98,93 +95,20 @@ class DeviceHTTP:
         self.stream().close()
 
 
-class NativeMonitor:
-    """Keep API checks and log delivery active while HTTP tests run."""
-
-    def __init__(self, host, port, timeout, noise_psk=None, password=None):
-        # ESPHome installs aioesphomeapi; HTTP-only runs need no extra packages.
-        from aioesphomeapi import APIClient, LogLevel
-        self.client_class, self.levels = APIClient, LogLevel
-        self.host, self.port, self.timeout = host, port, timeout
-        self.noise_psk, self.password = noise_psk, password
-        self.ready, self.stop_event = threading.Event(), threading.Event()
-        self.thread = threading.Thread(target=self.run, daemon=True)
-        self.result = {"status": "running", "checks": 0, "disconnects": 0,
-                       "error_logs": 0, "warnings": 0, "stalled_closures": 0}
-
-    def start(self):
-        self.thread.start()
-        if not self.ready.wait(self.timeout + 2):
-            raise CheckFailure("Native API did not connect within the timeout")
-        if self.result.get("failure"):
-            raise CheckFailure("Native API connection failed: " + self.result["failure"])
-
-    def stop(self):
-        self.stop_event.set()
-        if self.thread.ident is not None:
-            self.thread.join(self.timeout + 2)
-        if self.thread.is_alive():
-            self.result["failure"] = "Native monitor did not stop within the timeout"
-        self.result["status"] = "failed" if (
-            self.result.get("failure") or self.result["disconnects"] or self.result["error_logs"]
-        ) else "passed"
-
-    def run(self):
-        asyncio.run(self.monitor())
-
-    async def monitor(self):
-        client = self.client_class(self.host, self.port, password=self.password,
-                                   noise_psk=self.noise_psk, client_info="EspDesktop device test")
-
-        async def stopped(expected):
-            if not expected and not self.stop_event.is_set():
-                self.result["disconnects"] += 1
-
-        def received(message):
-            text = message.message
-            if isinstance(text, bytes):
-                text = text.decode("utf-8", errors="replace")
-            self.result["stalled_closures"] += int("Closing stuck EventSource connection" in text)
-            self.result["warnings"] += int(message.level == self.levels.LOG_LEVEL_WARN)
-            self.result["error_logs"] += int(
-                message.level == self.levels.LOG_LEVEL_ERROR or
-                bool(re.search(r"Guru Meditation|panic|assert failed|stack smashing|watchdog", text, re.I)))
-
-        try:
-            await asyncio.wait_for(client.connect(on_stop=stopped, login=True), self.timeout)
-            info = await asyncio.wait_for(client.device_info(), self.timeout)
-            self.result["firmware"] = {key: getattr(info, key, "") for key in
-                                       ("esphome_version", "project_version", "compilation_time")}
-            client.subscribe_logs(received, log_level=self.levels.LOG_LEVEL_DEBUG, dump_config=False)
-            self.ready.set()
-            next_check = 0.0
-            while not self.stop_event.is_set():
-                if time.monotonic() >= next_check:
-                    await asyncio.wait_for(client.device_info(), self.timeout)
-                    self.result["checks"] += 1
-                    next_check = time.monotonic() + 5
-                await asyncio.sleep(0.1)
-        except Exception as error:
-            # Record the category, not library messages that may contain keys.
-            self.result["failure"] = type(error).__name__
-        finally:
-            self.ready.set()
-            try:
-                await asyncio.wait_for(client.disconnect(), self.timeout)
-            except Exception:
-                pass
-
-
-def run_suite(args, client=None, monitor=None):
+def run_suite(args, client=None):
     client = client or DeviceHTTP(args.host, args.port, args.timeout,
                                  args.web_username, args.web_password)
-    report = {"schema_version": 1, "target": f"{args.host}:{args.port}",
+    report = {"schema_version": 2, "target": f"{args.host}:{args.port}",
               "firmware_label": args.firmware_label,
               "started_at": datetime.now(timezone.utc).isoformat(), "checks": [],
               "parameters": {key: getattr(args, key) for key in
                              ("reconnects", "stall_seconds", "stalled_clients", "interval", "timeout")},
               "manual_checks": ["Observe the physical screen for blue flashes and verify touch.",
-                                "Repeat with the affected configuration and camera/media workload."]}
+                                "Repeat with the affected local/Mac configuration and artwork workload."]}
+    report["coverage_limitations"] = [
+        "Firmware logs and internal stalled-client timeout cleanup are not observed.",
+        "HTTP/SSE recovery does not verify physical screen, touch or Mac actions.",
+    ]
     before = None
     started = time.monotonic()
 
@@ -252,8 +176,6 @@ def run_suite(args, client=None, monitor=None):
         return "Configuration is byte-for-byte unchanged; no settings were written"
 
     try:
-        if monitor:
-            check("native_api_connect", monitor.start)
         check("preflight", preflight)
         check("rapid_reconnects", burst)
         check("stalled_clients", stalls)
@@ -268,28 +190,6 @@ def run_suite(args, client=None, monitor=None):
                 check("configuration_preserved", unchanged)
             except CheckFailure:
                 pass
-        if monitor:
-            monitor.stop()
-            report["native_api"] = monitor.result.copy()
-        else:
-            report["native_api"] = {"status": "not_requested"}
-
-    if monitor:
-        if monitor.result["status"] != "passed" or monitor.result["checks"] == 0:
-            report["checks"].append({"name": "native_api_health", "status": "failed",
-                                     "detail": "Native API disconnected, timed out, or logged firmware errors"})
-        else:
-            report["checks"].append({"name": "native_api_health", "status": "passed",
-                                     "detail": f"{monitor.result['checks']} API checks; no disconnects or error logs"})
-    closures = monitor.result["stalled_closures"] if monitor else None
-    report["stall_cleanup_observed"] = closures if monitor else "not_monitored"
-    if args.require_stall_cleanup:
-        report["checks"].append({"name": "stall_cleanup_coverage",
-                                 "status": "passed" if closures >= 1 else "failed",
-                                 "detail": f"Observed {closures} stalled-connection timeout cleanup messages; expected at least one"})
-    for item in report["checks"]:
-        if item["name"] in ("native_api_health", "stall_cleanup_coverage"):
-            print(f"{item['status'].upper()} {item['name']}: {item['detail']}", flush=True)
     report["metrics"] = {"http_checks": client.http_checks, "event_reconnects": client.reconnects,
                           "uptime_start": client.uptimes[0] if client.uptimes else None,
                           "uptime_end": client.uptimes[-1] if client.uptimes else None,
@@ -307,20 +207,20 @@ def write_report(report, directory):
     path = directory / f"device-web-{stamp}.json"
     path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     device = report.get("device", {})
-    native = report["native_api"]
     rows = ["# Device web transport test", "", f"Result: **{report['status'].upper()}**", "",
             f"Target: `{report['target']}`", "",
             f"Device profile: `{device.get('device_slug', 'unknown')}`; firmware: `{device.get('firmware_version', 'unknown')}`.",
-            f"Firmware label: {report['firmware_label'] or '(not supplied)'}. "
-            f"Compilation time: {native.get('firmware', {}).get('compilation_time', '(not monitored)')}.", "",
+            f"Firmware label: {report['firmware_label'] or '(not supplied)'} (user supplied).", "",
             f"Started: {report['started_at']}; duration: {report['seconds']} seconds.",
-            f"Native API: {native['status']}; timeout cleanup events: {report['stall_cleanup_observed']}.", "",
+
             "| Check | Result | Details |", "| --- | --- | --- |"]
     for item in report["checks"]:
         detail = str(item.get("detail") or "").replace("|", "\\|").replace("\n", " ")
         rows.append(f"| {item['name']} | {item['status']} | {detail} |")
     rows += ["", "```json", json.dumps(report["metrics"], indent=2), "```", "", "Manual checks still required:", ""]
     rows += [f"- {value}" for value in report["manual_checks"]]
+    rows += ["", "Coverage limits:", ""]
+    rows += [f"- {value}" for value in report["coverage_limitations"]]
     path.with_suffix(".md").write_text("\n".join(rows) + "\n", encoding="utf-8")
     return path
 
@@ -334,13 +234,8 @@ def parse_args(argv=None):
     parser.add_argument("--stall-seconds", type=float, default=45)
     parser.add_argument("--stalled-clients", type=int, choices=(1, 2), default=2)
     parser.add_argument("--interval", type=float, default=0.5)
-    parser.add_argument("--native-api", action="store_true", help="Monitor native API and firmware logs (requires ESPHome's Python environment)")
-    parser.add_argument("--api-port", type=int, default=6053)
-    parser.add_argument("--api-noise-psk-env", help="Environment variable holding the existing API encryption key")
-    parser.add_argument("--api-password-env", help="Environment variable holding an existing legacy API password")
     parser.add_argument("--web-username-env", help="Environment variable holding the existing web username")
     parser.add_argument("--web-password-env", help="Environment variable holding the existing web password")
-    parser.add_argument("--require-stall-cleanup", action="store_true", help="Fail unless native logs prove the stalled-client timeout cleanup path ran")
     parser.add_argument("--firmware-label", default="", help="Label for comparing reports; not a verified device revision")
     parser.add_argument("--report-dir", type=Path, default=Path(".cache/device-web-transport"))
     args = parser.parse_args(argv)
@@ -349,15 +244,11 @@ def parse_args(argv=None):
     for name in ("timeout", "stall_seconds", "interval"):
         if not math.isfinite(getattr(args, name)) or getattr(args, name) <= 0:
             parser.error(f"--{name.replace('_', '-')} must be a finite positive number")
-    if not 1 <= args.reconnects <= 10000 or not 1 <= args.port <= 65535 or not 1 <= args.api_port <= 65535:
+    if not 1 <= args.reconnects <= 10000 or not 1 <= args.port <= 65535:
         parser.error("Use 1–10000 reconnects and ports in 1–65535")
-    if args.require_stall_cleanup and not args.native_api:
-        parser.error("--require-stall-cleanup needs --native-api")
-    if (args.api_noise_psk_env or args.api_password_env) and not args.native_api:
-        parser.error("API credentials need --native-api")
     if bool(args.web_username_env) != bool(args.web_password_env):
         parser.error("Supply both web credential environment-variable names")
-    for name in ("api_noise_psk", "api_password", "web_username", "web_password"):
+    for name in ("web_username", "web_password"):
         variable = getattr(args, name + "_env")
         if variable and not os.environ.get(variable):
             parser.error(f"Environment variable {variable} is missing or empty")
@@ -367,14 +258,7 @@ def parse_args(argv=None):
 
 def main(argv=None):
     args = parse_args(argv)
-    monitor = None
-    if args.native_api:
-        try:
-            monitor = NativeMonitor(args.host, args.api_port, args.timeout, args.api_noise_psk, args.api_password)
-        except ImportError:
-            print("Native API checks need aioesphomeapi. Run this command in the pinned ESPHome Python environment.")
-            return 2
-    report = run_suite(args, monitor=monitor)
+    report = run_suite(args)
     path = write_report(report, args.report_dir)
     print(f"{report['status'].upper()}: {report['metrics']['http_checks']} HTTP checks, "
           f"{report['metrics']['event_reconnects']} event-stream reconnects")

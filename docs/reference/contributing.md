@@ -61,42 +61,38 @@ larger USB factory image.
 
 ## Testing Web Connections on a Device
 
-After flashing a branch, run this from the repository root in the ESPHome Python
-environment described above. Replace the IP address with the display you want
-to test:
+After flashing a branch, run this from the repository root with Python's standard
+library. Replace the address with the display you are authorized to test:
 
 ```sh
 python scripts/test_device_web_transport.py --host 192.168.1.50 \
-  --native-api --require-stall-cleanup --firmware-label "my-test-branch"
+  --firmware-label "my-test-branch"
 ```
 
-The suite checks the version, editor response and native configuration, opens
-and closes 80 event streams, holds two non-reading streams for 45 seconds while
-checking healthy connections, then checks recovery. It checks for reboots using
-device uptime and verifies that the saved configuration is unchanged. With
-`--native-api`, it also monitors API connectivity and firmware error logs.
-`--require-stall-cleanup` requires at least one timeout-cleanup message; a run
-that never exercises that path fails the coverage check. The report records the
-actual count. Other stalled connections may be closed by the server's normal
-connection-limit recovery instead of reaching the timeout.
+The suite checks the version, editor and saved configuration, opens and closes
+80 event streams, holds two non-reading streams for 45 seconds while checking
+healthy connections, then checks recovery. It reports uptime regressions as
+possible reboots and verifies that saved configuration is unchanged. It does
+not read firmware logs or prove that the server's internal timeout-cleanup path
+ran; the report states these coverage limits.
 
-The command uses GET requests and diagnostic subscriptions. It does not flash,
-change settings, import backups, or invoke Home Assistant controls. Run it while
-using the affected camera/media pages to include that workload. Avoid changing
-settings during the run, because that will fail the configuration comparison.
+The command uses GET requests only. It does not flash, change settings, import
+backups or invoke controls. Exercise local/Mac cards and artwork while it runs
+to include that workload. Avoid editing settings during the run, because that
+will fail the configuration comparison. Screen, touch and Mac actions still
+need separate physical checks.
 
-Reports are saved as timestamped JSON and Markdown files under
-`.cache/device-web-transport/`. Use `--report-dir` to choose another location and
-`--firmware-label` to distinguish runs. The label is user-supplied; the report
-also records the device's reported version and, with API monitoring, compilation
-time. Exit codes are `0` for a passed run, `1` for a failed check, `2` for setup or
-argument errors, and `130` for an interrupted run. Reports do not include
-configuration contents, credentials or raw firmware logs.
+Timestamped JSON and Markdown reports go under `.cache/device-web-transport/`.
+Use `--report-dir` for another location. `--firmware-label` is user supplied;
+the device's reported version is recorded separately. Exit codes are `0` for a
+passed run, `1` for failed checks, `2` for setup/argument errors and `130` for
+interruption. Reports exclude configuration contents and credentials.
 
-For an encrypted API, supply the existing key through an environment variable
-and add `--api-noise-psk-env ESPDESKTOP_API_NOISE_PSK`. Web authentication can use
-`--web-username-env` and `--web-password-env`; both take environment-variable
-names, not credential values. Do not put keys or passwords in command arguments.
+For web authentication, use `--web-username-env` and `--web-password-env` with
+environment-variable names containing the existing credentials. Native HA API
+monitoring and encryption-key arguments are removed with the firmware API.
+Use `scripts/test_device_runtime.py` for HTTP diagnostics, firmware identity,
+restart and memory checks.
 
 HTTP-only checks need only Python's standard library:
 
