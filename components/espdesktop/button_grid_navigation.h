@@ -212,11 +212,31 @@ inline bool navigation_display_mode_allows_grid_gesture() {
          is_interactive_grid_mode(core->display().target_mode());
 }
 
+struct NavigationGridGesturePress {
+  lv_indev_t *device = nullptr;
+  lv_obj_t *screen = nullptr;
+  lv_point_t start{};
+};
+
+inline NavigationGridGesturePress &navigation_grid_gesture_press(lv_indev_t *device) {
+  static std::vector<NavigationGridGesturePress> presses;
+  for (auto &press : presses) {
+    if (press.device == device) return press;
+  }
+  presses.push_back({device, nullptr, {}});
+  return presses.back();
+}
+
 inline void navigation_grid_screen_gesture(lv_event_t *event) {
-  if (event == nullptr || lv_event_get_code(event) != LV_EVENT_GESTURE) return;
+  if (event == nullptr) return;
+  const auto code = lv_event_get_code(event);
+  if (code != LV_EVENT_PRESSED && code != LV_EVENT_RELEASED && code != LV_EVENT_GESTURE) return;
   lv_indev_t *indev = lv_indev_active();
-  if (indev == nullptr ||
-      !navigation_display_mode_allows_grid_gesture() ||
+  if (indev == nullptr) return;
+  auto &press = navigation_grid_gesture_press(indev);
+  if (code == LV_EVENT_PRESSED || code == LV_EVENT_RELEASED) press.screen = nullptr;
+  if (code == LV_EVENT_RELEASED) return;
+  if (!navigation_display_mode_allows_grid_gesture() ||
       screen_lock_enabled() || control_modal_active().overlay != nullptr ||
       control_modal_nested_active().overlay != nullptr) return;
 
@@ -225,14 +245,18 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
       std::find(navigation_grid_screens().begin(), navigation_grid_screens().end(),
                 screen) == navigation_grid_screens().end()) return;
 
-  lv_point_t point{};
-  lv_point_t vector{};
-  lv_indev_get_point(indev, &point);
-  lv_indev_get_vect(indev, &vector);
+  if (code == LV_EVENT_PRESSED) {
+    press.screen = screen;
+    lv_indev_get_point(indev, &press.start);
+    return;
+  }
+  if (press.screen != screen) return;
+  const lv_point_t start = press.start;
+  press.screen = nullptr;
   const auto direction = lv_indev_get_gesture_dir(indev);
   if (direction == LV_DIR_RIGHT) {
     const lv_coord_t screen_width = lv_obj_get_width(screen);
-    const lv_coord_t swipe_start_x = point.x - vector.x;
+    const lv_coord_t swipe_start_x = start.x;
     if (screen_width <= 0 || swipe_start_x < 0 ||
         swipe_start_x > screen_width / 6) return;
 
@@ -249,7 +273,7 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
     }
   } else if (direction == LV_DIR_TOP) {
     const lv_coord_t screen_height = lv_obj_get_height(screen);
-    const lv_coord_t swipe_start_y = point.y - vector.y;
+    const lv_coord_t swipe_start_y = start.y;
     if (screen_height <= 0 || swipe_start_y < screen_height * 5 / 6) return;
 
     if (navigation_open_special_page()) lv_indev_wait_release(indev);
@@ -274,6 +298,11 @@ inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
     // LVGL defaults to 50 px and resets gesture travel below 3 px per sample.
     lv_indev_set_gesture_min_distance(indev, 24);
     lv_indev_set_gesture_min_velocity(indev, 1);
+    // Record the real touch-down point; get_vect() is only the last sample.
+    lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
+                          LV_EVENT_PRESSED, nullptr);
+    lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
+                          LV_EVENT_RELEASED, nullptr);
     lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
                           LV_EVENT_GESTURE, nullptr);
     registered_devices.push_back(indev);
