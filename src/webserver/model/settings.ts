@@ -164,7 +164,7 @@ export function normalizeScheduleMode(value: unknown): string {
 
 export function normalizeScheduleTrigger(value: unknown, scheduleEnabled = false): string {
   const trigger = String(value || "").toLowerCase().replace(/[\s-]+/g, "_");
-  if (trigger === "sensor") return "sensor";
+  if (trigger === "sensor") return "disabled";
   if (trigger === "time" || trigger === "timer") return "time";
   if (trigger === "disabled" || trigger === "off") return "disabled";
   return scheduleEnabled ? "time" : "disabled";
@@ -439,9 +439,9 @@ export interface BackupPanelSettingsState {
   screenRotation: string;
 }
 
-function normalizeScreensaverMode(value: unknown): string {
+export function normalizeScreensaverMode(value: unknown): string {
   const mode = String(value || "disabled");
-  return mode === "sensor" || mode === "timer" || mode === "companion" || mode === "disabled" ? mode : "disabled";
+  return mode === "timer" || mode === "companion" || mode === "disabled" ? mode : "disabled";
 }
 
 export function normalizeCoverArtSource(_value: unknown): string {

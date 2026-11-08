@@ -243,7 +243,7 @@ inline bool screen_schedule_sensor_activation_on(
 
 inline bool screen_schedule_disabled_trigger(const std::string &trigger) {
   return trigger == "Disabled" || trigger == "disabled" || trigger == "Off" ||
-         trigger == "off";
+         trigger == "off" || screen_schedule_sensor_trigger(trigger);
 }
 
 inline bool screen_schedule_time_trigger(const std::string &trigger) {
@@ -259,38 +259,28 @@ inline bool screen_schedule_waiting_for_time(const std::string &trigger,
 
 inline bool screen_schedule_night_active(const std::string &trigger,
                                          bool enabled,
-                                         bool presence_detected,
+                                         bool /* legacy_presence_detected */,
                                          bool time_valid,
                                          int now_h,
                                          int on_hour,
                                          int off_hour,
-                                         const std::string &sensor_activation =
+                                         const std::string & /* legacy_sensor_activation */ =
                                              "Sensor Off") {
   if (!enabled || screen_schedule_disabled_trigger(trigger)) return false;
-  if (screen_schedule_sensor_trigger(trigger)) {
-    return screen_schedule_sensor_activation_on(sensor_activation)
-               ? presence_detected
-               : !presence_detected;
-  }
   if (!time_valid) return false;
   return !screen_schedule_in_window(now_h, on_hour, off_hour);
 }
 
 inline bool screen_schedule_normal_active(const std::string &trigger,
                                           bool enabled,
-                                          bool presence_detected,
+                                          bool /* legacy_presence_detected */,
                                           bool time_valid,
                                           int now_h,
                                           int on_hour,
                                           int off_hour,
-                                          const std::string &sensor_activation =
+                                          const std::string & /* legacy_sensor_activation */ =
                                               "Sensor Off") {
   if (!enabled || screen_schedule_disabled_trigger(trigger)) return false;
-  if (screen_schedule_sensor_trigger(trigger)) {
-    return screen_schedule_sensor_activation_on(sensor_activation)
-               ? !presence_detected
-               : presence_detected;
-  }
   if (!time_valid) return false;
   return screen_schedule_in_window(now_h, on_hour, off_hour);
 }

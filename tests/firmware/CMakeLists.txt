@@ -861,3 +861,6 @@ add_test(NAME card_retirement_test COMMAND
 
 add_test(NAME local_folder_wifi_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/local_folder_wifi_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME retired_sensor_policy_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_sensor_policy_test.py ${CMAKE_CXX_COMPILER})

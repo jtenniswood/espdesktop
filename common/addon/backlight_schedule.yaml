@@ -7,6 +7,10 @@
 # =============================================================================
 
 globals:
+  # Restored switches must not rewrite retired trigger values before migration.
+  - id: local_display_policy_ready
+    type: bool
+    initial_value: 'false'
   - id: last_is_daytime
     type: bool
     initial_value: 'true'
@@ -100,6 +104,25 @@ esphome:
     # replace this initialization during ESPHome package merging.
     # Publish the live fail-dark decision before the loading screen's -200
     # handler can decide whether it is safe to light the panel.
+    - priority: -189
+      then:
+        - lambda: |-
+            bool preferences_changed = false;
+            if (id(screensaver_mode).state == "sensor") {
+              auto call = id(screensaver_mode).make_call();
+              call.set_value("disabled");
+              call.perform();
+              preferences_changed = true;
+            }
+            if (screen_schedule_sensor_trigger(id(screen_schedule_trigger).state)) {
+              auto call = id(screen_schedule_trigger).make_call();
+              call.set_value("disabled");
+              call.perform();
+              id(schedule_enabled).turn_off();
+              preferences_changed = true;
+            }
+            if (preferences_changed) global_preferences->sync();
+            id(local_display_policy_ready) = true;
     - priority: -190
       then:
         - lambda: |-
@@ -229,40 +252,49 @@ switch:
     on_turn_on:
       - if:
           condition:
-            lambda: 'return screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
+            lambda: 'return id(local_display_policy_ready);'
           then:
-            - lambda: |-
-                auto call = id(screen_schedule_trigger).make_call();
-                call.set_value("time");
-                call.perform();
-          else:
-            - script.execute: screen_schedule_check
+            - if:
+                condition:
+                  lambda: 'return screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
+                then:
+                  - lambda: |-
+                      auto call = id(screen_schedule_trigger).make_call();
+                      call.set_value("time");
+                      call.perform();
+                else:
+                  - script.execute: screen_schedule_check
     on_turn_off:
       - if:
           condition:
-            lambda: 'return !screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
+            lambda: 'return id(local_display_policy_ready);'
           then:
+            - if:
+                condition:
+                  lambda: 'return !screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
+                then:
+                  - lambda: |-
+                      auto call = id(screen_schedule_trigger).make_call();
+                      call.set_value("disabled");
+                      call.perform();
             - lambda: |-
-                auto call = id(screen_schedule_trigger).make_call();
-                call.set_value("disabled");
-                call.perform();
-      - lambda: |-
-          id(espdesktop_app).display().clear(
-              espdesktop::DisplayRequestSource::MANUAL_SLEEP);
-      - globals.set:
-          id: manual_wake_ms
-          value: '0'
-      - if:
-          condition:
-            lambda: |-
-              const auto transition = id(espdesktop_app).display().resolve();
-              return transition.target_mode != espdesktop::DisplayMode::ACTIVE &&
-                  (transition.winning_source == espdesktop::DisplayRequestSource::BOOT_GUARD ||
-                   transition.winning_source == espdesktop::DisplayRequestSource::SCREEN_SCHEDULE);
-          then:
-            - script.execute: screen_schedule_wake
-          else:
-            - script.execute: backlight_apply_brightness
+                id(espdesktop_app).display().clear(
+                    espdesktop::DisplayRequestSource::MANUAL_SLEEP);
+            - globals.set:
+                id: manual_wake_ms
+                value: '0'
+            - if:
+                condition:
+                  lambda: |-
+                    const auto transition = id(espdesktop_app).display().resolve();
+                    return transition.target_mode != espdesktop::DisplayMode::ACTIVE &&
+                        (transition.winning_source == espdesktop::DisplayRequestSource::BOOT_GUARD ||
+                         transition.winning_source == espdesktop::DisplayRequestSource::SCREEN_SCHEDULE);
+                then:
+                  - script.execute: screen_schedule_wake
+                else:
+                  - script.execute: backlight_apply_brightness
+
 
 select:
   - platform: template

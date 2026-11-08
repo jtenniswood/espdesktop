@@ -24,6 +24,7 @@ import {
     normalizeScheduleWakeBrightness,
     normalizeScheduleWakeTimeout,
     normalizeScreensaverAction,
+    normalizeScreensaverMode,
     normalizeScreensaverCameraImageMode,
     normalizeScreensaverCameraDimming,
     normalizeScreensaverDimmedBrightness,
@@ -379,7 +380,7 @@ export function createAppStateEventHandlersFeature(
             },
             "text-screensaver_mode": function (this: any, val?: any) {
                 state._screensaverModeReceived = true;
-                state.screensaverMode = val === "sensor" || val === "timer" || val === "companion" || val === "disabled" ? val : "disabled";
+                state.screensaverMode = normalizeScreensaverMode(val);
                     if (els.setSsMode)
                         els.setSsMode(getActiveScreensaverMode());
             },

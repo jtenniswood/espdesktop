@@ -1,7 +1,7 @@
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { DeviceApi } from "../api/device_api";
 import { requestFailureInfo } from "../api/request_failure";
-import { screensaverActionOption } from "../model/settings";
+import { normalizeScreensaverMode, screensaverActionOption } from "../model/settings";
 import type { ScreensaverTimeoutFeature } from "./screensaver_timeout";
 import type { EntityStateFeature } from "./entity_state";
 import type { ControlsShellFeature } from "./controls_shell";
@@ -165,7 +165,7 @@ export function createApplicationApiFeature(
         return post(entityPostUrls("switch", name, [], on ? "turn_on" : "turn_off"));
     }
     function postScreensaverMode(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screensaver_mode"), entityObjectIds("screensaver_mode"), value);
+        return postTextWithObjectIds(entityName("screensaver_mode"), entityObjectIds("screensaver_mode"), normalizeScreensaverMode(value));
     }
     function postFirmwareAutoUpdate(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("firmware_auto_update"), entityObjectIds("firmware_auto_update"), on);
