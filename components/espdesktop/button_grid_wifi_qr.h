@@ -58,6 +58,10 @@ inline void set_wifi_qr_heading_font(const lv_font_t *font) {
   wifi_qr_heading_font_ref() = font;
 }
 
+inline bool wifi_qr_has_local_view(const ParsedCfg &config) {
+  return !wifi_qr_local_tabs(cfg_option_value(config.options, "wifi_tabs")).empty();
+}
+
 inline bool wifi_qr_payload_from_config(const ParsedCfg &config, std::string *payload,
                                         std::string *ssid, std::string *password) {
   return wifi_qr_build_payload(cfg_option_value(config.options, "ssid64"),
@@ -234,6 +238,7 @@ inline lv_obj_t *wifi_qr_create_detail_label(lv_obj_t *parent, const char *text,
 }
 
 inline void wifi_qr_open_modal(const ParsedCfg &config, lv_obj_t *owner) {
+  if (!wifi_qr_has_local_view(config)) return;
   std::string payload, ssid, password;
   if (!wifi_qr_payload_from_config(config, &payload, &ssid, &password)) {
     ESP_LOGW("wifi_qr", "Wifi Share card has invalid credentials");

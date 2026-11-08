@@ -156,7 +156,7 @@ export function registerWifiQrCardTypes(
                     definitions: function () { return wifiQrTabDefinitions().filter((tab: any) => tab.value !== "guest"); },
                     tabs: function (card: any) {
                         const tabs = wifiQrTabs(card).filter((tab: string) => tab !== "guest");
-                        return tabs.length ? tabs : ["qr", "credentials"];
+                        return tabs;
                     },
                     normalizeOptions: normalizeWifiQrTabOptions,
                     setTabs: setWifiQrTabs,
@@ -166,7 +166,7 @@ export function registerWifiQrCardTypes(
                 if (wifiQrTabs(b).includes("guest") || b.entity) {
                     const notice = document.createElement("p");
                     notice.className = "sp-setting-note";
-                    notice.textContent = "The Home Assistant guest-network switch is retired. QR codes and stored network credentials still work. Its saved settings have been kept.";
+                    notice.textContent = "The Home Assistant guest-network switch is retired. Saved local tabs still work. Enable a local tab to use the sharing view. Its saved settings have been kept.";
                     modalTabsDisclosure.section.appendChild(notice);
                 }
                 panel.appendChild(modalTabsDisclosure.panel);

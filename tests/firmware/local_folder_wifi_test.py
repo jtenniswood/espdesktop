@@ -78,7 +78,7 @@ int main(){
  assert(wifi_qr_driver_bind_main(slot,network,context));
  assert(network.entity=="switch.guest_wifi" && network.options=="wifi_tabs=guest");
  assert(wifi_qr_tabs("guest")==std::vector<std::string>{"guest"});
- assert((wifi_qr_local_tabs("guest")==std::vector<std::string>{"qr","credentials"}));
+ assert(wifi_qr_local_tabs("guest").empty());
  assert(wifi_qr_local_tabs("guest|credentials")==std::vector<std::string>{"credentials"});
  assert((wifi_qr_local_tabs("credentials|qr|guest")==std::vector<std::string>{"credentials","qr"}));
  ui.overlay=&slot;ui.qr_payload="private credential";
@@ -92,3 +92,8 @@ with tempfile.TemporaryDirectory() as directory:
 for name in ('button_grid_wifi_qr.h','button_grid_wifi_qr_driver.h','button_grid_navigation_driver.h'):
  text=(HEADERS/name).read_text()
  assert 'ha_subscribe' not in text and 'ha_send' not in text and 'subscribe_' not in text,name
+
+modal=(HEADERS/'button_grid_wifi_qr.h').read_text()
+_,open_modal=definition(modal,'wifi_qr_open_modal')
+assert open_modal.index('if (!wifi_qr_has_local_view(config)) return;') < open_modal.index('wifi_qr_payload_from_config(')
+assert open_modal.index('if (!wifi_qr_has_local_view(config)) return;') < open_modal.index('control_modal_open_shell(')

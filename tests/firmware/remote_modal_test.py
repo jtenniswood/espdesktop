@@ -44,6 +44,7 @@ helpers += function('button_grid_config_parser.h', 'rainfall_uses_forecast')
 for file, name in [
     ('button_grid_actions.h', 'media_card_mode'),
     ('button_grid_media.h', 'media_control_modal_mode'),
+    ('button_grid_wifi_qr.h', 'wifi_qr_has_local_view'),
     ('button_grid_image.h', 'image_card_page_visible'),
     ('button_grid_image.h', 'image_card_context_visible_on_active_screen'),
     ('button_grid_image.h', 'image_card_context_on_active_screen'),

@@ -33,7 +33,7 @@ Both tabs are enabled by default. You can reorder them or hide either one, but a
 
 ## Optional Guest Wi-Fi Control
 
-The Home Assistant guest-network switch is retired. Its entity and tab settings remain readable in saved cards and backups, but the panel no longer subscribes to or toggles that switch. QR codes and locally stored credentials continue to work. A saved switch-only view falls back to QR and credential views without rewriting the saved settings.
+The Home Assistant guest-network switch is retired. Its entity and tab settings remain readable in saved cards and backups, but the panel no longer subscribes to or toggles that switch. QR codes and locally stored credentials continue to work. A saved switch-only view stays unavailable until you explicitly enable a QR or credential tab. Previously hidden credentials are not shown automatically.
 
 ## Supported Networks
 

@@ -36,7 +36,7 @@ test("saved guest switches do not restore HA controls or erase QR credentials",(
   const helpers={idPrefix:"test-",renderCardModeSelector(){},renderCardTextField:()=>({field:node()}),markCardPrimaryField(){},disclosureSection:()=>({panel:node(),section:node()}),renderCardEntityField(){throw Error("retired switch editor rendered");}};
   definitions.wifi_qr.renderSettingsBeforeLabel(panel,card,1,helpers);
   assert.deepEqual(modal.definitions().map(tab=>tab.value),["qr","credentials"]);
-  assert.deepEqual(modal.tabs(card),["qr","credentials"]);
+  assert.deepEqual(modal.tabs(card),[],"retirement must not enable previously hidden credentials");
   assert.equal(modal.normalizeOptions(card.options),card.options);
   assert.equal(JSON.stringify(card),before);
  }finally{global.document=previous;}

@@ -153,6 +153,9 @@ inline bool wifi_qr_driver_setup_visual(
   }
   wifi_qr_driver_render_tile(slot, config, row_span, col_span);
   apply_push_button_transition(slot.btn);
+  const bool available = wifi_qr_has_local_view(config);
+  set_card_disabled_state(slot.btn, !available);
+  if (!available) lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   return true;
 }
 inline bool wifi_qr_driver_cleanup(BtnSlot &, const ParsedCfg &, const Context &) { return false; }
@@ -184,7 +187,7 @@ inline bool wifi_qr_driver_handle_main_click(const Context &context, const Parse
 }
 inline ModalTarget wifi_qr_driver_modal_target(
     const Context &context, const ParsedCfg &config, lv_obj_t *button) {
-  if (!wifi_qr_driver_matches(context) || config.entity.empty()) return {};
+  if (!wifi_qr_driver_matches(context) || config.entity.empty() || !wifi_qr_has_local_view(config)) return {};
   ModalTarget target;
   target.entity = config.entity;
   target.kind = ControlModalKind::WIFI_QR;

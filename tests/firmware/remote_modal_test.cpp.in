@@ -7,6 +7,7 @@
 #include "button_grid_limits.h"
 #include "button_grid_card_runtime.h"
 #include "card_modal_target.h"
+#include "wifi_qr_codec.h"
 #include "retired_home_assistant_cards.h"
 #include "media_control_tabs.h"
 #include "../artwork_image/image_pipeline_policy.h"
@@ -205,6 +206,11 @@ int main() {
   assert(espdesktop_can_open_modal("switch.guest", true));
   assert(espdesktop_open_modal("switch.guest", true));
   assert(modal.kind==ControlModalKind::WIFI_QR && commands==0);
+  configs["qr"].options="wifi_tabs=guest";
+  assert(!espdesktop_can_prepare_modal("switch.guest", true));
+  assert(!espdesktop_can_open_modal("switch.guest", true));
+  assert(!espdesktop_open_modal("switch.guest", true));
+  configs["qr"].options="valid";
   locked=true;
   assert(!espdesktop_can_prepare_modal("switch.guest", true));
   assert(!espdesktop_open_modal("switch.guest", true));
