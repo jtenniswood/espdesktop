@@ -1,4 +1,4 @@
-"""Run real folder/QR bindings without any Home Assistant transport available."""
+"""Run real folder bindings without any Home Assistant transport available."""
 from pathlib import Path
 import subprocess,sys,tempfile
 from production_source import definition
@@ -9,7 +9,6 @@ source=r'''
 #include <string>
 #include <vector>
 #include "button_grid_contract_generated.h"
-#include "wifi_qr_codec.h"
 struct ParsedCfg {std::string type="subpage",entity,sensor,label,options,unit,precision;};
 struct lv_obj_t {};
 struct BtnSlot {lv_obj_t *btn=nullptr,*text_lbl=nullptr,*icon_lbl=nullptr,*sensor_container=nullptr;};
@@ -39,18 +38,7 @@ for name in ('navigation_driver_matches','navigation_driver_parent_companion_sta
              'navigation_driver_parent_entity_state_enabled','navigation_driver_aggregates_child_state',
              'navigation_driver_bind_main','navigation_driver_add_child_indicator'):
     source+=definition(nav,name)[1]+'\n'
-qr=(HEADERS/'button_grid_wifi_qr_driver.h').read_text()
-for name in ('wifi_qr_driver_matches','wifi_qr_driver_bind_main'): source+=definition(qr,name)[1]+'\n'
 source+='}\n'
-source+=r'''
-struct WifiQrModalUi {void *overlay=nullptr;std::string qr_payload;};
-WifiQrModalUi ui;
-WifiQrModalUi &wifi_qr_modal_ui(){return ui;}
-enum class ControlModalKind{WIFI_QR};
-int overlays_deleted=0;
-void control_modal_delete_overlay(ControlModalKind,void*){++overlays_deleted;}
-'''
-source+=definition((HEADERS/'button_grid_wifi_qr.h').read_text(),'wifi_qr_hide_modal')[1]
 source+=r'''
 int main(){
  using namespace espdesktop::cards;
@@ -73,27 +61,11 @@ int main(){
  Context context{espdesktop::card_runtime::resolve_card_runtime(mac)};
  assert(navigation_driver_bind_main(slot,mac,context,state));
  assert(metric_bindings==1);
- ParsedCfg network;network.type="wifi_qr";network.entity="switch.guest_wifi";network.options="wifi_tabs=guest";
- context.runtime=espdesktop::card_runtime::resolve_card_runtime(network);
- assert(wifi_qr_driver_bind_main(slot,network,context));
- assert(network.entity=="switch.guest_wifi" && network.options=="wifi_tabs=guest");
- assert(wifi_qr_tabs("guest")==std::vector<std::string>{"guest"});
- assert(wifi_qr_local_tabs("guest").empty());
- assert(wifi_qr_local_tabs("guest|credentials")==std::vector<std::string>{"credentials"});
- assert((wifi_qr_local_tabs("credentials|qr|guest")==std::vector<std::string>{"credentials","qr"}));
- ui.overlay=&slot;ui.qr_payload="private credential";
- wifi_qr_hide_modal();assert(overlays_deleted==1 && !ui.overlay && ui.qr_payload.empty());
 }
 '''
 with tempfile.TemporaryDirectory() as directory:
  cpp=Path(directory)/'test.cpp';exe=Path(directory)/'test';cpp.write_text(source)
  subprocess.run([sys.argv[1] if len(sys.argv)>1 else 'c++','-std=c++17','-Wall','-Wextra','-Werror','-I',str(HEADERS),str(cpp),'-o',str(exe)],check=True)
  subprocess.run([str(exe)],check=True)
-for name in ('button_grid_wifi_qr.h','button_grid_wifi_qr_driver.h','button_grid_navigation_driver.h'):
- text=(HEADERS/name).read_text()
- assert 'ha_subscribe' not in text and 'ha_send' not in text and 'subscribe_' not in text,name
-
-modal=(HEADERS/'button_grid_wifi_qr.h').read_text()
-_,open_modal=definition(modal,'wifi_qr_open_modal')
-assert open_modal.index('if (!wifi_qr_has_local_view(config)) return;') < open_modal.index('wifi_qr_payload_from_config(')
-assert open_modal.index('if (!wifi_qr_has_local_view(config)) return;') < open_modal.index('control_modal_open_shell(')
+text=nav
+assert 'ha_subscribe' not in text and 'ha_send' not in text and 'subscribe_' not in text

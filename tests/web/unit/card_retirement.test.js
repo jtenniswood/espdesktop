@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
 const { cardRuntimeRetired } = loadTypescriptTest("src/webserver/model/legacy_home_assistant.ts");
+const { cardContractTypeRetired } = loadTypescriptTest("src/webserver/generated/card_contract.ts");
 const { createCardRegistry } = loadTypescriptTest("src/webserver/application/card_registry.ts");
 const fixtures = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../../../common/config/card_retirement_fixtures.json")));
 test("all saved card types agree on retirement while local variants stay supported", () => {
@@ -18,7 +19,7 @@ test("retired editors cannot mutate saved cards or create controls", () => {
   const previous = global.document;
   global.document = { createElement: () => ({}) };
   try {
-    for (const { card, retired } of fixtures.filter(f => f.retired)) {
+    for (const { card, retired } of fixtures.filter(f => f.retired && !cardContractTypeRetired(f.card.type))) {
       let oldCalls=0;
       const registry=createCardRegistry(), normalize=() => {};
       const definition=registry.register(card.type, {
@@ -36,10 +37,9 @@ test("retired editors cannot mutate saved cards or create controls", () => {
     }
   } finally { global.document=previous; }
 });
-test("local action, sensor, Mac slider and Date & Time editors remain active", () => {
+test("local action, Mac slider and Date & Time editors remain active", () => {
   for (const card of [
     {type:"action",sensor:"local",entity:"zoom_mute"},
-    {type:"sensor",sensor:"local",entity:"cpu_temp"},
     {type:"slider",entity:"media.output_volume"},
     {type:"slider",entity:"media.input_volume"},
     {type:"calendar",entity:"sensor.date"},

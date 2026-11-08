@@ -555,8 +555,8 @@ int main() {
     {"000000", 0x000000, 0x666666, 0xFFFFFF},
   };
   for (const auto &colour : colours) {
-
-
+    assert(active_card_color(colour.base) == colour.active);
+    assert(display_text_color_for_bg(colour.base) == colour.text);
   }
   for (const char *options : {"", "card_off_color=invalid"}) {
     ParsedCfg config;
@@ -599,4 +599,4 @@ with tempfile.TemporaryDirectory(prefix="card-colour-rendering-") as directory:
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else "c++", "-std=c++17", "-Wall", "-Wextra", "-Werror",
                     "-I" + str(root / "tests/firmware/stubs"), "-I" + str(headers), str(cpp), "-o", str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print("Card colour rendering checks passed: main/subpage sensor backgrounds, state updates, contrast, defaults and display correction.")
+print("Card colour rendering checks passed: main/subpage contrast, defaults, display correction and Mac focus.")

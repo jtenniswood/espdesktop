@@ -35,6 +35,6 @@ with tempfile.TemporaryDirectory() as directory:
     subprocess.run([str(exe)],check=True)
 grid=(ROOT/'components/espdesktop/button_grid_grid.h').read_text()
 main=grid.index('navigation_register_home_target(idx, pos, p.label, scfg, s.btn);')
-assert grid.index('if (retired_home_assistant_card(p)) continue;',main)<grid.index('wifi_qr_driver_bind_main(',main)
+assert grid.index('if (retired_home_assistant_card(p)) continue;',main)<grid.index('basic_action_driver_bind_main(',main)
 child=grid.index('refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);')
-assert grid.index('if (retired_home_assistant_card(sb_cfg)) continue;',child)<grid.index('wifi_qr_driver_bind_subpage(',child)
+assert grid.index('if (retired_home_assistant_card(sb_cfg)) continue;',child)<grid.index('basic_action_driver_bind_subpage(',child)

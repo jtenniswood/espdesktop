@@ -1198,7 +1198,6 @@ inline void grid_phase2(
   memset(sensor_text_mode, 0, sizeof(sensor_text_mode));
   memset(has_icon_on, 0, sizeof(has_icon_on));
   clear_internal_relay_watchers();
-  local_sensor_registry().clear();
   grid_release_main_runtime_allocations(slots, NS);
   // Phase 1 has just registered each Companion card against its persistent
   // LVGL labels. Keep those bindings so live metric snapshots can refresh the

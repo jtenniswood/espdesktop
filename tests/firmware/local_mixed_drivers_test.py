@@ -10,7 +10,6 @@ firmware = ROOT / 'components/espdesktop'
 numeric = (firmware/'button_grid_numeric_selectable_driver.h').read_text()
 numeric = re.sub(r'^#(?:include[^\n]*|pragma once)\n', '', numeric, flags=re.M)
 actions = (firmware/'button_grid_actions.h').read_text()
-sensors = (firmware/'button_grid_sensor_driver.h').read_text()
 basic = (firmware/'button_grid_basic_action_driver.h').read_text()
 prelude = r'''
 #include <cassert>
@@ -57,13 +56,9 @@ void sensor_driver_register_local_value(BtnSlot &, const ParsedCfg &) { ++local_
 '''
 parser = (firmware/'button_grid_config_parser.h').read_text()
 production = definition(parser, 'action_card_local_action')[1]
-production += definition(parser, 'sensor_card_local_sensor')[1]
 production += definition(actions, 'send_slider_action')[1] + numeric
 production += '\nnamespace espdesktop::cards {\n'
 production += definition(basic, 'basic_action_driver_matches')[1]
-production += definition(sensors, 'sensor_driver_matches')[1]
-production += definition(sensors, 'sensor_driver_is_local')[1]
-production += definition(sensors, 'sensor_driver_bind_data')[1]
 production += '\n}\n'
 checks = r'''
 int main() {
@@ -73,15 +68,10 @@ int main() {
  ParsedCfg config{"action","mute","local","","",""};
  assert(basic_action_driver_matches(c,config));
  config.sensor = "script.turn_on"; assert(!basic_action_driver_matches(c,config));
- for (Driver retired : {Driver::TOGGLE,Driver::PUSH,Driver::ALARM_ACTION,Driver::FAN}) { c.runtime.driver = retired; assert(!basic_action_driver_matches(c,config)); }
- for (Driver local : {Driver::INTERNAL,Driver::COMPANION,Driver::SCREEN_LOCK,Driver::SCREENSAVER,Driver::WEBHOOK}) { c.runtime.driver = local; assert(basic_action_driver_matches(c,config)); }
+ for (Driver retired : {Driver::TOGGLE,Driver::PUSH,Driver::ALARM_ACTION,Driver::FAN,Driver::INTERNAL,Driver::SCREEN_LOCK,Driver::SCREENSAVER}) { c.runtime.driver = retired; assert(!basic_action_driver_matches(c,config)); }
+ for (Driver local : {Driver::COMPANION,Driver::WEBHOOK}) { c.runtime.driver = local; assert(basic_action_driver_matches(c,config)); }
  lv_obj_t button, container, slider, icon, label; container.data = &slider;
  BtnSlot slot{&button,&container,&icon,&label}; CardPalette palette; DisplayProfile display;
- c.runtime.driver = Driver::SENSOR; config = {"sensor","local_key","local","","",""};
- assert(sensor_driver_bind_data(slot,config,c,palette)); assert(local_bindings == 1);
- config.sensor = "sensor.room"; sensor_driver_bind_data(slot,config,c,palette); assert(local_bindings == 1);
- c.runtime.type = card_runtime::CardTypeId::LOCAL_SENSOR; config.type = "local_sensor";
- sensor_driver_bind_data(slot,config,c,palette); assert(local_bindings == 2);
  for (const char *key : {"media.output_volume","media.input_volume"}) {
   config = {"slider",key,"","","",""};
   assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
