@@ -1,3 +1,4 @@
+import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { state } from "../state/app_instance";
 import { normalizeTemperatureUnit } from "../model/settings";
 import type { ClockBarController } from "../features/clock_bar_controller";
@@ -89,7 +90,10 @@ export function createClockBarFeature(
         applyClockBarControllerState(clockBarControllerInstance.setNightModeEnabled(clockBarControllerState(), enabled));
     }
     function clockBarVisibleInPreview(this: any) {
-        return (state.editingSubpage != null && state.subpageTitleBarOn) || clockBarUiState().previewVisible;
+        const parent = state.editingSubpage != null && state.editingSubpage > 0
+            ? state.buttons[state.editingSubpage - 1] : null;
+        const hasTitle = state.editingSubpage != null && !companionAppShortcutFolderEnabled(parent);
+        return (hasTitle && state.subpageTitleBarOn) || clockBarUiState().previewVisible;
     }
     function timezonePrefersFahrenheit(this: any, timezone?: any) {
         var tz: any = dependencies.timezoneId(effectiveTimezoneOptionForWeb(timezone || state.timezone));

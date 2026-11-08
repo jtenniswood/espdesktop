@@ -225,19 +225,29 @@ inline std::vector<lv_obj_t *> &clock_bar_button_grid_pages() {
   return pages;
 }
 
+// Only pages with a title need a header when the full Clock Bar is disabled.
+inline std::vector<lv_obj_t *> &clock_bar_subpage_title_pages() {
+  static std::vector<lv_obj_t *> pages;
+  return pages;
+}
+
 inline void clock_bar_clear_button_grid_pages() {
   for (lv_obj_t *page : clock_bar_button_grid_pages()) {
     clock_bar_clear_responsive_grid_cards(page);
   }
   clock_bar_button_grid_pages().clear();
+  clock_bar_subpage_title_pages().clear();
 }
 
-inline void clock_bar_register_button_grid_page(lv_obj_t *page) {
+inline void clock_bar_register_button_grid_page(lv_obj_t *page, bool show_title = true) {
   if (!page) return;
   std::vector<lv_obj_t *> &pages = clock_bar_button_grid_pages();
   if (std::find(pages.begin(), pages.end(), page) == pages.end()) {
     pages.push_back(page);
   }
+  auto &titles = clock_bar_subpage_title_pages();
+  titles.erase(std::remove(titles.begin(), titles.end(), page), titles.end());
+  if (show_title) titles.push_back(page);
 }
 
 inline void clock_bar_unregister_button_grid_page(lv_obj_t *page) {
@@ -245,6 +255,8 @@ inline void clock_bar_unregister_button_grid_page(lv_obj_t *page) {
   clock_bar_clear_responsive_grid_cards(page);
   std::vector<lv_obj_t *> &pages = clock_bar_button_grid_pages();
   pages.erase(std::remove(pages.begin(), pages.end(), page), pages.end());
+  auto &titles = clock_bar_subpage_title_pages();
+  titles.erase(std::remove(titles.begin(), titles.end(), page), titles.end());
 }
 
 // Screen changes refresh the clock bar even when its reserved height is
@@ -290,9 +302,10 @@ inline ClockBarVisibility clock_bar_resolve_visibility(
   // resize the cards.
   // Subpages can show their title independently. Enabling the full Clock Bar
   // always shows it; the home screen follows only that full-bar setting.
-  const bool subpage_active = main_page_obj && lv_scr_act() != main_page_obj &&
-      clock_bar_active_on_button_grid_page(main_page_obj);
-  result.reserve_space = (enabled || (subpage_active && clock_bar_subpage_title_bar_enabled())) && !schedule_inactive;
+  const auto &title_pages = clock_bar_subpage_title_pages();
+  const bool subpage_title = main_page_obj && lv_scr_act() != main_page_obj &&
+      std::find(title_pages.begin(), title_pages.end(), lv_scr_act()) != title_pages.end();
+  result.reserve_space = (enabled || (subpage_title && clock_bar_subpage_title_bar_enabled())) && !schedule_inactive;
   result.visible = result.reserve_space &&
       (display_mode == espdesktop::DisplayMode::ACTIVE ||
        display_mode == espdesktop::DisplayMode::DIMMED) &&
