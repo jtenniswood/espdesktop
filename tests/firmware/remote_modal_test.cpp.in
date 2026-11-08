@@ -221,7 +221,6 @@ int main() {
     {"media", "speaker_group", "media_player.office", ControlModalKind::MEDIA_CONTROL},
     {"media", "cover_art", "media_player.office", ControlModalKind::MEDIA_CONTROL},
     {"media", "volume", "media_player.office", ControlModalKind::MEDIA_VOLUME},
-    {"image", "", "camera.office", ControlModalKind::IMAGE_CARD},
     {"alarm", "", "alarm_control_panel.office", ControlModalKind::ALARM_CONTROL},
     {"option_select", "", "select.office", ControlModalKind::OPTION_SELECT},
     {"wifi_qr", "", "switch.guest", ControlModalKind::WIFI_QR},
@@ -288,11 +287,7 @@ int main() {
       assert(!espdesktop_open_modal(test.entity, true));
       runtime.available = true;
     }
-    if (test.kind == ControlModalKind::IMAGE_CARD) {
-      runtime.image_ready = false; runtime.source_url = "http://example.test/image";
-      assert(espdesktop_open_modal(test.entity, true));
-      runtime.image_ready = true; runtime.source_url.clear();
-    }
+
     if (test.kind == ControlModalKind::WIFI_QR) {
       configs["test"].options = "invalid";
       const int old_closes = closes;
@@ -415,12 +410,13 @@ int main() {
   configs["suspended_image"] = {"camera.front", "image", "", ""};
   first.active = false; pipeline_suspended = true;
   homes = {{1, 0, "Camera", "suspended_image", &one}}; pages.clear();
-  assert(espdesktop_can_prepare_modal("camera.front", true));
+  assert(!espdesktop_can_prepare_modal("camera.front", true));
   assert(!espdesktop_can_open_modal("camera.front", true));
   assert(!espdesktop_can_prepare_modal("camera.missing", true));
   locked = true; assert(!espdesktop_can_prepare_modal("camera.front", true)); locked = false;
   alarm = true; assert(!espdesktop_can_prepare_modal("camera.front", true)); alarm = false;
   first.active = true; pipeline_suspended = false;
-  assert(espdesktop_open_modal("camera.front", true));
+  assert(!espdesktop_can_prepare_modal("camera.front", true));
+  assert(!espdesktop_open_modal("camera.front", true));
   return 0;
 }

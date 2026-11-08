@@ -110,25 +110,9 @@ inline bool espdesktop_can_prepare_modal(const std::string &entity_id, bool ui_r
   const std::string entity = navigation_trim(entity_id);
   if (!ui_ready || entity.empty() || screen_lock_enabled() || alarm_display_takeover_active()) return false;
   const auto selection = remote_modal_find(entity);
-  if (selection.slot != 0) return true; // Live availability is rechecked after waking.
-  if (!image_card_pipeline_suspended()) return false;
-  auto suspended_image = [&entity](const ParsedCfg &config) {
-    return config.type == "image" && config.entity == entity &&
-           (entity.rfind("camera.", 0) == 0 || entity.rfind("image.", 0) == 0);
-  };
-  for (const auto &target : navigation_home_targets()) {
-    if (target.button && !lv_obj_has_flag(target.button, LV_OBJ_FLAG_HIDDEN) &&
-        suspended_image(parse_cfg(target.config))) return true;
-  }
-  for (const auto &page : navigation_subpages()) {
-    const auto *parent = navigation_find_slot_target(page.slot);
-    if (!page.screen || !parent || !parent->button || lv_obj_has_flag(parent->button, LV_OBJ_FLAG_HIDDEN)) continue;
-    for (const auto &card : page.cards) {
-      if (card.button && !lv_obj_has_flag(card.button, LV_OBJ_FLAG_HIDDEN) &&
-          suspended_image(parsed_cfg_from_subpage_btn(card.definition))) return true;
-    }
-  }
-  return false;
+  // Live availability is rechecked after waking. Retired camera cards have
+  // no modal target and must not wake the panel through the former fallback.
+  return selection.slot != 0;
 }
 
 inline bool espdesktop_can_open_modal(const std::string &entity_id, bool ui_ready) {
