@@ -495,7 +495,7 @@ async function installRoutes(context, slug, options = {}) {
       const normalized = value => String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
       const events = nativeState ? nativeDocumentEvents(nativeState.document) : seededEvents();
       const event = events.find(event => normalized(event.id) === normalized(domain + "-" + name));
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(event || { id: domain + "-" + name, state: "" }) });
+      await route.fulfill(event ? { status: 200, contentType: "application/json", body: JSON.stringify(event) } : { status: 404, body: "Entity absent from this fixture" });
       return;
     }
     if (requestUrl.hostname === "espdesktop.test") {
