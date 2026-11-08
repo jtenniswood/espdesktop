@@ -1,3 +1,4 @@
+import { cardContractTypeRetired } from "../generated/card_contract";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
@@ -486,7 +487,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (!c.isSub || state.settingsDraft.homeSlot === state.editingSubpage)) {
                     b = state.settingsDraft.button;
                 }
-                if (!buttonTypeInfoOnlyVisible(b.type || "")) {
+                if (cardContractTypeRetired(b.type) || !buttonTypeInfoOnlyVisible(b.type || "")) {
                     var hidden: any = document.createElement("div");
                     hidden.className = "sp-empty-cell sp-info-only-hidden";
                     hidden.setAttribute("data-pos", pos);

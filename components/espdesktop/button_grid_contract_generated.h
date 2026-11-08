@@ -9,6 +9,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
+inline bool card_contract_type_retired(const std::string &type) { return type == "wifi_qr" || type == "wifi_qr_card"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {

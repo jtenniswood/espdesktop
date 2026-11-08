@@ -6800,7 +6800,11 @@
       "internal": "I",
       "subpage": "G",
       "screensaver": "SS"
-    }
+    },
+    "retiredCardTypes": [
+      "wifi_qr",
+      "wifi_qr_card"
+    ]
   },
   "entityNames": {
     "entities": [
