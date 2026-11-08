@@ -437,6 +437,7 @@ def test_native_home_assistant_api_is_absent(profile_slugs: list[str]) -> None:
         try:
             config = resolve_packages(load_yaml(path))
             assert "api" not in config, f"{path.name}: native Home Assistant API must be absent"
+            assert "dashboard_import" not in config, f"{path.name}: dashboard adoption requires the removed native API"
             for domain in ("sensor", "text_sensor", "binary_sensor", "time"):
                 assert all(item.get("platform") != "homeassistant" for item in config.get(domain, [])), (
                     f"{path.name}: {domain} still imports Home Assistant state"

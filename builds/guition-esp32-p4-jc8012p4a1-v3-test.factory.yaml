@@ -17,9 +17,6 @@ web_server:
   js_url: ""
   js_include: "../docs/public/webserver/embedded/www.js"
 
-dashboard_import:
-  package_import_url: github://jtenniswood/espdesktop/devices/guition-esp32-p4-jc8012p4a1-v3-test/esphome.yaml@test-jc8012p4a1-v3
-
 esp32:
   partitions: "../common/device/partitions_16mb_card_images.csv"
 
