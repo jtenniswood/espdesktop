@@ -83,10 +83,10 @@ const scheduleSettingsSource = fs.readFileSync(path.join(ROOT, "src", "webserver
 const screensaverSettingsSource = fs.readFileSync(path.join(ROOT, "src", "webserver", "application", "settings_page.ts"), "utf8");
 assert(previewStylesSource.includes("max-height:var(--btn-label-max-height)"), "button labels wrap within the device-matched label area");
 assert(!previewStylesSource.includes("-webkit-line-clamp:var(--btn-lines);"), "button labels do not show browser ellipses when clipped");
-assert(scheduleSettingsSource.includes('entityName("screen_schedule_sensor_entity")'), "Night Schedule posts its dedicated sensor entity");
-assert(scheduleSettingsSource.includes("state.scheduleSensorEntity"), "Night Schedule input receives its dedicated sensor value");
-assert(screensaverSettingsSource.includes('entityName("presence_sensor_entity")'), "Screensaver keeps posting its existing presence entity");
-assert(!scheduleSettingsSource.includes("state.presenceEntity"), "Night Schedule input does not mirror the Screensaver sensor value");
+assert(!scheduleSettingsSource.includes('entityName("screen_schedule_sensor_entity")'), "Night Schedule does not post retired sensor settings");
+assert(!scheduleSettingsSource.includes('["sensor", "Home Assistant"]'), "Night Schedule only offers local modes");
+assert(!screensaverSettingsSource.includes('entityName("presence_sensor_entity")'), "Screensaver does not post retired presence settings");
+assert(!screensaverSettingsSource.includes('["sensor", "Home Assistant"]'), "Screensaver only offers local modes");
 assert.strictEqual(
   hooks.backupExportFileName(new Date(2026, 5, 9)),
   "espdesktop-7-inch-2026-06-09.json",

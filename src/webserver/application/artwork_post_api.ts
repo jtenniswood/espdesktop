@@ -2,9 +2,7 @@ import { normalizeCoverArtDelay } from "../model/settings";
 import type { EntityStateFeature } from "./entity_state";
 import type { ApplicationApiFeature } from "./api";
 export interface ArtworkPostApiFeature {
-    postPresenceSensorEntity(value?: any): any;
     postMediaPlayerSleepPrevention(on?: any): any;
-    postMediaPlayerSleepPreventionEntity(value?: any): any;
     postCoverArtScreensaver(on?: any): any;
     postCoverArtSource(value?: any): any;
     coverArtDelayPostUrls(value?: any): any;
@@ -20,14 +18,8 @@ export function createArtworkPostApiFeature(
     const { entityName, entityObjectIds, entityPostUrls } = entityState;
     const { post, postTextWithObjectIds, postSwitchWithObjectIds, postSelectWithObjectIds } = requestApi;
     // ── Artwork Post API ──────────────────────────────────────────────────
-    function postPresenceSensorEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("presence_sensor_entity"), entityObjectIds("presence_sensor_entity"), value);
-    }
     function postMediaPlayerSleepPrevention(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_media_player_sleep_prevention"), entityObjectIds("screen_saver_media_player_sleep_prevention"), on);
-    }
-    function postMediaPlayerSleepPreventionEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("media_player_sleep_prevention_entity"), entityObjectIds("media_player_sleep_prevention_entity"), value);
     }
     function postCoverArtScreensaver(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_cover_art"), entityObjectIds("screen_saver_cover_art"), on);
@@ -49,9 +41,7 @@ export function createArtworkPostApiFeature(
         return post(coverArtTrackOverlayDurationPostUrls(value));
     }
     return {
-        postPresenceSensorEntity,
         postMediaPlayerSleepPrevention,
-        postMediaPlayerSleepPreventionEntity,
         postCoverArtScreensaver,
         postCoverArtSource,
         coverArtDelayPostUrls,
