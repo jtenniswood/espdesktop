@@ -471,7 +471,6 @@ inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
   }
 }
 
-inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p);
 
 inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                  uint32_t sensor_color = theme_display_color(current_theme().surface_secondary)) {
@@ -542,15 +541,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   companion_apply_card_focus(s.btn, p.entity, p.sensor);
 }
 
-inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p) {
-  std::string label = p.label.empty()
-    ? (p.entity.empty() ? espdesktop_i18n_key(std::string("label_local_action")) : sentence_cap_text(p.entity))
-    : p.label;
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Gesture Tap") : find_icon(p.icon.c_str());
-  lv_label_set_display_text(s.icon_lbl, icon_cp);
-  apply_push_button_transition(s.btn);
-}
+
 
 
 

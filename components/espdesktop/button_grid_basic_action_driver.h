@@ -1,19 +1,17 @@
 #pragma once
 
-// Local actions, webhooks and Mac Companion controls.
+// Webhooks and Mac Companion controls.
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
-// Contract coverage markers: type == "", "action", "alarm_action",
+// Contract coverage markers: type == "", "alarm_action",
 // "companion", "fan_switch", "light_switch", "push", "webhook".
 
 namespace espdesktop::cards {
 
 inline bool basic_action_driver_matches(const Context &context,
-                                        const ParsedCfg &config) {
+                                        const ParsedCfg &) {
   using Driver = card_runtime::CardDriverId;
   switch (context.runtime.driver) {
-    case Driver::ACTION:
-      return config.type == "local" || action_card_local_action(config);
     case Driver::COMPANION:
     case Driver::WEBHOOK:
       return true;
@@ -30,17 +28,6 @@ inline bool basic_action_driver_setup_visual(
   switch (context.runtime.driver) {
     case Driver::COMPANION:
       setup_companion_card(slot, config, sensor_color);
-      break;
-    case Driver::ACTION:
-      if (config.type == "local" || action_card_local_action(config)) {
-        setup_local_action_card(slot, config);
-      } else {
-        lv_label_set_display_text(slot.icon_lbl, find_icon("Monitor Off"));
-        const std::string label = config.label.empty() ? espdesktop_i18n("Unavailable")
-            : config.label + "\n" + espdesktop_i18n("Unavailable");
-        lv_label_set_display_text(slot.text_lbl, label.c_str());
-        lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
-      }
       break;
     default:
       setup_toggle_visual(slot, config);
@@ -107,8 +94,6 @@ inline bool basic_action_driver_bind_main(
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
-    case Driver::ACTION:
-      break;
     default:
       break;
   }
@@ -191,22 +176,6 @@ inline bool basic_action_driver_bind_subpage(
       }, click);
       break;
     }
-    case Driver::ACTION: {
-      if (!config.entity.empty() &&
-          (config.type == "local" || !config.sensor.empty())) {
-        ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-          ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
-          if (!card) return;
-          if (card->type == "local") {
-            send_local_action(card->entity);
-          } else {
-            send_action_card_action(*card);
-          }
-        }, click);
-      }
-      break;
-    }
     default:
       break;
   }
@@ -252,15 +221,6 @@ inline bool basic_action_driver_handle_main_click(
       }
       break;
     }
-    case Driver::ACTION:
-      if (config.type == "local") {
-        if (!config.entity.empty()) send_local_action(config.entity);
-      } else if (action_card_local_action(config)) {
-        if (!config.entity.empty()) send_local_action(config.entity);
-      } else {
-        send_action_card_action(config);
-      }
-      break;
     case Driver::WEBHOOK:
       send_webhook_action(config);
       break;

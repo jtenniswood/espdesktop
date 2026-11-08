@@ -1,5 +1,5 @@
-# Local actions
+# Action Cards Removed
 
-An Action card runs a callback registered in the panel firmware. Choose **Action**, select an available local action, and save the card. See [Local Actions](./local-actions) for supported keys and firmware registration.
+Action cards, including Local Action and legacy Option Select modes, are no longer supported. Saved Action cards are removed from layouts and backups so their spaces can be reused.
 
-Saved Home Assistant script, scene, automation and helper actions are retired. Their saved settings remain in layouts and backups, but tapping them does not send a service call. Replace the card to choose a local action.
+Use [Companion](./companion) for Mac apps and keyboard shortcuts, or [Webhook](./webhooks) for a direct HTTP request.

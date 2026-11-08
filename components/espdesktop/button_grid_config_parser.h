@@ -19,7 +19,6 @@
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
 #include "app_shortcuts_generated.h"
-#include "button_grid_saved_config_action_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
 #include "button_grid_saved_config_weather_generated.h"
@@ -1425,7 +1424,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   // Retired Mac playback cards become empty slots, including inside subpages.
   if (p.type == "companion" && (p.entity == "media.play_pause" ||
       p.entity == "media.previous" || p.entity == "media.next")) return ParsedCfg{};
-  migrate_saved_config_action_legacy(p);
   const bool normalized_saved_fan = normalize_saved_config_fan(
       p, normalize_saved_config_fan_fields, fan_control_card_options_normalized);
   const bool was_legacy_weather_forecast = migrate_saved_config_weather_legacy(p);
@@ -1450,8 +1448,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
   normalize_saved_config_subpage(
       p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);
-  normalize_saved_config_action(p, normalize_saved_config_action_fields,
-                                action_card_options_normalized);
   if (p.type == "companion") {
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {

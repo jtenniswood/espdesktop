@@ -55,7 +55,7 @@ void sensor_driver_register_local_value(BtnSlot &, const ParsedCfg &) { ++local_
 }
 '''
 parser = (firmware/'button_grid_config_parser.h').read_text()
-production = definition(parser, 'action_card_local_action')[1]
+production = ''
 production += definition(actions, 'send_slider_action')[1] + numeric
 production += '\nnamespace espdesktop::cards {\n'
 production += definition(basic, 'basic_action_driver_matches')[1]
@@ -64,11 +64,9 @@ checks = r'''
 int main() {
  using namespace espdesktop::cards;
  using Driver = card_runtime::CardDriverId;
- Context c{{Driver::ACTION}};
- ParsedCfg config{"action","mute","local","","",""};
- assert(basic_action_driver_matches(c,config));
- config.sensor = "script.turn_on"; assert(!basic_action_driver_matches(c,config));
- for (Driver retired : {Driver::TOGGLE,Driver::PUSH,Driver::ALARM_ACTION,Driver::FAN,Driver::INTERNAL,Driver::SCREEN_LOCK,Driver::SCREENSAVER}) { c.runtime.driver = retired; assert(!basic_action_driver_matches(c,config)); }
+ Context c{{Driver::COMPANION}};
+ ParsedCfg config;
+ for (Driver retired : {Driver::ACTION,Driver::TOGGLE,Driver::PUSH,Driver::ALARM_ACTION,Driver::FAN,Driver::INTERNAL,Driver::SCREEN_LOCK,Driver::SCREENSAVER}) { c.runtime.driver = retired; assert(!basic_action_driver_matches(c,config)); }
  for (Driver local : {Driver::COMPANION,Driver::WEBHOOK}) { c.runtime.driver = local; assert(basic_action_driver_matches(c,config)); }
  lv_obj_t button, container, slider, icon, label; container.data = &slider;
  BtnSlot slot{&button,&container,&icon,&label}; CardPalette palette; DisplayProfile display;

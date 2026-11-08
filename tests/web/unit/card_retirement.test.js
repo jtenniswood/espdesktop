@@ -37,9 +37,8 @@ test("retired editors cannot mutate saved cards or create controls", () => {
     }
   } finally { global.document=previous; }
 });
-test("local action, Mac slider and Date & Time editors remain active", () => {
+test("Mac slider and Date & Time editors remain active", () => {
   for (const card of [
-    {type:"action",sensor:"local",entity:"zoom_mute"},
     {type:"slider",entity:"media.output_volume"},
     {type:"slider",entity:"media.input_volume"},
     {type:"calendar",entity:"sensor.date"},

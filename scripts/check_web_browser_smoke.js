@@ -8801,6 +8801,29 @@ async function assertRetiredCardRemoval(browser) {
 
     } finally { await context.close(); }
   }
+  for (const testCase of ACTIVE_CASES) {
+    const nativeState = nativeConfigState(testCase.slug);
+    nativeState.document.buttons = { 2: ";Clock;Clock;Auto;;;clock" };
+    nativeState.document.subpages = {};
+    nativeState.document.settings.button_order = "2";
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    // Even a stale device capability cannot restore the retired connector/cards.
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
+      await page.waitForSelector(".sp-settings-modal");
+      assert.strictEqual(await page.getByRole("button", { name: "Action card type", exact: true }).count(), 0);
+      assert.strictEqual(await page.getByRole("button", { name: "Local Action card type", exact: true }).count(), 0);
+      assert(!/Home Assistant/i.test(await page.locator(".sp-settings-modal").innerText()),
+        `${testCase.name}: new-card picker offers no HA integration or wording`);
+    } finally { await context.close(); }
+  }
+  console.log(`Action/HA picker absence passed for ${ACTIVE_CASES.length} layouts.`);
   console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
 }
 

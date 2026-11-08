@@ -11,7 +11,6 @@ This generated reference lists stable setup facts from the shared card contract.
 |---|---|---|---|---|---|---|
 | Timer | timer | timer | Yes | Own picker item | None | Hidden |
 | Switch | switch | light, switch, input_boolean, fan | Yes | Own picker item | Large Active Display Numbers; Confirmation Required: default, off, on, both; On State Pattern: default, stripes; Message; Confirm Button; Cancel Button | Hidden |
-| Local Action | action | None | Yes | Own picker item | None | Visible |
 | Vacuum | vacuum | vacuum | Yes | Own picker item | Type: status, start_stop, start_dock, dock, pause_resume, clean_spot, locate, clean_area | Hidden |
 | Lawn Mower | lawn_mower | lawn_mower | Yes | Own picker item | Type: status, start_mowing, dock, pause_resume | Hidden |
 | Alarm | alarm | alarm_control_panel | Yes | Own picker item | Type: control_panel, away, home, night, vacation, disarm; PIN required for arming; PIN required for disarming; Visible Actions: away, home, night, vacation, disarm; Icon Display: static, status; Label Display: name, status | Hidden |
@@ -37,7 +36,6 @@ This generated reference lists stable setup facts from the shared card contract.
 | Lights | light_control | light | Yes | Lights (light_brightness) | Visible Tabs: power, brightness, temperature, color | Hidden |
 | Lock | lock | lock | Yes | Own picker item | Type: default, lock, unlock | Hidden |
 | Media | media | media_player | Yes | Own picker item | None | Hidden |
-| Option Select | option_select | select, input_select | Yes | Own picker item | None | Hidden |
 | Trigger | push | None | Yes | Own picker item | None | Hidden |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label; Large icon with title | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |

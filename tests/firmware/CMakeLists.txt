@@ -634,8 +634,6 @@ add_test(NAME companion_artwork_contract_test COMMAND
 add_test(NAME companion_artwork_contract_self_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_companion_artwork.py --self-test)
 
-add_test(NAME local_action_dispatch_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/local_action_dispatch_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)
 

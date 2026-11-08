@@ -9,6 +9,8 @@ harness=r'''
 #include <cassert>
 #include <string>
 #include "retired_home_assistant_cards.h"
+#include "button_grid_contract_generated.h"
+bool card_runtime_type_retired(const std::string &type) { return card_contract_type_retired(type); }
 #define ESP_LOGI(...) ((void)0)
 #define ESP_LOGE(...) ((void)0)
 struct ParsedCfg { std::string type,entity,sensor,label,options; } current;
@@ -28,6 +30,7 @@ for fixture in fixtures:
     c=fixture['card']; fields=','.join(json.dumps(c.get(k,'')) for k in ('type','entity','sensor','label','options'))
     harness+='current={'+fields+'}; assert(retired_home_assistant_card(current)=='+str(fixture['retired']).lower()+');\n'
     if fixture['retired']: harness+='handle_button_click("saved",1,nullptr);\n'
+harness+='for (const auto *type : {"action", "local", "option_select", "A", "U"}) { current={type,"old.entity","local","Saved action","keep=old"}; assert(card_runtime_type_retired(current.type)); handle_button_click("saved",1,nullptr); }\n'
 harness+='}\n'
 with tempfile.TemporaryDirectory() as directory:
     cpp=Path(directory)/'test.cpp'; exe=Path(directory)/'test'; cpp.write_text(harness)

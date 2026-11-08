@@ -4,13 +4,7 @@
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
-// Action cards now invoke only explicitly registered local functions. Legacy
-// Home Assistant service names remain readable in saved layouts but inert.
-inline void send_action_card_action(const ParsedCfg &config) {
-  if (action_card_local_action(config) && !config.entity.empty()) {
-    send_local_action(config.entity);
-  }
-}
+
 
 using WebhookHeaders = std::vector<esphome::http_request::Header>;
 using WebhookSender = std::function<bool(const std::string &, const std::string &,
@@ -161,7 +155,7 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
   if (espdesktop::screensaver_pin().locked()) return;
   (void) btn_obj;
   ParsedCfg p = parse_cfg(cfg);
-  if (retired_home_assistant_card(p)) return;
+  if (card_runtime_type_retired(p.type) || retired_home_assistant_card(p)) return;
   const auto context = card_runtime_context(p);
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",
            slot_num, p.type.c_str(), p.entity.c_str(), p.sensor.c_str(), p.label.c_str());

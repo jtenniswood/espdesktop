@@ -38,8 +38,6 @@ function editor() {
   loadTypescriptTest("src/webserver/cards/switch.ts").registerSwitchCardTypes(registry, confirmation, lightCards, fields);
   loadTypescriptTest("src/webserver/cards/slider.ts").registerSliderCardTypes(
     registry, tabs, lightCards, fields, { inlineDisclosure: () => element() }, true, ui);
-  loadTypescriptTest("src/webserver/cards/action.ts").registerActionCardTypes(
-    registry, fields);
   const webhook = loadTypescriptTest("src/webserver/application/config_webhook_options.ts")
     .createConfigWebhookOptionsFeature();
   loadTypescriptTest("src/webserver/cards/webhook.ts").registerWebhookCardTypes(registry, webhook, fields, ui);
@@ -95,14 +93,6 @@ test("retired robot and fan editors keep their saved mode and colour", () => {
 
 
 
-test("Replacing a legacy action with a local card keeps its colour and clears service options", () => {
-  const e = editor();
-  const button = { type: "action", sensor: "scene.turn_on", entity: "scene.movie", icon: "Flash", options: "state_entity=sensor.old,card_off_color=00BCD4" };
-  e.registry.definitions.action.onSelect(button);
-  assert.equal(button.sensor, "local");
-  assert.equal(button.entity, "");
-  assert.equal(button.options, "card_off_color=00BCD4");
-});
 
 test("Light mode initializers retain the colour across every supported mode", () => {
   const types = ["light_control", "light_switch", "light_brightness", "light_temperature"];

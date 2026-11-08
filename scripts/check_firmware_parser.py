@@ -24,7 +24,6 @@ CONTRACT_HEADER = ROOT / "components" / "espdesktop" / "button_grid_contract_gen
 CARD_RUNTIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_runtime.h"
 CARD_REGISTRY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_registry.h"
 SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_vacuum_generated.h"
-SAVED_CONFIG_ACTION_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_action_generated.h"
 SAVED_CONFIG_MEDIA_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
 SAVED_CONFIG_STATIC_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
 SAVED_CONFIG_FAN_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
@@ -1126,7 +1125,6 @@ def main() -> int:
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
         shutil.copy2(CARD_REGISTRY_HEADER, tmp_path / "button_grid_card_registry.h")
         shutil.copy2(SAVED_CONFIG_VACUUM_HEADER, tmp_path / "button_grid_saved_config_vacuum_generated.h")
-        shutil.copy2(SAVED_CONFIG_ACTION_HEADER, tmp_path / "button_grid_saved_config_action_generated.h")
         shutil.copy2(SAVED_CONFIG_MEDIA_HEADER, tmp_path / "button_grid_saved_config_media_generated.h")
         shutil.copy2(SAVED_CONFIG_STATIC_HEADER, tmp_path / "button_grid_saved_config_static_generated.h")
         shutil.copy2(SAVED_CONFIG_FAN_HEADER, tmp_path / "button_grid_saved_config_fan_generated.h")

@@ -10,47 +10,23 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "S", "LS", "I", "SL", "SS"];
+export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "S", "LS", "I", "SL", "SS", "A", "U"];
 export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || ""); }
 export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_webhook_fields", "normalize_webhook_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
-  "legacy_local_action": {
+  "legacy_weather_forecast": {
     "when": [
       {
         "source": "field",
         "name": "type",
         "operator": "equals",
-        "value": "local"
+        "value": "weather_forecast"
       }
     ],
     "set": {
-      "type": "action",
-      "sensor": "local",
-      "unit": "",
-      "precision": "",
-      "options": "",
-      "icon_on": "Auto"
-    },
-    "hook": "normalize_action_fields"
-  },
-  "legacy_option_select": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "option_select"
-      }
-    ],
-    "set": {
-      "type": "action",
-      "sensor": "input_select.select_option",
-      "unit": "",
-      "precision": "",
-      "options": "",
-      "icon_on": "Auto"
-    },
-    "hook": "normalize_action_fields"
+      "type": "weather",
+      "precision": "tomorrow"
+    }
   },
   "legacy_vacuum_start": {
     "when": [
@@ -101,23 +77,9 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
       "icon_on": "Auto"
     },
     "hook": "normalize_vacuum_fields"
-  },
-  "legacy_weather_forecast": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "weather_forecast"
-      }
-    ],
-    "set": {
-      "type": "weather",
-      "precision": "tomorrow"
-    }
   }
 };
-export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS", "I", "SL", "SS"] as const;
+export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS", "I", "SL", "SS", "A", "U"] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
@@ -266,248 +228,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "sensor": "",
       "unit": "",
       "type": "",
-      "precision": "",
-      "options": ""
-    }
-  },
-  "action": {
-    "label": "Local Action",
-    "allowInSubpage": true,
-    "domains": [],
-    "options": [
-      {
-        "name": "large_numbers",
-        "hidden": true,
-        "docsHidden": true,
-        "label": "Large State Numbers",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicabilityHook": "action_large_numbers_supported"
-      },
-      {
-        "name": "state_entity",
-        "label": "State Entity",
-        "kind": "text",
-        "hidden": true,
-        "docsHidden": true,
-        "omitDefault": true
-      },
-      {
-        "name": "state_unit",
-        "label": "State Unit",
-        "kind": "text",
-        "hidden": true,
-        "docsHidden": true,
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "option",
-            "name": "state_entity",
-            "operator": "present"
-          },
-          {
-            "source": "option",
-            "name": "state_precision",
-            "operator": "in",
-            "value": [
-              "icon",
-              "text"
-            ],
-            "negate": true
-          }
-        ]
-      },
-      {
-        "name": "state_precision",
-        "label": "State Precision",
-        "kind": "choice",
-        "values": [
-          "",
-          "0",
-          "1",
-          "2",
-          "icon",
-          "text"
-        ],
-        "defaultValue": "",
-        "hidden": true,
-        "docsHidden": true,
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "option",
-            "name": "state_entity",
-            "operator": "present"
-          }
-        ]
-      },
-      {
-        "name": "confirmation_required",
-        "hidden": true,
-        "docsHidden": true,
-        "label": "Confirmation Required",
-        "kind": "flag",
-        "storage": [
-          "confirm_on"
-        ],
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          }
-        ]
-      },
-      {
-        "name": "script_fields",
-        "hidden": true,
-        "docsHidden": true,
-        "label": "Fields",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          }
-        ]
-      },
-      {
-        "name": "confirm_message",
-        "hidden": true,
-        "docsHidden": true,
-        "label": "Message",
-        "kind": "text",
-        "defaultValue": "Run this script?",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          },
-          {
-            "source": "option",
-            "name": "confirm_on",
-            "operator": "present"
-          }
-        ]
-      },
-      {
-        "name": "confirm_yes",
-        "hidden": true,
-        "docsHidden": true,
-        "label": "Confirm Button",
-        "kind": "text",
-        "defaultValue": "Yes",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          },
-          {
-            "source": "option",
-            "name": "confirm_on",
-            "operator": "present"
-          }
-        ]
-      },
-      {
-        "name": "confirm_no",
-        "hidden": true,
-        "docsHidden": true,
-        "label": "Cancel Button",
-        "kind": "text",
-        "defaultValue": "No",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          },
-          {
-            "source": "option",
-            "name": "confirm_on",
-            "operator": "present"
-          }
-        ]
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "keep"
-        },
-        "icon": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "icon_on": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "sensor": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "unit": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "type": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "precision": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_action_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "state_entity",
-        "state_unit",
-        "state_precision",
-        "large_numbers",
-        "script_fields",
-        "confirm_on",
-        "confirm_message",
-        "confirm_yes",
-        "confirm_no"
-      ],
-      "optionHook": "normalize_action_options",
-      "migrationActions": [
-        "legacy_local_action",
-        "legacy_option_select",
-        "legacy_vacuum_start",
-        "legacy_vacuum_dock"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Gesture Tap",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "action",
       "precision": "",
       "options": ""
     }
@@ -2897,26 +2617,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "hidden": true
   },
-  "option_select": {
-    "label": "Option Select",
-    "allowInSubpage": true,
-    "hidden": true,
-    "domains": [
-      "select",
-      "input_select"
-    ],
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "input_select.select_option",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
   "push": {
     "hidden": true,
     "label": "Trigger",
@@ -3751,18 +3451,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "action": {
-    "driver": "action",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": false,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": true,
-      "subpage": true
-    }
-  },
   "vacuum": {
     "driver": "vacuum",
     "capabilities": {
@@ -4089,18 +3777,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "playlist": "media_playlist"
     }
   },
-  "option_select": {
-    "driver": "option_select",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": true,
-      "subpage": true
-    }
-  },
   "push": {
     "driver": "push",
     "capabilities": {
@@ -4211,10 +3887,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
   }
 };
 export const CARD_CONTRACT_MIGRATION_ALIASES: Readonly<Record<string, Partial<CardConfig>>> = {
-  "option_select": {
-    "type": "action",
-    "sensor": "input_select.select_option"
-  },
   "weather_forecast": {
     "type": "weather",
     "precision": "tomorrow"
@@ -4236,7 +3908,6 @@ export const CARD_CONTRACT_OPTION_SELECT_ACTION = "input_select.select_option";
 export const CARD_CONTRACT_OPTION_SELECT_ACTIONS = ["input_select.select_option", "select.select_option"] as const;
 export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> = {
   "timer": "TM",
-  "action": "A",
   "calendar": "D",
   "clock": "CK",
   "timezone": "T",
@@ -4244,7 +3915,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "presence": "PR",
   "weather": "W",
   "weather_forecast": "F",
-  "option_select": "U",
   "fan_switch": "B",
   "fan_speed": "J",
   "fan_control": "FC",
@@ -4274,7 +3944,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
   "TM": "timer",
-  "A": "action",
   "D": "calendar",
   "CK": "clock",
   "T": "timezone",
@@ -4282,7 +3951,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "PR": "presence",
   "W": "weather",
   "F": "weather_forecast",
-  "U": "option_select",
   "B": "fan_switch",
   "J": "fan_speed",
   "FC": "fan_control",
@@ -4312,7 +3980,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
   "": true,
-  "action": true,
   "calendar": true,
   "clock": true,
   "climate": true,
@@ -4338,7 +4005,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "confirm_on": "confirm_on",
   "confirm_yes": "confirm_yes",
   "confirmation_mode": "confirmation_mode",
-  "confirmation_required": "confirmation_required",
   "cover_art_details": "cover_art_details",
   "cover_art_secondary_entity": "cover_art_secondary_entity",
   "cover_mode": "cover_mode",
@@ -4378,14 +4044,10 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "playlist_player_source": "playlist_player_source",
   "power_entity": "power_entity",
   "rainfall_source": "rainfall_source",
-  "script_fields": "script_fields",
   "speaker_group_entity": "speaker_group_entity",
   "stat_labels_off": "stat_labels_off",
-  "state_entity": "state_entity",
   "state_high_label": "state_high_label",
   "state_low_label": "state_low_label",
-  "state_precision": "state_precision",
-  "state_unit": "state_unit",
   "subpage_connector": "subpage_connector",
   "subpage_kind": "subpage_kind",
   "temperature_step": "temperature_step",

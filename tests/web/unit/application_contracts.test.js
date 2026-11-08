@@ -425,7 +425,6 @@ describe("browserless application contracts", () => {
       ["lawn_mower", "registerLawnMowerCardTypes"],
       ["presence", "registerPresenceCardTypes"],
       ["push", "registerPushCardTypes"],
-      ["action", "registerActionCardTypes"],
       ["alarm", "registerAlarmCardTypes"],
       ["climate", "registerClimateCardTypes"],
       ["fan", "registerFanCardTypes"],
@@ -475,9 +474,8 @@ describe("browserless application contracts", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const migration = fs.readFileSync(path.join(ROOT, "src/webserver/application/native_panel_config_migration.ts"), "utf8");
     const deviceConfig = fs.readFileSync(path.join(ROOT, "src/webserver/device_config.ts"), "utf8");
-    const action = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
     assert.match(entry, /new EventSource\("\/events", \{ withCredentials: true \}\)/);
-    for (const source of [migration, deviceConfig, action]) {
+    for (const source of [migration, deviceConfig]) {
       assert.match(source, /credentials: "include"/);
     }
   });
@@ -737,28 +735,13 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_CARD_METADATA|appendEditSubpageButton|subpageBadgeLabelHtml):/);
   });
 
-  test("registers action cards through context-owned action options", () => {
+  test("does not register Action cards or their local action endpoint", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
-    const options = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_confirmation_options.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    const { createConfigConfirmationOptionsFeature } = loadTypescriptTest(
-      "src/webserver/application/config_confirmation_options.ts",
-    );
-    const actionOptions = createConfigConfirmationOptionsFeature({
-      normalizeGarageOptions: (value) => value,
-      connectGarageConfirmationNormalizer: () => {},
-    });
-    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
-    assert.match(options, /const actionCardActions/);
-    assert.equal(actionOptions.actionCardEntityMatchesAction("number.target_level", "number.set_value"), true);
-    assert.equal(actionOptions.actionCardEntityMatchesAction("number.target_level", "input_number.set_value"), false);
-    assert.equal(actionOptions.actionCardEntityMatchesAction("", "input_number.set_value"), true);
-    assert.doesNotMatch(card, /actionCardEntityMatchesAction|scene\.turn_on|script\.turn_on/);
-    assert.match(entry, /registerActionCardTypes\(registry, fields\)/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerActionCardTypes/);
-    assert.match(entry, /actionCardStateEntity: \(button\) => confirmationOptions\.actionCardStateEntity\(button\)/);
-    assert.doesNotMatch(globals, /\bvar (?:ACTION_CARD_ACTIONS|ACTION_CARD_METADATA|actionCardInfo|actionCardIsLocal|actionCardIsOptionSelect|actionCardNeedsExtraValue|actionCardStateDisplayMode|actionCardStateEntity|actionCardStatePrecision|actionCardStateUnit|normalizeActionCardConfig|normalizeSavedConfigActionFields|renderActionCardLocalSettings|setActionCardStateOptions):/);
+    const runtime = fs.readFileSync(path.join(ROOT, "components/espdesktop/espdesktop_app.cpp"), "utf8");
+    assert.doesNotMatch(entry, /registerActionCardTypes/);
+    assert.doesNotMatch(runtime, /register_local_action_endpoint/);
+    assert.equal(fs.existsSync(path.join(ROOT, "src/webserver/cards/action.ts")), false);
+    assert.equal(fs.existsSync(path.join(ROOT, "components/espdesktop/button_grid_local_controls.h")), false);
   });
 
   test("preserves number action changes during editor rerenders", () => {
@@ -846,17 +829,6 @@ describe("browserless application contracts", () => {
     assert.match(core, /export \{/);
   });
 
-  test("imports action-card option storage without mutable globals", () => {
-    const contract = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_action_contract.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
-    const options = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_confirmation_options.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    assert.match(contract, /export const ACTION_CARD_LOCAL_ACTION/);
-    assert.doesNotMatch(card, /ConfigConfirmationOptionsFeature/);
-    assert.match(options, /from "\.\/config_action_contract"/);
-    assert.doesNotMatch(card, /liveGlobal\(\(\) => ACTION_CARD_(?:LOCAL_ACTION|OPTION_SELECT_ACTION|STATE_)/);
-    assert.doesNotMatch(globals, /var ACTION_CARD_(?:LOCAL_ACTION|OPTION_SELECT_ACTION|STATE_)/);
-  });
 
   test("imports cover mode and position rules without card globals", () => {
     const contract = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_cover_contract.ts"), "utf8");
@@ -1152,7 +1124,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /fields = createControlsFieldsFeature\(cards, configurationOptions, shell, requestApi\)/);
     assert.doesNotMatch(entry, /fields\.globals|installControlsFieldsModule/);
     assert.doesNotMatch(globals, /\bvar (?:makeCollapsibleCard|fieldLabel|textInput|fieldWithControl|selectField|segmentControl|colorField|toggleRow|applyCardMetadataFields|renderBasicCardFields|cardSensorPreviewHtml|cardBadgeLabelHtml|cardBadgePreview|condField|createRangeSlider):/);
-    for (const file of ["action.ts", "calendar.ts", "switch.ts", "weather.ts"]) {
+    for (const file of ["calendar.ts", "switch.ts", "weather.ts"]) {
       const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards", file), "utf8");
       assert.match(card, /ControlsFieldsFeature/, `${file} should receive the shared-fields service`);
     }
