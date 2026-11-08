@@ -3768,6 +3768,11 @@ def gen_device_grid_snippet(capability):
 
 
 def gen_device_install_snippet(capability):
+    from release_devices import load_release_devices
+    if capability["installSlug"] not in load_release_devices():
+        return (generated_markdown_header("SCREEN INSTALL BUTTON") +
+                "> This device is planned for a future release. The first release supports "
+                "only the [4-inch S3 4848S040](/screens/4848s040).\n")
     return (
         generated_markdown_header("SCREEN INSTALL BUTTON") +
         f'<EspInstallButton slug="{capability["installSlug"]}" />\n'

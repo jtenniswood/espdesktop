@@ -25,6 +25,8 @@ import urllib.error
 import urllib.request
 from urllib.parse import urljoin
 
+from release_devices import load_release_devices
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MANIFEST = ROOT / "devices" / "manifest.json"
@@ -207,7 +209,11 @@ def load_slugs(path: Path) -> list[str]:
     devices = data.get("devices")
     if not isinstance(devices, dict) or not devices:
         raise PublicFirmwareError(f"{path} must contain a non-empty devices object")
-    return sorted(devices)
+    released = load_release_devices()
+    unknown = set(released) - devices.keys()
+    if unknown:
+        raise PublicFirmwareError(f"Unknown release device(s): {sorted(unknown)}")
+    return sorted(released)
 
 
 def load_recovery_slugs(path: Path) -> set[str]:
@@ -328,6 +334,7 @@ def write_recovery_manifest(directory: Path, slug: str) -> None:
 
 
 def self_test() -> None:
+    assert load_slugs(DEFAULT_MANIFEST) == load_release_devices()
     with TemporaryDirectory() as tmp:
         base = Path(tmp)
         write_manifest(base / "firmware" / "required-panel", "required-panel")

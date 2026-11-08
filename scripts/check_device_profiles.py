@@ -9,6 +9,8 @@ from pathlib import Path
 
 import yaml
 
+from release_devices import load_release_devices
+
 import device_matrix
 import generate_device_slots
 from device_profiles import (
@@ -156,7 +158,11 @@ def test_public_device_capabilities(profile_slugs: list[str]) -> None:
         else:
             assert "Touch subpages are not available" in grid, f"{stem}: grid snippet missing no-subpage note"
         assert "| Capability | Value |" not in grid, f"{stem}: grid snippet must not include a device specs table"
-        assert f'slug="{capability["installSlug"]}"' in install, f"{stem}: install snippet missing slug"
+        if capability["installSlug"] in load_release_devices():
+            assert f'slug="{capability["installSlug"]}"' in install, f"{stem}: install snippet missing slug"
+        else:
+            assert "planned for a future release" in install
+            assert "<EspInstallButton" not in install
 
 
 def test_generated_web(profiles: dict[str, dict]) -> None:
@@ -1053,7 +1059,7 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
     release = device_matrix.release_matrix(profiles)
     nightly = device_matrix.nightly_matrix(profiles)
     pr = device_matrix.pr_matrix(profiles)
-    assert_profile_slugs(profile_slugs, [entry["slug"] for entry in release["include"]], "release matrix")
+    assert_profile_slugs(load_release_devices(), [entry["slug"] for entry in release["include"]], "release matrix")
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in nightly["include"]], "nightly matrix")
     pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr["include"]]
     expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
@@ -1062,7 +1068,7 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
 
 
 def test_public_firmware_slugs(profile_slugs: list[str]) -> None:
-    assert sorted(profile_slugs) == check_public_firmware.load_slugs(ROOT / "devices" / "manifest.json")
+    assert sorted(load_release_devices()) == check_public_firmware.load_slugs(ROOT / "devices" / "manifest.json")
 
 
 def main() -> int:
