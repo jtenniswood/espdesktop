@@ -40,7 +40,7 @@ void lv_indev_get_vect(lv_indev_t *p,lv_point_t *out) { *out=p->vector; }
 int lv_obj_get_height(lv_obj_t *o) { return o->height; }
 int lv_obj_get_width(lv_obj_t *o) { return o->width; }
 bool lv_obj_is_valid(lv_obj_t *o) { return o->valid; }
-void lv_event_send(lv_obj_t *o, int code, void *data) {
+void lv_obj_send_event(lv_obj_t *o, int code, void *data) {
   assert(o == &back_button && code == LV_EVENT_PRESSED && data == nullptr);
   // The rest of this press must be consumed before the Back/Close action runs.
   assert(waited == returned + 1);

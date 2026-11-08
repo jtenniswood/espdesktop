@@ -230,7 +230,7 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
       // Use the page's Back/Close action so special pages return to their
       // previous screen and ordinary/app subpages keep their existing behavior.
       lv_indev_wait_release(indev);
-      lv_event_send(entry.back_button, LV_EVENT_PRESSED, nullptr);
+      lv_obj_send_event(entry.back_button, LV_EVENT_PRESSED, nullptr);
       return;
     }
   } else if (direction == LV_DIR_TOP) {
