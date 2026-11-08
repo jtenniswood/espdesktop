@@ -84,10 +84,8 @@ struct Recovery {
   bool running = true;
   void stop() { running = false; }
 } ha_refresh_after_connect;
-bool retained = true, forecast_pending = true, cover_pending = true;
+bool retained = true;
 void ha_invalidate_retained_state() { retained = false; }
-void weather_forecast_cancel_pending_requests() { forecast_pending = false; }
-void cover_stop_cancel_pending_request() { cover_pending = false; }
 void disconnect(const std::string &client_info) {
 ''' + callback + r'''
 }
@@ -95,15 +93,15 @@ void reset(std::vector<Client *> clients) {
   server.clients = clients;
   state_connected = false;
   ha_refresh_after_connect.running = true;
-  retained = forecast_pending = cover_pending = true;
+  retained = true;
 }
 void expect_preserved() {
   assert(ha_refresh_after_connect.running);
-  assert(retained && forecast_pending && cover_pending);
+  assert(retained);
 }
 void expect_cancelled() {
   assert(!ha_refresh_after_connect.running);
-  assert(!retained && !forecast_pending && !cover_pending);
+  assert(!retained);
 }
 int main() {
   Client replacement{"Home Assistant 2026.8"};

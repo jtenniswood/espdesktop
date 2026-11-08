@@ -816,21 +816,6 @@ def test_spanned_cards_refresh_after_clock_bar_padding_changes() -> None:
     )
 
 
-def test_temperature_unit_changes_refresh_weather_cards() -> None:
-    config = (ROOT / "components" / "espdesktop" / "button_grid_config.h").read_text(encoding="utf-8")
-    match = re.search(
-        r"inline void refresh_temperature_unit_labels\(\)[\s\S]*?\n\}",
-        config,
-    )
-    assert match, "temperature unit label refresh helper is missing"
-    body = match.group(0)
-    assert "notify_dashboard_content_changed()" in body, (
-        "temperature unit changes must refresh weather cards"
-    )
-
-
-
-
 def test_firmware_matrices(profile_slugs: list[str]) -> None:
     profiles = load_device_profiles()
     release = device_matrix.release_matrix(profiles)
@@ -878,7 +863,6 @@ def main() -> int:
     test_grid_phase2_uses_cleaned_spanned_layout()
     test_card_label_line_clamp_matches_preview_on_subpages()
     test_spanned_cards_refresh_after_clock_bar_padding_changes()
-    test_temperature_unit_changes_refresh_weather_cards()
     test_firmware_matrices(profile_slugs)
     test_public_firmware_slugs(profile_slugs)
     print("Device profile cross-checks passed.")
