@@ -71,9 +71,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "border-radius:var(--radius);position:relative;overflow:hidden;" +
         "box-shadow:0 2px 20px rgba(0,0,0,.35);border:2px solid var(--surface);" +
         "container-type:inline-size;font-family:Roboto,sans-serif;user-select:none}" +
-        ".sp-special-page-name{display:block;margin:12px auto 0;padding:4px 8px;border:0;background:none;" +
-        "color:var(--text2);font:inherit;font-size:var(--text-sm);cursor:pointer}.sp-special-page-name:hover{color:var(--text)}" +
-        ".sp-special-page-name:focus-visible{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-config-locked .sp-screen{filter:grayscale(1) brightness(.58);opacity:.62;pointer-events:none}" +
         ".sp-config-locked .sp-screen::after{content:'';position:absolute;inset:0;background:rgba(80,80,84,.28);z-index:5}" +
         ".sp-topbar{position:absolute;top:0;left:0;right:0;height:var(--grid-top,var(--topbar-h));box-sizing:border-box;" +
@@ -290,9 +287,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal::-webkit-scrollbar-thumb{background:#fff;border-radius:999px}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
         "height:100%;margin:0;border-radius:0;border:none}}" +
-        ".sp-rename-dialog{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:.875rem;line-height:1.5;box-sizing:border-box;padding:var(--gap);margin:auto;width:calc(100% - 40px);max-width:420px;max-height:80dvh;height:fit-content;border:1px solid var(--border);border-radius:var(--radius);color:var(--text)}" +
-        ".sp-rename-dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
-        ".sp-rename-dialog .sp-section-title{padding-right:40px}.sp-rename-dialog .sp-field{margin-bottom:0}.sp-rename-error:empty{display:none}" +
         ".sp-settings-close{position:absolute;top:10px;right:12px;width:36px;height:36px;" +
         "border-radius:999px;border:1px solid var(--border);background:var(--surface2);" +
         "color:var(--text2);display:flex;align-items:center;justify-content:center;" +

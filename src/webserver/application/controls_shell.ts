@@ -167,13 +167,6 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
-        var specialPageName: any = document.createElement("button");
-        specialPageName.type = "button";
-        specialPageName.className = "sp-special-page-name";
-        specialPageName.setAttribute("aria-label", "Rename Special Page");
-        specialPageName.hidden = true;
-        els.specialPageName = specialPageName;
-        page.appendChild(specialPageName);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =
