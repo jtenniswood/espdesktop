@@ -1,10 +1,13 @@
 #include "app_icon_store.h"
+#include "app_icon_codec.h"
 
 #include <algorithm>
 #include <cstring>
 
 #ifdef USE_ESP32
 #include <esp_partition.h>
+#include <esp_heap_caps.h>
+#include "esphome/core/helpers.h"
 #include <mbedtls/sha256.h>
 #endif
 
@@ -41,6 +44,69 @@ bool application_id_valid(const std::string &application_id) {
 AppIconStore &app_icon_store() {
   static AppIconStore store;
   return store;
+}
+
+void AppIconStore::PixelDeleter::operator()(uint8_t *pixels) const {
+#ifdef USE_ESP32
+  RAMAllocator<uint8_t> allocator(RAMAllocator<uint8_t>::ALLOC_EXTERNAL);
+  allocator.deallocate(pixels, capacity);
+#else
+  (void)pixels;
+#endif
+}
+
+int AppIconStore::find_memory_locked(const std::string &application_id) const {
+  for (size_t index = 0; index < memory_entries_.size(); ++index)
+    if (memory_entries_[index].pixels && memory_entries_[index].application_id == application_id)
+      return static_cast<int>(index);
+  return -1;
+}
+
+bool AppIconStore::save_memory_locked(const std::string &application_id,
+                                     const std::array<uint8_t, 32> &hash, const uint8_t *pixels,
+                                     std::string *evicted_application_id) {
+#ifdef USE_ESP32
+  const int existing = find_memory_locked(application_id);
+  auto selected = existing >= 0 ? memory_entries_.begin() + existing :
+      std::find_if(memory_entries_.begin(), memory_entries_.end(), [](const MemoryEntry &entry) {
+        return !entry.pixels;
+      });
+  if (selected == memory_entries_.end())
+    selected = std::min_element(memory_entries_.begin(), memory_entries_.end(),
+        [](const MemoryEntry &a, const MemoryEntry &b) { return a.last_used < b.last_used; });
+  constexpr size_t pixel_count = APP_ICON_SIDE * APP_ICON_SIDE;
+  const size_t packed_bytes = app_icon_codec::encoded_size(pixels, pixel_count);
+  const bool compressed = packed_bytes < APP_ICON_PIXEL_BYTES;
+  const size_t stored_bytes = compressed ? packed_bytes : APP_ICON_PIXEL_BYTES;
+  if (!selected->pixels || selected->pixels.get_deleter().capacity < stored_bytes) {
+    // Never spill icon buffers into the internal heap or consume drawing/transfer headroom.
+    const unsigned caps = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;
+    if (heap_caps_get_free_size(caps) < APP_ICON_MEMORY_HEADROOM_BYTES + stored_bytes ||
+        heap_caps_get_largest_free_block(caps) < stored_bytes) return false;
+    RAMAllocator<uint8_t> allocator(RAMAllocator<uint8_t>::ALLOC_EXTERNAL);
+    std::unique_ptr<uint8_t, PixelDeleter> replacement(
+        allocator.allocate(stored_bytes), PixelDeleter{stored_bytes});
+    if (!replacement) return false;
+    selected->pixels = std::move(replacement);
+  }
+  if (evicted_application_id && !selected->application_id.empty() &&
+      selected->application_id != application_id)
+    *evicted_application_id = selected->application_id;
+  if (compressed) {
+    if (!app_icon_codec::encode(pixels, pixel_count, selected->pixels.get(), stored_bytes)) return false;
+  } else {
+    std::memcpy(selected->pixels.get(), pixels, APP_ICON_PIXEL_BYTES);
+  }
+  selected->stored_bytes = stored_bytes;
+  selected->compressed = compressed;
+  selected->application_id = application_id;
+  selected->hash = hash;
+  selected->last_used = ++access_sequence_;
+  return true;
+#else
+  (void)application_id; (void)hash; (void)pixels; (void)evicted_application_id;
+  return false;
+#endif
 }
 
 bool AppIconStore::begin() {
@@ -131,6 +197,7 @@ bool AppIconStore::scan_locked() {
     target->hash = hash;
     target->slot = static_cast<uint16_t>(slot);
     target->valid = true;
+    target->last_used = ++access_sequence_;
   }
   (void)partition;
   return true;
@@ -160,18 +227,18 @@ int AppIconStore::free_slot_locked() const {
 }
 
 int AppIconStore::unreferenced_slot_locked() const {
-  int first_valid = -1;
+  const Entry *oldest = nullptr;
   for (const auto &entry : entries_) {
     if (!entry.valid) continue;
-    if (first_valid < 0) first_valid = entry.slot;
+    if (!oldest || entry.last_used < oldest->last_used) oldest = &entry;
     std::string application_id;
     if (!read_header_locked(entry.slot, &application_id, nullptr)) return entry.slot;
     if (std::find(references_.begin(), references_.end(), application_id) == references_.end())
       return entry.slot;
   }
-  // All records are cache entries: even an icon used by a card can be fetched
-  // again, so never let active references make the image cache non-evictable.
-  return first_valid;
+  // Prefer the least recently read icon once all records are referenced.
+  // Always replacing the first slot leaves newer apps fighting over one record.
+  return oldest ? oldest->slot : -1;
 }
 
 bool AppIconStore::erase_slot_locked(uint16_t slot) {
@@ -197,6 +264,9 @@ void AppIconStore::set_references(const std::vector<std::string> &application_id
   for (const auto &id : application_ids)
     if (application_id_valid(id) && std::find(references_.begin(), references_.end(), id) == references_.end())
       references_.push_back(id);
+  for (auto &entry : memory_entries_)
+    if (entry.pixels && std::find(references_.begin(), references_.end(), entry.application_id) == references_.end())
+      entry = {};
   for (const auto &entry : entries_) {
     if (!entry.valid) continue;
     std::string id;
@@ -220,6 +290,9 @@ void AppIconStore::set_enabled_applications(const std::vector<std::string> &appl
     if (application_id_valid(id) &&
         std::find(enabled_applications_.begin(), enabled_applications_.end(), id) == enabled_applications_.end())
       enabled_applications_.push_back(id);
+  for (auto &entry : memory_entries_)
+    if (entry.pixels && std::find(enabled_applications_.begin(), enabled_applications_.end(), entry.application_id) == enabled_applications_.end())
+      entry = {};
   for (const auto &entry : entries_) {
     if (!entry.valid) continue;
     std::string id;
@@ -233,6 +306,11 @@ bool AppIconStore::hash_for(const std::string &application_id,
                             std::array<uint8_t, 32> *hash) const {
   if (!hash) return false;
   std::lock_guard<std::mutex> lock(mutex_);
+  const int memory_slot = find_memory_locked(application_id);
+  if (memory_slot >= 0) {
+    *hash = memory_entries_[memory_slot].hash;
+    return true;
+  }
   const int slot = find_locked(application_id);
   if (slot < 0) return false;
   const auto entry = std::find_if(entries_.begin(), entries_.end(), [slot](const Entry &candidate) {
@@ -255,6 +333,19 @@ bool AppIconStore::copy_pixels(const std::string &application_id,
 #ifdef USE_ESP32
   if (!output || capacity < APP_ICON_PIXEL_BYTES) return false;
   std::lock_guard<std::mutex> lock(mutex_);
+  const int memory_slot = find_memory_locked(application_id);
+  if (memory_slot >= 0) {
+    auto &entry = memory_entries_[memory_slot];
+    if (entry.compressed) {
+      if (!app_icon_codec::decode(entry.pixels.get(), entry.stored_bytes, output, APP_ICON_SIDE * APP_ICON_SIDE))
+        return false;
+    } else {
+      std::memcpy(output, entry.pixels.get(), APP_ICON_PIXEL_BYTES);
+    }
+    entry.last_used = ++access_sequence_;
+    if (copied_hash) *copied_hash = entry.hash;
+    return true;
+  }
   const int slot = find_locked(application_id);
   if (slot < 0) return false;
   const auto *partition = static_cast<const esp_partition_t *>(partition_);
@@ -273,6 +364,7 @@ bool AppIconStore::copy_pixels(const std::string &application_id,
     }
     entry->pixels_verified = true;
   }
+  entry->last_used = ++access_sequence_;
   if (copied_hash) *copied_hash = entry->hash;
   return true;
 #else
@@ -315,6 +407,7 @@ bool AppIconStore::write_slot_locked(uint16_t slot, const std::string &applicati
   entry.hash = hash;
   entry.slot = slot;
   entry.valid = true;
+  entry.last_used = ++access_sequence_;
   entry.pixels_verified = false;
   return true;
 #else
@@ -339,6 +432,9 @@ bool AppIconStore::save(const std::string &application_id,
   std::lock_guard<std::mutex> lock(mutex_);
   if (!available_ || std::find(references_.begin(), references_.end(), application_id) == references_.end() ||
       std::find(enabled_applications_.begin(), enabled_applications_.end(), application_id) == enabled_applications_.end()) return false;
+  const int memory_slot = find_memory_locked(application_id);
+  if (memory_slot >= 0 && save_memory_locked(application_id, hash, pixels, evicted_application_id))
+    return true;
   const int old_slot = find_locked(application_id);
   if (old_slot >= 0) {
     const auto old = std::find_if(entries_.begin(), entries_.end(), [old_slot](const Entry &entry) {
@@ -347,6 +443,11 @@ bool AppIconStore::save(const std::string &application_id,
     if (old != entries_.end() && old->hash == hash) return true;
   }
   int slot = free_slot_locked();
+  // Keep flash records across reboot; use external RAM for additional apps
+  // rather than repeatedly overwriting those records when a setup grows.
+  if (slot < 0 && old_slot < 0 && memory_slot < 0 &&
+      save_memory_locked(application_id, hash, pixels, evicted_application_id))
+    return true;
   if (slot < 0) slot = unreferenced_slot_locked();
   if (slot < 0) slot = old_slot;
   std::string evicted_id;
@@ -357,6 +458,9 @@ bool AppIconStore::save(const std::string &application_id,
   }
   if (slot < 0 || !write_slot_locked(static_cast<uint16_t>(slot), application_id, hash, pixels)) return false;
   if (old_slot >= 0 && old_slot != slot) erase_slot_locked(static_cast<uint16_t>(old_slot));
+  // Keep the old RAM copy authoritative until flash persistence succeeds.
+  // Once persisted, remove it so hash/pixel reads cannot shadow the new artwork.
+  if (memory_slot >= 0) memory_entries_[memory_slot] = {};
   if (evicted_application_id) *evicted_application_id = std::move(evicted_id);
   return true;
 #else
@@ -371,6 +475,8 @@ bool AppIconStore::save(const std::string &application_id,
 
 bool AppIconStore::remove(const std::string &application_id) {
   std::lock_guard<std::mutex> lock(mutex_);
+  const int memory_slot = find_memory_locked(application_id);
+  if (memory_slot >= 0) memory_entries_[memory_slot] = {};
   const int slot = find_locked(application_id);
   return slot < 0 || erase_slot_locked(static_cast<uint16_t>(slot));
 }
@@ -378,6 +484,7 @@ bool AppIconStore::remove(const std::string &application_id) {
 bool AppIconStore::clear_cache() {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!available_) return false;
+  for (auto &entry : memory_entries_) entry = {};
   bool cleared = true;
   for (size_t slot = 0; slot < slot_count_; ++slot) {
     const bool occupied = std::any_of(entries_.begin(), entries_.end(), [slot](const Entry &entry) {
