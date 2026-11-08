@@ -82,6 +82,7 @@ export function createAppStateEventHandlersFeature(
     grid: Pick<GridFeature, "applyButtonOrderValue">,
     settingsHelpers: Pick<SettingsPageHelpersFeature, "syncAlarmDelayAudioUi" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">,
     preview: Pick<PreviewRenderFeature, "render">,
+    leaveSwipeUpPage: () => void,
 ): AppStateEventHandlersFeature {
     const { syncAlarmDelayAudioUi, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = settingsHelpers;
     const { render: renderPreview } = preview;
@@ -216,7 +217,7 @@ export function createAppStateEventHandlersFeature(
             },
             "switch-screen__swipe_up_page": function (this: any, val?: any, d?: any) {
                 state.swipeUpPageOn = d.value === true || val === "ON";
-                if (!state.swipeUpPageOn && state.editingSubpage === -1) state.editingSubpage = null;
+                if (!state.swipeUpPageOn) leaveSwipeUpPage();
                 syncClockBarUi();
                 renderPreview();
             },

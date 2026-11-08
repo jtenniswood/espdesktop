@@ -8807,6 +8807,15 @@ async function assertSpecialPageEntry(browser, testCase) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await openPage();
 
+    await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await page.locator(".sp-settings-overlay.sp-visible").waitFor();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-swipe_up_page_enabled", state: "OFF", value: false },
+    ]));
+    await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay")?.classList.contains("sp-visible"));
+    assert.strictEqual(await page.locator(".sp-back-btn").count(), 0, "remote disable returns the editor home");
+    assert.strictEqual(await toggle.isChecked(), false, "remote disable updates the setting");
     assert.strictEqual(nativeState.document.settings.special_page, savedPage, "toggling keeps saved swipe-up cards");
     console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
 

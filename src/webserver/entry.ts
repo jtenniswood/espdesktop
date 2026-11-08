@@ -757,6 +757,11 @@ function composeApplicationContext(): ApplicationContext {
     canApply: () => !grid.hasPendingMainGridSave(),
   });
   configurationCodec.connectNativePageRefresh(() => nativePages.refresh());
+  const leaveSwipeUpPage = () => {
+    if (state.editingSubpage !== -1) return;
+    selection.closeSettings();
+    configurationCodec.exitSubpage();
+  };
   const stateEventHandlers = createAppStateEventHandlersFeature(
     runtime,
     core,
@@ -773,6 +778,7 @@ function composeApplicationContext(): ApplicationContext {
     grid,
     settingsHelpers,
     preview,
+    leaveSwipeUpPage,
   );
   const backupModel = createBackupFeature({
     deviceId: layout.deviceId,
@@ -989,7 +995,7 @@ function composeApplicationContext(): ApplicationContext {
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
-    systemSection, preview, connectorsPage,
+    systemSection, preview, connectorsPage, leaveSwipeUpPage,
   );
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
