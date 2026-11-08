@@ -103,7 +103,6 @@ struct CoverArtPlaybackControl {
   bool retains_pause(const std::string &) const { return false; }
   void reset() {}
 } cover_art_playback_control;
-bool alarm_display_takeover_active() { return espdesktop_app.display().takeover_active(DisplayTakeoverKind::CRITICAL); }
 void image_card_resume_pipeline() {}
 // SCHEDULE_HELPERS
 Script cover_art_playback_started;

@@ -703,12 +703,12 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return alarm_display_takeover_active();'
+            lambda: 'return id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL);'
           then:
             - logger.log:
                 level: DEBUG
                 tag: cover_art
-                format: "Skipping cover art while alarm display takeover is active"
+                format: "Skipping cover art while a critical display takeover is active"
             - script.stop: show_cover_art_view
       - if:
           condition:
@@ -909,7 +909,7 @@ script:
                        false,
                        false,
                        schedule_blocks,
-                       alarm_display_takeover_active()) &&
+                       id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL)) &&
                      (id(cover_art_manual_pause_until_ms) == 0 ||
                       (int32_t)(id(cover_art_manual_pause_until_ms) - millis()) <= 0);
           then:
@@ -990,7 +990,7 @@ script:
                   false,
                   false) &&
                   !schedule_blocks &&
-                  !alarm_display_takeover_active();
+                  !id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL);
           then:
             - if:
                 condition:

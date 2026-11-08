@@ -451,8 +451,7 @@ script:
                        id(screensaver_mode).state != "sensor")) &&
                      display.target_mode_is(espdesktop::DisplayMode::ACTIVE) &&
                      !display.takeover_active(espdesktop::DisplayTakeoverKind::INTERACTIVE) &&
-                     !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL) &&
-                     !alarm_display_takeover_active();
+                     !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL);
           then:
             - script.execute: cover_art_start_delay
 
@@ -797,7 +796,7 @@ script:
                   lambda: |-
                     return id(espdesktop_app).display().target_mode_is(
                                espdesktop::DisplayMode::COVER_ART) ||
-                           alarm_display_takeover_active() ||
+                           id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL) ||
                            (id(cover_art_screensaver_enabled).state &&
                             id(media_player_sleep_prevention_enabled).state &&
                             id(cover_art_media_playing));
@@ -1143,7 +1142,7 @@ script:
             - lambda: |-
                 if (!id(connectivity_setup_display_active) &&
                     !id(button_order).state.empty() &&
-                    !alarm_display_takeover_active()) {
+                    !id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL)) {
                   navigation_return_home(id(main_page)->obj);
                 }
 
@@ -1160,7 +1159,7 @@ script:
               return lv_disp_get_inactive_time(NULL) >= (uint32_t)(val * 1000);
           then:
             - lambda: |-
-                if (!alarm_display_takeover_active()) {
+                if (!id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL)) {
                   navigation_return_home(id(main_page)->obj);
                 }
           else:
@@ -1323,7 +1322,7 @@ script:
                       cover_art_disabled_mode_delay) &&
                      id(cover_art_media_playing) &&
                      id(cover_art_screensaver_enabled).state &&
-                     !alarm_display_takeover_active();
+                     !id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL);
           then:
             - script.execute: cover_art_start_delay
 

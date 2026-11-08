@@ -79,7 +79,6 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
     navigation_path = firmware_dir / "button_grid_navigation.h"
     grid_path = firmware_dir / "button_grid_grid.h"
     image_path = firmware_dir / "button_grid_image.h"
-    alarm_path = firmware_dir / "button_grid_alarm.h"
     backlight_path = root / "common" / "addon" / "backlight.yaml"
     schedule_path = root / "common" / "addon" / "backlight_schedule.yaml"
     generator_path = root / "scripts" / "generate_device_slots.py"
@@ -162,25 +161,14 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
             errors.append(
                 "components/espdesktop/button_grid_navigation.h: return-home navigation must use the shared modal close path"
             )
-        if (
-            "navigation_close_modals_for_display_takeover" not in text
-            or "control_modal_close_for_display_takeover(alarm_display_takeover_active());" not in text
-        ):
+        takeover_close = re.search(
+            r"inline\s+void\s+navigation_close_modals_for_display_takeover\s*\(\s*\)\s*\{(?P<body>.*?)\n\}",
+            text, re.S,
+        )
+        if takeover_close is None or "control_modal_force_close_active();" not in takeover_close.group("body"):
             errors.append(
-                "components/espdesktop/button_grid_navigation.h: preserve alarm controls only during an active alarm takeover"
+                "components/espdesktop/button_grid_navigation.h: close active shared controls during display takeover"
             )
-
-    if not alarm_path.exists():
-        errors.append("components/espdesktop/button_grid_alarm.h: wire critical display takeovers")
-    else:
-        text = alarm_path.read_text(encoding="utf-8")
-        if (
-            "begin_display_takeover" not in text
-            or "end_display_takeover" not in text
-            or "DisplayTakeoverKind::CRITICAL" not in text
-            or "critical_takeover_active" not in text
-        ):
-            errors.append("components/espdesktop/button_grid_alarm.h: use typed critical takeover hooks")
 
     if not grid_path.exists():
         errors.append("components/espdesktop/button_grid_grid.h: register the display-takeover modal hook")
@@ -618,7 +606,7 @@ def valid_sleep_takeover_files() -> dict[str, str]:
             "  return true;\n"
             "}\n"
             "inline void navigation_close_modals_for_display_takeover() {\n"
-            "  control_modal_close_for_display_takeover(alarm_display_takeover_active());\n"
+            "  control_modal_force_close_active();\n"
             "}\n"
         ),
         "components/espdesktop/button_grid_grid.h": (
@@ -629,14 +617,6 @@ def valid_sleep_takeover_files() -> dict[str, str]:
             "std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;\n"
             "ctx->begin_display_takeover(espdesktop::DisplayTakeoverKind::INTERACTIVE);\n"
             "ctx->end_display_takeover(espdesktop::DisplayTakeoverKind::INTERACTIVE);\n"
-        ),
-        "components/espdesktop/button_grid_alarm.h": (
-            "std::function<void(espdesktop::DisplayTakeoverKind)> begin_display_takeover;\n"
-            "std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;\n"
-            "bool critical_takeover_active = false;\n"
-            "ctx->begin_display_takeover(espdesktop::DisplayTakeoverKind::CRITICAL);\n"
-            "ctx->end_display_takeover(espdesktop::DisplayTakeoverKind::CRITICAL);\n"
-            "ControlModalDismissPolicy::PRESERVE_DURING_DISPLAY_TAKEOVER\n"
         ),
         "common/addon/backlight.yaml": (
             "globals:\n"
@@ -813,29 +793,6 @@ def run_self_test() -> int:
         "grid_track_media_slider_runtime",
         "grid_delete_media_slider_with_owner",
     ))
-    valid_alarm_cleanup = (
-        "inline void grid_delete_alarm_card_runtime_ptr(void *ptr);\n"
-        "inline AlarmCardCtx *grid_delete_alarm_card_with_owner();\n"
-        "inline AlarmCardCtx *grid_track_alarm_card_runtime();\n"
-        "inline void grid_delete_alarm_card_runtime_ptr(void *ptr) {\n"
-        "  AlarmControlModalUi &control_ui = alarm_control_modal_ui();\n"
-        "  if (control_ui.active == ctx) alarm_control_hide_modal();\n"
-        "  AlarmPinModalUi &pin_ui = alarm_pin_modal_ui();\n"
-        "  if (pin_ui.active->card == ctx) alarm_pin_hide_modal();\n"
-        "  AlarmDeferredAction &deferred = alarm_deferred_action();\n"
-        "  if (deferred.action.card == ctx) lv_timer_del(deferred.timer);\n"
-        "  alarm_release_arming_takeover(ctx);\n"
-        "  lv_timer_del(ctx->arm_delay_timer);\n"
-        "  lv_timer_del(ctx->pending_action_timer);\n"
-        "  grid_delete_transient_status_label(ctx->status_label);\n"
-        "}\n"
-        "inline void delete_alarm_action() {\n"
-        "  grid_delete_alarm_card_runtime_ptr(ctx);\n"
-        "}\n"
-        "inline void delete_alarm_subpage() {\n"
-        "  grid_delete_alarm_card_runtime_ptr(ctx);\n"
-        "}\n"
-    )
     expect_sleep_takeover_errors(
         "missing display takeover close",
         {
@@ -849,7 +806,7 @@ def run_self_test() -> int:
         (
             "expose an early display-takeover modal hook",
             "centralize modal dismissal policy for display takeover",
-            "preserve alarm controls only during an active alarm takeover",
+            "close active shared controls during display takeover",
             "register the display-takeover modal hook",
             "close modals before manual or scheduled display-off",
             "close modals before scheduled sleep and clock takeover",
@@ -860,18 +817,18 @@ def run_self_test() -> int:
         valid_sleep_takeover_files(),
         (),
     )
-    unconditional_alarm_preservation = valid_sleep_takeover_files()
+    missing_takeover_close = valid_sleep_takeover_files()
     navigation_path = "components/espdesktop/button_grid_navigation.h"
-    unconditional_alarm_preservation[navigation_path] = unconditional_alarm_preservation[
-        navigation_path
-    ].replace(
-        "control_modal_close_for_display_takeover(alarm_display_takeover_active());",
-        "control_modal_close_for_display_takeover();",
+    missing_takeover_close[navigation_path] = missing_takeover_close[navigation_path].replace(
+        "inline void navigation_close_modals_for_display_takeover() {\n"
+        "  control_modal_force_close_active();\n"
+        "}",
+        "inline void navigation_close_modals_for_display_takeover() {}",
     )
     expect_sleep_takeover_errors(
-        "manual alarm modal preservation",
-        unconditional_alarm_preservation,
-        ("preserve alarm controls only during an active alarm takeover",),
+        "missing shared modal close on display takeover",
+        missing_takeover_close,
+        ("close active shared controls during display takeover",),
     )
     expect_network_status_version_errors(
         "raw local firmware version leaks",

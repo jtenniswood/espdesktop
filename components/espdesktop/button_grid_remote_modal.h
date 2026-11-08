@@ -73,7 +73,6 @@ inline bool remote_modal_resolve(const std::string &entity_id, bool ui_ready,
   if (entity.empty()) reason = "empty entity ID";
   else if (!ui_ready) reason = "display is not ready";
   else if (screen_lock_enabled()) reason = "screen is locked";
-  else if (alarm_display_takeover_active()) reason = "alarm display is active";
   if (reason) {
     ESP_LOGW("open_modal", "Rejected request: %s", reason);
     return false;
@@ -97,7 +96,7 @@ inline bool remote_modal_resolve(const std::string &entity_id, bool ui_ready,
 
 inline bool espdesktop_can_prepare_modal(const std::string &entity_id, bool ui_ready) {
   const std::string entity = navigation_trim(entity_id);
-  if (!ui_ready || entity.empty() || screen_lock_enabled() || alarm_display_takeover_active()) return false;
+  if (!ui_ready || entity.empty() || screen_lock_enabled()) return false;
   const auto selection = remote_modal_find(entity);
   // Live availability is rechecked after waking. Retired camera cards have
   // no modal target and must not wake the panel through the former fallback.
@@ -126,10 +125,6 @@ inline bool espdesktop_open_modal(const std::string &entity_id, bool ui_ready) {
 }
 
 inline void espdesktop_close_modal() {
-  if (alarm_display_takeover_active()) {
-    ESP_LOGW("close_modal", "Rejected request: alarm display is active");
-    return;
-  }
   control_modal_close_nested_menu();
   control_modal_force_close_active();
 }
@@ -141,7 +136,6 @@ inline bool remote_subpage_resolve(const std::string &label, bool ui_ready,
   if (wanted.empty()) reason = "empty subpage label";
   else if (!ui_ready) reason = "display is not ready";
   else if (screen_lock_enabled()) reason = "screen is locked";
-  else if (alarm_display_takeover_active()) reason = "alarm display is active";
   if (reason) {
     ESP_LOGW("open_subpage", "Rejected request: %s", reason);
     return false;
@@ -186,10 +180,6 @@ inline bool espdesktop_open_subpage(const std::string &label, bool ui_ready,
 inline bool espdesktop_close_subpage(lv_obj_t *main_page_obj) {
   if (screen_lock_enabled()) {
     ESP_LOGW("close_subpage", "Rejected request: screen is locked");
-    return false;
-  }
-  if (alarm_display_takeover_active()) {
-    ESP_LOGW("close_subpage", "Rejected request: alarm display is active");
     return false;
   }
   if (navigation_active_subpage_slot() == 0) {

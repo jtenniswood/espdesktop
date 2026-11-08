@@ -12,7 +12,7 @@ script:
       - script.wait: screensaver_wake
       - lambda: |-
           if (!grid_phase2_complete() || navigation_home_targets().empty() ||
-              alarm_display_takeover_active() || screen_lock_enabled()) return;
+              screen_lock_enabled()) return;
           espdesktop_navigate(target, id(main_page)->obj);
       - script.execute: screensaver_idle_check
       - script.execute: home_screen_idle_check

@@ -62,7 +62,6 @@ assert "apply_current_theme();" not in registration
 modal = (firmware / "button_grid_modal.h").read_text(encoding="utf-8")
 network = (firmware / "network_status.h").read_text(encoding="utf-8")
 climate = (firmware / "button_grid_climate.h").read_text(encoding="utf-8")
-alarm = (firmware / "button_grid_alarm.h").read_text(encoding="utf-8")
 for marker in ("register_theme_grid", "register_theme_hud", "navigation_subpages()",
                "theme_restyle_tree(entry.back_button", "theme_restyle_tree(card.button",
                "readable_text_color_for_bg(current_button_primary_color())",
@@ -77,6 +76,5 @@ for marker in ("register_theme_refresh(ui.overlay, network_status_apply_theme",
                "theme_display_color(theme.surface_card)", "theme.text_primary"):
     assert marker in network, marker
 assert "control_modal_track_theme_disabled(btn)" in climate
-assert "current_theme().surface_primary" in alarm
 
 print("Theme refresh ownership checks passed.")

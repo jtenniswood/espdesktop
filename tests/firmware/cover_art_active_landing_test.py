@@ -25,8 +25,7 @@ struct Toggle { bool state; } cover_art_screensaver_enabled{true};
 struct Text { std::string state; } cover_art_media_player_entity{"media_player.test"}, screensaver_mode{"off"};
 Toggle media_player_sleep_prevention_enabled{false};
 uint32_t cover_art_manual_pause_until_ms = 0;
-bool cover_art_media_playing = true, cover_art_companion_source_active = true, alarm = false;
-bool alarm_display_takeover_active() { return alarm; }
+bool cover_art_media_playing = true, cover_art_companion_source_active = true;
 #define id(x) x
 bool rearm() {
 '''
@@ -37,7 +36,7 @@ void reset() {
   espdesktop_app.controller = {};
   cover_art_screensaver_enabled.state = true;
   cover_art_media_playing = true; cover_art_companion_source_active = true;
-  cover_art_media_player_entity.state = "media_player.test"; alarm = false;
+  cover_art_media_player_entity.state = "media_player.test";
   screensaver_mode.state = "off"; media_player_sleep_prevention_enabled.state = false;
   cover_art_manual_pause_until_ms = 0;
 }
@@ -60,7 +59,6 @@ int main() {
     display.begin_takeover(kind); assert(!rearm());
     display.end_takeover(kind); assert(rearm());
   }
-  reset(); alarm = true; assert(!rearm()); alarm = false; assert(rearm());
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DIMMED, DisplayMode::DISPLAY_OFF}) {
     reset(); espdesktop_app.display().request(DisplayRequestSource::IDLE_TIMER, mode);
     assert(!rearm());

@@ -81,14 +81,13 @@ std::string navigation_trim(const std::string &s) {
   auto first = s.find_first_not_of(" \r\n\t");
   return first == std::string::npos ? "" : s.substr(first, s.find_last_not_of(" \r\n\t") - first + 1);
 }
-bool locked = false, alarm = false, fail_open = false, phase2_ready = true;
+bool locked = false, fail_open = false, phase2_ready = true;
 bool pipeline_suspended = false;
 bool image_card_pipeline_suspended() { return pipeline_suspended; }
 bool grid_phase2_complete() { return phase2_ready; }
 bool ha_connected = true;
 bool ha_api_state_connected() { return ha_connected; }
 bool screen_lock_enabled() { return locked; }
-bool alarm_display_takeover_active() { return alarm; }
 ControlModalActiveState<lv_obj_t> modal;
 lv_obj_t overlay, home, other_page;
 lv_obj_t *current_page = &home;
@@ -215,9 +214,6 @@ int main() {
   assert(!espdesktop_can_prepare_modal("switch.guest", true));
   assert(!espdesktop_open_modal("switch.guest", true));
   locked=false;
-  alarm=true;
-  assert(!espdesktop_can_prepare_modal("switch.guest", true));
-  alarm=false;
   assert(!espdesktop_open_modal("switch.missing", true));
   assert(!espdesktop_can_prepare_modal("switch.guest", false));
   return 0;

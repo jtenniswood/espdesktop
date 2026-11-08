@@ -61,7 +61,6 @@
 #include "button_grid_media.h"
 #include "button_grid_subpages.h"
 #include "network_status.h"
-#include "button_grid_alarm.h"
 #include "screensaver_pin_ui.h"
 #include "button_grid_navigation.h"
 #include "theme_runtime_ui.h"
