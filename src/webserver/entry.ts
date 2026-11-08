@@ -123,7 +123,6 @@ import { registerPresenceCardTypes } from "./cards/presence";
 import { registerPushCardTypes } from "./cards/push";
 import { registerScreensaverCardTypes } from "./cards/screensaver";
 import { registerScreenLockCardTypes } from "./cards/screen_lock";
-import { registerSensorCardTypes } from "./cards/sensor";
 import { registerSliderCardTypes } from "./cards/slider";
 import { registerSubpageCardTypes } from "./cards/subpage";
 import { registerSwitchCardTypes } from "./cards/switch";
@@ -216,8 +215,6 @@ function registerCards(context: ApplicationContext) {
   registerPushCardTypes(registry, fields);
   registerScreenLockCardTypes(registry, fields, context.dom.document, context.dom.fetch);
   registerScreensaverCardTypes(registry, fields);
-  registerSensorCardTypes(registry, context.configuration.options, fields, cardUi,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerSliderCardTypes(
     registry,
     context.configuration.modalTabs,

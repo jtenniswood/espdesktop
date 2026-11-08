@@ -9007,10 +9007,46 @@ async function assertSpecialPageRename(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertRetiredCardRemoval(browser) {
+  const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
+  const types = [...(contract.retiredCardTypes || []), ...contract.retiredSubpageTypeCodes];
+  const testCase = ACTIVE_CASES[0];
+  for (const type of types) {
+    const nativeState = nativeConfigState(testCase.slug);
+    nativeState.document.buttons = {
+      1: `old.entity;Retired;Gauge;Auto;sensor.old;C;${type};1;old=value`,
+      2: "light.lamp;Neighbour;Lightbulb;Auto",
+      3: ";Room;Folder;Auto;;;subpage",
+    };
+    nativeState.document.settings.button_order = "1,2,3";
+    nativeState.document.subpages = {
+      3: `~B,1,2|${type},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
+    };
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old main tile is removed`);
+      assert(await page.locator('.sp-main .sp-empty-cell:not(.sp-info-only-hidden)').count(), `${type}: removed space is available`);
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.waitForSelector('.sp-main [data-slot="-2"]');
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old subpage tile is removed`);
+      assert.equal(await page.locator('.sp-main [data-slot="2"]').count(), 1, `${type}: neighbouring card is preserved`);
+    } finally { await context.close(); }
+  }
+  console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    await assertRetiredCardRemoval(browser);
+    if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;

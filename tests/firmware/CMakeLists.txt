@@ -186,9 +186,6 @@ target_include_directories(button_grid_foundations_test PRIVATE
   ../../components/espdesktop
 )
 add_test(NAME button_grid_foundations_test COMMAND button_grid_foundations_test)
-add_test(NAME local_sensor_lifetime_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/local_sensor_lifetime_test.py)
 add_test(NAME card_colour_rendering_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/card_colour_rendering_test.py ${CMAKE_CXX_COMPILER})
 
@@ -223,8 +220,6 @@ target_compile_features(guest_wifi_state_test PRIVATE cxx_std_17)
 target_compile_options(guest_wifi_state_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(guest_wifi_state_test PRIVATE ../../components/espdesktop)
 add_test(NAME guest_wifi_state_test COMMAND guest_wifi_state_test)
-add_test(NAME local_sensor_invalid_values_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/local_sensor_invalid_values_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME guest_wifi_lifecycle_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/guest_wifi_lifecycle_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME webhook_log_secrets_test COMMAND ${Python3_EXECUTABLE}

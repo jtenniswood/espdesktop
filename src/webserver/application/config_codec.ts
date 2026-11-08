@@ -1,3 +1,4 @@
+import { cardContractTypeRetired } from "../generated/card_contract";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
@@ -38,7 +39,6 @@ import {
     normalizeSavedConfigVacuumPrecision,
     normalizeSavedConfigVacuumSensor,
 } from "../generated/saved_config_vacuum";
-import { migrateSavedConfigSensorLegacy, normalizeSavedConfigSensor } from "../generated/saved_config_sensor";
 import { migrateSavedConfigActionLegacy, normalizeSavedConfigAction } from "../generated/saved_config_action";
 import { normalizeSavedConfigMedia } from "../generated/saved_config_media";
 import { normalizeSavedConfigStatic } from "../generated/saved_config_static";
@@ -117,8 +117,6 @@ export function createConfigCodecFeature(
         return requestApi;
     }
     const {
-        sensorCardLocalSource: SENSOR_CARD_LOCAL_SENSOR,
-        sensorCardIsLocal,
         cardLargeNumbersSupported,
         normalizeDateTimeOptions,
         normalizeDoorWindowSubtype,
@@ -126,7 +124,6 @@ export function createConfigCodecFeature(
         doorWindowOpenIcon,
         normalizeDoorWindowOptions,
         normalizePresenceOptions,
-        normalizeSensorOptions,
     } = sensorOptions;
     const {
         mediaEditorMode,
@@ -244,27 +241,6 @@ export function createConfigCodecFeature(
                 ? size
                 : CARD_SIZE_SINGLE;
         return cardSizeFitsLayout(size) ? size : CARD_SIZE_SINGLE;
-    }
-    function normalizeSavedConfigSensorFields(this: any, b?: any, wasLegacyTextSensor?: any) {
-        if (!b)
-            return;
-        if (wasLegacyTextSensor && !b.icon)
-            b.icon = "Auto";
-        if (!sensorCardIsLocal(b) && b.precision === "time") {
-            b.unit = "";
-            b.icon = "Auto";
-            b.icon_on = "Auto";
-        }
-        if (sensorCardIsLocal(b)) {
-            b.type = "sensor";
-            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
-            b.icon_on = "Auto";
-            b.options = "";
-            if (b.precision !== "text" && b.precision !== "1" && b.precision !== "2")
-                b.precision = "";
-            if (b.precision !== "text" && (!b.icon || b.icon === "Auto"))
-                b.icon = "Auto";
-        }
     }
     function normalizeSavedConfigMediaFields(this: any, b?: any) {
         if (!b)
@@ -476,6 +452,9 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        if (b && cardContractTypeRetired(b.type)) {
+            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: b.type });
+        }
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
@@ -487,9 +466,6 @@ export function createConfigCodecFeature(
             b.options = setConfigOptionValue(withoutCardColorOptions(b.options || ""), "icon_size", "");
         if (b)
             migrateSavedConfigActionLegacy(b);
-        var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
-        if (b)
-            migrateSavedConfigSensorLegacy(b);
         if (b && migrateSavedConfigVacuumLegacy(b)) {
             if (!b.icon || b.icon === "Auto")
                 b.icon = vacuumModeDefaultIcon(b.sensor);
@@ -520,10 +496,9 @@ export function createConfigCodecFeature(
             normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
         if (b)
             normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
-        var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
-        var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
-        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
+        var normalizedSavedSwitch: any = !!(b && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
+        if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
@@ -564,8 +539,6 @@ export function createConfigCodecFeature(
             type = "action";
         if (type === "local")
             type = "action";
-        if (type === "local_sensor")
-            type = "sensor";
         var label: any = b && b.label || "";
         if (type === "calendar" || type === "clock" || type === "timezone")
             label = "";
@@ -577,8 +550,6 @@ export function createConfigCodecFeature(
             sensor = "";
         if (b && b.type === "local")
             sensor = ACTION_CARD_LOCAL_ACTION;
-        if (b && (b.type === "local_sensor" || sensorCardIsLocal(b)))
-            sensor = SENSOR_CARD_LOCAL_SENSOR;
         var isLocalAction: any = type === "action" && sensor === ACTION_CARD_LOCAL_ACTION;
         var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
         if (isLocalAction)
@@ -611,8 +582,6 @@ export function createConfigCodecFeature(
             iconOn = "Lock Open";
         var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
         if (isLocalAction)
-            precision = "";
-        if (sensor === SENSOR_CARD_LOCAL_SENSOR && precision !== "text" && precision !== "1" && precision !== "2")
             precision = "";
         if (type === "media") {
             sensor = mediaEditorMode(sensor);
@@ -724,9 +693,6 @@ export function createConfigCodecFeature(
         }
         else if (type === "lawn_mower") {
             options = "";
-        }
-        else if (type === "sensor") {
-            options = sensor === SENSOR_CARD_LOCAL_SENSOR ? "" : normalizeSensorOptions(options, precision);
         }
         else if (type === "door_window") {
             options = normalizeDoorWindowOptions(options);

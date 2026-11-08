@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 45,
+    "cardTypes": 43,
     "entityNames": 125,
     "icons": 401,
     "structuralIcons": 37,
@@ -1886,8 +1886,6 @@
       "normalize_subpage_fields",
       "normalize_subpage_options",
       "normalize_switch_options",
-      "normalize_sensor_fields",
-      "normalize_sensor_options",
       "normalize_vacuum_fields"
     ],
     "fields": [
@@ -1940,7 +1938,6 @@
         "companion",
         "screen_lock",
         "webhook",
-        "sensor",
         "subpage",
         "weather",
         "image",
@@ -2386,30 +2383,6 @@
             "informationOnly": false,
             "subscriptions": true,
             "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "sensor": {
-          "driver": "sensor",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": true,
-            "subpage": true
-          }
-        },
-        "local_sensor": {
-          "driver": "sensor",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": false,
@@ -5713,275 +5686,6 @@
           "options": ""
         }
       },
-      "sensor": {
-        "label": "Sensor",
-        "allowInSubpage": true,
-        "domains": [
-          "sensor",
-          "binary_sensor",
-          "text_sensor"
-        ],
-        "options": [
-          {
-            "name": "large_numbers",
-            "label": "Large Sensor Numbers",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "in",
-                "value": [
-                  "icon",
-                  "text",
-                  "time"
-                ],
-                "negate": true
-              }
-            ],
-            "supportedWhen": {
-              "precisionNot": [
-                "icon",
-                "text",
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "time_unit",
-            "label": "Incoming Value Unit",
-            "kind": "choice",
-            "values": [
-              "",
-              "seconds",
-              "minutes",
-              "hours",
-              "days"
-            ],
-            "defaultValue": "",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "time"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "active_color",
-            "label": "Lit When Active",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "in",
-                "value": [
-                  "time"
-                ],
-                "negate": true
-              }
-            ],
-            "supportedWhen": {
-              "precisionNot": [
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "state_labels",
-            "label": "Status Translation",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_input",
-            "label": "Input Status",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_output",
-            "label": "Display Text",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_input_2",
-            "label": "Input Status 2",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_output_2",
-            "label": "Display Text 2",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "keep"
-            },
-            "icon": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "icon_on": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "sensor": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "unit": {
-              "policy": "keep"
-            },
-            "type": {
-              "policy": "default",
-              "value": "sensor"
-            },
-            "precision": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_sensor_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "large_numbers",
-            "time_unit",
-            "active_color",
-            "state_labels",
-            "state_input",
-            "state_output",
-            "state_input_2",
-            "state_output_2"
-          ],
-          "optionHook": "normalize_sensor_options",
-          "migrationActions": [
-            "legacy_local_sensor",
-            "legacy_text_sensor",
-            "legacy_sensor_state_high_label",
-            "legacy_sensor_state_low_label"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "sensor",
-          "precision": "",
-          "options": ""
-        },
-        "hidden": true
-      },
-      "local_sensor": {
-        "label": "Local Sensor",
-        "allowInSubpage": true,
-        "pickerKey": "sensor",
-        "hidden": true,
-        "domains": [
-          "sensor",
-          "text_sensor"
-        ],
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "local",
-          "unit": "",
-          "type": "sensor",
-          "precision": "",
-          "options": ""
-        }
-      },
       "slider": {
         "label": "Slider",
         "allowInSubpage": true,
@@ -6844,42 +6548,6 @@
         },
         "hook": "normalize_vacuum_fields"
       },
-      "legacy_local_sensor": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "local_sensor"
-          }
-        ],
-        "set": {
-          "type": "sensor",
-          "sensor": "local",
-          "icon_on": "Auto",
-          "options": ""
-        },
-        "hook": "normalize_sensor_fields"
-      },
-      "legacy_text_sensor": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "text_sensor"
-          }
-        ],
-        "set": {
-          "type": "sensor",
-          "entity": "",
-          "label": "",
-          "unit": "",
-          "precision": "text",
-          "icon_on": "Auto"
-        },
-        "hook": "normalize_sensor_fields"
-      },
       "legacy_weather_forecast": {
         "when": [
           {
@@ -6893,32 +6561,6 @@
           "type": "weather",
           "precision": "tomorrow"
         }
-      },
-      "legacy_sensor_state_high_label": {
-        "when": [
-          {
-            "source": "option",
-            "name": "state_high_label",
-            "operator": "present"
-          }
-        ],
-        "set": {
-          "type": "sensor"
-        },
-        "hook": "normalize_sensor_options"
-      },
-      "legacy_sensor_state_low_label": {
-        "when": [
-          {
-            "source": "option",
-            "name": "state_low_label",
-            "operator": "present"
-          }
-        ],
-        "set": {
-          "type": "sensor"
-        },
-        "hook": "normalize_sensor_options"
       }
     },
     "migrationAliases": {
@@ -6926,17 +6568,9 @@
         "type": "action",
         "sensor": "input_select.select_option"
       },
-      "text_sensor": {
-        "type": "sensor",
-        "precision": "text"
-      },
       "weather_forecast": {
         "type": "weather",
         "precision": "tomorrow"
-      },
-      "local_sensor": {
-        "type": "sensor",
-        "sensor": "local"
       }
     },
     "optionSelect": {
@@ -6977,12 +6611,6 @@
     "largeNumbers": {
       "": true,
       "action": true,
-      "sensor": {
-        "excludedPrecisions": [
-          "icon",
-          "text"
-        ]
-      },
       "calendar": true,
       "clock": true,
       "climate": true,
@@ -6991,15 +6619,16 @@
       "subpage": true,
       "timezone": true
     },
-    "retiredSubpageTypeCodes": [],
+    "retiredSubpageTypeCodes": [
+      "S",
+      "LS"
+    ],
     "subpageTypeCodes": {
       "timer": "TM",
       "action": "A",
       "calendar": "D",
       "clock": "CK",
       "timezone": "T",
-      "sensor": "S",
-      "local_sensor": "LS",
       "door_window": "X",
       "presence": "PR",
       "weather": "W",
@@ -7034,7 +6663,12 @@
       "internal": "I",
       "subpage": "G",
       "screensaver": "SS"
-    }
+    },
+    "retiredCardTypes": [
+      "sensor",
+      "local_sensor",
+      "text_sensor"
+    ]
   },
   "entityNames": {
     "entities": [
@@ -10773,7 +10407,6 @@
         ],
         "requiredCards": [
           "",
-          "sensor",
           "weather",
           "media",
           "alarm",
@@ -10791,10 +10424,6 @@
           "weather_forecast": {
             "type": "weather",
             "precision": "tomorrow"
-          },
-          "text_sensor": {
-            "type": "sensor",
-            "precision": "text"
           }
         }
       },
@@ -10826,20 +10455,6 @@
             "type": "weather",
             "precision": "tomorrow",
             "options": ""
-          }
-        },
-        "text_sensor_alias": {
-          "input": "sensor.washer;Washer;Washer;Auto;;;text_sensor;;active_color",
-          "expected": {
-            "entity": "",
-            "label": "",
-            "icon": "Washer",
-            "icon_on": "Auto",
-            "sensor": "",
-            "unit": "",
-            "type": "sensor",
-            "precision": "text",
-            "options": "active_color"
           }
         },
         "media_controls_alias": {

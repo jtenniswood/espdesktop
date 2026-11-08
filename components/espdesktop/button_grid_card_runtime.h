@@ -56,14 +56,12 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::INTERNAL: return Family::INTERNAL;
     case Type::LIGHT_CONTROL: return Family::LIGHT_CONTROL;
     case Type::LIGHT_TEMPERATURE: return Family::LIGHT_TEMPERATURE;
-    case Type::LOCAL_SENSOR: return Family::LOCAL_SENSOR;
     case Type::MEDIA: return Family::MEDIA;
     case Type::OPTION_SELECT: return Family::OPTION_SELECT;
     case Type::PUSH: return Family::PUSH;
     case Type::COMPANION: return Family::COMPANION;
     case Type::SCREEN_LOCK: return Family::SCREEN_LOCK;
     case Type::SCREENSAVER: return Family::SCREENSAVER;
-    case Type::SENSOR: return Family::SENSOR;
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;
     case Type::SUBPAGE: return Family::SUBPAGE;
@@ -240,37 +238,13 @@ inline const char *card_runtime_option_select_canonical_action() {
   return CARD_CONTRACT_OPTION_SELECT_ACTION;
 }
 
-constexpr const char *card_runtime_option_name_state_labels() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_LABELS;
-}
 
-constexpr const char *card_runtime_option_name_state_input() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_INPUT;
-}
 
-constexpr const char *card_runtime_option_name_state_output() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT;
-}
 
-constexpr const char *card_runtime_option_name_state_input_2() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_INPUT_2;
-}
 
-constexpr const char *card_runtime_option_name_state_output_2() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT_2;
-}
 
-constexpr const char *card_runtime_option_name_time_unit() {
-  return CARD_CONTRACT_OPTION_NAME_TIME_UNIT;
-}
 
-constexpr const char *card_runtime_option_name_state_low_label() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_LOW_LABEL;
-}
 
-constexpr const char *card_runtime_option_name_state_high_label() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_HIGH_LABEL;
-}
 
 constexpr const char *card_runtime_option_name_image_label() {
   return CARD_CONTRACT_OPTION_NAME_IMAGE_LABEL;
@@ -643,4 +617,8 @@ inline const char *card_runtime_lawn_mower_default_icon_name(const std::string &
   std::string normalized = card_runtime_lawn_mower_mode(mode);
   if (normalized == "dock") return "Robot Mower Outline";
   return "Robot Mower";
+}
+
+inline bool card_runtime_type_retired(const std::string &type) {
+  return card_contract_type_retired(type);
 }

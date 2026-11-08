@@ -51,6 +51,14 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  if (card_runtime_type_retired(b.type)) {
+    const std::string type = b.type;
+    b = SubpageBtn{};
+    b.type = type;
+    b.icon = "Auto";
+    b.icon_on = "Auto";
+    return b;
+  }
   // Shared colours must survive the card-specific option cleanup below.
   const std::string card_colors = card_color_options_normalized(b.options);
   b.options = options_without_card_colors(b.options);
@@ -229,9 +237,6 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       b.type != "image" && b.type != "weather" &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
-  }
-  if (b.type == "sensor") {
-    b.options = sensor_card_options_normalized(b.options, b.precision);
   }
   if (!card_colors.empty()) {
     if (!b.options.empty()) b.options += ",";

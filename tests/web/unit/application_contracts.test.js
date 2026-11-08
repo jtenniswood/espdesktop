@@ -430,7 +430,6 @@ describe("browserless application contracts", () => {
 
   test("registers migrated card families through the typed registry", () => {
     const migratedCards = [
-      ["sensor", "registerSensorCardTypes"],
       ["switch", "registerSwitchCardTypes"],
       ["door_window", "registerDoorWindowCardTypes"],
       ["image", "registerImageCardTypes"],
@@ -591,10 +590,9 @@ describe("browserless application contracts", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const migration = fs.readFileSync(path.join(ROOT, "src/webserver/application/native_panel_config_migration.ts"), "utf8");
     const deviceConfig = fs.readFileSync(path.join(ROOT, "src/webserver/device_config.ts"), "utf8");
-    const sensor = fs.readFileSync(path.join(ROOT, "src/webserver/cards/sensor.ts"), "utf8");
     const action = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
     assert.match(entry, /new EventSource\("\/events", \{ withCredentials: true \}\)/);
-    for (const source of [migration, deviceConfig, sensor, action]) {
+    for (const source of [migration, deviceConfig, action]) {
       assert.match(source, /credentials: "include"/);
     }
   });
@@ -851,17 +849,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:ALARM_CARD_METADATA|ALARM_CONTROL_PANEL_VALUE|alarmCardTypeOptions|alarmCardTypeOptionsForSettings|alarmControlPanelValue|alarmIconIsGenerated|alarmLabelIsGenerated|alarmUsesDefaultIcon|renderAlarmCardTypeField|renderAlarmVisibleActionsField|setAlarmCardType):/);
   });
 
-  test("registers sensor cards through context-owned source options", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/sensor.ts"), "utf8");
-    const options = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_sensor_options.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
-    assert.match(options, /sensorCardLocalSource = LOCAL_SENSOR_SOURCE/);
-    assert.match(entry, /registerSensorCardTypes\(registry, context\.configuration\.options, fields, cardUi,[\s\S]*homeAssistantSupportEnabled/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerSensorCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:SENSOR_CARD_LOCAL_SENSOR|SENSOR_CARD_METADATA|renderSensorLocalSettings|sensorCardIsLocal|sensorLocalPreview):/);
-  });
 
   test("registers media cards through context-owned media options", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
@@ -1306,7 +1293,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /fields = createControlsFieldsFeature\(cards, configurationOptions, shell, requestApi\)/);
     assert.doesNotMatch(entry, /fields\.globals|installControlsFieldsModule/);
     assert.doesNotMatch(globals, /\bvar (?:makeCollapsibleCard|fieldLabel|textInput|fieldWithControl|selectField|segmentControl|colorField|toggleRow|applyCardMetadataFields|renderBasicCardFields|cardSensorPreviewHtml|cardBadgeLabelHtml|cardBadgePreview|condField|createRangeSlider):/);
-    for (const file of ["action.ts", "calendar.ts", "sensor.ts", "switch.ts", "weather.ts"]) {
+    for (const file of ["action.ts", "calendar.ts", "switch.ts", "weather.ts"]) {
       const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards", file), "utf8");
       assert.match(card, /ControlsFieldsFeature/, `${file} should receive the shared-fields service`);
     }

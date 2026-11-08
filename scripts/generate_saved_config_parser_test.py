@@ -71,46 +71,6 @@ def generate() -> str:
                     )
     lines.extend(
         (
-            "  // Time sensor duration formatting can limit narrow cards to one component.",
-            "  char duration[48];",
-            '  assert(format_duration_value(duration, sizeof(duration), 0.0, "seconds") && std::string(duration) == "0s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 59.0, "s") && std::string(duration) == "59s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 60.0, "seconds") && std::string(duration) == "1m");',
-            '  assert(format_duration_value(duration, sizeof(duration), 90.0, "seconds") && std::string(duration) == "1m 30s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 90.0, "seconds", 1) && std::string(duration) == "1m");',
-            '  assert(format_duration_value(duration, sizeof(duration), 3599.0, "seconds") && std::string(duration) == "59m 59s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 60.0, "minutes") && std::string(duration) == "1h");',
-            '  assert(format_duration_value(duration, sizeof(duration), 86340.0, "seconds") && std::string(duration) == "23h 59m");',
-            '  assert(format_duration_value(duration, sizeof(duration), 24.0, "hours") && std::string(duration) == "1d");',
-            '  assert(format_duration_value(duration, sizeof(duration), 28.0, "hours") && std::string(duration) == "1d 4h");',
-            '  assert(format_duration_value(duration, sizeof(duration), 28.0, "hours", 1) && std::string(duration) == "1d");',
-            '  assert(format_duration_value(duration, sizeof(duration), 0.554444444, "hours", 1) && std::string(duration) == "33m");',
-            '  assert(format_duration_value(duration, sizeof(duration), 0.554444444, "hours") && std::string(duration) == "33m 15s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 0.6, "hours") && std::string(duration) == "36m");',
-            '  assert(format_duration_value(duration, sizeof(duration), 1.999, "seconds") && std::string(duration) == "1s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 1500.0, "ms") && std::string(duration) == "1s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 1500000.0, "µs") && std::string(duration) == "1s");',
-            '  assert(format_duration_value(duration, sizeof(duration), 12345.0, "days") && std::string(duration) == "12345d");',
-            '  assert(!format_duration_value(duration, sizeof(duration), -1.0, "seconds"));',
-            '  assert(!format_duration_value(duration, sizeof(duration), std::numeric_limits<double>::quiet_NaN(), "seconds"));',
-            '  assert(!format_duration_value(duration, sizeof(duration), std::numeric_limits<double>::infinity(), "seconds"));',
-            '  assert(!format_duration_value(duration, sizeof(duration), 1.0, "weeks"));',
-            '  assert(!format_duration_value(duration, sizeof(duration), 1.0, "seconds", 0));',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "0.6", true, "", false));',
-            '  assert(format_duration_sensor_state(duration, sizeof(duration), "0.6", true, "h", true) && std::string(duration) == "36m");',
-            '  assert(format_duration_sensor_state(duration, sizeof(duration), "0.554444444", true, "h", true) && std::string(duration) == "33m 15s");',
-            '  assert(format_duration_sensor_state(duration, sizeof(duration), "0.554444444", true, "ignored", true, "hours") && std::string(duration) == "33m 15s");',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "", false, "h", true));',
-            '  assert(format_duration_sensor_state(duration, sizeof(duration), "90", true, "s", true) && std::string(duration) == "1m 30s");',
-            '  assert(format_duration_sensor_state(duration, sizeof(duration), "90", true, "s", true, "", 1) && std::string(duration) == "1m");',
-            '  assert(format_duration_sensor_state(duration, sizeof(duration), "90", true, "min", true) && std::string(duration) == "1h 30m");',
-            '  assert(format_duration_sensor_state(duration, sizeof(duration), "90", true, "unsupported", true, "seconds") && std::string(duration) == "1m 30s");',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "unavailable", true, "s", true));',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "unknown", true, "s", true));',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "12 seconds", true, "s", true));',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "-1", true, "s", true));',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "nan", true, "s", true));',
-            '  assert(!format_duration_sensor_state(duration, sizeof(duration), "inf", true, "s", true));',
             "  // Media behaviour consumes a typed versioned view, not raw option strings.",
             '  ParsedCfg typed_media{"media_player.kitchen", "Kitchen", "Auto", "Auto", "playlist", "", "media", "",',
             '                        "volume_max=150,playlist_content_id=morning,playlist_player_source=Kitchen%2C Main,large_numbers"};',
@@ -157,7 +117,7 @@ def generate() -> str:
         ("card_active_color=theme", "", "theme", ""),
     )
     for card_type in ("", "light_switch", "light_control", "fan_switch", "fan_control",
-                      "sensor", "media", "climate", "cover", "alarm", "weather",
+                      "media", "climate", "cover", "alarm", "weather",
                       "calendar", "action", "presence"):
         for colour_options, expected_colour, expected_mode, expected_on in colour_cases:
             options = ("large_numbers=off," if card_type == "sensor" else "") + colour_options
@@ -178,11 +138,6 @@ def generate() -> str:
                     f'    assert(cfg_option_value(config.options, "card_on_color") == {cpp_string(expected_on)});',
                     f'    assert(cfg_option_value(config.options, "card_active_color") == {cpp_string(expected_mode)});',
                 ))
-                if card_type == "sensor":
-                    lines.extend((
-                        '    assert(cfg_option_value(buttons[0].options, "large_numbers") == "off");',
-                        '    assert(cfg_option_value(config.options, "large_numbers") == "off");',
-                    ))
                 lines.append("  }")
     # Issue 1946: both Wi-Fi card styles must retain options on subpages.
     for card_type in ("wifi_qr", "wifi_qr_card"):

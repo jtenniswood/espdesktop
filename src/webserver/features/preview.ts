@@ -52,12 +52,10 @@ interface PickerDetails {
 }
 
 const INFO_ONLY_CARD_TYPES = new Set([
-  "sensor",
   "calendar",
   "clock",
   "door_window",
   "image",
-  "local_sensor",
   "presence",
   "timezone",
   "weather",
@@ -89,12 +87,10 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   internal: { icon: "power-plug", description: "Control built-in device relays." },
   light_brightness: { icon: "lightbulb", description: "Configure light switch, brightness, or temperature controls." },
   lawn_mower: { icon: "robot-mower", description: "Show or control a robotic lawn mower." },
-  local_sensor: { icon: "gauge", description: "Show a sensor value from this device." },
   lock: { icon: "lock", description: "Show and control a lock." },
   media: { icon: "speaker", description: "Control media playback or volume." },
   media_control: { icon: "music", description: "Open all media controls and volume in a modal." },
   push: { icon: "gesture-tap-button", description: "Fire a momentary button event." },
-  sensor: { icon: "gauge", description: "Display sensor values or states." },
   slider: { icon: "tune-vertical", description: "Adjust a numeric or brightness value." },
   subpage: { icon: "view-grid-plus", description: "Open a nested page of cards." },
   webhook: { icon: "webhook", description: "Send a direct HTTP request." },
@@ -123,14 +119,14 @@ const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
 
 // These card types can operate without Home Assistant, and their editors are
 // restricted to those local modes while Home Assistant is disabled.
-const LOCAL_ONLY_CARD_TYPES = new Set(["action", "sensor"]);
+const LOCAL_ONLY_CARD_TYPES = new Set(["action"]);
 
 const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
   "calendar", "push", "slider",
 ]);
 
 const LOCAL_CARD_TYPES = new Set([
-  "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
+  "clock", "internal", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
 ]);
 
 export type CardPickerConnector = "home_assistant" | "mac_companion";
@@ -148,7 +144,7 @@ export function cardPickerConnectors(
 export function cardTypeConnector(key: string): CardPickerOption["connector"] {
   if (key === "companion" || key.startsWith("companion_")) return "mac_companion";
   if (HOME_ASSISTANT_ONLY_CARD_TYPES.has(key)) return "home_assistant";
-  if (key === "action" || key === "sensor") {
+  if (key === "action") {
     return "home_assistant_or_local";
   }
   if (key === "webhook") return "network";

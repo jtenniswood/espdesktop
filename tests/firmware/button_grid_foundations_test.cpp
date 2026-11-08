@@ -88,9 +88,6 @@ int main() {
   const auto clock = card_runtime_context("clock");
   const auto timezone = card_runtime_context("timezone");
   const auto calendar = card_runtime_context("calendar");
-  const auto sensor = card_runtime_context("sensor");
-  const auto local_sensor = card_runtime_context("local_sensor");
-  const auto raw_text_sensor_alias = card_runtime_context("text_sensor");
   const auto weather = card_runtime_context("weather");
   const auto weather_forecast = card_runtime_context("weather_forecast");
   const auto toggle = card_runtime_context("");
@@ -135,9 +132,6 @@ int main() {
       clock.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
       timezone.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
       calendar.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
-      sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
-      local_sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
-      raw_text_sensor_alias.known ||
       weather.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       weather_forecast.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       !toggle.known || !action.known || !alarm_action.known ||
@@ -268,8 +262,8 @@ int main() {
     "climate_control", "clock", "cover", "door_window", "fan_control",
     "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_switch",
     "garage", "gate", "image", "internal", "lawn_mower", "light_brightness",
-    "light_control", "light_switch", "light_temperature", "local_sensor", "lock",
-    "media", "option_select", "presence", "push", "screen_lock", "sensor",
+    "light_control", "light_switch", "light_temperature", "lock",
+    "media", "option_select", "presence", "push", "screen_lock",
     "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
     "webhook",
   };

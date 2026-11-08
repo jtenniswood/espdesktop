@@ -352,7 +352,6 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
 inline void grid_prepare_timer_visual_reset(lv_obj_t *owner);
 #include "button_grid_timer_driver.h"
 #include "button_grid_date_time_driver.h"
-#include "button_grid_sensor_driver.h"
 #include "button_grid_weather_driver.h"
 #include "button_grid_basic_action_driver.h"
 #include "button_grid_numeric_selectable_driver.h"
@@ -655,7 +654,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   grid_prepare_timer_visual_reset(s.btn);
   espdesktop::cards::status_entity_driver_cleanup(s, p, context);
   espdesktop::cards::date_time_driver_cleanup(s, p, context);
-  espdesktop::cards::sensor_driver_cleanup(s, p, context);
   espdesktop::cards::weather_driver_cleanup(s, p, context);
   espdesktop::cards::basic_action_driver_cleanup(s, p, context);
   espdesktop::cards::numeric_selectable_driver_cleanup(s, p, context);
@@ -696,7 +694,8 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     cfg.subpage_chevron_x, cfg.subpage_chevron_y,
     cfg.subpage_chevron_text_width_percent);
 
-  if (cfg.info_only && info_only_hidden_card_type(context)) {
+  if (card_runtime_type_retired(p.type) ||
+      (cfg.info_only && info_only_hidden_card_type(context))) {
     lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     return;
@@ -743,13 +742,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     espdesktop::cards::media_driver_attach_interaction(s, p, context);
     espdesktop::cards::media_driver_refresh_layout(
       s, p, context, cfg, row_span, col_span);
-    return;
-  }
-  if (espdesktop::cards::sensor_driver_setup_visual(
-        s, p, context, palette)) {
-    espdesktop::cards::sensor_driver_attach_interaction(s, p, context);
-    espdesktop::cards::sensor_driver_refresh_layout(
-      s, p, context, display, row_span, col_span);
     return;
   }
   if (espdesktop::cards::status_entity_driver_setup_visual(
@@ -818,15 +810,12 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
 }
 
-inline bool bind_basic_sensor_card(
+inline bool bind_passive_card(
     BtnSlot &s, const ParsedCfg &p,
-    const espdesktop::cards::Context &context, const CardPalette &palette,
-    int col_span = 1) {
+    const espdesktop::cards::Context &context, const CardPalette &palette) {
   if (espdesktop::cards::status_entity_driver_bind_data(
         s, p, context, palette)) return true;
   if (espdesktop::cards::date_time_driver_bind_data(s, p, context)) return true;
-  if (espdesktop::cards::sensor_driver_bind_data(
-        s, p, context, palette, col_span)) return true;
   if (espdesktop::cards::weather_driver_bind_data(s, p, context)) return true;
   return false;
 }
@@ -1178,7 +1167,6 @@ inline bool grid_card_uses_sensor_surface(
     const espdesktop::cards::Context &context, const ParsedCfg &config) {
   using Driver = espdesktop::card_runtime::CardDriverId;
   switch (context.runtime.driver) {
-    case Driver::SENSOR:
     case Driver::STATUS_ENTITY:
     case Driver::WEATHER:
     case Driver::DATE_TIME:
@@ -1450,8 +1438,6 @@ inline bool grid_refresh_subpage_layouts(
       const auto context = card_runtime_context(
         button_config, espdesktop::cards::Surface::SUBPAGE);
       refresh_card_layout(card->slot, button_config, cfg, row_span, col_span);
-      espdesktop::cards::sensor_driver_refresh_layout(
-        card->slot, button_config, context, display, row_span, col_span);
     }
     lv_obj_update_layout(entry->screen);
     refreshed = true;
@@ -2221,7 +2207,6 @@ inline void grid_phase2(
   weather_forecast_cancel_pending_requests(false);
   reset_climate_control_refs();
   clear_internal_relay_watchers();
-  local_sensor_registry().clear();
   grid_release_main_runtime_allocations(slots, NS);
   // Phase 1 has just registered each Companion card against its persistent
   // LVGL labels. Keep those bindings so live metric snapshots can refresh the
@@ -2306,7 +2291,7 @@ inline void grid_phase2(
     if (espdesktop::cards::media_driver_bind_main(
           s, p, context, media_environment)) continue;
     if (espdesktop::cards::timer_driver_bind_data(s, p, context)) continue;
-    if (bind_basic_sensor_card(s, p, context, card_palette, col_span)) continue;
+    if (bind_passive_card(s, p, context, card_palette)) continue;
     espdesktop::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
     toggle_state.sensor_text_mode = &sensor_text_mode[idx - 1];
@@ -2589,7 +2574,7 @@ inline void grid_phase2(
             sub_slot, sb_cfg, context, [&](const std::string &entity_id) {
               add_parent_indicator(entity_id, timer_card_state_active_ref);
             })) continue;
-      if (bind_basic_sensor_card(sub_slot, sb_cfg, context, card_palette, cs)) continue;
+      if (bind_passive_card(sub_slot, sb_cfg, context, card_palette)) continue;
       espdesktop::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
       action_environment.parent_config = &p;

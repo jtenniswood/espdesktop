@@ -655,17 +655,7 @@ inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p) {
   apply_push_button_transition(s.btn);
 }
 
-inline void send_local_sensor_update(const std::string &key, float value) {
-  if (!local_sensor_apply_value(key, value)) {
-    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
-  }
-}
 
-inline void send_local_sensor_update(const std::string &key, const char *value) {
-  if (!local_sensor_apply_text(key, value ? value : "--")) {
-    ESP_LOGW("espdesktop", "Local sensor '%s' not registered", key.c_str());
-  }
-}
 
 inline const char *door_window_closed_icon(const ParsedCfg &p) {
   if (!p.icon.empty() && p.icon != "Auto") return find_icon(p.icon.c_str());

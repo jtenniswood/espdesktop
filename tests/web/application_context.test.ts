@@ -323,11 +323,11 @@ export function runApplicationContextTests(): void {
   equal(dateTimeOptions.dateTimeCardTimeParts().value, "09:05", "date/time options format the shared current time");
   equal(dateTimeOptions.defaultTimezoneCardEntity(), "Europe/London (GMT+0)", "date/time options use the active timezone");
 
-  const sensor = cards.register("sensor", { label: "Sensor", allowInSubpage: true });
+  const timer = cards.register("timer", { label: "Timer", allowInSubpage: true });
   equal(cards.typedDefinitionCount, 1, "registry counts typed card definitions");
-  equal(cards.definitions.sensor, sensor, "registry owns typed card definitions");
-  equal(sensor.key, "sensor", "registry assigns the card key");
-  equal(sensor.label, "Sensor", "registry preserves typed card metadata");
-  equal(sensor.runtimeSpec != null, true, "registry attaches the generated runtime contract");
+  equal(cards.definitions.timer, timer, "registry owns typed card definitions");
+  equal(timer.key, "timer", "registry assigns the card key");
+  equal(timer.label, "Timer", "registry preserves typed card metadata");
+  equal(timer.runtimeSpec != null, true, "registry attaches the generated runtime contract");
 
 }

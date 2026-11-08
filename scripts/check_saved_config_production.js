@@ -40,7 +40,6 @@ function checkCompiledHelper() {
 #include "button_grid_saved_config_media_generated.h"
 #include "button_grid_saved_config_mower_generated.h"
 #include "button_grid_saved_config_occupancy_generated.h"
-#include "button_grid_saved_config_sensor_generated.h"
 #include "button_grid_saved_config_static_generated.h"
 #include "button_grid_saved_config_vacuum_generated.h"
 struct Config {
@@ -120,37 +119,6 @@ int main() {
   assert(normalize_saved_config_vacuum_precision("2").empty());
   assert(normalize_saved_config_vacuum_options("").empty());
   assert(normalize_saved_config_vacuum_options("unknown=1").empty());
-  Config local_sensor{"local_sensor", "stale", "unit", "7", "unknown=1", "Custom", "", "", ""};
-  assert(migrate_saved_config_sensor_legacy(local_sensor));
-  assert(local_sensor.type == "sensor" && local_sensor.sensor == "local");
-  assert(local_sensor.icon_on == "Auto" && local_sensor.options.empty());
-  Config regular_sensor{"sensor", "", "", "", "", "Auto", "", "", ""};
-  assert(!migrate_saved_config_sensor_legacy(regular_sensor));
-  Config text_sensor{"text_sensor", "stale", "unit", "7", "unknown=1", "Custom", "sensor.old", "Old label", ""};
-  assert(migrate_saved_config_sensor_legacy(text_sensor));
-  assert(text_sensor.type == "sensor" && text_sensor.precision == "text");
-  assert(text_sensor.entity.empty() && text_sensor.label.empty() && text_sensor.unit.empty());
-  assert(text_sensor.icon_on == "Auto");
-  bool fields_called = false;
-  bool options_called = false;
-  assert(normalize_saved_config_sensor(
-    text_sensor, true,
-    [&](Config &config, bool was_legacy_text_sensor) {
-      fields_called = was_legacy_text_sensor;
-      if (was_legacy_text_sensor) config.sensor = "field-hook";
-    },
-    [&](const std::string &options, const std::string &precision) {
-      options_called = precision == "text";
-      return options + "option-hook";
-    }
-  ));
-  assert(fields_called && options_called);
-  assert(text_sensor.sensor == "field-hook" && text_sensor.options == "unknown=1option-hook");
-  assert(!normalize_saved_config_sensor(
-    unrelated, false,
-    [](Config &, bool) {},
-    [](const std::string &options, const std::string &) { return options; }
-  ));
   Config screen_lock{"screen_lock", "stale", "unit", "2", "unknown=1", "Auto", "switch.stale", "Stale", "Security"};
   assert(normalize_saved_config_static(screen_lock));
   assert(screen_lock.entity.empty() && screen_lock.label.empty() && screen_lock.sensor.empty());
@@ -591,36 +559,6 @@ function main() {
   assert.strictEqual(generated.normalizeSavedConfigVacuumOptions(""), "");
   assert.strictEqual(generated.normalizeSavedConfigVacuumOptions("unknown=1"), "");
 
-  assert.deepStrictEqual(contract.cards.sensor.normalization.migrationActions.slice(0, 2), ["legacy_local_sensor", "legacy_text_sensor"]);
-  const generatedSensor = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_sensor.ts"));
-  const localSensor = { type: "local_sensor", sensor: "stale", precision: "7", options: "unknown=1", icon_on: "Custom" };
-  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy(localSensor), true);
-  assert.deepStrictEqual(localSensor, { type: "sensor", sensor: "local", precision: "7", options: "", icon_on: "Auto" });
-  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy({ type: "sensor", sensor: "local" }), false);
-  const textSensor = { type: "text_sensor", entity: "sensor.old", label: "Old label", unit: "°C", precision: "7", icon_on: "Custom" };
-  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy(textSensor), true);
-  assert.deepStrictEqual(textSensor, { type: "sensor", entity: "", label: "", unit: "", precision: "text", icon_on: "Auto" });
-  let sensorFieldsCalled = false;
-  let sensorOptionsCalled = false;
-  assert.strictEqual(generatedSensor.normalizeSavedConfigSensor(
-    textSensor,
-    true,
-    (config, wasLegacyTextSensor) => {
-      sensorFieldsCalled = wasLegacyTextSensor;
-      config.sensor = "field-hook";
-    },
-    (options, precision) => {
-      sensorOptionsCalled = precision === "text";
-      return options + "option-hook";
-    },
-  ), true);
-  assert(sensorFieldsCalled && sensorOptionsCalled);
-  assert.strictEqual(textSensor.sensor, "field-hook");
-  assert.strictEqual(textSensor.options, "option-hook");
-  assert.strictEqual(generatedSensor.normalizeSavedConfigSensor(
-    { type: "action", options: "keep", precision: "" }, false, () => {}, (options) => options,
-  ), false);
-
   const generatedStatic = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_static.ts"));
   const screenLock = {
     type: "screen_lock", entity: "switch.stale", label: "Stale", icon: "Security", icon_on: "Auto",
@@ -837,9 +775,6 @@ function main() {
   assert.match(browser, /iconOn = normalizeSavedConfigVacuumIconOn\(iconOn\);/);
   assert.match(browser, /type === "vacuum"[\s\S]*?normalizeSavedConfigVacuumOptions\(options\)/);
   assert.doesNotMatch(browser, /type === "vacuum" \|\| type === "lawn_mower"/);
-  assert.match(browser, /from "\.\.\/generated\/saved_config_sensor";/);
-  assert.match(browser, /migrateSavedConfigSensorLegacy\(b\)/);
-  assert.match(browser, /normalizeSavedConfigSensor\(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "local_sensor"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "text_sensor"\)/);
   assert.doesNotMatch(browser, /else if \(b && b\.type === "sensor"\)/);
@@ -927,9 +862,6 @@ function main() {
   assert.match(vacuumBlock, /p\.icon_on = normalize_saved_config_vacuum_icon_on\(p\.icon_on\);/);
   assert.match(vacuumBlock, /p\.options = normalize_saved_config_vacuum_options\(p\.options\);/);
   assert.doesNotMatch(vacuumBlock, /p\.options\.clear\(\);/);
-  assert.match(firmware, /#include "button_grid_saved_config_sensor_generated\.h"/);
-  assert.match(firmware, /migrate_saved_config_sensor_legacy\(p\)/);
-  assert.match(firmware, /normalize_saved_config_sensor\(p, was_legacy_text_sensor,/);
   assert.doesNotMatch(firmware, /p\.type == "local_sensor"/);
   assert.doesNotMatch(firmware, /if \(p\.type == "text_sensor"\)/);
   assert.match(firmware, /#include "button_grid_saved_config_action_generated\.h"/);

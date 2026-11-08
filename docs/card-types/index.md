@@ -46,7 +46,7 @@ Use this page when you know what you want the panel to do but are not sure which
 | Lock or unlock the touchscreen controls locally | [Screen Lock](/card-types/screen-lock) | No entity required |
 | Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
 
-Sensor is no longer offered when adding cards. Existing [Sensor](/card-types/sensors) and [Local Sensor](/card-types/local-sensors) cards remain supported in saved layouts.
+Sensor cards are no longer supported, including in saved layouts.
 
 ## Mac Cards
 

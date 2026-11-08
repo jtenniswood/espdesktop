@@ -1,0 +1,77 @@
+[
+  {
+    "name": "retired sensor bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;sensor;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "sensor",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired local_sensor bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;local_sensor;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "local_sensor",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired text_sensor bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;text_sensor;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "text_sensor",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired S bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;S;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "S",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired LS bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;LS;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "LS",
+      "precision": "",
+      "options": ""
+    }
+  }
+]

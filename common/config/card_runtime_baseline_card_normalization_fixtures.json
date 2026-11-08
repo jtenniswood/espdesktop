@@ -1125,96 +1125,6 @@
     }
   },
   {
-    "name": "sensor: numeric",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,1,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: time",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,time,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "time",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: text",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,text,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: icon",
-    "input": "~,,Auto,Auto,binary_sensor.example,,sensor,icon,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "binary_sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "icon",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: local",
-    "input": "~room_temp,,Auto,Auto,local,,sensor,1,",
-    "expected": {
-      "entity": "room_temp",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
-      "options": ""
-    }
-  },
-  {
-    "name": "local_sensor: legacy_local_sensor",
-    "input": "~room_temp,,Auto,Auto,local,,local_sensor,1,",
-    "expected": {
-      "entity": "room_temp",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
-      "options": ""
-    }
-  },
-  {
     "name": "slider: numeric",
     "input": "~input_number.example,,Auto,Auto,,,slider,,",
     "expected": {
@@ -1421,21 +1331,6 @@
       "unit": "",
       "type": "action",
       "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "text_sensor: accepted_legacy_input",
-    "input": "~sensor.example,,,,,,text_sensor,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
       "options": ""
     }
   },

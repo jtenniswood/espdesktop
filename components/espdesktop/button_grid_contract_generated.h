@@ -9,6 +9,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
+inline bool card_contract_type_retired(const std::string &type) { return type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "S" || type == "LS"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
@@ -46,8 +47,6 @@ enum class CardTypeId : uint8_t {
   COMPANION,
   SCREEN_LOCK,
   WEBHOOK,
-  SENSOR,
-  LOCAL_SENSOR,
   SLIDER,
   SUBPAGE,
   TIMEZONE,
@@ -98,7 +97,6 @@ enum class CardDriverId : uint8_t {
   COMPANION,
   SCREEN_LOCK,
   WEBHOOK,
-  SENSOR,
   SUBPAGE,
   WEATHER,
   IMAGE,
@@ -164,8 +162,6 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "companion") return CardTypeId::COMPANION;
   if (type == "screen_lock") return CardTypeId::SCREEN_LOCK;
   if (type == "webhook") return CardTypeId::WEBHOOK;
-  if (type == "sensor") return CardTypeId::SENSOR;
-  if (type == "local_sensor") return CardTypeId::LOCAL_SENSOR;
   if (type == "slider") return CardTypeId::SLIDER;
   if (type == "subpage") return CardTypeId::SUBPAGE;
   if (type == "timezone") return CardTypeId::TIMEZONE;
@@ -214,8 +210,6 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::COMPANION: return {type, CardDriverId::COMPANION, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::SCREEN_LOCK: return {type, CardDriverId::SCREEN_LOCK, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEBHOOK: return {type, CardDriverId::WEBHOOK, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
-    case CardTypeId::SENSOR: return {type, CardDriverId::SENSOR, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
-    case CardTypeId::LOCAL_SENSOR: return {type, CardDriverId::SENSOR, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::SLIDER: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::SUBPAGE: return {type, CardDriverId::SUBPAGE, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION)};
     case CardTypeId::TIMEZONE: return {type, CardDriverId::DATE_TIME, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
@@ -369,18 +363,12 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_SSID64 = "ssid64";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STAT_LABELS_OFF = "stat_labels_off";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_ENTITY = "state_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_HIGH_LABEL = "state_high_label";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT = "state_input";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT_2 = "state_input_2";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_LABELS = "state_labels";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_LOW_LABEL = "state_low_label";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT = "state_output";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT_2 = "state_output_2";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_PRECISION = "state_precision";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_UNIT = "state_unit";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_CONNECTOR = "subpage_connector";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_KIND = "subpage_kind";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_TEMPERATURE_STEP = "temperature_step";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_TIME_UNIT = "time_unit";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VACUUM_MODE = "vacuum_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VOLUME_MAX = "volume_max";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEATHER_MODE = "weather_mode";
@@ -624,8 +612,6 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "companion") return "Companion";
   if (type == "screen_lock") return "Screen Lock";
   if (type == "webhook") return "Webhook";
-  if (type == "sensor") return "Sensor";
-  if (type == "local_sensor") return "Local Sensor";
   if (type == "slider") return "Slider";
   if (type == "subpage") return "Subpage";
   if (type == "timezone") return "Date & Time";
@@ -673,8 +659,6 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "companion") return true;
   if (type == "screen_lock") return true;
   if (type == "webhook") return true;
-  if (type == "sensor") return true;
-  if (type == "local_sensor") return true;
   if (type == "slider") return true;
   if (type == "subpage") return false;
   if (type == "timezone") return true;
@@ -722,8 +706,6 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "companion") return "Monitor";
   if (type == "screen_lock") return "Lock";
   if (type == "webhook") return "Auto";
-  if (type == "sensor") return "Auto";
-  if (type == "local_sensor") return "Auto";
   if (type == "slider") return "Auto";
   if (type == "subpage") return "Auto";
   if (type == "timezone") return "Auto";
@@ -771,8 +753,6 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "companion") return "Auto";
   if (type == "screen_lock") return "Lock Open";
   if (type == "webhook") return "Auto";
-  if (type == "sensor") return "Auto";
-  if (type == "local_sensor") return "Auto";
   if (type == "slider") return "Auto";
   if (type == "subpage") return "Auto";
   if (type == "timezone") return "Auto";
@@ -810,7 +790,7 @@ inline const char *card_contract_fan_default_icon_on_name(const std::string &typ
 }
 
 inline bool card_contract_large_numbers_supported(const std::string &type, const std::string &precision) {
-  if (type == "sensor") return precision != "icon" && precision != "text";
+  (void) precision;
   return type == "" || type == "action" || type == "calendar" || type == "clock" ||
          type == "companion" ||
          type == "climate" || type == "media" || type == "subpage" ||
@@ -823,8 +803,6 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "calendar") return "D";
   if (type == "clock") return "CK";
   if (type == "timezone") return "T";
-  if (type == "sensor") return "S";
-  if (type == "local_sensor") return "LS";
   if (type == "door_window") return "X";
   if (type == "presence") return "PR";
   if (type == "weather") return "W";
@@ -868,8 +846,6 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "D") return "calendar";
   if (code == "CK") return "clock";
   if (code == "T") return "timezone";
-  if (code == "S") return "sensor";
-  if (code == "LS") return "local_sensor";
   if (code == "X") return "door_window";
   if (code == "PR") return "presence";
   if (code == "W") return "weather";

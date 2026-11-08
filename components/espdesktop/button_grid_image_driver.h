@@ -13,12 +13,19 @@ inline bool image_driver_matches(const Context &context) {
   return context.runtime.driver == card_runtime::CardDriverId::IMAGE;
 }
 
+inline void image_driver_apply_background(BtnSlot &slot, const CardPalette &palette) {
+  if (!palette.has_sensor_color) return;
+  lv_obj_set_style_bg_color(slot.btn, lv_color_hex(palette.surface_sensor_val),
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+      static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+}
+
 inline bool image_driver_setup_visual(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const CardPalette &palette) {
   if (!image_driver_matches(context)) return false;
   if (image_card_modal_fit_enabled(config)) {
-    sensor_driver_apply_background(slot, palette);
+    image_driver_apply_background(slot, palette);
   }
   setup_image_card(slot, palette);
   return true;

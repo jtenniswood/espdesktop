@@ -10,7 +10,9 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_webhook_fields", "normalize_webhook_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_sensor_fields", "normalize_sensor_options", "normalize_vacuum_fields"] as const;
+export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["sensor", "local_sensor", "text_sensor", "S", "LS"];
+export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || ""); }
+export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_webhook_fields", "normalize_webhook_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
   "legacy_local_action": {
     "when": [
@@ -100,42 +102,6 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
     },
     "hook": "normalize_vacuum_fields"
   },
-  "legacy_local_sensor": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "local_sensor"
-      }
-    ],
-    "set": {
-      "type": "sensor",
-      "sensor": "local",
-      "icon_on": "Auto",
-      "options": ""
-    },
-    "hook": "normalize_sensor_fields"
-  },
-  "legacy_text_sensor": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "text_sensor"
-      }
-    ],
-    "set": {
-      "type": "sensor",
-      "entity": "",
-      "label": "",
-      "unit": "",
-      "precision": "text",
-      "icon_on": "Auto"
-    },
-    "hook": "normalize_sensor_fields"
-  },
   "legacy_weather_forecast": {
     "when": [
       {
@@ -149,35 +115,9 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
       "type": "weather",
       "precision": "tomorrow"
     }
-  },
-  "legacy_sensor_state_high_label": {
-    "when": [
-      {
-        "source": "option",
-        "name": "state_high_label",
-        "operator": "present"
-      }
-    ],
-    "set": {
-      "type": "sensor"
-    },
-    "hook": "normalize_sensor_options"
-  },
-  "legacy_sensor_state_low_label": {
-    "when": [
-      {
-        "source": "option",
-        "name": "state_low_label",
-        "operator": "present"
-      }
-    ],
-    "set": {
-      "type": "sensor"
-    },
-    "hook": "normalize_sensor_options"
   }
 };
-export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = [] as const;
+export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS"] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
@@ -3347,275 +3287,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "sensor": {
-    "label": "Sensor",
-    "allowInSubpage": true,
-    "domains": [
-      "sensor",
-      "binary_sensor",
-      "text_sensor"
-    ],
-    "options": [
-      {
-        "name": "large_numbers",
-        "label": "Large Sensor Numbers",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "in",
-            "value": [
-              "icon",
-              "text",
-              "time"
-            ],
-            "negate": true
-          }
-        ],
-        "supportedWhen": {
-          "precisionNot": [
-            "icon",
-            "text",
-            "time"
-          ]
-        }
-      },
-      {
-        "name": "time_unit",
-        "label": "Incoming Value Unit",
-        "kind": "choice",
-        "values": [
-          "",
-          "seconds",
-          "minutes",
-          "hours",
-          "days"
-        ],
-        "defaultValue": "",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "time"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "time"
-          ]
-        }
-      },
-      {
-        "name": "active_color",
-        "label": "Lit When Active",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "in",
-            "value": [
-              "time"
-            ],
-            "negate": true
-          }
-        ],
-        "supportedWhen": {
-          "precisionNot": [
-            "time"
-          ]
-        }
-      },
-      {
-        "name": "state_labels",
-        "label": "Status Translation",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_input",
-        "label": "Input Status",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_output",
-        "label": "Display Text",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_input_2",
-        "label": "Input Status 2",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_output_2",
-        "label": "Display Text 2",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "keep"
-        },
-        "icon": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "icon_on": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "sensor": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "unit": {
-          "policy": "keep"
-        },
-        "type": {
-          "policy": "default",
-          "value": "sensor"
-        },
-        "precision": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_sensor_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "large_numbers",
-        "time_unit",
-        "active_color",
-        "state_labels",
-        "state_input",
-        "state_output",
-        "state_input_2",
-        "state_output_2"
-      ],
-      "optionHook": "normalize_sensor_options",
-      "migrationActions": [
-        "legacy_local_sensor",
-        "legacy_text_sensor",
-        "legacy_sensor_state_high_label",
-        "legacy_sensor_state_low_label"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "sensor",
-      "precision": "",
-      "options": ""
-    },
-    "hidden": true
-  },
-  "local_sensor": {
-    "label": "Local Sensor",
-    "allowInSubpage": true,
-    "pickerKey": "sensor",
-    "hidden": true,
-    "domains": [
-      "sensor",
-      "text_sensor"
-    ],
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "",
-      "options": ""
-    }
-  },
   "slider": {
     "label": "Slider",
     "allowInSubpage": true,
@@ -4824,30 +4495,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "sensor": {
-    "driver": "sensor",
-    "capabilities": {
-      "informationOnly": true,
-      "subscriptions": true,
-      "actions": false,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": true,
-      "subpage": true
-    }
-  },
-  "local_sensor": {
-    "driver": "sensor",
-    "capabilities": {
-      "informationOnly": true,
-      "subscriptions": true,
-      "actions": false,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
   "slider": {
     "driver": "numeric",
     "capabilities": {
@@ -4962,17 +4609,9 @@ export const CARD_CONTRACT_MIGRATION_ALIASES: Readonly<Record<string, Partial<Ca
     "type": "action",
     "sensor": "input_select.select_option"
   },
-  "text_sensor": {
-    "type": "sensor",
-    "precision": "text"
-  },
   "weather_forecast": {
     "type": "weather",
     "precision": "tomorrow"
-  },
-  "local_sensor": {
-    "type": "sensor",
-    "sensor": "local"
   }
 };
 export const CARD_CONTRACT_BRIGHTNESS_SLIDER_TYPES = ["slider", "light_brightness", "fan_speed"] as const;
@@ -4995,8 +4634,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "calendar": "D",
   "clock": "CK",
   "timezone": "T",
-  "sensor": "S",
-  "local_sensor": "LS",
   "door_window": "X",
   "presence": "PR",
   "weather": "W",
@@ -5038,8 +4675,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "D": "calendar",
   "CK": "clock",
   "T": "timezone",
-  "S": "sensor",
-  "LS": "local_sensor",
   "X": "door_window",
   "PR": "presence",
   "W": "weather",
@@ -5078,12 +4713,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
   "": true,
   "action": true,
-  "sensor": {
-    "excludedPrecisions": [
-      "icon",
-      "text"
-    ]
-  },
   "calendar": true,
   "clock": true,
   "climate": true,
@@ -5160,18 +4789,12 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "stat_labels_off": "stat_labels_off",
   "state_entity": "state_entity",
   "state_high_label": "state_high_label",
-  "state_input": "state_input",
-  "state_input_2": "state_input_2",
-  "state_labels": "state_labels",
   "state_low_label": "state_low_label",
-  "state_output": "state_output",
-  "state_output_2": "state_output_2",
   "state_precision": "state_precision",
   "state_unit": "state_unit",
   "subpage_connector": "subpage_connector",
   "subpage_kind": "subpage_kind",
   "temperature_step": "temperature_step",
-  "time_unit": "time_unit",
   "vacuum_mode": "vacuum_mode",
   "volume_max": "volume_max",
   "weather_mode": "weather_mode",
