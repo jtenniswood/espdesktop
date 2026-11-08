@@ -900,3 +900,89 @@ add_test(NAME rainfall_card_test COMMAND rainfall_card_test)
 
 add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)
+
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/page_store_goldens.h
+  COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_page_store_goldens.py
+    --output ${CMAKE_CURRENT_BINARY_DIR}/page_store_goldens.h
+  DEPENDS ${PAGE_STORE_FIXTURES}
+    ../../compatibility/fixtures/companion_nested_pages.json
+    ../../common/config/card_normalization_fixtures.json
+    ../../scripts/generate_page_store_goldens.py
+    ../../scripts/generate_saved_config_parser_test.py
+  VERBATIM)
+add_executable(page_store_test page_store_test.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/page_store_goldens.h
+  ../../components/espdesktop/page_store.cpp)
+target_compile_features(page_store_test PRIVATE cxx_std_17)
+target_compile_options(page_store_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+target_include_directories(page_store_test PRIVATE stubs ../../components/espdesktop
+  ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME page_store_test COMMAND page_store_test)
+
+
+foreach(tool panel_config_document_v2_reader panel_config_projection_cli panel_config_import_cli)
+  add_executable(${tool} ${tool}.cpp)
+  target_compile_features(${tool} PRIVATE cxx_std_17)
+  target_compile_options(${tool} PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+  target_include_directories(${tool} PRIVATE ../../components/espdesktop)
+endforeach()
+add_test(NAME panel_config_document_v2_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/panel_config_document_v2_test.py $<TARGET_FILE:panel_config_document_v2_reader>)
+
+add_executable(grid_page_runtime_test grid_page_runtime_test.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/page_store_goldens.h
+  ../../components/espdesktop/page_store.cpp
+  ../../components/espdesktop/page_store_runtime.cpp
+  ../../components/espdesktop/panel_config_text_bindings.cpp)
+target_compile_features(grid_page_runtime_test PRIVATE cxx_std_17)
+target_compile_options(grid_page_runtime_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+target_include_directories(grid_page_runtime_test PRIVATE stubs ../../components/espdesktop ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME grid_page_runtime_test COMMAND grid_page_runtime_test)
+
+add_executable(page_store_v2_test page_store_v2_test.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/page_store_goldens.h ../../components/espdesktop/page_store.cpp
+  ../../components/espdesktop/page_store_runtime.cpp ../../components/espdesktop/configuration_service.cpp
+  ../../components/espdesktop/configuration_store.cpp)
+target_compile_features(page_store_v2_test PRIVATE cxx_std_17)
+target_compile_options(page_store_v2_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+target_include_directories(page_store_v2_test PRIVATE stubs ../../components/espdesktop ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME page_store_v2_test COMMAND page_store_v2_test)
+
+add_executable(page_store_runtime_test page_store_runtime_test.cpp
+  ../../components/espdesktop/page_store.cpp ../../components/espdesktop/page_store_runtime.cpp
+  ../../components/espdesktop/configuration_service.cpp ../../components/espdesktop/configuration_store.cpp)
+target_compile_features(page_store_runtime_test PRIVATE cxx_std_17)
+target_compile_options(page_store_runtime_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+target_include_directories(page_store_runtime_test PRIVATE stubs ../../components/espdesktop)
+add_test(NAME page_store_runtime_test COMMAND page_store_runtime_test)
+
+add_executable(configuration_main_loop_test configuration_main_loop_test.cpp
+  ../../components/espdesktop/configuration_main_loop.cpp
+  ../../components/espdesktop/configuration_service.cpp ../../components/espdesktop/configuration_store.cpp)
+target_compile_features(configuration_main_loop_test PRIVATE cxx_std_17)
+target_compile_options(configuration_main_loop_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+target_include_directories(configuration_main_loop_test PRIVATE ../../components/espdesktop)
+target_link_libraries(configuration_main_loop_test PRIVATE Threads::Threads)
+add_test(NAME configuration_main_loop_test COMMAND configuration_main_loop_test)
+
+foreach(tool panel_config_transient_storage_test panel_config_upload_test)
+  add_executable(${tool} ${tool}.cpp ../../components/espdesktop/configuration_store.cpp)
+  target_compile_features(${tool} PRIVATE cxx_std_17)
+  target_compile_options(${tool} PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+  target_include_directories(${tool} PRIVATE ../../components/espdesktop ../../components/web_server_idf)
+  add_test(NAME ${tool} COMMAND ${tool})
+endforeach()
+add_test(NAME panel_config_import_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/panel_config_import_test.py $<TARGET_FILE:panel_config_import_cli>)
+add_test(NAME panel_config_projection_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/panel_config_projection_test.py $<TARGET_FILE:panel_config_projection_cli>)
+add_test(NAME panel_config_navigation_policy_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/panel_config_navigation_policy_test.py)
+add_test(NAME panel_config_empty_defaults_codegen_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/panel_config_empty_defaults_codegen_test.py)
+
+add_test(NAME native_document_browser_parity COMMAND node ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_native_document_conversion.js $<TARGET_FILE:panel_config_projection_cli> $<TARGET_FILE:panel_config_import_cli>)
+add_test(NAME nested_page_document_paths COMMAND node ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_nested_page_document.js)
+
+target_compile_definitions(panel_config_transient_storage_test PRIVATE USE_ESP32)
+target_include_directories(panel_config_transient_storage_test PRIVATE config_storage_stubs)
+target_sources(panel_config_transient_storage_test PRIVATE ../../components/espdesktop/panel_config_espidf_storage.cpp)
+
+add_test(NAME nested_folder_state_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/nested_folder_state_test.py)

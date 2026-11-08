@@ -1,3 +1,4 @@
+#include "grid_native_pages.h"
 #pragma once
 
 
@@ -2371,17 +2372,28 @@ inline void grid_phase2(
   lv_coord_t mp_pad_row = lv_obj_get_style_pad_row(main_page_obj, LV_PART_MAIN);
   lv_coord_t mp_pad_col = lv_obj_get_style_pad_column(main_page_obj, LV_PART_MAIN);
 
-  for (int si = 0; si <= NS; si++) {
+  struct NestedPageTask {
+    int key, parent, root_index;
+    BtnSlot owner;
+    ParsedCfg config;
+    lv_obj_t *parent_screen;
+  };
+  std::vector<NestedPageTask> nested_pages;
+  for (size_t page_index = 0; page_index <= size_t(NS) + nested_pages.size(); ++page_index) {
+    const int si = int(page_index);
+    const bool is_nested_page = si > NS;
+    const NestedPageTask task = is_nested_page ? nested_pages[si - NS - 1] : NestedPageTask{};
     const bool is_special_page = si == NS;
-    const int parent_index = is_special_page ? 0 : si;
+    const int parent_index = is_special_page ? 0 : is_nested_page ? si - 1 : si;
+    BtnSlot owner_slot = is_nested_page ? task.owner : slots[is_special_page ? 0 : si];
     const int navigation_slot = is_special_page
-      ? NAVIGATION_SPECIAL_PAGE_SLOT : si + 1;
-    ParsedCfg p = is_special_page ? ParsedCfg{} : parse_cfg(slots[si].config->state);
+      ? NAVIGATION_SPECIAL_PAGE_SLOT : is_nested_page ? task.key : si + 1;
+    ParsedCfg p = is_special_page ? ParsedCfg{} : is_nested_page ? task.config : parse_cfg(slots[si].config->state);
     const auto parent_context = card_runtime_context(p);
     if (!is_special_page &&
         !espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) continue;
 
-    std::string sp_cfg = is_special_page ? cfg.special_page_config :
+    std::string sp_cfg = is_nested_page ? espdesktop::grid_native_page(task.key)->config : is_special_page ? cfg.special_page_config :
       optional_text_state(sp_configs, si) +
       optional_text_state(sp_ext_configs, si) +
       optional_text_state(sp_ext2_configs, si) +
@@ -2404,7 +2416,7 @@ inline void grid_phase2(
     navigation_register_grid_screen_gesture(sub_scr);
     int display_order = NS;
     for (int pos = 0; pos < NS; pos++) {
-      if (parsed.positions[pos] == si + 1) {
+      if (!is_nested_page && parsed.positions[pos] == si + 1) {
         display_order = pos;
         break;
       }
@@ -2413,7 +2425,11 @@ inline void grid_phase2(
       navigation_register_special_page(sub_scr, main_page_obj, get_subpage_title(sp_order_str));
     } else {
       espdesktop::cards::navigation_driver_own_subpage(
-        slots[si], p, parent_context, navigation_slot, display_order, sub_scr);
+        owner_slot, p, parent_context, navigation_slot, display_order, sub_scr);
+      if (is_nested_page) {
+        navigation_register_home_target(navigation_slot, display_order, p.label, espdesktop::grid_native_page(task.key)->owner_config, owner_slot.btn);
+        navigation_find_slot(navigation_slot)->parent_slot = task.parent;
+      }
     }
     HaCallbackOwnerScope subpage_callback_owner(sub_scr);
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);
@@ -2472,14 +2488,14 @@ inline void grid_phase2(
       }
     }, LV_EVENT_PRESSED, is_special_page
       ? static_cast<void *>(&navigation_special_page_back_button_marker())
-      : static_cast<void *>(main_page_obj));
+      : static_cast<void *>(is_nested_page ? task.parent_screen : main_page_obj));
     navigation_register_subpage_back_button(navigation_slot, back_slot, back_neutral_background);
 
     auto add_parent_indicator = [&](const std::string &entity_id,
                                     bool (*is_active_state)(esphome::StringRef) = is_entity_on_ref) {
       if (is_special_page) return;
       espdesktop::cards::navigation_driver_add_child_indicator(
-        navigation_child_indicators, slots[si], si, p, parent_context,
+        navigation_child_indicators, owner_slot, parent_index, p, parent_context,
         entity_id, is_active_state);
     };
 
@@ -2542,6 +2558,26 @@ inline void grid_phase2(
       // cards remove button padding so their fill can reach the edges, so run
       // the card-specific refresh after clamping to restore the captured inset.
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
+
+      if (!is_special_page && !is_nested_page &&
+          espdesktop::cards::navigation_driver_owns_subpage(context, sb_cfg)) {
+        const int child_key = 32 + (navigation_slot - 1) * 32 + bn;
+        if (espdesktop::grid_native_page(child_key)) {
+          nested_pages.push_back({child_key, navigation_slot, si, sub_slot, sb_cfg, sub_scr});
+          if (sb_cfg.type == "subpage") {
+            espdesktop::cards::navigation_driver_bind_subpage(sub_slot, sb_cfg, context);
+            bind_immediate_button_action(sub_slot.btn, [](lv_event_t *event) {
+              auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
+              auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+              if (screen && lv_obj_is_valid(screen)) {
+                lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+                refresh_visible_image_cards();
+              }
+            }, nullptr);
+            continue;
+          }
+        }
+      }
 
       if (espdesktop::cards::image_driver_bind_subpage(
             sub_slot, sb_cfg, context, cfg, palette)) continue;
@@ -2608,8 +2644,8 @@ inline void grid_phase2(
       action_environment.child_capacity = MAX_SUBPAGE_ITEMS;
       action_environment.child_was_on =
         navigation_child_indicators.child_was_on;
-      action_environment.parent_btn = is_special_page ? nullptr : slots[parent_index].btn;
-      action_environment.parent_icon = is_special_page ? nullptr : slots[parent_index].icon_lbl;
+      action_environment.parent_btn = is_special_page ? nullptr : owner_slot.btn;
+      action_environment.parent_icon = is_special_page ? nullptr : owner_slot.icon_lbl;
       action_environment.parent_index = is_special_page ? -1 : parent_index;
       action_environment.parent_has_icon_on =
         espdesktop::cards::navigation_driver_parent_has_alt_icon(

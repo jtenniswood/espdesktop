@@ -328,6 +328,16 @@ inline bool basic_action_driver_bind_subpage(
         auto *context = static_cast<CompanionSubpageActionContext *>(lv_event_get_user_data(event));
         if (!context) return;
         const auto *card = &context->card;
+        if (companion_app_shortcuts_enabled(*card)) {
+          auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
+          auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+          const bool active = companion_action_active(card->entity);
+          if (screen && lv_obj_is_valid(screen) && (companion_auto_open_app_subpages() || active)) {
+            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            refresh_visible_image_cards();
+            if (!companion_auto_open_app_subpages()) return;
+          }
+        }
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));

@@ -33,6 +33,7 @@ struct NavigationHomeTargetEntry {
 };
 
 struct NavigationSubpageEntry {
+  int parent_slot = 0;
   int slot = 0;
   int display_order = 0;
   std::string kind;
@@ -56,6 +57,7 @@ bool neutral_background = true;
 };
 
 inline NavigationSubpageEntry *navigation_find_slot(int slot);
+inline bool navigation_restore_subpage_slot(int slot);
 inline void navigation_register_subpage(int slot, int display_order,
                                         const std::string &kind,
                                         lv_obj_t *screen);
@@ -488,7 +490,7 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
   // The following navigation check can load the destination directly. Loading
   // Home first runs its screen/icon refresh work before the new page can draw.
   if (navigation_companion_subpage_for_action(companion_pending_auto_subpage_action())) return false;
-  return navigation_return_home(main_page_obj);
+  return entry->parent_slot > 0 ? navigation_restore_subpage_slot(entry->parent_slot) : navigation_return_home(main_page_obj);
 }
 
 inline bool navigation_open_companion_subpage_if_requested(

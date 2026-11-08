@@ -160,7 +160,7 @@ int main() {
       gate.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
       lock.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
       subpage.runtime.driver != espdesktop::card_runtime::CardDriverId::SUBPAGE ||
-      subpage.allow_in_subpage ||
+      !subpage.allow_in_subpage ||
       !card_runtime_has_capability(
         subpage, espdesktop::card_runtime::CAPABILITY_ACTIONS) ||
       !card_runtime_information_only(image) || card_runtime_passive(image) ||

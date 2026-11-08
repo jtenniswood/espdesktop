@@ -1,3 +1,4 @@
+import { parentPageKey } from "../model/page_keys";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
@@ -458,13 +459,18 @@ export function createButtonSettingsFeature(
             return true;
         }
         function saveResultSucceeded(this: any, result?: any) {
-            return result !== "authentication-required" && result !== "conflict" &&
-                result !== "too-large" && result !== "failed" && result !== "unsupported";
+            return typeof result === "string" ? result === "saved" || result === "mirror-failed" : result !== false;
         }
         function applySettingsDraft(this: any) {
-            if (!state.settingsDraft || state.settingsDraft.key !== draftKey)
+            if (isConfigLocked() || !state.settingsDraft || state.settingsDraft.key !== draftKey)
                 return Promise.resolve(false);
             var draft: any = state.settingsDraft;
+            if (draft.button.type === "subpage" && !codec.canCreateSubpage(c.isSub ? state.editingSubpage : null)) {
+                showBanner("Subpages are not available at this level on this firmware.", "error");
+                return Promise.resolve(false);
+            }
+            const originalPages = structuredClone(state.subpages);
+            const originalPending = { ...state.subpageSavePending };
             var originalGrid: any = c.grid.slice();
             var originalButtons: any = c.buttons.map(cloneButtonConfig);
             var originalSizes: any = Object.assign({}, c.sizes || {});
@@ -490,6 +496,12 @@ export function createButtonSettingsFeature(
                 } else {
                     state.subpages[slot] = originalMainSubpage;
                 }
+                state.subpages = originalPages;
+                state.subpageSavePending = originalPending;
+                // Rollback replaces page objects; keep this open dialog bound
+                // to the restored live arrays when the user retries Save.
+                c = ctx();
+                state.settingsDraft = draft;
                 renderPreview();
             }
             var saved: any = cardEditorSaveController.apply(draft, {
@@ -510,6 +522,7 @@ export function createButtonSettingsFeature(
                     originalSubpageOwner.entity !== savedButton.entity);
             var sizeChanged: any = applyCardSizeConstraint(savedButton);
             var orderChanged: any = !saved.saveSubpage && (saved.saveGrid || sizeChanged);
+            const atomicEdit = configPersistence.beginAtomicEdit?.();
             var persistence: any;
             if (saved.saveSubpage)
                 persistence = saveSubpageConfig(subpageHomeSlot);
@@ -529,6 +542,9 @@ export function createButtonSettingsFeature(
                 var cleanup: any = Promise.resolve("saved");
                 if (replacedFolderOwner) {
                     delete state.subpages[slot];
+                    Object.keys(state.subpages).forEach(key => {
+                        if (Number(key) > 32 && parentPageKey(Number(key)) === Number(slot)) delete state.subpages[Number(key)];
+                    });
                     cleanup = configPersistence.saveSubpageEntity(slot);
                 }
                 return Promise.resolve(cleanup).then(function (cleanupResult: any) {
@@ -538,7 +554,7 @@ export function createButtonSettingsFeature(
                     }
                     var savedTypeDef: any = cardRegistry.definitions[savedButton.type || ""];
                     var afterSave: any = savedTypeDef && savedTypeDef.afterSave
-                        ? savedTypeDef.afterSave(savedButton, slot, { isSub: c.isSub })
+                        ? savedTypeDef.afterSave(savedButton, slot, { isSub: c.isSub, page: subpageHomeSlot })
                         : "saved";
                     return Promise.resolve(afterSave).then(function (afterSaveResult: any) {
                         if (!saveResultSucceeded(afterSaveResult)) {
@@ -550,7 +566,12 @@ export function createButtonSettingsFeature(
                         return true;
                     });
                 });
+            }).then(async (ok: boolean) => {
+                const committed = atomicEdit ? await atomicEdit.finish(ok) : ok;
+                if (!committed) restoreDraftState();
+                return committed;
             }).catch(function () {
+                atomicEdit?.cancel();
                 restoreDraftState();
                 showBanner("Could not save the configuration. Check the connection and try again.", "error");
                 return false;
