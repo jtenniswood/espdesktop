@@ -501,38 +501,6 @@ struct SubpageOrder {
   bool compacted_portrait = false;
 };
 
-inline void subscribe_subpage_parent_indicator(
-    const std::string &entity_id,
-    lv_obj_t *parent_btn, lv_obj_t *parent_icon,
-    int parent_idx, bool *child_was_on,
-    bool has_alt_icon, const char *off_glyph, const char *on_glyph,
-    int *sp_on_count,
-    bool (*is_active_state)(esphome::StringRef) = is_entity_on_ref) {
-  ha_subscribe_state(
-    entity_id,
-    std::function<void(esphome::StringRef)>(
-      [parent_btn, parent_icon, parent_idx, child_was_on,
-       has_alt_icon, off_glyph, on_glyph, sp_on_count,
-       is_active_state](esphome::StringRef state) {
-        bool is_on = is_active_state(state);
-        if (is_on && !*child_was_on) {
-          sp_on_count[parent_idx]++;
-          *child_was_on = true;
-        } else if (!is_on && *child_was_on) {
-          sp_on_count[parent_idx]--;
-          *child_was_on = false;
-        }
-        if (sp_on_count[parent_idx] > 0) {
-          set_card_checked_state(parent_btn, true);
-          if (has_alt_icon) lv_label_set_display_text(parent_icon, on_glyph);
-        } else {
-          set_card_checked_state(parent_btn, false);
-          if (has_alt_icon) lv_label_set_display_text(parent_icon, off_glyph);
-        }
-      })
-  );
-}
-
 struct ClimateSubpageParentIndicatorCtx {
   std::string hvac_mode = "off";
   std::string hvac_action;
@@ -551,39 +519,6 @@ inline void apply_climate_subpage_parent_indicator(ClimateSubpageParentIndicator
   set_card_checked_state(ctx->parent_btn, working);
   if (ctx->has_alt_icon && ctx->parent_icon)
     lv_label_set_display_text(ctx->parent_icon, working ? ctx->on_glyph : ctx->off_glyph);
-}
-
-inline void subscribe_climate_subpage_parent_indicator(
-    const std::string &entity_id,
-    lv_obj_t *parent_btn, lv_obj_t *parent_icon,
-    bool has_alt_icon, const char *off_glyph, const char *on_glyph) {
-  if (entity_id.empty()) return;
-  ClimateSubpageParentIndicatorCtx *ctx = new ClimateSubpageParentIndicatorCtx();
-  ctx->parent_btn = parent_btn;
-  ctx->parent_icon = parent_icon;
-  ctx->has_alt_icon = has_alt_icon;
-  ctx->off_glyph = off_glyph;
-  ctx->on_glyph = on_glyph;
-  apply_climate_subpage_parent_indicator(ctx);
-
-  ha_subscribe_state(
-    entity_id,
-    std::function<void(esphome::StringRef)>(
-      [ctx](esphome::StringRef state) {
-        ctx->hvac_mode = climate_hvac_service_value(string_ref_limited(state, HA_SHORT_STATE_MAX_LEN));
-        ctx->available = !climate_unavailable_value(ctx->hvac_mode);
-        if (!ctx->available) ctx->hvac_mode = "off";
-        apply_climate_subpage_parent_indicator(ctx);
-      })
-  );
-  ha_subscribe_attribute(
-    entity_id, std::string("hvac_action"),
-    std::function<void(esphome::StringRef)>(
-      [ctx](esphome::StringRef value) {
-        ctx->hvac_action = climate_lower(climate_trim(string_ref_limited(value, HA_SHORT_STATE_MAX_LEN)));
-        apply_climate_subpage_parent_indicator(ctx);
-      })
-  );
 }
 
 // Parse subpage order CSV; "B"/"Bd"/"Bw"/"Bb"/"Bt"/"Bx" tokens mark the back button position

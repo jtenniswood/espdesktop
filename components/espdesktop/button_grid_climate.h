@@ -1031,11 +1031,6 @@ inline int climate_target_from_modal_arc_value(ClimateControlCtx *ctx, int value
   return value;
 }
 
-inline uint32_t climate_active_color(ClimateControlCtx *ctx) {
-  if (!ctx) return DEFAULT_ACCENT_COLOR;
-  return ctx->accent_color;
-}
-
 inline void climate_apply_step_button_icon_size(lv_obj_t *btn) {
   if (!btn || CLIMATE_MODAL_STEP_ICON_ZOOM == 256) return;
   lv_obj_t *label = lv_obj_get_child(btn, 0);
@@ -1356,21 +1351,6 @@ inline void climate_hide_inline_option_list() {
   ClimateControlModalUi &ui = climate_control_modal_ui();
   if (ui.option_list_view) lv_obj_del(ui.option_list_view);
   ui.option_list_view = nullptr;
-}
-
-inline void climate_update_chip(lv_obj_t *chip, const char *title, const std::string &value,
-                                bool visible, bool show_value = true) {
-  if (!chip) return;
-  if (!visible) {
-    lv_obj_add_flag(chip, LV_OBJ_FLAG_HIDDEN);
-    return;
-  }
-  lv_obj_clear_flag(chip, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_t *label = lv_obj_get_child(chip, 0);
-  if (!label) return;
-  std::string text = espdesktop_i18n(title);
-  if (show_value) text += " " + (value.empty() ? espdesktop_i18n(std::string("None")) : climate_option_label(value));
-  lv_label_set_display_text(label, text.c_str());
 }
 
 inline void climate_update_option_chip(lv_obj_t *chip, const char *title,
@@ -1727,11 +1707,6 @@ inline lv_obj_t *climate_create_menu_tile(lv_obj_t *parent, const char *icon,
     value_font, width_compensation_percent);
 }
 
-inline void climate_update_menu_tile(lv_obj_t *btn, const char *title,
-                                     const std::string &value, bool visible) {
-  climate_update_option_chip(btn, title, value, visible);
-}
-
 inline void climate_hide_action_menu();
 inline void climate_control_layout_modal(ClimateControlCtx *ctx);
 
@@ -1924,8 +1899,6 @@ inline void climate_control_apply_tab_visibility() {
     climate_open_inline_option_list(ctx, climate_control_tab_kind(ui.tab));
   }
 }
-
-inline void climate_show_action_menu(ClimateControlCtx *ctx);
 
 inline void climate_open_option_menu(ClimateControlCtx *ctx, const std::string &kind) {
   if (!ctx) return;
@@ -2298,11 +2271,6 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
   if (ui.mode_btn) lv_obj_move_foreground(ui.mode_btn);
   if (ui.menu_view) lv_obj_move_foreground(ui.menu_view);
   if (ui.menu_close_btn) lv_obj_move_foreground(ui.menu_close_btn);
-}
-
-inline void climate_show_action_menu(ClimateControlCtx *ctx) {
-  if (!ctx) return;
-  climate_open_option_menu(ctx, "hvac");
 }
 
 inline void climate_hide_action_menu() {

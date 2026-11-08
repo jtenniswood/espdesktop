@@ -481,10 +481,6 @@ inline bool alarm_display_takeover_active(AlarmCardCtx *ctx) {
          (ctx && alarm_card_context_valid(ctx) && ctx->state == "triggered");
 }
 
-inline bool alarm_arming_takeover_active() {
-  return alarm_delay_takeover_active(alarm_arming_takeover_ctx());
-}
-
 inline bool alarm_display_takeover_active() {
   return alarm_display_takeover_active(alarm_arming_takeover_ctx());
 }
@@ -632,72 +628,6 @@ inline void subscribe_alarm_state(AlarmCardCtx *ctx) {
     ctx->entity_id, std::string("arm_mode"),
     std::function<void(esphome::StringRef)>([ctx](esphome::StringRef arm_mode) {
       alarm_apply_home_arm_mode(ctx, string_ref_limited(arm_mode, HA_SHORT_STATE_MAX_LEN));
-    })
-  );
-  ha_subscribe_attribute(
-    ctx->entity_id, std::string("delay"),
-    std::function<void(esphome::StringRef)>([ctx](esphome::StringRef delay) {
-      alarm_apply_home_arm_delay(ctx, string_ref_limited(delay, HA_SHORT_STATE_MAX_LEN));
-    })
-  );
-}
-
-inline void alarm_apply_action_availability(AlarmCardCtx *ctx, const std::string &state) {
-  if (!ctx || !ctx->btn) return;
-  bool unavailable = state.empty() || state == "unavailable" || state == "unknown";
-  ctx->available = !unavailable;
-}
-
-inline void alarm_apply_action_state(AlarmCardCtx *ctx, const std::string &mode,
-                                     const std::string &state) {
-  alarm_apply_action_availability(ctx, state);
-  if (!ctx || !ctx->btn) return;
-  ctx->state = state;
-  bool unavailable = state.empty() || state == "unavailable" || state == "unknown";
-  bool active = !unavailable && alarm_action_state_matches(mode, state, ctx->arm_mode);
-  set_card_checked_state(ctx->btn, active);
-  alarm_clear_pending_action_if_progressed(ctx);
-  alarm_control_update_modal(ctx);
-  alarm_arm_delay_refresh_timer(ctx);
-  alarm_refresh_arming_takeover(ctx);
-}
-
-inline void alarm_apply_action_arm_mode(AlarmCardCtx *ctx, const std::string &mode,
-                                        const std::string &arm_mode) {
-  if (!ctx || !ctx->btn) return;
-  ctx->arm_mode = arm_mode;
-  bool unavailable = ctx->state.empty() || ctx->state == "unavailable" || ctx->state == "unknown";
-  bool active = !unavailable && alarm_action_state_matches(mode, ctx->state, ctx->arm_mode);
-  set_card_checked_state(ctx->btn, active);
-  alarm_clear_pending_action_if_progressed(ctx);
-  alarm_control_update_modal(ctx);
-  alarm_refresh_arming_takeover(ctx);
-}
-
-inline void subscribe_alarm_action_availability(AlarmCardCtx *ctx) {
-  if (!ctx || ctx->entity_id.empty()) return;
-  ctx->available = true;
-  ha_subscribe_state(
-    ctx->entity_id,
-    std::function<void(esphome::StringRef)>([ctx](esphome::StringRef state) {
-      alarm_apply_action_availability(ctx, string_ref_limited(state, HA_SHORT_STATE_MAX_LEN));
-    })
-  );
-}
-
-inline void subscribe_alarm_action_state(AlarmCardCtx *ctx, const std::string &mode) {
-  if (!ctx || ctx->entity_id.empty()) return;
-  ctx->available = true;
-  ha_subscribe_state(
-    ctx->entity_id,
-    std::function<void(esphome::StringRef)>([ctx, mode](esphome::StringRef state) {
-      alarm_apply_action_state(ctx, mode, string_ref_limited(state, HA_SHORT_STATE_MAX_LEN));
-    })
-  );
-  ha_subscribe_attribute(
-    ctx->entity_id, std::string("arm_mode"),
-    std::function<void(esphome::StringRef)>([ctx, mode](esphome::StringRef arm_mode) {
-      alarm_apply_action_arm_mode(ctx, mode, string_ref_limited(arm_mode, HA_SHORT_STATE_MAX_LEN));
     })
   );
   ha_subscribe_attribute(

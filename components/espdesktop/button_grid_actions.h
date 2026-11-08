@@ -169,20 +169,8 @@ inline bool is_fan_entity(const std::string &entity_id) {
   return entity_id.size() > 4 && entity_id.compare(0, 4, "fan.") == 0;
 }
 
-inline bool cover_toggle_mode(const std::string &sensor) {
-  return card_runtime_cover_toggle_mode(sensor);
-}
-
 inline bool cover_tilt_mode(const std::string &sensor) {
   return card_runtime_cover_tilt_mode(sensor);
-}
-
-inline bool cover_modal_mode(const std::string &sensor) {
-  return card_runtime_cover_modal_mode(sensor);
-}
-
-inline bool cover_command_mode(const std::string &sensor) {
-  return card_runtime_cover_command_mode(sensor);
 }
 
 inline const char *cover_command_service(const std::string &sensor) {
@@ -467,15 +455,6 @@ inline void send_light_temp_action(const std::string &entity_id, int pct, int mi
   ha_action_send(req);
 }
 
-inline void send_light_color_name_action(const std::string &entity_id, const char *color_name) {
-  esphome::api::HomeassistantActionRequest req;
-  if (!ha_action_begin(req, "light.turn_on", false, 2)) return;
-  if (entity_id.empty() || !color_name || color_name[0] == '\0') return;
-  ha_action_add_entity(req, entity_id);
-  ha_action_add_data(req, "color_name", color_name);
-  ha_action_send(req);
-}
-
 inline void send_light_rgb_action(const std::string &entity_id, uint32_t color) {
   esphome::api::HomeassistantActionRequest req;
   if (!ha_action_begin(req, "light.turn_on", false, 1)) return;
@@ -573,12 +552,6 @@ inline void send_media_seek_action(const std::string &entity_id, int value, floa
   send_media_player_action(entity_id, "media_player.media_seek", "seek_position", buf);
 }
 
-inline void send_media_source_action(const std::string &entity_id,
-                                     const std::string &source) {
-  if (entity_id.empty() || source.empty()) return;
-  send_media_player_action(entity_id, "media_player.select_source", "source", source.c_str());
-}
-
 inline void send_media_playback_action(const std::string &entity_id,
                                        const std::string &mode) {
   if (entity_id.empty()) return;
@@ -588,67 +561,6 @@ inline void send_media_playback_action(const std::string &entity_id,
 inline uint32_t next_media_playlist_call_id() {
   static uint32_t call_id = 400000;
   return call_id++;
-}
-
-inline void send_media_playlist_action(const ParsedCfg &p) {
-  if (p.entity.empty()) return;
-  const auto config = espdesktop::media::decode_config_v1(p);
-  const std::string &content_id = config.playlist_content_id;
-  if (content_id.empty()) {
-    ESP_LOGW("media", "Playlist button for %s has no media content ID", p.entity.c_str());
-    return;
-  }
-  const std::string &content_type = config.playlist_content_type;
-  const std::string &player_source = config.playlist_player_source;
-  ESP_LOGI("media", "Playlist button: entity=%s content_type=%s content_id=%s playback_device=%s",
-           p.entity.c_str(), content_type.c_str(), content_id.c_str(),
-           player_source.empty() ? "(none)" : player_source.c_str());
-  if (!player_source.empty()) {
-    esphome::api::HomeassistantActionRequest source_req;
-    uint32_t source_call_id = next_media_playlist_call_id();
-    if (ha_action_begin(source_req, "media_player.select_source", false, 2, source_call_id)) {
-      ha_action_add_entity(source_req, p.entity);
-      ha_action_add_data(source_req, "source", player_source.c_str());
-      std::string entity_id = p.entity;
-      std::string source = player_source;
-      ha_register_action_response_callback(
-        source_req.call_id,
-        [entity_id, source](const esphome::api::ActionResponse &response) {
-          if (response.is_success()) {
-            ESP_LOGI("media", "media_player.select_source accepted for %s source=%s",
-                     entity_id.c_str(), source.c_str());
-            return;
-          }
-          ESP_LOGW("media", "media_player.select_source failed for %s source=%s: %s",
-                   entity_id.c_str(), source.c_str(), response.get_error_message().c_str());
-        });
-      if (!ha_action_send(source_req)) {
-        ha_cancel_action_response_callback(source_req.call_id, "send failed");
-      }
-    }
-  }
-  esphome::api::HomeassistantActionRequest req;
-  uint32_t play_call_id = next_media_playlist_call_id();
-  if (!ha_action_begin(req, "media_player.play_media", false, 3, play_call_id)) return;
-  ha_action_add_entity(req, p.entity);
-  ha_action_add_data(req, "media_content_id", content_id.c_str());
-  ha_action_add_data(req, "media_content_type", content_type.c_str());
-  std::string entity_id = p.entity;
-  ha_register_action_response_callback(
-    req.call_id,
-    [entity_id, content_type, content_id](const esphome::api::ActionResponse &response) {
-      if (response.is_success()) {
-        ESP_LOGI("media", "media_player.play_media accepted for %s type=%s id=%s",
-                 entity_id.c_str(), content_type.c_str(), content_id.c_str());
-        return;
-      }
-      ESP_LOGW("media", "media_player.play_media failed for %s type=%s id=%s: %s",
-               entity_id.c_str(), content_type.c_str(), content_id.c_str(),
-               response.get_error_message().c_str());
-    });
-  if (!ha_action_send(req)) {
-    ha_cancel_action_response_callback(req.call_id, "send failed");
-  }
 }
 
 inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num,

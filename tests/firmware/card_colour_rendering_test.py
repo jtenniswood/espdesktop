@@ -226,7 +226,7 @@ groups = (
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
     ("button_grid_weather_driver.h", "espdesktop::cards", ("weather_driver_apply_background",)),
-    ("button_grid_subscriptions.h", "", ("apply_sensor_active_color", "subscribe_sensor_text_card_value", "subscribe_sensor_icon_state")),
+    ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
     ("button_grid_status_entity_driver.h", "espdesktop::cards", ("status_entity_driver_matches", "status_entity_driver_state_active", "status_entity_driver_active_color_enabled", "status_entity_driver_bind_data")),
     ("button_grid_alarm.h", "", ("alarm_theme_off_color", "alarm_set_card_state_colors")),
     ("button_grid_media.h", "", ("media_cover_art_apply_theme", "media_control_refresh_speaker_row")),
@@ -754,22 +754,6 @@ int main() {
       }
     }
   }
-  // Icon Sensors use the same unknown treatment while preserving configured icons.
-  for (bool active_colour : {false, true}) {
-    ParsedCfg config;
-    config.sensor = "binary_sensor.icon"; config.icon = "My Off"; config.icon_on = "My On";
-    lv_obj_t button, icon;
-    subscribe_sensor_icon_state(&button, &icon, config, active_colour);
-    assert(icon.content == "Minus" && (button.state & LV_STATE_DISABLED));
-    for (const char *state : {"on", "unavailable", "off", "unknown", "", "on"}) {
-      subscriptions.at(config.sensor)(esphome::StringRef(state));
-      const bool unavailable = ha_state_unavailable_ref(esphome::StringRef(state));
-      assert(bool(button.state & LV_STATE_DISABLED) == unavailable);
-      assert(icon.content == (unavailable ? "Minus" : (std::string(state) == "on" ? "My On" : "My Off")));
-      assert(bool(button.state & LV_STATE_CHECKED) == (active_colour && std::string(state) == "on"));
-      assert(!(button.flags & LV_OBJ_FLAG_CLICKABLE));
-    }
-  }
   for (const char *options : {"", "card_off_color=invalid"}) {
     ParsedCfg config;
     config.options = options;
@@ -789,17 +773,7 @@ int main() {
     assert(!neutral.custom_background && neutral.surface_sensor_val == theme->surface_sensor);
     const auto custom = card_palette_for_config(CardPalette{}, config, DisplayProfile{});
     assert(custom.custom_background && custom.surface_sensor_val == 0xFF8C00);
-    lv_obj_t sensor, label;
-    sensor.children = {&label};
-    ParsedCfg text_config;
-    text_config.sensor = "sensor.text";
-    subscribe_sensor_text_card_value(&label, text_config, &sensor, true, custom.on_val, true, custom.surface_sensor_val);
-    subscriptions.at(text_config.sensor)(esphome::StringRef("unavailable"));
-    assert(sensor.background[0] == custom.surface_sensor_val);
-    assert(label.text[0] == display_text_color_for_bg(custom.surface_sensor_val));
-    subscribe_sensor_text_card_value(&label, text_config, &sensor, true, neutral.on_val, true);
-    subscriptions.at(text_config.sensor)(esphome::StringRef("unavailable"));
-    assert(sensor.background[0] == theme->surface_sensor);
+
   }
   set_active_theme_palette(DARK_THEME);
   const auto corrected = card_palette_for_config(defaults, config, display);

@@ -152,17 +152,6 @@ inline FanControlModalUi &fan_control_modal_ui() {
   return ui;
 }
 
-inline bool fan_non_speed_card_type(const std::string &type) {
-  return type == "fan_switch" ||
-         type == "fan_oscillate" ||
-         type == "fan_direction" ||
-         type == "fan_preset";
-}
-
-inline bool fan_control_card_type(const std::string &type) {
-  return type == "fan_control";
-}
-
 constexpr int FAN_FEATURE_SET_SPEED = 1;
 constexpr int FAN_FEATURE_OSCILLATE = 2;
 constexpr int FAN_FEATURE_DIRECTION = 4;
@@ -495,22 +484,6 @@ inline void send_fan_action(const std::string &entity_id,
                             const char *data_key = nullptr,
                             const char *data_value = nullptr) {
   ha_send_entity_action(entity_id, service, data_key, data_value);
-}
-
-inline void send_fan_switch_action(FanCardCtx *ctx) {
-  if (!ctx) return;
-  send_fan_action(ctx->entity_id, ctx->on ? "fan.turn_off" : "fan.turn_on");
-}
-
-inline void send_fan_oscillate_action(FanCardCtx *ctx) {
-  if (!ctx) return;
-  send_fan_action(ctx->entity_id, "fan.oscillate", "oscillating", ctx->oscillating ? "false" : "true");
-}
-
-inline void send_fan_direction_action(FanCardCtx *ctx) {
-  if (!ctx) return;
-  const char *next = ctx->direction == "reverse" ? "forward" : "reverse";
-  send_fan_action(ctx->entity_id, "fan.set_direction", "direction", next);
 }
 
 inline void send_fan_preset_action(FanCardCtx *ctx, const std::string &mode) {
@@ -1115,82 +1088,10 @@ inline void fan_preset_close_if_unsupported(FanCardCtx *ctx) {
   if (ui.active == ctx && !fan_control_supported(ctx)) fan_preset_close();
 }
 
-inline void fan_preset_open(FanCardCtx *ctx) {
-  if (!fan_control_supported(ctx)) return;
-  ControlModalShell shell = control_modal_open_shell(
-    ControlModalKind::FAN_PRESET, ctx->btn, ctx->width_compensation_percent,
-    ctx->icon_font, fan_preset_close);
-  FanPresetUi &ui = fan_preset_ui();
-  ui.active = ctx;
-  ui.overlay = shell.overlay;
-  ui.panel = shell.panel;
-  ui.close_btn = shell.close_btn;
-
-  ControlModalLayout &layout = shell.layout;
-  lv_coord_t content_w = shell.content_w;
-  lv_coord_t gap = control_modal_scaled_px(12, layout.short_side);
-  if (gap < 8) gap = 8;
-  lv_coord_t row_h = control_modal_scaled_px(48, layout.short_side);
-  if (row_h < 34) row_h = 34;
-  lv_coord_t row_radius = row_h / 3;
-  lv_coord_t title_y = layout.inset + layout.back_size / 2;
-  lv_coord_t list_y = layout.inset + layout.back_size + gap;
-  lv_coord_t list_h = layout.panel_h - list_y - layout.inset;
-  if (list_h < row_h) list_h = row_h;
-
-  ui.title_lbl = control_modal_create_title(
-    ui.panel, espdesktop_i18n("Preset"), content_w - layout.back_size - gap,
-    ctx->label_font, ctx->width_compensation_percent);
-  lv_obj_align(ui.title_lbl, LV_ALIGN_TOP_MID, 0, title_y - layout.back_size / 2);
-
-  ui.list = control_modal_create_scroll_list(ui.panel, content_w, list_h, gap);
-  lv_obj_align(ui.list, LV_ALIGN_TOP_LEFT, layout.inset, list_y);
-
-  int count = ctx->preset_modes.size() > FAN_PRESET_MAX_OPTIONS
-    ? FAN_PRESET_MAX_OPTIONS
-    : static_cast<int>(ctx->preset_modes.size());
-  std::string current = fan_lower(fan_trim(ctx->preset_mode));
-  for (int i = 0; i < count; i++) {
-    const std::string &mode = ctx->preset_modes[i];
-    bool selected = fan_lower(fan_trim(mode)) == current;
-    lv_obj_t *btn = control_modal_create_list_row(
-      ui.list, fan_option_label(mode), selected, row_h, row_radius,
-      ctx->on_color, theme_display_color(current_theme().surface_primary),
-      ctx->label_font, ctx->width_compensation_percent);
-    ui.option_clicks[i].ctx = ctx;
-    ui.option_clicks[i].mode = mode;
-    lv_obj_add_event_cb(btn, [](lv_event_t *e) {
-      FanPresetClick *click = (FanPresetClick *)lv_event_get_user_data(e);
-      if (click && click->ctx) send_fan_preset_action(click->ctx, click->mode);
-      fan_preset_close();
-    }, LV_EVENT_CLICKED, &ui.option_clicks[i]);
-  }
-
-  if (count == 0) {
-    ui.empty_lbl = lv_label_create(ui.list);
-    lv_label_set_display_text(ui.empty_lbl, espdesktop_i18n("No presets"));
-    lv_label_set_long_mode(ui.empty_lbl, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(ui.empty_lbl, lv_pct(100));
-    lv_obj_set_style_text_color(ui.empty_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-    lv_obj_set_style_text_align(ui.empty_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    if (ctx->label_font) lv_obj_set_style_text_font(ui.empty_lbl, ctx->label_font, LV_PART_MAIN);
-  }
-
-  lv_obj_move_foreground(ui.overlay);
-}
-
 inline void fan_close_modals_for_context(FanCardCtx *ctx) {
   if (!ctx) return;
   if (fan_control_modal_ui().active == ctx) fan_control_hide_modal();
   if (fan_preset_ui().active == ctx) fan_preset_close();
-}
-
-inline void fan_card_handle_click(FanCardCtx *ctx) {
-  if (!fan_control_supported(ctx)) return;
-  if (ctx->type == "fan_switch") send_fan_switch_action(ctx);
-  else if (ctx->type == "fan_oscillate") send_fan_oscillate_action(ctx);
-  else if (ctx->type == "fan_direction") send_fan_direction_action(ctx);
-  else if (ctx->type == "fan_preset") fan_preset_open(ctx);
 }
 
 inline FanCardCtx *create_fan_card_context(

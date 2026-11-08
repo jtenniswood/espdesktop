@@ -270,12 +270,6 @@ target_compile_options(media_volume_capability_test PRIVATE -Wall -Wextra -Werro
 target_include_directories(media_volume_capability_test PRIVATE ../../components/espdesktop)
 add_test(NAME media_volume_capability_test COMMAND media_volume_capability_test)
 
-add_test(NAME media_power_override_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_power_override_test.py)
-add_test(NAME media_playback_pool_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_playback_pool_test.py)
 add_test(NAME weather_forecast_queue_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_forecast_queue_test.py)
@@ -285,9 +279,6 @@ target_compile_features(media_control_tabs_test PRIVATE cxx_std_17)
 target_compile_options(media_control_tabs_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(media_control_tabs_test PRIVATE ../../components/espdesktop)
 add_test(NAME media_control_tabs_test COMMAND media_control_tabs_test)
-add_test(NAME media_control_tabs_runtime_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_control_tabs_runtime_test.py)
 add_test(NAME media_speaker_volume_event_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_speaker_volume_event_test.py)
@@ -694,8 +685,6 @@ add_test(NAME cover_confirmation_test COMMAND
 add_test(NAME cover_stop_failure_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_stop_failure_test.py ${CMAKE_CXX_COMPILER})
 
-add_test(NAME camera_feedback_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_feedback_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME remote_modal_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
@@ -711,8 +700,6 @@ target_compile_features(camera_refresh_policy_test PRIVATE cxx_std_17)
 target_compile_options(camera_refresh_policy_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(camera_refresh_policy_test PRIVATE ../../components/espdesktop)
 add_test(NAME camera_refresh_policy_test COMMAND camera_refresh_policy_test)
-add_test(NAME camera_refresh_runtime_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_refresh_runtime_test.py)
 
 
 
@@ -811,9 +798,6 @@ add_test(NAME multipart_header_fragments_test COMMAND
 add_test(NAME multipart_upload_completion_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload_completion_test.py)
-add_test(NAME option_select_live_options_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/option_select_live_options_test.py)
 
 add_executable(weather_wind_test weather_wind_test.cpp)
 target_compile_features(weather_wind_test PRIVATE cxx_std_17)

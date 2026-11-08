@@ -1281,10 +1281,6 @@ inline void subscribe_light_control_state(LightControlCtx *ctx) {
   );
 }
 
-inline lv_coord_t media_volume_card_radius(MediaVolumeCtx *ctx) {
-  return control_modal_card_radius(ctx ? ctx->btn : nullptr);
-}
-
 inline ControlModalLayout media_volume_step_button_layout(const ControlModalLayout &layout) {
   ControlModalLayout controls_layout = layout;
   if (control_modal_uses_compact_portrait_tuning(layout)) {
@@ -3213,20 +3209,6 @@ inline void light_temp_restore_label(SliderCtx *ctx) {
 
 // Subscribe to friendly_name and keep the SliderCtx cached_label in sync;
 // the bottom label always stays as a configured label or friendly name.
-inline void subscribe_friendly_name_for_light_temp(lv_obj_t *text_lbl,
-                                                    SliderCtx *ctx,
-                                                    const std::string &entity_id) {
-  if (entity_id.empty() || !text_lbl) return;
-  ha_subscribe_attribute(
-    entity_id, std::string("friendly_name"),
-    std::function<void(esphome::StringRef)>(
-      [text_lbl, ctx](esphome::StringRef name) {
-        if (ctx) ctx->cached_label = string_ref_limited(name, HA_FRIENDLY_NAME_MAX_LEN);
-        if (ctx && ctx->light_temp_dragging) return;
-        lv_label_set_text_limited(text_lbl, name, HA_FRIENDLY_NAME_MAX_LEN);
-      })
-  );
-}
 
 inline void light_temp_apply_kelvin_state(SliderCtx *ctx, lv_obj_t *btn_ptr,
                                           lv_obj_t *slider, int kelvin,
@@ -3249,51 +3231,6 @@ inline void light_temp_apply_kelvin_state(SliderCtx *ctx, lv_obj_t *btn_ptr,
 
 // Subscribe to on/off state plus color_temp_kelvin for a light temperature slider.
 // When the light is off, the slider renders empty (value 0, no fill).
-inline void subscribe_light_temp_state(lv_obj_t *btn_ptr, lv_obj_t *slider,
-                                        const std::string &entity_id,
-                                        int /*min_k*/, int /*max_k*/, bool kelvin_color) {
-  if (!slider || entity_id.empty()) return;
-  SliderCtx *sctx = (SliderCtx *)lv_obj_get_user_data(slider);
-  // Track on/off so kelvin updates can be ignored once the light is known off
-  // while still handling the initial case where HA sends color_temp before state.
-  ha_subscribe_state(
-    entity_id,
-    std::function<void(esphome::StringRef)>(
-      [slider, btn_ptr, kelvin_color, sctx](esphome::StringRef state) {
-        bool unavailable = ha_state_unavailable_ref(state);
-        if (sctx) sctx->available = !unavailable;
-        bool on = is_entity_on_ref(state);
-        if (sctx) {
-          sctx->light_state_known = true;
-          sctx->light_on = on;
-        }
-        if (!on) {
-          lv_slider_set_value(slider, 0, LV_ANIM_OFF);
-          if (sctx && sctx->fill)
-            slider_update_fill(sctx->fill, btn_ptr, 0, false, false, sctx->radius);
-        } else if (sctx && sctx->light_temp_has_kelvin) {
-          light_temp_apply_kelvin_state(
-            sctx, btn_ptr, slider, sctx->light_temp_last_kelvin, kelvin_color);
-        }
-      })
-  );
-  ha_subscribe_attribute(
-    entity_id, std::string("color_temp_kelvin"),
-    std::function<void(esphome::StringRef)>(
-      [slider, btn_ptr, kelvin_color, sctx](esphome::StringRef val) {
-        float k_f = 0.0f;
-        if (!parse_float_ref(val, k_f)) return;
-        int k = (int)(k_f + 0.5f);
-        if (!sctx) return;
-        sctx->light_temp_last_kelvin = k;
-        sctx->light_temp_has_kelvin = true;
-        if (!sctx->light_state_known || !sctx->light_on) return;
-        // HA can report values outside the configured display range. Clamp in
-        // the renderer so slider and label agree.
-        light_temp_apply_kelvin_state(sctx, btn_ptr, slider, k, kelvin_color);
-      })
-  );
-}
 
 // Build the visual for a light temperature slider card.
 inline void setup_light_temp_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_color) {
@@ -3453,45 +3390,10 @@ inline void media_format_time(float seconds, char *buf, size_t size) {
   else snprintf(buf, size, "%d:%02d", m, s);
 }
 
-inline void media_format_percent(int percent, char *buf, size_t size) {
-  if (!buf || size == 0) return;
-  if (percent < 0) percent = 0;
-  if (percent > 100) percent = 100;
-  snprintf(buf, size, "%d%%", percent);
-}
-
 inline int media_clamp_percent(int value) {
   if (value < 0) return 0;
   if (value > 100) return 100;
   return value;
-}
-
-inline int media_volume_max_pct(MediaVolumeCtx *ctx) {
-  if (!ctx) return 100;
-  if (ctx->max_pct < 1) return 1;
-  if (ctx->max_pct > 100) return 100;
-  return ctx->max_pct;
-}
-
-inline int media_volume_clamp_user_percent(MediaVolumeCtx *ctx, int value) {
-  value = media_clamp_percent(value);
-  int max_pct = media_volume_max_pct(ctx);
-  return value > max_pct ? max_pct : value;
-}
-
-inline bool media_volume_pending_active(MediaVolumeCtx *ctx) {
-  return ctx && ctx->pending_until_ms != 0 &&
-         (int32_t)(ctx->pending_until_ms - esphome::millis()) > 0;
-}
-
-inline void media_volume_set_modal_value(MediaVolumeCtx *ctx, int pct);
-
-inline espdesktop::media::VolumeControlMode media_volume_effective_control_mode(
-    MediaVolumeCtx *ctx) {
-  if (!ctx || ctx->apply_percent) {
-    return espdesktop::media::VolumeControlMode::ABSOLUTE;
-  }
-  return ctx->volume_control_mode;
 }
 
 inline void media_volume_set_button_enabled(lv_obj_t *btn, bool enabled) {
@@ -3505,269 +3407,8 @@ inline void media_volume_set_button_enabled(lv_obj_t *btn, bool enabled) {
   }
 }
 
-inline void media_volume_refresh_controls(MediaVolumeCtx *ctx) {
-  MediaVolumeModalUi &ui = media_volume_modal_ui();
-  if (!ctx || ui.active != ctx) return;
-  const auto mode = media_volume_effective_control_mode(ctx);
-  const bool arc_interactive = espdesktop::media::volume_arc_interactive(mode);
-  if (ui.arc) {
-    if (arc_interactive) lv_obj_add_flag(ui.arc, LV_OBJ_FLAG_CLICKABLE);
-    else lv_obj_clear_flag(ui.arc, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_style_bg_opa(
-      ui.arc, arc_interactive ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_KNOB);
-  }
-  media_volume_set_button_enabled(
-    ui.minus_btn,
-    espdesktop::media::volume_decrease_enabled(
-      mode, ctx->current_pct, ctx->volume_known));
-  media_volume_set_button_enabled(
-    ui.plus_btn,
-    espdesktop::media::volume_increase_enabled(
-      mode, ctx->current_pct, media_volume_max_pct(ctx)));
-}
-
-inline void media_volume_set_card_value(MediaVolumeCtx *ctx, int pct) {
-  if (!ctx || !ctx->pct_lbl) return;
-  pct = media_clamp_percent(pct);
-  char buf[8];
-  snprintf(buf, sizeof(buf), "%d", pct);
-  lv_label_set_display_text(ctx->pct_lbl, buf);
-  if (ctx->unit_lbl) lv_label_set_display_text(ctx->unit_lbl, "");
-}
-
-inline void media_volume_apply_percent(MediaVolumeCtx *ctx, int pct,
-                                       bool from_user, bool send_action) {
-  if (!ctx || !ctx->available) return;
-  const int current_pct = media_clamp_percent(ctx->current_pct);
-  const auto mode = media_volume_effective_control_mode(ctx);
-  const auto command = espdesktop::media::volume_command(
-    mode, current_pct, pct, media_volume_max_pct(ctx), ctx->volume_known);
-  if (!ctx->apply_percent &&
-      mode != espdesktop::media::VolumeControlMode::ABSOLUTE) {
-    if (send_action) send_media_volume_command(ctx->entity_id, command);
-    media_volume_refresh_controls(ctx);
-    return;
-  }
-  pct = media_volume_clamp_user_percent(ctx, pct);
-  ctx->current_pct = pct;
-  if (from_user) {
-    ctx->pending_pct = pct;
-    ctx->pending_until_ms = esphome::millis() + 1500;
-  }
-  media_volume_set_card_value(ctx, pct);
-  media_volume_set_modal_value(ctx, pct);
-  if (send_action) {
-    if (ctx->apply_percent) {
-      ctx->apply_percent(pct);
-    } else {
-      send_media_volume_command(ctx->entity_id, command);
-    }
-  }
-  media_volume_refresh_controls(ctx);
-}
-
 inline void media_volume_hide_modal() {
   MediaVolumeModalUi &ui = media_volume_modal_ui();
   control_modal_delete_overlay(ControlModalKind::MEDIA_VOLUME, ui.overlay);
   ui = MediaVolumeModalUi();
-}
-
-inline lv_coord_t media_volume_scaled_px(lv_coord_t px, lv_coord_t short_side) {
-  return control_modal_scaled_px(px, short_side);
-}
-
-inline void media_volume_grid_card_rect(lv_coord_t sw, lv_coord_t sh,
-                                        lv_coord_t &x, lv_coord_t &y,
-                                        lv_coord_t &w, lv_coord_t &h) {
-  MediaHomeGridMetrics &metrics = media_home_grid_metrics();
-  lv_obj_t *home = metrics.page;
-  int cols = metrics.cols > 0 ? metrics.cols : 3;
-  int rows = metrics.rows > 0 ? metrics.rows : 3;
-  x = 0;
-  y = 0;
-  w = sw / cols;
-  h = sh / rows;
-  if (!home) return;
-
-  lv_obj_update_layout(home);
-  lv_coord_t pad_left = lv_obj_get_style_pad_left(home, LV_PART_MAIN);
-  lv_coord_t pad_right = lv_obj_get_style_pad_right(home, LV_PART_MAIN);
-  lv_coord_t pad_top = lv_obj_get_style_pad_top(home, LV_PART_MAIN);
-  lv_coord_t pad_bottom = lv_obj_get_style_pad_bottom(home, LV_PART_MAIN);
-  lv_coord_t gap_col = lv_obj_get_style_pad_column(home, LV_PART_MAIN);
-  lv_coord_t gap_row = lv_obj_get_style_pad_row(home, LV_PART_MAIN);
-  int span_cols = cols < 3 ? cols : 3;
-  int span_rows = rows < 3 ? rows : 3;
-  if (metrics.first_card) {
-    lv_area_t card_area;
-    lv_obj_get_coords(metrics.first_card, &card_area);
-    x = 5;
-    y = card_area.y1;
-    w = lv_obj_get_width(metrics.first_card) * span_cols + gap_col * (span_cols - 1);
-    h = lv_obj_get_height(metrics.first_card) * span_rows + gap_row * (span_rows - 1);
-    return;
-  }
-
-  lv_coord_t usable_w = sw - pad_left - pad_right - gap_col * (cols - 1);
-  lv_coord_t usable_h = sh - pad_top - pad_bottom - gap_row * (rows - 1);
-  lv_coord_t cell_w = usable_w > 0 ? usable_w / cols : w;
-  lv_coord_t cell_h = usable_h > 0 ? usable_h / rows : h;
-  w = cell_w * span_cols + gap_col * (span_cols - 1);
-  h = cell_h * span_rows + gap_row * (span_rows - 1);
-  x = 5;
-  y = pad_top;
-}
-
-inline void media_volume_layout_modal(MediaVolumeCtx *ctx) {
-  MediaVolumeModalUi &ui = media_volume_modal_ui();
-  if (!ctx || !ui.overlay || !ui.panel) return;
-  ControlModalLayout layout = control_modal_calc_layout(ctx->width_compensation_percent);
-  control_modal_apply_panel_layout(ui.overlay, ui.panel, layout, media_volume_card_radius(ctx));
-  if (ui.pct_lbl) {
-    const lv_font_t *number_font = display_modal_volume_number_font(ctx->number_font);
-    if (number_font) {
-      lv_obj_set_style_text_font(ui.pct_lbl, number_font, LV_PART_MAIN);
-    }
-  }
-  if (ui.title_lbl) lv_obj_update_layout(ui.title_lbl);
-  if (ui.pct_row) lv_obj_update_layout(ui.pct_row);
-  lv_coord_t title_h = ui.title_lbl ? lv_obj_get_height(ui.title_lbl) : 0;
-  lv_coord_t value_h = ui.pct_row ? lv_obj_get_height(ui.pct_row) : 0;
-  lv_coord_t title_center_y = layout.value_center_y -
-    (value_h / 2 + layout.title_gap + title_h / 2);
-
-  control_modal_apply_back_button_layout(ui.back_btn, layout);
-  control_modal_apply_arc_layout(ui.arc, layout, ctx->width_compensation_percent);
-  control_modal_apply_step_buttons_layout(
-    ui.minus_btn, ui.plus_btn, media_volume_step_button_layout(layout),
-    display_modal_uses_compact_landscape_controls(layout.profile), layout.inset, 256);
-  lv_obj_set_style_translate_y(ui.pct_unit_lbl,
-    control_modal_scaled_px(MEDIA_VOLUME_UNIT_Y_REF_PX, layout.short_side), LV_PART_MAIN);
-  lv_obj_align(ui.title_lbl, LV_ALIGN_CENTER, 0, title_center_y);
-  lv_obj_align(ui.pct_row, LV_ALIGN_CENTER, 0, layout.value_center_y);
-  lv_obj_move_foreground(ui.back_btn);
-}
-
-inline void media_volume_set_modal_value(MediaVolumeCtx *ctx, int pct) {
-  MediaVolumeModalUi &ui = media_volume_modal_ui();
-  if (!ctx || ui.active != ctx) return;
-  pct = media_clamp_percent(pct);
-  if (ui.arc) {
-    const int arc_max = media_volume_effective_control_mode(ctx) ==
-        espdesktop::media::VolumeControlMode::ABSOLUTE
-      ? media_volume_max_pct(ctx) : 100;
-    ui.updating_arc = true;
-    lv_arc_set_range(ui.arc, 0, arc_max);
-    lv_arc_set_value(ui.arc, pct > arc_max ? arc_max : pct);
-    ui.updating_arc = false;
-  }
-  if (ui.pct_lbl) {
-    char buf[8];
-    snprintf(buf, sizeof(buf), "%d", pct);
-    lv_label_set_display_text(ui.pct_lbl, buf);
-  }
-  if (ui.pct_unit_lbl) lv_label_set_display_text(ui.pct_unit_lbl, "");
-}
-
-inline bool media_volume_can_open_modal(MediaVolumeCtx *ctx) {
-  return !(!ctx || !ctx->available);
-}
-
-inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
-  if (!media_volume_can_open_modal(ctx)) return;
-  ControlModalShell shell = control_modal_open_shell(
-    ControlModalKind::MEDIA_VOLUME, ctx->btn, ctx->width_compensation_percent,
-    ctx->icon_font, media_volume_hide_modal);
-  MediaVolumeModalUi &ui = media_volume_modal_ui();
-  ui.active = ctx;
-  ui.overlay = shell.overlay;
-  ui.panel = shell.panel;
-  ui.back_btn = shell.close_btn;
-  if (!ctx->clock_bar_title.empty()) set_clock_bar_modal_label(ctx->clock_bar_title);
-  lv_obj_t *back_label = lv_obj_get_child(ui.back_btn, 0);
-  if (back_label) lv_obj_set_style_text_color(back_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-
-  ui.arc = lv_arc_create(ui.panel);
-  lv_arc_set_bg_angles(ui.arc, 135, 45);
-  const int arc_max = media_volume_effective_control_mode(ctx) ==
-      espdesktop::media::VolumeControlMode::ABSOLUTE
-    ? media_volume_max_pct(ctx) : 100;
-  lv_arc_set_range(ui.arc, 0, arc_max);
-  lv_arc_set_value(ui.arc, media_clamp_percent(ctx->current_pct));
-  lv_obj_set_style_bg_opa(ui.arc, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(ui.arc, 0, LV_PART_MAIN);
-  lv_obj_set_style_arc_color(ui.arc, lv_color_hex(theme_display_color(current_theme().track_background)), LV_PART_MAIN);
-  lv_obj_set_style_arc_color(ui.arc, lv_color_hex(ctx->accent_color), LV_PART_INDICATOR);
-  lv_obj_set_style_arc_rounded(ui.arc, true, LV_PART_MAIN);
-  lv_obj_set_style_arc_rounded(ui.arc, true, LV_PART_INDICATOR);
-  lv_obj_set_style_bg_color(ui.arc, lv_color_hex(current_theme().text_primary), LV_PART_KNOB);
-  lv_obj_set_style_border_width(ui.arc, 0, LV_PART_KNOB);
-  lv_obj_set_style_shadow_width(ui.arc, 0, LV_PART_KNOB);
-  lv_obj_add_flag(ui.arc, LV_OBJ_FLAG_ADV_HITTEST);
-  lv_obj_add_event_cb(ui.arc, [](lv_event_t *e) {
-    MediaVolumeModalUi &ui = media_volume_modal_ui();
-    if (ui.updating_arc || !ui.active) return;
-    if (!espdesktop::media::volume_arc_interactive(
-          media_volume_effective_control_mode(ui.active))) return;
-    lv_obj_t *arc = static_cast<lv_obj_t *>(lv_event_get_target(e));
-    media_volume_apply_percent(ui.active, lv_arc_get_value(arc), true, true);
-  }, LV_EVENT_VALUE_CHANGED, nullptr);
-
-  ui.title_lbl = lv_label_create(ui.panel);
-  lv_label_set_display_text(ui.title_lbl, espdesktop_i18n("Volume"));
-  lv_obj_set_style_text_color(ui.title_lbl, lv_color_hex(current_theme().text_muted), LV_PART_MAIN);
-  lv_obj_set_style_text_align(ui.title_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-  if (ctx->label_font) lv_obj_set_style_text_font(ui.title_lbl, ctx->label_font, LV_PART_MAIN);
-  apply_text_width_compensation(ui.title_lbl);
-
-  ui.pct_row = lv_obj_create(ui.panel);
-  lv_obj_set_size(ui.pct_row, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-  lv_obj_clear_flag(ui.pct_row, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_clear_flag(ui.pct_row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_set_style_bg_opa(ui.pct_row, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(ui.pct_row, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(ui.pct_row, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_column(ui.pct_row, 4, LV_PART_MAIN);
-  lv_obj_set_layout(ui.pct_row, LV_LAYOUT_FLEX);
-  lv_obj_set_style_flex_flow(ui.pct_row, LV_FLEX_FLOW_ROW, LV_PART_MAIN);
-  lv_obj_set_style_flex_main_place(ui.pct_row, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
-  lv_obj_set_style_flex_cross_place(ui.pct_row, LV_FLEX_ALIGN_END, LV_PART_MAIN);
-
-  ui.pct_lbl = lv_label_create(ui.pct_row);
-  lv_obj_set_style_text_color(ui.pct_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-  lv_obj_set_style_text_align(ui.pct_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-  if (ctx->number_font) lv_obj_set_style_text_font(ui.pct_lbl, ctx->number_font, LV_PART_MAIN);
-  apply_text_width_compensation(ui.pct_lbl);
-
-  ui.pct_unit_lbl = lv_label_create(ui.pct_row);
-  lv_label_set_display_text(ui.pct_unit_lbl, "");
-  lv_obj_set_style_text_color(ui.pct_unit_lbl, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-  lv_obj_set_style_text_align(ui.pct_unit_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-  if (ctx->unit_font) lv_obj_set_style_text_font(ui.pct_unit_lbl, ctx->unit_font, LV_PART_MAIN);
-  lv_obj_set_style_translate_y(ui.pct_unit_lbl, MEDIA_VOLUME_UNIT_Y_REF_PX, LV_PART_MAIN);
-  apply_text_width_compensation(ui.pct_unit_lbl);
-
-  ui.minus_btn = control_modal_create_round_button(ui.panel, 72, find_icon("Minus"),
-    ctx->icon_font, theme_display_color(current_theme().control_neutral), theme_display_color(current_theme().surface_primary), ctx->width_compensation_percent);
-  ui.plus_btn = control_modal_create_round_button(ui.panel, 72, find_icon("Plus"),
-    ctx->icon_font, theme_display_color(current_theme().control_neutral), theme_display_color(current_theme().surface_primary), ctx->width_compensation_percent);
-  bind_immediate_button_action(ui.minus_btn, [](lv_event_t *) {
-    MediaVolumeModalUi &ui = media_volume_modal_ui();
-    if (ui.active) {
-      media_volume_apply_percent(
-        ui.active, ui.active->current_pct - 1, true, true);
-    }
-  }, nullptr);
-  bind_immediate_button_action(ui.plus_btn, [](lv_event_t *) {
-    MediaVolumeModalUi &ui = media_volume_modal_ui();
-    if (ui.active) {
-      media_volume_apply_percent(
-        ui.active, ui.active->current_pct + 1, true, true);
-    }
-  }, nullptr);
-
-  media_volume_layout_modal(ctx);
-  media_volume_set_modal_value(ctx, ctx->current_pct);
-  media_volume_refresh_controls(ctx);
-  lv_obj_move_foreground(ui.overlay);
 }
