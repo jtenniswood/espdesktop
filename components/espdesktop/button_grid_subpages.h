@@ -501,26 +501,6 @@ struct SubpageOrder {
   bool compacted_portrait = false;
 };
 
-struct ClimateSubpageParentIndicatorCtx {
-  std::string hvac_mode = "off";
-  std::string hvac_action;
-  bool available = true;
-  lv_obj_t *parent_btn = nullptr;
-  lv_obj_t *parent_icon = nullptr;
-  bool has_alt_icon = false;
-  const char *off_glyph = nullptr;
-  const char *on_glyph = nullptr;
-};
-
-inline void apply_climate_subpage_parent_indicator(ClimateSubpageParentIndicatorCtx *ctx) {
-  if (!ctx) return;
-  bool working = espdesktop::climate::parent_indicator_active(
-      ctx->available, ctx->hvac_mode, ctx->hvac_action);
-  set_card_checked_state(ctx->parent_btn, working);
-  if (ctx->has_alt_icon && ctx->parent_icon)
-    lv_label_set_display_text(ctx->parent_icon, working ? ctx->on_glyph : ctx->off_glyph);
-}
-
 // Parse subpage order CSV; "B"/"Bd"/"Bw"/"Bb"/"Bt"/"Bx" tokens mark the back button position
 inline void parse_subpage_order(const std::string &order_str, int num_slots, int num_btns,
                                 SubpageOrder &result, int configured_slots = 0) {
