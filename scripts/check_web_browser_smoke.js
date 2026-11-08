@@ -2821,7 +2821,7 @@ async function assertWebAppReturnIcon(browser, testCase) {
         iconBounds.y + iconBounds.height <= cardBounds.y + cardBounds.height + 1, "Web App artwork fits its return card");
       assert(!(await back.locator(".sp-btn-label").isVisible()), "Web App return card uses the large icon without its label");
       assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0);
-      await back.click();
+      await back.locator(".sp-back-badge.mdi-chevron-left").click();
       await page.locator('.sp-main [data-slot="2"] .sp-subpage-badge').waitFor();
       assert(iconRequests > 0 && nativeWebAppRequests === 0, "Web Apps use the URL pipeline, never the macOS icon endpoint");
     } finally { await context.close(); }
@@ -2940,12 +2940,14 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await backAppIcon.waitFor();
       assert.strictEqual(await page.locator(".sp-back-btn").getAttribute("data-icon-size"), "large");
       assert(!(await page.locator(".sp-back-btn .sp-btn-label").isVisible()), "app Back card hides its label");
+      assert(await page.locator(".sp-back-btn .sp-back-badge.mdi-chevron-left").isVisible(),
+        "app Back card shows the opposite chevron to the subpage link");
       assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0,
         "app subpage identity moves from the clock bar to the return-home card");
       if (process.env.ESPDESKTOP_APP_BACK_SCREENSHOT) {
         await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_APP_BACK_SCREENSHOT });
       }
-      await page.locator(".sp-back-btn").click();
+      await page.locator(".sp-back-btn .sp-back-badge").click();
       await card(2).locator(".sp-subpage-badge").waitFor();
       await card(2).locator(".sp-subpage-badge").click();
       await chooseSize(1, "Large");
