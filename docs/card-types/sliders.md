@@ -14,7 +14,7 @@ For light-only controls, you may prefer the newer [Lights](/card-types/lights) c
 
 ## Setting Up a Slider
 
-1. Select a card and change its type to **Slider**.
+1. Select a card and change its type to **Volume**.
 2. Choose a **Control**:
    - **Home Assistant** — enter the entity to control, such as `light.living_room`, `fan.office_fan`, `number.boiler_target`, or `input_number.test_level`.
 3. Set a **Label** (optional) — shown at the bottom of the card. If left blank, the entity's friendly name from Home Assistant is used.

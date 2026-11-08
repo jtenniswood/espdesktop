@@ -579,7 +579,7 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "push") return "Trigger";
   if (type == "companion") return "Companion";
   if (type == "webhook") return "Webhook";
-  if (type == "slider") return "Slider";
+  if (type == "slider") return "Volume";
   if (type == "subpage") return "Subpage";
   if (type == "timezone") return "Date & Time";
   if (type == "weather") return "Weather";

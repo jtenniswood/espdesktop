@@ -488,7 +488,7 @@ export function registerSliderCardTypes(
         entityPlaceholder: "e.g. light.living_room",
         defaultIcon: "Auto",
         defaultIconOn: "Auto",
-        fallbackLabel: "Slider",
+        fallbackLabel: "Volume",
         fallbackIcon: "lightbulb",
         badgeIcon: "tune-vertical-variant",
         alwaysShowIconPair: true,

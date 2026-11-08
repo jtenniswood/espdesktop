@@ -88,7 +88,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   media: { icon: "speaker", description: "Control media playback or volume." },
   media_control: { icon: "music", description: "Open all media controls and volume in a modal." },
   push: { icon: "gesture-tap-button", description: "Fire a momentary button event." },
-  slider: { icon: "tune-vertical", description: "Adjust a numeric or brightness value." },
+  slider: { icon: "tune-vertical", description: "Adjust volume or another numeric value." },
   subpage: { icon: "view-grid-plus", description: "Open a nested page of cards." },
   webhook: { icon: "webhook", description: "Send a direct HTTP request." },
   vacuum: { icon: "robot-vacuum", description: "Show or control a vacuum cleaner." },
