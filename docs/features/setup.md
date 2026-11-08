@@ -50,3 +50,13 @@ For Home Assistant setup and panel features, see [EspControl docs](https://jtenn
 Right-click a preview card and open **Change Colour** to choose a preset or custom background. Select several cards to recolour them together; subpage Back cards also support this. **Reset Colour** restores the default background while preserving a separate active colour. Changes save immediately.
 
 Current firmware supports up to 4 KB per saved card or subpage record (4,095 bytes of content). The editor keeps the smaller limits when connected to older firmware. Export a backup before downgrading firmware: larger layouts cannot fit its older text storage.
+
+## Card background images
+
+Edit a card in **Layout** and choose **Background > Image** to upload or select a stored photo. **Background > Colour** clears the assignment when saved, while keeping the image in the library. Cancel leaves the saved background unchanged. Image-backed cards are skipped by bulk recolouring and hide the right-click **Card Colour** action.
+
+Images remain opaque when pressed, active or unavailable. Text, values and units stay solid, with shadows following live updates, wrapping and resizing. Removing an image restores normal text styling.
+
+Open **Screen > Appearance > Image Library**, below **Clock Bar**, for thumbnails, names and usage counts. Upload images, rename them without changing assignments, or delete them. Deleting a used image asks for confirmation and clears its card assignments first.
+
+ZIP backups include images, names and assignments. Configuration-only JSON backups remain supported. Older firmware partition layouts need a USB update before image uploads are available. See [Enable Image Storage](/features/image-storage).

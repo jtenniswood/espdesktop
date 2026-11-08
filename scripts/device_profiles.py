@@ -96,6 +96,7 @@ class DeviceProfileError(RuntimeError):
 PROFILE_CATEGORIES = (
     "platform",
     "display",
+    "assets",
     "modal",
     "fonts",
     "network",
@@ -402,7 +403,7 @@ def validate_capabilities(slug: str, device: dict[str, Any], errors: list[str]) 
     capabilities = require_object(slug, errors, device.get("capabilities"), "capabilities")
     if capabilities is None:
         return
-    unknown = sorted(set(capabilities) - {"imageSlots", "companion"})
+    unknown = sorted(set(capabilities) - {"imageSlots", "companion", "cardBackgrounds"})
     if unknown:
         errors.append(device_error(slug, "capabilities has unknown keys: " + ", ".join(unknown)))
     image_slots = capabilities.get("imageSlots")
@@ -410,6 +411,22 @@ def validate_capabilities(slug: str, device: dict[str, Any], errors: list[str]) 
         errors.append(device_error(slug, "capabilities.imageSlots must be an integer from 0 to 6"))
     if "companion" in capabilities and not isinstance(capabilities["companion"], bool):
         errors.append(device_error(slug, "capabilities.companion must be true or false when set"))
+    backgrounds = require_object(slug, errors, capabilities.get("cardBackgrounds"), "capabilities.cardBackgrounds")
+    if backgrounds is None:
+        return
+    unknown_backgrounds = sorted(set(backgrounds) - {"maxActive", "partitionBytes", "residentFrames"})
+    if unknown_backgrounds:
+        errors.append(device_error(slug, "capabilities.cardBackgrounds has unknown keys: " + ", ".join(unknown_backgrounds)))
+    max_active = backgrounds.get("maxActive")
+    resident_frames = backgrounds.get("residentFrames")
+    partition_bytes = backgrounds.get("partitionBytes")
+    slots = device.get("slots")
+    if not is_positive_int(max_active) or (is_positive_int(slots) and max_active > slots):
+        errors.append(device_error(slug, "capabilities.cardBackgrounds.maxActive must be a positive integer no greater than slots"))
+    if not is_positive_int(resident_frames) or (is_positive_int(max_active) and resident_frames > max_active):
+        errors.append(device_error(slug, "capabilities.cardBackgrounds.residentFrames must be a positive integer no greater than maxActive"))
+    if not is_positive_int(partition_bytes) or partition_bytes % 4096 != 0:
+        errors.append(device_error(slug, "capabilities.cardBackgrounds.partitionBytes must be a positive multiple of 4096"))
 
 
 def validate_public(slug: str, device: dict[str, Any], errors: list[str]) -> None:
@@ -459,6 +476,12 @@ def validate_build(slug: str, firmware: dict[str, Any] | None, errors: list[str]
     elif chip not in VALID_CHIP_FAMILIES:
         valid = ", ".join(sorted(VALID_CHIP_FAMILIES))
         errors.append(device_error(slug, f"firmware.build.chip must be one of {valid}"))
+    flash_bytes = build.get("flashBytes")
+    if not is_positive_int(flash_bytes) or flash_bytes % (1024 * 1024) != 0:
+        errors.append(device_error(
+            slug,
+            "firmware.build.flashBytes must be a positive whole number of MiB",
+        ))
 
 
 def validate_fonts(
@@ -917,6 +940,7 @@ def web_config(profile: dict[str, Any]) -> dict[str, Any]:
     layout = profile["layout"]
     features = web_features(profile)
     image_slot_capacity = profile["capabilities"]["imageSlots"]
+    card_backgrounds = profile["capabilities"]["cardBackgrounds"]
     cfg: dict[str, Any] = {
         "slots": profile["slots"],
         "cols": layout["cols"],
@@ -926,6 +950,8 @@ def web_config(profile: dict[str, Any]) -> dict[str, Any]:
         "displayHeight": int(profile["public"]["resolution"].split(" x ")[1]),
         "largeSensorUnitOffsetPercent": profile["settings"]["largeSensorUnitOffsetPercent"],
         "imageSlotCapacity": image_slot_capacity,
+        "cardBackgroundImageLimit": card_backgrounds["maxActive"],
+        "cardBackgroundPartitionBytes": card_backgrounds["partitionBytes"],
         "cardRadiusPixels": int(profile["firmware"]["package"]["substitutions"]["radius"].removesuffix("px")),
     }
     substitutions = profile["firmware"]["package"]["substitutions"]
@@ -987,6 +1013,7 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
         "display_mode": display.get("mode", "color"),
         "modal": copy.deepcopy(display["modal"]),
         "package": firmware.get("package"),
+        "flash_bytes": firmware["build"]["flashBytes"],
         "camera_screensaver_supported": camera_screensaver_supported(profile),
     }
     if "portraitCols" in layout:
@@ -1015,6 +1042,10 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
             "blue": correction.get("bluePercent", 100),
         }
     slot["image_slot_capacity"] = profile["capabilities"]["imageSlots"]
+    backgrounds = profile["capabilities"]["cardBackgrounds"]
+    slot["card_background_max_active"] = backgrounds["maxActive"]
+    slot["card_background_partition_bytes"] = backgrounds["partitionBytes"]
+    slot["card_background_resident_frames"] = backgrounds["residentFrames"]
     if display.get("imageCardDiagnostics"):
         slot["image_card_diagnostics"] = True
     if display.get("refreshRebuildsSubpages"):
@@ -1046,6 +1077,7 @@ def public_device_capability(profile: dict[str, Any]) -> dict[str, Any]:
         "orientation": profile["public"]["orientation"],
         "slots": profile["slots"],
         "imageSlots": profile["capabilities"]["imageSlots"],
+        "cardBackgrounds": copy.deepcopy(profile["capabilities"]["cardBackgrounds"]),
         "imageCardTypes": image_card_types,
         "grid": {
             "rows": profile["layout"]["rows"],

@@ -67,11 +67,14 @@ struct GridConfig {
   esphome::artwork_image::ArtworkImage **image_card_images = nullptr;
   esphome::artwork_image::ArtworkImage *image_card_modal_image = nullptr;
   int image_card_image_count = 0;
+  esphome::artwork_image::ArtworkImage **card_background_images = nullptr;
+  int card_background_image_count = 0;
   bool image_card_diagnostics = false;
   std::function<std::string()> home_assistant_base_url;
 };
 
 #include "button_grid_image.h"
+#include "button_grid_card_background.h"
 
 inline void navigation_refresh_subpage_label();
 
@@ -702,6 +705,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     return;
   }
 
+  apply_card_background_image(s, p, cfg);
 
   if (espdesktop::cards::timer_driver_setup_visual(s, p, context)) return;
   if (espdesktop::cards::image_driver_setup_visual(s, p, context, palette)) {
@@ -1064,6 +1068,10 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     if (source) companion_layout_card_app_icon(*source, s.app_icon_img);
   }
 #endif
+  sync_card_background_image(s, p, cfg);
+  if (card_background_configured_for_card(p)) {
+    card_background_move_content_foreground(s);
+  }
   if (espdesktop::cards::weather_driver_matches(context) &&
       (p.precision == "wind" || p.precision == "rainfall" || espdesktop::cards::weather_driver_shows_forecast(p))) {
     espdesktop::cards::weather_driver_refresh_layout(s, p, context, display, row_span, col_span);
@@ -1115,6 +1123,7 @@ inline void grid_refresh_layout(
     lv_obj_add_flag(slots[i].btn, LV_OBJ_FLAG_HIDDEN);
   grid_navigation_service().layout_slots = NS;
   grid_navigation_service().layout_columns = COLS;
+  for (int i = 0; i < NS; i++) clear_card_background_image(slots[i]);
   configure_grid_layout(main_page_obj, NS, COLS);
   int ROWS = (NS + COLS - 1) / COLS;
 
@@ -1201,8 +1210,12 @@ inline void grid_phase1(
   navigation_close_modals_for_display_takeover();
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
+  button_grid_screen_load_callback() = [cfg](lv_obj_t *page) {
+    card_background_activate_page(cfg, page);
+  };
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
+  reset_card_background_image_pool(cfg);
   // Clear image references before visual setup removes their old LVGL widgets.
   espdesktop::cards::image_driver_reset_pool(cfg);
   int NS = bounded_grid_slots(cfg.num_slots);
@@ -1295,6 +1308,7 @@ inline void grid_phase1(
     setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
     refresh_card_layout(s, p, cfg, row_span, col_span);
   }
+  if (main_page_obj) card_background_activate_page(cfg, main_page_obj);
   screen_lock_apply();
   register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
                       cfg.color_correction_red_percent,
@@ -2183,6 +2197,9 @@ inline void grid_phase2(
 #endif
   grid_log_memory("start");
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
+  button_grid_screen_load_callback() = [cfg](lv_obj_t *page) {
+    card_background_activate_page(cfg, page);
+  };
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   set_switch_confirmation_message_font(display_switch_confirmation_message_font(display));
@@ -2230,6 +2247,9 @@ inline void grid_phase2(
   navigation_clear_home_targets();
   // Image-card contexts may still point at widgets inside subpage screens.
   espdesktop::cards::image_driver_reset_pool(cfg);
+  for (auto &entry : navigation_subpages()) {
+    card_background_unregister_page(entry.screen);
+  }
   navigation_clear_subpages(main_page_obj);
   clear_subpage_vacuum_card_text_refs();
 
@@ -2466,7 +2486,7 @@ inline void grid_phase2(
       if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
         navigation_return_from_special_page();
       } else {
-        lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        button_grid_load_screen((lv_obj_t *)lv_event_get_user_data(e));
         refresh_visible_image_cards();
       }
     }, LV_EVENT_PRESSED, is_special_page

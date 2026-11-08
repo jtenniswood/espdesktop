@@ -4,6 +4,7 @@ import * as EspDesktopModel from "../model";
 import { cardIconSizeOverride, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
+import { cardBackgroundImage } from "./config_option_core";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
 import { iconSlug, mdiIcon, textSpan } from "./ui_primitives";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
@@ -80,7 +81,7 @@ export function createButtonSettingsFeature(
         renderCardActiveColorToggle, renderCardEntityField, renderCardIconPair,
         renderCardIconPicker, renderCardLargeNumbersToggle, renderCardModeSelector,
         renderCardNumberField, renderCardOptionToggle, renderCardSegmentControl,
-        renderCardTextField, segmentControl, selectField, syncCardLargeNumbersToggle,
+        renderCardTextField, renderCardBackgroundControl, segmentControl, selectField, syncCardLargeNumbersToggle,
         textInput, toggleRow,
     } = fields;
 
@@ -106,6 +107,9 @@ export function createButtonSettingsFeature(
         imageSlotCapacity,
         imageCardCountWithCandidate,
         showImageCardLimitBanner,
+        cardBackgroundImageLimit,
+        cardBackgroundImageCountWithCandidate,
+        showCardBackgroundImageLimitBanner,
     } = imageOptions;
     const { cardOnPattern, setCardOnPattern } = confirmationOptions;
     const {
@@ -154,7 +158,9 @@ export function createButtonSettingsFeature(
         cardColorHeader.appendChild(resetCardColors);
         cardAppearance.section.appendChild(cardColorEditor);
         panel.appendChild(cardAppearance.panel);
-        return { editor: cardColorEditor, presets: presetGrid };
+        return { panel: cardAppearance.panel, section: cardAppearance.section,
+            button: cardAppearance.button, reset: resetCardColors,
+            editor: cardColorEditor, presets: presetGrid };
     }
     function renderBackButtonSettings(this: any, container?: any, c?: any) {
         if (!c.isSub || c.selected[0] !== -2)
@@ -431,6 +437,18 @@ export function createButtonSettingsFeature(
             if (validation.reason !== "image-limit")
                 return true;
             showImageCardLimitBanner();
+            return false;
+        }
+        function validateCardBackgroundImageLimit(this: any) {
+            var count: any = cardBackgroundImageCountWithCandidate({
+                isSub: c.isSub,
+                homeSlot: state.editingSubpage,
+                slot: slot,
+                button: b,
+            });
+            if (count <= cardBackgroundImageLimit())
+                return true;
+            showCardBackgroundImageLimitBanner();
             return false;
         }
         function validateSaveLimits(this: any) {
@@ -907,6 +925,7 @@ export function createButtonSettingsFeature(
             renderCardActiveColorToggle: renderCardActiveColorToggle,
             renderBasicCardFields: renderBasicCardFields,
             renderCardSegmentControl: renderCardSegmentControl,
+            renderCardBackgroundControl: renderCardBackgroundControl,
             requireField: requireField,
             requireEntityDomain: requireEntityDomain,
             clearFieldError: clearFieldError,
@@ -963,8 +982,9 @@ export function createButtonSettingsFeature(
             });
             panel.appendChild(patternField.field);
         }
+        let colourControls: ReturnType<typeof renderColourSettings> | undefined;
         if (b.type !== "image" && b.type !== "wifi_qr_card") {
-            var colourControls = renderColourSettings(panel, idPrefix, () =>
+            colourControls = renderColourSettings(panel, idPrefix, () =>
                 configOptionValue(b.options, "card_off_color") || defaultCardBackgroundColor(b.type || "", state),
                 (hex: string) => {
                     b.options = setCardColor(b.options, hex);
@@ -1026,6 +1046,56 @@ export function createButtonSettingsFeature(
             panel.appendChild(fieldWithControl("App icon size", null, iconSizes.segment));
         }
         groupCardSettingsFields(panel, idPrefix);
+        if (colourControls) {
+            const backgroundColour = colourControls;
+            var backgroundTabs: ReturnType<typeof segmentControl>;
+            function showBackgroundMode(mode: string) {
+                backgroundColour.editor.hidden = mode !== "colour";
+                backgroundColour.reset.hidden = mode !== "colour";
+                imageControls.field.hidden = mode !== "image";
+                for (const key of ["colour", "image"]) {
+                    const tab = backgroundTabs.buttons[key];
+                    tab.classList.toggle("active", key === mode);
+                    tab.setAttribute("aria-selected", String(key === mode));
+                    tab.tabIndex = key === mode ? 0 : -1;
+                }
+            }
+            var imageControls = renderCardBackgroundControl(backgroundColour.section, b, {
+                ...typeHelpers,
+                onBackgroundChange() {
+                    showBackgroundMode(cardBackgroundImage(b) ? "image" : "colour");
+                },
+            });
+            if (imageControls) {
+                backgroundColour.button.querySelector("span").textContent = "Background";
+                backgroundTabs = segmentControl([["colour", "Colour"], ["image", "Image"]], "colour", (mode: string) => {
+                    if (mode === "colour" && cardBackgroundImage(b)) imageControls.clear();
+                    showBackgroundMode(mode);
+                });
+                backgroundTabs.segment.setAttribute("role", "tablist");
+                backgroundTabs.segment.setAttribute("aria-label", "Card background");
+                for (const key of ["colour", "image"]) {
+                    const tab = backgroundTabs.buttons[key];
+                    const content = key === "colour" ? backgroundColour.editor : imageControls.field;
+                    tab.id = idPrefix + "background-" + key + "-tab";
+                    tab.setAttribute("role", "tab");
+                    content.id = idPrefix + "background-" + key + "-panel";
+                    content.setAttribute("role", "tabpanel");
+                    content.setAttribute("aria-labelledby", tab.id);
+                    tab.setAttribute("aria-controls", content.id);
+                }
+                backgroundTabs.segment.addEventListener("keydown", (event: KeyboardEvent) => {
+                    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                    event.preventDefault();
+                    const key = event.key === "Home" ? "colour" : event.key === "End" ? "image"
+                        : event.target === backgroundTabs.buttons.colour ? "image" : "colour";
+                    backgroundTabs.buttons[key].click();
+                    backgroundTabs.buttons[key].focus();
+                });
+                backgroundColour.section.insertBefore(backgroundTabs.segment, backgroundColour.editor);
+                showBackgroundMode(cardBackgroundImage(b) ? "image" : "colour");
+            }
+        }
         Object.keys(openDisclosureIds).forEach(function (this: any, id?: any) {
             var disclosureButton: any = document.getElementById(id);
             if (!disclosureButton || !container.contains(disclosureButton)) return;
@@ -1061,6 +1131,8 @@ export function createButtonSettingsFeature(
             if (!validateSettingsDraft())
                 return;
             if (!validateImageCardLimit())
+                return;
+            if (!validateCardBackgroundImageLimit())
                 return;
             if (!validateConfigSize())
                 return;

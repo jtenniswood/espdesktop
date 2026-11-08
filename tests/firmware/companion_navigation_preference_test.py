@@ -13,6 +13,7 @@ def function(signature):
 code = r'''
 #include <atomic>
 #include <cassert>
+#include <functional>
 #include <string>
 #include <vector>
 struct lv_obj_t {};
@@ -46,12 +47,32 @@ void navigation_hide_modals() {}
 lv_obj_t *lv_scr_act() { return screen; }
 constexpr int LV_SCR_LOAD_ANIM_NONE = 0;
 void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { screen = s; }
+void lv_obj_update_layout(lv_obj_t *) {}
+inline std::function<void(lv_obj_t *)> &button_grid_screen_load_callback() {
+  static std::function<void(lv_obj_t *)> callback = nullptr;
+  return callback;
+}
+
+inline void button_grid_load_screen(lv_obj_t *screen) {
+  if (!screen) return;
+  lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  lv_obj_update_layout(screen);
+  auto &callback = button_grid_screen_load_callback();
+  if (callback) callback(screen);
+}
+
+
 '''
 code += function('inline NavigationSubpageEntry *navigation_companion_subpage_for_action(')
 code += function('inline bool navigation_return_from_companion_shortcuts_if_needed(')
 code += function('inline bool navigation_open_companion_subpage_if_requested(')
 code += r'''
 int main() {
+  int image_activations = 0;
+  button_grid_screen_load_callback() = [&](lv_obj_t *page) {
+    assert(page == lv_scr_act());
+    ++image_activations;
+  };
   // Stay on the current page when the next app has a page or no page.
   return_home = false;
   for (const auto &next : {std::string("second.app"), std::string("")}) {
@@ -96,6 +117,7 @@ int main() {
   assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(!navigation_open_companion_subpage_if_requested(&home));
   assert(screen == &app && pending_return && pending_open == "second.app");
+  assert(image_activations == 2);
 }
 '''
 with tempfile.TemporaryDirectory() as temporary:

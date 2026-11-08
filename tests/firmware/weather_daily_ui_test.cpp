@@ -624,4 +624,5 @@ int main(){
   }
   weather_daily_cleanup(daily_owner);lv_obj_del(daily_owner);
   assert(weather_daily_sources().empty() && lv_obj_t::live==0);
+
 }

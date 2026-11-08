@@ -41,6 +41,7 @@ struct Component {
 struct EspDesktopApp : Component {
   Resolver home_assistant_endpoint_;
   Core core_;
+  struct Assets { void stop() {} } card_assets_;
 '''
 for name in ('on_safe_shutdown', 'on_shutdown'):
     if any('EspDesktopApp::' + name + '(' in f for f in functions):

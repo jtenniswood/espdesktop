@@ -15,6 +15,7 @@ def function(file, signature):
 
 code = r'''
 #include <cassert>
+#include <functional>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -33,6 +34,21 @@ void *lv_obj_get_user_data(lv_obj_t *b) { return b->data; }
 bool lv_obj_is_valid(lv_obj_t *b) { return b && b->valid; }
 lv_obj_t *active = nullptr;
 void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { active = s; order.push_back(3); }
+void lv_obj_update_layout(lv_obj_t *) {}
+inline std::function<void(lv_obj_t *)> &button_grid_screen_load_callback() {
+  static std::function<void(lv_obj_t *)> callback = nullptr;
+  return callback;
+}
+
+inline void button_grid_load_screen(lv_obj_t *screen) {
+  if (!screen) return;
+  lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  lv_obj_update_layout(screen);
+  auto &callback = button_grid_screen_load_callback();
+  if (callback) callback(screen);
+}
+
+
 void refresh_visible_image_cards() {}
 struct ParsedCfg { std::string type, entity = "app", sensor; bool shortcuts = false; };
 struct Context { bool subpage; };

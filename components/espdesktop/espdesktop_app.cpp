@@ -13,6 +13,7 @@
 #include "esphome/core/log.h"
 
 #include "panel_config_capabilities_endpoint.h"
+#include "panel_config_asset_references.h"
 #include "configuration_release_policy.h"
 #include "configuration_service.h"
 #include "configuration_store.h"
@@ -42,6 +43,7 @@ extern "C" void espdesktop_register_web_server_handlers(
 #ifdef USE_WEBSERVER
   if (server == nullptr) return;
   espdesktop::reset::register_handlers(*server);
+  espdesktop::card_asset_http::register_endpoints(*server);
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_screensaver_pin_endpoint(*server);
   register_local_sensor_endpoint(*server);
@@ -137,6 +139,7 @@ class EspDesktopApp::NativeConfigurationRuntime {
   bool boot_configuration_pending{false};
   uint32_t finder_poll_ms{0};
   std::string finder_catalogue;
+  bool buffers_initialized{false};
   configuration::EspHomePanelConfigTextValue button_order{};
   configuration::EspHomePanelConfigTextValue button_on_color{};
   std::array<configuration::EspHomePanelConfigTextValue,
@@ -293,10 +296,13 @@ void EspDesktopApp::apply_boot_configuration() {
       runtime->boot_buffer == nullptr)
     return;
 
-  runtime->boot_configuration_pending = false;
   configuration::ConfigurationService *const panel_config_service =
       core_.configuration_service();
-  if (panel_config_service == nullptr) return;
+  if (panel_config_service == nullptr) {
+    this->set_timeout("native-configuration-apply", 5000,
+                      [this]() { this->apply_boot_configuration(); });
+    return;
+  }
   // Do not retain the document captured during setup: a browser save can
   // complete before this timeout runs, and the newest durable document must
   // always win over startup restoration. The boot buffer is intentionally
@@ -309,9 +315,60 @@ void EspDesktopApp::apply_boot_configuration() {
   if (!loaded.ok()) {
     ESP_LOGE(TAG, "Native configuration could not reload for the live grid (%u)",
              static_cast<unsigned>(loaded.status));
+    this->set_timeout("native-configuration-apply", 5000,
+                      [this]() { this->apply_boot_configuration(); });
     return;
   }
   sync_app_icons_from_panel_config(runtime->boot_buffer, loaded.document_size);
+  runtime->boot_configuration_pending = false;
+  native_configuration_applied_ = true;
+}
+
+CardAssetReferenceState EspDesktopApp::check_recovery_references(
+    void *context, const std::string &id) {
+  auto *app = static_cast<EspDesktopApp *>(context);
+  if (app == nullptr) return CardAssetReferenceState::UNAVAILABLE;
+  if (!app->native_configuration_requested()) return CardAssetReferenceState::USE_LEGACY;
+  auto *runtime = app->native_configuration_runtime_.get();
+  auto *service = app->core_.configuration_service();
+  if (!app->native_configuration_initialized_ || !app->native_configuration_applied_ ||
+      runtime == nullptr || runtime->boot_buffer == nullptr || service == nullptr) {
+    return CardAssetReferenceState::UNAVAILABLE;
+  }
+  // Recovery runs on the application loop. Reuse its boot buffer, never the
+  // HTTP scratch buffer or the possibly stale legacy preference mirror.
+  const auto loaded = service->load(runtime->boot_buffer, runtime->slot_capacity);
+  if (loaded.status == configuration::ServiceStatus::EMPTY) return CardAssetReferenceState::UNREFERENCED;
+  bool referenced = false;
+  if (!loaded.ok() || !panel_config_references_asset(
+          runtime->boot_buffer, loaded.document_size, id, referenced)) {
+    return CardAssetReferenceState::UNAVAILABLE;
+  }
+  return referenced ? CardAssetReferenceState::REFERENCED : CardAssetReferenceState::UNREFERENCED;
+}
+
+bool EspDesktopApp::clear_card_asset_references(void *context, const std::string &id) {
+  auto *app = static_cast<EspDesktopApp *>(context);
+  if (app == nullptr || !app->native_configuration_initialized_) return false;
+  auto *service = app->core_.configuration_service();
+  if (service == nullptr) return false;
+  // This buffer belongs to this transaction, not the HTTP handler or startup
+  // recovery. Keep the large document off the small device task stack/heap.
+  const size_t capacity = service->maximum_document_size();
+  std::unique_ptr<uint8_t, decltype(&free)> buffer(
+      static_cast<uint8_t *>(heap_caps_malloc(capacity, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)), &free);
+  if (!buffer) return false;
+  struct Context { const std::string &id; } transform_context{id};
+  const auto result = service->transform_current(buffer.get(), capacity,
+      [](void *context, uint8_t *document, size_t &size) {
+        return clear_panel_config_asset_references(document, size,
+            static_cast<Context *>(context)->id);
+      }, &transform_context);
+  if (result.status != configuration::ServiceStatus::OK) {
+    ESP_LOGE(TAG, "Card image reference transaction failed (%u)", static_cast<unsigned>(result.status));
+    return false;
+  }
+  return true;
 }
 
 void EspDesktopApp::setup() {
@@ -342,6 +399,13 @@ void EspDesktopApp::setup() {
   clock_bar_home_assistant_configured_provider() = []() {
     return connectors::connector_state_service().status().home_assistant_configured;
   };
+  card_assets_.set_recovery_reference_callback(&EspDesktopApp::check_recovery_references, this);
+  if (native_configuration_requested())
+    card_assets_.set_reference_transaction_callback(
+        &EspDesktopApp::clear_card_asset_references, this);
+  if (!card_assets_.start()) {
+    ESP_LOGE(TAG, "Card asset service failed to start");
+  }
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.
   // Give the display and restored text entities time to come up before
@@ -353,7 +417,13 @@ void EspDesktopApp::setup() {
                     [this]() { this->initialize_native_configuration(); });
 }
 
+void EspDesktopApp::retry_native_configuration_initialization() {
+  this->set_timeout("native-configuration-initialize", 5000,
+                    [this]() { this->initialize_native_configuration(); });
+}
+
 void EspDesktopApp::initialize_native_configuration() {
+  if (native_configuration_initialized_) return;
   ESP_LOGI(TAG, "Starting native configuration initialization");
   if (!native_configuration_requested()) {
     ESP_LOGD(TAG, "Native configuration is not requested for this device");
@@ -362,65 +432,65 @@ void EspDesktopApp::initialize_native_configuration() {
     return;
   }
   if (!create_native_configuration_runtime()) {
-    native_configuration_initialized_ = true;
-    register_panel_config_endpoints();
+    retry_native_configuration_initialization();
     return;
   }
   NativeConfigurationRuntime &runtime = *native_configuration_runtime_;
-  if (!core_.configure_configuration_service(
+  if (core_.configuration_service() == nullptr && !core_.configure_configuration_service(
           runtime.store, runtime.legacy_config, &runtime.validator,
           configuration::PANEL_CONFIG_LEGACY_MODE)) {
     ESP_LOGE(TAG, "Native configuration service is already configured");
-    native_configuration_initialized_ = true;
-    register_panel_config_endpoints();
+    retry_native_configuration_initialization();
     return;
   }
   configuration::ConfigurationService *const panel_config_service =
       core_.configuration_service();
   if (panel_config_service == nullptr) {
     ESP_LOGE(TAG, "Native configuration service is unavailable");
-    native_configuration_initialized_ = true;
-    register_panel_config_endpoints();
+    retry_native_configuration_initialization();
     return;
   }
   panel_config_service->set_runtime_adapter(&runtime.runtime_config);
   if (!runtime.legacy_config.configured()) {
     ESP_LOGW(TAG, "Native configuration sources are not configured");
+    retry_native_configuration_initialization();
+    return;
   } else {
-    const configuration::PanelConfigStorageSelection storage =
-        configuration::begin_panel_config_storage(
-            runtime.blobs, panel_config_card_images_storage_,
-            PANEL_CONFIG_STORAGE_SLOT_CAPACITY,
-            PANEL_CONFIG_NVS_SLOT_CAPACITY);
-    if (!storage.ready) {
-      ESP_LOGE(TAG, "Native configuration storage is unavailable");
-      native_configuration_initialized_ = true;
-      register_panel_config_endpoints();
-      return;
-    }
-    runtime.slot_capacity = storage.slot_capacity;
-    if (storage.used_nvs_fallback) {
-      ESP_LOGW(TAG,
-               "Card-images partition is unavailable; using NVS with %u-byte slots",
-               static_cast<unsigned>(runtime.slot_capacity));
+    if (runtime.slot_capacity == 0) {
+      const configuration::PanelConfigStorageSelection storage =
+          configuration::begin_panel_config_storage(
+              runtime.blobs, panel_config_card_images_storage_,
+              PANEL_CONFIG_STORAGE_SLOT_CAPACITY,
+              PANEL_CONFIG_NVS_SLOT_CAPACITY);
+      if (!storage.ready) {
+        ESP_LOGE(TAG, "Native configuration storage is unavailable");
+        retry_native_configuration_initialization();
+        return;
+      }
+      runtime.slot_capacity = storage.slot_capacity;
+      if (storage.used_nvs_fallback) {
+        ESP_LOGW(TAG,
+                 "Card-images partition is unavailable; using NVS with %u-byte slots",
+                 static_cast<unsigned>(runtime.slot_capacity));
+      }
     }
     ESP_LOGI(TAG, "Allocating native configuration buffers");
 #ifdef USE_ESP32
-    // Two fixed slots back the atomic store; the scratch, HTTP request, and
-    // delayed boot-application buffers must not overlap each other.
-    const size_t panel_config_memory_size = runtime.slot_capacity * 5;
-    runtime.memory = static_cast<uint8_t *>(
-        heap_caps_malloc(panel_config_memory_size,
-                         MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+    // Retain successful allocation/storage setup across a transient load failure.
+    if (runtime.memory == nullptr) {
+      runtime.memory = static_cast<uint8_t *>(heap_caps_malloc(
+          runtime.slot_capacity * 5, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+    }
 #endif
-    if (runtime.memory == nullptr ||
-        !runtime.backend.begin(runtime.memory,
-                               runtime.slot_capacity * 2,
-                               runtime.slot_capacity)) {
-      ESP_LOGE(TAG, "Native configuration memory is unavailable");
-      native_configuration_initialized_ = true;
-      register_panel_config_endpoints();
-      return;
+    if (!runtime.buffers_initialized) {
+      if (runtime.memory == nullptr ||
+          !runtime.backend.begin(runtime.memory, runtime.slot_capacity * 2,
+                                 runtime.slot_capacity)) {
+        ESP_LOGE(TAG, "Native configuration memory is unavailable");
+        retry_native_configuration_initialization();
+        return;
+      }
+      runtime.buffers_initialized = true;
     }
     ESP_LOGI(TAG, "Loading native configuration document");
     panel_config_service->set_scratch_buffer(
@@ -436,6 +506,8 @@ void EspDesktopApp::initialize_native_configuration() {
                "Native configuration initial load failed (%u); keeping legacy configuration endpoints active",
                static_cast<unsigned>(loaded.status));
       runtime.document_buffer = nullptr;
+      retry_native_configuration_initialization();
+      return;
     }
     if (loaded.status == configuration::ServiceStatus::IMPORTED_LEGACY) {
       ESP_LOGI(TAG, "Imported legacy panel configuration into generation %" PRIu32,
@@ -459,7 +531,10 @@ void EspDesktopApp::initialize_native_configuration() {
       // Browser PUT requests still apply immediately through the runtime
       // adapter; this deferral is strictly for startup restoration.
       runtime.boot_configuration_pending = true;
-      this->set_timeout(1000, [this]() { this->apply_boot_configuration(); });
+      this->set_timeout("native-configuration-apply", 1000,
+                        [this]() { this->apply_boot_configuration(); });
+    } else if (live_document.status == configuration::ServiceStatus::EMPTY) {
+      native_configuration_applied_ = true;
     }
   }
   native_configuration_initialized_ = true;
@@ -596,6 +671,7 @@ void EspDesktopApp::loop() {
 #endif
   sync_finder_folders();
   trace_phase("Finder sync");
+  card_assets_.loop();
   // The app core starts before WiFi so Home Assistant boot automations are
   // safe. The IDF web server starts later, so retry idempotent registrations.
   register_panel_config_endpoints();
@@ -612,6 +688,7 @@ void EspDesktopApp::on_safe_shutdown() {
 void EspDesktopApp::on_shutdown() {
   esphome::artwork_image::TransferObserver::instance().set({}, {});
   cards::set_card_runtime_registry_service(nullptr);
+  card_assets_.stop();
   core_.stop();
 }
 

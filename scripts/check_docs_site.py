@@ -185,6 +185,7 @@ def check_build(dist):
         BASE + 'mac-controls/statistics',
         BASE + 'mac-controls/security',
         BASE + 'features/setup',
+        BASE + 'features/image-storage',
         BASE + 'features/subpages',
         BASE + 'reference/faq',
         BASE + 'reference/companion-compatibility',
