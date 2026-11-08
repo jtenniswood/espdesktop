@@ -296,13 +296,14 @@ export function createControlsShellFeature(
         return !!state.configLocked || !!state.nativeConfigReadOnly || !!state.nativeConfigLoading || !!state.nativeTransferActive;
     }
     function syncConfigLockUi(this: any) {
-        const previewLocked = !!state.configLocked || !!state.nativeConfigLoading || !!state.nativeTransferActive ||
+        const previewLocked = !!state.configLocked || !!state.nativeConfigLoading ||
             (!!state.nativeConfigReadOnly && !state.nativePanelDocument);
         if (els.root) {
             els.root.classList.toggle("sp-config-locked", previewLocked);
+            els.root.classList.toggle("sp-config-busy", !!state.nativeTransferActive);
         }
         if (els.previewMain) {
-            els.previewMain.setAttribute("aria-disabled", previewLocked ? "true" : "false");
+            els.previewMain.setAttribute("aria-disabled", previewLocked || state.nativeTransferActive ? "true" : "false");
         }
         if (els.root) {
             var text: any = state.nativeConfigReadOnly ? "Read-only configuration" : state.nativeTransferActive ? "Updating cards\u2026" : state.nativeConfigLoading ? "Loading pages\u2026" : "Waiting for device\u2026";
