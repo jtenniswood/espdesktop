@@ -20,8 +20,14 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
   struct Snapshot : GridNativePages {
     Snapshot(configuration::ConfigurationBuffer::Allocate allocate, configuration::ConfigurationBuffer::Release release) : storage(allocate, release) {}
     configuration::ConfigurationBuffer storage;
-    uint8_t *live_document{nullptr};
-    size_t live_size{0};
+    struct Value {
+      configuration::PanelConfigRecordType type;
+      uint8_t slot;
+      std::string key, value;
+    };
+    std::vector<Value> values;
+    configuration::PanelConfigRecord *records{nullptr};
+    size_t record_count{0};
   };
   class Resources final : public pages::PageRuntimeResources {
   public:
@@ -39,11 +45,17 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
     Allocator(configuration::ConfigurationBuffer::Allocate allocate,
               configuration::ConfigurationBuffer::Release release)
         : allocate_(allocate), release_(release) {}
-    void *allocate(size_t bytes) override { return allocate_(bytes); }
+    void *allocate(size_t bytes) override {
+      auto *value = allocate_(bytes);
+      if (!value) ++failures_;
+      return value;
+    }
+    size_t allocation_failure_count() const override { return failures_; }
     void release(void *value, size_t) override { release_(static_cast<uint8_t *>(value)); }
   private:
     configuration::ConfigurationBuffer::Allocate allocate_;
     configuration::ConfigurationBuffer::Release release_;
+    size_t failures_{0};
   };
 public:
   GridPageRuntime(const DeviceUiLimits &limits,
@@ -57,15 +69,17 @@ public:
   void loop() override {}
   void stop() override { stopped_ = true; grid_native_pages() = nullptr; }
   bool prepare(uint16_t version, const uint8_t *data, size_t size) override {
+    allocation_failed_ = false; capacity_exceeded_ = false;
     return !stopped_ && runtime_.prepare(version, data, size);
   }
   bool prepare_write(uint16_t version, const uint8_t *data, size_t size) override {
+    allocation_failed_ = false; capacity_exceeded_ = false;
     return !stopped_ && runtime_.prepare_write(version, data, size);
   }
   bool preparation_capacity_exceeded() const override {
     return runtime_.preparation_capacity_exceeded() || capacity_exceeded_;
   }
-  bool preparation_allocation_failed() const override { return runtime_.preparation_allocation_failed(); }
+  bool preparation_allocation_failed() const override { return allocation_failed_ || runtime_.preparation_allocation_failed(); }
   void discard_prepared() override { runtime_.discard_prepared(); }
   bool activate_prepared(uint32_t generation, uint16_t version,
       const uint8_t *data, size_t size) override {
@@ -106,7 +120,7 @@ private:
   bool prepare_snapshot(const Store &store) {
     capacity_exceeded_ = false;
     staged_.reset(new (std::nothrow) Snapshot(allocate_, release_));
-    if (!staged_) return false;
+    if (!staged_) { allocation_failed_ = true; return false; }
     size_t visible = limits_.slot_count;
     size_t secondary_widgets = 0;
     for (pages::PageId id = 1; id < store.page_count(); ++id) {
@@ -142,18 +156,15 @@ private:
         secondary_widgets > size_t(limits_.slot_count) * limits_.slot_count) {
       capacity_exceeded_ = true; return false;
     }
-    configuration::ConfigurationBuffer work(allocate_, release_);
-    auto *live = work.allocate(configuration::PANEL_CONFIG_V2_HTTP_MAX_BYTES);
-    if (!live) return false;
-    configuration::PanelConfigWriter writer(live, configuration::PANEL_CONFIG_V2_HTTP_MAX_BYTES);
-    if (writer.begin() != configuration::PanelConfigStatus::OK ||
-        writer.append_device_profile(reinterpret_cast<const uint8_t *>(limits_.device_profile),
-          std::strlen(limits_.device_profile)) != configuration::PanelConfigStatus::OK) return false;
+    using Kind = configuration::PanelConfigRecordType;
+    auto value = [&](Kind type, uint8_t slot, std::string key, std::string text) {
+      staged_->values.push_back({type, slot, std::move(key), std::move(text)});
+    };
+    value(Kind::DEVICE_PROFILE, 0, "", limits_.device_profile);
     const auto *root = store.page(0);
     for (size_t i = 0; i < root->card_count; ++i) {
       const auto *definition = store.card(root->first_card + i);
-      const auto value = card(store, *definition, false);
-      if (writer.append_button(definition->slot, reinterpret_cast<const uint8_t *>(value.data()), value.size()) != configuration::PanelConfigStatus::OK) return false;
+      value(Kind::BUTTON, definition->slot, "", card(store, *definition, false));
     }
     for (pages::PageId id = 1; id < store.page_count(); ++id) {
       const auto *page = store.page(id);
@@ -169,13 +180,12 @@ private:
       for (size_t i = 0; i < page->card_count; ++i) {
         next.config += '|'; next.config += card(store, *store.card(page->first_card + i), true);
       }
-      if (!next.parent && writer.append_subpage(next.owner_slot,
-          reinterpret_cast<const uint8_t *>(next.config.data()), next.config.size()) != configuration::PanelConfigStatus::OK) return false;
+      if (!next.parent) value(Kind::SUBPAGE, next.owner_slot, "", next.config);
       staged_->pages.push_back(std::move(next));
     }
     auto setting = [&](std::string_view name, std::string_view value) {
-      return writer.append_setting(reinterpret_cast<const uint8_t *>(name.data()), name.size(),
-          reinterpret_cast<const uint8_t *>(value.data()), value.size()) == configuration::PanelConfigStatus::OK;
+      staged_->values.push_back({Kind::SETTING, 0, std::string(name), std::string(value)});
+      return true;
     };
     if (store.source_version() == 1) {
       configuration::PanelConfigReader reader(store.source_document(), store.source_size());
@@ -191,7 +201,8 @@ private:
       if (reader.workspace_bytes(&size) != configuration::PanelConfigStatus::OK) return false;
       configuration::ConfigurationBuffer scratch(allocate_, release_);
       auto *index = scratch.allocate(size);
-      if (!index || reader.validate(index, size) != configuration::PanelConfigStatus::OK) return false;
+      if (!index) { allocation_failed_ = true; return false; }
+      if (reader.validate(index, size) != configuration::PanelConfigStatus::OK) return false;
       configuration::PanelConfigV2Record record;
       for (size_t i = 0; i < reader.record_count(); ++i) {
         reader.record(i, &record);
@@ -199,18 +210,24 @@ private:
             !setting(reader.string(record.id), reader.string(record.first))) return false;
       }
     }
-    size_t size = 0;
-    if (writer.finish(&size) != configuration::PanelConfigStatus::OK) return false;
-    staged_->live_document = staged_->storage.allocate(size);
-    if (!staged_->live_document) return false;
-    std::memcpy(staged_->live_document, live, size);
-    staged_->live_size = size;
-    return bindings_.validate_live_document(staged_->live_document, size);
+    staged_->record_count = staged_->values.size();
+    auto *memory = staged_->storage.allocate(staged_->record_count * sizeof(configuration::PanelConfigRecord));
+    if (!memory) { allocation_failed_ = true; return false; }
+    staged_->records = reinterpret_cast<configuration::PanelConfigRecord *>(memory);
+    for (size_t i = 0; i < staged_->record_count; ++i) {
+      const auto &owned = staged_->values[i];
+      auto &record = *new (staged_->records + i) configuration::PanelConfigRecord{};
+      record.type = owned.type; record.slot = owned.slot;
+      record.key = reinterpret_cast<const uint8_t *>(owned.key.data()); record.key_size = owned.key.size();
+      record.value = reinterpret_cast<const uint8_t *>(owned.value.data()); record.value_size = owned.value.size();
+    }
+    return bindings_.validate_runtime_records(staged_->records, staged_->record_count);
   }
+
   void activate_snapshot(const Store &) {
     active_ = std::move(staged_);
     grid_native_pages() = active_.get();
-    published_ = bindings_.publish_document(active_->live_document, active_->live_size);
+    published_ = bindings_.publish_runtime_records(active_->records, active_->record_count);
     if (published_) bindings_.refresh_runtime_pages();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
@@ -222,6 +239,6 @@ private:
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;
   pages::PageStoreRuntime runtime_;
-  bool stopped_{false}, capacity_exceeded_{false}, published_{false};
+  bool stopped_{false}, capacity_exceeded_{false}, allocation_failed_{false}, published_{false};
 };
 } // namespace espdesktop

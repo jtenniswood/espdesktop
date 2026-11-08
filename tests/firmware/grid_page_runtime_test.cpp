@@ -20,8 +20,10 @@ struct Text final : PanelConfigTextValue {
   }
 };
 static bool fail_allocation = false;
+static size_t fail_size = 0, last_allocation_size = 0;
 static uint8_t *allocate(size_t size) {
-  return fail_allocation ? nullptr : static_cast<uint8_t *>(std::malloc(size));
+  last_allocation_size = size;
+  return (fail_allocation || size == fail_size) ? nullptr : static_cast<uint8_t *>(std::malloc(size));
 }
 int main() {
   const auto &limits = DEVICE_UI_PROFILES[8];
@@ -41,6 +43,7 @@ int main() {
     GridPageRuntime runtime(limits, bindings, allocate, ConfigurationBuffer::release_host);
     assert(runtime.ready());
     assert(runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+    const auto runtime_record_bytes = last_allocation_size;
     assert(runtime.activate_prepared(7, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
     assert(grid_native_page(1) && grid_native_page(33));
     assert(grid_native_page(1)->parent == 0 && grid_native_page(33)->parent == 1);
@@ -51,8 +54,18 @@ int main() {
     assert(order.persistent_writes == 0 && subpages[0].persistent_writes == 0);
     fail_allocation = true;
     assert(!runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+    assert(runtime.preparation_allocation_failed());
     fail_allocation = false;
     assert(grid_native_page(33)->config == expected);
+    // Fail only the runtime record-view allocation, after PageStore staged.
+    fail_size = runtime_record_bytes;
+    assert(!runtime.prepare(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+    assert(runtime.preparation_allocation_failed());
+    fail_size = 0;
+    assert(grid_native_page(33)->config == expected);
+    assert(runtime.prepare(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+    assert(!runtime.preparation_allocation_failed());
+    runtime.discard_prepared();
     auto invalid = std::array<uint8_t, sizeof(COMPANION_NESTED_DOCUMENT)>{};
     std::memcpy(invalid.data(), COMPANION_NESTED_DOCUMENT, invalid.size()); invalid[0] = 0;
     assert(!runtime.prepare_write(2, invalid.data(), invalid.size()));
@@ -64,6 +77,34 @@ int main() {
     assert(restored.prepare(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
     assert(restored.activate_prepared(7, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
     assert(grid_native_page(33)->config == expected);
+  }
+  // Valid saved text can expand beyond a wire record when escaped for the
+  // live grid. Boot and save preparation must retain it without changing the
+  // strict saved-document reader's limits.
+  {
+    std::array<uint8_t, 8192> legacy{}; size_t size = 0;
+    PanelConfigWriter writer(legacy.data(), legacy.size());
+    assert(writer.begin() == PanelConfigStatus::OK);
+    assert(writer.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile), std::strlen(limits.device_profile)) == PanelConfigStatus::OK);
+    const std::string owner = ";Folder;;;;;subpage";
+    assert(writer.append_button(1, reinterpret_cast<const uint8_t *>(owner.data()), owner.size()) == PanelConfigStatus::OK);
+    const std::string page = "B,1|light.one:" + std::string(1500, ';') + ":Auto:Auto:::";
+    assert(page.size() < 4095);
+    assert(writer.append_subpage(1, reinterpret_cast<const uint8_t *>(page.data()), page.size()) == PanelConfigStatus::OK);
+    assert(writer.finish(&size) == PanelConfigStatus::OK);
+    PanelConfigReader strict(legacy.data(), size);
+    assert(strict.validate() == PanelConfigStatus::OK);
+    GridPageRuntime expanded(limits, bindings, allocate, ConfigurationBuffer::release_host);
+    assert(expanded.prepare(1, legacy.data(), size));
+    assert(expanded.activate_prepared(9, 1, legacy.data(), size));
+    assert(subpages[0].current.size() > 4096);
+    assert(subpages[0].current.find("%3B%3B") != std::string::npos);
+    assert(subpages[0].persistent_writes == 0);
+    std::array<uint8_t, 8192> rejected{};
+    PanelConfigWriter saved_limits(rejected.data(), rejected.size());
+    assert(saved_limits.begin() == PanelConfigStatus::OK);
+    assert(saved_limits.append_subpage(1, reinterpret_cast<const uint8_t *>(subpages[0].current.data()), subpages[0].current.size()) == PanelConfigStatus::INVALID_ARGUMENT);
+    assert(expanded.prepare_write(1, legacy.data(), size));
   }
   // Producer edits preserve the nested navigation and add Finder actions only
   // to the requested page, including labels with serialization delimiters.

@@ -43,7 +43,7 @@ published reader and consecutive dual-write release evidence.
 The port from EspControl #2440 retains EspDesktop's card renderer and Companion
 transport. A prepared PageStore feeds its existing live text bindings and the
 additional page definitions together, while the complete v2 document remains
-the durable source. Legacy text values are a live rendering projection, not a
+the durable source. Runtime text records are separate from saved wire records, so escaping text does not consume the saved-record byte budget. Legacy text values are a live rendering projection, not a
 saved downgrade copy. The existing total card budget is retained; secondary
 card placements and Back widgets also cannot exceed the old renderer's maximum
 of one full secondary screen per home slot. Failed preparation does not replace
