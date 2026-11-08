@@ -27,7 +27,6 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"fan_switch", true},
     {"garage", true},
     {"gate", true},
-    {"internal", true},
     {"light_brightness", true},
     {"light_switch", true},
     {"light_temperature", true},
@@ -37,19 +36,13 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"option_select", true},
     {"push", true},
     {"companion", true},
-    {"screen_lock", true},
     {"webhook", true},
-    {"sensor", true},
-    {"local_sensor", true},
     {"slider", true},
     {"subpage", true},
     {"timezone", true},
     {"weather", true},
     {"image", true},
-    {"wifi_qr", true},
-    {"wifi_qr_card", true},
     {"weather_forecast", true},
-    {"screensaver", true},
 };
 
 inline constexpr DeviceUiLimits DEVICE_UI_PROFILES[] = {

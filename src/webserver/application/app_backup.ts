@@ -1,3 +1,4 @@
+import { removeRetiredPanelRecords } from "../features/retired_cards";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
@@ -66,7 +67,6 @@ import type { SettingsPageHelpersFeature } from "./settings_page_helpers";
 import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../features/legacy_layout_restore";
-import { panelConfigDocumentContainsWifiSharing } from "../features/wifi_sharing_config";
 import { NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE, nativeBackupHasInactiveRecords } from "../features/native_panel_config";
 import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument } from "../model/native_config_backup";
 import { panelPageDocumentDepth } from "../model/panel_config_conversion";
@@ -436,6 +436,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     nativeDocument = decodeNativeConfigDocument(decodeNativeConfigBackupPayload(backedUpNativeConfig));
                 }
                 if (!exactGraph) {
+                    nativeDocument.settings.special_page = String(nativeDocument.settings.special_page || backupPlan.config.settings?.special_page || "");
                     nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
                     nativeDocument.settings.button_on_color = String(nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || "");
                     var parsedButtonOrder: any = EspDesktopModel.parseGridOrder(
@@ -447,6 +448,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         parsedButtonOrder.grid,
                         parsedButtonOrder.sizes);
                 }
+                removeRetiredPanelRecords(nativeDocument, controllers.codec);
 
                 function readLegacyText(name: string) {
                     return requestApi.getJsonFirst(requestApi.entityDetailPaths("text", [name], "state"));
@@ -456,10 +458,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     throw Object.assign(new Error(message), { backupMessage: message });
                 }
                 function queueLegacyLayoutRestore() {
-                    if (panelConfigDocumentContainsWifiSharing(nativeDocument)) {
-                        const message = "This backup contains Wifi Sharing cards, which require current device firmware. Update the panel before restoring this backup.";
-                        rejectBackup(message);
-                    }
                     const keys = specialPageEntityKeys();
                     const specialPageValue = nativeDocument.settings.special_page || "";
                     const specialPageEntities = Promise.all(keys.map((key) =>

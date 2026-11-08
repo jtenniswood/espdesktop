@@ -213,7 +213,6 @@ connect_to_wifi=Yhdistä WiFi-verkkoon
 scan_to_connect=Skannaa yhdistääksesi
 network=Verkko
 password=Salasana
-unable_to_create_qr_code=QR-koodia ei voitu luoda
 connected=Yhdistetty
 connecting_to_ethernet=Yhdistetään Ethernetiin
 connecting_to_wifi=Yhdistetään WiFi-verkkoon
@@ -311,8 +310,6 @@ stat_remaining=jäljellä
 
 timer=Ajastin
 timer_confirm=Vahvista
-guest_wifi=Vieras-Wi-Fi
-wifi_did_not_change=Wi-Fi ei muuttunut
 connect_to_the_wifi_hotspot=Yhdistä WiFi-tukiasemaan
 to_configure_your_network=määrittääksesi verkkosi.
 then_visit_address_in_your_browser=Avaa sitten selaimessa {address}
@@ -336,7 +333,6 @@ weekday_fri=pe
 weekday_sat=la
 
 # Default card labels (label_ keys use key-based lookup only)
-label_connect=Yhdistä
 label_local_action=Paikallinen toiminto
 label_switch=Kytkin
 label_lighting=Valaistus

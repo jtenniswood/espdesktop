@@ -186,9 +186,6 @@ target_include_directories(button_grid_foundations_test PRIVATE
   ../../components/espdesktop
 )
 add_test(NAME button_grid_foundations_test COMMAND button_grid_foundations_test)
-add_test(NAME local_sensor_lifetime_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/local_sensor_lifetime_test.py)
 add_test(NAME card_colour_rendering_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/card_colour_rendering_test.py ${CMAKE_CXX_COMPILER})
 
@@ -218,23 +215,8 @@ target_compile_options(control_modal_service_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(control_modal_service_test PRIVATE ../../components/espdesktop)
 add_test(NAME control_modal_service_test COMMAND control_modal_service_test)
 
-add_executable(guest_wifi_state_test guest_wifi_state_test.cpp)
-target_compile_features(guest_wifi_state_test PRIVATE cxx_std_17)
-target_compile_options(guest_wifi_state_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(guest_wifi_state_test PRIVATE ../../components/espdesktop)
-add_test(NAME guest_wifi_state_test COMMAND guest_wifi_state_test)
-add_test(NAME local_sensor_invalid_values_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/local_sensor_invalid_values_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME guest_wifi_lifecycle_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/guest_wifi_lifecycle_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME webhook_log_secrets_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/webhook_log_secrets_test.py ${CMAKE_CXX_COMPILER})
-
-add_executable(wifi_qr_codec_test wifi_qr_codec_test.cpp)
-target_compile_features(wifi_qr_codec_test PRIVATE cxx_std_17)
-target_compile_options(wifi_qr_codec_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(wifi_qr_codec_test PRIVATE ../../components/espdesktop)
-add_test(NAME wifi_qr_codec_test COMMAND wifi_qr_codec_test)
 
 add_executable(icons_legacy_alias_test icons_legacy_alias_test.cpp)
 target_compile_features(icons_legacy_alias_test PRIVATE cxx_std_17)

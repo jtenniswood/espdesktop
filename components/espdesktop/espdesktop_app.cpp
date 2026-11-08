@@ -64,7 +64,6 @@ extern "C" void espdesktop_register_web_server_handlers(
   espdesktop::reset::register_handlers(*server);
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_screensaver_pin_endpoint(*server);
-  register_local_sensor_endpoint(*server);
   register_local_action_endpoint(*server);
   register_companion_actions_endpoint(*server);
   register_companion_app_icon_preview_endpoint(*server);

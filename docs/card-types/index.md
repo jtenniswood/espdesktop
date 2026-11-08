@@ -24,7 +24,6 @@ Use this page when you know what you want the panel to do but are not sure which
 | Pick from a Home Assistant select list | [Option Select](/card-types/option-select) | `select` or `input_select` |
 | Fire a custom Home Assistant automation event | [Trigger](/card-types/buttons) | No entity required |
 | Call an HTTP URL directly from the panel | [Webhook](/card-types/webhooks) | URL |
-| Show a live number, readable duration, text state, or active/inactive icon | [Sensor](/card-types/sensors) | Home Assistant `sensor`, `binary_sensor`, or `text_sensor`; or a Local Sensor source |
 | Show a door or window contact sensor | [Doors & Windows](/card-types/doors-windows) | `binary_sensor` or `sensor` |
 | Show presence, motion, or occupancy state | [Presence](/card-types/presence) | `binary_sensor`, `sensor`, or `text_sensor` |
 | Drag to set light brightness, fan speed, or a number value | [Slider](/card-types/sliders) | `light`, `fan`, `number`, or `input_number` |
@@ -39,13 +38,11 @@ Use this page when you know what you want the panel to do but are not sure which
 | Show another city or timezone | [World Clock](/card-types/timezones) | No entity required |
 | Show current weather or daily high/low temperatures | [Weather](/card-types/weather) | `weather` |
 | Show a still image from Home Assistant | [Camera](/card-types/cameras) | `camera` or `image` |
-| Let visitors scan guest Wifi details | [Wifi Sharing](/card-types/wifi-share) | No entity required |
 | Control media playback, volume, progress, or now-playing display | [Media](/card-types/media) | `media_player` |
 | Control a thermostat or HVAC entity | [Climate](/card-types/climate) | `climate` |
-| Control a built-in relay on the panel itself | [Internal Switches](/card-types/internal-relays) | Built-in relay |
-| Start the configured screensaver immediately | [Screensaver](/features/screensaver#start-the-screensaver-with-a-card) | No entity required |
-| Lock or unlock the touchscreen controls locally | [Screen Lock](/card-types/screen-lock) | No entity required |
 | Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
+
+Sensor cards are no longer supported, including in saved layouts.
 
 ## Mac Cards
 
@@ -66,9 +63,7 @@ Some cards do not need a Home Assistant entity:
 - **Local Sensor** shows a value supplied by the panel firmware.
 - **Webhook** sends a direct HTTP request.
 - **Action > Local Action** runs a registered callback on the panel itself.
-- **Date & Time**, **World Clock**, **Screen Lock**, and **Subpage** can work from the panel itself.
-- **Internal Switches** controls built-in relay hardware on supported panels.
-- **Wifi Sharing** stores separately configured guest-network credentials on the panel.
+- **Date & Time**, **World Clock**, and **Subpage** can work from the panel itself.
 
 ## Grouped Card Types
 

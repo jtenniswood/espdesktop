@@ -31,10 +31,6 @@ assert not re.search(r"\$theme_\w+", cover_art)
 assert "bg_color: 0x000000" in cover_art
 assert "text_color: ${cover_art_text_color}" in cover_art
 
-qr = (ROOT / "components" / "espdesktop" / "button_grid_wifi_qr.h").read_text(encoding="utf-8")
-assert "lv_qrcode_set_dark_color(ui.qr, lv_color_black())" in qr
-assert "lv_qrcode_set_light_color(ui.qr, lv_color_white())" in qr
-
 button_theme = (ROOT / "common" / "theme" / "button.yaml").read_text(encoding="utf-8")
 assert re.search(r"checked:\s+bg_color: \$button_on_color\s+(?:#.*\n\s+)?text_color: 0xFFFFFF", button_theme)
 

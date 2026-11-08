@@ -34,18 +34,9 @@
 #include "button_grid_saved_config_media_generated.h"
 #include "button_grid_saved_config_mower_generated.h"
 #include "button_grid_saved_config_occupancy_generated.h"
-#include "button_grid_saved_config_sensor_generated.h"
 #include "button_grid_saved_config_static_generated.h"
 #include "button_grid_saved_config_vacuum_generated.h"
 
-constexpr const char *SENSOR_STATE_LABELS_OPTION = card_runtime_option_name_state_labels();
-constexpr const char *SENSOR_STATE_INPUT_OPTION = card_runtime_option_name_state_input();
-constexpr const char *SENSOR_STATE_OUTPUT_OPTION = card_runtime_option_name_state_output();
-constexpr const char *SENSOR_STATE_INPUT_2_OPTION = card_runtime_option_name_state_input_2();
-constexpr const char *SENSOR_STATE_OUTPUT_2_OPTION = card_runtime_option_name_state_output_2();
-constexpr const char *SENSOR_STATE_LOW_LABEL_OPTION = card_runtime_option_name_state_low_label();
-constexpr const char *SENSOR_STATE_HIGH_LABEL_OPTION = card_runtime_option_name_state_high_label();
-constexpr const char *SENSOR_TIME_UNIT_OPTION = card_runtime_option_name_time_unit();
 constexpr const char *IMAGE_LABEL_OPTION = card_runtime_option_name_image_label();
 constexpr const char *IMAGE_ICON_OPTION = card_runtime_option_name_image_icon();
 constexpr const char *IMAGE_MODAL_MODE_OPTION = card_runtime_option_name_image_modal_mode();
@@ -118,13 +109,13 @@ inline std::string encode_compact_field(const std::string &value) {
 
 // Structured view of a button config string: entity;label;icon;icon_on;sensor;unit;type;precision;options
 struct ParsedCfg {
-  std::string entity;      // 0  HA entity_id, internal relay key, or timezone option
+  std::string entity;      // 0  HA entity_id, timezone option
   std::string label;       // 1  display name (blank = use HA friendly_name)
   std::string icon;        // 2  icon name for off/default state
   std::string icon_on;     // 3  icon name for on state (blank = no swap)
   std::string sensor;      // 4  sensor entity, cover mode, or action name for Action cards
   std::string unit;        // 5  unit suffix for sensor display
-  std::string type;        // 6  button type: "" (toggle), action, sensor, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, webhook, internal, subpage
+  std::string type;        // 6  button type: "" (toggle), action, sensor, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, webhook, subpage
   std::string precision;   // 7  decimal places for sensors; "text" = text sensor mode
   std::string options;     // 8  comma-delimited card options
 };
@@ -153,9 +144,6 @@ inline bool action_card_local_action(const ParsedCfg &p) {
   return p.type == "action" && p.sensor == "local";
 }
 
-inline bool sensor_card_local_sensor(const ParsedCfg &p) {
-  return p.type == "sensor" && p.sensor == "local";
-}
 
 inline bool cfg_option_token_present(const std::string &options, const char *name) {
   if (!name || !*name || options.empty()) return false;
@@ -693,74 +681,7 @@ inline std::string media_cover_art_secondary_entity(const ParsedCfg &p) {
   return espdesktop::media::decode_config_v1(p).secondary_entity;
 }
 
-inline std::string sensor_card_options_normalized(const std::string &options,
-                                                  const std::string &precision) {
-  std::string out;
-  if (precision != "icon" && precision != "text" && precision != "time" &&
-      (cfg_option_token_present(options, "large_numbers") ||
-       large_numbers_explicitly_disabled(options))) {
-    append_large_numbers_option(out, options);
-  }
-  if (precision != "time" && cfg_option_token_present(options, "active_color")) {
-    if (!out.empty()) out += ",";
-    out += "active_color";
-  }
-  if (precision == "text" && cfg_option_token_present(options, SENSOR_STATE_LABELS_OPTION)) {
-    if (!out.empty()) out += ",";
-    out += SENSOR_STATE_LABELS_OPTION;
-    std::string input = cfg_option_value(options, SENSOR_STATE_INPUT_OPTION);
-    std::string output = cfg_option_value(options, SENSOR_STATE_OUTPUT_OPTION);
-    if (input.empty() && !cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION).empty()) {
-      input = "high";
-      if (output.empty()) output = cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION);
-    } else if (input.empty() && !cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION).empty()) {
-      input = "low";
-      if (output.empty()) output = cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION);
-    }
-    if (!input.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_INPUT_OPTION) + "=" + encode_compact_field(input);
-    }
-    if (!output.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_OUTPUT_OPTION) + "=" + encode_compact_field(output);
-    }
-    std::string input_2 = cfg_option_value(options, SENSOR_STATE_INPUT_2_OPTION);
-    std::string output_2 = cfg_option_value(options, SENSOR_STATE_OUTPUT_2_OPTION);
-    if (!input_2.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_INPUT_2_OPTION) + "=" + encode_compact_field(input_2);
-    }
-    if (!output_2.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_OUTPUT_2_OPTION) + "=" + encode_compact_field(output_2);
-    }
-  }
-  if (precision == "time") {
-    std::string time_unit = cfg_option_value(options, SENSOR_TIME_UNIT_OPTION);
-    if (time_unit == "seconds" || time_unit == "minutes" ||
-        time_unit == "hours" || time_unit == "days") {
-      if (!out.empty()) out += ",";
-      out += std::string(SENSOR_TIME_UNIT_OPTION) + "=" + time_unit;
-    }
-  }
-  return out;
-}
 
-inline void normalize_saved_config_sensor_fields(ParsedCfg &p,
-                                                 bool was_legacy_text_sensor) {
-  if (was_legacy_text_sensor && p.icon.empty()) p.icon = "Auto";
-  if (!sensor_card_local_sensor(p) && p.precision == "time") {
-    p.unit.clear();
-    p.icon = "Auto";
-    p.icon_on = "Auto";
-  }
-  if (!sensor_card_local_sensor(p)) return;
-  p.icon_on = "Auto";
-  p.options.clear();
-  if (p.precision != "text" && p.precision != "1" && p.precision != "2") p.precision.clear();
-  if (p.precision != "text" && (p.icon.empty() || p.icon == "Auto")) p.icon = "Auto";
-}
 
 inline std::string normalize_subpage_kind(const std::string &value) {
   return value == "lights" || value == "media" ||
@@ -901,7 +822,6 @@ inline bool action_card_large_numbers_supported(const ParsedCfg &p) {
 inline bool card_large_numbers_supported(const ParsedCfg &p) {
   if (p.type.empty()) return !p.sensor.empty() && p.precision != "text";
   if (p.type == "action") return action_card_large_numbers_supported(p);
-  if (sensor_card_local_sensor(p)) return false;
   if (p.type == "media") return p.sensor == "volume" || p.sensor == "position";
   if (climate_card_type(p.type)) {
     return normalize_climate_number_display(cfg_option_value(p.options, "number_display")) != "icon";
@@ -1477,6 +1397,14 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  if (card_runtime_type_retired(p.type)) {
+    const std::string type = p.type;
+    p = ParsedCfg{};
+    p.type = type;
+    p.icon = "Auto";
+    p.icon_on = "Auto";
+    return p;
+  }
   const std::string icon_size = cfg_option_value(p.options, "icon_size");
   // Remove legacy sizes before normalization; only app artwork retains a size override.
   std::string type_options;
@@ -1498,8 +1426,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (p.type == "companion" && (p.entity == "media.play_pause" ||
       p.entity == "media.previous" || p.entity == "media.next")) return ParsedCfg{};
   migrate_saved_config_action_legacy(p);
-  const bool was_legacy_text_sensor = p.type == "text_sensor";
-  migrate_saved_config_sensor_legacy(p);
   const bool normalized_saved_fan = normalize_saved_config_fan(
       p, normalize_saved_config_fan_fields, fan_control_card_options_normalized);
   const bool was_legacy_weather_forecast = migrate_saved_config_weather_legacy(p);
@@ -1562,16 +1488,9 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);
-  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "webhook" && p.type != "sensor" && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "wifi_qr" && p.type != "wifi_qr_card" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
+  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "webhook" && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
-  if ((p.type == "wifi_qr" || p.type == "wifi_qr_card") &&
-      (p.label.empty() || p.label == "Connect")) {
-    p.label = espdesktop_i18n_key("label_connect");
-  }
-  normalize_saved_config_sensor(p, was_legacy_text_sensor,
-                                normalize_saved_config_sensor_fields,
-                                sensor_card_options_normalized);
   if (!card_colors.empty()) {
     if (!p.options.empty()) p.options += ",";
     p.options += card_colors;
@@ -1696,14 +1615,7 @@ inline bool sensor_large_numbers_enabled(const ParsedCfg &p) {
   return card_large_numbers_enabled(p);
 }
 
-inline bool sensor_active_color_enabled(const ParsedCfg &p) {
-  return p.type == "sensor" && cfg_option_enabled(p.options, "active_color");
-}
 
-inline bool sensor_state_labels_enabled(const ParsedCfg &p) {
-  return p.type == "sensor" && p.precision == "text" &&
-         cfg_option_enabled(p.options, SENSOR_STATE_LABELS_OPTION);
-}
 
 inline bool door_window_active_color_enabled(const ParsedCfg &p) {
   return p.type == "door_window" && cfg_option_enabled(p.options, "active_color");
@@ -1820,92 +1732,6 @@ inline std::string trim_display_unit(const std::string &unit) {
   return unit.substr(start, end - start);
 }
 
-inline bool duration_unit_seconds_multiplier(std::string_view raw_unit,
-                                             double &multiplier) {
-  while(!raw_unit.empty()&&std::isspace(static_cast<unsigned char>(raw_unit.front())))raw_unit.remove_prefix(1);
-  while(!raw_unit.empty()&&std::isspace(static_cast<unsigned char>(raw_unit.back())))raw_unit.remove_suffix(1);
-  const auto unit = raw_unit;
-  if (unit == "seconds" || unit == "s") multiplier = 1.0;
-  else if (unit == "minutes" || unit == "min") multiplier = 60.0;
-  else if (unit == "hours" || unit == "h") multiplier = 3600.0;
-  else if (unit == "days" || unit == "d") multiplier = 86400.0;
-  else if (unit == "ms") multiplier = 0.001;
-  else if (unit == "µs") multiplier = 0.000001;
-  else return false;
-  return true;
-}
-
-inline bool format_duration_value(char *buffer, size_t buffer_size,
-                                  double value, std::string_view input_unit,
-                                  int max_components = 2) {
-  if (!buffer || buffer_size == 0) return false;
-  buffer[0] = '\0';
-  if (max_components < 1) return false;
-  if (max_components > 4) max_components = 4;
-  double multiplier = 0.0;
-  if (!std::isfinite(value) || value < 0.0 ||
-      !duration_unit_seconds_multiplier(input_unit, multiplier)) return false;
-  const double converted = value * multiplier;
-  if (!std::isfinite(converted) || converted < 0.0 ||
-      converted >= static_cast<double>(std::numeric_limits<uint64_t>::max())) return false;
-
-  const uint64_t total_seconds = static_cast<uint64_t>(std::floor(converted));
-  if (total_seconds == 0) {
-    std::snprintf(buffer, buffer_size, "0s");
-    return true;
-  }
-
-  const uint64_t values[] = {
-    total_seconds / 86400ULL,
-    (total_seconds % 86400ULL) / 3600ULL,
-    (total_seconds % 3600ULL) / 60ULL,
-    total_seconds % 60ULL,
-  };
-  const char *suffixes[] = {"d", "h", "m", "s"};
-  size_t used = 0;
-  int components = 0;
-  for (int i = 0; i < 4 && components < max_components; ++i) {
-    if (values[i] == 0) continue;
-    const int written = std::snprintf(
-      buffer + used, buffer_size - used, components == 0 ? "%llu%s" : " %llu%s",
-      static_cast<unsigned long long>(values[i]), suffixes[i]);
-    if (written < 0 || static_cast<size_t>(written) >= buffer_size - used) {
-      buffer[0] = '\0';
-      return false;
-    }
-    used += static_cast<size_t>(written);
-    ++components;
-  }
-  return components > 0;
-}
-
-inline bool format_duration_sensor_state(char *buffer, size_t buffer_size,
-                                         const std::string &state, bool has_state,
-                                         const std::string &auto_unit, bool has_auto_unit,
-                                         const std::string &manual_unit = "",
-                                         int max_components = 2) {
-  if (!buffer || buffer_size == 0) return false;
-  buffer[0] = '\0';
-  if (!has_state || (manual_unit.empty() && !has_auto_unit)) return false;
-  const std::string &input_unit = manual_unit.empty() ? auto_unit : manual_unit;
-  char *end = nullptr;
-  const char *begin = state.c_str();
-  const double value = std::strtod(begin, &end);
-  while (end && *end && std::isspace(static_cast<unsigned char>(*end))) ++end;
-  if (end == begin || !end || *end != '\0') return false;
-  return format_duration_value(
-    buffer, buffer_size, value, input_unit, max_components);
-}
-
-inline bool is_text_sensor_card(const std::string &type, const std::string &precision) {
-  return (type == "sensor" && precision == "text") || type == "text_sensor";
-}
-
-inline bool is_text_sensor_card(const ParsedCfg &p) {
-  if (sensor_card_local_sensor(p)) return false;
-  return is_text_sensor_card(p.type, p.precision);
-}
-
 #ifndef ESPDESKTOP_HA_SUBSCRIPTION_SCOPE_CONSTANTS_DEFINED
 constexpr uint32_t HA_SUBSCRIPTION_SCOPE_ALL = 0;
 constexpr uint32_t HA_SUBSCRIPTION_SCOPE_DEFAULT = 1u << 0;
@@ -1971,39 +1797,7 @@ inline std::string text_sensor_display_text(esphome::StringRef value,
   return out;
 }
 
-inline std::string sensor_state_translation_key(const std::string &value) {
-  std::string text = trim_display_unit(value);
-  for (char &ch : text) {
-    ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
-  }
-  return text;
-}
 
-inline std::string sensor_state_display_text(const ParsedCfg &p,
-                                             esphome::StringRef value,
-                                             size_t max_len = HA_TEXT_SENSOR_STATE_MAX_LEN) {
-  if (sensor_state_labels_enabled(p)) {
-    std::string state = normalized_state_text(value, max_len);
-    std::string input = cfg_option_value(p.options, SENSOR_STATE_INPUT_OPTION);
-    std::string output = cfg_option_value(p.options, SENSOR_STATE_OUTPUT_OPTION);
-    if (input.empty() && !cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION).empty()) {
-      input = "high";
-      output = cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION);
-    } else if (input.empty() && !cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION).empty()) {
-      input = "low";
-      output = cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION);
-    }
-    if (!input.empty() && state == sensor_state_translation_key(input)) {
-      return output;
-    }
-    input = cfg_option_value(p.options, SENSOR_STATE_INPUT_2_OPTION);
-    output = cfg_option_value(p.options, SENSOR_STATE_OUTPUT_2_OPTION);
-    if (!input.empty() && state == sensor_state_translation_key(input)) {
-      return output;
-    }
-  }
-  return text_sensor_display_text(value, max_len);
-}
 
 #ifndef ESPDESKTOP_CONFIG_PARSER_ONLY
 inline void lv_label_set_text_limited(lv_obj_t *label, esphome::StringRef value, size_t max_len) {

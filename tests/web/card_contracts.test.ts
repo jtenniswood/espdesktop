@@ -50,4 +50,8 @@ export function runCardContractTests(): void {
   equal(resolveCardRuntimeSpec(companion)?.driver, "companion", "Companion runtime driver");
   equal(cardContractSubpageTypeCode("companion"), "CP", "Companion compact type code");
   equal(cardContractCard("todo"), null, "retired Todo card stays outside the public contract");
+  for (const type of ["internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver"]) {
+    equal(cardContractCard(type), null, `${type} stays outside the card contract`);
+    equal(cardRuntimeSpec(type), null, `${type} has no runtime driver`);
+  }
 }

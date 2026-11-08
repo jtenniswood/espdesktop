@@ -261,4 +261,3 @@ inline void clear_spanned_cells(const OrderResult &order, int num_slots, int col
     }
   }
 }
-

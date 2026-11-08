@@ -1,3 +1,4 @@
+import { cardContractTypeRetired } from "../generated/card_contract";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { childPageKey, pageDepth, parentPageKey } from "../model/page_keys";
@@ -39,7 +40,6 @@ import {
     normalizeSavedConfigVacuumPrecision,
     normalizeSavedConfigVacuumSensor,
 } from "../generated/saved_config_vacuum";
-import { migrateSavedConfigSensorLegacy, normalizeSavedConfigSensor } from "../generated/saved_config_sensor";
 import { migrateSavedConfigActionLegacy, normalizeSavedConfigAction } from "../generated/saved_config_action";
 import { normalizeSavedConfigMedia } from "../generated/saved_config_media";
 import { normalizeSavedConfigStatic } from "../generated/saved_config_static";
@@ -121,8 +121,6 @@ export function createConfigCodecFeature(
         return requestApi;
     }
     const {
-        sensorCardLocalSource: SENSOR_CARD_LOCAL_SENSOR,
-        sensorCardIsLocal,
         cardLargeNumbersSupported,
         normalizeDateTimeOptions,
         normalizeDoorWindowSubtype,
@@ -130,7 +128,6 @@ export function createConfigCodecFeature(
         doorWindowOpenIcon,
         normalizeDoorWindowOptions,
         normalizePresenceOptions,
-        normalizeSensorOptions,
     } = sensorOptions;
     const {
         mediaEditorMode,
@@ -191,25 +188,15 @@ export function createConfigCodecFeature(
     function cardRequiresSquareSize(this: any, b?: any) {
         return false;
     }
-    function cardIsWifiSharing(this: any, b?: any) {
-        return !!(b && (b.type === "wifi_qr" || b.type === "wifi_qr_card"));
-    }
-    function cardSupportsWifiPortraitSizes(this: any, b?: any) {
-        return cardIsWifiSharing(b) && (
-            layout.deviceId === "guition-esp32-p4-jc8012p4a1" ||
-            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v2" ||
-            layout.deviceId === "guition-esp32-p4-jc8012p4a1-v3"
-        );
-    }
     function cardSupportsExtraLargeSize(this: any, b?: any) {
-        return cardRequiresSquareSize(b) || cardIsWifiSharing(b) || cardSupportsMaxSize(b);
+        return cardRequiresSquareSize(b) || cardSupportsMaxSize(b);
     }
     function cardSupportsMaxSize(this: any, b?: any) {
         return !!(b && (b.type === "image" ||
             (b.type === "media" && mediaEditorMode(b.sensor) === "cover_art")));
     }
     function cardSupportsSquareMaxSizes(this: any, b?: any) {
-        return !cardIsWifiSharing(b) && layout.gridRows === 3 && layout.gridCols === 3;
+        return layout.gridRows === 3 && layout.gridCols === 3;
     }
     function cardSupportsPortraitLargeSize(this: any, b?: any) {
         return cardSupportsMaxSize(b) && layout.gridRows >= 4 && layout.gridCols >= 3;
@@ -218,25 +205,13 @@ export function createConfigCodecFeature(
         return cardSupportsMaxSize(b) && layout.gridRows >= 3 && layout.gridCols >= 4;
     }
     function cardSupportsUltraWideSize(this: any, b?: any) {
-        return !cardIsWifiSharing(b) && layout.gridCols >= 5;
+        return layout.gridCols >= 5;
     }
     function cardSizeFitsLayout(this: any, size?: any) {
         return sizeColSpan(size) <= layout.gridCols && sizeRowSpan(size) <= layout.gridRows;
     }
     function normalizeCardSizeForConfig(this: any, b?: any, size?: any) {
         size = size || CARD_SIZE_SINGLE;
-        // Wi-Fi sharing keeps its own allow-list, so it stays ahead of the
-        // wider spans and never resolves to Ultra Wide.
-        if (cardIsWifiSharing(b)) {
-            if (size === CARD_SIZE_SINGLE || size === CARD_SIZE_LARGE)
-                return size;
-            if (size === CARD_SIZE_EXTRA_LARGE)
-                return cardSizeFitsLayout(size) ? size : CARD_SIZE_SINGLE;
-            if (cardSupportsWifiPortraitSizes(b) &&
-                (size === CARD_SIZE_MAX_TALL || size === CARD_SIZE_PORTRAIT_LARGE))
-                return size;
-            return CARD_SIZE_SINGLE;
-        }
         if (size === CARD_SIZE_ULTRA_WIDE)
             return cardSupportsUltraWideSize(b) ? size : CARD_SIZE_SINGLE;
         if (size === CARD_SIZE_LANDSCAPE_LARGE)
@@ -248,27 +223,6 @@ export function createConfigCodecFeature(
                 ? size
                 : CARD_SIZE_SINGLE;
         return cardSizeFitsLayout(size) ? size : CARD_SIZE_SINGLE;
-    }
-    function normalizeSavedConfigSensorFields(this: any, b?: any, wasLegacyTextSensor?: any) {
-        if (!b)
-            return;
-        if (wasLegacyTextSensor && !b.icon)
-            b.icon = "Auto";
-        if (!sensorCardIsLocal(b) && b.precision === "time") {
-            b.unit = "";
-            b.icon = "Auto";
-            b.icon_on = "Auto";
-        }
-        if (sensorCardIsLocal(b)) {
-            b.type = "sensor";
-            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
-            b.icon_on = "Auto";
-            b.options = "";
-            if (b.precision !== "text" && b.precision !== "1" && b.precision !== "2")
-                b.precision = "";
-            if (b.precision !== "text" && (!b.icon || b.icon === "Auto"))
-                b.icon = "Auto";
-        }
     }
     function normalizeSavedConfigMediaFields(this: any, b?: any) {
         if (!b)
@@ -480,6 +434,9 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        if (b && cardContractTypeRetired(b.type)) {
+            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: b.type });
+        }
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
@@ -491,9 +448,6 @@ export function createConfigCodecFeature(
             b.options = setConfigOptionValue(withoutCardColorOptions(b.options || ""), "icon_size", "");
         if (b)
             migrateSavedConfigActionLegacy(b);
-        var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
-        if (b)
-            migrateSavedConfigSensorLegacy(b);
         if (b && migrateSavedConfigVacuumLegacy(b)) {
             if (!b.icon || b.icon === "Auto")
                 b.icon = vacuumModeDefaultIcon(b.sensor);
@@ -524,10 +478,9 @@ export function createConfigCodecFeature(
             normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
         if (b)
             normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
-        var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
-        var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
-        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "wifi_qr" && b.type !== "wifi_qr_card" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
+        var normalizedSavedSwitch: any = !!(b && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
+        if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
@@ -568,23 +521,17 @@ export function createConfigCodecFeature(
             type = "action";
         if (type === "local")
             type = "action";
-        if (type === "local_sensor")
-            type = "sensor";
         var label: any = b && b.label || "";
         if (type === "calendar" || type === "clock" || type === "timezone")
             label = "";
-        if (type === "screen_lock")
-            label = "";
         var sensor: any = isActionOptionSelect ? ACTION_CARD_OPTION_SELECT_ACTION :
-            (isBrightnessSliderType(type) || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.sensor || "");
+            (isBrightnessSliderType(type) || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.sensor || "");
         if (type === "lock" && sensor !== "lock" && sensor !== "unlock")
             sensor = "";
         if (b && b.type === "local")
             sensor = ACTION_CARD_LOCAL_ACTION;
-        if (b && (b.type === "local_sensor" || sensorCardIsLocal(b)))
-            sensor = SENSOR_CARD_LOCAL_SENSOR;
         var isLocalAction: any = type === "action" && sensor === ACTION_CARD_LOCAL_ACTION;
-        var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
+        var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
         if (isLocalAction)
             unit = "";
         var icon: any = b && b.icon || "Auto";
@@ -596,8 +543,6 @@ export function createConfigCodecFeature(
             icon = "Security";
         if (type === "calendar" || type === "clock" || type === "timezone")
             icon = "Auto";
-        if (type === "screen_lock")
-            icon = "Lock";
         if (type === "alarm_action" && (!icon || icon === "Auto"))
             icon = (alarmActionInfo(sensor) || alarmActionSpecs()[0]).icon;
         if (isFanCardType(type) && (!icon || icon === "Auto"))
@@ -611,12 +556,8 @@ export function createConfigCodecFeature(
             iconOn = "Fan";
         if (type === "lock")
             iconOn = sensor ? "Auto" : ((!iconOn || iconOn === "Auto") ? "Lock Open" : iconOn);
-        if (type === "screen_lock")
-            iconOn = "Lock Open";
-        var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
+        var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
         if (isLocalAction)
-            precision = "";
-        if (sensor === SENSOR_CARD_LOCAL_SENSOR && precision !== "text" && precision !== "1" && precision !== "2")
             precision = "";
         if (type === "media") {
             sensor = mediaEditorMode(sensor);
@@ -717,9 +658,6 @@ export function createConfigCodecFeature(
         else if (type === "lock") {
             options = "";
         }
-        else if (type === "screen_lock") {
-            options = configOptionEnabled(options, "screensaver_on_lock") ? "screensaver_on_lock" : "";
-        }
         else if (type === "calendar" || type === "clock" || type === "timezone") {
             options = normalizeDateTimeOptions(type, options, precision);
         }
@@ -729,9 +667,6 @@ export function createConfigCodecFeature(
         else if (type === "lawn_mower") {
             options = "";
         }
-        else if (type === "sensor") {
-            options = sensor === SENSOR_CARD_LOCAL_SENSOR ? "" : normalizeSensorOptions(options, precision);
-        }
         else if (type === "door_window") {
             options = normalizeDoorWindowOptions(options);
         }
@@ -740,16 +675,6 @@ export function createConfigCodecFeature(
         }
         else if (type === "image") {
             options = normalizeImageOptions(options, b && b.entity);
-        }
-        else if (type === "wifi_qr" || type === "wifi_qr_card") {
-            var wifiButton: any = EspDesktopModel.cloneCardConfig(b || {});
-            wifiButton.options = options;
-            wifiButton.label = label;
-            wifiButton.icon = icon;
-            normalizeWithRegisteredCardType(wifiButton);
-            label = wifiButton.label;
-            icon = wifiButton.icon;
-            options = wifiButton.options;
         }
         else if (type === "light_control") {
             options = normalizeLightControlOptions(options);
@@ -763,7 +688,7 @@ export function createConfigCodecFeature(
         else if (isActionOptionSelect || isFanCardType(type)) {
             options = "";
         }
-        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "webhook" && type !== "screen_lock" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
+        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "webhook" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
             options = "";
         }
         if (type === "image") {
@@ -811,7 +736,7 @@ export function createConfigCodecFeature(
         if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
         options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", options);
         return trimConfigFields([
-            (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
+            (type === "door_window" || type === "presence") ? "" : (b && b.entity || ""),
             label,
             icon,
             iconOn,
@@ -1111,8 +1036,6 @@ export function createConfigCodecFeature(
         normalizeWithRegisteredCardType,
         normalizeButtonConfig,
         cardRequiresSquareSize,
-        cardIsWifiSharing,
-        cardSupportsWifiPortraitSizes,
         cardSupportsExtraLargeSize,
         cardSupportsMaxSize,
         cardSupportsSquareMaxSizes,

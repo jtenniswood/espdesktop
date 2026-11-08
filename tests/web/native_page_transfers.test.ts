@@ -1,4 +1,4 @@
-import { migrateSavedConfigSensorLegacy } from "../../src/webserver/generated/saved_config_sensor";
+import { cardContractMigrationAlias } from "../../src/webserver/generated/card_contract";
 import { parseRawButtonConfig, parseRawSubpageConfig } from "../../src/webserver/model";
 import { NativePanelConfigController } from "../../src/webserver/controllers/native_panel_config_controller";
 import { createNativePageTransfersFeature, validatePageTransferCards } from "../../src/webserver/application/native_page_transfers";
@@ -144,25 +144,25 @@ export async function runNativePageTransferTests(): Promise<void> {
 
 export function runNativeTransferValidationTests(): void {
   const codec = {
-    normalizeButtonConfig(button: any) { migrateSavedConfigSensorLegacy(button); return button; },
+    normalizeButtonConfig(button: any) { Object.assign(button, cardContractMigrationAlias(button.type) || {}); return button; },
     parseSubpageConfig(raw: string) { return parseRawSubpageConfig(raw, value => value); },
   } as any;
-  for (const alias of ["text_sensor", "local_sensor"]) {
+  for (const alias of ["weather_forecast"]) {
     const button = { ...parseRawButtonConfig(""), type: alias, label: "Saved label", options: "future=value" };
     const entries = [{ button, size: 1, subtree: null }];
     const before = JSON.stringify(entries), seen: any[] = [];
     validatePageTransferCards(entries, 1, codec, (normalized, subpage) => {
-      check(normalized.type === "sensor" && subpage, "legacy sensor is checked using its supported type"); seen.push(normalized);
+      check(normalized.type === "weather" && subpage, "legacy weather is checked using its supported type"); seen.push(normalized);
     });
     check(seen.length === 1 && JSON.stringify(entries) === before && button.type === alias,
       "validation cannot rewrite the original card or saved values");
   }
   const folder = [{ button: { ...parseRawButtonConfig(""), type: "subpage" }, size: 1,
-    subtree: { configuration: "~B,1|text_sensor,,Legacy", children: { 1: "~B,1|local_sensor,,Local" } } }];
+    subtree: { configuration: "~B,1|weather_forecast,,Legacy", children: { 1: "~B,1|weather_forecast,,Forecast" } } }];
   const before = JSON.stringify(folder), types: string[] = [];
   validatePageTransferCards(folder, 0, codec, (button, subpage) => {
-    check(button.type === (subpage ? "sensor" : "subpage"), "descendant aliases use normalized validation too"); types.push(button.type);
+    check(button.type === (subpage ? "weather" : "subpage"), "descendant aliases use normalized validation too"); types.push(button.type);
   });
-  check(types.join() === "subpage,sensor,sensor" && JSON.stringify(folder) === before,
+  check(types.join() === "subpage,weather,weather" && JSON.stringify(folder) === before,
     "folder validation preserves both levels of original serialized data");
 }

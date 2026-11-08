@@ -154,36 +154,6 @@ esphome:
               esp_sleep_enable_timer_wakeup(100000);
               esp_deep_sleep_start();
             }
-    - priority: 700
-      then:
-        - lambda: |-
-            register_internal_relay(
-              "relay_1", "Relay 1",
-              [=](bool on) {
-                if (on) id(relay_1).turn_on();
-                else id(relay_1).turn_off();
-              },
-              [=]() { id(relay_1_push).execute(); },
-              [=]() -> bool { return id(relay_1).state; });
-            register_internal_relay(
-              "relay_2", "Relay 2",
-              [=](bool on) {
-                if (on) id(relay_2).turn_on();
-                else id(relay_2).turn_off();
-              },
-              [=]() { id(relay_2_push).execute(); },
-              [=]() -> bool { return id(relay_2).state; });
-            register_internal_relay(
-              "relay_3", "Relay 3",
-              [=](bool on) {
-                if (on) id(relay_3).turn_on();
-                else id(relay_3).turn_off();
-              },
-              [=]() { id(relay_3_push).execute(); },
-              [=]() -> bool { return id(relay_3).state; });
-    # EspDesktop owns the Companion runtime and starts at AFTER_WIFI (200).
-    # Register handlers afterwards so a fresh OTA boot cannot abort and roll
-    # back before the new embedded web bundle becomes active.
     - priority: 190
       then:
         - lambda: |-
@@ -395,12 +365,6 @@ switch:
     pin:
       number: GPIO40
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", false);'
 
   - platform: gpio
     name: Relay 2
@@ -409,12 +373,6 @@ switch:
     pin:
       number: GPIO2
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", false);'
 
   - platform: gpio
     name: Relay 3
@@ -423,12 +381,6 @@ switch:
     pin:
       number: GPIO1
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_3", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_3", false);'
 
 # Momentary relay buttons for push-button/dimmer inputs.
 button:

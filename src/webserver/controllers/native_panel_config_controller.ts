@@ -133,7 +133,7 @@ export class NativePanelConfigController {
     } else if (result === "mirror-failed") {
       this.dependencies.showBanner("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", "error");
     } else if (result === "authentication-required") {
-      this.dependencies.showBanner("This firmware requires web authentication for Wifi Sharing passwords. Sign in, enable web_server_auth, or update the panel firmware.", "error");
+      this.dependencies.showBanner("Sign in to save the configuration, enable web_server_auth, or update the panel firmware.", "error");
     } else if (result === "too-large") {
       this.dependencies.showBanner("Configuration exceeds this panel's storage capacity. Remove unused cards or subpages, or shorten labels.", "error");
     } else if (result === "nested-pages-unavailable") {

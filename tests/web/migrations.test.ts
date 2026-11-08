@@ -1,6 +1,5 @@
 import { cloneCardConfig, parseRawButtonConfig } from "../../src/webserver/model";
 import { migrateSavedConfigActionLegacy } from "../../src/webserver/generated/saved_config_action";
-import { migrateSavedConfigSensorLegacy } from "../../src/webserver/generated/saved_config_sensor";
 import { migrateSavedConfigVacuumLegacy } from "../../src/webserver/generated/saved_config_vacuum";
 import { migrateSavedConfigWeatherLegacy } from "../../src/webserver/generated/saved_config_weather";
 
@@ -22,12 +21,6 @@ export function runMigrationTests(fixtures: LegacyFixtures): void {
       fixture: fixtures.weather_forecast_alias,
       migrate: migrateSavedConfigWeatherLegacy,
       fields: ["type", "precision"] as const,
-    },
-    {
-      name: "text sensor",
-      fixture: fixtures.text_sensor_alias,
-      migrate: migrateSavedConfigSensorLegacy,
-      fields: ["type", "entity", "label", "unit", "precision", "icon_on"] as const,
     },
   ];
   for (const migration of generatedCases) {
@@ -63,6 +56,4 @@ export function runMigrationTests(fixtures: LegacyFixtures): void {
     equal(config.options, "", `${migration.action} stale options are retired`);
   }
 
-  const canonical = cloneCardConfig({ type: "sensor", sensor: "sensor.temperature" });
-  equal(migrateSavedConfigSensorLegacy(canonical), false, "canonical cards are not reported as migrations");
 }

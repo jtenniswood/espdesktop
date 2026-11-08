@@ -45,7 +45,6 @@ helpers += function('button_grid_config_parser.h', 'rainfall_uses_forecast')
 for file, name in [
     ('button_grid_actions.h', 'media_card_mode'),
     ('button_grid_media.h', 'media_control_modal_mode'),
-    ('guest_wifi_state.h', 'guest_wifi_valid_entity'),
     ('button_grid_image.h', 'image_card_page_visible'),
     ('button_grid_image.h', 'image_card_context_visible_on_active_screen'),
     ('button_grid_image.h', 'image_card_context_on_active_screen'),
@@ -66,12 +65,12 @@ for file, name in [
 helpers += function('button_grid_fan.h', 'fan_control_supported')
 helpers += 'namespace espdesktop::cards {\n'
 for driver in ['light_control', 'cover_modal', 'climate_control', 'fan_control',
-               'alarm', 'image', 'media', 'wifi_qr', 'weather']:
+               'alarm', 'image', 'media', 'weather']:
     helpers += function('button_grid_' + driver + '_driver.h', driver + '_driver_matches')
 helpers += function('button_grid_weather_driver.h', 'weather_driver_shows_forecast')
 helpers += function('button_grid_numeric_selectable_driver.h', 'numeric_selectable_driver_option_select')
 for driver in ['light_control', 'cover_modal', 'climate_control', 'fan_control',
-               'numeric_selectable', 'media', 'image', 'alarm', 'wifi_qr', 'weather']:
+               'numeric_selectable', 'media', 'image', 'alarm', 'weather']:
     helpers += function('button_grid_' + driver + '_driver.h', driver + '_driver_modal_target')
 helpers += '}\n'
 helpers += function('button_grid_navigation.h', 'navigation_close_modals_for_display_takeover')

@@ -108,7 +108,6 @@ esphome:
     - priority: -240
       then:
         - lambda: |-
-            force_screensaver_action() = []() { id(force_screensaver).execute(); };
             show_screen_lock_pin() = []() { id(screensaver_pin_refresh_ui).execute(); };
             return_screen_lock_view() = []() {
               if (!screensaver_pin_restore_previous_mode(id(espdesktop_app).display())) {

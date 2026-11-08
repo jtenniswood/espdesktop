@@ -16,19 +16,7 @@ struct ToggleTextSensorCtx {
   bool on = false;
 };
 
-struct TimeSensorCtx {
-  lv_obj_t *sensor_lbl = nullptr;
-  lv_obj_t *unit_lbl = nullptr;
-  std::string entity_id;
-  std::string manual_unit;
-  std::string state;
-  std::string auto_unit;
-  bool has_state = false;
-  bool has_auto_unit = false;
-  int max_components = 2;
-  std::string warned_unit;
-  bool warned_unit_set = false;
-};
+
 
 inline std::string label_text_or_empty(lv_obj_t *label) {
   if (!label) return "";
@@ -90,6 +78,15 @@ inline void subscribe_control_availability(lv_obj_t *visual_obj, lv_obj_t *input
 }
 
 // Subscribe to a HA sensor entity and update an LVGL label with its numeric value.
+// Text state is also used by folder cards, independently of retired Sensor cards.
+inline void subscribe_text_sensor_value(lv_obj_t *text_lbl,
+                                        const std::string &sensor_id) {
+  ha_subscribe_state(sensor_id,
+    std::function<void(esphome::StringRef)>([text_lbl](esphome::StringRef state) {
+      set_wrapped_button_label_text(text_lbl, text_sensor_display_text(state));
+    }));
+}
+
 inline void subscribe_sensor_value(lv_obj_t *sensor_lbl, const std::string &sensor_id,
                                    int precision = 0,
                                    lv_obj_t *unit_lbl = nullptr,
@@ -125,70 +122,6 @@ inline void subscribe_sensor_value(lv_obj_t *sensor_lbl, const std::string &sens
   );
 }
 
-inline void apply_time_sensor_value(TimeSensorCtx *ctx) {
-  if (!ctx || !ctx->sensor_lbl) return;
-  if (ctx->unit_lbl) lv_label_set_display_text(ctx->unit_lbl, "");
-  if (!ctx->has_state || (ctx->manual_unit.empty() && !ctx->has_auto_unit)) {
-    lv_label_set_display_text(ctx->sensor_lbl, "");
-    return;
-  }
-
-  const std::string &input_unit = ctx->manual_unit.empty() ? ctx->auto_unit : ctx->manual_unit;
-  double multiplier = 0.0;
-  if (!duration_unit_seconds_multiplier(input_unit, multiplier)) {
-    lv_label_set_display_text(ctx->sensor_lbl, "");
-    if (ctx->manual_unit.empty() &&
-        (!ctx->warned_unit_set || ctx->warned_unit != input_unit)) {
-      ESP_LOGW("sensors", "Time sensor %s has unsupported or missing unit_of_measurement '%s'",
-               ctx->entity_id.c_str(), input_unit.c_str());
-      ctx->warned_unit = input_unit;
-      ctx->warned_unit_set = true;
-    }
-    return;
-  }
-  ctx->warned_unit.clear();
-  ctx->warned_unit_set = false;
-
-  char output[48];
-  if (!format_duration_sensor_state(output, sizeof(output),
-                                    ctx->state, ctx->has_state,
-                                    ctx->auto_unit, ctx->has_auto_unit,
-                                    ctx->manual_unit, ctx->max_components)) {
-    lv_label_set_display_text(ctx->sensor_lbl, "");
-    return;
-  }
-  lv_label_set_display_text(ctx->sensor_lbl, output);
-}
-
-inline void subscribe_time_sensor_value(TimeSensorCtx *ctx, const std::string &sensor_id,
-                                        const std::string &manual_unit,
-                                        int max_components = 2) {
-  if (!ctx) return;
-  ctx->entity_id = sensor_id;
-  ctx->manual_unit = manual_unit;
-  ctx->max_components = max_components;
-  if (ctx->unit_lbl) lv_label_set_display_text(ctx->unit_lbl, "");
-  ha_subscribe_state(
-    sensor_id,
-    std::function<void(esphome::StringRef)>([ctx](esphome::StringRef state) {
-      if (!ctx) return;
-      ctx->state.assign(state.c_str(), state.size());
-      ctx->has_state = true;
-      apply_time_sensor_value(ctx);
-    })
-  );
-  if (!manual_unit.empty()) return;
-  ha_subscribe_attribute(
-    sensor_id, "unit_of_measurement",
-    std::function<void(esphome::StringRef)>([ctx](esphome::StringRef unit) {
-      if (!ctx) return;
-      ctx->auto_unit.assign(unit.c_str(), unit.size());
-      ctx->has_auto_unit = true;
-      apply_time_sensor_value(ctx);
-    })
-  );
-}
-
 inline void subscribe_toggle_text_sensor_value(ToggleTextSensorCtx *ctx, const std::string &sensor_id) {
   ha_subscribe_state(
     sensor_id,
@@ -200,72 +133,8 @@ inline void subscribe_toggle_text_sensor_value(ToggleTextSensorCtx *ctx, const s
   );
 }
 
-inline void subscribe_text_sensor_value(lv_obj_t *text_lbl, const std::string &sensor_id,
-                                        lv_obj_t *availability_obj = nullptr,
-                                        bool active_color = false,
-                                        uint32_t on_color = DEFAULT_ACCENT_COLOR,
-                                        bool sensor_surface = false,
-                                        uint32_t custom_sensor_color = UINT32_MAX) {
-  ha_subscribe_state(
-    sensor_id,
-    std::function<void(esphome::StringRef)>(
-      [text_lbl, availability_obj, active_color, on_color, sensor_surface, custom_sensor_color](esphome::StringRef state) {
-      bool unavailable = ha_state_unavailable_ref(state);
-      apply_sensor_active_color(availability_obj, active_color, state,
-        on_color, custom_sensor_color != UINT32_MAX ? custom_sensor_color
-          : (sensor_surface ? current_grid_sensor_surface_color() : current_grid_sensor_color()),
-        unavailable, false, custom_sensor_color != UINT32_MAX);
-      set_wrapped_button_label_text(text_lbl, text_sensor_display_text(state));
-    })
-  );
-}
 
-inline void subscribe_sensor_icon_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
-                                        const ParsedCfg &p,
-                                        bool active_color = false) {
-  if (p.sensor.empty()) return;
-  const char *icon_off = (p.icon.empty() || p.icon == "Auto")
-    ? find_icon("Auto") : find_icon(p.icon.c_str());
-  bool has_icon_on = !p.icon_on.empty() && p.icon_on != "Auto";
-  const char *icon_on = has_icon_on ? find_icon(p.icon_on.c_str()) : icon_off;
-  lv_label_set_display_text(icon_lbl, find_icon("Minus"));
-  set_card_disabled_state(btn_ptr, true);
-  ha_subscribe_state(
-    p.sensor,
-    std::function<void(esphome::StringRef)>(
-      [btn_ptr, icon_lbl, icon_off, icon_on, active_color](esphome::StringRef state) {
-      bool unavailable = ha_state_unavailable_ref(state);
-      set_card_disabled_state(btn_ptr, unavailable);
-      if (btn_ptr) {
-        set_card_checked_state(
-          btn_ptr, active_color && !unavailable && is_entity_on_ref(state));
-      }
-      lv_label_set_display_text(icon_lbl, unavailable
-        ? find_icon("Minus") : (is_entity_on_ref(state) ? icon_on : icon_off));
-    })
-  );
-}
 
-inline void subscribe_sensor_text_card_value(lv_obj_t *text_lbl, const ParsedCfg &p,
-                                             lv_obj_t *availability_obj = nullptr,
-                                             bool active_color = false,
-                                             uint32_t on_color = DEFAULT_ACCENT_COLOR,
-                                             bool sensor_surface = true,
-                                             uint32_t custom_sensor_color = UINT32_MAX) {
-  if (p.sensor.empty()) return;
-  ha_subscribe_state(
-    p.sensor,
-    std::function<void(esphome::StringRef)>(
-      [text_lbl, p, availability_obj, active_color, on_color, sensor_surface, custom_sensor_color](esphome::StringRef state) {
-      bool unavailable = ha_state_unavailable_ref(state);
-      apply_sensor_active_color(availability_obj, active_color, state,
-        on_color, custom_sensor_color != UINT32_MAX ? custom_sensor_color
-          : (sensor_surface ? current_grid_sensor_surface_color() : current_grid_sensor_color()),
-        unavailable, false, custom_sensor_color != UINT32_MAX);
-      set_wrapped_button_label_text(text_lbl, sensor_state_display_text(p, state));
-    })
-  );
-}
 
 inline void subscribe_weather_state(lv_obj_t *icon_lbl, lv_obj_t *text_lbl, const std::string &entity_id) {
   ESP_LOGI("weather", "Subscribing to current weather state for %s", entity_id.c_str());

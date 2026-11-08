@@ -100,28 +100,8 @@
     "expected": { "entity": "scene.movie", "label": "Movie", "icon": "Flash", "icon_on": "Auto", "sensor": "scene.turn_on", "unit": "", "type": "action", "precision": "", "options": "state_entity=sensor.power,large_numbers" }
   },
   {
-    "name": "legacy text sensor type becomes a text-mode sensor",
-    "input": "sensor.washer;Washer;Washer;Swapped;sensor.washer;unit;text_sensor;2;state_labels,state_input=on,state_output=Running",
-    "expected": { "entity": "", "label": "", "icon": "Washer", "icon_on": "Auto", "sensor": "sensor.washer", "unit": "", "type": "sensor", "precision": "text", "options": "state_labels,state_input=on,state_output=Running" }
-  },
-  {
     "name": "unknown card type drops unknown options",
     "input": "sensor.x;Mystery;Auto;Auto;sensor.y;W;future_card;2;future_option=1",
     "expected": { "entity": "sensor.x", "label": "Mystery", "icon": "Auto", "icon_on": "Auto", "sensor": "sensor.y", "unit": "W", "type": "future_card", "precision": "2", "options": "" }
-  },
-  {
-    "name": "compact Unicode and encoded delimiter survive",
-    "input": "~sensor.energy,K%C3%BCche%3B%20%E2%98%95,Gauge,Auto,sensor.energy,kWh,sensor,1,large_numbers",
-    "expected": { "entity": "sensor.energy", "label": "Küche; ☕", "icon": "Gauge", "icon_on": "Auto", "sensor": "sensor.energy", "unit": "kWh", "type": "sensor", "precision": "1", "options": "large_numbers" }
-  },
-  {
-    "name": "malformed compact escapes remain literal",
-    "input": "~sensor.x,Bad%2,Gauge,Auto,sensor.x,,sensor,text,state_labels%2Cstate_input=on%2Cstate_output=Yes%ZZ",
-    "expected": { "entity": "sensor.x", "label": "Bad%2", "icon": "Gauge", "icon_on": "Auto", "sensor": "sensor.x", "unit": "", "type": "sensor", "precision": "text", "options": "state_labels,state_input=on,state_output=Yes%25ZZ" }
-  },
-  {
-    "name": "exact 255 byte legacy card remains intact",
-    "input": "sensor.long;LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL;Gauge;Auto;sensor.long;kWh;sensor;1;large_numbers",
-    "expected": { "entity": "sensor.long", "label": "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL", "icon": "Gauge", "icon_on": "Auto", "sensor": "sensor.long", "unit": "kWh", "type": "sensor", "precision": "1", "options": "large_numbers" }
   }
 ]

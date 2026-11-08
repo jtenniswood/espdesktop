@@ -105,21 +105,6 @@ export function runBackupExportControllerTests(): void {
   equal(companionNativeConfig.subpages[1], "1,2|folder.Projects:Projects:Folder Outline:Auto:::companion::",
     "native backup retains Companion subpage cards");
 
-  const wifiCard = "wifi_qr,,Connect,Wifi,Auto,,,,,ssid64=R3Vlc3QgV2lmaQ,pass64=dHJ1c3RlZC1uZXR3b3Jr";
-  const wifiBackup = createBackupExportController({
-    serializeButtonConfig: () => wifiCard,
-    serializeSubpageConfig: (subpage) => String(subpage || ""),
-  }).addNativeConfig({}, {
-    deviceProfile: "panel-a",
-    buttons: [
-      { entity: "", label: "Connect", icon: "Wifi", icon_on: "Auto", sensor: "", unit: "", type: "wifi_qr", precision: "", options: "ssid64=R3Vlc3QgV2lmaQ,pass64=dHJ1c3RlZC1uZXR3b3Jr" },
-    ],
-    subpages: {},
-  });
-  const wifiNativeConfig = decodePanelConfig(decodePanelConfigBackupPayload(wifiBackup.native_config));
-  equal(wifiNativeConfig.buttons[1], wifiCard,
-    "native backup intentionally retains Wifi network names and passwords");
-
   const savedBytes = encodePanelConfig({
     deviceProfile: "panel-a",
     buttons: { 1: "saved-card", 9: "inactive-card" },

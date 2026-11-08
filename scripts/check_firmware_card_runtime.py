@@ -48,7 +48,6 @@ IMAGE_HEADER = "button_grid_image.h"
 STATUS_ENTITY_HEADER = "button_grid_status_entity_driver.h"
 DATE_TIME_HEADER = "button_grid_date_time_driver.h"
 DATE_TIME_CARDS_HEADER = "button_grid_datetime_cards.h"
-SENSOR_HEADER = "button_grid_sensor_driver.h"
 WEATHER_HEADER = "button_grid_weather_driver.h"
 BASIC_ACTION_HEADER = "button_grid_basic_action_driver.h"
 NUMERIC_SELECTABLE_HEADER = "button_grid_numeric_selectable_driver.h"
@@ -208,8 +207,6 @@ def check_root(root: Path) -> list[str]:
             or "status_entity_driver_bind_data( s, p, context, palette)" not in compact_grid
             or "date_time_driver_setup_visual( s, p, context, palette)" not in compact_grid
             or "date_time_driver_bind_data(s, p, context)" not in compact_grid
-            or "sensor_driver_setup_visual( s, p, context, palette)" not in compact_grid
-            or "sensor_driver_bind_data( s, p, context, palette, col_span)" not in compact_grid
             or "weather_driver_setup_visual( s, p, context, palette, display)" not in compact_grid
             or "weather_driver_bind_data(s, p, context)" not in compact_grid
             or "basic_action_driver_setup_visual( s, p, context, palette.sensor_val)" not in compact_grid
@@ -252,8 +249,8 @@ def check_root(root: Path) -> list[str]:
             or "alarm_driver_bind_subpage( sub_slot, sb_cfg, context, alarm_environment)" not in compact_grid
             or "card_palette_for_config(palette, p, display)" not in compact_grid
             or "card_palette_for_config(palette, sb_cfg, display)" not in compact_grid
-            or "bind_basic_sensor_card(s, p, context, card_palette, col_span)" not in compact_grid
-            or "bind_basic_sensor_card(sub_slot, sb_cfg, context, card_palette, cs)" not in compact_grid
+            or "bind_passive_card(s, p, context, card_palette)" not in compact_grid
+            or "bind_passive_card(sub_slot, sb_cfg, context, card_palette)" not in compact_grid
         ):
             failures.append(
                 f"components/espdesktop/{GRID_HEADER}: route main and subpage migrated cards through shared drivers"
@@ -267,11 +264,11 @@ def check_root(root: Path) -> list[str]:
             'sb_cfg.type == "calendar"', 'sb_cfg.type == "sensor"',
             'sb_cfg.type == "local_sensor"', 'sb_cfg.type == "text_sensor"',
             'sb_cfg.type == "weather"', 'sb_cfg.type == "weather_forecast"',
-            'p.type == "screen_lock"', 'p.type == "push"',
-            'p.type == "alarm_action"', 'p.type == "internal"',
+            'p.type == "push"',
+            'p.type == "alarm_action"',
             'p.type == "local"', 'p.type == "webhook"',
-            'sb_cfg.type == "screen_lock"', 'sb_cfg.type == "push"',
-            'sb_cfg.type == "alarm_action"', 'sb_cfg.type == "internal"',
+            'sb_cfg.type == "push"',
+            'sb_cfg.type == "alarm_action"',
             'sb_cfg.type == "local"', 'sb_cfg.type == "webhook"',
             'p.type == "slider"', 'p.type == "light_brightness"',
             'p.type == "light_temperature"', 'p.type == "fan_speed"',
@@ -583,30 +580,6 @@ def check_root(root: Path) -> list[str]:
                 failures.append(
                     f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {register} must reclaim deleted LVGL label references before registration"
                 )
-    sensor_header = root / "components" / "espdesktop" / SENSOR_HEADER
-    if sensor_header.exists():
-        text = sensor_header.read_text(encoding="utf-8")
-        required = (
-            "sensor_driver_setup_visual",
-            "sensor_driver_bind_data",
-            "sensor_driver_attach_interaction",
-            "sensor_driver_refresh_layout",
-            "sensor_driver_cleanup",
-            "sensor_driver_register_local_value",
-            "subscribe_sensor_text_card_value",
-            "subscribe_sensor_icon_state",
-            "subscribe_time_sensor_value",
-            "subscribe_sensor_value",
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{SENSOR_HEADER}: missing shared sensor lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{SENSOR_HEADER}: missing shared sensor driver"
-        )
     weather_header = root / "components" / "espdesktop" / WEATHER_HEADER
     if weather_header.exists():
         text = weather_header.read_text(encoding="utf-8")
@@ -644,8 +617,6 @@ def check_root(root: Path) -> list[str]:
             "basic_action_driver_bind_alarm_action",
             "basic_action_driver_bind_fan_switch",
             "send_webhook_action",
-            "send_internal_relay_action",
-            "screen_lock_activate",
             "esphome.push_button_pressed",
         )
         for needle in required:
@@ -1311,15 +1282,6 @@ inline void setup_light_temp_visual() {
                 "update_timezone_cards must compact deleted LVGL label references",
                 "register_timezone_card must reclaim deleted LVGL label references before registration",
             ),
-        ),
-        (
-            {
-                "button_grid_sensor_driver.h": (
-                    "inline bool sensor_driver_setup_visual() {}\n"
-                    "inline bool sensor_driver_bind_data() {}\n"
-                )
-            },
-            ("missing shared sensor lifecycle guard",),
         ),
         (
             {

@@ -24,7 +24,6 @@ CONTRACT_HEADER = ROOT / "components" / "espdesktop" / "button_grid_contract_gen
 CARD_RUNTIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_runtime.h"
 CARD_REGISTRY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_registry.h"
 SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_vacuum_generated.h"
-SAVED_CONFIG_SENSOR_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_sensor_generated.h"
 SAVED_CONFIG_ACTION_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_action_generated.h"
 SAVED_CONFIG_MEDIA_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
 SAVED_CONFIG_STATIC_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
@@ -473,25 +472,6 @@ int main() {
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 3) == "Lightbulb");
   assert(cfg_field("light.kitchen;Kitchen", 4) == "");
 
-  auto compact = parse_cfg("~sensor.energy,Energy%2C%20Now,Gauge,Auto,sensor.energy,kWh,sensor,1,large_numbers");
-  assert(compact.entity == "sensor.energy");
-  assert(compact.label == "Energy, Now");
-  assert(compact.unit == "kWh");
-  assert(compact.type == "sensor");
-  assert(compact.precision == "1");
-  assert(card_large_numbers_enabled(compact));
-  auto large_off = parse_cfg(";;;;sensor.energy;kWh;sensor;1;large_numbers=off");
-  assert(large_off.options == "large_numbers=off");
-  assert(!card_large_numbers_enabled(large_off));
-  assert(card_large_numbers_disabled(large_off));
-  auto state_labels = parse_cfg(";;;;sensor.bin_level;;sensor;text;state_labels,state_input=high,state_output=Please%20empty,state_input_2=low,state_output_2=Full");
-  assert(sensor_state_labels_enabled(state_labels));
-  assert(state_labels.options == "state_labels,state_input=high,state_output=Please empty,state_input_2=low,state_output_2=Full");
-  assert(sensor_state_display_text(state_labels, "low") == "Full");
-  assert(sensor_state_display_text(state_labels, "high") == "Please empty");
-  assert(sensor_state_display_text(state_labels, "High") == "Please empty");
-  assert(sensor_state_display_text(state_labels, "medium") == "Medium");
-  assert(sensor_state_display_text(state_labels, "medium-high") == "Medium-High");
   assert(text_sensor_display_text("pre-wash") == "Pre-Wash");
   assert(text_sensor_display_text("pre_wash") == "Pre Wash");
   assert(text_sensor_display_text(u8"Übermorgen: Müll") == u8"Übermorgen: Müll");
@@ -543,15 +523,6 @@ int main() {
     }
     assert(text_sensor_display_text(s.c_str(), s.size()) == (s == u8"ä" ? u8"Ä" : s));
   }
-  auto legacy_state_labels = parse_cfg(";;;;sensor.bin_level;;sensor;text;state_labels,state_high_label=Please%20empty");
-  assert(legacy_state_labels.options == "state_labels,state_input=high,state_output=Please empty");
-  auto numeric_state_labels = parse_cfg(";;;;sensor.bin_level;;sensor;0;state_labels,state_high_label=Please%20empty");
-  assert(numeric_state_labels.options == "");
-  auto icon_sensor = parse_cfg(";;;;binary_sensor.patio_door;;sensor;icon;large_numbers");
-  assert(icon_sensor.precision == "icon");
-  assert(icon_sensor.options == "");
-  assert(!card_large_numbers_enabled(icon_sensor));
-
   auto companion_metric = parse_cfg("stat.cpu;Processor;Monitor;Auto;ignored;;companion;bad;large_numbers,active_color");
   assert(companion_system_metric_config(companion_metric));
   assert(companion_metric.sensor == "");
@@ -1180,7 +1151,6 @@ def main() -> int:
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
         shutil.copy2(CARD_REGISTRY_HEADER, tmp_path / "button_grid_card_registry.h")
         shutil.copy2(SAVED_CONFIG_VACUUM_HEADER, tmp_path / "button_grid_saved_config_vacuum_generated.h")
-        shutil.copy2(SAVED_CONFIG_SENSOR_HEADER, tmp_path / "button_grid_saved_config_sensor_generated.h")
         shutil.copy2(SAVED_CONFIG_ACTION_HEADER, tmp_path / "button_grid_saved_config_action_generated.h")
         shutil.copy2(SAVED_CONFIG_MEDIA_HEADER, tmp_path / "button_grid_saved_config_media_generated.h")
         shutil.copy2(SAVED_CONFIG_STATIC_HEADER, tmp_path / "button_grid_saved_config_static_generated.h")

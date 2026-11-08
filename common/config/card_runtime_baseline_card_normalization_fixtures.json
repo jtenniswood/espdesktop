@@ -750,36 +750,6 @@
     }
   },
   {
-    "name": "internal: switch",
-    "input": "~relay_1,,Lightbulb%20Outline,Lightbulb,switch,,internal,,",
-    "expected": {
-      "entity": "relay_1",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "switch",
-      "unit": "",
-      "type": "internal",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "internal: push",
-    "input": "~relay_1,,Lightbulb%20Outline,Lightbulb,push,,internal,,",
-    "expected": {
-      "entity": "relay_1",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "push",
-      "unit": "",
-      "type": "internal",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "light_brightness: brightness",
     "input": "~light.example,,Lightbulb%20Outline,Lightbulb,,,light_brightness,,",
     "expected": {
@@ -1065,36 +1035,6 @@
     }
   },
   {
-    "name": "screensaver: force",
-    "input": "~,,Monitor,Auto,,,screensaver,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Monitor",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "screensaver",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "screen_lock: toggle",
-    "input": "~,,Lock,Lock%20Open,,,screen_lock,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Lock",
-      "icon_on": "Lock Open",
-      "sensor": "",
-      "unit": "",
-      "type": "screen_lock",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "webhook: get",
     "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,GET,,webhook,,",
     "expected": {
@@ -1121,96 +1061,6 @@
       "unit": "{}",
       "type": "webhook",
       "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: numeric",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,1,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: time",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,time,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "time",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: text",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,text,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: icon",
-    "input": "~,,Auto,Auto,binary_sensor.example,,sensor,icon,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "binary_sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "icon",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: local",
-    "input": "~room_temp,,Auto,Auto,local,,sensor,1,",
-    "expected": {
-      "entity": "room_temp",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
-      "options": ""
-    }
-  },
-  {
-    "name": "local_sensor: legacy_local_sensor",
-    "input": "~room_temp,,Auto,Auto,local,,local_sensor,1,",
-    "expected": {
-      "entity": "room_temp",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
       "options": ""
     }
   },
@@ -1335,66 +1185,6 @@
     }
   },
   {
-    "name": "wifi_qr: share",
-    "input": "~,Connect,Wifi,Auto,,,wifi_qr,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ",
-    "expected": {
-      "entity": "",
-      "label": "Connect",
-      "icon": "Wifi",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ"
-    }
-  },
-  {
-    "name": "wifi_qr: guest",
-    "input": "~switch.guest_wifi,Connect,Wifi,Auto,,,wifi_qr,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ%2Cwifi_tabs%3Dguest",
-    "expected": {
-      "entity": "switch.guest_wifi",
-      "label": "Connect",
-      "icon": "Wifi",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ,wifi_tabs=guest"
-    }
-  },
-  {
-    "name": "wifi_qr_card: tile_qr",
-    "input": "~,,Auto,Auto,,,wifi_qr_card,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ",
-    "expected": {
-      "entity": "",
-      "label": "Connect",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr_card",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ"
-    }
-  },
-  {
-    "name": "wifi_qr_card: guest",
-    "input": "~switch.guest_wifi,,Auto,Auto,,,wifi_qr_card,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ%2Cwifi_tabs%3Dguest",
-    "expected": {
-      "entity": "switch.guest_wifi",
-      "label": "Connect",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr_card",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ,wifi_tabs=guest"
-    }
-  },
-  {
     "name": "weather_forecast: legacy_forecast",
     "input": "~weather.example,,Auto,Auto,,,weather_forecast,tomorrow,",
     "expected": {
@@ -1421,21 +1211,6 @@
       "unit": "",
       "type": "action",
       "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "text_sensor: accepted_legacy_input",
-    "input": "~sensor.example,,,,,,text_sensor,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
       "options": ""
     }
   },

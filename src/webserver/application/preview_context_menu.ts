@@ -82,8 +82,6 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     const { copyButtons, copySlot, cutButtons, cutSlot, pasteButton, pasteSubpageButton, showCopyCode: showCopyCardCode, showPasteCode: showPasteCardCode } = dependencies.clipboard;
     const { renderPreview, renderButtonSettings, openCardSettings, openVoiceServicesSettings, addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
     const {
-        cardIsWifiSharing,
-        cardSupportsWifiPortraitSizes,
         cardSupportsExtraLargeSize,
         cardSupportsMaxSize,
         cardSupportsSquareMaxSizes,
@@ -161,7 +159,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         const c = ctx();
         if (slot === -2) return c.isSub;
         const button = c.buttons[slot - 1];
-        return !!button && button.type !== "image" && button.type !== "wifi_qr_card";
+        return !!button && button.type !== "image";
     }
     function addColourMenuItem(slots: number[]) {
         const colourSlots = slots.filter(supportsCardColour);
@@ -415,21 +413,15 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             return sizeColSpan(size) <= dependencies.layout.gridCols &&
                 sizeRowSpan(size) <= dependencies.layout.gridRows;
         }
-        if (!cardIsWifiSharing(b)) {
-            if (fitsScreen(CARD_SIZE_TALL)) options.push({ size: CARD_SIZE_TALL, label: "Tall (2x1)" });
-            if (fitsScreen(CARD_SIZE_EXTRA_TALL)) options.push({ size: CARD_SIZE_EXTRA_TALL, label: "Extra Tall (3x1)" });
-            if (fitsScreen(CARD_SIZE_WIDE)) options.push({ size: CARD_SIZE_WIDE, label: "Wide (1x2)" });
-            if (fitsScreen(CARD_SIZE_EXTRA_WIDE)) options.push({ size: CARD_SIZE_EXTRA_WIDE, label: "Extra Wide (1x3)" });
-            if (cardSupportsUltraWideSize(b))
-                options.push({ size: CARD_SIZE_ULTRA_WIDE, label: "Ultra Wide (1x5)" });
-        }
+        if (fitsScreen(CARD_SIZE_TALL)) options.push({ size: CARD_SIZE_TALL, label: "Tall (2x1)" });
+        if (fitsScreen(CARD_SIZE_EXTRA_TALL)) options.push({ size: CARD_SIZE_EXTRA_TALL, label: "Extra Tall (3x1)" });
+        if (fitsScreen(CARD_SIZE_WIDE)) options.push({ size: CARD_SIZE_WIDE, label: "Wide (1x2)" });
+        if (fitsScreen(CARD_SIZE_EXTRA_WIDE)) options.push({ size: CARD_SIZE_EXTRA_WIDE, label: "Extra Wide (1x3)" });
+        if (cardSupportsUltraWideSize(b))
+            options.push({ size: CARD_SIZE_ULTRA_WIDE, label: "Ultra Wide (1x5)" });
         if (fitsScreen(CARD_SIZE_LARGE)) options.push({ size: CARD_SIZE_LARGE, label: "Large (2x2)" });
         if (cardSupportsExtraLargeSize(b) && fitsScreen(CARD_SIZE_EXTRA_LARGE))
             options.push({ size: CARD_SIZE_EXTRA_LARGE, label: "Extra Large (3x3)" });
-        if (cardSupportsWifiPortraitSizes(b)) {
-            if (fitsScreen(CARD_SIZE_MAX_TALL)) options.push({ size: CARD_SIZE_MAX_TALL, label: "Max Tall (2x3)" });
-            if (fitsScreen(CARD_SIZE_PORTRAIT_LARGE)) options.push({ size: CARD_SIZE_PORTRAIT_LARGE, label: "Massive (3x4)" });
-        }
         if (cardSupportsMaxSize(b) || cardSupportsSquareMaxSizes(b)) {
             if (fitsScreen(CARD_SIZE_MAX_WIDE)) options.push({ size: CARD_SIZE_MAX_WIDE, label: "Max Wide (3x2)" });
             if (fitsScreen(CARD_SIZE_MAX_TALL)) options.push({ size: CARD_SIZE_MAX_TALL, label: "Max tall (2x3)" });

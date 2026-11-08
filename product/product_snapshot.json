@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 45,
+    "cardTypes": 38,
     "entityNames": 125,
     "icons": 401,
     "structuralIcons": 37,
@@ -1886,8 +1886,6 @@
       "normalize_subpage_fields",
       "normalize_subpage_options",
       "normalize_switch_options",
-      "normalize_sensor_fields",
-      "normalize_sensor_options",
       "normalize_vacuum_fields"
     ],
     "fields": [
@@ -1921,7 +1919,6 @@
         "fan",
         "fan_control",
         "access",
-        "internal",
         "numeric",
         "light_temperature",
         "light_control",
@@ -1938,15 +1935,11 @@
         "option_select",
         "push",
         "companion",
-        "screen_lock",
         "webhook",
-        "sensor",
         "subpage",
         "weather",
         "image",
-        "wifi_qr",
-        "timer",
-        "screensaver"
+        "timer"
       ],
       "capabilities": [
         "informationOnly",
@@ -2234,18 +2227,6 @@
             "subpage": true
           }
         },
-        "internal": {
-          "driver": "internal",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
         "light_brightness": {
           "driver": "numeric",
           "capabilities": {
@@ -2368,48 +2349,12 @@
             "subpage": true
           }
         },
-        "screen_lock": {
-          "driver": "screen_lock",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
         "webhook": {
           "driver": "webhook",
           "capabilities": {
             "informationOnly": false,
             "subscriptions": true,
             "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "sensor": {
-          "driver": "sensor",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": true,
-            "subpage": true
-          }
-        },
-        "local_sensor": {
-          "driver": "sensor",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": false,
@@ -2476,30 +2421,6 @@
             "subpage": true
           }
         },
-        "wifi_qr": {
-          "driver": "wifi_qr",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": true,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "wifi_qr_card": {
-          "driver": "wifi_qr",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": true,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
         "weather_forecast": {
           "driver": "weather",
           "capabilities": {
@@ -2509,18 +2430,6 @@
             "numericControl": false,
             "modal": true,
             "runtimeAllocation": true,
-            "subpage": true
-          }
-        },
-        "screensaver": {
-          "driver": "screensaver",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": false,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
             "subpage": true
           }
         }
@@ -4583,79 +4492,6 @@
           "options": ""
         }
       },
-      "internal": {
-        "label": "Internal Switches",
-        "allowInSubpage": true,
-        "domains": [],
-        "options": [
-          {
-            "name": "internal_mode",
-            "label": "Mode",
-            "kind": "choice",
-            "values": [
-              "switch",
-              "push"
-            ],
-            "defaultValue": "switch",
-            "storageField": "sensor",
-            "omitDefault": false
-          }
-        ],
-        "behavior": {
-          "internalRelay": {
-            "defaultIcons": {
-              "switch": "Lightbulb Outline",
-              "push": "Gesture Tap"
-            },
-            "defaultIconOn": "Lightbulb"
-          }
-        },
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "keep"
-            },
-            "icon": {
-              "policy": "keep"
-            },
-            "icon_on": {
-              "policy": "keep"
-            },
-            "sensor": {
-              "policy": "keep"
-            },
-            "unit": {
-              "policy": "keep"
-            },
-            "type": {
-              "policy": "default",
-              "value": "internal"
-            },
-            "precision": {
-              "policy": "keep"
-            },
-            "options": {
-              "policy": "clear"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": []
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Lightbulb Outline",
-          "icon_on": "Lightbulb",
-          "sensor": "",
-          "unit": "",
-          "type": "internal",
-          "precision": "",
-          "options": ""
-        }
-      },
       "light_brightness": {
         "label": "Lights",
         "allowInSubpage": true,
@@ -5584,68 +5420,6 @@
           "options": ""
         }
       },
-      "screen_lock": {
-        "label": "Screen Lock",
-        "allowInSubpage": true,
-        "domains": [],
-        "options": [
-          {
-            "name": "screensaver_on_lock",
-            "label": "Screensaver on lock",
-            "kind": "flag",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "clear"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Lock"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Lock Open"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "screen_lock"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "keep"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "screensaver_on_lock"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Lock",
-          "icon_on": "Lock Open",
-          "sensor": "",
-          "unit": "",
-          "type": "screen_lock",
-          "precision": "",
-          "options": ""
-        }
-      },
       "webhook": {
         "label": "Webhook",
         "allowInSubpage": true,
@@ -5709,274 +5483,6 @@
           "sensor": "GET",
           "unit": "",
           "type": "webhook",
-          "precision": "",
-          "options": ""
-        }
-      },
-      "sensor": {
-        "label": "Sensor",
-        "allowInSubpage": true,
-        "domains": [
-          "sensor",
-          "binary_sensor",
-          "text_sensor"
-        ],
-        "options": [
-          {
-            "name": "large_numbers",
-            "label": "Large Sensor Numbers",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "in",
-                "value": [
-                  "icon",
-                  "text",
-                  "time"
-                ],
-                "negate": true
-              }
-            ],
-            "supportedWhen": {
-              "precisionNot": [
-                "icon",
-                "text",
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "time_unit",
-            "label": "Incoming Value Unit",
-            "kind": "choice",
-            "values": [
-              "",
-              "seconds",
-              "minutes",
-              "hours",
-              "days"
-            ],
-            "defaultValue": "",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "time"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "active_color",
-            "label": "Lit When Active",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "in",
-                "value": [
-                  "time"
-                ],
-                "negate": true
-              }
-            ],
-            "supportedWhen": {
-              "precisionNot": [
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "state_labels",
-            "label": "Status Translation",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_input",
-            "label": "Input Status",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_output",
-            "label": "Display Text",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_input_2",
-            "label": "Input Status 2",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_output_2",
-            "label": "Display Text 2",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "keep"
-            },
-            "icon": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "icon_on": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "sensor": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "unit": {
-              "policy": "keep"
-            },
-            "type": {
-              "policy": "default",
-              "value": "sensor"
-            },
-            "precision": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_sensor_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "large_numbers",
-            "time_unit",
-            "active_color",
-            "state_labels",
-            "state_input",
-            "state_output",
-            "state_input_2",
-            "state_output_2"
-          ],
-          "optionHook": "normalize_sensor_options",
-          "migrationActions": [
-            "legacy_local_sensor",
-            "legacy_text_sensor",
-            "legacy_sensor_state_high_label",
-            "legacy_sensor_state_low_label"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "sensor",
-          "precision": "",
-          "options": ""
-        }
-      },
-      "local_sensor": {
-        "label": "Local Sensor",
-        "allowInSubpage": true,
-        "pickerKey": "sensor",
-        "hidden": true,
-        "domains": [
-          "sensor",
-          "text_sensor"
-        ],
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "local",
-          "unit": "",
-          "type": "sensor",
           "precision": "",
           "options": ""
         }
@@ -6474,214 +5980,6 @@
           "options": ""
         }
       },
-      "wifi_qr": {
-        "label": "Wifi Sharing",
-        "allowInSubpage": true,
-        "domains": [
-          "switch"
-        ],
-        "options": [
-          {
-            "name": "ssid64",
-            "label": "Network name",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "security",
-            "label": "Security",
-            "kind": "choice",
-            "values": [
-              "wpa",
-              "open"
-            ],
-            "defaultValue": "wpa",
-            "omitDefault": true
-          },
-          {
-            "name": "pass64",
-            "label": "Password",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "hidden",
-            "label": "Hidden network",
-            "kind": "flag",
-            "omitDefault": true
-          },
-          {
-            "name": "wifi_tabs",
-            "label": "Visible Tabs",
-            "kind": "text",
-            "values": [
-              "qr",
-              "credentials",
-              "guest"
-            ],
-            "defaultValue": "qr|credentials",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "default_if_empty",
-              "value": "Connect"
-            },
-            "icon": {
-              "policy": "default_if_empty",
-              "value": "Wifi"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "wifi_qr"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "keep"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "ssid64",
-            "security",
-            "pass64",
-            "hidden",
-            "wifi_tabs"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "Connect",
-          "icon": "Wifi",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "wifi_qr",
-          "precision": "",
-          "options": ""
-        }
-      },
-      "wifi_qr_card": {
-        "label": "QR Card",
-        "allowInSubpage": true,
-        "pickerKey": "wifi_qr",
-        "domains": [
-          "switch"
-        ],
-        "options": [
-          {
-            "name": "ssid64",
-            "label": "Network name",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "security",
-            "label": "Security",
-            "kind": "choice",
-            "values": [
-              "wpa",
-              "open"
-            ],
-            "defaultValue": "wpa",
-            "omitDefault": true
-          },
-          {
-            "name": "pass64",
-            "label": "Password",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "hidden",
-            "label": "Hidden network",
-            "kind": "flag",
-            "omitDefault": true
-          },
-          {
-            "name": "wifi_tabs",
-            "label": "Visible Tabs",
-            "kind": "text",
-            "values": [
-              "qr",
-              "credentials",
-              "guest"
-            ],
-            "defaultValue": "qr|credentials",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "wifi_qr_card"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "keep"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "ssid64",
-            "security",
-            "pass64",
-            "hidden",
-            "wifi_tabs"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "wifi_qr_card",
-          "precision": "",
-          "options": ""
-        }
-      },
       "weather_forecast": {
         "label": "Weather Forecast",
         "allowInSubpage": true,
@@ -6698,58 +5996,6 @@
           "unit": "",
           "type": "weather",
           "precision": "tomorrow",
-          "options": ""
-        }
-      },
-      "screensaver": {
-        "label": "Screensaver",
-        "allowInSubpage": true,
-        "domains": [],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "clear"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Monitor"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "screensaver"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "clear"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": []
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Monitor",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "screensaver",
-          "precision": "",
           "options": ""
         }
       }
@@ -6843,42 +6089,6 @@
         },
         "hook": "normalize_vacuum_fields"
       },
-      "legacy_local_sensor": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "local_sensor"
-          }
-        ],
-        "set": {
-          "type": "sensor",
-          "sensor": "local",
-          "icon_on": "Auto",
-          "options": ""
-        },
-        "hook": "normalize_sensor_fields"
-      },
-      "legacy_text_sensor": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "text_sensor"
-          }
-        ],
-        "set": {
-          "type": "sensor",
-          "entity": "",
-          "label": "",
-          "unit": "",
-          "precision": "text",
-          "icon_on": "Auto"
-        },
-        "hook": "normalize_sensor_fields"
-      },
       "legacy_weather_forecast": {
         "when": [
           {
@@ -6892,32 +6102,6 @@
           "type": "weather",
           "precision": "tomorrow"
         }
-      },
-      "legacy_sensor_state_high_label": {
-        "when": [
-          {
-            "source": "option",
-            "name": "state_high_label",
-            "operator": "present"
-          }
-        ],
-        "set": {
-          "type": "sensor"
-        },
-        "hook": "normalize_sensor_options"
-      },
-      "legacy_sensor_state_low_label": {
-        "when": [
-          {
-            "source": "option",
-            "name": "state_low_label",
-            "operator": "present"
-          }
-        ],
-        "set": {
-          "type": "sensor"
-        },
-        "hook": "normalize_sensor_options"
       }
     },
     "migrationAliases": {
@@ -6925,17 +6109,9 @@
         "type": "action",
         "sensor": "input_select.select_option"
       },
-      "text_sensor": {
-        "type": "sensor",
-        "precision": "text"
-      },
       "weather_forecast": {
         "type": "weather",
         "precision": "tomorrow"
-      },
-      "local_sensor": {
-        "type": "sensor",
-        "sensor": "local"
       }
     },
     "optionSelect": {
@@ -6976,12 +6152,6 @@
     "largeNumbers": {
       "": true,
       "action": true,
-      "sensor": {
-        "excludedPrecisions": [
-          "icon",
-          "text"
-        ]
-      },
       "calendar": true,
       "clock": true,
       "climate": true,
@@ -6990,15 +6160,19 @@
       "subpage": true,
       "timezone": true
     },
-    "retiredSubpageTypeCodes": [],
+    "retiredSubpageTypeCodes": [
+      "S",
+      "LS",
+      "I",
+      "SL",
+      "SS"
+    ],
     "subpageTypeCodes": {
       "timer": "TM",
       "action": "A",
       "calendar": "D",
       "clock": "CK",
       "timezone": "T",
-      "sensor": "S",
-      "local_sensor": "LS",
       "door_window": "X",
       "presence": "PR",
       "weather": "W",
@@ -7028,12 +6202,19 @@
       "climate_control": "HC",
       "push": "P",
       "companion": "CP",
-      "screen_lock": "SL",
       "webhook": "WH",
-      "internal": "I",
-      "subpage": "G",
-      "screensaver": "SS"
-    }
+      "subpage": "G"
+    },
+    "retiredCardTypes": [
+      "sensor",
+      "local_sensor",
+      "text_sensor",
+      "internal",
+      "wifi_qr",
+      "wifi_qr_card",
+      "screen_lock",
+      "screensaver"
+    ]
   },
   "entityNames": {
     "entities": [
@@ -8387,7 +7568,7 @@
         "name": "Wifi Off",
         "codepoint": "F05AA",
         "mdi": "wifi-off",
-        "comment": "Guest Wi-Fi disabled"
+        "comment": "Wi-Fi disabled"
       },
       {
         "name": "Close",
@@ -10772,7 +9953,6 @@
         ],
         "requiredCards": [
           "",
-          "sensor",
           "weather",
           "media",
           "alarm",
@@ -10790,10 +9970,6 @@
           "weather_forecast": {
             "type": "weather",
             "precision": "tomorrow"
-          },
-          "text_sensor": {
-            "type": "sensor",
-            "precision": "text"
           }
         }
       },
@@ -10825,20 +10001,6 @@
             "type": "weather",
             "precision": "tomorrow",
             "options": ""
-          }
-        },
-        "text_sensor_alias": {
-          "input": "sensor.washer;Washer;Washer;Auto;;;text_sensor;;active_color",
-          "expected": {
-            "entity": "",
-            "label": "",
-            "icon": "Washer",
-            "icon_on": "Auto",
-            "sensor": "",
-            "unit": "",
-            "type": "sensor",
-            "precision": "text",
-            "options": "active_color"
           }
         },
         "media_controls_alias": {

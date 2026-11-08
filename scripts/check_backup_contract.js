@@ -221,11 +221,11 @@ assert.deepStrictEqual(buttonShape(normalizedV1.buttons[0]), buttonShape({
 assert.deepStrictEqual(buttonShape(normalizedV1.buttons[1]), buttonShape({
   entity: "",
   label: "",
-  icon: "Washer",
+  icon: "Auto",
   icon_on: "Auto",
-  type: "sensor",
-  precision: "text",
-}), "legacy text sensor card migrates inside a backup");
+  type: "text_sensor",
+  precision: "",
+}), "legacy text sensor card bindings are retired inside a backup");
 assert(
   normalizedV1.subpages["1"].includes("play_pause") || normalizedV1.subpages["1"].includes("M,"),
   "legacy subpage config is normalized"
