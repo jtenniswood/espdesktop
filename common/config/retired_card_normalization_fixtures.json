@@ -1,0 +1,32 @@
+[
+  {
+    "name": "retired wifi_qr bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;wifi_qr;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "wifi_qr",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired wifi_qr_card bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;wifi_qr_card;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "wifi_qr_card",
+      "precision": "",
+      "options": ""
+    }
+  }
+]

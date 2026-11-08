@@ -456,7 +456,7 @@ export function createConfigCodecFeature(
     }
     function normalizeButtonConfig(this: any, b?: any) {
         if (b && cardContractTypeRetired(b.type)) {
-            return Object.assign(EspDesktopModel.emptyCardConfig(), { type: b.type });
+            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: b.type });
         }
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
