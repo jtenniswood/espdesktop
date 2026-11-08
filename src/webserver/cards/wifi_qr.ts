@@ -153,34 +153,21 @@ export function registerWifiQrCardTypes(
                 panel.appendChild(networkDisclosure.panel);
                 var modalTabsDisclosure: any = helpers.disclosureSection("Modal Settings", helpers.idPrefix + "wifi-modal-tabs", b && b._modalSettingsOpen === true);
                 renderModalTabSettings(modalTabsDisclosure.section, b, helpers, {
-                    definitions: function (this: any) {
-                        var definitions: any = wifiQrTabDefinitions();
-                        if (!nativePanelConfig.homeAssistantSupportEnabled() && !wifiQrTabs(b).includes("guest")) {
-                            definitions = definitions.filter(function (this: any, definition?: any) {
-                                return definition.value !== "guest";
-                            });
-                        }
-                        return definitions;
+                    definitions: function () { return wifiQrTabDefinitions().filter((tab: any) => tab.value !== "guest"); },
+                    tabs: function (card: any) {
+                        const tabs = wifiQrTabs(card).filter((tab: string) => tab !== "guest");
+                        return tabs.length ? tabs : ["qr", "credentials"];
                     },
-                    tabs: wifiQrTabs,
                     normalizeOptions: normalizeWifiQrTabOptions,
                     setTabs: setWifiQrTabs,
                     idPrefix: "wifi-tab-",
                     hideHeading: true,
                 });
-                if (wifiQrTabs(b).includes("guest")) {
-                    const guestField = helpers.renderCardEntityField(modalTabsDisclosure.section, b, helpers, {
-                        entity: {
-                            label: "Guest Wi-Fi switch",
-                            idSuffix: "wifi-guest-entity",
-                            placeholder: "e.g. switch.guest_wifi",
-                            domains: ["switch"],
-                            bindName: "entity",
-                            rerender: false,
-                        },
-                    });
-                    helpers.requireField(guestField.input, "Select a guest Wi-Fi switch before saving.", undefined,
-                        (value: string) => /^switch\.[a-z0-9_]+$/.test(String(value || "").trim()));
+                if (wifiQrTabs(b).includes("guest") || b.entity) {
+                    const notice = document.createElement("p");
+                    notice.className = "sp-setting-note";
+                    notice.textContent = "The Home Assistant guest-network switch is retired. QR codes and stored network credentials still work. Its saved settings have been kept.";
+                    modalTabsDisclosure.section.appendChild(notice);
                 }
                 panel.appendChild(modalTabsDisclosure.panel);
                 if (!isQrCard(b)) {

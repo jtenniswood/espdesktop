@@ -26,6 +26,15 @@ inline std::vector<std::string> wifi_qr_tabs(const std::string &value) {
   return tabs;
 }
 
+// Retain wifi_qr_tabs as a legacy reader. The runtime never renders its retired
+// HA guest-switch tab, and a guest-only record falls back to local sharing.
+inline std::vector<std::string> wifi_qr_local_tabs(const std::string &value) {
+  auto tabs = wifi_qr_tabs(value);
+  tabs.erase(std::remove(tabs.begin(), tabs.end(), "guest"), tabs.end());
+  if (tabs.empty()) return {"qr", "credentials"};
+  return tabs;
+}
+
 inline bool wifi_qr_valid_utf8_bytes(const std::string &value) {
   int remaining = 0;
   for (unsigned char byte : value) {

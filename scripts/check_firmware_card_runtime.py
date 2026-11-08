@@ -834,8 +834,6 @@ def check_root(root: Path) -> list[str]:
             "navigation_driver_reset_child_indicators",
             "navigation_driver_add_child_indicator",
             "navigation_driver_own_subpage",
-            "subscribe_subpage_parent_indicator",
-            "subscribe_climate_subpage_parent_indicator",
             "navigation_register_subpage",
             '"subpage"',
         )
