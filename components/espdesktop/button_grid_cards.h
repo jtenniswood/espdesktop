@@ -246,6 +246,8 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
       !esphome::companion::app_icon_store().copy_pixels(
           source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES,
           &source.loaded_hash)) {
+    if (image && !source.application_id.empty())
+      esphome::companion::request_app_icon(source.application_id);
     source.release_pixels();
     source.accent_palette = {};
     if (image) lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);

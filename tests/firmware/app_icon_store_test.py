@@ -19,14 +19,17 @@ inline esp_partition_t partition;
 inline std::vector<uint8_t> flash(partition.size, 0xff);
 inline bool fail_read = false, fail_erase = false, fail_write = false;
 inline size_t last_payload_offset = 0;
+inline unsigned partition_reads = 0, partition_writes = 0;
 inline const esp_partition_t *esp_partition_find_first(int, int, const char *) { return &partition; }
 inline int esp_partition_read(const esp_partition_t *, size_t offset, void *out, size_t size) {
+  ++partition_reads;
   if (fail_read || offset + size > flash.size()) return -1;
   if (size > 256) last_payload_offset = offset;
   std::memcpy(out, flash.data() + offset, size);
   return ESP_OK;
 }
 inline int esp_partition_write(const esp_partition_t *, size_t offset, const void *data, size_t size) {
+  ++partition_writes;
   if (offset + size > flash.size()) return -1;
   // A failed write may already have changed storage.
   std::memcpy(flash.data() + offset, data, fail_write ? size / 2 : size);
@@ -40,6 +43,38 @@ inline int esp_partition_erase_range(const esp_partition_t *, size_t offset, siz
   }
   std::fill_n(flash.data() + offset, size, 0xff);
   return ESP_OK;
+}
+'''
+MEMORY = r'''
+#pragma once
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+constexpr unsigned MALLOC_CAP_SPIRAM = 1, MALLOC_CAP_8BIT = 2;
+inline size_t memory_bytes = 0, free_psram = 8 * 1024 * 1024;
+inline bool fail_memory_allocation = false;
+inline unsigned memory_allocations = 0;
+inline size_t heap_caps_get_free_size(unsigned caps) {
+  assert(caps == (MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+  return free_psram;
+}
+inline size_t heap_caps_get_largest_free_block(unsigned caps) { return heap_caps_get_free_size(caps); }
+namespace esphome {
+template<class T> struct RAMAllocator {
+  enum { ALLOC_EXTERNAL = 1 };
+  explicit RAMAllocator(int flags) { assert(flags == ALLOC_EXTERNAL); }
+  T *allocate(size_t size) {
+    if (fail_memory_allocation) return nullptr;
+    ++memory_allocations;
+    memory_bytes += size; free_psram -= size;
+    return new T[size];
+  }
+  void deallocate(T *p, size_t size) {
+    assert(p && memory_bytes >= size);
+    memory_bytes -= size; free_psram += size;
+    delete[] p;
+  }
+};
 }
 '''
 HASH = r'''
@@ -63,7 +98,9 @@ TEST = r'''
 #include <cassert>
 #include "esp_partition.h"
 #include "mbedtls/sha256.h"
+#include "esp_heap_caps.h"
 #include "app_icon_store.h"
+#include "app_icon_codec.h"
 using namespace esphome::companion;
 std::array<uint8_t, 32> digest(const std::vector<uint8_t> &pixels) {
   std::array<uint8_t, 32> result{};
@@ -71,6 +108,22 @@ std::array<uint8_t, 32> digest(const std::vector<uint8_t> &pixels) {
   return result;
 }
 int main() {
+  // Exercise literal/repeat boundaries, noisy data, truncation and trailing data.
+  for (size_t count : {1u, 2u, 3u, 127u, 128u, 129u, 57600u}) {
+    for (int pattern = 0; pattern < 3; ++pattern) {
+      std::vector<uint8_t> source(count * 3), decoded(source.size());
+      for (size_t index = 0; index < source.size(); ++index)
+        source[index] = pattern == 0 ? 42 : pattern == 1 ? index % 251 : (index / 130) % 256;
+      const auto packed_size = app_icon_codec::encoded_size(source.data(), count);
+      std::vector<uint8_t> packed(packed_size + 1, 0xff);
+      assert(app_icon_codec::encode(source.data(), count, packed.data(), packed_size));
+      assert(app_icon_codec::decode(packed.data(), packed_size, decoded.data(), count) && decoded == source);
+      assert(!app_icon_codec::decode(packed.data(), packed_size - 1, decoded.data(), count));
+      assert(!app_icon_codec::decode(packed.data(), packed_size + 1, decoded.data(), count));
+      assert(!app_icon_codec::encode(source.data(), count, packed.data(), packed_size - 1));
+      assert(packed[packed_size] == 0xff);
+    }
+  }
   AppIconStore store;
   assert(store.begin());
   store.set_references({"app.one"});
@@ -123,18 +176,185 @@ int main() {
   assert(store.clear_cache());
   assert(store.save("app.one", digest(pixels), pixels.data(), pixels.size()));
   assert(store.copy_pixels("app.one", output.data(), output.size()));
+  fail_memory_allocation = true;
+  // Without external memory, the deployed 2 MB partition still holds 11 icons. A setup with
+  // 13 apps must rotate cold icons rather than overwriting one slot forever.
+  assert(store.clear_cache());
+  std::vector<std::string> apps;
+  for (int index = 0; index < 13; ++index) apps.push_back("app." + std::to_string(index));
+  store.set_references(apps);
+  store.set_enabled_applications(apps);
+  for (int index = 0; index < 11; ++index)
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
+  assert(store.copy_pixels(apps[0], output.data(), output.size())); // Keep a visible icon hot.
+  std::string evicted;
+  assert(store.save(apps[11], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(evicted == apps[1]);
+  assert(store.copy_pixels(apps[11], output.data(), output.size()));
+  assert(store.save(apps[12], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(evicted == apps[2]);
+  assert(store.copy_pixels(apps[0], output.data(), output.size()));
+  assert(store.copy_pixels(apps[11], output.data(), output.size()));
+  assert(store.copy_pixels(apps[12], output.data(), output.size()));
+  // An evicted icon can be fetched and stored again without a cache clear.
+  assert(!store.copy_pixels(apps[1], output.data(), output.size()));
+  assert(store.save(apps[1], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(store.copy_pixels(apps[1], output.data(), output.size()));
+  fail_memory_allocation = false;
+  assert(store.clear_cache());
+  apps.clear();
+  for (size_t index = 0; index < 25; ++index) apps.push_back("large.setup." + std::to_string(index));
+  store.set_references(apps);
+  store.set_enabled_applications(apps);
+  for (size_t index = 0; index < 23; ++index) {
+    std::fill(pixels.begin(), pixels.end(), index + 10);
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size(), &evicted));
+    assert(evicted.empty());
+  }
+  assert(APP_ICON_MEMORY_CACHE_RECORDS == 12);
+  assert(memory_bytes > 0 && memory_bytes < APP_ICON_PIXEL_BYTES && memory_bytes <= APP_ICON_MEMORY_CACHE_BYTES);
+  for (size_t index = 0; index < 23; ++index) {
+    assert(store.hash_for(apps[index], &copied_hash));
+    assert(store.copy_pixels(apps[index], output.data(), output.size(), &copied_hash));
+    assert(std::all_of(output.begin(), output.end(), [index](uint8_t value) { return value == index + 10; }));
+    assert(copied_hash == digest(output));
+  }
+  // Both flash and overflow entries are readable. Overflow reads do not touch flash.
+  const auto reads = partition_reads, writes = partition_writes;
+  for (int visit = 0; visit < 20; ++visit)
+    assert(store.copy_pixels(apps[11], output.data(), output.size()));
+  assert(partition_reads == reads && partition_writes == writes);
+  const auto allocations_before = memory_allocations;
+  std::fill(pixels.begin(), pixels.end(), 90);
+  assert(store.save(apps[23], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(evicted == apps[12]); // App 11 was just read, so the next oldest RAM entry goes.
+  assert(memory_allocations == allocations_before && partition_writes == writes);
+  assert(!store.hash_for(apps[12], &copied_hash));
+  assert(store.copy_pixels(apps[23], output.data(), output.size()) && output == pixels);
+  // Replacing artwork already in RAM updates its content/hash without new storage.
+  pixels[0] = 91;
+  assert(store.save(apps[23], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(evicted.empty());
+  assert(store.copy_pixels(apps[23], output.data(), output.size()) && output == pixels);
+  uint32_t random_state = 42;
+  for (auto &byte : pixels) {
+    random_state ^= random_state << 13; random_state ^= random_state >> 17; random_state ^= random_state << 5;
+    byte = random_state;
+  }
+  assert(app_icon_codec::encoded_size(pixels.data(), APP_ICON_SIDE * APP_ICON_SIDE) > pixels.size());
+  assert(store.save(apps[23], digest(pixels), pixels.data(), pixels.size()));
+  assert(store.copy_pixels(apps[23], output.data(), output.size()) && output == pixels);
+  assert(memory_bytes <= APP_ICON_MEMORY_CACHE_BYTES);
+  const auto allocations_after_update = memory_allocations;
+  // Volatile overflow is deliberately excluded from a fresh boot's flash scan.
+  AppIconStore after_restart;
+  assert(after_restart.begin());
+  assert(after_restart.copy_pixels(apps[0], output.data(), output.size()));
+  assert(!after_restart.copy_pixels(apps[23], output.data(), output.size()));
+  assert(store.remove(apps[23]));
+  const size_t after_remove = memory_bytes;
+  assert(after_remove > 0 && after_remove < APP_ICON_PIXEL_BYTES);
+  auto remaining = apps;
+  remaining.erase(std::remove(remaining.begin(), remaining.end(), apps[11]), remaining.end());
+  store.set_references(remaining);
+  assert(!store.hash_for(apps[11], &copied_hash) && memory_bytes < after_remove);
+  store.set_enabled_applications({apps[0]});
+  assert(memory_bytes == 0);
+  store.set_enabled_applications(apps);
+  store.set_references(apps);
+  // Memory pressure blocks growth before it consumes the drawing/transfer reserve.
+  store.clear_cache();
+  for (int index = 0; index < 11; ++index)
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
+  free_psram = APP_ICON_MEMORY_HEADROOM_BYTES;
+  assert(store.save(apps[11], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(!evicted.empty() && memory_bytes == 0 && memory_allocations == allocations_after_update);
+  free_psram = 8 * 1024 * 1024;
+  assert(store.save(apps[24], digest(pixels), pixels.data(), pixels.size()));
+  assert(memory_bytes > 0 && memory_bytes <= APP_ICON_PIXEL_BYTES);
+  assert(store.clear_cache() && memory_bytes == 0);
+  // Compression allows the extra records to fit even with only 64 KB above
+  // the memory reserve. No detail is lost when these records are read back.
+  free_psram = APP_ICON_MEMORY_HEADROOM_BYTES + 64 * 1024;
+  std::fill(pixels.begin(), pixels.end(), 42);
+  for (size_t index = 0; index < 23; ++index) {
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size(), &evicted));
+    assert(evicted.empty() && free_psram >= APP_ICON_MEMORY_HEADROOM_BYTES);
+  }
+  assert(memory_bytes < 64 * 1024);
+  for (size_t index = 0; index < 23; ++index)
+    assert(store.copy_pixels(apps[index], output.data(), output.size()) && output == pixels);
+  assert(store.clear_cache() && memory_bytes == 0);
+  // High-entropy artwork falls back to raw copies while remaining within the
+  // same total cache budget, rather than exceeding it or losing precision.
+  free_psram = 8 * 1024 * 1024;
+  for (auto &byte : pixels) {
+    random_state ^= random_state << 13; random_state ^= random_state >> 17; random_state ^= random_state << 5;
+    byte = random_state;
+  }
+  for (size_t index = 0; index < 23; ++index) {
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size(), &evicted));
+    assert(evicted.empty());
+  }
+  assert(memory_bytes == APP_ICON_MEMORY_CACHE_RECORDS * APP_ICON_PIXEL_BYTES);
+  for (size_t index = 0; index < 23; ++index)
+    assert(store.copy_pixels(apps[index], output.data(), output.size()) && output == pixels);
+  assert(store.clear_cache() && memory_bytes == 0);
+  // An existing compressed RAM icon can need a larger buffer after an update.
+  // Under memory pressure, preserve it on a failed flash write, then migrate
+  // to flash when persistence succeeds so stale RAM bytes cannot hide the update.
+  free_psram = 8 * 1024 * 1024;
+  std::fill(pixels.begin(), pixels.end(), 42);
+  for (size_t index = 0; index < 12; ++index)
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
+  assert(memory_bytes > 0);
+  const auto old_pixels = pixels;
+  const auto old_hash = digest(pixels);
+  pixels[0] = 91;
+  const auto updated_hash = digest(pixels);
+  free_psram = APP_ICON_MEMORY_HEADROOM_BYTES;
+  fail_write = true;
+  assert(!store.save(apps[11], updated_hash, pixels.data(), pixels.size(), &evicted));
+  assert(store.copy_pixels(apps[11], output.data(), output.size()) && output == old_pixels);
+  assert(store.hash_for(apps[11], &copied_hash) && copied_hash == old_hash);
+  fail_write = false;
+  assert(store.save(apps[11], updated_hash, pixels.data(), pixels.size(), &evicted));
+  assert(evicted != apps[11]); // The earlier failed write already erased its flash victim.
+  assert(memory_bytes == 0);
+  assert(store.hash_for(apps[11], &copied_hash) && copied_hash == updated_hash);
+  assert(store.copy_pixels(apps[11], output.data(), output.size()) && output == pixels);
+  AppIconStore persisted_update;
+  assert(persisted_update.begin());
+  assert(persisted_update.copy_pixels(apps[11], output.data(), output.size()) && output == pixels);
+  assert(store.clear_cache() && memory_bytes == 0);
+  // The normal low-memory fallback reports the displaced flash icon, allowing
+  // Companion's request deduplication to fetch that victim again later.
+  free_psram = 8 * 1024 * 1024;
+  std::fill(pixels.begin(), pixels.end(), 42);
+  for (size_t index = 0; index < 12; ++index)
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
+  pixels[0] = 91;
+  free_psram = APP_ICON_MEMORY_HEADROOM_BYTES;
+  assert(store.save(apps[11], digest(pixels), pixels.data(), pixels.size(), &evicted));
+  assert(!evicted.empty() && evicted != apps[11] && memory_bytes == 0);
+  assert(store.hash_for(apps[11], &copied_hash) && copied_hash == digest(pixels));
+  assert(store.copy_pixels(apps[11], output.data(), output.size()) && output == pixels);
+  assert(store.clear_cache() && memory_bytes == 0);
 }
 '''
 with tempfile.TemporaryDirectory(prefix="app-icon-store-") as directory:
     temp = Path(directory)
     (temp / "mbedtls").mkdir()
+    (temp / "esphome/core").mkdir(parents=True)
+    (temp / "esp_heap_caps.h").write_text(MEMORY)
+    (temp / "esphome/core/helpers.h").write_text('#include "esp_heap_caps.h"\n')
     (temp / "esp_partition.h").write_text(PARTITION)
     (temp / "mbedtls/sha256.h").write_text(HASH)
     (temp / "test.cpp").write_text(TEST)
     subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra",
-                    "-Werror", "-DUSE_ESP32", "-I", str(temp), "-I",
+                    "-Werror", "-fsanitize=address,undefined", "-DUSE_ESP32", "-I", str(temp), "-I",
                     str(ROOT / "components/companion"), str(temp / "test.cpp"),
                     str(ROOT / "components/companion/app_icon_store.cpp"),
                     "-o", str(temp / "test")], check=True)
     subprocess.run([str(temp / "test")], check=True)
-print("Flash icons verify once per boot/replacement; repeat page visits reuse verification.")
+print("23 full-resolution icons fit across flash and bounded external RAM; reads, eviction and cleanup stay safe.")

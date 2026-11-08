@@ -12,6 +12,7 @@ def function(path, signature):
     return source[start:source.index("\n}", start) + 2]
 
 code = r'''
+#define ESP_PLATFORM
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -22,6 +23,9 @@ code = r'''
 #include <string>
 #include <vector>
 struct lv_obj_t { lv_obj_t *screen = nullptr; std::vector<lv_obj_t *> children{}; void *data = nullptr; bool checked = false; };
+constexpr unsigned MALLOC_CAP_SPIRAM = 1, MALLOC_CAP_8BIT = 2;
+size_t test_free_psram = 8 * 1024 * 1024;
+size_t heap_caps_get_free_size(unsigned) { return test_free_psram; }
 struct lv_event_t {};
 struct CompanionAppIconImageData {
   bool app_icon_mode = true, image_loaded = false, loaded_hash_valid = false;
@@ -36,6 +40,7 @@ struct CompanionAppIconImageData {
 namespace espdesktop::cover_art { using AccentPalette = decltype(CompanionAppIconImageData::accent_palette); }
 namespace esphome::companion {
 constexpr size_t APP_ICON_PIXEL_BYTES = 172800;
+constexpr size_t APP_ICON_MEMORY_HEADROOM_BYTES = 1024 * 1024;
 struct Store {
   std::map<std::string, std::array<uint8_t, 32>> hashes;
   void begin() {}
@@ -124,7 +129,7 @@ int main() {
   navigation_subpage_screen_changed(nullptr);
   assert(child_icon.pixels == nullptr && applies == 5);
   // Scaled pixels count toward the hidden budget as well as source pixels.
-  main_icon.display_bytes = 1024 * 1024;
+  main_icon.display_bytes = 2 * 1024 * 1024;
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
   assert(!main_icon.pixels && child_icon.image_loaded && applies == 7);
@@ -138,11 +143,11 @@ int main() {
   navigation_subpage_screen_changed(nullptr);
   assert(applies == 8);
   // Several individually small entries must share the same total budget.
-  CompanionAppIconImageData icons[7];
-  lv_obj_t images[7], owners[7];
+  CompanionAppIconImageData icons[13];
+  lv_obj_t images[13], owners[13];
   allocations.clear();
   active = &subpage;
-  for (int i = 0; i < 7; ++i) {
+  for (int i = 0; i < 13; ++i) {
     images[i].screen = &home;
     icons[i].image_loaded = true;
     icons[i].pixels = reinterpret_cast<uint8_t *>(1);
@@ -153,8 +158,8 @@ int main() {
   companion_refresh_app_icon_visibility();
   size_t retained = 0;
   for (const auto &icon : icons) if (icon.pixels) retained += esphome::companion::APP_ICON_PIXEL_BYTES;
-  assert(retained == 6 * esphome::companion::APP_ICON_PIXEL_BYTES);
-  assert(retained <= 1024 * 1024 && applies == 9);
+  assert(retained == 12 * esphome::companion::APP_ICON_PIXEL_BYTES);
+  assert(retained <= 2 * 1024 * 1024 && applies == 9);
   companion_refresh_app_icon_visibility();
   assert(applies == 9);
   // All nine home icons fit when only the ready-to-draw images are retained.
@@ -248,6 +253,15 @@ int main() {
   allocations.clear();
   companion_process_pending_app_icon_refresh();
   assert(applies == before && !companion_app_icon_work_pending());
+  // A larger hidden-page budget must yield to drawing/transfer memory pressure.
+  ready_icons[0].image_loaded = true;
+  ready_icons[0].pixels = ready_icons[0].display_pixels = reinterpret_cast<uint8_t *>(1);
+  ready_icons[0].display_bytes = 160 * 160 * 3;
+  allocations = {{&ready_owners[0], &ready_icons[0], grid_delete_runtime_ptr<CompanionAppIconImageData>}};
+  active = &subpage;
+  test_free_psram = 512 * 1024;
+  companion_refresh_app_icon_visibility();
+  assert(!ready_icons[0].pixels && !ready_icons[0].display_pixels && !ready_icons[0].image_loaded);
 }
 '''
 with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:

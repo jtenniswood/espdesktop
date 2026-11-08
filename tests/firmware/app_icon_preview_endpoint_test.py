@@ -78,6 +78,8 @@ struct Store {
     return true;
   }
 };
+unsigned icon_requests = 0;
+void request_app_icon(const std::string &id) { assert(id == "example.app"); ++icon_requests; }
 Store store;
 Store &app_icon_store() { return store; }
 }
@@ -135,8 +137,10 @@ int main() {
   {
     AsyncWebServerRequest request;
     copy_ok = false;
+    assert(esphome::companion::icon_requests == 0);
     handler.handleRequest(&request);
     assert(request.raw.status == "404 Not Found" && outstanding == 0);
+    assert(esphome::companion::icon_requests == 1);
     copy_ok = true;
   }
   {

@@ -1569,7 +1569,13 @@ inline void companion_refresh_app_icon_visibility() {
   // Keep a bounded working set across home/app transitions. Reloading and
   // resampling every home icon synchronously delays the first screen redraw.
   // Non-grid screens (including camera/screensaver pages) reclaim it all.
-  constexpr size_t hidden_cache_limit = 1024u * 1024u;
+  size_t hidden_cache_limit = 2u * 1024u * 1024u;
+#ifdef ESP_PLATFORM
+  // Reclaim hidden rendering buffers when other features need external memory.
+  if (heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT) <
+      esphome::companion::APP_ICON_MEMORY_HEADROOM_BYTES)
+    hidden_cache_limit = 0;
+#endif
   const auto &screens = navigation_grid_screens();
   const bool retain_hidden =
       std::find(screens.begin(), screens.end(), lv_scr_act()) != screens.end();
