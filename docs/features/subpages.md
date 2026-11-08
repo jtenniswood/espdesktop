@@ -1,3 +1,8 @@
+---
+title: "Organize Cards in Local Folders"
+description: "Use local Subpages for Mac and panel controls, with optional Mac statistics on folder tiles."
+---
+
 # Subpages
 
 Subpages are folders that open another page of cards. Add a **Subpage**, choose a label and icon, then use **Edit Subpage** to arrange its child cards. Navigation remains local to the panel.
