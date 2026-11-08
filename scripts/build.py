@@ -1587,7 +1587,6 @@ def gen_saved_config_media_h(data):
 
 
 SAVED_CONFIG_STATIC_CARD_TYPES = (
-    "internal",
     "light_brightness",
     "light_switch",
     "light_temperature",
@@ -3420,7 +3419,6 @@ def gen_card_contract_h(data):
         cpp_string_array("CARD_CONTRACT_GARAGE_LABEL_DISPLAY_MODES", contract_card_option_values(cards, "garage", "label_display")),
         cpp_string_array("CARD_CONTRACT_GATE_MODES", contract_card_option_values(cards, "gate", "gate_mode")),
         cpp_string_array("CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES", contract_card_option_values(cards, "gate", "label_display")),
-        cpp_string_array("CARD_CONTRACT_INTERNAL_MODES", contract_card_option_values(cards, "internal", "internal_mode")),
         cpp_string_array("CARD_CONTRACT_LOCK_MODES", contract_card_option_values(cards, "lock", "lock_mode")),
         cpp_string_array("CARD_CONTRACT_MEDIA_MODES", contract_card_option_values(cards, "media", "media_mode")),
         cpp_string_array("CARD_CONTRACT_MEDIA_DISPLAY_MODES", contract_card_option_values(cards, "media", "media_display")),
@@ -3503,11 +3501,6 @@ def gen_card_contract_h(data):
         "inline bool card_contract_gate_label_display_valid(const std::string &mode) {\n",
         "  return card_contract_string_in(mode, CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES,\n",
         "    sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES) / sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES[0]));\n",
-        "}\n",
-        "\n",
-        "inline bool card_contract_internal_mode_valid(const std::string &mode) {\n",
-        "  return card_contract_string_in(mode, CARD_CONTRACT_INTERNAL_MODES,\n",
-        "    sizeof(CARD_CONTRACT_INTERNAL_MODES) / sizeof(CARD_CONTRACT_INTERNAL_MODES[0]));\n",
         "}\n",
         "\n",
         "inline bool card_contract_lock_mode_valid(const std::string &mode) {\n",

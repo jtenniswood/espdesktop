@@ -177,7 +177,7 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
     "hook": "normalize_sensor_options"
   }
 };
-export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = [] as const;
+export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["I"] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
@@ -2213,79 +2213,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "sensor": "",
       "unit": "",
       "type": "gate",
-      "precision": "",
-      "options": ""
-    }
-  },
-  "internal": {
-    "label": "Internal Switches",
-    "allowInSubpage": true,
-    "domains": [],
-    "options": [
-      {
-        "name": "internal_mode",
-        "label": "Mode",
-        "kind": "choice",
-        "values": [
-          "switch",
-          "push"
-        ],
-        "defaultValue": "switch",
-        "storageField": "sensor",
-        "omitDefault": false
-      }
-    ],
-    "behavior": {
-      "internalRelay": {
-        "defaultIcons": {
-          "switch": "Lightbulb Outline",
-          "push": "Gesture Tap"
-        },
-        "defaultIconOn": "Lightbulb"
-      }
-    },
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "keep"
-        },
-        "icon": {
-          "policy": "keep"
-        },
-        "icon_on": {
-          "policy": "keep"
-        },
-        "sensor": {
-          "policy": "keep"
-        },
-        "unit": {
-          "policy": "keep"
-        },
-        "type": {
-          "policy": "default",
-          "value": "internal"
-        },
-        "precision": {
-          "policy": "keep"
-        },
-        "options": {
-          "policy": "clear"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": []
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "",
-      "unit": "",
-      "type": "internal",
       "precision": "",
       "options": ""
     }
@@ -4665,18 +4592,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "internal": {
-    "driver": "internal",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
   "light_brightness": {
     "driver": "numeric",
     "capabilities": {
@@ -5027,7 +4942,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "companion": "CP",
   "screen_lock": "SL",
   "webhook": "WH",
-  "internal": "I",
   "subpage": "G",
   "screensaver": "SS"
 };
@@ -5070,7 +4984,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "CP": "companion",
   "SL": "screen_lock",
   "WH": "webhook",
-  "I": "internal",
   "G": "subpage",
   "SS": "screensaver"
 };
@@ -5130,7 +5043,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "image_modal_refresh_interval": "image_modal_refresh_interval",
   "image_modal_refresh_mode": "image_modal_refresh_mode",
   "image_modal_refresh_trigger": "image_modal_refresh_trigger",
-  "internal_mode": "internal_mode",
   "label_display": "label_display",
   "large_numbers": "large_numbers",
   "lawn_mower_mode": "lawn_mower_mode",

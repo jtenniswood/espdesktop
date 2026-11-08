@@ -631,12 +631,9 @@ function main() {
     type: "screen_lock", entity: "", label: "", icon: "Lock", icon_on: "Lock Open",
     sensor: "", unit: "", precision: "", options: "",
   });
-  const internal = { type: "internal", entity: "relay_1", sensor: "push", options: "unknown=1" };
   screenLock.options = "unknown=1,screensaver_on_lock,screensaver_on_lock";
   generatedStatic.normalizeSavedConfigStatic(screenLock);
   assert.strictEqual(screenLock.options, "screensaver_on_lock");
-  assert.strictEqual(generatedStatic.normalizeSavedConfigStatic(internal), true);
-  assert.deepStrictEqual(internal, { type: "internal", entity: "relay_1", sensor: "push", options: "" });
   const slider = { type: "slider", sensor: "stale", unit: "%", precision: "2", options: "unknown=1" };
   assert.strictEqual(generatedStatic.normalizeSavedConfigStatic(slider), true);
   assert.deepStrictEqual(slider, { type: "slider", sensor: "", unit: "%", precision: "2", options: "" });

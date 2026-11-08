@@ -1321,26 +1321,6 @@ const pushPreview = hooks.buttonTypePreviewFor("push", {
 assert(pushPreview.iconHtml.includes("mdi-gesture-tap"), "push preview uses the trigger icon");
 assert(!pushPreview.labelHtml.includes("sp-type-badge"), "push preview omits the card-type badge");
 
-const internalSwitchPreview = hooks.buttonTypePreviewFor("internal", {
-  entity: "relay_1",
-  label: "Relay",
-  icon: "Power Plug",
-  icon_on: "Power",
-  type: "internal",
-});
-assert(internalSwitchPreview.iconHtml.includes("mdi-power-plug"), "internal switch preview uses the configured icon");
-assert(!internalSwitchPreview.labelHtml.includes("sp-type-badge"), "internal switch preview omits the card-type badge");
-
-const internalPushPreview = hooks.buttonTypePreviewFor("internal", {
-  entity: "relay_2",
-  label: "Bell",
-  icon: "Gesture Tap",
-  icon_on: "Auto",
-  sensor: "push",
-  type: "internal",
-});
-assert(internalPushPreview.iconHtml.includes("mdi-gesture-tap"), "internal push preview uses the push icon");
-assert(!internalPushPreview.labelHtml.includes("sp-type-badge"), "internal push preview omits the card-type badge");
 
 const subpagePlainPreview = hooks.buttonTypePreviewFor("subpage", {
   label: "Lighting",

@@ -64,7 +64,6 @@
       "fan",
       "fan_control",
       "access",
-      "internal",
       "numeric",
       "light_temperature",
       "light_control",
@@ -374,18 +373,6 @@
           "numericControl": false,
           "modal": false,
           "runtimeAllocation": true,
-          "subpage": true
-        }
-      },
-      "internal": {
-        "driver": "internal",
-        "capabilities": {
-          "informationOnly": false,
-          "subscriptions": true,
-          "actions": true,
-          "numericControl": false,
-          "modal": false,
-          "runtimeAllocation": false,
           "subpage": true
         }
       },
@@ -2726,79 +2713,6 @@
         "options": ""
       }
     },
-    "internal": {
-      "label": "Internal Switches",
-      "allowInSubpage": true,
-      "domains": [],
-      "options": [
-        {
-          "name": "internal_mode",
-          "label": "Mode",
-          "kind": "choice",
-          "values": [
-            "switch",
-            "push"
-          ],
-          "defaultValue": "switch",
-          "storageField": "sensor",
-          "omitDefault": false
-        }
-      ],
-      "behavior": {
-        "internalRelay": {
-          "defaultIcons": {
-            "switch": "Lightbulb Outline",
-            "push": "Gesture Tap"
-          },
-          "defaultIconOn": "Lightbulb"
-        }
-      },
-      "normalization": {
-        "fields": {
-          "entity": {
-            "policy": "keep"
-          },
-          "label": {
-            "policy": "keep"
-          },
-          "icon": {
-            "policy": "keep"
-          },
-          "icon_on": {
-            "policy": "keep"
-          },
-          "sensor": {
-            "policy": "keep"
-          },
-          "unit": {
-            "policy": "keep"
-          },
-          "type": {
-            "policy": "default",
-            "value": "internal"
-          },
-          "precision": {
-            "policy": "keep"
-          },
-          "options": {
-            "policy": "clear"
-          }
-        },
-        "unknownOptions": "drop",
-        "canonicalOptionOrder": []
-      },
-      "default": {
-        "entity": "",
-        "label": "",
-        "icon": "Lightbulb Outline",
-        "icon_on": "Lightbulb",
-        "sensor": "",
-        "unit": "",
-        "type": "internal",
-        "precision": "",
-        "options": ""
-      }
-    },
     "light_brightness": {
       "label": "Lights",
       "allowInSubpage": true,
@@ -5133,7 +5047,9 @@
     "subpage": true,
     "timezone": true
   },
-  "retiredSubpageTypeCodes": [],
+  "retiredSubpageTypeCodes": [
+    "I"
+  ],
   "subpageTypeCodes": {
     "timer": "TM",
     "action": "A",
@@ -5173,7 +5089,6 @@
     "companion": "CP",
     "screen_lock": "SL",
     "webhook": "WH",
-    "internal": "I",
     "subpage": "G",
     "screensaver": "SS"
   }

@@ -130,25 +130,6 @@ esphome:
     - "-Wno-literal-suffix"
     - "-Wno-complain-wrong-lang"
   on_boot:
-    - priority: 700
-      then:
-        - lambda: |-
-            register_internal_relay(
-              "relay_1", "Relay 1",
-              [=](bool on) {
-                if (on) id(relay_1).turn_on();
-                else id(relay_1).turn_off();
-              },
-              [=]() { id(relay_1_push).execute(); },
-              [=]() -> bool { return id(relay_1).state; });
-            register_internal_relay(
-              "relay_2", "Relay 2",
-              [=](bool on) {
-                if (on) id(relay_2).turn_on();
-                else id(relay_2).turn_off();
-              },
-              [=]() { id(relay_2_push).execute(); },
-              [=]() -> bool { return id(relay_2).state; });
     - priority: -100
       then:
         - lambda: 'id(screen_rotation_ready) = true;'
@@ -278,12 +259,6 @@ switch:
     pin:
       number: GPIO32
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", false);'
 
   - platform: gpio
     name: Relay 2
@@ -292,12 +267,6 @@ switch:
     pin:
       number: GPIO46
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", false);'
 
 # Momentary relay buttons for push-button/dimmer inputs.
 button:

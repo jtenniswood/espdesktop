@@ -497,21 +497,6 @@ inline void clear_push_button_transition(lv_obj_t *btn) {
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
 
-inline void setup_internal_relay_card(BtnSlot &s, const ParsedCfg &p) {
-  bool push_mode = internal_relay_push_mode(p);
-  std::string label = internal_relay_label(p);
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon_off = internal_relay_icon(p, push_mode);
-  lv_label_set_display_text(s.icon_lbl, icon_off);
-  if (push_mode) {
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  bool has_icon_on = !p.icon_on.empty() && p.icon_on != "Auto";
-  const char *icon_on = has_icon_on ? find_icon(p.icon_on.c_str()) : nullptr;
-  apply_internal_relay_state(s.btn, s.icon_lbl, internal_relay_state(p.entity),
-    has_icon_on, icon_off, icon_on);
-}
 
 // Set icon and label on a toggle/push button based on its config
 inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {

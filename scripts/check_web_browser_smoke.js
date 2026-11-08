@@ -3589,82 +3589,6 @@ async function assertFanOptionalLightSettings(page, label) {
   });
 }
 
-async function assertInternalControlsPanel(page, posts, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  await page.waitForSelector("#sp-screen.sp-page.active");
-  const emptyCell = page
-    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
-    .first();
-  if ((await emptyCell.count()) === 0) return;
-  const before = posts.length;
-  await emptyCell.click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  const internalOption = page.getByRole("button", { name: "Internal card type" });
-  if ((await internalOption.count()) > 0) {
-    await chooseCardType(page, "Internal");
-    const controlsButton = page.getByRole("button", {
-      name: "Controls",
-      exact: true,
-    });
-    const controlsPanel = controlsButton.locator("..");
-    assert(
-      await controlsButton.isVisible(),
-      `${label}: Internal card should show a Controls panel`,
-    );
-    assert.strictEqual(
-      await controlsButton.getAttribute("aria-expanded"),
-      "false",
-      `${label}: Internal Controls should start collapsed`,
-    );
-    assert.deepStrictEqual(
-      await page
-        .locator(".sp-settings-modal .sp-panel > .sp-disclosure > .sp-disclosure-button > span:first-child")
-        .evaluateAll((headings) => headings.map((heading) => heading.textContent)),
-      ["Controls", "Card Settings"],
-      `${label}: Internal groups should show Controls before Card Settings`,
-    );
-    assert.strictEqual(
-      await page.locator("#sp-inp-internal-relay").evaluate((element) => {
-        const disclosure = element.closest(".sp-disclosure");
-        const heading = disclosure && disclosure.querySelector(".sp-disclosure-button > span:first-child");
-        return heading && heading.textContent;
-      }),
-      "Controls",
-      `${label}: Internal Relay should be inside Controls`,
-    );
-    await controlsButton.click();
-    assert(
-      await page.locator("#sp-inp-internal-relay").isVisible(),
-      `${label}: expanding Internal Controls should reveal the relay`,
-    );
-    assert.strictEqual(
-      await controlsPanel.getByRole("button", { name: "Switch", exact: true }).count(),
-      1,
-      `${label}: Internal Type should be inside Controls`,
-    );
-    const pushButton = controlsPanel.getByRole("button", {
-      name: "Push Button",
-      exact: true,
-    });
-    await pushButton.click();
-    assert(
-      (await pushButton.getAttribute("class")).includes("active"),
-      `${label}: Internal Type should remain interactive inside Controls`,
-    );
-  }
-
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => {
-    const overlay = document.querySelector(".sp-settings-overlay");
-    return overlay && !overlay.classList.contains("sp-visible");
-  });
-  assert.strictEqual(
-    posts.length,
-    before,
-    `${label}: Internal Controls audit should not save a card`,
-  );
-}
-
 async function assertWebhookSettingsPanel(page, posts, label) {
   await page.getByRole("tab", { name: "Layout" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
@@ -7159,7 +7083,6 @@ async function runCase(browser, testCase) {
       await assertCameraRefreshSettings(page, posts, testCase.name);
       await assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase);
     }
-    await assertInternalControlsPanel(page, posts, testCase.name);
     await assertEmptyCellSettings(page, posts, testCase.name, testCase);
     await assertNewMediaCardDefaults(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {

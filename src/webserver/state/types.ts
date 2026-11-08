@@ -3,7 +3,6 @@ import type { ClipboardEntry } from "../features/clipboard";
 import type { SlotSizeMap } from "../model/grid";
 
 export interface DeviceConfigFeatures {
-  internalRelays?: readonly { readonly key: string; readonly label: string }[];
   screenRotation?: boolean;
   screenRotationDefault?: string;
   screenRotationDisplayLabels?: Readonly<Record<string, string>>;

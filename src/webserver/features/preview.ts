@@ -86,7 +86,6 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   gate: { icon: "gate", description: "Show and control a gate." },
   image: { icon: "image", description: "Display an image card where supported." },
   wifi_qr: { icon: "wifi", description: "Share a Wifi network using a Connect Card or QR Card." },
-  internal: { icon: "power-plug", description: "Control built-in device relays." },
   light_brightness: { icon: "lightbulb", description: "Configure light switch, brightness, or temperature controls." },
   lawn_mower: { icon: "robot-mower", description: "Show or control a robotic lawn mower." },
   local_sensor: { icon: "gauge", description: "Show a sensor value from this device." },
@@ -130,7 +129,7 @@ const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
 ]);
 
 const LOCAL_CARD_TYPES = new Set([
-  "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
+  "clock", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
 ]);
 
 export type CardPickerConnector = "home_assistant" | "mac_companion";

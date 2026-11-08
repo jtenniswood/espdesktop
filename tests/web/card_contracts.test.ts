@@ -50,4 +50,7 @@ export function runCardContractTests(): void {
   equal(resolveCardRuntimeSpec(companion)?.driver, "companion", "Companion runtime driver");
   equal(cardContractSubpageTypeCode("companion"), "CP", "Companion compact type code");
   equal(cardContractCard("todo"), null, "retired Todo card stays outside the public contract");
+  equal(cardContractCard("internal"), null, "removed Internal Switches card has no contract");
+  equal(cardRuntimeSpec("internal"), null, "removed Internal Switches card has no runtime driver");
+  equal(cardContractSubpageTypeFromCode("I"), "I", "retired relay code stays unassigned");
 }

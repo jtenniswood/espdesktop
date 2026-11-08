@@ -38,7 +38,6 @@ import { createConfigMediaOptionsFeature } from "./application/config_media_opti
 import { createConfigImageOptionsFeature } from "./application/config_image_options";
 import { createConfigWeatherOptionsFeature } from "./application/config_weather_options";
 import { createConfigWebhookOptionsFeature } from "./application/config_webhook_options";
-import { createConfigInternalRelayOptionsFeature } from "./application/config_internal_relay_options";
 import { createConfigRobotCardOptionsFeature } from "./application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "./application/config_lock_options";
 import { createConfigDateTimeOptionsFeature } from "./application/config_date_time_options";
@@ -114,7 +113,6 @@ import { registerGarageCardTypes } from "./cards/garage";
 import { registerGateCardTypes } from "./cards/gate";
 import { registerImageCardTypes } from "./cards/image";
 import { registerWifiQrCardTypes } from "./cards/wifi_qr";
-import { registerInternalCardTypes } from "./cards/internal";
 import { registerLawnMowerCardTypes } from "./cards/lawn_mower";
 import { registerLightTemperatureCardTypes } from "./cards/light_temperature";
 import { registerLockCardTypes } from "./cards/lock";
@@ -202,12 +200,6 @@ function registerCards(context: ApplicationContext) {
     cardUi,
   );
   registerWifiQrCardTypes(registry, context.configuration.modalTabs, fields, cardUi, context.configuration.native);
-  registerInternalCardTypes(
-    registry,
-    context.configuration.internalRelayOptions,
-    context.dom.document,
-    fields,
-  );
   registerLawnMowerCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const lightCards = registerLightTemperatureCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
   registerLockCardTypes(registry, context.configuration.lockOptions, fields, cardUi);
@@ -247,7 +239,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.configuration.imageOptions,
     context.configuration.weatherOptions,
     context.configuration.webhookOptions,
-    context.configuration.internalRelayOptions,
     context.configuration.lockOptions,
     context.configuration.dateTimeOptions,
     context.configuration.modalTabs,
@@ -431,7 +422,6 @@ function composeApplicationContext(): ApplicationContext {
   });
   const weatherConfigurationOptions = createConfigWeatherOptionsFeature(layout.config);
   const webhookConfigurationOptions = createConfigWebhookOptionsFeature();
-  const internalRelayConfigurationOptions = createConfigInternalRelayOptionsFeature(layout.config);
   const robotConfigurationOptions = createConfigRobotCardOptionsFeature();
   const lockConfigurationOptions = createConfigLockOptionsFeature();
   let configurationCodec: ReturnType<typeof createConfigCodecFeature>;
@@ -1002,7 +992,6 @@ function composeApplicationContext(): ApplicationContext {
     imageConfigurationOptions,
     weatherConfigurationOptions,
     webhookConfigurationOptions,
-    internalRelayConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
     dateTimeConfigurationOptions,

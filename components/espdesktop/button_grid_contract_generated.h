@@ -34,7 +34,6 @@ enum class CardTypeId : uint8_t {
   FAN_SWITCH,
   GARAGE,
   GATE,
-  INTERNAL,
   LIGHT_BRIGHTNESS,
   LIGHT_SWITCH,
   LIGHT_TEMPERATURE,
@@ -79,7 +78,6 @@ enum class CardDriverId : uint8_t {
   FAN,
   FAN_CONTROL,
   ACCESS,
-  INTERNAL,
   NUMERIC,
   LIGHT_TEMPERATURE,
   LIGHT_CONTROL,
@@ -152,7 +150,6 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "fan_switch") return CardTypeId::FAN_SWITCH;
   if (type == "garage") return CardTypeId::GARAGE;
   if (type == "gate") return CardTypeId::GATE;
-  if (type == "internal") return CardTypeId::INTERNAL;
   if (type == "light_brightness") return CardTypeId::LIGHT_BRIGHTNESS;
   if (type == "light_switch") return CardTypeId::LIGHT_SWITCH;
   if (type == "light_temperature") return CardTypeId::LIGHT_TEMPERATURE;
@@ -202,7 +199,6 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::FAN_SWITCH: return {type, CardDriverId::FAN, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::GARAGE: return {type, CardDriverId::ACCESS, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::GATE: return {type, CardDriverId::ACCESS, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
-    case CardTypeId::INTERNAL: return {type, CardDriverId::INTERNAL, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::LIGHT_BRIGHTNESS: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::LIGHT_SWITCH: return {type, CardDriverId::TOGGLE, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::LIGHT_TEMPERATURE: return {type, CardDriverId::LIGHT_TEMPERATURE, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
@@ -284,7 +280,6 @@ inline const char *const CARD_CONTRACT_GARAGE_MODES[] = {"", "open", "close"};
 inline const char *const CARD_CONTRACT_GARAGE_LABEL_DISPLAY_MODES[] = {"label", "status"};
 inline const char *const CARD_CONTRACT_GATE_MODES[] = {"", "open", "close", "stop"};
 inline const char *const CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES[] = {"label", "status"};
-inline const char *const CARD_CONTRACT_INTERNAL_MODES[] = {"switch", "push"};
 inline const char *const CARD_CONTRACT_LOCK_MODES[] = {"", "lock", "unlock"};
 inline const char *const CARD_CONTRACT_MEDIA_MODES[] = {"control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"};
 inline const char *const CARD_CONTRACT_MEDIA_DISPLAY_MODES[] = {"", "state"};
@@ -340,7 +335,6 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_MODE = "image_modal_
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_REFRESH_INTERVAL = "image_modal_refresh_interval";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_REFRESH_MODE = "image_modal_refresh_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_REFRESH_TRIGGER = "image_modal_refresh_trigger";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_INTERNAL_MODE = "internal_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_LABEL_DISPLAY = "label_display";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_LARGE_NUMBERS = "large_numbers";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_LAWN_MOWER_MODE = "lawn_mower_mode";
@@ -449,11 +443,6 @@ inline bool card_contract_gate_mode_valid(const std::string &mode) {
 inline bool card_contract_gate_label_display_valid(const std::string &mode) {
   return card_contract_string_in(mode, CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES,
     sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES) / sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES[0]));
-}
-
-inline bool card_contract_internal_mode_valid(const std::string &mode) {
-  return card_contract_string_in(mode, CARD_CONTRACT_INTERNAL_MODES,
-    sizeof(CARD_CONTRACT_INTERNAL_MODES) / sizeof(CARD_CONTRACT_INTERNAL_MODES[0]));
 }
 
 inline bool card_contract_lock_mode_valid(const std::string &mode) {
@@ -612,7 +601,6 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "fan_switch") return "Fans";
   if (type == "garage") return "Garage Door";
   if (type == "gate") return "Gate";
-  if (type == "internal") return "Internal Switches";
   if (type == "light_brightness") return "Lights";
   if (type == "light_switch") return "Lights";
   if (type == "light_temperature") return "Lights";
@@ -661,7 +649,6 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "fan_switch") return true;
   if (type == "garage") return true;
   if (type == "gate") return true;
-  if (type == "internal") return true;
   if (type == "light_brightness") return true;
   if (type == "light_switch") return true;
   if (type == "light_temperature") return true;
@@ -710,7 +697,6 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "fan_switch") return "Fan Off";
   if (type == "garage") return "Garage";
   if (type == "gate") return "Gate";
-  if (type == "internal") return "Lightbulb Outline";
   if (type == "light_brightness") return "Lightbulb Outline";
   if (type == "light_switch") return "Lightbulb Outline";
   if (type == "light_temperature") return "Lightbulb";
@@ -759,7 +745,6 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "fan_switch") return "Fan";
   if (type == "garage") return "Garage Open";
   if (type == "gate") return "Gate Open";
-  if (type == "internal") return "Lightbulb";
   if (type == "light_brightness") return "Lightbulb";
   if (type == "light_switch") return "Lightbulb";
   if (type == "light_temperature") return "Auto";
@@ -856,7 +841,6 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "companion") return "CP";
   if (type == "screen_lock") return "SL";
   if (type == "webhook") return "WH";
-  if (type == "internal") return "I";
   if (type == "subpage") return "G";
   if (type == "screensaver") return "SS";
   return type.c_str();
@@ -901,7 +885,6 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "CP") return "companion";
   if (code == "SL") return "screen_lock";
   if (code == "WH") return "webhook";
-  if (code == "I") return "internal";
   if (code == "G") return "subpage";
   if (code == "SS") return "screensaver";
   return code;

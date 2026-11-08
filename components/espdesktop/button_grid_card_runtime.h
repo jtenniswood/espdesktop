@@ -53,7 +53,6 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::IMAGE: return Family::IMAGE;
     case Type::WIFI_QR:
     case Type::WIFI_QR_CARD: return Family::WIFI_QR;
-    case Type::INTERNAL: return Family::INTERNAL;
     case Type::LIGHT_CONTROL: return Family::LIGHT_CONTROL;
     case Type::LIGHT_TEMPERATURE: return Family::LIGHT_TEMPERATURE;
     case Type::LOCAL_SENSOR: return Family::LOCAL_SENSOR;
@@ -438,9 +437,6 @@ inline const char *card_runtime_lock_toggle_service(const std::string &state) {
   return card_contract_lock_toggle_service(state);
 }
 
-inline bool card_runtime_internal_push_mode(const std::string &mode) {
-  return mode == "push" && card_contract_internal_mode_valid(mode);
-}
 
 inline std::string card_runtime_media_mode(const std::string &mode) {
   if (card_contract_media_mode_valid(mode)) return mode;

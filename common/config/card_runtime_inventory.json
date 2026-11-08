@@ -226,14 +226,6 @@
         { "name": "stop", "config": { "entity": "cover.example", "sensor": "stop" } }
       ]
     },
-    "internal": {
-      "classification": "canonical", "canonicalType": "internal", "webRegistration": "internal", "firmwareFamily": "INTERNAL",
-      "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" },
-      "modes": [
-        { "name": "switch", "config": { "entity": "relay_1", "sensor": "switch" } },
-        { "name": "push", "config": { "entity": "relay_1", "sensor": "push" } }
-      ]
-    },
     "light_brightness": {
       "classification": "canonical", "canonicalType": "light_brightness", "webRegistration": "light_brightness", "firmwareFamily": "SLIDER",
       "lifecycle": { "subscriptions": ["state", "attributes"], "actions": ["home_assistant_service"], "modalOwner": "none" },

@@ -758,16 +758,6 @@ describe("browserless application contracts", () => {
     assert.match(card, /first\.group\.localeCompare\(second\.group/);
   });
 
-  test("registers the internal relay card with profile-owned options", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/internal.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
-    assert.match(entry, /registerInternalCardTypes\(\s*registry,\s*context\.configuration\.internalRelayOptions,\s*context\.dom\.document,\s*fields,?\s*\);/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerInternalCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:INTERNAL_CARD_METADATA|internalRelayDefaultIcon|internalRelayDefaultOnIcon|internalRelayLabelFor|internalRelayMode|internalRelayModeOptionValues|internalRelayOptions|internalRelaySpec|internalRelayUsesDefaultIcon|internalRelayUsesDefaultOnIcon|normalizeInternalRelayMode):/);
-  });
-
   test("imports entity-mode helpers without compatibility globals", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const helpers = fs.readFileSync(path.join(ROOT, "src/webserver/cards/entity_mode_card.ts"), "utf8");

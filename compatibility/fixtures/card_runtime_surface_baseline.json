@@ -1575,68 +1575,6 @@
       }
     },
     {
-      "name": "internal: switch",
-      "sourceKind": "contract",
-      "sourceType": "internal",
-      "mode": "switch",
-      "canonicalType": "internal",
-      "web": {
-        "registration": "internal",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "4e4b00401fdaa1ea"
-        }
-      },
-      "firmware": {
-        "family": "INTERNAL"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "local"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "internal: push",
-      "sourceKind": "contract",
-      "sourceType": "internal",
-      "mode": "push",
-      "canonicalType": "internal",
-      "web": {
-        "registration": "internal",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "4e4b00401fdaa1ea"
-        }
-      },
-      "firmware": {
-        "family": "INTERNAL"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "local"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "light_brightness: brightness",
       "sourceKind": "contract",
       "sourceType": "light_brightness",

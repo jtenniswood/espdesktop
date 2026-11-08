@@ -113,10 +113,6 @@ export interface CardTypeSpec {
       defaultIcon: string;
       defaultIconOn: string;
     };
-    internalRelay?: {
-      defaultIcons: Readonly<Record<string, string>>;
-      defaultIconOn: string;
-    };
     media?: {
       defaultMode: string;
       legacyModes?: Readonly<Record<string, string>>;
@@ -207,10 +203,6 @@ export interface DeviceProfile {
     displayOffset?: number;
     rotateWidthCompensation?: boolean;
   };
-  internalRelays?: readonly {
-    key: string;
-    label: string;
-  }[];
   web: {
     dragMode: "swap" | "displace";
     dragAnimation: boolean;

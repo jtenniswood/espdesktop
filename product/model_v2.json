@@ -63,7 +63,6 @@
       "timezone": "product/v2/cards/timezone.json",
       "weather": "product/v2/cards/weather.json",
       "weather_forecast": "product/v2/cards/weather_forecast.json",
-      "internal": "product/v2/cards/internal.json",
       "local_sensor": "product/v2/cards/local_sensor.json",
       "screen_lock": "product/v2/cards/screen_lock.json",
       "screensaver": "product/v2/cards/screensaver.json",

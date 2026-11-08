@@ -280,7 +280,6 @@ assertButtonTypeSpecBacked("weather", "weather card");
 assertButtonTypeSpecBacked("push", "push card");
 assertButtonTypeSpecBacked("screen_lock", "screen lock card");
 assertButtonTypeSpecBacked("webhook", "webhook card");
-assertButtonTypeSpecBacked("internal", "internal relay card");
 assertButtonTypeSpecBacked("garage", "garage card");
 assertButtonTypeSpecBacked("gate", "gate card");
 assertButtonTypeSpecBacked("lock", "lock card");
@@ -347,16 +346,6 @@ assert.strictEqual(hooks.pushDefaultIcon(), "Gesture Tap", "push default icon is
 assert.strictEqual(hooks.pushDefaultIconOn(), "Auto", "push on icon cleanup is spec-backed");
 assert.strictEqual(hooks.webhookMethod("post"), "POST", "webhook method normalizes to uppercase");
 assert.strictEqual(hooks.webhookMethod("bad"), "GET", "webhook invalid method falls back to GET");
-assert.deepStrictEqual(
-  Array.from(hooks.internalRelayModeOptionValues()),
-  ["switch", "push"],
-  "internal relay mode options are spec-backed"
-);
-assert.strictEqual(hooks.normalizeInternalRelayMode("push"), "push", "internal relay push mode is allowed by spec");
-assert.strictEqual(hooks.normalizeInternalRelayMode("bad"), "switch", "internal relay invalid mode falls back to switch");
-assert.strictEqual(hooks.internalRelayDefaultIcon("switch"), "Lightbulb Outline", "internal relay switch icon is spec-backed");
-assert.strictEqual(hooks.internalRelayDefaultIcon("push"), "Gesture Tap", "internal relay push icon is spec-backed");
-assert.strictEqual(hooks.internalRelayDefaultOnIcon(), "Lightbulb", "internal relay on icon is spec-backed");
 assert.deepStrictEqual(
   Array.from(hooks.mediaModeOptionValues()),
   ["control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"],
@@ -1232,17 +1221,6 @@ assertButtonMigration(
     options: "active_color",
   }
 );
-
-assertButtonRoundTrip(hooks, "internal relay push button", {
-  entity: "relay_1",
-  label: "Door Strike",
-  icon: "Gesture Tap",
-  icon_on: "Auto",
-  sensor: "push",
-  unit: "",
-  type: "internal",
-  precision: "",
-}, false);
 
 const screenLockCard = {
   entity: "",
@@ -3341,14 +3319,6 @@ assertSubpageRoundTrip(hooks, "switch confirmation subpage", {
   ],
 }, false);
 
-assertSubpageRoundTrip(hooks, "internal relay subpage", {
-  order: ["1", "B"],
-  buttons: [
-    buttonShape({ entity: "relay_1", label: "Relay", icon: "Power Plug", type: "internal" }),
-    buttonShape({ entity: "relay_2", label: "Bell", icon: "Gesture Tap", sensor: "push", type: "internal" }),
-  ],
-}, true);
-
 assertSubpageRoundTrip(hooks, "cover toggle subpage", {
   order: ["1", "B"],
   buttons: [
@@ -3718,13 +3688,6 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|C,cover.offic
     buttonShape({ entity: "cover.office_blind", label: "Office Blind", icon: "Blinds", icon_on: "Auto", sensor: "set_position", unit: "35", type: "cover" }),
   ],
 }, "compact cover set position subpage parse");
-
-assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|I,relay_2,Gate,Power%20Plug,Power,push")), {
-  order: ["1", "B"],
-  buttons: [
-    buttonShape({ entity: "relay_2", label: "Gate", icon: "Power Plug", icon_on: "Power", sensor: "push", type: "internal" }),
-  ],
-}, "compact internal relay subpage parse");
 
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|A,scene.movie_mode,Movie%20Mode,Flash,,scene.turn_on")), {
   order: ["1", "B"],

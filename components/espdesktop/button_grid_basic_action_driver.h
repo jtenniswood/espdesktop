@@ -4,7 +4,7 @@
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
 // Contract coverage markers: type == "", "action", "alarm_action",
-// "companion", "fan_switch", "internal", "light_switch", "push", "screen_lock", "screensaver", "webhook".
+// "companion", "fan_switch", "light_switch", "push", "screen_lock", "screensaver", "webhook".
 
 namespace espdesktop::cards {
 
@@ -16,7 +16,6 @@ inline bool basic_action_driver_matches(const Context &context,
     case Driver::TOGGLE:
     case Driver::ACTION:
     case Driver::ALARM_ACTION:
-    case Driver::INTERNAL:
     case Driver::PUSH:
     case Driver::COMPANION:
     case Driver::SCREEN_LOCK:
@@ -52,9 +51,6 @@ inline bool basic_action_driver_setup_visual(
       break;
     case Driver::FAN:
       setup_fan_card(slot, config);
-      break;
-    case Driver::INTERNAL:
-      setup_internal_relay_card(slot, config);
       break;
     case Driver::ACTION:
       if (config.type == "local" || action_card_local_action(config)) {
@@ -249,17 +245,6 @@ inline bool basic_action_driver_bind_main(
     case Driver::FAN:
       basic_action_driver_bind_fan_switch(slot, config, context, palette, display);
       break;
-    case Driver::INTERNAL:
-      if (!config.entity.empty() && !internal_relay_push_mode(config)) {
-        const bool has_icon_on =
-          !config.icon_on.empty() && config.icon_on != "Auto";
-        const char *icon_on = has_icon_on
-          ? find_icon(config.icon_on.c_str()) : nullptr;
-        watch_internal_relay_state(
-          config.entity, slot.btn, slot.icon_lbl, has_icon_on,
-          internal_relay_icon(config, false), icon_on);
-      }
-      break;
     default:
       break;
   }
@@ -438,51 +423,6 @@ inline bool basic_action_driver_bind_subpage(
       }
       break;
     }
-    case Driver::INTERNAL: {
-      const bool push_mode = internal_relay_push_mode(config);
-      if (!push_mode && !config.entity.empty()) {
-        const bool has_icon_on =
-          !config.icon_on.empty() && config.icon_on != "Auto";
-        const char *icon_on = has_icon_on
-          ? find_icon(config.icon_on.c_str()) : nullptr;
-        bool *child_state = nullptr;
-        lv_obj_t *parent_btn = nullptr;
-        lv_obj_t *parent_icon = nullptr;
-        if (environment.parent_indicator_enabled &&
-            environment.child_allocation_index && environment.child_was_on) {
-          const int child_index = (*environment.child_allocation_index)++;
-          if (child_index >= environment.child_capacity) {
-            ESP_LOGW("sensors", "Too many subpage state indicators; skipping %s",
-              config.entity.c_str());
-          } else {
-            environment.child_was_on[child_index] = false;
-            child_state = &environment.child_was_on[child_index];
-            parent_btn = environment.parent_btn;
-            parent_icon = environment.parent_icon;
-          }
-        }
-        watch_internal_relay_state(
-          config.entity, slot.btn, slot.icon_lbl, has_icon_on,
-          internal_relay_icon(config, push_mode), icon_on,
-          child_state, parent_btn, parent_icon, environment.parent_index,
-          environment.parent_has_icon_on, environment.parent_icon_off,
-          environment.parent_icon_on, environment.parent_on_count);
-      }
-      if (!config.entity.empty()) {
-        InternalRelayClickCtx *click = grid_delete_with_owner(
-          slot.btn, new InternalRelayClickCtx());
-        click->key = config.entity;
-        click->push_mode = push_mode;
-        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-          InternalRelayClickCtx *value = static_cast<InternalRelayClickCtx *>(
-            lv_event_get_user_data(event));
-          if (value && !value->key.empty()) {
-            send_internal_relay_action(value->key, value->push_mode);
-          }
-        }, click);
-      }
-      break;
-    }
     case Driver::TOGGLE: {
       ToggleDriverState state;
       state.has_sensor = grid_delete_with_owner(slot.btn, new bool(false));
@@ -578,9 +518,6 @@ inline bool basic_action_driver_handle_main_click(
       if (fan) fan_card_handle_click(fan);
       break;
     }
-    case Driver::INTERNAL:
-      if (!config.entity.empty()) send_internal_relay_action(config);
-      break;
     case Driver::ACTION:
       if (config.type == "local") {
         if (!config.entity.empty()) send_local_action(config.entity);

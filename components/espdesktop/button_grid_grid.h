@@ -2220,7 +2220,6 @@ inline void grid_phase2(
   bump_ha_subscription_generation();
   weather_forecast_cancel_pending_requests(false);
   reset_climate_control_refs();
-  clear_internal_relay_watchers();
   local_sensor_registry().clear();
   grid_release_main_runtime_allocations(slots, NS);
   // Phase 1 has just registered each Companion card against its persistent

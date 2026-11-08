@@ -750,36 +750,6 @@
     }
   },
   {
-    "name": "internal: switch",
-    "input": "~relay_1,,Lightbulb%20Outline,Lightbulb,switch,,internal,,",
-    "expected": {
-      "entity": "relay_1",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "switch",
-      "unit": "",
-      "type": "internal",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "internal: push",
-    "input": "~relay_1,,Lightbulb%20Outline,Lightbulb,push,,internal,,",
-    "expected": {
-      "entity": "relay_1",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "push",
-      "unit": "",
-      "type": "internal",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "light_brightness: brightness",
     "input": "~light.example,,Lightbulb%20Outline,Lightbulb,,,light_brightness,,",
     "expected": {
