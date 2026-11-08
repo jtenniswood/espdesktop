@@ -78,7 +78,7 @@ inline void image_card_request_source_url(ImageCardCtx *, bool source_changed = 
 '''
 for name in ('image_card_contexts', 'image_card_pool_grid_config', 'image_card_apply_downloaded',
              'image_card_handle_download_error', 'image_card_bind_callbacks', 'reset_image_card_pool',
-             'image_card_evict_optional_icon', 'acquire_image_card_context', 'image_card_request_source_url',
+             'image_card_evict_optional_icon', 'image_card_release_owner', 'acquire_image_card_context', 'image_card_request_source_url',
              'image_card_page_visible', 'image_card_context_visible_on_active_screen',
              'refresh_visible_image_cards', 'refresh_image_cards', 'image_card_refresh_due'):
     source += '\n' + definition(header, name)[1] + '\n'
@@ -147,6 +147,18 @@ int main() {
   ctx->btn = &button; ctx->widget = &widget;
   const auto before = notifications; first.finished[0](false); first.errors[0]();
   assert(notifications == before && !ctx->image_ready && !ctx->next_download_retry_ms);
+  reset_image_card_pool(cfg);
+  auto *main_ctx = acquire_image_card_context(cfg, "main");
+  auto *sub_ctx = acquire_image_card_context(cfg, "subpage");
+  assert(main_ctx && sub_ctx && main_ctx != sub_ctx);
+  lv_obj_t main_owner{&screen}, sub_owner{&other_screen};
+  lv_obj_t main_widget{&main_owner}, sub_widget{&sub_owner};
+  main_ctx->btn = &main_owner; main_ctx->widget = &main_widget;
+  sub_ctx->btn = &sub_owner; sub_ctx->widget = &sub_widget;
+  image_card_release_owner(&sub_owner);
+  assert(!sub_ctx->active && !sub_ctx->btn && !sub_ctx->widget && sub_widget.hidden);
+  assert(main_ctx->active && main_ctx->btn == &main_owner && !main_widget.hidden);
+  image_card_release_owner(nullptr);
   cfg.image_card_image_count = 0; reset_image_card_pool(cfg);
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) assert(!image_card_contexts()[i].active && !image_card_contexts()[i].image);
 }

@@ -265,6 +265,20 @@ def check_root(root: Path) -> list[str]:
                     f"components/espdesktop/{GRID_HEADER}: broad legacy card fallback must remain retired ({retired_fallback})"
                 )
         image_reset_pos = text.find("reset_image_card_pool(cfg);")
+        phase_one = function_body(text, "grid_phase1") or ""
+        phase_two = function_body(text, "grid_phase2") or ""
+        if ("reset_image_card_pool(cfg);" not in phase_one
+                or phase_one.find("reset_image_card_pool(cfg);") > phase_one.find("setup_card_visual(")
+                or "reset_image_card_pool(cfg);" in phase_two):
+            failures.append(
+                f"components/espdesktop/{GRID_HEADER}: initialize icon pool before phase-one visuals and preserve bindings in phase two"
+            )
+        subpage_release = function_body(text, "navigation_release_subpage_runtime") or ""
+        if ("image_card_release_owner(card.button);" not in subpage_release
+                or subpage_release.find("image_card_release_owner(card.button);") > subpage_release.find("grid_release_runtime_allocations(card.button);")):
+            failures.append(
+                f"components/espdesktop/{GRID_HEADER}: detach subpage icons before releasing widget owners"
+            )
         subpage_clear_pos = text.find("navigation_clear_subpages(main_page_obj);")
         if image_reset_pos < 0 or subpage_clear_pos < 0 or image_reset_pos > subpage_clear_pos:
             failures.append(

@@ -630,7 +630,8 @@ inline void grid_phase1(
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
-  // Clear image references before visual setup removes their old LVGL widgets.
+  // Initialize downloaders and detach old widgets before visual setup deletes them.
+  reset_image_card_pool(cfg);
   int NS = bounded_grid_slots(cfg.num_slots);
   bool neutral_buttons[MAX_GRID_SLOTS]{};
   bool sensor_surfaces[MAX_GRID_SLOTS]{};
@@ -1093,6 +1094,7 @@ inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   screen_lock_unregister_tree(entry.screen);
   grid_release_runtime_allocations(entry.back_button);
   for (const auto &card : entry.cards) {
+    image_card_release_owner(card.button);
     grid_release_runtime_allocations(card.button);
   }
 }
@@ -1163,7 +1165,6 @@ inline void grid_phase2(
   set_wifi_qr_icon_font(display_icon_font(display));
   network_status_card_icon_font() = display_icon_font(display);
   set_wifi_qr_heading_font(display_media_title_font(display));
-  reset_image_card_pool(cfg);
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   grid_navigation_service().layout_slots = NS;
@@ -1196,7 +1197,8 @@ inline void grid_phase2(
   // value and unit during Phase 2 and afterwards.
   grid_clear_navigation_targets(slots, NS);
   navigation_clear_home_targets();
-  // Image-card contexts may still point at widgets inside subpage screens.
+  // The subpage release hook detaches icons before deleting their widgets,
+  // including when Phase 2 runs without a complete visual rebuild.
   navigation_clear_subpages(main_page_obj);
 
   bool has_on;

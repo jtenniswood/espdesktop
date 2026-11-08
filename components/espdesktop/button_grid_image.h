@@ -306,6 +306,15 @@ inline void image_card_evict_optional_icon(ImageCardCtx *ctx) {
   ctx->callbacks_bound_image = callbacks_bound_image;
 }
 
+// Release only the deleted page's icons; persistent main-grid bindings survive.
+inline void image_card_release_owner(lv_obj_t *owner) {
+  if (!owner) return;
+  auto *contexts = image_card_contexts();
+  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
+    if (contexts[i].btn == owner) image_card_evict_optional_icon(&contexts[i]);
+  }
+}
+
 inline ImageCardCtx *acquire_image_card_context(const GridConfig &cfg,
                                                 const std::string &entity_id) {
   ImageCardCtx *contexts = image_card_contexts();
