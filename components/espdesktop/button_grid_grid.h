@@ -2467,7 +2467,7 @@ inline void grid_phase2(
         navigation_return_from_special_page();
       } else {
         lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-        refresh_visible_image_cards();
+        navigation_present_page_before_image_refresh();
       }
     }, LV_EVENT_PRESSED, is_special_page
       ? static_cast<void *>(&navigation_special_page_back_button_marker())

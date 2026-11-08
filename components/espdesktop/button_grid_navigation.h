@@ -161,6 +161,15 @@ inline void navigation_consume_touch_press(lv_obj_t *button) {
   consume_button_touch_press(button);
 }
 
+// Present the new page before image recovery can run cached HA callbacks or
+// start a camera/artwork request. Otherwise that work delays the first frame.
+inline void navigation_present_page_before_image_refresh() {
+  lv_obj_t *screen = lv_scr_act();
+  if (screen == nullptr) return;
+  lv_refr_now(lv_obj_get_display(screen));
+  refresh_visible_image_cards();
+}
+
 inline bool navigation_return_from_special_page() {
   navigation_hide_modals();
   lv_obj_t *previous = navigation_special_page_previous_screen();
@@ -172,7 +181,7 @@ inline bool navigation_return_from_special_page() {
   if (lv_scr_act() != previous) {
     lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
   }
-  refresh_visible_image_cards();
+  navigation_present_page_before_image_refresh();
   return true;
 }
 
@@ -183,7 +192,7 @@ inline bool navigation_open_special_page() {
     navigation_special_page_previous_screen() = lv_scr_act();
     navigation_hide_modals();
     lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-    refresh_visible_image_cards();
+    navigation_present_page_before_image_refresh();
   }
   return true;
 }

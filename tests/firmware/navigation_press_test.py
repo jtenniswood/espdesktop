@@ -34,6 +34,7 @@ bool lv_obj_is_valid(lv_obj_t *b) { return b && b->valid; }
 lv_obj_t *active = nullptr;
 void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { active = s; order.push_back(3); }
 void refresh_visible_image_cards() {}
+void navigation_present_page_before_image_refresh() {}
 struct ParsedCfg { std::string type, entity = "app", sensor; bool shortcuts = false; };
 struct Context { bool subpage; };
 Context card_runtime_context(const ParsedCfg &c) { return {c.type == "subpage"}; }

@@ -64,6 +64,18 @@ lv_obj_t *lv_obj_get_screen(lv_obj_t *o) { return o->screen; }
 size_t lv_obj_get_child_cnt(lv_obj_t *o) { return o->children.size(); }
 lv_obj_t *lv_obj_get_child(lv_obj_t *o, int32_t i) { return o->children[i]; }
 void *lv_obj_get_user_data(lv_obj_t *o) { return o->data; }
+// Model a costly image refresh: it must see the destination frame presented.
+lv_obj_t *last_presented = nullptr;
+unsigned frames_presented = 0, image_refreshes = 0;
+struct lv_display_t {} display;
+lv_display_t *lv_obj_get_display(lv_obj_t *) { return &display; }
+void lv_refr_now(lv_display_t *d) {
+  assert(d == &display); last_presented = active; ++frames_presented;
+}
+void refresh_visible_image_cards() {
+  assert(last_presented == active && frames_presented == image_refreshes + 1);
+  ++image_refreshes;
+}
 unsigned applies = 0, title_refreshes = 0;
 constexpr int LV_STATE_CHECKED = 1;
 bool lv_obj_has_state(lv_obj_t *obj, int) { return obj->checked; }
@@ -90,6 +102,7 @@ code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *g
 code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline std::function<void()> &navigation_subpage_clock_bar_refresh() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_subpage_screen_changed(lv_event_t *) {")
+code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_present_page_before_image_refresh() {")
 for signature in ("inline bool &companion_app_icon_work_pending() {",
                   "inline bool companion_app_icon_pixels_current(",
                   "inline void companion_refresh_cached_app_icon(",
@@ -98,6 +111,16 @@ for signature in ("inline bool &companion_app_icon_work_pending() {",
     code += function("components/espdesktop/button_grid_grid.h", signature)
 code += r'''
 int main() {
+  // Both return destinations are drawn before camera/artwork recovery runs.
+  for (auto *destination : {&home, &subpage}) {
+    active = destination;
+    navigation_present_page_before_image_refresh();
+    assert(last_presented == destination);
+  }
+  active = nullptr;
+  navigation_present_page_before_image_refresh();
+  assert(frames_presented == 2 && image_refreshes == 2);
+  active = &home;
   CompanionAppIconImageData main_icon, child_icon;
   lv_obj_t home_owner{&home, {&home_image}}, subpage_owner{&subpage, {&subpage_image}};
   home_image.data = &main_icon;
