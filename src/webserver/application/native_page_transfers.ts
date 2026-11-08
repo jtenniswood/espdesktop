@@ -123,23 +123,29 @@ export function createNativePageTransfersFeature(options: {
     return captured;
   }
   async function copy(slots: readonly number[], cut = false): Promise<boolean> {
-    const captured = await capture(slots);
-    if (!captured) return false;
-    state.clipboard = { buttons: captured.entries.map(entry => createClipboardEntry(entry.button, entry.size, entry.subtree?.configuration ?? null)),
-      native: { ...captured, cut } };
-    return true;
+    const sourcePage = page();
+    return run(async layout => {
+      const expected = capturePageCards(savedDocument(), sourcePage, slots, layout).origin;
+      const snapshot = await options.native.readSnapshot();
+      if (!snapshot) throw new Error("Could not read the saved cards.");
+      unchanged(snapshot.document, expected, layout);
+      const captured = capturePageCards(snapshot.document, sourcePage, slots, layout);
+      // Cut is a saved deletion; the captured tree survives only in the clipboard.
+      if (cut) await save(current => planPageCardDelete(current, captured.origin, layout));
+      state.clipboard = { buttons: captured.entries.map(entry => createClipboardEntry(entry.button, entry.size, entry.subtree?.configuration ?? null)),
+        native: { ...captured, cut } };
+    });
   }
   async function paste(position: number, target = page(), supplied?: readonly PageTransferCard[]): Promise<{ ok: boolean; resized: number }> {
     const clipboard = state.clipboard;
     const entries = supplied ?? clipboard?.native?.entries ?? clipboard?.buttons.map(entry => ({ button: entry, size: entry.size,
       subtree: entry.subpageConfig === null ? null : { configuration: entry.subpageConfig, children: {} } }));
     if (!entries) return { ok: false, resized: 0 };
-    const move = supplied ? undefined : clipboard?.native?.cut ? clipboard.native.origin : undefined;
     let resized = 0;
     const ok = await run(async layout => {
-      options.validate(entries, target, !!move);
+      options.validate(entries, target, false);
       await save(current => {
-        const plan = planPageCardPaste(current, target, position, entries, layout, move);
+        const plan = planPageCardPaste(current, target, position, entries, layout);
         resized = plan.resized; return plan.document;
       });
       if (!supplied && state.clipboard === clipboard) state.clipboard = null;
