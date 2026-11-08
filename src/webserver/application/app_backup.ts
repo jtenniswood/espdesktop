@@ -10,9 +10,6 @@ import * as EspDesktopModel from "../model";
 import {
     normalizeBrightnessMode,
     normalizeHexColor,
-    normalizeHomeAssistantArtworkPort,
-    normalizeHomeAssistantArtworkProtocol,
-    normalizeHomeAssistantArtworkEndpointMode,
     normalizeHour,
     normalizeLanguage,
     normalizeScheduleClockBrightness,
@@ -127,10 +124,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postCoverArtSource,
         postCoverArtDelay,
         postCoverArtTrackOverlayDuration,
-        postHomeAssistantArtworkProtocol,
-        postHomeAssistantArtworkHost,
-        postHomeAssistantArtworkPort,
-        postHomeAssistantArtworkEndpointMode,
     } = controllers.artworkPostApi;
     const {
         postBrightnessMode,
@@ -298,13 +291,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 clock_date: state.clockDateOn,
                 cover_art_delay: state.coverArtDelay,
                 cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
-                home_assistant_artwork_protocol: normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol),
-                home_assistant_artwork_host: String(state.homeAssistantArtworkHost || "").trim().slice(0, 253),
-                home_assistant_artwork_port: normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort),
-                home_assistant_artwork_endpoint_mode: normalizeHomeAssistantArtworkEndpointMode(
-                    state.homeAssistantArtworkEndpointMode,
-                    state.homeAssistantArtworkProtocol,
-                    state.coverArtHomeAssistantPort),
                 firmware_auto_update: !!state.autoUpdate,
                 firmware_update_frequency: state.updateFrequency,
                 screensaver_action: normalizeScreensaverAction(state.screensaverAction),
@@ -591,10 +577,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
                     postCoverArtDelay(importedSettings.coverArtDelay);
                     postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
-                    postHomeAssistantArtworkProtocol(importedSettings.coverArtHomeAssistantProtocol);
-                    postHomeAssistantArtworkHost(importedSettings.coverArtHomeAssistantHost);
-                    postHomeAssistantArtworkPort(importedSettings.coverArtHomeAssistantPort);
-                    postHomeAssistantArtworkEndpointMode(importedSettings.coverArtHomeAssistantEndpointMode);
                     if (firmwareUpdateControlsVisible()) {
                         postFirmwareAutoUpdate(importedSettings.autoUpdate);
                         postFirmwareUpdateFrequency(importedSettings.updateFrequency);

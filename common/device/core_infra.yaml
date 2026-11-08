@@ -40,7 +40,6 @@ api:
   on_client_connected:
     - lambda: |-
         if (client_info.find("Home Assistant") != std::string::npos) {
-          id(espdesktop_app).home_assistant_endpoint().invalidate_connection(client_address);
           id(ha_refresh_after_connect).execute(client_info, client_address);
         }
   on_client_disconnected:
@@ -59,8 +58,6 @@ api:
         }
         if (is_home_assistant) {
           id(ha_refresh_after_connect).stop();
-          id(cover_art_home_assistant_client_address).clear();
-          id(cover_art_resolve_home_assistant_base_url).execute();
         }
         if (!is_home_assistant && ha_api_state_connected()) {
           return;
@@ -93,10 +90,6 @@ script:
             - lambda: |-
                 ESP_LOGI("api", "Home Assistant connected: %s", client_info.c_str());
                 id(ha_restore_after_api).execute();
-                if (!client_address.empty()) {
-                  id(cover_art_home_assistant_client_address) = client_address;
-                }
-                id(cover_art_resolve_home_assistant_base_url).execute();
                 if (ha_api_state_connected()) {
                   refresh_weather_forecast_cards();
                   ha_log_subscription_diagnostics("client-connected");
@@ -195,104 +188,3 @@ button:
         - lambda: |-
             global_preferences->sync();
             App.safe_reboot();
-
-select:
-  - platform: template
-    name: "${entity_home_assistant_artwork_endpoint_mode}"
-    internal: true
-    id: home_assistant_artwork_endpoint_mode
-    entity_category: config
-    icon: "mdi:lan-check"
-    optimistic: true
-    restore_value: true
-    initial_option: "Automatic"
-    options:
-      - "Automatic"
-      - "Manual"
-    web_server:
-      sorting_group_id: sg_connectivity
-    set_action:
-      - lambda: |-
-          id(home_assistant_artwork_endpoint_mode).publish_state(x);
-          id(cover_art_resolve_home_assistant_base_url).execute();
-
-  - platform: template
-    name: "${entity_home_assistant_artwork_protocol}"
-    internal: true
-    id: cover_art_home_assistant_artwork_protocol
-    entity_category: config
-    icon: "mdi:protocol"
-    optimistic: true
-    restore_value: true
-    initial_option: "http"
-    options:
-      - "http"
-      - "https"
-    web_server:
-      sorting_group_id: sg_connectivity
-    set_action:
-      - lambda: |-
-          id(cover_art_home_assistant_artwork_protocol).publish_state(x);
-          id(cover_art_resolve_home_assistant_base_url).execute();
-
-number:
-  - platform: template
-    name: "Home Assistant Artwork Port"
-    internal: true
-    id: cover_art_home_assistant_artwork_port
-    entity_category: config
-    icon: "mdi:lan-connect"
-    optimistic: true
-    restore_value: true
-    initial_value: 8123
-    min_value: 1
-    max_value: 65535
-    step: 1
-    mode: box
-    web_server:
-      sorting_group_id: sg_connectivity
-    set_action:
-      - lambda: |-
-          id(cover_art_home_assistant_artwork_port).publish_state(x);
-          id(cover_art_resolve_home_assistant_base_url).execute();
-
-text:
-  - platform: template
-    name: "${entity_home_assistant_artwork_host}"
-    internal: true
-    id: cover_art_home_assistant_artwork_host
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 253
-    mode: text
-    entity_category: config
-    icon: "mdi:server-network"
-    web_server:
-      sorting_group_id: sg_connectivity
-    set_action:
-      - lambda: |-
-          id(cover_art_home_assistant_artwork_host).publish_state(x);
-          id(cover_art_resolve_home_assistant_base_url).execute();
-
-text_sensor:
-  - platform: template
-    name: "${entity_home_assistant_artwork_endpoint_health}"
-    internal: true
-    id: home_assistant_artwork_endpoint_health
-    entity_category: diagnostic
-    icon: "mdi:lan-check"
-    update_interval: 1s
-    lambda: |-
-      return id(espdesktop_app).home_assistant_endpoint().health();
-
-  - platform: template
-    name: "${entity_home_assistant_artwork_endpoint_status}"
-    internal: true
-    id: home_assistant_artwork_endpoint_status
-    entity_category: diagnostic
-    icon: "mdi:connection"
-    update_interval: 1s
-    lambda: |-
-      return id(espdesktop_app).home_assistant_endpoint().status();

@@ -801,19 +801,7 @@ def check_root(root: Path) -> list[str]:
             "media_driver_refresh_layout",
             "media_driver_cleanup",
             "media_driver_handle_main_click",
-            "create_media_control_context",
-            "create_media_volume_context",
-            "create_media_playlist_context",
-            "subscribe_media_control_state",
-            "subscribe_media_volume_state",
-            "subscribe_media_now_playing_state",
-            "subscribe_media_cover_art",
-            "subscribe_media_playlist_state",
-            "subscribe_media_slider_state",
-            "grid_track_media_now_playing_runtime",
-            "grid_track_media_slider_runtime",
-            "grid_track_media_control_runtime",
-            "grid_delete_media_control_with_owner",
+            "set_card_disabled_state(slot.btn, true)",
             '"media"',
         )
         for needle in required:
@@ -821,59 +809,6 @@ def check_root(root: Path) -> list[str]:
                 failures.append(
                     f"components/espdesktop/{MEDIA_DRIVER_HEADER}: missing shared media lifecycle guard {needle}"
                 )
-        route_body = function_body(text, "media_driver_bind_cover_art_route") or ""
-        if route_body:
-            if "now_playing->secondary_entity != now_playing->primary_entity" not in route_body:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: treat a matching secondary cover-art entity as unconfigured"
-                )
-            if "subscribe_image_card_access_token" in route_body:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: avoid duplicate access-token subscriptions on cover-art route switches"
-                )
-            unchanged_route_return = route_body.find(
-                "if (!entity_changed && !presentation_changed) return;"
-            )
-            control_subscription = route_body.find(
-                "subscribe_media_control_state(control);"
-            )
-            if (
-                unchanged_route_return < 0
-                or control_subscription < 0
-                or control_subscription > unchanged_route_return
-            ):
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: subscribe reused cover-art control modals before the unchanged-route return"
-                )
-            clear_route = route_body.find("now_playing->refresh_entity_route = nullptr")
-            attach_primary = route_body.find("media_playback_attach_now_playing(primary, now_playing)")
-            if clear_route < 0 or attach_primary < 0 or clear_route > attach_primary:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching cached playback state"
-                )
-        bind_body = function_body(text, "media_driver_bind_data") or ""
-        if bind_body:
-            clear_route = bind_body.find("now_playing->refresh_entity_route = nullptr")
-            attach_source = bind_body.find("subscribe_media_cover_art_source_state")
-            if clear_route < 0 or attach_source < 0 or clear_route > attach_source:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching source state"
-                )
-        setup_body = function_body(text, "media_driver_setup_visual") or ""
-        if (
-            "media_driver_track_now_playing" not in setup_body
-            or "media_driver_track_slider" not in setup_body
-        ):
-            failures.append(
-                f"components/espdesktop/{MEDIA_DRIVER_HEADER}: own media visual contexts before data binding"
-            )
-        if (
-            "media_driver_track_now_playing" in bind_body
-            or "media_driver_track_slider" in bind_body
-        ):
-            failures.append(
-                f"components/espdesktop/{MEDIA_DRIVER_HEADER}: do not defer media visual ownership until data binding"
-            )
     elif grid_header.exists():
         failures.append(
             f"components/espdesktop/{MEDIA_DRIVER_HEADER}: missing shared media driver"

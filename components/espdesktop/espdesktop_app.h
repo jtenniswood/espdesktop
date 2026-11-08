@@ -10,7 +10,6 @@
 
 #include "espdesktop_app_core.h"
 #include "panel_identity.h"
-#include "home_assistant_endpoint_resolver.h"
 namespace espdesktop {
 
 // The main ESPHome component boundary for EspDesktop runtime services.
@@ -27,7 +26,6 @@ class EspDesktopApp : public esphome::Component {
 
   void setup() override;
   void loop() override;
-  void on_safe_shutdown() override;
   void on_shutdown() override;
   float get_setup_priority() const override {
     // The native configuration wiring binds restored ESPHome text entities.
@@ -40,9 +38,6 @@ class EspDesktopApp : public esphome::Component {
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
-  HomeAssistantEndpointResolver &home_assistant_endpoint() {
-    return home_assistant_endpoint_;
-  }
   bool connector_onboarding_complete() const;
 
   void set_panel_config_device_profile(const char *device_profile);
@@ -97,7 +92,6 @@ class EspDesktopApp : public esphome::Component {
   // the framework's allocators and component setup are ready.
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
   EspDesktopAppCore core_{};
-  HomeAssistantEndpointResolver home_assistant_endpoint_{};
   bool native_configuration_initialized_{false};
   bool panel_config_http_context_bound_{false};
   const char *web_auth_username_{nullptr};

@@ -73,18 +73,6 @@ CONFIG_SCHEMA = cv.Schema(
 ).extend(cv.COMPONENT_SCHEMA)
 
 
-def _consume_endpoint_socket(config):
-    from esphome.components import socket
-
-    consume = getattr(socket, "consume_sockets", None)
-    if consume is not None:
-        consume(1, "ha_endpoint_probe")(config)
-    return config
-
-
-CONFIG_SCHEMA = cv.All(CONFIG_SCHEMA, _consume_endpoint_socket)
-
-
 @coroutine_with_priority(CoroPriority.DIAGNOSTICS)
 async def to_code(config):
     # Run before safe_mode's early return and before any preference consumers.

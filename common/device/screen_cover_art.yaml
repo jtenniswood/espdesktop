@@ -23,12 +23,6 @@ globals:
     initial_value: '0'
   - id: cover_art_runtime
     type: espdesktop::cover_art::RuntimeState
-  - id: cover_art_home_assistant_base_url
-    type: std::string
-    initial_value: '""'
-  - id: cover_art_home_assistant_client_address
-    type: std::string
-    initial_value: '""'
   - id: cover_art_title
     type: std::string
     initial_value: '""'
@@ -234,19 +228,6 @@ lvgl:
                   bg_color: ${cover_art_text_color}
                   radius: 0
 script:
-  - id: cover_art_resolve_home_assistant_base_url
-    mode: restart
-    then:
-      - lambda: |-
-          // Retained only for legacy image cards until their runtime is removed.
-          id(espdesktop_app).home_assistant_endpoint().configure(
-              id(home_assistant_artwork_endpoint_mode).current_option(),
-              id(cover_art_home_assistant_artwork_protocol).current_option(),
-              static_cast<uint16_t>(id(cover_art_home_assistant_artwork_port).state),
-              id(cover_art_home_assistant_client_address),
-              id(cover_art_home_assistant_artwork_host).state);
-          id(cover_art_home_assistant_base_url) = id(espdesktop_app).home_assistant_endpoint().origin();
-
   - id: cover_art_handle_touch
     mode: restart
     then:

@@ -1,4 +1,4 @@
-import { normalizeCoverArtDelay, normalizeHomeAssistantArtworkEndpointMode, normalizeHomeAssistantArtworkProtocol } from "../model/settings";
+import { normalizeCoverArtDelay } from "../model/settings";
 import type { EntityStateFeature } from "./entity_state";
 import type { ApplicationApiFeature } from "./api";
 export interface ArtworkPostApiFeature {
@@ -11,11 +11,6 @@ export interface ArtworkPostApiFeature {
     postCoverArtDelay(value?: any): any;
     coverArtTrackOverlayDurationPostUrls(value?: any): any;
     postCoverArtTrackOverlayDuration(value?: any): any;
-    homeAssistantArtworkPortPostUrls(value?: any): any;
-    postHomeAssistantArtworkPort(value?: any): any;
-    postHomeAssistantArtworkProtocol(value?: any): any;
-    postHomeAssistantArtworkHost(value?: any): any;
-    postHomeAssistantArtworkEndpointMode(value?: any): any;
 }
 
 export function createArtworkPostApiFeature(
@@ -53,21 +48,6 @@ export function createArtworkPostApiFeature(
     function postCoverArtTrackOverlayDuration(this: any, value?: any) {
         return post(coverArtTrackOverlayDurationPostUrls(value));
     }
-    function homeAssistantArtworkPortPostUrls(this: any, value?: any) {
-        return entityPostUrls("number", entityName("home_assistant_artwork_port"), entityObjectIds("home_assistant_artwork_port"), "set?value=" + encodeURIComponent(value));
-    }
-    function postHomeAssistantArtworkPort(this: any, value?: any) {
-        return post(homeAssistantArtworkPortPostUrls(value));
-    }
-    function postHomeAssistantArtworkProtocol(this: any, value?: any) {
-        return postSelectWithObjectIds(entityName("home_assistant_artwork_protocol"), entityObjectIds("home_assistant_artwork_protocol"), normalizeHomeAssistantArtworkProtocol(value));
-    }
-    function postHomeAssistantArtworkHost(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("home_assistant_artwork_host"), entityObjectIds("home_assistant_artwork_host"), String(value || "").trim().slice(0, 253));
-    }
-    function postHomeAssistantArtworkEndpointMode(this: any, value?: any) {
-        return postSelectWithObjectIds(entityName("home_assistant_artwork_endpoint_mode"), entityObjectIds("home_assistant_artwork_endpoint_mode"), normalizeHomeAssistantArtworkEndpointMode(value));
-    }
     return {
         postPresenceSensorEntity,
         postMediaPlayerSleepPrevention,
@@ -78,10 +58,5 @@ export function createArtworkPostApiFeature(
         postCoverArtDelay,
         coverArtTrackOverlayDurationPostUrls,
         postCoverArtTrackOverlayDuration,
-        homeAssistantArtworkPortPostUrls,
-        postHomeAssistantArtworkPort,
-        postHomeAssistantArtworkProtocol,
-        postHomeAssistantArtworkHost,
-        postHomeAssistantArtworkEndpointMode,
     };
 }

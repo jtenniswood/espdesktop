@@ -1,6 +1,5 @@
 #include "espdesktop_app.h"
 #include "device_reset.h"
-#include "esphome/components/artwork_image/transfer_observer.h"
 
 #include <array>
 #include <cinttypes>
@@ -316,20 +315,6 @@ void EspDesktopApp::apply_boot_configuration() {
 
 void EspDesktopApp::setup() {
   screensaver_pin().setup();
-  home_assistant_endpoint_.setup();
-  esphome::artwork_image::TransferObserver::instance().set(
-      [this](const std::string &origin) -> uint32_t {
-        return home_assistant_endpoint::parse_origin(origin) == home_assistant_endpoint_.origin()
-            ? home_assistant_endpoint_.generation() : 0;
-      },
-      [this](const esphome::artwork_image::TransferNotice &notice) {
-        using Failure = esphome::artwork_image::TransferFailure;
-        home_assistant_endpoint_.report_download(
-            home_assistant_endpoint::parse_origin(notice.request.origin),
-            notice.request.endpoint_generation, notice.status,
-            notice.failure == Failure::NONE, notice.failure == Failure::TRANSPORT);
-      });
-
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
@@ -575,7 +560,6 @@ void EspDesktopApp::loop() {
                unsigned(now - phase_started), unsigned(now));
     phase_started = now;
   };
-  home_assistant_endpoint_.loop();
   trace_phase("HA endpoint");
   core_.run_once();
   trace_phase("app core");
@@ -600,15 +584,7 @@ void EspDesktopApp::loop() {
   trace_phase("HTTP registration");
 }
 
-void EspDesktopApp::on_safe_shutdown() {
-  // ESPHome runs all safe-shutdown hooks before any on_shutdown hook. mDNS
-  // shuts down before this AFTER_WIFI component, freeing outstanding query
-  // handles, so release our discovery query while the service is still alive.
-  home_assistant_endpoint_.shutdown();
-}
-
 void EspDesktopApp::on_shutdown() {
-  esphome::artwork_image::TransferObserver::instance().set({}, {});
   cards::set_card_runtime_registry_service(nullptr);
   core_.stop();
 }

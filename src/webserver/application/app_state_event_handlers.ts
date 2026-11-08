@@ -13,9 +13,6 @@ import {
     normalizeClockBrightness,
     normalizeCoverArtDelay,
     normalizeHexColor,
-    normalizeHomeAssistantArtworkPort,
-    normalizeHomeAssistantArtworkProtocol,
-    normalizeHomeAssistantArtworkEndpointMode,
     normalizeHour,
     normalizeLanguage,
     normalizeNtpServer,
@@ -378,31 +375,6 @@ export function createAppStateEventHandlersFeature(
             },
             "number-screen_saver__track_overlay_duration": function (this: any, val?: any) {
                 state.coverArtTrackOverlayDuration = parseFloat(val) || 0;
-                syncCoverArtScreensaverUi();
-            },
-            "select-home_assistant_artwork_protocol": function (this: any, val?: any, d?: any) {
-                state.homeAssistantArtworkProtocol = normalizeHomeAssistantArtworkProtocol(d.value || val);
-                syncCoverArtScreensaverUi();
-            },
-            "number-home_assistant_artwork_port": function (this: any, val?: any) {
-                state.coverArtHomeAssistantPort = normalizeHomeAssistantArtworkPort(val);
-                syncCoverArtScreensaverUi();
-            },
-            "text-home_assistant_artwork_host": function (this: any, val?: any) {
-                state.homeAssistantArtworkHost = String(val || "").trim().slice(0, 253);
-                syncCoverArtScreensaverUi();
-            },
-            "select-home_assistant_artwork_endpoint_mode": function (this: any, val?: any, d?: any) {
-                state.homeAssistantArtworkEndpointMode = normalizeHomeAssistantArtworkEndpointMode(
-                    d.value || val, state.homeAssistantArtworkProtocol, state.coverArtHomeAssistantPort);
-                syncCoverArtScreensaverUi();
-            },
-            "text_sensor-home_assistant_artwork_endpoint_health": function (this: any, val?: any) {
-                state.homeAssistantArtworkEndpointHealth = String(val || "");
-                syncCoverArtScreensaverUi();
-            },
-            "text_sensor-home_assistant_artwork_endpoint_status": function (this: any, val?: any) {
-                state.homeAssistantArtworkEndpointStatus = String(val || "Discovering");
                 syncCoverArtScreensaverUi();
             },
             "text-screensaver_mode": function (this: any, val?: any) {

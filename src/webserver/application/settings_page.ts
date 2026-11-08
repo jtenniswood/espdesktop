@@ -637,13 +637,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         syncIdleUi(runtime);
         var idleCard: any = makeCollapsibleCard("Idle", idleBody, true, idleBadge);
         var systemSettingsCards: any = buildSystemSettingsCards();
-        function syncHomeAssistantSettingsVisibility() {
-            var hidden = !homeAssistantConnected();
-            systemSettingsCards.homeAssistantSettingsCard.hidden = hidden;
-            systemSettingsCards.homeAssistantSettingsCard.classList.toggle("sp-hidden", hidden);
-        }
-        onStatusChange(syncHomeAssistantSettingsVisibility);
-        syncHomeAssistantSettingsVisibility();
         const appSubpageBody = document.createElement("div");
         const autoOpenAppSubpages = toggleRow("Open app subpages on focus", "sp-set-auto-open-app-subpages", state.autoOpenAppSubpages);
         appSubpageBody.appendChild(autoOpenAppSubpages.row);
@@ -692,7 +685,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             systemSettingsCards.identityCard,
             systemSettingsCards.backupCard,
             systemSettingsCards.firmwareCard,
-            systemSettingsCards.homeAssistantSettingsCard,
             batteryStatusCard,
             systemSettingsCards.resetCard,
         ]);

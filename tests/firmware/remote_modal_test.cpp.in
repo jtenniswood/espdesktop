@@ -217,10 +217,6 @@ int main() {
     {"climate_control", "", "climate.office", ControlModalKind::CLIMATE},
     {"fan_control", "", "fan.office", ControlModalKind::FAN_CONTROL},
     {"fan_preset", "", "fan.office", ControlModalKind::FAN_PRESET},
-    {"media", "control_modal", "media_player.office", ControlModalKind::MEDIA_CONTROL},
-    {"media", "speaker_group", "media_player.office", ControlModalKind::MEDIA_CONTROL},
-    {"media", "cover_art", "media_player.office", ControlModalKind::MEDIA_CONTROL},
-    {"media", "volume", "media_player.office", ControlModalKind::MEDIA_VOLUME},
     {"alarm", "", "alarm_control_panel.office", ControlModalKind::ALARM_CONTROL},
     {"option_select", "", "select.office", ControlModalKind::OPTION_SELECT},
     {"wifi_qr", "", "switch.guest", ControlModalKind::WIFI_QR},
@@ -407,6 +403,14 @@ int main() {
   assert(active_subpage_slot == 3 && current_page == &other_page);
   locked = false;
   assert(espdesktop_close_subpage(&home) && active_subpage_slot == 0 && current_page == &home);
+  // Retired media modes cannot be prepared or opened, even with a live context.
+  for (const char *mode : {"control_modal", "speaker_group", "cover_art", "volume", "now_playing", "position", "playlist", "play_pause", "previous", "next"}) {
+    configs["retired_media"] = {"media_player.office", "media", mode, ""};
+    homes = {{1, 0, "Speaker", "retired_media", &one}}; pages.clear();
+    assert(!espdesktop_can_prepare_modal("media_player.office", true));
+    assert(!espdesktop_can_open_modal("media_player.office", true));
+    assert(!espdesktop_open_modal("media_player.office", true));
+  }
   configs["suspended_image"] = {"camera.front", "image", "", ""};
   first.active = false; pipeline_suspended = true;
   homes = {{1, 0, "Camera", "suspended_image", &one}}; pages.clear();

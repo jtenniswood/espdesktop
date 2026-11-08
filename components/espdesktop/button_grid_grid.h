@@ -68,7 +68,6 @@ struct GridConfig {
   esphome::artwork_image::ArtworkImage *image_card_modal_image = nullptr;
   int image_card_image_count = 0;
   bool image_card_diagnostics = false;
-  std::function<std::string()> home_assistant_base_url;
 };
 
 #include "button_grid_image.h"
@@ -280,13 +279,6 @@ inline SliderCtx *grid_track_media_slider_runtime(
     lv_obj_t *owner, SliderCtx *ctx);
 inline void grid_prepare_media_runtime_for_visual_reset(lv_obj_t *owner);
 inline void clear_media_cover_art(MediaNowPlayingCtx *ctx);
-inline void setup_media_cover_art(
-    BtnSlot &slot, const ParsedCfg &config, const GridConfig &grid_config);
-inline void refresh_media_card_layout(
-    BtnSlot &slot, const ParsedCfg &config, const GridConfig &grid_config,
-    int row_span, int col_span);
-inline void subscribe_media_cover_art(MediaNowPlayingCtx *ctx,
-                                      const std::string &entity_id);
 inline void refresh_slider_card_layout(BtnSlot &slot);
 inline bool bind_garage_status_card(
     BtnSlot &slot, const ParsedCfg &config,
@@ -484,164 +476,6 @@ inline void clear_media_cover_art(MediaNowPlayingCtx *ctx) {
   }
 }
 
-inline void setup_media_cover_art(BtnSlot &s, const ParsedCfg &p,
-                                  const GridConfig &cfg) {
-  if (!s.sensor_container) return;
-  MediaNowPlayingCtx *media_ctx =
-    static_cast<MediaNowPlayingCtx *>(lv_obj_get_user_data(s.sensor_container));
-  if (!media_ctx || !media_ctx->btn) return;
-  clear_media_cover_art(media_ctx);
-  if (!media_cover_art_enabled(p) || p.entity.empty()) return;
-  ImageCardCtx *art = acquire_image_card_context(cfg, p.entity);
-  if (!art) {
-    ESP_LOGW("media_card", "No image downloader available for media cover art: %s",
-             p.entity.c_str());
-    return;
-  }
-  const bool show_track_details = media_cover_art_details_enabled(p);
-  const bool image_only = card_runtime_media_mode(p.sensor) == "cover_art" &&
-                          !show_track_details;
-#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-  lv_obj_t *img = lv_image_create(media_ctx->btn);
-#else
-  lv_obj_t *img = lv_img_create(media_ctx->btn);
-#endif
-  lv_obj_add_flag(img, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(img, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_clear_flag(img, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_set_style_pad_all(img, 0, LV_PART_MAIN);
-  lv_obj_set_style_border_width(img, 0, LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(img, LV_OPA_TRANSP, LV_PART_MAIN);
-  image_card_apply_tile_image_align(img);
-
-  lv_obj_t *overlay = nullptr;
-  if (!image_only) {
-    overlay = lv_obj_create(media_ctx->btn);
-    lv_obj_remove_style_all(overlay);
-    lv_obj_clear_flag(overlay, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(overlay, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(overlay, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(overlay, LV_OPA_60, LV_PART_MAIN);
-    lv_obj_set_style_border_width(overlay, 0, LV_PART_MAIN);
-    lv_obj_add_flag(overlay, LV_OBJ_FLAG_HIDDEN);
-  }
-
-  art->widget = img;
-  art->btn = media_ctx->btn;
-  art->loading_widget = nullptr;
-  art->loading_label = nullptr;
-  art->icon_font = nullptr;
-  art->label_font = nullptr;
-  art->entity_id = p.entity;
-  art->base_url = cfg.home_assistant_base_url ? cfg.home_assistant_base_url() : "";
-  art->base_url_provider = cfg.home_assistant_base_url;
-  art->begin_display_takeover = cfg.begin_display_takeover;
-  art->end_display_takeover = cfg.end_display_takeover;
-  art->modal_fit = false;
-  art->media_artwork = true;
-  art->media_artwork_suppressed = espdesktop::cover_art::media_card_artwork_suppressed(
-    media_ctx->source_known, media_ctx->external_source);
-  art->media_artwork_refresh_forced = false;
-  art->media_overlay = overlay;
-  art->media_overlay_artwork_tint = show_track_details;
-  art->media_artwork_applied = [media_ctx]() {
-    media_cover_art_apply_theme(media_ctx, current_theme());
-    media_cover_art_refresh_geometry(media_ctx);
-  };
-  art->pending_fallback_picture.clear();
-  art->media_artwork_retry_mask = 0;
-  art->diagnostics_enabled = cfg.image_card_diagnostics;
-  art->retry_deadline_ms = esphome::millis() + IMAGE_CARD_STARTUP_RETRY_MS;
-  art->width_compensation_percent = cfg.width_compensation_percent;
-  art->media_artwork_width_compensation_percent = cfg.media_artwork_width_compensation_percent;
-  media_ctx->cover_art = art;
-  media_ctx->cover_overlay = overlay;
-  if (media_ctx->btn) {
-    lv_obj_set_user_data(media_ctx->btn, art);
-  }
-  if (art->image_ready) {
-    image_card_sync_media_artwork_visibility(art);
-  }
-  media_cover_art_apply_theme(media_ctx, current_theme());
-  media_cover_art_refresh_geometry(media_ctx);
-  image_card_log_diagnostics(art, "bind-media-artwork");
-}
-
-inline void subscribe_media_cover_art(MediaNowPlayingCtx *ctx,
-                                      const std::string &entity_id) {
-  if (!ctx || !ctx->cover_art || entity_id.empty()) return;
-  ImageCardCtx *art = ctx->cover_art;
-  MediaPlaybackState *playback = media_playback_find_state(entity_id);
-  const uint32_t generation = ha_subscription_generation();
-  ha_subscribe_attribute(
-    entity_id,
-    std::string("entity_picture"),
-    std::function<void(esphome::StringRef)>(
-      [art, playback, entity_id, generation](esphome::StringRef picture) {
-        bool clear_stale_artwork = false;
-        const std::string value = string_ref_limited(
-          picture, espdesktop::cover_art::MAX_ARTWORK_URL_LENGTH);
-        const bool present =
-          espdesktop::artwork::artwork_entity_picture_present(value);
-        if (media_playback_generation_valid(playback, generation)) {
-          media_playback_clear_stale_external_source(playback, present);
-          const bool current = espdesktop::cover_art::media_artwork_content_current(
-            playback->has_state, playback->available, playback->state_text, present);
-          if (current) playback->artwork_content_mask |= 1u;
-          else playback->artwork_content_mask &= static_cast<uint8_t>(~1u);
-          clear_stale_artwork = espdesktop::cover_art::media_card_artwork_should_clear(
-            playback->has_state, playback->available, playback->state_text,
-            media_playback_has_current_content(playback));
-          media_playback_apply_state_to_now_playing(playback);
-        }
-        if (!image_card_context_current(art, entity_id, generation)) return;
-        if (!present || clear_stale_artwork) {
-          image_card_clear_media_artwork(art);
-          return;
-        }
-        // Attribute subscriptions are independent. Ask the artwork coordinator
-        // to obtain a matching remote/local pair instead of downloading from
-        // this individual notification.
-        image_card_schedule_media_artwork_refresh(art);
-      }),
-    HA_SUBSCRIPTION_SCOPE_DEFAULT,
-    true
-  );
-  ha_subscribe_attribute(
-    entity_id,
-    std::string("entity_picture_local"),
-    std::function<void(esphome::StringRef)>(
-      [art, playback, entity_id, generation](esphome::StringRef picture) {
-        bool clear_stale_artwork = false;
-        if (media_playback_generation_valid(playback, generation)) {
-          const std::string value = string_ref_limited(
-            picture, espdesktop::cover_art::MAX_ARTWORK_URL_LENGTH);
-          const bool present =
-            espdesktop::artwork::artwork_entity_picture_present(value);
-          const bool current = espdesktop::cover_art::media_artwork_content_current(
-            playback->has_state, playback->available, playback->state_text, present);
-          if (current) playback->artwork_content_mask |= 2u;
-          else playback->artwork_content_mask &= static_cast<uint8_t>(~2u);
-          clear_stale_artwork = espdesktop::cover_art::media_card_artwork_should_clear(
-            playback->has_state, playback->available, playback->state_text,
-            media_playback_has_current_content(playback));
-          media_playback_apply_state_to_now_playing(playback);
-        }
-        if (!image_card_context_current(art, entity_id, generation)) return;
-        if (clear_stale_artwork) {
-          image_card_clear_media_artwork(art);
-          return;
-        }
-        // See the remote callback above: one notification starts one paired
-        // refresh, which prevents either attribute winning by arrival order.
-        image_card_schedule_media_artwork_refresh(art);
-      }),
-    HA_SUBSCRIPTION_SCOPE_DEFAULT,
-    true
-  );
-  subscribe_image_card_access_token(art, entity_id);
-  image_card_schedule_media_artwork_refresh(art);
-}
 
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,

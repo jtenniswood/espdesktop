@@ -34,7 +34,7 @@ function mediaPreviewFixtures(homeAssistantSupported = true) {
   ui.initializeAppState();
   const registry = { definitions: {}, register(type, definition) { this.definitions[type] = definition; } };
   ui.registerMediaCardTypes(registry, ui.createConfigMediaOptionsFeature({ disabledCardTypes: [] }),
-    ui.createConfigModalTabOptionsFeature({ document: {}, renderButtonSettings() {} }), "test", {
+    "test", {
     cardBadgeLabelHtml(helpers, label) { return '<span class="sp-btn-label">' + helpers.escHtml(label) + '</span>'; },
     cardLargeNumbersActiveForCardSize() { return false; }, cardSensorPreviewHtml() { return ""; },
   }, { infoPanel() {} }, { renderButtonSettings() {}, renderPreview() {} });

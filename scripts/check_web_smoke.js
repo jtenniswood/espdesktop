@@ -198,10 +198,6 @@ assert.deepStrictEqual(Array.from(hooks.coverArtTrackOverlayDurationPostUrls(15)
   "/number/screen_saver__show_track_overlay/set?value=15",
   "/number/Screen%20Saver%3A%20Show%20Track%20Overlay/set?value=15",
 ], "cover art track-overlay posts include all firmware object id aliases");
-assert.deepStrictEqual(Array.from(hooks.homeAssistantArtworkPortPostUrls(80)), [
-  "/number/home_assistant_artwork_port/set?value=80",
-  "/number/Home%20Assistant%20Artwork%20Port/set?value=80",
-], "Home Assistant artwork port posts include object id and entity name fallbacks");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "off"), true, "clock bar preview is visible when enabled");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "dim"), true, "clock bar preview stays visible for dimmed screen saver");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), true, "clock bar preview stays visible when clock screen saver is configured");

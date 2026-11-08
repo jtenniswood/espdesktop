@@ -492,11 +492,6 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append(f"            cfg.image_card_image_count = {image_card_count};")
     if device.get("image_card_diagnostics"):
         lines.append("            cfg.image_card_diagnostics = true;")
-    lines.append("            cfg.home_assistant_base_url = []() {")
-    lines.append("              std::string base = id(cover_art_home_assistant_base_url);")
-    lines.append("              while (!base.empty() && base.back() == '/') base.pop_back();")
-    lines.append("              return base;")
-    lines.append("            };")
     lines.append("            register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {")
     lines.append("              auto response = id(http_req).start(url, method, body, headers);")
     lines.append("              if (response == nullptr) {")

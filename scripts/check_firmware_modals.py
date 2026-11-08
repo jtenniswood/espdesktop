@@ -367,8 +367,7 @@ def firmware_subpage_modal_wiring_errors(root: Path) -> list[str]:
     else:
         body = media_driver_path.read_text(encoding="utf-8")
         if (
-            "create_media_control_context" not in body
-            or "subscribe_media_control_state(control);" not in body
+            "set_card_disabled_state(slot.btn, true)" not in body
         ):
             errors.append("components/espdesktop/button_grid_grid.h: keep media control cards wired on the home grid")
         if "media_driver_handle_main_click" not in body:
@@ -1252,8 +1251,7 @@ def expect_subpage_modal_wiring_errors(
             encoding="utf-8",
         )
         (path.parent / "button_grid_media_driver.h").write_text(
-            "MediaControlCtx *ctx = create_media_control_context();\n"
-            "subscribe_media_control_state(control);\n"
+            "set_card_disabled_state(slot.btn, true);\n"
             "inline bool media_driver_handle_main_click() { return true; }\n",
             encoding="utf-8",
         )

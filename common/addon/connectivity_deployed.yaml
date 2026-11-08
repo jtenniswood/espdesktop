@@ -11,7 +11,6 @@ wifi:
   on_connect:
     - script.execute: network_status_refresh
     - script.execute: ntp_servers_apply_after_network
-    - lambda: 'id(espdesktop_app).home_assistant_endpoint().request_discovery();'
     - script.stop: wifi_reconnect_flow
     - script.execute: setup_screen_dim_cancel
     - lambda: |-
@@ -21,9 +20,6 @@ wifi:
     - script.execute: navigate_after_api
   on_disconnect:
     - script.execute: network_status_refresh
-    - lambda: |-
-        id(cover_art_home_assistant_client_address).clear();
-        id(cover_art_resolve_home_assistant_base_url).execute();
     - if:
         condition:
           lambda: 'return !id(boot_grace_period);'

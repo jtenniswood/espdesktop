@@ -317,29 +317,6 @@ target_compile_options(media_metadata_policy_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(media_metadata_policy_test PRIVATE ../../components/espdesktop)
 add_test(NAME media_metadata_policy_test COMMAND media_metadata_policy_test)
 
-set(MEDIA_LIFECYCLE_PRODUCTION ${CMAKE_CURRENT_BINARY_DIR}/media_lifecycle_production.h)
-add_custom_command(
-  OUTPUT ${MEDIA_LIFECYCLE_PRODUCTION}
-  COMMAND ${Python3_EXECUTABLE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/generate_media_lifecycle_integration.py
-    --root ${CMAKE_CURRENT_SOURCE_DIR}/../..
-    --output ${MEDIA_LIFECYCLE_PRODUCTION}
-  DEPENDS
-    generate_media_lifecycle_integration.py
-    ../../components/espdesktop/button_grid_sliders.h
-    ../../components/espdesktop/button_grid_media.h
-    ../../components/espdesktop/button_grid_grid.h
-    ../../components/espdesktop/button_grid_media_driver.h
-  VERBATIM
-)
-add_executable(media_lifecycle_integration_test
-  media_lifecycle_integration_test.cpp ${MEDIA_LIFECYCLE_PRODUCTION})
-target_compile_features(media_lifecycle_integration_test PRIVATE cxx_std_17)
-target_compile_options(media_lifecycle_integration_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(media_lifecycle_integration_test PRIVATE
-  ${CMAKE_CURRENT_BINARY_DIR} ../../components/espdesktop)
-add_test(NAME media_lifecycle_integration_test COMMAND media_lifecycle_integration_test)
-
 add_executable(media_slider_lifecycle_test media_slider_lifecycle_test.cpp)
 target_compile_features(media_slider_lifecycle_test PRIVATE cxx_std_17)
 target_compile_options(media_slider_lifecycle_test PRIVATE -Wall -Wextra -Werror)
@@ -352,7 +329,7 @@ check_cxx_source_compiles("int main() { return 0; }" ESPDESKTOP_HAS_ADDRESS_SANI
 set(CMAKE_REQUIRED_FLAGS "${ESPDESKTOP_REQUIRED_FLAGS_SAVED}")
 set(CMAKE_REQUIRED_LINK_OPTIONS "${ESPDESKTOP_REQUIRED_LINK_OPTIONS_SAVED}")
 if(ESPDESKTOP_HAS_ADDRESS_SANITIZER)
-  foreach(target media_slider_lifecycle_test media_lifecycle_integration_test)
+  foreach(target media_slider_lifecycle_test)
     target_compile_options(${target} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
     target_link_options(${target} PRIVATE -fsanitize=address)
   endforeach()
@@ -490,11 +467,6 @@ target_compile_options(artwork_controller_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(artwork_controller_test PRIVATE ../../components/espdesktop)
 add_test(NAME artwork_controller_test COMMAND artwork_controller_test)
 
-add_executable(home_assistant_endpoint_policy_test home_assistant_endpoint_policy_test.cpp)
-target_compile_features(home_assistant_endpoint_policy_test PRIVATE cxx_std_17)
-target_compile_options(home_assistant_endpoint_policy_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(home_assistant_endpoint_policy_test PRIVATE ../../components/espdesktop)
-add_test(NAME home_assistant_endpoint_policy_test COMMAND home_assistant_endpoint_policy_test)
 
 # Compile the unchanged service implementation beside the build output so its
 # quoted artwork_image.h include resolves to the hardware-free test double.
@@ -752,22 +724,7 @@ add_test(NAME camera_refresh_runtime_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/camera_refresh_runtime_test.py)
 
 
-add_executable(home_assistant_endpoint_resolver_test
-  home_assistant_endpoint_resolver_test.cpp
-  ../../components/espdesktop/home_assistant_endpoint_resolver.cpp
-  ../../components/espdesktop/home_assistant_endpoint_probe.cpp)
-target_compile_features(home_assistant_endpoint_resolver_test PRIVATE cxx_std_17)
-target_compile_options(home_assistant_endpoint_resolver_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(home_assistant_endpoint_resolver_test PRIVATE endpoint_stubs ../../components/espdesktop)
-add_test(NAME home_assistant_endpoint_resolver_test COMMAND home_assistant_endpoint_resolver_test)
 
-add_executable(home_assistant_endpoint_probe_test
-  home_assistant_endpoint_probe_test.cpp ../../components/espdesktop/home_assistant_endpoint_probe.cpp)
-target_compile_features(home_assistant_endpoint_probe_test PRIVATE cxx_std_17)
-target_compile_options(home_assistant_endpoint_probe_test PRIVATE -Wall -Wextra -Werror)
-target_compile_definitions(home_assistant_endpoint_probe_test PRIVATE USE_ESP_IDF)
-target_include_directories(home_assistant_endpoint_probe_test PRIVATE endpoint_idf_stubs endpoint_stubs ../../components/espdesktop)
-add_test(NAME home_assistant_endpoint_probe_test COMMAND home_assistant_endpoint_probe_test)
 
 add_test(NAME owned_artwork_transfer_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/owned_artwork_transfer_test.py ${CMAKE_CXX_COMPILER})
@@ -867,8 +824,6 @@ add_test(NAME option_select_live_options_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/option_select_live_options_test.py)
 
-add_test(NAME discovery_shutdown_order_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/discovery_shutdown_order_test.py)
 add_executable(weather_wind_test weather_wind_test.cpp)
 target_compile_features(weather_wind_test PRIVATE cxx_std_17)
 target_compile_options(weather_wind_test PRIVATE -Wall -Wextra -Werror)
@@ -904,3 +859,6 @@ add_test(NAME retired_camera_migration_test COMMAND
 
 add_test(NAME retired_image_card_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_image_card_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME retired_media_card_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_media_card_test.py ${CMAKE_CXX_COMPILER})

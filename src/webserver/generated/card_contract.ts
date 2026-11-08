@@ -2643,7 +2643,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": false,
         "aliases": {
           "controls": "play_pause"
-        }
+        },
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "media_display",
@@ -2666,7 +2668,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "position"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "media_now_playing_controls",
@@ -2687,7 +2691,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "now_playing"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "cover_art_details",
@@ -2701,7 +2707,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "cover_art"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "cover_art_secondary_entity",
@@ -2715,7 +2723,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "cover_art"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "volume_max",
@@ -2738,7 +2748,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "volume"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "speaker_group_entity",
@@ -2756,7 +2768,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "speaker_group"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "power_entity",
@@ -2773,7 +2787,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "cover_art"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "media_tabs",
@@ -2798,7 +2814,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "cover_art"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "label_display",
@@ -2817,7 +2835,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "control_modal"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "number_display",
@@ -2836,7 +2856,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "control_modal"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "playlist_content_id",
@@ -2850,7 +2872,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "playlist"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "playlist_content_type",
@@ -2881,7 +2905,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "playlist"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "large_numbers",
@@ -2898,7 +2924,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "position"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       }
     ],
     "normalization": {
@@ -2981,7 +3009,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "type": "media",
       "precision": "",
       "options": ""
-    }
+    },
+    "hidden": true
   },
   "option_select": {
     "label": "Option Select",

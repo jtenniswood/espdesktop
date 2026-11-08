@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 45,
-    "entityNames": 125,
+    "entityNames": 119,
     "icons": 401,
     "structuralIcons": 37,
     "compatibilityFixtureGroups": 2
@@ -5009,7 +5009,9 @@
             "omitDefault": false,
             "aliases": {
               "controls": "play_pause"
-            }
+            },
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "media_display",
@@ -5032,7 +5034,9 @@
                   "position"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "media_now_playing_controls",
@@ -5053,7 +5057,9 @@
                 "operator": "equals",
                 "value": "now_playing"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "cover_art_details",
@@ -5067,7 +5073,9 @@
                 "operator": "equals",
                 "value": "cover_art"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "cover_art_secondary_entity",
@@ -5081,7 +5089,9 @@
                 "operator": "equals",
                 "value": "cover_art"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "volume_max",
@@ -5104,7 +5114,9 @@
                   "volume"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "speaker_group_entity",
@@ -5122,7 +5134,9 @@
                   "speaker_group"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "power_entity",
@@ -5139,7 +5153,9 @@
                   "cover_art"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "media_tabs",
@@ -5164,7 +5180,9 @@
                   "cover_art"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "label_display",
@@ -5183,7 +5201,9 @@
                 "operator": "equals",
                 "value": "control_modal"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "number_display",
@@ -5202,7 +5222,9 @@
                 "operator": "equals",
                 "value": "control_modal"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "playlist_content_id",
@@ -5216,7 +5238,9 @@
                 "operator": "equals",
                 "value": "playlist"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "playlist_content_type",
@@ -5247,7 +5271,9 @@
                 "operator": "equals",
                 "value": "playlist"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "large_numbers",
@@ -5264,7 +5290,9 @@
                   "position"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           }
         ],
         "normalization": {
@@ -5347,7 +5375,8 @@
           "type": "media",
           "precision": "",
           "options": ""
-        }
+        },
+        "hidden": true
       },
       "option_select": {
         "label": "Option Select",
@@ -7654,73 +7683,6 @@
           "hide_cover_art_on_external_input",
           "cover_art_hide_external_input",
           "screen_saver__hide_for_external_sources"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_endpoint_mode",
-        "domain": "select",
-        "name": "Home Assistant Artwork Connection",
-        "objectIds": [
-          "home_assistant_artwork_endpoint_mode"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_endpoint_status",
-        "domain": "text_sensor",
-        "name": "Home Assistant Artwork Endpoint",
-        "objectIds": [
-          "home_assistant_artwork_endpoint_status"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_endpoint_health",
-        "domain": "text_sensor",
-        "name": "Home Assistant Artwork Connection Health",
-        "objectIds": [
-          "home_assistant_artwork_endpoint_health"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_protocol",
-        "domain": "select",
-        "name": "Home Assistant Artwork Protocol",
-        "objectIds": [
-          "home_assistant_artwork_protocol",
-          "cover_art_home_assistant_artwork_protocol"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_port",
-        "domain": "number",
-        "name": "Home Assistant Artwork Port",
-        "objectIds": [
-          "home_assistant_artwork_port"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_host",
-        "domain": "text",
-        "name": "Home Assistant Artwork Host",
-        "objectIds": [
-          "home_assistant_artwork_host"
         ],
         "groups": [
           "settings"
