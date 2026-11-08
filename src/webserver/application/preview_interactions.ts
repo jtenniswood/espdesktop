@@ -218,9 +218,6 @@ export function createPreviewInteractionsFeature(
                 enterSubpage(-1);
             });
         }
-        els.specialPageRename?.addEventListener("click", () => {
-            if (!isConfigLocked() && state.editingSubpage === -1) renameSpecialPage();
-        });
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {

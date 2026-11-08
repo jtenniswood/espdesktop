@@ -8907,7 +8907,7 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
           assert.strictEqual(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), !clockOn,
             "returning home restores its own Clock Bar setting");
         }
-        await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+        await page.getByRole("button", { name: "Configure swipe-up page", exact: true }).click();
         await checkSubpage(compactTop);
       }
     }
