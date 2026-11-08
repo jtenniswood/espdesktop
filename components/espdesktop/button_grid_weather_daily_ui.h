@@ -192,84 +192,8 @@ inline void weather_daily_render_card(WeatherDailyCard *card) {
     lv_label_set_display_text(col.high, high.c_str());
   }
 }
-inline void weather_daily_card_clicked(lv_event_t *event);
-inline void weather_daily_card_resized(lv_event_t *event);
 inline void weather_daily_refresh_visuals() {
   for (auto *card : weather_daily_cards()) weather_daily_render_card(card);
   weather_daily_refresh_modal();
   if (!weather_daily_cards().empty()) notify_dashboard_content_changed();
-}
-inline WeatherDailyCard *weather_daily_card_for(lv_obj_t *owner) {
-  for (auto *card : weather_daily_cards()) if (card->owner == owner) return card;
-  return nullptr;
-}
-inline void weather_daily_card_clicked(lv_event_t *event) {
-  weather_daily_open_modal(weather_daily_card_for(static_cast<lv_obj_t *>(lv_event_get_target(event))));
-}
-inline void weather_daily_card_resized(lv_event_t *event) {
-  const auto code = lv_event_get_code(event);
-  if (code != LV_EVENT_SIZE_CHANGED && code != LV_EVENT_STYLE_CHANGED) return;
-  weather_daily_render_card(weather_daily_card_for(static_cast<lv_obj_t *>(lv_event_get_target(event))));
-}
-inline void weather_daily_cleanup(lv_obj_t *owner) {
-  if (auto *card = weather_daily_card_for(owner)) lv_obj_del(card->root);
-}
-inline void weather_daily_reset_cards() {
-  // Delete old home and subpage roots before any replacement source is allocated.
-  // Their delete callbacks release sources, modal ownership and resize handlers.
-  while (!weather_daily_cards().empty()) lv_obj_del(weather_daily_cards().back()->root);
-}
-inline void weather_daily_unavailable_slot(BtnSlot &slot) {
-  lv_label_set_display_text(slot.text_lbl, espdesktop_i18n(std::string("Forecast unavailable")).c_str());
-  lv_obj_clear_flag(slot.text_lbl, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_display_text(slot.icon_lbl, weather_icon_for_state("unavailable"));
-  lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
-}
-inline void weather_daily_setup(BtnSlot &slot, const ParsedCfg &config,
-                                const DisplayProfile &display) {
-  if (!espdesktop::weather::entity_id_safe(config.entity) || weather_daily_cards().size() >= 16) {
-    weather_daily_unavailable_slot(slot); return;
-  }
-  auto *source = weather_daily_acquire_source(config.entity);
-  if (!source) {
-    weather_daily_unavailable_slot(slot);
-    ESP_LOGW("weather_forecast", "Daily forecast source limit reached (8)"); return;
-  }
-  auto *card = new (std::nothrow) WeatherDailyCard;
-  if (!card) { weather_daily_release_source(source); weather_daily_unavailable_slot(slot); return; }
-  card->owner = slot.btn; card->source = source; card->caption = slot.text_lbl;
-  card->view = config.precision == "rainfall" ? WeatherForecastView::RAINFALL
-    : config.precision == "today" ? WeatherForecastView::TODAY
-    : config.precision == "tomorrow" || config.type == "weather_forecast"
-      ? WeatherForecastView::TOMORROW : WeatherForecastView::DAILY;
-  card->placeholder_icon = slot.icon_lbl;
-  card->font = lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN);
-  if (!card->font) card->font = LV_FONT_DEFAULT;
-  card->temperature_font = display_small_text_font(display, card->font);
-  card->icon_font = display_icon_font(display);
-  if (!card->icon_font) card->icon_font = card->font;
-  card->summary_font = display_media_title_font(display);
-  if (!card->summary_font) card->summary_font = card->font;
-  card->detail_font = card->font; // Match card labels; volume-label fonts are larger on some panels.
-  card->root = lv_obj_create(slot.btn);
-  if (!card->root) { weather_daily_release_source(source); delete card; weather_daily_unavailable_slot(slot); return; }
-  lv_obj_set_style_bg_opa(card->root, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(card->root, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(card->root, 0, LV_PART_MAIN);
-  lv_obj_clear_flag(card->root, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_clear_flag(card->root, LV_OBJ_FLAG_CLICKABLE);
-  weather_daily_cards().push_back(card);
-  lv_obj_add_event_cb(card->root, [](lv_event_t *event) {
-    auto *card = static_cast<WeatherDailyCard *>(lv_event_get_user_data(event));
-    if (weather_daily_modal().owner == card->owner) control_modal_force_close_active();
-    auto &cards = weather_daily_cards(); cards.erase(std::remove(cards.begin(), cards.end(), card), cards.end());
-    lv_obj_remove_event_cb(card->owner, weather_daily_card_clicked);
-    lv_obj_remove_event_cb(card->owner, weather_daily_card_resized);
-    weather_daily_release_source(card->source); delete card;
-    if (cards.empty()) std::vector<WeatherDailyCard *>().swap(cards);
-  }, LV_EVENT_DELETE, card);
-  // Register once per owner; subsequent configuration changes reuse this callback.
-  lv_obj_add_event_cb(slot.btn, weather_daily_card_resized, LV_EVENT_ALL, nullptr);
-  weather_daily_render_card(card);
 }

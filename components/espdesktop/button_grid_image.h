@@ -618,10 +618,6 @@ inline void image_card_hide(ImageCardCtx *ctx) {
 
 inline void image_card_apply_media_overlay_tint(ImageCardCtx *ctx);
 
-inline bool image_card_media_artwork_visible(const ImageCardCtx *ctx) {
-  return ctx && ctx->widget && !lv_obj_has_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
-}
-
 inline void image_card_sync_media_artwork_visibility(ImageCardCtx *ctx) {
   if (!ctx || !ctx->media_artwork || !ctx->widget) return;
   if (ctx->media_artwork_suppressed || !ctx->image_ready || !ctx->image) {
@@ -1337,56 +1333,6 @@ inline bool image_card_position_context_widget(ImageCardCtx *ctx,
   if (target_width) *target_width = width;
   if (target_height) *target_height = height;
   return true;
-}
-
-inline void image_card_apply_context_widget_geometry(ImageCardCtx *ctx) {
-  if (!ctx || !ctx->image) return;
-  lv_coord_t width = 0;
-  lv_coord_t height = 0;
-  if (!image_card_position_context_widget(ctx, &width, &height)) return;
-  const auto resize_mode = image_card_tile_resize_mode(ctx);
-  image_card_apply_tile_image_align(ctx->widget, resize_mode == esphome::artwork_image::ImageResizeMode::FIT);
-  lv_obj_t *loading = image_card_loading_widget(ctx->widget);
-  image_card_position_widget(ctx->btn, loading);
-  image_card_refresh_loading_layout(loading);
-  ctx->image->set_target_size(image_card_media_artwork_target_width(ctx, width), height);
-  ctx->image->set_fit_background_color(ctx->fit_background_color);
-  ctx->image->set_resize_mode(resize_mode);
-}
-
-inline void image_card_reset_resized_tile(ImageCardCtx *ctx) {
-  if (!ctx || !ctx->image) return;
-  image_card_clear_widget_source(ctx->widget);
-  ctx->image->release();
-  ctx->url.clear();
-  ctx->requested_once = false;
-  ctx->image_ready = false;
-  image_card_set_loading_state(ctx, "Loading", true);
-}
-
-inline void image_card_refresh_tile_geometry(ImageCardCtx *ctx) {
-  if (!ctx || !ctx->image) return;
-  int previous_width = ctx->image->get_fixed_width();
-  int previous_height = ctx->image->get_fixed_height();
-  const auto previous_mode = ctx->image->get_resize_mode();
-  const uint32_t previous_fit_background_color = ctx->image->get_fit_background_color();
-  image_card_apply_context_widget_geometry(ctx);
-  const int current_width = ctx->image->get_fixed_width();
-  const int current_height = ctx->image->get_fixed_height();
-  if (current_width <= 0 || current_height <= 0 ||
-      (current_width == previous_width && current_height == previous_height &&
-       previous_mode == ctx->image->get_resize_mode() &&
-       (ctx->image->get_resize_mode() != esphome::artwork_image::ImageResizeMode::FIT ||
-        previous_fit_background_color == ctx->fit_background_color)) ||
-      ctx->source_url.empty()) {
-    return;
-  }
-  if (image_card_modal_active_for(ctx)) {
-    image_card_schedule_source_refresh(ctx, IMAGE_CARD_MODAL_REFRESH_DELAY_MS, "resized tile");
-  } else {
-    image_card_reset_resized_tile(ctx);
-    image_card_schedule_source_refresh(ctx, 1, "resized tile");
-  }
 }
 
 inline bool image_card_apply_modal_geometry(ImageCardCtx *ctx,

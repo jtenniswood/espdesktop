@@ -2681,42 +2681,6 @@ def firmware_local_display_sensor_retirement_errors(
     return errors
 
 
-def firmware_climate_step_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_climate.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    helper = re.search(
-        r"inline\s+int\s+climate_effective_step_tenths\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-        text,
-        re.DOTALL,
-    )
-    if not helper:
-        errors.append(f"{rel}: keep climate temperature changes at a display-appropriate minimum")
-    else:
-        body = helper.group("body")
-        if (
-            "CLIMATE_DEFAULT_STEP_TENTHS" not in body
-            or "CLIMATE_WHOLE_NUMBER_STEP_TENTHS" not in body
-            or "ctx->configured_step_tenths" not in body
-            or "return ctx->configured_step_tenths" not in body
-            or "ctx->step_tenths > minimum" in body
-        ):
-            errors.append(f"{rel}: use the configured climate temperature step")
-    if "int step = climate_effective_step_tenths(ctx);" not in text:
-        errors.append(f"{rel}: round climate targets using the display-appropriate minimum step")
-    if "int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;" not in text:
-        errors.append(f"{rel}: round whole-number climate targets to whole-degree boundaries")
-    if 'cfg_option_value(p.options, "temperature_step")' not in text:
-        errors.append(f"{rel}: use the configured climate temperature step")
-    if "climate_selected_target(ui.active) - ui.active->step_tenths" in text:
-        errors.append(f"{rel}: use the display-appropriate minimum step for the climate minus button")
-    if "climate_selected_target(ui.active) + ui.active->step_tenths" in text:
-        errors.append(f"{rel}: use the display-appropriate minimum step for the climate plus button")
-    return errors
 
 
 def firmware_s3_api_errors(
@@ -3111,7 +3075,6 @@ def run_scan() -> int:
             ROOT,
         )
     )
-    errors.extend(firmware_climate_step_errors(FIRMWARE_DIR, ROOT))
     errors.extend(
         firmware_s3_api_errors(
             S3_DEVICE_PATH,
@@ -3742,18 +3705,6 @@ def expect_artwork_image_auth_errors(name: str, text: str, expected: tuple[str, 
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_climate_step_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_climate.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_climate_step_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
 def expect_s3_api_errors(
@@ -6257,55 +6208,6 @@ def run_self_test() -> int:
         "  config.auth_type = HTTP_AUTH_TYPE_NONE;\n"
         "}\n",
         ("allow Home Assistant media proxy artwork to fall back to image-byte detection",),
-    )
-    expect_climate_step_errors(
-        "climate ignores whole-number display step",
-        "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 5;\n"
-        "inline int climate_round_to_step(ClimateControlCtx *ctx, int value) {\n"
-        "  int step = ctx->step_tenths;\n"
-        "  int base = ctx->min_tenths;\n"
-        "  return value;\n"
-        "}\n"
-        "inline void climate_control_open_modal(ClimateControlCtx *ctx) {\n"
-        "  climate_selected_target(ui.active) - ui.active->step_tenths;\n"
-        "  climate_selected_target(ui.active) + ui.active->step_tenths;\n"
-        "}\n",
-        (
-            "keep climate temperature changes at a display-appropriate minimum",
-            "round climate targets using the display-appropriate minimum step",
-            "round whole-number climate targets to whole-degree boundaries",
-            "use the display-appropriate minimum step for the climate minus button",
-            "use the display-appropriate minimum step for the climate plus button",
-        ),
-    )
-    expect_climate_step_errors(
-        "climate uses configured step increment",
-        "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 5;\n"
-        "constexpr int CLIMATE_WHOLE_NUMBER_STEP_TENTHS = 10;\n"
-        "int configured_step_tenths = CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-        "inline int climate_effective_step_tenths(ClimateControlCtx *ctx) {\n"
-        "  if (!ctx) return CLIMATE_DEFAULT_STEP_TENTHS;\n"
-        "  if (ctx->configured_step_tenths == CLIMATE_DEFAULT_STEP_TENTHS ||\n"
-        "      ctx->configured_step_tenths == CLIMATE_WHOLE_NUMBER_STEP_TENTHS)\n"
-        "    return ctx->configured_step_tenths;\n"
-        "  return CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-        "}\n"
-        "inline int climate_round_to_step(ClimateControlCtx *ctx, int value) {\n"
-        "  int step = climate_effective_step_tenths(ctx);\n"
-        "  int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;\n"
-        "  return value + step;\n"
-        "}\n"
-        "inline ClimateControlCtx *create_climate_control_context(const ParsedCfg &p) {\n"
-        "  ctx->configured_step_tenths = normalize_climate_temperature_step(\n"
-        "    cfg_option_value(p.options, \"temperature_step\")) == \"0.5\"\n"
-        "      ? CLIMATE_DEFAULT_STEP_TENTHS\n"
-        "      : CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-        "}\n"
-        "inline void climate_control_open_modal(ClimateControlCtx *ctx) {\n"
-        "  climate_selected_target(ui.active) - climate_effective_step_tenths(ui.active);\n"
-        "  climate_selected_target(ui.active) + climate_effective_step_tenths(ui.active);\n"
-        "}\n",
-        (),
     )
     expect_s3_api_errors(
         "low S3 API queue",

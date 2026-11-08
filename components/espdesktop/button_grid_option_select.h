@@ -89,31 +89,6 @@ inline void option_select_apply_card_text(OptionSelectCtx *ctx) {
   }
 }
 
-inline void setup_option_select_card(BtnSlot &s, const ParsedCfg &p,
-                                     bool has_sensor_color, uint32_t sensor_val,
-                                     const lv_font_t *value_font = nullptr) {
-  if (has_sensor_color) {
-    lv_obj_set_style_bg_color(s.btn, lv_color_hex(sensor_val),
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
-  }
-  lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_set_width(s.sensor_container, lv_pct(100));
-  lv_label_set_long_mode(s.sensor_lbl, LV_LABEL_LONG_DOT);
-  lv_obj_set_width(s.sensor_lbl, lv_pct(100));
-  const lv_font_t *text_value_font = value_font
-    ? value_font
-    : s.text_lbl ? lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN) : nullptr;
-  if (text_value_font) lv_obj_set_style_text_font(s.sensor_lbl, text_value_font, LV_PART_MAIN);
-  lv_label_set_display_text(s.sensor_lbl, "--");
-  lv_label_set_display_text(s.unit_lbl, "");
-  std::string label = p.label.empty()
-    ? (p.entity.empty() ? espdesktop_i18n(std::string("Option")) : p.entity)
-    : p.label;
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  apply_push_button_transition(s.btn);
-}
-
 inline std::string option_select_trim(const std::string &value) {
   return trim_display_unit(value);
 }
@@ -369,28 +344,4 @@ inline void option_select_open_modal(OptionSelectCtx *ctx) {
   }
 
   lv_obj_move_foreground(ui.overlay);
-}
-
-inline OptionSelectCtx *create_option_select_context(
-    BtnSlot &s, const ParsedCfg &p,
-    uint32_t accent_color, uint32_t secondary_color, uint32_t tertiary_color,
-    int width_compensation_percent) {
-  OptionSelectCtx *ctx = new OptionSelectCtx();
-  ctx->entity_id = p.entity;
-  ctx->configured_label = p.label;
-  ctx->btn = s.btn;
-  ctx->icon_lbl = s.icon_lbl;
-  ctx->value_lbl = s.sensor_lbl;
-  ctx->unit_lbl = s.unit_lbl;
-  ctx->label_lbl = s.text_lbl;
-  ctx->accent_color = accent_color;
-  ctx->secondary_color = secondary_color;
-  ctx->tertiary_color = tertiary_color;
-  ctx->width_compensation_percent = width_compensation_percent;
-  ctx->value_font = s.sensor_lbl ? lv_obj_get_style_text_font(s.sensor_lbl, LV_PART_MAIN) : nullptr;
-  ctx->label_font = s.text_lbl ? lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN) : nullptr;
-  ctx->icon_font = s.icon_lbl ? lv_obj_get_style_text_font(s.icon_lbl, LV_PART_MAIN) : nullptr;
-  lv_obj_set_user_data(s.btn, ctx);
-  option_select_apply_card_text(ctx);
-  return ctx;
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "card_curve.h"
 #include "card_icon_layout.h"
 
@@ -236,64 +235,8 @@ inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr);
 template<typename T>
 inline T *grid_delete_with_owner(lv_obj_t *owner, T *ptr);
 
-inline AlarmActionCtx *grid_delete_alarm_action_with_owner(
-    lv_obj_t *owner, AlarmActionCtx *ctx);
-inline AlarmActionCtx *grid_track_alarm_action_runtime(
-    lv_obj_t *owner, AlarmActionCtx *ctx);
-inline AlarmCardCtx *grid_delete_alarm_card_with_owner(
-    lv_obj_t *owner, AlarmCardCtx *ctx);
-inline AlarmCardCtx *grid_track_alarm_card_runtime(
-    lv_obj_t *owner, AlarmCardCtx *ctx);
-inline FanCardCtx *grid_delete_fan_card_with_owner(
-    lv_obj_t *owner, FanCardCtx *ctx);
-inline FanCardCtx *grid_track_fan_card_runtime(
-    lv_obj_t *owner, FanCardCtx *ctx);
-inline ClimateControlCtx *grid_delete_climate_control_with_owner(
-    lv_obj_t *owner, ClimateControlCtx *ctx);
-inline ClimateControlCtx *grid_track_climate_control_runtime(
-    lv_obj_t *owner, ClimateControlCtx *ctx);
-inline CoverControlCtx *grid_delete_cover_control_with_owner(
-    lv_obj_t *owner, CoverControlCtx *ctx);
-inline CoverControlCtx *grid_track_cover_control_runtime(
-    lv_obj_t *owner, CoverControlCtx *ctx);
-inline MediaControlCtx *grid_delete_media_control_with_owner(
-    lv_obj_t *owner, MediaControlCtx *ctx);
-inline MediaControlCtx *grid_track_media_control_runtime(
-    lv_obj_t *owner, MediaControlCtx *ctx);
 inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner);
-inline MediaVolumeCtx *grid_delete_media_volume_with_owner(
-    lv_obj_t *owner, MediaVolumeCtx *ctx);
-inline MediaVolumeCtx *grid_track_media_volume_runtime(
-    lv_obj_t *owner, MediaVolumeCtx *ctx);
-inline MediaPlaylistCtx *grid_delete_media_playlist_with_owner(
-    lv_obj_t *owner, MediaPlaylistCtx *ctx);
-inline MediaPlaylistCtx *grid_track_media_playlist_runtime(
-    lv_obj_t *owner, MediaPlaylistCtx *ctx);
-inline MediaNowPlayingCtx *grid_delete_media_now_playing_with_owner(
-    lv_obj_t *owner, MediaNowPlayingCtx *ctx);
-inline MediaNowPlayingCtx *grid_track_media_now_playing_runtime(
-    lv_obj_t *owner, MediaNowPlayingCtx *ctx);
-inline SliderCtx *grid_delete_media_slider_with_owner(
-    lv_obj_t *owner, SliderCtx *ctx);
-inline SliderCtx *grid_track_media_slider_runtime(
-    lv_obj_t *owner, SliderCtx *ctx);
-inline void grid_prepare_media_runtime_for_visual_reset(lv_obj_t *owner);
-inline void clear_media_cover_art(MediaNowPlayingCtx *ctx);
 inline void refresh_slider_card_layout(BtnSlot &slot);
-inline bool bind_garage_status_card(
-    BtnSlot &slot, const ParsedCfg &config,
-    TransientStatusLabel **status_label_out);
-inline bool bind_gate_status_card(
-    BtnSlot &slot, const ParsedCfg &config,
-    TransientStatusLabel **status_label_out);
-inline LockCardCtx *bind_lock_status_card(
-    BtnSlot &slot, const ParsedCfg &config,
-    TransientStatusLabel **status_label_out);
-inline TransientStatusLabel *grid_track_transient_status_label_runtime(
-    lv_obj_t *owner, TransientStatusLabel *ctx);
-inline TransientStatusLabel *grid_delete_transient_status_label_with_owner(
-    lv_obj_t *owner, TransientStatusLabel *ctx);
-
 
 inline lv_coord_t large_sensor_unit_offset_px(const lv_font_t *large_font, int percent) {
   if (!large_font || large_font->line_height <= 0) return 0;
@@ -340,7 +283,6 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
   if (s.sensor_container) lv_obj_align(s.sensor_container, align, 0, 0);
 }
 
-inline void grid_prepare_timer_visual_reset(lv_obj_t *owner);
 #include "button_grid_date_time_driver.h"
 #include "button_grid_sensor_driver.h"
 #include "button_grid_basic_action_driver.h"
@@ -424,47 +366,6 @@ inline bool info_only_hidden_card_type(const espdesktop::cards::Context &context
   return !card_runtime_information_only(context);
 }
 
-inline void media_cover_art_refresh_geometry(MediaNowPlayingCtx *ctx) {
-  if (!ctx || !ctx->cover_art) return;
-  image_card_refresh_tile_geometry(ctx->cover_art);
-  if (ctx->cover_overlay) image_card_position_widget(ctx->cover_art->btn, ctx->cover_overlay);
-  if (ctx->cover_art->widget) lv_obj_move_background(ctx->cover_art->widget);
-  if (ctx->cover_overlay) lv_obj_move_foreground(ctx->cover_overlay);
-  if (ctx->progress_slider) lv_obj_move_foreground(ctx->progress_slider);
-  if (ctx->title_lbl) lv_obj_move_foreground(ctx->title_lbl);
-  if (ctx->artist_lbl) lv_obj_move_foreground(ctx->artist_lbl);
-}
-
-inline void clear_media_cover_art(MediaNowPlayingCtx *ctx) {
-  if (!ctx) return;
-  if (ctx->cover_art) {
-    lv_obj_t *widget = ctx->cover_art->widget;
-    // Teardown must not restyle labels that are being removed with the owner.
-    ctx->cover_art->media_artwork_applied = nullptr;
-    image_card_clear_media_artwork(ctx->cover_art);
-    ctx->cover_art->active = false;
-    ctx->cover_art->widget = nullptr;
-    ctx->cover_art->btn = nullptr;
-    ctx->cover_art->entity_id.clear();
-    ctx->cover_art->base_url.clear();
-    ctx->cover_art->base_url_provider = nullptr;
-    ctx->cover_art->begin_display_takeover = nullptr;
-    ctx->cover_art->end_display_takeover = nullptr;
-    ctx->cover_art->diagnostics_enabled = false;
-    ctx->cover_art->media_artwork = false;
-    ctx->cover_art->media_artwork_suppressed = false;
-    ctx->cover_art->media_overlay = nullptr;
-    ctx->cover_art->media_overlay_artwork_tint = false;
-    if (widget) lv_obj_del(widget);
-    ctx->cover_art = nullptr;
-  }
-  if (ctx->cover_overlay) {
-    lv_obj_del(ctx->cover_overlay);
-    ctx->cover_overlay = nullptr;
-  }
-}
-
-
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,
                               const GridConfig &cfg,
@@ -474,7 +375,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const CardPalette palette = card_palette_for_config(default_palette, p, display);
   const auto family = context.family;
-  grid_prepare_timer_visual_reset(s.btn);
   espdesktop::cards::date_time_driver_cleanup(s, p, context);
   espdesktop::cards::sensor_driver_cleanup(s, p, context);
   espdesktop::cards::basic_action_driver_cleanup(s, p, context);
@@ -512,7 +412,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     return;
   }
-
 
   if (retired_home_assistant_card(p)) {
     setup_toggle_visual(s, p);
@@ -585,191 +484,7 @@ inline bool bind_basic_sensor_card(
   return false;
 }
 
-inline bool bind_garage_status_card(BtnSlot &s, const ParsedCfg &p,
-                                    TransientStatusLabel **status_label_out = nullptr) {
-  if (p.type != "garage" || p.entity.empty()) {
-    return false;
-  }
-  bool show_status = garage_card_show_status(p);
-  std::string fallback_label = p.label.empty() ? espdesktop_i18n(std::string("Garage Door")) : p.label;
-  TransientStatusLabel *status_label = create_transient_status_label(
-    s.text_lbl, show_status ? "--" : fallback_label);
-  if (status_label_out != nullptr) *status_label_out = status_label;
-  subscribe_garage_state(s.btn, s.icon_lbl, status_label,
-    garage_closed_icon(p.icon), garage_open_icon(p.icon_on), p.entity, show_status);
-  if (!show_status && p.label.empty())
-    subscribe_friendly_name(status_label, p.entity);
-  return true;
-}
-
-inline bool bind_gate_status_card(BtnSlot &s, const ParsedCfg &p,
-                                  TransientStatusLabel **status_label_out = nullptr) {
-  if (p.type != "gate" || p.entity.empty()) {
-    return false;
-  }
-  bool show_status = gate_card_show_status(p);
-  std::string fallback_label = p.label.empty() ? espdesktop_i18n(std::string("Gate")) : p.label;
-  TransientStatusLabel *status_label = create_transient_status_label(
-    s.text_lbl, show_status ? "--" : fallback_label);
-  if (status_label_out != nullptr) *status_label_out = status_label;
-  subscribe_gate_state(s.btn, s.icon_lbl, status_label,
-    gate_closed_icon(p.icon), gate_open_icon(p.icon_on), p.entity, show_status);
-  if (!show_status && p.label.empty())
-    subscribe_friendly_name(status_label, p.entity);
-  return true;
-}
-
-inline LockCardCtx *bind_lock_status_card(BtnSlot &s, const ParsedCfg &p,
-                                          TransientStatusLabel **status_label_out = nullptr) {
-  if (p.type != "lock" || p.entity.empty() || lock_command_mode(p.sensor)) {
-    return nullptr;
-  }
-  LockCardCtx *ctx = new LockCardCtx();
-  ctx->entity_id = p.entity;
-  lv_obj_set_user_data(s.btn, ctx);
-  std::string fallback_label = p.label.empty() ? espdesktop_i18n(std::string("Lock")) : p.label;
-  TransientStatusLabel *status_label = create_transient_status_label(
-    s.text_lbl, fallback_label);
-  if (status_label_out != nullptr) *status_label_out = status_label;
-  subscribe_lock_state(s.btn, s.icon_lbl, status_label,
-    lock_locked_icon(p.icon), lock_unlocked_icon(p.icon_on), ctx);
-  if (p.label.empty())
-    subscribe_friendly_name(status_label, p.entity);
-  return ctx;
-}
-
 inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner);
-
-inline void refresh_media_card_layout(BtnSlot &s, const ParsedCfg &p,
-                                      const GridConfig &cfg,
-                                      int row_span = 1,
-                                      int col_span = 1) {
-  const DisplayProfile display = display_profile_from_grid_config(cfg);
-  std::string mode = media_card_mode(p.sensor);
-  if (mode == "cover_art") {
-    MediaNowPlayingCtx *ctx = (MediaNowPlayingCtx *)lv_obj_get_user_data(s.sensor_container);
-    if (!ctx) return;
-    if (s.icon_lbl) lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-    if (s.text_lbl) {
-      lv_label_set_display_text(s.text_lbl, "");
-      lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
-    }
-    if (ctx->title_lbl && ctx->artist_lbl) {
-      const CardPadding padding = ctx->progress_slider ? ctx->content_padding : CardPadding{};
-      const bool large = media_cover_art_uses_screensaver_fonts(row_span, col_span);
-      const bool compact_large = media_cover_art_uses_compact_large_fonts(row_span, col_span);
-      const bool compact_portrait =
-        compact_large &&
-        display.modal.layout_family == DisplayModalLayoutFamily::COMPACT_PORTRAIT;
-      const lv_font_t *label_font = s.text_lbl
-        ? lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN)
-        : nullptr;
-      const lv_font_t *title_font = compact_portrait
-        ? display_media_control_title_font(display)
-        : compact_large
-        ? display_media_cover_art_artist_font(display, display_media_title_font(display))
-        : large
-        ? display_media_cover_art_title_font(display)
-        : display_media_title_font(display);
-      const lv_font_t *artist_font = compact_portrait
-        ? display_media_control_artist_font(display, label_font)
-        : compact_large
-        ? label_font
-        : large
-        ? display_media_cover_art_artist_font(display)
-        : label_font;
-      if (artist_font) {
-        lv_obj_set_style_text_font(ctx->artist_lbl, artist_font, LV_PART_MAIN);
-      }
-      ctx->artist_below_title = large;
-      ctx->artist_gap = media_cover_art_artist_gap(
-        ctx->content_padding.top, row_span, col_span);
-      if (ctx->show_track_details || ctx->external_source_fallback) {
-        lv_obj_clear_flag(ctx->title_lbl, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(ctx->artist_lbl, LV_OBJ_FLAG_HIDDEN);
-      } else {
-        lv_obj_add_flag(ctx->title_lbl, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(ctx->artist_lbl, LV_OBJ_FLAG_HIDDEN);
-      }
-      display_apply_text_width(ctx->title_lbl, display);
-      display_apply_text_width(ctx->artist_lbl, display);
-      setup_media_now_playing_layout(
-        s.btn, s.icon_lbl, ctx->title_lbl, ctx->artist_lbl,
-        title_font, padding,
-        media_cover_art_title_line_limit(row_span, col_span),
-        true, 0, false);
-      media_position_now_playing_artist(ctx);
-    }
-    media_cover_art_refresh_geometry(ctx);
-    return;
-  }
-
-  if (mode == "now_playing") {
-    MediaNowPlayingCtx *ctx = (MediaNowPlayingCtx *)lv_obj_get_user_data(s.sensor_container);
-    if (!ctx) return;
-    const CardPadding padding = ctx->progress_slider ? ctx->content_padding : CardPadding{};
-    if (ctx->title_lbl) display_apply_text_width(ctx->title_lbl, display);
-    if (ctx->artist_lbl) display_apply_text_width(ctx->artist_lbl, display);
-    setup_media_now_playing_layout(
-      s.btn, s.icon_lbl, ctx->title_lbl, ctx->artist_lbl,
-      display_media_title_font(display), padding,
-      row_span == 1 ? 2 : 0, ctx->play_pause_background,
-      ctx->progress_slider ? padding.left : 0, false);
-    media_cover_art_refresh_geometry(ctx);
-    if (ctx->progress_slider) slider_refresh_geometry(ctx->progress_slider);
-    return;
-  }
-
-  if (mode == "position") {
-    lv_obj_t *slider = (lv_obj_t *)lv_obj_get_user_data(s.sensor_container);
-    SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
-    const lv_coord_t position_left = ctx && ctx->content_pad_left > 0
-      ? ctx->content_pad_left
-      : lv_obj_get_style_pad_left(s.btn, LV_PART_MAIN);
-    const lv_coord_t position_top = ctx && ctx->content_pad_top > 0
-      ? ctx->content_pad_top
-      : lv_obj_get_style_pad_top(s.btn, LV_PART_MAIN);
-    const lv_coord_t position_bottom = ctx && ctx->content_pad_bottom > 0
-      ? ctx->content_pad_bottom
-      : lv_obj_get_style_pad_bottom(s.btn, LV_PART_MAIN);
-    if (ctx && ctx->media_value_lbl) {
-      display_apply_text_width(ctx->media_value_lbl, display);
-      lv_obj_align(ctx->media_value_lbl, LV_ALIGN_TOP_LEFT, position_left, position_top);
-      lv_obj_move_foreground(ctx->media_value_lbl);
-    }
-    if (s.text_lbl) {
-      lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, position_left, -position_bottom);
-      configure_button_label_wrap(s.text_lbl);
-      lv_obj_move_foreground(s.text_lbl);
-    }
-    if (slider) slider_refresh_geometry(slider);
-    if (ctx) {
-      media_apply_position(ctx);
-      media_schedule_position_refresh(ctx);
-    }
-    return;
-  }
-
-  if (media_playback_button_mode(mode)) {
-    if (s.icon_lbl) lv_obj_align(s.icon_lbl, LV_ALIGN_TOP_LEFT, 0, 0);
-    if (s.text_lbl) lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, 0, 0);
-    return;
-  }
-  if (mode == "control_modal") {
-    MediaControlCtx *ctx = grid_media_control_runtime_for_owner(s.btn);
-    setup_media_control_button(
-      s.btn, s.icon_lbl, s.sensor_container, s.sensor_lbl, s.unit_lbl, s.text_lbl, p);
-    if (s.btn) lv_obj_set_user_data(s.btn, ctx);
-    if (ctx) media_control_refresh_parent_card(ctx);
-    return;
-  }
-  if (mode == "volume") return;
-
-  lv_obj_t *slider = (lv_obj_t *)lv_obj_get_user_data(s.sensor_container);
-  if (slider) {
-    refresh_slider_card_layout(s);
-  }
-}
 
 inline void refresh_slider_card_layout(BtnSlot &s) {
   lv_obj_t *slider = (lv_obj_t *)lv_obj_get_user_data(s.sensor_container);
@@ -824,7 +539,6 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
 
   if (espdesktop::cards::numeric_selectable_driver_refresh_layout(
         s, p, context)) return;
-
 
   espdesktop::cards::wifi_qr_driver_refresh_layout(s, p, context, row_span, col_span);
 }
@@ -1191,61 +905,6 @@ inline T *grid_delete_with_owner(lv_obj_t *owner, T *ptr) {
   return ptr;
 }
 
-inline void grid_delete_alarm_card_runtime_ptr(void *ptr);
-inline void grid_delete_transient_status_label(TransientStatusLabel *ctx);
-
-inline TransientStatusLabel *grid_delete_transient_status_label_with_owner(
-    lv_obj_t *owner, TransientStatusLabel *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
-      grid_delete_transient_status_label(
-        static_cast<TransientStatusLabel *>(
-          lv_event_get_user_data(event)));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline AlarmActionCtx *grid_delete_alarm_action_with_owner(lv_obj_t *owner,
-                                                           AlarmActionCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *e) {
-      AlarmActionCtx *action = static_cast<AlarmActionCtx *>(lv_event_get_user_data(e));
-      if (action != nullptr) {
-        grid_delete_alarm_card_runtime_ptr(action->card);
-        delete action;
-      }
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline FanCardCtx *grid_delete_fan_card_with_owner(lv_obj_t *owner,
-                                                   FanCardCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *e) {
-      FanCardCtx *fan = static_cast<FanCardCtx *>(lv_event_get_user_data(e));
-      if (fan != nullptr) {
-        fan_close_modals_for_context(fan);
-        grid_delete_transient_status_label(fan->status_label);
-        fan->status_label = nullptr;
-        delete fan;
-      }
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline AlarmCardCtx *grid_delete_alarm_card_with_owner(lv_obj_t *owner,
-                                                       AlarmCardCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *e) {
-      grid_delete_alarm_card_runtime_ptr(lv_event_get_user_data(e));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
 struct GridRuntimeAllocation {
   lv_obj_t *owner = nullptr;
   void *ptr = nullptr;
@@ -1410,143 +1069,8 @@ inline void companion_process_pending_app_icon_refresh() {
 }
 #endif
 
-inline void grid_prepare_timer_visual_reset(lv_obj_t *owner) {
-  for (const auto &allocation : grid_runtime_allocations()) {
-    if (allocation.owner == owner &&
-        allocation.deleter == grid_delete_runtime_ptr<TimerCardCtx>) {
-      auto *timer = static_cast<TimerCardCtx *>(allocation.ptr);
-      if (lv_obj_get_user_data(owner) == timer) lv_obj_set_user_data(owner, nullptr);
-      timer->detach();
-    }
-  }
-}
-
-inline void grid_delete_transient_status_label(TransientStatusLabel *ctx) {
-  if (ctx != nullptr) {
-    if (ctx->revert_timer != nullptr) {
-      lv_timer_del(ctx->revert_timer);
-      ctx->revert_timer = nullptr;
-    }
-    delete ctx;
-  }
-}
-
-inline void grid_delete_transient_status_label_runtime_ptr(void *ptr) {
-  grid_delete_transient_status_label(static_cast<TransientStatusLabel *>(ptr));
-}
-
-inline void grid_delete_alarm_card_runtime_ptr(void *ptr) {
-  AlarmCardCtx *ctx = static_cast<AlarmCardCtx *>(ptr);
-  if (ctx != nullptr) {
-    AlarmControlModalUi &control_ui = alarm_control_modal_ui();
-    if (control_ui.active == ctx) alarm_control_hide_modal();
-    AlarmPinModalUi &pin_ui = alarm_pin_modal_ui();
-    if (pin_ui.active != nullptr && pin_ui.active->card == ctx) {
-      alarm_pin_hide_modal();
-    }
-    AlarmDeferredAction &deferred = alarm_deferred_action();
-    if (deferred.action.card == ctx) {
-      if (deferred.timer != nullptr) {
-        lv_timer_del(deferred.timer);
-        deferred.timer = nullptr;
-      }
-      deferred.action = AlarmActionCtx();
-      deferred.code.clear();
-      deferred.submit_pin = false;
-    }
-    alarm_release_arming_takeover(ctx);
-    if (ctx->arm_delay_timer != nullptr) {
-      lv_timer_del(ctx->arm_delay_timer);
-      ctx->arm_delay_timer = nullptr;
-    }
-    if (ctx->pending_action_timer != nullptr) {
-      lv_timer_del(ctx->pending_action_timer);
-      ctx->pending_action_timer = nullptr;
-    }
-    grid_delete_transient_status_label(ctx->status_label);
-    ctx->status_label = nullptr;
-    ctx->magic = 0;
-    delete ctx;
-  }
-}
-
-inline void grid_delete_alarm_action_runtime_ptr(void *ptr) {
-  AlarmActionCtx *action = static_cast<AlarmActionCtx *>(ptr);
-  if (action != nullptr) {
-    grid_delete_alarm_card_runtime_ptr(action->card);
-    delete action;
-  }
-}
-
-inline void grid_delete_fan_card_runtime_ptr(void *ptr) {
-  FanCardCtx *ctx = static_cast<FanCardCtx *>(ptr);
-  if (ctx != nullptr) {
-    fan_close_modals_for_context(ctx);
-    grid_delete_transient_status_label(ctx->status_label);
-    ctx->status_label = nullptr;
-    delete ctx;
-  }
-}
-
-inline void grid_delete_climate_control_runtime_ptr(void *ptr) {
-  delete_climate_control_context(static_cast<ClimateControlCtx *>(ptr));
-}
-
-inline void grid_delete_cover_control_runtime_ptr(void *ptr) {
-  delete_cover_control_context(static_cast<CoverControlCtx *>(ptr));
-}
-
 inline void grid_delete_media_control_runtime_ptr(void *ptr) {
   delete_media_control_context(static_cast<MediaControlCtx *>(ptr));
-}
-
-inline void grid_delete_media_volume_runtime_ptr(void *ptr) {
-  delete_media_volume_context(static_cast<MediaVolumeCtx *>(ptr));
-}
-
-inline void grid_delete_media_playlist_runtime_ptr(void *ptr) {
-  delete_media_playlist_context(static_cast<MediaPlaylistCtx *>(ptr));
-}
-
-inline void grid_delete_media_now_playing_runtime_ptr(void *ptr) {
-  MediaNowPlayingCtx *ctx = static_cast<MediaNowPlayingCtx *>(ptr);
-  delete_media_now_playing_context(ctx);
-}
-
-inline void grid_delete_media_slider_runtime_ptr(void *ptr) {
-  delete_media_slider_context(static_cast<SliderCtx *>(ptr));
-}
-
-inline void grid_prepare_media_runtime_for_visual_reset(lv_obj_t *owner) {
-  if (!owner) return;
-  media_playback_detach_button(owner);
-  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
-    if (allocation.owner != owner || !allocation.ptr) continue;
-    if (allocation.deleter == grid_delete_media_control_runtime_ptr) {
-      MediaControlCtx *ctx = static_cast<MediaControlCtx *>(allocation.ptr);
-      if (media_control_modal_ui().active == ctx) media_control_hide_modal();
-      media_playback_detach_control(ctx);
-    } else if (allocation.deleter == grid_delete_media_volume_runtime_ptr) {
-      MediaVolumeCtx *ctx = static_cast<MediaVolumeCtx *>(allocation.ptr);
-      if (media_volume_modal_ui().active == ctx) media_volume_hide_modal();
-      media_playback_detach_volume(ctx);
-    } else if (allocation.deleter == grid_delete_media_playlist_runtime_ptr) {
-      media_playback_detach_playlist(
-        static_cast<MediaPlaylistCtx *>(allocation.ptr));
-    } else if (allocation.deleter == grid_delete_media_now_playing_runtime_ptr) {
-      MediaNowPlayingCtx *ctx = static_cast<MediaNowPlayingCtx *>(allocation.ptr);
-      clear_media_cover_art(ctx);
-      media_playback_detach_now_playing(ctx);
-      ctx->title_lbl = nullptr;
-      ctx->artist_lbl = nullptr;
-      ctx->progress_slider = nullptr;
-      ctx->btn = nullptr;
-    } else if (allocation.deleter == grid_delete_media_slider_runtime_ptr) {
-      SliderCtx *ctx = static_cast<SliderCtx *>(allocation.ptr);
-      media_playback_detach_slider(ctx);
-      slider_detach_runtime(ctx);
-    }
-  }
 }
 
 inline void grid_release_runtime_allocations(
@@ -1564,7 +1088,7 @@ inline void grid_release_runtime_allocations(
       // Phase 2 can rerun without Phase 1 when a restored display setting
       // schedules a layout refresh. Keep contexts that are still owned by the
       // persistent Phase 1 widgets; deleting them here leaves LVGL user_data
-      // pointing at freed memory before the media driver rebinds subscriptions.
+      // pointing at freed memory when card rendering resumes.
       if (allocation.ptr == preserve_primary ||
           allocation.ptr == preserve_secondary ||
           allocation.ptr == preserve_tertiary) {
@@ -1588,10 +1112,8 @@ inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;
   ha_release_callbacks_for_owner(entry.screen);
   screen_lock_unregister_tree(entry.screen);
-  grid_prepare_media_runtime_for_visual_reset(entry.back_button);
   grid_release_runtime_allocations(entry.back_button);
   for (const auto &card : entry.cards) {
-    grid_prepare_media_runtime_for_visual_reset(card.button);
     grid_release_runtime_allocations(card.button);
   }
 }
@@ -1608,82 +1130,6 @@ inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr) {
   return ptr;
 }
 
-inline AlarmActionCtx *grid_track_alarm_action_runtime(lv_obj_t *owner,
-                                                       AlarmActionCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner,
-      ctx,
-      grid_delete_alarm_action_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline MediaControlCtx *grid_track_media_control_runtime(lv_obj_t *owner,
-                                                         MediaControlCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner,
-      ctx,
-      grid_delete_media_control_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline MediaVolumeCtx *grid_track_media_volume_runtime(
-    lv_obj_t *owner, MediaVolumeCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner, ctx, grid_delete_media_volume_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline MediaPlaylistCtx *grid_track_media_playlist_runtime(
-    lv_obj_t *owner, MediaPlaylistCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner, ctx, grid_delete_media_playlist_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline MediaNowPlayingCtx *grid_track_media_now_playing_runtime(
-    lv_obj_t *owner, MediaNowPlayingCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
-      if (allocation.owner == owner && allocation.ptr == ctx &&
-          allocation.deleter == grid_delete_media_now_playing_runtime_ptr) {
-        return ctx;
-      }
-    }
-    grid_runtime_allocations().push_back({
-      owner, ctx, grid_delete_media_now_playing_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline SliderCtx *grid_track_media_slider_runtime(
-    lv_obj_t *owner, SliderCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
-      if (allocation.owner == owner && allocation.ptr == ctx &&
-          allocation.deleter == grid_delete_media_slider_runtime_ptr) {
-        return ctx;
-      }
-    }
-    grid_runtime_allocations().push_back({
-      owner, ctx, grid_delete_media_slider_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
 inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner) {
   if (owner == nullptr) return nullptr;
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
@@ -1695,159 +1141,17 @@ inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner) {
   return nullptr;
 }
 
-inline MediaControlCtx *grid_delete_media_control_with_owner(lv_obj_t *owner,
-                                                             MediaControlCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *e) {
-      delete_media_control_context(static_cast<MediaControlCtx *>(lv_event_get_user_data(e)));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline MediaVolumeCtx *grid_delete_media_volume_with_owner(
-    lv_obj_t *owner, MediaVolumeCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
-      delete_media_volume_context(static_cast<MediaVolumeCtx *>(
-        lv_event_get_user_data(event)));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline MediaPlaylistCtx *grid_delete_media_playlist_with_owner(
-    lv_obj_t *owner, MediaPlaylistCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
-      delete_media_playlist_context(static_cast<MediaPlaylistCtx *>(
-        lv_event_get_user_data(event)));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline MediaNowPlayingCtx *grid_delete_media_now_playing_with_owner(
-    lv_obj_t *owner, MediaNowPlayingCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
-      MediaNowPlayingCtx *context = static_cast<MediaNowPlayingCtx *>(
-        lv_event_get_user_data(event));
-      clear_media_cover_art(context);
-      delete_media_now_playing_context(context);
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline SliderCtx *grid_delete_media_slider_with_owner(
-    lv_obj_t *owner, SliderCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
-      delete_media_slider_context(static_cast<SliderCtx *>(
-        lv_event_get_user_data(event)));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline ClimateControlCtx *grid_delete_climate_control_with_owner(
-    lv_obj_t *owner, ClimateControlCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
-      delete_climate_control_context(static_cast<ClimateControlCtx *>(
-        lv_event_get_user_data(event)));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline CoverControlCtx *grid_delete_cover_control_with_owner(
-    lv_obj_t *owner, CoverControlCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
-      delete_cover_control_context(static_cast<CoverControlCtx *>(
-        lv_event_get_user_data(event)));
-    }, LV_EVENT_DELETE, ctx);
-  }
-  return ctx;
-}
-
-inline AlarmCardCtx *grid_track_alarm_card_runtime(lv_obj_t *owner,
-                                                   AlarmCardCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner,
-      ctx,
-      grid_delete_alarm_card_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline FanCardCtx *grid_track_fan_card_runtime(lv_obj_t *owner, FanCardCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner,
-      ctx,
-      grid_delete_fan_card_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline ClimateControlCtx *grid_track_climate_control_runtime(
-    lv_obj_t *owner, ClimateControlCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner,
-      ctx,
-      grid_delete_climate_control_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline CoverControlCtx *grid_track_cover_control_runtime(
-    lv_obj_t *owner, CoverControlCtx *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner,
-      ctx,
-      grid_delete_cover_control_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
-inline TransientStatusLabel *grid_track_transient_status_label_runtime(
-    lv_obj_t *owner, TransientStatusLabel *ctx) {
-  if (owner != nullptr && ctx != nullptr) {
-    grid_runtime_allocations().push_back({
-      owner,
-      ctx,
-      grid_delete_transient_status_label_runtime_ptr,
-    });
-  }
-  return ctx;
-}
-
 inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count) {
   if (slots == nullptr) return;
   for (int i = 0; i < slot_count; i++) {
     void *visual_context = nullptr;
-    void *media_context = nullptr;
-    void *slider_context = nullptr;
 #ifdef USE_COMPANION
     if (!slots[i].app_icon_img)
       slots[i].app_icon_img = grid_find_companion_app_icon_image(slots[i].btn);
     if (slots[i].app_icon_img != nullptr)
       visual_context = lv_obj_get_user_data(slots[i].app_icon_img);
 #endif
-    ParsedCfg config = parse_cfg(slots[i].config->state);
-    const auto context = card_runtime_context(config);
-    grid_release_runtime_allocations(
-      slots[i].btn, visual_context, media_context, slider_context);
+    grid_release_runtime_allocations(slots[i].btn, visual_context);
   }
 }
 

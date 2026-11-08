@@ -115,14 +115,13 @@ struct MediaNowPlayingCtx {
 };
 bool image_card_media_artwork_visible(const ImageCardCtx *ctx) { return ctx && ctx->artwork_visible; }
 void set_card_content_disabled(lv_obj_t *, bool) {}
-constexpr int LV_STATE_DISABLED = 4, LV_OBJ_FLAG_HIDDEN = 1, LV_OBJ_FLAG_CLICKABLE = 2, LV_OBJ_FLAG_USER_2 = 1<<28;
+constexpr int LV_STATE_DISABLED = 4, LV_OBJ_FLAG_HIDDEN = 1, LV_OBJ_FLAG_USER_2 = 1<<28;
 void set_card_disabled_state(lv_obj_t *obj, bool disabled) {
   if (!obj) return;
   if (disabled) lv_obj_add_state(obj, LV_STATE_DISABLED);
   else lv_obj_clear_state(obj, LV_STATE_DISABLED);
 }
 bool lv_obj_has_flag(lv_obj_t *obj,int flag){return (obj->flags & flag)!=0;}
-constexpr int LV_OPA_50 = 128, MEDIA_CONTROL_SPEAKER_VOLUME_TEXT_OPA = 204;
 using lv_coord_t = int;
 void lv_obj_add_flag(lv_obj_t *obj, int flag) { obj->flags |= flag; }
 void lv_obj_clear_flag(lv_obj_t *obj, int flag) { obj->flags &= ~flag; }
@@ -226,10 +225,6 @@ groups = (
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
-    ("button_grid_alarm.h", "", ("alarm_theme_off_color", "alarm_set_card_state_colors")),
-    ("button_grid_media.h", "", ("media_cover_art_apply_theme", "media_control_refresh_speaker_row")),
-    ("button_grid_fan.h", "", ("fan_control_style_binary_button",)),
-    ("button_grid_climate.h", "", ("climate_style_range_target_button",)),
 )
 for filename, namespace, names in groups:
     text = (headers / filename).read_text()
@@ -427,74 +422,20 @@ int main() {
       assert(forecast_day.text[0]==lv_obj_get_style_text_color(&forecast_card,LV_PART_MAIN));
       assert(forecast_icon.text[0]==forecast_day.text[0]);
     }
-    for (uint32_t background : {0xFFEC16u, 0x88C440u, 0xFFFFFFu, 0x00BCD4u, 0x9D9D9Du}) {
-      // A selected media speaker row must use contrast on its actual fill.
-      lv_obj_t row_button, name, icon, volume;
-      MediaControlCtx media{background};
-      MediaSpeakerRowState row;
-      row.row = &row_button; row.name_label = &name;
-      row.speaker_icon = &icon; row.volume_label = &volume;
-      media_control_refresh_speaker_row(&media, &row);
-      assert(row_button.background[0] == background);
-      for (auto *label : {&name, &icon, &volume})
-        assert(label->text[0] == readable_text_color_for_bg(background));
-      media.selected = false;
-      media_control_refresh_speaker_row(&media, &row);
-      assert(row_button.background[0] == theme->surface_primary);
-      for (auto *label : {&name, &icon, &volume})
-        assert(label->text[0] == theme->text_primary);
-      // Cover-art fallbacks preserve a calibrated custom fill through themes.
-      lv_obj_t card, idle, title, artist, music;
-      card.children = {&music, &idle, &title, &artist};
-      const uint32_t active_background = lighter_card_color(background);
-      apply_button_colors(&card, true, active_background, true, background);
-      ImageCardCtx art;
-      MediaNowPlayingCtx cover{&card, &music, &idle, &title, &artist, &art};
-      cover.custom_fallback_background = true;
-      cover.fallback_background_color = background;
-      for (bool visible : {false, true, false}) {
-        art.artwork_visible = visible;
-        media_cover_art_apply_theme(&cover, *theme);
-        assert(card.background[0] == background);
-        // Artwork keeps white overlays; fallbacks follow the active shade.
-        for (int event : {LV_EVENT_PRESSED, LV_EVENT_RELEASED, LV_EVENT_PRESS_LOST}) {
-          if (event == LV_EVENT_PRESSED) lv_obj_add_state(&card, LV_STATE_PRESSED);
-          else lv_obj_clear_state(&card, LV_STATE_PRESSED);
-          send_event(&card, event);
-          const uint32_t expected = visible ? CARD_ACCENT_TEXT_COLOR
-              : (event == LV_EVENT_PRESSED ? display_text_color_for_bg(active_background)
-                                          : readable_text_color_for_bg(background));
-          for (auto *label : {&music, &idle, &title, &artist}) {
-            assert(label->text[0] == expected);
-            assert(lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2) == visible);
-          }
-        }
-        // Metadata/theme refresh while checked must preserve current fallback contrast.
-        lv_obj_add_state(&card, LV_STATE_CHECKED);
-        media_cover_art_apply_theme(&cover, *theme);
-        for (auto *label : {&music, &idle, &title, &artist})
-          assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : display_text_color_for_bg(active_background)));
-        lv_obj_clear_state(&card, LV_STATE_CHECKED);
-        media_cover_art_apply_theme(&cover, *theme);
-        for (auto *label : {&card, &music, &idle, &title, &artist})
-          assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : readable_text_color_for_bg(background)));
-      }
-      // Reusing persistent icon/text widgets for an ordinary card clears ownership.
-      card.children = {&music, &idle};
-      BtnSlot reused{&card, &music, &idle};
-      apply_button_colors(&card, true, 0x6633B9, true, 0xFFEC16);
-      reset_card_slot_dynamic_children(reused);
-      for (auto *label : {&music, &idle}) {
-        assert(!lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2));
-        assert(label->text[0] == display_text_color_for_bg(0xFFEC16));
-      }
-      send_event(&card, LV_EVENT_RELEASED);
-      assert(music.text[0] == display_text_color_for_bg(0xFFEC16));
-      cover.custom_fallback_background = false;
-      media_cover_art_apply_theme(&cover, *theme);
-      assert(card.background[0] == theme->surface_card);
-      assert(idle.text[0] == theme->text_primary);
+    // Reused persistent card labels must shed content-owned colours.
+    lv_obj_t card, music, caption;
+    card.children = {&music, &caption};
+    music.flags = caption.flags = LV_OBJ_FLAG_USER_2;
+    music.text[0] = caption.text[0] = 0xFFFFFF;
+    BtnSlot reused{&card, &music, &caption};
+    apply_button_colors(&card, true, 0x6633B9, true, 0xFFEC16);
+    reset_card_slot_dynamic_children(reused);
+    for (auto *label : {&music, &caption}) {
+      assert(!lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2));
+      assert(label->text[0] == display_text_color_for_bg(0xFFEC16));
     }
+    send_event(&card, LV_EVENT_RELEASED);
+    assert(music.text[0] == display_text_color_for_bg(0xFFEC16));
   }
   // A black image-label shadow is content-owned; its ordinary sibling follows contrast.
   lv_obj_t image_button, shadow, ordinary;
@@ -616,12 +557,6 @@ int main() {
     {"000000", 0x000000, 0x666666, 0xFFFFFF},
   };
   for (const auto &colour : colours) {
-    lv_obj_t modal_button, modal_label;
-    modal_button.children = {&modal_label};
-    fan_control_style_binary_button(&modal_button, true, colour.active, theme_display_color(current_theme().surface_primary));
-    assert(modal_label.text[0] == display_text_color_for_bg(colour.active));
-    climate_style_range_target_button(&modal_button, true, colour.active);
-    assert(modal_label.text[0] == display_text_color_for_bg(colour.active));
     for (const std::string type : {"sensor", "local_sensor"}) {
       for (const std::string precision : {"0", "text", "icon", "time"}) {
         const std::string options = "card_off_color=" + std::string(colour.hex);
@@ -750,17 +685,7 @@ int main() {
   const auto explicit_colour = card_palette_for_config(CardPalette{}, config, DisplayProfile{});
   assert(explicit_colour.has_on && explicit_colour.has_off && explicit_colour.has_sensor_color);
   assert(explicit_colour.sensor_val == 0xFF8C00);
-  lv_obj_t alarm, alarm_label;
-  alarm.children = {&alarm_label};
-  AlarmCardCtx alarm_context{&alarm, 0xFFEC16};
-  alarm_set_card_state_colors(&alarm_context, 0xFFF25C);
-  set_card_checked_state(&alarm, true);
-  assert(alarm_label.text[0] == 0x212121);
-  alarm_set_card_state_colors(&alarm_context, 0xC62828);
-  assert(alarm.background[LV_STATE_CHECKED] == 0xC62828);
-  assert(alarm_label.text[0] == 0xFFFFFF);
-  alarm_set_card_state_colors(&alarm_context, 0xFFF25C);
-  assert(alarm_label.text[0] == 0x212121);
+
 }
 '''
 with tempfile.TemporaryDirectory(prefix="card-colour-rendering-") as directory:

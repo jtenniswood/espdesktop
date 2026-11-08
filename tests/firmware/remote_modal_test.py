@@ -43,24 +43,12 @@ helpers += function('button_grid_config_parser.h', 'cfg_option_value')
 helpers += function('button_grid_config_parser.h', 'rainfall_uses_forecast')
 for file, name in [
     ('button_grid_actions.h', 'media_card_mode'),
-    ('button_grid_media.h', 'media_control_modal_mode'),
     ('button_grid_wifi_qr.h', 'wifi_qr_has_local_view'),
     ('button_grid_image.h', 'image_card_page_visible'),
     ('button_grid_image.h', 'image_card_context_visible_on_active_screen'),
     ('button_grid_image.h', 'image_card_context_on_active_screen'),
 ]:
     helpers += function(file, name)
-for file, name in [
-    ('button_grid_sliders.h', 'light_control'),
-    ('button_grid_sliders.h', 'cover_control'),
-    ('button_grid_climate.h', 'climate_control'),
-    ('button_grid_media.h', 'media_control'),
-    ('button_grid_alarm.h', 'alarm_control'),
-    ('button_grid_option_select.h', 'option_select'),
-    ('button_grid_fan.h', 'fan_control'),
-]:
-    helpers += function(file, name + '_can_open_modal')
-helpers += function('button_grid_fan.h', 'fan_control_supported')
 helpers += 'namespace espdesktop::cards {\n'
 helpers += function('button_grid_wifi_qr_driver.h', 'wifi_qr_driver_matches')
 helpers += function('button_grid_wifi_qr_driver.h', 'wifi_qr_driver_modal_target')

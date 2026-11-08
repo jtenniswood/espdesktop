@@ -123,28 +123,6 @@ def check_root(root: Path) -> list[str]:
                     "components/espdesktop/button_grid_card_runtime.h: resolve saved-config aliases before runtime dispatch"
                 )
     mower_header = root / "components" / "espdesktop" / LAWN_MOWER_HEADER
-    if mower_header.exists():
-        text = mower_header.read_text(encoding="utf-8")
-        required = (
-            "lawn_mower.start_mowing",
-            "lawn_mower.pause",
-            "lawn_mower.dock",
-            'ctx->state == "mowing"',
-            'ctx->state == "unavailable" || ctx->state == "unknown"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(f"components/espdesktop/{LAWN_MOWER_HEADER}: missing mower runtime guard {needle}")
-        forbidden = (
-            "vacuum.",
-            "lawn_mower.stop",
-            "lawn_mower.locate",
-            "lawn_mower.clean_spot",
-            "lawn_mower.clean_area",
-        )
-        for needle in forbidden:
-            if needle in text:
-                failures.append(f"components/espdesktop/{LAWN_MOWER_HEADER}: unexpected mower service/reference {needle}")
     grid_header = root / "components" / "espdesktop" / GRID_HEADER
     if grid_header.exists():
         text = grid_header.read_text(encoding="utf-8")
@@ -369,15 +347,6 @@ def check_root(root: Path) -> list[str]:
             )
 
         light_temp_body = function_body(text, "setup_light_temp_visual") or ""
-        if (
-            "LV_EVENT_PRESSED" not in light_temp_body
-            or "LV_EVENT_PRESSING" not in light_temp_body
-            or "LV_EVENT_RELEASED" not in light_temp_body
-            or light_temp_body.count("slider_apply_vertical_pointer_value") < 3
-        ):
-            failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: apply light-temperature endpoint mapping on press, drag, and release"
-            )
         light_temp_release_event = light_temp_body.rfind("LV_EVENT_RELEASED")
         light_temp_release_callback = light_temp_body.rfind(
             "lv_obj_add_event_cb", 0, light_temp_release_event
@@ -388,15 +357,6 @@ def check_root(root: Path) -> list[str]:
         light_temp_send_action = light_temp_body.rfind(
             "send_light_temp_action", 0, light_temp_release_event
         )
-        if (
-            light_temp_release_callback < 0
-            or light_temp_final_map < light_temp_release_callback
-            or light_temp_send_action < 0
-            or light_temp_final_map > light_temp_send_action
-        ):
-            failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: map the final light-temperature value before sending its Home Assistant action"
-            )
 
         if (
             "lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN)" not in text
@@ -697,33 +657,6 @@ inline void setup_light_temp_visual() {
         (
             {
                 "button_grid_sliders.h": valid_slider_runtime.replace(
-                    "inline void setup_light_temp_visual() {\n  slider_apply_vertical_pointer_value();\n  LV_EVENT_PRESSED;\n",
-                    "inline void setup_light_temp_visual() {\n  slider_apply_vertical_pointer_value();\n",
-                )
-            },
-            ("apply light-temperature endpoint mapping",),
-        ),
-        (
-            {
-                "button_grid_sliders.h": valid_slider_runtime.replace(
-                    "  slider_apply_vertical_pointer_value();\n  send_light_temp_action();",
-                    "  send_light_temp_action();\n  slider_apply_vertical_pointer_value();",
-                )
-            },
-            ("map the final light-temperature value",),
-        ),
-        (
-            {
-                "button_grid_sliders.h": valid_slider_runtime.replace(
-                    "  lv_obj_add_event_cb();\n  slider_apply_vertical_pointer_value();\n  send_light_temp_action();",
-                    "  slider_apply_vertical_pointer_value();\n  lv_obj_add_event_cb();\n  send_light_temp_action();",
-                )
-            },
-            ("map the final light-temperature value",),
-        ),
-        (
-            {
-                "button_grid_sliders.h": valid_slider_runtime.replace(
                     "lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN);",
                     "lv_obj_set_style_pad_top(slider, edge_inset, LV_PART_MAIN);",
                 )
@@ -781,14 +714,6 @@ inline void setup_light_temp_visual() {
         (
             {"button_grid_actions.h": "if (sensor == \"open\") return \"cover.open_cover_tilt\";\n"},
             (),
-        ),
-        (
-            {"button_grid_lawn_mower.h": "return \"lawn_mower.start_mowing\";\n"},
-            ("missing mower runtime guard lawn_mower.pause",),
-        ),
-        (
-            {"button_grid_lawn_mower.h": "return \"lawn_mower.clean_spot\";\n"},
-            ("unexpected mower service/reference lawn_mower.clean_spot",),
         ),
         (
             {

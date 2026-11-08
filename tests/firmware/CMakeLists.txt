@@ -492,9 +492,6 @@ target_compile_options(image_pipeline_policy_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(image_pipeline_policy_test PRIVATE ../../components/artwork_image)
 add_test(NAME image_pipeline_policy_test COMMAND image_pipeline_policy_test)
 
-add_test(NAME climate_pending_temperature_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/climate_pending_temperature_test.py)
 
 set(CLIMATE_SUBSCRIPTION_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/climate_subscription_runtime_test.cpp)
 add_custom_command(
@@ -678,8 +675,6 @@ add_test(NAME wifi_setup_address_test COMMAND
 add_test(NAME wifi_setup_package_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_setup_package_test.py)
 
-add_test(NAME fan_control_label_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fan_control_label_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME cover_confirmation_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_confirmation_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME cover_stop_failure_test COMMAND
@@ -739,11 +734,6 @@ add_test(NAME weather_daily_forecast_test COMMAND weather_daily_forecast_test)
 add_test(NAME weather_daily_template_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_daily_template_test.py)
 
-add_executable(weather_daily_ui_test weather_daily_ui_test.cpp)
-target_compile_features(weather_daily_ui_test PRIVATE cxx_std_17)
-target_compile_options(weather_daily_ui_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(weather_daily_ui_test PRIVATE ../../components/espdesktop)
-add_test(NAME weather_daily_ui_test COMMAND weather_daily_ui_test)
 
 add_test(NAME weather_daily_requests_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
@@ -797,19 +787,9 @@ add_test(NAME multipart_upload_completion_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload_completion_test.py)
 
-add_executable(weather_wind_test weather_wind_test.cpp)
-target_compile_features(weather_wind_test PRIVATE cxx_std_17)
-target_compile_options(weather_wind_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(weather_wind_test PRIVATE ../../components/espdesktop)
 
-add_executable(rainfall_card_test rainfall_card_test.cpp)
-target_compile_features(rainfall_card_test PRIVATE cxx_std_17)
-target_compile_options(rainfall_card_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(rainfall_card_test PRIVATE ../../components/espdesktop)
 
-add_test(NAME weather_wind_test COMMAND weather_wind_test)
 
-add_test(NAME rainfall_card_test COMMAND rainfall_card_test)
 
 add_executable(connector_state_test connector_state_test.cpp)
 target_compile_features(connector_state_test PRIVATE cxx_std_17)

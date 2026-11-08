@@ -83,11 +83,6 @@ inline std::vector<std::string> media_group_parse_entity_list(const std::string 
   return media_group_parse_entity_list(raw.data(), raw.size());
 }
 
-inline std::string media_group_discovery_entity(const std::string &configured) {
-  std::string entity_id = media_group_trim(configured);
-  return entity_id.empty() ? DEFAULT_MEDIA_SPEAKER_DISCOVERY_ENTITY : entity_id;
-}
-
 inline bool media_grouping_supported(uint64_t supported_features) {
   return (supported_features & MEDIA_PLAYER_FEATURE_GROUPING) != 0;
 }

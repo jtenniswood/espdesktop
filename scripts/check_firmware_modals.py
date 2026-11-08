@@ -58,21 +58,6 @@ def firmware_modal_errors(firmware_dir: Path, root: Path) -> list[str]:
                 errors.append(
                     f"{rel}:{line_no}: delete modal overlays through button_grid_modal.h lifecycle helpers"
                 )
-    sliders_path = firmware_dir / "button_grid_sliders.h"
-    if not sliders_path.exists():
-        errors.append("components/espdesktop/button_grid_sliders.h: keep cover modal back button accessible")
-    else:
-        text = sliders_path.read_text(encoding="utf-8")
-        cover_layout = re.search(
-            r"inline\s+void\s+cover_control_layout_modal\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-            text,
-            re.S,
-        )
-        if cover_layout is None or "lv_obj_move_foreground(ui.back_btn);" not in cover_layout.group("body"):
-            errors.append(
-                "components/espdesktop/button_grid_sliders.h: keep the cover modal back button above tab and slider controls"
-            )
-
     wifi_qr_path = firmware_dir / "button_grid_wifi_qr.h"
     if wifi_qr_path.exists():
         text = wifi_qr_path.read_text(encoding="utf-8")
@@ -323,116 +308,12 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
 
 
 
-def firmware_light_control_brightness_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_sliders.h"
-    modal_path = root / "components" / "espdesktop" / "button_grid_modal.h"
-    errors: list[str] = []
-
-    if not path.exists():
-        errors.append("components/espdesktop/button_grid_sliders.h: keep light-off brightness display at zero")
-        return errors
-
-    text = path.read_text(encoding="utf-8")
-    if (
-        "light_control_display_pct" not in text
-        or "ctx && ctx->on ? ctx->current_pct : 0" not in text
-    ):
-        errors.append("components/espdesktop/button_grid_sliders.h: display zero brightness while light control is off")
-    if text.count("light_control_set_modal_value(ctx, light_control_display_pct(ctx));") < 2:
-        errors.append("components/espdesktop/button_grid_sliders.h: refresh brightness slider from light on/off and brightness updates")
-    if "light_control_set_modal_value(ui.active, light_control_display_pct(ui.active));" not in text:
-        errors.append("components/espdesktop/button_grid_sliders.h: update brightness slider immediately when the light power button is used")
-    if (
-        "bool turn_on = !ui.active->on;" not in text
-        or "ControlModalBinaryToggle power_toggle;" not in text
-        or "ui.power_group, ui.power_on_btn, ui.power_off_btn, &ui.power_toggle" not in text
-        or not modal_path.exists()
-        or "inline void control_modal_setup_binary_toggle(" not in modal_path.read_text(encoding="utf-8")
-    ):
-        errors.append("components/espdesktop: use the shared full-area binary toggle for modal controls")
-
-    return errors
 
 
-def firmware_cover_control_tab_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_sliders.h"
-    errors: list[str] = []
-
-    if not path.exists():
-        errors.append("components/espdesktop/button_grid_sliders.h: hide cover modal tabs when only one control is visible")
-        return errors
-
-    text = path.read_text(encoding="utf-8")
-    if "bool show_tab_bar = visible_tabs.count > 1;" not in text:
-        errors.append("components/espdesktop/button_grid_sliders.h: hide cover modal tabs when only one control is visible")
-    if "ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);" not in text:
-        errors.append("components/espdesktop/button_grid_sliders.h: keep cover modal tab row hidden through the shared tab layout helper")
-    if "control_modal_calc_content_layout(\n    layout, tabs_layout, show_tab_bar, 160)" not in text:
-        errors.append("components/espdesktop/button_grid_sliders.h: position cover modal content with the shared content recipe")
-    if "lv_coord_t content_center_y = content.center_y;" not in text:
-        errors.append("components/espdesktop/button_grid_sliders.h: center cover modal controls within their planned content space")
-
-    return errors
 
 
-def firmware_light_control_tab_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_sliders.h"
-    errors: list[str] = []
-
-    if not path.exists():
-        errors.append("components/espdesktop/button_grid_sliders.h: hide light modal tabs when only one control is visible")
-        return errors
-
-    text = path.read_text(encoding="utf-8")
-    if "inline void light_control_apply_tab_visibility()" not in text:
-        errors.append("components/espdesktop/button_grid_sliders.h: keep light modal tab visibility helper")
-    if text.count("bool show_tab_bar = visible_tabs.count > 1;") < 2:
-        errors.append("components/espdesktop/button_grid_sliders.h: hide light and cover modal tabs when only one control is visible")
-    if text.count("ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);") < 2:
-        errors.append("components/espdesktop/button_grid_sliders.h: keep single-tab modal rows hidden through the shared tab layout helper")
-    if text.count("control_modal_calc_content_layout(\n    layout, tabs_layout, show_tab_bar, 160)") < 2:
-        errors.append("components/espdesktop/button_grid_sliders.h: let single-control modals use the shared content recipe")
-
-    return errors
 
 
-def firmware_climate_control_tab_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_climate.h"
-    errors: list[str] = []
-
-    if not path.exists():
-        errors.append("components/espdesktop/button_grid_climate.h: keep climate modal tabs")
-        return errors
-
-    text = path.read_text(encoding="utf-8")
-    if "enum class ClimateControlTab" not in text or "ClimateControlVisibleTabs" not in text:
-        errors.append("components/espdesktop/button_grid_climate.h: model climate modal controls as top-level tabs")
-    if 'cfg_option_value(ctx ? ctx->options : "", CLIMATE_CONTROL_TABS_OPTION)' not in text:
-        errors.append("components/espdesktop/button_grid_climate.h: order climate modal tabs from saved climate_tabs config")
-    if "climate_control_tab_supported(ctx, tab)" not in text:
-        errors.append("components/espdesktop/button_grid_climate.h: filter climate tabs using Home Assistant capabilities")
-    if "ui.tab = climate_control_first_visible_tab(ctx);" not in text:
-        errors.append("components/espdesktop/button_grid_climate.h: fall back when the active climate tab disappears")
-    if "bool show_tab_bar = tab_count > 1;" not in text:
-        errors.append("components/espdesktop/button_grid_climate.h: hide climate modal tabs unless multiple controls are visible")
-    if "all_controls" in text:
-        errors.append("components/espdesktop/button_grid_climate.h: remove the legacy climate/all-controls split")
-    if "climate_set_dial_controls_visible(show_temperature)" not in text:
-        errors.append("components/espdesktop/button_grid_climate.h: keep temperature controls scoped to the temperature tab")
-    if "climate_open_inline_option_list(ctx, climate_control_tab_kind(ui.tab))" not in text:
-        errors.append("components/espdesktop/button_grid_climate.h: show non-temperature climate controls as tab pages")
-    if (
-        "case ClimateControlTab::SWING:\n      return !ctx->swing_modes.empty();" not in text
-        or 'subscribe_list("swing_modes", &ClimateControlCtx::swing_modes);' not in text
-    ):
-        errors.append("components/espdesktop/button_grid_climate.h: show the swing tab only when Home Assistant exposes swing modes")
-    if (
-        'climate_send_action(ctx->entity_id, "climate.set_swing_mode", {{"swing_mode", value}});' not in text
-        or 'ui.tab_row, find_icon("Arrow Up Down"), ctx->icon_font,' not in text
-    ):
-        errors.append("components/espdesktop/button_grid_climate.h: keep the swing mode action and requested tab icon")
-
-    return errors
 
 
 def firmware_modal_tab_layout_errors(root: Path) -> list[str]:
@@ -472,56 +353,12 @@ def firmware_modal_tab_layout_errors(root: Path) -> list[str]:
                 errors.append("components/espdesktop/button_grid_modal.h: keep shared modal tab layout helpers")
                 break
 
-    required_by_file = {
-        "button_grid_climate.h": (
-            "return control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);",
-            "ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);",
-            "control_modal_layout_tab_button(tab_btn, layout, tabs_layout, i, active);",
-            "return control_modal_shared_tab_content_gap(layout);",
-            "ui.tab_row = control_modal_create_tab_row(ui.panel);",
-        ),
-        "button_grid_fan.h": (
-            "ControlModalTabLayout tabs_layout = control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);",
-            "ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);",
-            "control_modal_layout_tab_button(tab_btn, layout, tabs_layout, i, active);",
-            "control_modal_calc_content_layout(",
-            "ui.tab_row = control_modal_create_tab_row(ui.panel);",
-        ),
-    }
-    sliders_required = (
-        "ControlModalTabLayout tabs_layout = control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);",
-        "ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);",
+    wifi = firmware_dir / "button_grid_wifi_qr.h"
+    if not wifi.exists() or any(needle not in wifi.read_text(encoding="utf-8") for needle in (
+        "control_modal_calc_tab_layout(layout, tab_count, show_tab_bar)",
         "control_modal_layout_tab_button(",
-        "control_modal_calc_content_layout(",
-        "ui.tab_row = control_modal_create_tab_row(ui.panel);",
-    )
-    for filename, required in required_by_file.items():
-        path = firmware_dir / filename
-        if not path.exists():
-            errors.append(f"components/espdesktop/{filename}: use shared modal tab layout helpers")
-            continue
-        text = path.read_text(encoding="utf-8")
-        for needle in required:
-            if needle not in text:
-                errors.append(f"components/espdesktop/{filename}: use shared modal tab layout helpers")
-                break
-
-    sliders_path = firmware_dir / "button_grid_sliders.h"
-    if not sliders_path.exists():
-        errors.append("components/espdesktop/button_grid_sliders.h: use shared modal tab layout helpers")
-    else:
-        text = sliders_path.read_text(encoding="utf-8")
-        for needle in sliders_required:
-            if needle not in text:
-                errors.append("components/espdesktop/button_grid_sliders.h: use shared modal tab layout helpers")
-                break
-        if (
-            text.count("ControlModalTabLayout tabs_layout = control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);") < 2
-            or text.count("ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);") < 2
-            or text.count("control_modal_calc_content_layout(") < 2
-            or text.count("ui.tab_row = control_modal_create_tab_row(ui.panel);") < 2
-        ):
-            errors.append("components/espdesktop/button_grid_sliders.h: use shared modal tab layout helpers for light and cover tabs")
+    )):
+        errors.append("components/espdesktop/button_grid_wifi_qr.h: use shared modal tab layout helpers")
 
     forbidden_tab_math = (
         "lv_coord_t selected_tab_size =",
@@ -533,10 +370,7 @@ def firmware_modal_tab_layout_errors(root: Path) -> list[str]:
         "lv_coord_t max_tab_frame_w =",
     )
     for filename in (
-        "button_grid_climate.h",
-        "button_grid_fan.h",
-        "button_grid_media.h",
-        "button_grid_sliders.h",
+        "button_grid_wifi_qr.h",
     ):
         path = firmware_dir / filename
         if not path.exists():
@@ -550,105 +384,10 @@ def firmware_modal_tab_layout_errors(root: Path) -> list[str]:
     return errors
 
 
-def firmware_media_modal_progress_layout_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_media.h"
-    errors: list[str] = []
-
-    if not path.exists():
-        errors.append("components/espdesktop/button_grid_media.h: keep media modal progress layout stable")
-        return errors
-
-    text = path.read_text(encoding="utf-8")
-    required = (
-        "bool progress_layout_ready = false;",
-        "bool progress_refresh_pending = false;",
-        "if (!ui.progress_layout_ready) {\n    ui.progress_refresh_pending = true;\n    return;\n  }",
-        "if (ui.progress_fill) lv_obj_add_flag(ui.progress_fill, LV_OBJ_FLAG_HIDDEN);",
-        "if (ui.progress_handle) lv_obj_add_flag(ui.progress_handle, LV_OBJ_FLAG_HIDDEN);",
-        "ui.progress_layout_ready = false;\n    lv_obj_set_size(ui.progress_slider, progress_slider_w, progress_slider_h);",
-        "lv_obj_update_layout(ui.progress_slider);\n    ui.progress_layout_ready = true;",
-        "media_control_refresh_progress(ctx);\n    if (ui.progress_fill) lv_obj_clear_flag(ui.progress_fill, LV_OBJ_FLAG_HIDDEN);",
-        "lv_obj_clear_flag(ui.progress_slider, LV_OBJ_FLAG_HIDDEN);",
-    )
-    for needle in required:
-        if needle not in text:
-            errors.append(
-                "components/espdesktop/button_grid_media.h: keep media modal progress drawing gated until final layout"
-            )
-            break
-
-    return errors
 
 
-def firmware_media_modal_power_tab_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_media.h"
-    if not path.exists():
-        return ["components/espdesktop/button_grid_media.h: keep the conditional media Power tab"]
-
-    text = path.read_text(encoding="utf-8")
-    tabs_path = path.parent / "media_control_tabs.h"
-    if tabs_path.exists(): text += tabs_path.read_text(encoding="utf-8")
-    required = (
-        "POWER = 4",
-        "media_control_power_supported",
-        "media_control_ensure_power_tab_button",
-        "media_control_create_power_tab_content",
-        "media_control_refresh_power",
-        "previous_power_supported != power_supported",
-        "media_control_ensure_visible_tab(ctx)",
-        "ui.tab = visible.tabs[0]",
-        "visible_tabs.count",
-        "MediaControlTabLayout tabs[5]",
-    )
-    if any(needle not in text for needle in required):
-        return [
-            "components/espdesktop/button_grid_media.h: keep the conditional media Power tab, dynamic relayout, and safe visible-tab fallback"
-        ]
-    return []
 
 
-def firmware_media_modal_playback_mode_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_media.h"
-    if not path.exists():
-        return [
-            "components/espdesktop/button_grid_media.h: keep conditional Shuffle and Repeat modal controls"
-        ]
-
-    text = path.read_text(encoding="utf-8")
-    required = (
-        "lv_obj_t *shuffle_btn = nullptr;",
-        "lv_obj_t *repeat_btn = nullptr;",
-        "lv_obj_t *repeat_icon_lbl = nullptr;",
-        "if (media_control_shuffle_supported(ctx))",
-        "if (media_control_repeat_supported(ctx))",
-        'find_icon("Shuffle")',
-        '"Repeat Once"',
-        "media_control_refresh_playback_modes(ctx)",
-        "media_control_style_playback_mode_button",
-        "ctx->available && ctx->shuffle_known",
-        "ctx->available && known",
-        "previous_shuffle_supported != shuffle_supported",
-        "previous_repeat_supported != repeat_supported",
-        "media_control_clear_tab_content();",
-        "ui.shuffle_btn = nullptr;",
-        "ui.repeat_btn = nullptr;",
-        "ui.repeat_icon_lbl = nullptr;",
-        "media_transport_layout(",
-        "lv_obj_t *buttons[5]",
-        "ui.shuffle_btn, ui.previous_btn, ui.play_btn, ui.next_btn, ui.repeat_btn",
-        "transport_layout.button_size",
-        "transport_layout.modes_on_second_row",
-        "control_modal_uses_compact_portrait_tuning(layout) && layout.sh > layout.sw",
-        "lv_obj_t *transport_buttons[3]",
-        "lv_obj_t *mode_buttons[2]",
-        "transport_layout.second_row_start_x",
-        "transport_layout.row_gap",
-    )
-    if any(needle not in text for needle in required):
-        return [
-            "components/espdesktop/button_grid_media.h: keep conditional, state-synchronised Shuffle and Repeat controls with dynamic three/four/five-button layouts and cleanup"
-        ]
-    return []
 
 
 def firmware_network_status_version_errors(root: Path) -> list[str]:
@@ -682,368 +421,26 @@ def firmware_network_status_version_errors(root: Path) -> list[str]:
     return errors
 
 
-def firmware_climate_step_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_climate.h"
-    if not path.exists():
-        return []
-
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    helper = re.search(
-        r"inline\s+int\s+climate_effective_step_tenths\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-        text,
-        re.S,
-    )
-    if helper is None:
-        errors.append(f"{rel}: keep climate controls at a 0.5C minimum step")
-    else:
-        body = helper.group("body")
-        if (
-            "CLIMATE_DEFAULT_STEP_TENTHS" not in body
-            or "CLIMATE_WHOLE_NUMBER_STEP_TENTHS" not in body
-            or "ctx->configured_step_tenths" not in body
-            or "return ctx->configured_step_tenths" not in body
-            or "ctx->step_tenths > minimum" in body
-        ):
-            errors.append(f"{rel}: use the configured climate temperature step")
-
-    required = (
-        "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 5;",
-        "constexpr int CLIMATE_WHOLE_NUMBER_STEP_TENTHS = 10;",
-        "int configured_step_tenths = CLIMATE_WHOLE_NUMBER_STEP_TENTHS;",
-        'cfg_option_value(p.options, "temperature_step")',
-        "int step = climate_effective_step_tenths(ctx);",
-        "int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;",
-        "climate_round_to_step(ctx, climate_constrain_selected_target(ctx, value))",
-        "climate_preview_selected_target(ui.active,",
-        "climate_target_from_modal_arc_value(ui.active, lv_arc_get_value(arc))",
-        "climate_apply_selected_target(ui.active, value, true, false);",
-        "climate_selected_target(ui.active) - climate_effective_step_tenths(ui.active)",
-        "climate_selected_target(ui.active) + climate_effective_step_tenths(ui.active)",
-    )
-    for needle in required:
-        if needle not in text:
-            errors.append(f"{rel}: route climate modal temperature changes through step rounding")
-            break
-
-    forbidden = (
-        "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 1;",
-        "climate_selected_target(ui.active) - ui.active->step_tenths",
-        "climate_selected_target(ui.active) + ui.active->step_tenths",
-    )
-    for needle in forbidden:
-        if needle in text:
-            errors.append(f"{rel}: do not allow 0.1C climate modal temperature steps")
-            break
-
-    cooling_drag_required = (
-        "inline int climate_target_from_modal_arc_value(ClimateControlCtx *ctx, int value)",
-        "if (climate_uses_cooling_arc(ctx)) return ctx->min_tenths + ctx->max_tenths - value;",
-        "climate_target_from_modal_arc_value(ui.active, lv_arc_get_value(arc))",
-    )
-    for needle in cooling_drag_required:
-        if needle not in text:
-            errors.append(f"{rel}: keep cooling-mode climate arc drags aligned with the touch direction")
-            break
-
-    return errors
 
 
-def firmware_climate_option_selection_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_climate.h"
-    if not path.exists():
-        return []
-
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    match = re.search(
-        r"inline\s+bool\s+climate_option_selected\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-        text,
-        re.S,
-    )
-    if match is None:
-        return [f"{rel}: keep climate option selection state matching"]
-
-    body = match.group("body")
-    if (
-        "climate_option_current_value(ctx, kind)" not in body
-        or "climate_hvac_service_value(value) == ctx->hvac_mode" not in body
-        or "return value == current;" not in body
-        or "climate_lower" in body
-    ):
-        return [f"{rel}: match exact climate option values while normalizing HVAC enums"]
-    return []
 
 
-def firmware_fan_modal_context_lifecycle_errors(root: Path) -> list[str]:
-    firmware_dir = root / "components" / "espdesktop"
-    fan_path = firmware_dir / "button_grid_fan.h"
-    grid_path = firmware_dir / "button_grid_grid.h"
-    errors: list[str] = []
-
-    if not fan_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_fan.h: close fan modals before deleting their card context"
-        )
-    else:
-        fan_text = fan_path.read_text(encoding="utf-8")
-        if (
-            "inline void fan_close_modals_for_context(FanCardCtx *ctx)" not in fan_text
-            or "fan_control_modal_ui().active == ctx" not in fan_text
-            or "fan_control_hide_modal();" not in fan_text
-            or "fan_preset_ui().active == ctx" not in fan_text
-            or "fan_preset_close();" not in fan_text
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_fan.h: close fan modals before deleting their card context"
-            )
-
-    if not grid_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_grid.h: invalidate fan modals on main-grid and subpage cleanup"
-        )
-    else:
-        grid_text = grid_path.read_text(encoding="utf-8")
-        if (
-            "fan_close_modals_for_context(fan);" not in grid_text
-            or "fan_close_modals_for_context(ctx);" not in grid_text
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_grid.h: invalidate fan modals on main-grid and subpage cleanup"
-            )
-
-    return errors
 
 
-def firmware_fan_light_fallback_errors(root: Path) -> list[str]:
-    path = root / "components" / "espdesktop" / "button_grid_fan.h"
-    if not path.exists():
-        return [
-            "components/espdesktop/button_grid_fan.h: keep the separate light tab available when the fan is unavailable"
-        ]
-
-    text = path.read_text(encoding="utf-8")
-    required = (
-        'if (ctx->type == "fan_control" && fan_light_supported(ctx)) return true;',
-        'return ctx && (ctx->available || fan_light_supported(ctx)) &&',
-        'if (!fan_control_can_open_modal(ctx)) return;',
-        "ctx->light_available = !ha_state_unavailable_ref(state);",
-        "if (ui.active == ctx && fan_control_visible_tabs(ctx).count == 0) fan_control_hide_modal();",
-    )
-    if any(requirement not in text for requirement in required):
-        return [
-            "components/espdesktop/button_grid_fan.h: keep the separate light tab available when the fan is unavailable"
-        ]
-    return []
 
 
-def firmware_climate_modal_context_lifecycle_errors(root: Path) -> list[str]:
-    firmware_dir = root / "components" / "espdesktop"
-    climate_path = firmware_dir / "button_grid_climate.h"
-    grid_path = firmware_dir / "button_grid_grid.h"
-    errors: list[str] = []
-
-    if not climate_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_climate.h: close climate modals and timers before deleting their card context"
-        )
-    else:
-        climate_text = climate_path.read_text(encoding="utf-8")
-        if (
-            "inline void delete_climate_control_context(ClimateControlCtx *ctx)" not in climate_text
-            or "climate_control_modal_ui().active == ctx" not in climate_text
-            or "climate_control_hide_modal();" not in climate_text
-            or "lv_timer_del(ctx->debounce_timer);" not in climate_text
-            or "climate_control_refs();" not in climate_text
-            or "climate_control_ref_count();" not in climate_text
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_climate.h: close climate modals and timers before deleting their card context"
-            )
-
-    if not grid_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_grid.h: use climate-aware main-grid and subpage cleanup"
-        )
-    else:
-        grid_text = grid_path.read_text(encoding="utf-8")
-        if (
-            "grid_delete_climate_control_runtime_ptr" not in grid_text
-            or "grid_track_climate_control_runtime" not in grid_text
-            or "grid_delete_climate_control_with_owner" not in grid_text
-            or grid_text.count("delete_climate_control_context(") < 2
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_grid.h: use climate-aware main-grid and subpage cleanup"
-            )
-
-    return errors
 
 
-def firmware_cover_modal_context_lifecycle_errors(root: Path) -> list[str]:
-    firmware_dir = root / "components" / "espdesktop"
-    sliders_path = firmware_dir / "button_grid_sliders.h"
-    grid_path = firmware_dir / "button_grid_grid.h"
-    errors: list[str] = []
-
-    if not sliders_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_sliders.h: close cover modals before deleting their card context"
-        )
-    else:
-        sliders_text = sliders_path.read_text(encoding="utf-8")
-        if (
-            "inline void delete_cover_control_context(CoverControlCtx *ctx)" not in sliders_text
-            or "cover_control_modal_ui().active == ctx" not in sliders_text
-            or "cover_control_hide_modal();" not in sliders_text
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_sliders.h: close cover modals before deleting their card context"
-            )
-
-    if not grid_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_grid.h: use cover-aware main-grid and subpage cleanup"
-        )
-    else:
-        grid_text = grid_path.read_text(encoding="utf-8")
-        if (
-            "grid_delete_cover_control_runtime_ptr" not in grid_text
-            or "grid_track_cover_control_runtime" not in grid_text
-            or "grid_delete_cover_control_with_owner" not in grid_text
-            or grid_text.count("delete_cover_control_context(") < 2
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_grid.h: use cover-aware main-grid and subpage cleanup"
-            )
-
-    return errors
 
 
-def firmware_media_modal_context_lifecycle_errors(root: Path) -> list[str]:
-    firmware_dir = root / "components" / "espdesktop"
-    media_path = firmware_dir / "button_grid_media.h"
-    grid_path = firmware_dir / "button_grid_grid.h"
-    errors: list[str] = []
-
-    if not media_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_media.h: close media modals, detach playback consumers, and cancel timers before deleting card contexts"
-        )
-    else:
-        media_text = media_path.read_text(encoding="utf-8")
-        requirements = (
-            "delete_media_control_context",
-            "media_control_modal_ui()",
-            "media_control_hide_modal();",
-            "media_playback_detach_control(ctx);",
-            "delete_media_volume_context",
-            "media_volume_modal_ui().active == ctx",
-            "media_volume_hide_modal();",
-            "media_playback_detach_volume(ctx);",
-            "delete_media_playlist_context",
-            "media_playback_detach_playlist(ctx);",
-            "delete_media_now_playing_context",
-            "media_playback_detach_now_playing(ctx);",
-            "delete_media_slider_context",
-            "media_playback_detach_slider(ctx);",
-            "slider_detach_runtime(ctx);",
-        )
-        if any(requirement not in media_text for requirement in requirements):
-            errors.append(
-                "components/espdesktop/button_grid_media.h: close media modals, detach playback consumers, and cancel timers before deleting card contexts"
-            )
-
-    if not grid_path.exists():
-        errors.append(
-            "components/espdesktop/button_grid_grid.h: use media-aware main-grid and subpage cleanup"
-        )
-    else:
-        grid_text = grid_path.read_text(encoding="utf-8")
-        requirements = (
-            "grid_track_media_control_runtime",
-            "grid_delete_media_control_with_owner",
-            "grid_track_media_volume_runtime",
-            "grid_delete_media_volume_with_owner",
-            "grid_track_media_playlist_runtime",
-            "grid_delete_media_playlist_with_owner",
-            "grid_track_media_now_playing_runtime",
-            "grid_delete_media_now_playing_with_owner",
-            "grid_track_media_slider_runtime",
-            "grid_delete_media_slider_with_owner",
-        )
-        if any(requirement not in grid_text for requirement in requirements):
-            errors.append(
-                "components/espdesktop/button_grid_grid.h: use media-aware main-grid and subpage cleanup"
-            )
-
-    return errors
 
 
-def firmware_alarm_modal_context_lifecycle_errors(root: Path) -> list[str]:
-    grid_path = root / "components" / "espdesktop" / "button_grid_grid.h"
-    errors: list[str] = []
-
-    if not grid_path.exists():
-        return [
-            "components/espdesktop/button_grid_grid.h: close alarm modals, deferred actions, timers, and display takeover before deleting their card context"
-        ]
-
-    grid_text = grid_path.read_text(encoding="utf-8")
-    cleanup_requirements = (
-        "alarm_control_modal_ui();",
-        "control_ui.active == ctx",
-        "alarm_control_hide_modal();",
-        "alarm_pin_modal_ui();",
-        "pin_ui.active->card == ctx",
-        "alarm_pin_hide_modal();",
-        "alarm_deferred_action();",
-        "deferred.action.card == ctx",
-        "lv_timer_del(deferred.timer);",
-        "alarm_release_arming_takeover(ctx);",
-        "lv_timer_del(ctx->arm_delay_timer);",
-        "lv_timer_del(ctx->pending_action_timer);",
-        "grid_delete_transient_status_label(ctx->status_label);",
-    )
-    if any(requirement not in grid_text for requirement in cleanup_requirements):
-        errors.append(
-            "components/espdesktop/button_grid_grid.h: close alarm modals, deferred actions, timers, and display takeover before deleting their card context"
-        )
-
-    if (
-        "grid_delete_alarm_card_runtime_ptr" not in grid_text
-        or "grid_track_alarm_card_runtime" not in grid_text
-        or "grid_delete_alarm_card_with_owner" not in grid_text
-        or grid_text.count("grid_delete_alarm_card_runtime_ptr(") < 4
-    ):
-        errors.append(
-            "components/espdesktop/button_grid_grid.h: use alarm-aware main-grid, subpage, and alarm-action cleanup"
-        )
-
-    return errors
 
 
 def run_scan() -> int:
     errors = firmware_modal_errors(FIRMWARE_DIR, ROOT)
     errors.extend(firmware_modal_sleep_takeover_errors(ROOT))
-    errors.extend(firmware_climate_step_errors(ROOT))
-    errors.extend(firmware_climate_option_selection_errors(ROOT))
-    errors.extend(firmware_fan_modal_context_lifecycle_errors(ROOT))
-    errors.extend(firmware_fan_light_fallback_errors(ROOT))
-    errors.extend(firmware_climate_modal_context_lifecycle_errors(ROOT))
-    errors.extend(firmware_cover_modal_context_lifecycle_errors(ROOT))
-    errors.extend(firmware_media_modal_context_lifecycle_errors(ROOT))
-    errors.extend(firmware_alarm_modal_context_lifecycle_errors(ROOT))
-    errors.extend(firmware_light_control_brightness_errors(ROOT))
-    errors.extend(firmware_light_control_tab_errors(ROOT))
-    errors.extend(firmware_cover_control_tab_errors(ROOT))
-    errors.extend(firmware_climate_control_tab_errors(ROOT))
     errors.extend(firmware_modal_tab_layout_errors(ROOT))
-    errors.extend(firmware_media_modal_progress_layout_errors(ROOT))
-    errors.extend(firmware_media_modal_power_tab_errors(ROOT))
-    errors.extend(firmware_media_modal_playback_mode_errors(ROOT))
     errors.extend(firmware_network_status_version_errors(ROOT))
 
     if errors:
@@ -1096,33 +493,8 @@ def expect_sleep_takeover_errors(name: str, files: dict[str, str], expected: tup
 
 
 
-def expect_climate_step_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "components" / "espdesktop" / "button_grid_climate.h"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_climate_step_errors(root)
-
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_climate_option_selection_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "components" / "espdesktop" / "button_grid_climate.h"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_climate_option_selection_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
 def expect_network_status_version_errors(name: str, header_text: str, expected: tuple[str, ...]) -> None:
@@ -1141,6 +513,7 @@ def expect_network_status_version_errors(name: str, header_text: str, expected: 
 
 def valid_modal_tab_layout_files() -> dict[str, str]:
     return {
+        "components/espdesktop/button_grid_wifi_qr.h": "control_modal_calc_tab_layout(layout, tab_count, show_tab_bar); control_modal_layout_tab_button();\n",
         "components/espdesktop/button_grid_modal_layout.h": (
             "struct TabLayout {};\n"
             "constexpr TabLayout calculate_tabs() {}\n"
@@ -1207,137 +580,16 @@ def expect_modal_tab_layout_errors(name: str, files: dict[str, str], expected: t
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_media_modal_progress_layout_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "components" / "espdesktop" / "button_grid_media.h"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_media_modal_progress_layout_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_media_modal_power_tab_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "components" / "espdesktop" / "button_grid_media.h"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_media_modal_power_tab_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_media_modal_playback_mode_errors(
-    name: str, text: str, expected: tuple[str, ...]
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "components" / "espdesktop" / "button_grid_media.h"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_media_modal_playback_mode_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def valid_media_modal_playback_mode_text() -> str:
-    return (
-        "struct MediaControlModalUi {\n"
-        "  lv_obj_t *shuffle_btn = nullptr;\n"
-        "  lv_obj_t *repeat_btn = nullptr;\n"
-        "  lv_obj_t *repeat_icon_lbl = nullptr;\n"
-        "};\n"
-        "inline void media_control_create_controls_tab_content(MediaControlCtx *ctx) {\n"
-        "  if (media_control_shuffle_supported(ctx)) find_icon(\"Shuffle\");\n"
-        "  if (media_control_repeat_supported(ctx)) find_icon(\"Repeat Once\");\n"
-        "}\n"
-        "inline void media_control_refresh_playback_modes(MediaControlCtx *ctx) {\n"
-        "  media_control_style_playback_mode_button();\n"
-        "  bool shuffle = ctx->available && ctx->shuffle_known;\n"
-        "  bool repeat = ctx->available && known;\n"
-        "}\n"
-        "inline void media_playback_apply_state_to_control() {\n"
-        "  bool changed = previous_shuffle_supported != shuffle_supported ||\n"
-        "    previous_repeat_supported != repeat_supported;\n"
-        "  media_control_clear_tab_content();\n"
-        "}\n"
-        "inline void media_control_clear_tab_content() {\n"
-        "  ui.shuffle_btn = nullptr;\n"
-        "  ui.repeat_btn = nullptr;\n"
-        "  ui.repeat_icon_lbl = nullptr;\n"
-        "}\n"
-        "inline void media_control_refresh_modal() {\n"
-        "  media_control_refresh_playback_modes(ctx);\n"
-        "}\n"
-        "inline void media_control_layout_modal() {\n"
-        "  media_transport_layout(content_w, short_side, show_shuffle, show_repeat,\n"
-        "    control_modal_uses_compact_portrait_tuning(layout) && layout.sh > layout.sw);\n"
-        "  lv_obj_t *buttons[5] = {\n"
-        "    ui.shuffle_btn, ui.previous_btn, ui.play_btn, ui.next_btn, ui.repeat_btn};\n"
-        "  int size = transport_layout.button_size;\n"
-        "  if (transport_layout.modes_on_second_row) {\n"
-        "    lv_obj_t *transport_buttons[3] = {};\n"
-        "    lv_obj_t *mode_buttons[2] = {};\n"
-        "    int x = transport_layout.second_row_start_x;\n"
-        "    int y = transport_layout.row_gap;\n"
-        "  }\n"
-        "}\n"
-    )
 
 
-def valid_media_modal_power_tab_text() -> str:
-    return (
-        "enum class MediaControlTab { POWER = 4 };\n"
-        "inline bool media_control_power_supported() {}\n"
-        "inline bool media_control_ensure_power_tab_button() {}\n"
-        "inline void media_control_create_power_tab_content() {}\n"
-        "inline void media_control_refresh_power() {}\n"
-        "bool changed = previous_power_supported != power_supported;\n"
-        "media_control_ensure_visible_tab(ctx);\n"
-        "  ui.tab = visible.tabs[0];\n"
-        "}\n"
-        "int count = visible_tabs.count;\n"
-        "MediaControlTabLayout tabs[5] = {};\n"
-    )
 
 
-def valid_media_modal_progress_layout_text() -> str:
-    return (
-        "struct MediaControlModalUi {\n"
-        "  bool progress_layout_ready = false;\n"
-        "  bool progress_refresh_pending = false;\n"
-        "};\n"
-        "inline void media_control_refresh_progress(MediaControlCtx *ctx) {\n"
-        "  if (!ui.progress_layout_ready) {\n"
-        "    ui.progress_refresh_pending = true;\n"
-        "    return;\n"
-        "  }\n"
-        "}\n"
-        "inline void media_control_create_progress_tab_content(MediaControlCtx *ctx) {\n"
-        "  if (ui.progress_fill) lv_obj_add_flag(ui.progress_fill, LV_OBJ_FLAG_HIDDEN);\n"
-        "  if (ui.progress_handle) lv_obj_add_flag(ui.progress_handle, LV_OBJ_FLAG_HIDDEN);\n"
-        "}\n"
-        "inline void media_control_layout_modal(MediaControlCtx *ctx) {\n"
-        "  ui.progress_layout_ready = false;\n"
-        "    lv_obj_set_size(ui.progress_slider, progress_slider_w, progress_slider_h);\n"
-        "  lv_obj_update_layout(ui.progress_slider);\n"
-        "    ui.progress_layout_ready = true;\n"
-        "  media_control_refresh_progress(ctx);\n"
-        "    if (ui.progress_fill) lv_obj_clear_flag(ui.progress_fill, LV_OBJ_FLAG_HIDDEN);\n"
-        "  lv_obj_clear_flag(ui.progress_slider, LV_OBJ_FLAG_HIDDEN);\n"
-        "}\n"
-    )
 
 
 def valid_sleep_takeover_files() -> dict[str, str]:
@@ -1425,148 +677,16 @@ def valid_sleep_takeover_files() -> dict[str, str]:
     }
 
 
-def expect_fan_modal_context_lifecycle_errors(
-    name: str,
-    fan_text: str,
-    grid_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_fan.h").write_text(
-            fan_text, encoding="utf-8"
-        )
-        (firmware_dir / "button_grid_grid.h").write_text(
-            grid_text, encoding="utf-8"
-        )
-
-        errors = firmware_fan_modal_context_lifecycle_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), (
-                f"{name}: missing {item!r} in {errors!r}"
-            )
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_fan_light_fallback_errors(
-    name: str, fan_text: str, expected: tuple[str, ...]
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "components" / "espdesktop" / "button_grid_fan.h"
-        path.parent.mkdir(parents=True)
-        path.write_text(fan_text, encoding="utf-8")
-
-        errors = firmware_fan_light_fallback_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), (
-                f"{name}: missing {item!r} in {errors!r}"
-            )
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_climate_modal_context_lifecycle_errors(
-    name: str,
-    climate_text: str,
-    grid_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_climate.h").write_text(
-            climate_text, encoding="utf-8"
-        )
-        (firmware_dir / "button_grid_grid.h").write_text(
-            grid_text, encoding="utf-8"
-        )
-
-        errors = firmware_climate_modal_context_lifecycle_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), (
-                f"{name}: missing {item!r} in {errors!r}"
-            )
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_alarm_modal_context_lifecycle_errors(
-    name: str,
-    grid_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_grid.h").write_text(
-            grid_text, encoding="utf-8"
-        )
-
-        errors = firmware_alarm_modal_context_lifecycle_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), (
-                f"{name}: missing {item!r} in {errors!r}"
-            )
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_cover_modal_context_lifecycle_errors(
-    name: str,
-    sliders_text: str,
-    grid_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_sliders.h").write_text(
-            sliders_text, encoding="utf-8"
-        )
-        (firmware_dir / "button_grid_grid.h").write_text(
-            grid_text, encoding="utf-8"
-        )
-
-        errors = firmware_cover_modal_context_lifecycle_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), (
-                f"{name}: missing {item!r} in {errors!r}"
-            )
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_media_modal_context_lifecycle_errors(
-    name: str,
-    media_text: str,
-    grid_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_media.h").write_text(
-            media_text, encoding="utf-8"
-        )
-        (firmware_dir / "button_grid_grid.h").write_text(
-            grid_text, encoding="utf-8"
-        )
-
-        errors = firmware_media_modal_context_lifecycle_errors(root)
-        for item in expected:
-            assert any(item in error for error in errors), (
-                f"{name}: missing {item!r} in {errors!r}"
-            )
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
 def run_self_test() -> int:
@@ -1610,24 +730,6 @@ def run_self_test() -> int:
         "fan_close_modals_for_context(fan);\n"
         "fan_close_modals_for_context(ctx);\n"
     )
-    expect_fan_modal_context_lifecycle_errors(
-        "fan modal context cleanup",
-        valid_fan_cleanup,
-        valid_grid_cleanup,
-        (),
-    )
-    expect_fan_modal_context_lifecycle_errors(
-        "fan modal context remains active",
-        "inline void fan_close_modals_for_context(FanCardCtx *ctx) {}\n",
-        valid_grid_cleanup,
-        ("close fan modals before deleting their card context",),
-    )
-    expect_fan_modal_context_lifecycle_errors(
-        "fan modal cleanup missing from subpage deletion",
-        valid_fan_cleanup,
-        "fan_close_modals_for_context(ctx);\n",
-        ("invalidate fan modals on main-grid and subpage cleanup",),
-    )
     valid_fan_light_fallback = (
         "inline bool fan_control_supported(FanCardCtx *ctx) {\n"
         "  if (ctx->type == \"fan_control\" && fan_light_supported(ctx)) return true;\n"
@@ -1647,27 +749,6 @@ def run_self_test() -> int:
         "  if (ui.active == ctx && fan_control_visible_tabs(ctx).count == 0) fan_control_hide_modal();\n"
         "}\n"
     )
-    expect_fan_light_fallback_errors(
-        "fan light remains available without the fan",
-        valid_fan_light_fallback,
-        (),
-    )
-    expect_fan_light_fallback_errors(
-        "fan light modal requires fan availability",
-        valid_fan_light_fallback.replace(
-            "return ctx && (ctx->available || fan_light_supported(ctx)) &&",
-            "return ctx && ctx->available &&",
-        ),
-        ("keep the separate light tab available",),
-    )
-    expect_fan_light_fallback_errors(
-        "fan light modal remains open when its last tab disappears",
-        valid_fan_light_fallback.replace(
-            "  if (ui.active == ctx && fan_control_visible_tabs(ctx).count == 0) fan_control_hide_modal();\n",
-            "",
-        ),
-        ("keep the separate light tab available",),
-    )
     valid_climate_cleanup = (
         "inline void delete_climate_control_context(ClimateControlCtx *ctx) {\n"
         "  if (climate_control_modal_ui().active == ctx) climate_control_hide_modal();\n"
@@ -1685,28 +766,6 @@ def run_self_test() -> int:
         "  delete_climate_control_context(ctx);\n"
         "}\n"
     )
-    expect_climate_modal_context_lifecycle_errors(
-        "climate modal context cleanup",
-        valid_climate_cleanup,
-        valid_climate_grid_cleanup,
-        (),
-    )
-    expect_climate_modal_context_lifecycle_errors(
-        "climate timer remains active",
-        valid_climate_cleanup.replace(
-            "  lv_timer_del(ctx->debounce_timer);\n", ""
-        ),
-        valid_climate_grid_cleanup,
-        ("close climate modals and timers before deleting their card context",),
-    )
-    expect_climate_modal_context_lifecycle_errors(
-        "climate subpage uses generic cleanup",
-        valid_climate_cleanup,
-        valid_climate_grid_cleanup.replace(
-            "  delete_climate_control_context(ctx);\n", "", 1
-        ),
-        ("use climate-aware main-grid and subpage cleanup",),
-    )
     valid_cover_cleanup = (
         "inline void delete_cover_control_context(CoverControlCtx *ctx) {\n"
         "  if (cover_control_modal_ui().active == ctx) cover_control_hide_modal();\n"
@@ -1720,26 +779,6 @@ def run_self_test() -> int:
         "inline void grid_delete_cover_control_with_owner() {\n"
         "  delete_cover_control_context(ctx);\n"
         "}\n"
-    )
-    expect_cover_modal_context_lifecycle_errors(
-        "cover modal context cleanup",
-        valid_cover_cleanup,
-        valid_cover_grid_cleanup,
-        (),
-    )
-    expect_cover_modal_context_lifecycle_errors(
-        "cover modal remains active",
-        valid_cover_cleanup.replace(" cover_control_hide_modal();", ""),
-        valid_cover_grid_cleanup,
-        ("close cover modals before deleting their card context",),
-    )
-    expect_cover_modal_context_lifecycle_errors(
-        "cover subpage uses generic cleanup",
-        valid_cover_cleanup,
-        valid_cover_grid_cleanup.replace(
-            "  delete_cover_control_context(ctx);\n", "", 1
-        ),
-        ("use cover-aware main-grid and subpage cleanup",),
     )
     valid_media_cleanup = (
         "inline void delete_media_control_context(MediaControlCtx *ctx) {\n"
@@ -1774,26 +813,6 @@ def run_self_test() -> int:
         "grid_track_media_slider_runtime",
         "grid_delete_media_slider_with_owner",
     ))
-    expect_media_modal_context_lifecycle_errors(
-        "media modal context cleanup",
-        valid_media_cleanup,
-        valid_media_grid_cleanup,
-        (),
-    )
-    expect_media_modal_context_lifecycle_errors(
-        "media volume modal remains active",
-        valid_media_cleanup.replace(" media_volume_hide_modal();", ""),
-        valid_media_grid_cleanup,
-        ("close media modals, detach playback consumers, and cancel timers",),
-    )
-    expect_media_modal_context_lifecycle_errors(
-        "media subpage uses generic cleanup",
-        valid_media_cleanup,
-        valid_media_grid_cleanup.replace(
-            "grid_delete_media_slider_with_owner", ""
-        ),
-        ("use media-aware main-grid and subpage cleanup",),
-    )
     valid_alarm_cleanup = (
         "inline void grid_delete_alarm_card_runtime_ptr(void *ptr);\n"
         "inline AlarmCardCtx *grid_delete_alarm_card_with_owner();\n"
@@ -1816,25 +835,6 @@ def run_self_test() -> int:
         "inline void delete_alarm_subpage() {\n"
         "  grid_delete_alarm_card_runtime_ptr(ctx);\n"
         "}\n"
-    )
-    expect_alarm_modal_context_lifecycle_errors(
-        "alarm modal context cleanup",
-        valid_alarm_cleanup,
-        (),
-    )
-    expect_alarm_modal_context_lifecycle_errors(
-        "alarm PIN modal remains active",
-        valid_alarm_cleanup.replace(
-            "  if (pin_ui.active->card == ctx) alarm_pin_hide_modal();\n", ""
-        ),
-        ("close alarm modals, deferred actions, timers, and display takeover",),
-    )
-    expect_alarm_modal_context_lifecycle_errors(
-        "alarm subpage uses generic cleanup",
-        valid_alarm_cleanup.replace(
-            "  grid_delete_alarm_card_runtime_ptr(ctx);\n", "", 1
-        ),
-        ("use alarm-aware main-grid, subpage, and alarm-action cleanup",),
     )
     expect_sleep_takeover_errors(
         "missing display takeover close",
@@ -1873,99 +873,6 @@ def run_self_test() -> int:
         unconditional_alarm_preservation,
         ("preserve alarm controls only during an active alarm takeover",),
     )
-    expect_climate_step_errors(
-        "climate modal allows 0.1C steps",
-        (
-            "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 1;\n"
-            "constexpr int CLIMATE_WHOLE_NUMBER_STEP_TENTHS = 10;\n"
-            "inline int climate_effective_step_tenths(ClimateControlCtx *ctx) {\n"
-            "  if (!ctx) return CLIMATE_DEFAULT_STEP_TENTHS;\n"
-            "  return ctx->step_tenths;\n"
-            "}\n"
-            "inline int climate_round_to_step(ClimateControlCtx *ctx, int value) {\n"
-            "  int step = ctx->step_tenths;\n"
-            "  int base = ctx->min_tenths;\n"
-            "  return value;\n"
-            "}\n"
-            "inline void climate_control_open_modal(ClimateControlCtx *ctx) {\n"
-            "  climate_selected_target(ui.active) - ui.active->step_tenths;\n"
-            "  climate_selected_target(ui.active) + ui.active->step_tenths;\n"
-            "}\n"
-        ),
-        (
-            "use the configured climate temperature step",
-            "route climate modal temperature changes through step rounding",
-            "do not allow 0.1C climate modal temperature steps",
-        ),
-    )
-    expect_climate_step_errors(
-        "climate modal uses configured step increment",
-        (
-            "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 5;\n"
-            "constexpr int CLIMATE_WHOLE_NUMBER_STEP_TENTHS = 10;\n"
-            "int configured_step_tenths = CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-            "inline int climate_effective_step_tenths(ClimateControlCtx *ctx) {\n"
-            "  if (!ctx) return CLIMATE_DEFAULT_STEP_TENTHS;\n"
-            "  if (ctx->configured_step_tenths == CLIMATE_DEFAULT_STEP_TENTHS ||\n"
-            "      ctx->configured_step_tenths == CLIMATE_WHOLE_NUMBER_STEP_TENTHS)\n"
-            "    return ctx->configured_step_tenths;\n"
-            "  return CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-            "}\n"
-            "inline int climate_round_to_step(ClimateControlCtx *ctx, int value) {\n"
-            "  int step = climate_effective_step_tenths(ctx);\n"
-            "  int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;\n"
-            "  return value + step;\n"
-            "}\n"
-            "inline void climate_apply_selected_target(ClimateControlCtx *ctx, int value, bool send_now, bool debounce) {\n"
-            "  value = climate_round_to_step(ctx, climate_constrain_selected_target(ctx, value));\n"
-            "}\n"
-            "inline ClimateControlCtx *create_climate_control_context(const ParsedCfg &p) {\n"
-            "  ctx->configured_step_tenths = normalize_climate_temperature_step(\n"
-            "    cfg_option_value(p.options, \"temperature_step\")) == \"0.5\"\n"
-            "      ? CLIMATE_DEFAULT_STEP_TENTHS\n"
-            "      : CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-            "}\n"
-            "inline int climate_target_from_modal_arc_value(ClimateControlCtx *ctx, int value) {\n"
-            "  if (climate_uses_cooling_arc(ctx)) return ctx->min_tenths + ctx->max_tenths - value;\n"
-            "  return value;\n"
-            "}\n"
-            "inline void climate_control_open_modal(ClimateControlCtx *ctx) {\n"
-            "  climate_preview_selected_target(ui.active,\n"
-            "    climate_target_from_modal_arc_value(ui.active, lv_arc_get_value(arc)));\n"
-            "  climate_apply_selected_target(ui.active, value, true, false);\n"
-            "  climate_selected_target(ui.active) - climate_effective_step_tenths(ui.active);\n"
-            "  climate_selected_target(ui.active) + climate_effective_step_tenths(ui.active);\n"
-            "}\n"
-        ),
-        (),
-    )
-    expect_climate_option_selection_errors(
-        "climate custom options lose case distinctions",
-        (
-            "inline bool climate_option_selected(ClimateControlCtx *ctx,\n"
-            "                                    const std::string &kind,\n"
-            "                                    const std::string &value) {\n"
-            "  if (!ctx) return false;\n"
-            "  std::string current = climate_option_current_value(ctx, kind);\n"
-            "  return climate_lower(climate_trim(value)) == climate_lower(climate_trim(current));\n"
-            "}\n"
-        ),
-        ("match exact climate option values while normalizing HVAC enums",),
-    )
-    expect_climate_option_selection_errors(
-        "climate option selection keeps custom IDs and HVAC normalization",
-        (
-            "inline bool climate_option_selected(ClimateControlCtx *ctx,\n"
-            "                                    const std::string &kind,\n"
-            "                                    const std::string &value) {\n"
-            "  if (!ctx) return false;\n"
-            '  if (kind == "hvac") return climate_hvac_service_value(value) == ctx->hvac_mode;\n'
-            "  std::string current = climate_option_current_value(ctx, kind);\n"
-            "  return value == current;\n"
-            "}\n"
-        ),
-        (),
-    )
     expect_network_status_version_errors(
         "raw local firmware version leaks",
         (
@@ -2000,8 +907,8 @@ def run_self_test() -> int:
         (),
     )
     old_tab_layout = valid_modal_tab_layout_files()
-    old_tab_layout["components/espdesktop/button_grid_fan.h"] = (
-        old_tab_layout["components/espdesktop/button_grid_fan.h"]
+    old_tab_layout["components/espdesktop/button_grid_wifi_qr.h"] = (
+        old_tab_layout["components/espdesktop/button_grid_wifi_qr.h"]
         + "lv_coord_t selected_tab_size = tab_size + tab_size / 8;\n"
     )
     expect_modal_tab_layout_errors(
@@ -2010,57 +917,13 @@ def run_self_test() -> int:
         ("keep modal tab sizing in button_grid_modal_layout.h",),
     )
     missing_shared_tab_helper = valid_modal_tab_layout_files()
-    missing_shared_tab_helper["components/espdesktop/button_grid_climate.h"] = (
+    missing_shared_tab_helper["components/espdesktop/button_grid_wifi_qr.h"] = (
         "lv_coord_t selected_tab_size = tab_size + tab_size / 8;\n"
     )
     expect_modal_tab_layout_errors(
         "climate modal stops using shared tab helper",
         missing_shared_tab_helper,
         ("use shared modal tab layout helpers",),
-    )
-    expect_media_modal_progress_layout_errors(
-        "media progress layout gated",
-        valid_media_modal_progress_layout_text(),
-        (),
-    )
-    expect_media_modal_progress_layout_errors(
-        "media progress draws before layout",
-        valid_media_modal_progress_layout_text().replace(
-            "  if (!ui.progress_layout_ready) {\n"
-            "    ui.progress_refresh_pending = true;\n"
-            "    return;\n"
-            "  }\n",
-            "",
-        ),
-        ("progress drawing gated",),
-    )
-    expect_media_modal_power_tab_errors(
-        "conditional media Power tab",
-        valid_media_modal_power_tab_text(),
-        (),
-    )
-    expect_media_modal_power_tab_errors(
-        "media Power tab loses safe fallback",
-        valid_media_modal_power_tab_text().replace(
-            "  ui.tab = visible.tabs[0];\n", ""
-        ),
-        ("safe visible-tab fallback",),
-    )
-    valid_playback_modes = valid_media_modal_playback_mode_text()
-    expect_media_modal_playback_mode_errors(
-        "conditional media Shuffle and Repeat controls",
-        valid_playback_modes,
-        (),
-    )
-    expect_media_modal_playback_mode_errors(
-        "media playback-mode cleanup removed",
-        valid_playback_modes.replace("  ui.repeat_btn = nullptr;\n", ""),
-        ("three/four/five-button layouts and cleanup",),
-    )
-    expect_media_modal_playback_mode_errors(
-        "media playback-mode capability relayout removed",
-        valid_playback_modes.replace("  media_control_clear_tab_content();\n", ""),
-        ("state-synchronised",),
     )
     home_idle_gated = valid_sleep_takeover_files()
     home_idle_gated["common/addon/backlight.yaml"] = home_idle_gated[

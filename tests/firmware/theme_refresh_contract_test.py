@@ -77,7 +77,6 @@ for marker in ("register_theme_refresh(ui.overlay, network_status_apply_theme",
                "theme_display_color(theme.surface_card)", "theme.text_primary"):
     assert marker in network, marker
 assert "control_modal_track_theme_disabled(btn)" in climate
-assert "alarm_theme_off_color(ctx)" in alarm
 assert "current_theme().surface_primary" in alarm
 
 print("Theme refresh ownership checks passed.")

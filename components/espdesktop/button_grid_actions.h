@@ -151,14 +151,6 @@ inline void send_lock_action(LockCardCtx *ctx) {
   send_lock_action(ctx->entity_id, ctx->state);
 }
 
-inline void send_lock_command_action(const ParsedCfg &p) {
-  if (p.entity.empty()) return;
-  const char *service = card_runtime_lock_command_service(p.sensor);
-  if (service == nullptr) return;
-
-  ha_send_entity_action(p.entity, service);
-}
-
 // ── Slider card helpers ────────────────────────────────────────────────
 
 inline bool is_cover_entity(const std::string &entity_id) {
@@ -185,19 +177,6 @@ constexpr int COVER_SUPPORT_OPEN_TILT = 16;
 constexpr int COVER_SUPPORT_CLOSE_TILT = 32;
 constexpr int COVER_SUPPORT_STOP_TILT = 64;
 constexpr int COVER_SUPPORT_SET_TILT_POSITION = 128;
-
-inline bool cover_parse_supported_features(esphome::StringRef val, int &features) {
-  std::string value = normalized_state_text(val);
-  if (value.empty() || value == "none" || value == "null" ||
-      value == "unknown" || value == "unavailable") {
-    return false;
-  }
-  char *end = nullptr;
-  long parsed = std::strtol(value.c_str(), &end, 10);
-  if (end == value.c_str()) return false;
-  features = static_cast<int>(parsed);
-  return true;
-}
 
 inline const char *cover_tilt_command_service(const std::string &sensor) {
   if (sensor == "open") return "cover.open_cover_tilt";
@@ -248,35 +227,6 @@ inline bool cover_command_supported(const std::string &sensor,
   int tilt_feature = cover_command_tilt_feature(sensor);
   return (normal_feature != 0 && (supported_features & normal_feature) != 0) ||
          (tilt_feature != 0 && (supported_features & tilt_feature) != 0);
-}
-
-inline void cover_command_apply_supported_features(CoverCommandCtx *ctx, int features) {
-  if (!ctx) return;
-  ctx->supported_features_known = true;
-  ctx->supported_features = features;
-}
-
-inline CoverCommandCtx *create_cover_command_context(const ParsedCfg &p) {
-  CoverCommandCtx *ctx = new CoverCommandCtx();
-  ctx->config = p;
-  return ctx;
-}
-
-inline void subscribe_cover_command_features(CoverCommandCtx *ctx) {
-  if (!ctx || ctx->config.entity.empty()) return;
-  ha_subscribe_attribute(
-    ctx->config.entity, std::string("supported_features"),
-    std::function<void(esphome::StringRef)>(
-      [ctx](esphome::StringRef val) {
-        int features = 0;
-        if (cover_parse_supported_features(val, features)) {
-          cover_command_apply_supported_features(ctx, features);
-        } else {
-          ctx->supported_features_known = false;
-          ctx->supported_features = 0;
-        }
-      })
-  );
 }
 
 inline int cover_position_value(const std::string &value) {
@@ -441,39 +391,6 @@ inline lv_color_t kelvin_to_fill_color(int k, int /*min_k*/, int /*max_k*/) {
 }
 
 // Send light.turn_on with color_temp_kelvin mapped from 0-100 pct over [min_k, max_k].
-inline void send_light_temp_action(const std::string &entity_id, int pct, int min_k, int max_k) {
-  esphome::api::HomeassistantActionRequest req;
-  if (!ha_action_begin(req, "light.turn_on", false, 2)) return;
-  if (entity_id.empty()) return;
-  ha_action_add_entity(req, entity_id);
-  int kelvin = min_k + (pct * (max_k - min_k)) / 100;
-  if (kelvin < min_k) kelvin = min_k;
-  if (kelvin > max_k) kelvin = max_k;
-  char buf[8];
-  snprintf(buf, sizeof(buf), "%d", kelvin);
-  ha_action_add_data(req, "color_temp_kelvin", buf);
-  ha_action_send(req);
-}
-
-inline void send_light_rgb_action(const std::string &entity_id, uint32_t color) {
-  esphome::api::HomeassistantActionRequest req;
-  if (!ha_action_begin(req, "light.turn_on", false, 1)) return;
-  if (entity_id.empty()) return;
-  req.data_template.init(1);
-  req.variables.init(3);
-  ha_action_add_entity(req, entity_id);
-  ha_action_add_data_template(req, "rgb_color", "{{ [red | int, green | int, blue | int] }}");
-  char red[4];
-  char green[4];
-  char blue[4];
-  snprintf(red, sizeof(red), "%u", static_cast<unsigned>((color >> 16) & 0xFF));
-  snprintf(green, sizeof(green), "%u", static_cast<unsigned>((color >> 8) & 0xFF));
-  snprintf(blue, sizeof(blue), "%u", static_cast<unsigned>(color & 0xFF));
-  ha_action_add_variable(req, "red", red);
-  ha_action_add_variable(req, "green", green);
-  ha_action_add_variable(req, "blue", blue);
-  ha_action_send(req);
-}
 
 inline const char *light_temp_icon(const std::string &icon) {
   return (!icon.empty() && icon != "Auto") ? find_icon(icon.c_str()) : find_icon("Lightbulb");
@@ -481,10 +398,6 @@ inline const char *light_temp_icon(const std::string &icon) {
 
 inline std::string media_card_mode(const std::string &sensor) {
   return card_runtime_media_mode(sensor);
-}
-
-inline bool media_playback_button_mode(const std::string &mode) {
-  return card_runtime_media_playback_button_mode(mode);
 }
 
 inline const char *media_service_for_mode(const std::string &mode) {

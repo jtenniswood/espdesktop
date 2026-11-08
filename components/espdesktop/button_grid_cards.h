@@ -409,39 +409,6 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
 inline void apply_push_button_transition(lv_obj_t *btn);
 inline void clear_push_button_transition(lv_obj_t *btn);
 
-inline void setup_garage_card(BtnSlot &s, const ParsedCfg &p) {
-  if (garage_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, garage_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, garage_closed_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
-}
-
-inline void setup_gate_card(BtnSlot &s, const ParsedCfg &p) {
-  if (gate_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, gate_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, gate_closed_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
-}
-
-inline void setup_lock_card(BtnSlot &s, const ParsedCfg &p) {
-  if (lock_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, lock_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, lock_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, lock_locked_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, lock_card_label(p));
-}
-
 inline const char *screen_lock_locked_icon(const ParsedCfg &p) {
   (void) p;
   return find_icon("Lock");
@@ -489,7 +456,6 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
   lv_obj_set_style_transition(btn, &push_trans,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
-
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
